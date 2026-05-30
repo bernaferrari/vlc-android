@@ -152,6 +152,9 @@ import org.videolan.vlc.compose.theme.VLCTheme
 //   - Previews (now richer): .../compose/PreviewUtils.kt (sectioned list, dialog mock, etc.)
 //   - Launch host: DebugLogActivity.kt (compose-2l4.1.2) + debug_log.xml
 //   - Reference demo host: NetworkServerDialog.kt + network_server_dialog.xml (compose-5qk)
+//   - List host example: DebugLogActivity.kt + debug_log.xml (compose-2l4.1.2 / bd compose-5wg)
+//   - Decoration + browser host: Recycler*ItemDecoration + BaseAudioBrowser etc. (compose-2l4.1.4 / bd compose-95d)
+//   - Info surfaces host: MediaInfoAdapter.kt + InfoActivity.kt (compose-2l4.1.3 / bd compose-l94)
 //   - This cross-cutting task: compose-2l4.1.8 (bd: compose-iju)
 //   - Earlier bootstrap: compose-cb5, compose-5wg (closed)
 //   - Epic context: Wave 1 leaf migrations after phase-0-compose-bootstrap
@@ -305,7 +308,7 @@ fun ComposeInteropLabContent() {
             subtitle = "Language: eng • Codec: subrip • Forced: no"
         )
         Text(
-            "Slot-based leadingContent for icons. Colors: fontAudioLight + listSubtitle. Primary migration target for MediaInfoAdapter.",
+            "Slot-based leadingContent for icons. Colors: fontAudioLight + listSubtitle. Primary migration target for MediaInfoAdapter (compose-2l4.1.3 / bd compose-l94). See MediaInfoAdapter.kt for the full RecyclerView + ComposeView Pattern 2 implementation (old info_item.xml path 100% preserved in comments) + InfoActivity.kt host comments.",
             style = MaterialTheme.typography.bodySmall
         )
 

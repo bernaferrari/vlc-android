@@ -64,6 +64,19 @@ import org.videolan.vlc.viewmodels.browser.IPathOperationDelegate
 import org.videolan.vlc.viewmodels.browser.PathOperationDelegate
 import java.io.File
 
+// =============================================================================
+// WAVE 1 HOST MIGRATION IMPORTS (Info surfaces - compose-2l4.1.3)
+// Reference: MediaInfoAdapter.kt (the real interop site for VLCInfoItem rows).
+// This activity is the primary host surface that owns the RecyclerView +
+// MediaInfoAdapter. We add only traceability comments here (no behavior or
+// XML changes) per the "touch InfoActivity.kt or related info surfaces for
+// host comments" requirement. See the massive header in MediaInfoAdapter.kt
+// for the full rollback matrix, patterns, and Permanent Exceptions notes.
+// =============================================================================
+// (No new runtime imports needed in this file; the adapter carries the Compose
+// wiring. This block exists purely for educational cross-reference.)
+// =============================================================================
+
 private const val TAG = "VLC/InfoActivity"
 private const val TAG_FAB_VISIBILITY = "FAB"
 
@@ -126,6 +139,22 @@ class InfoActivity : AudioPlayerContainerActivity(), View.OnClickListener, PathA
 
         binding.fab.setOnClickListener(this)
         if (item is MediaWrapper) {
+            // -----------------------------------------------------------------
+            // WAVE 1 MEDIA INFO HOST (compose-2l4.1.3 / bd compose-l94)
+            // The adapter here (MediaInfoAdapter) has been updated to host
+            // VLCInfoItem rows via Pattern 2 (programmatic ComposeView per RV item).
+            // See the 100+ line mission header + rollback instructions inside
+            // MediaInfoAdapter.kt for every detail (traceability to leaf InfoItem.kt,
+            // icon slot mapping via unicode symbols, old XML path fully commented,
+            // Permanent Exceptions, links to NetworkServerDialog/DebugLog/SectionHeader
+            // hosts, Interop Lab, cross-cut compose-iju, etc.).
+            //
+            // This site (InfoActivity) receives the comment treatment only:
+            // - No changes to DataBinding, cover loading, meta, fab, path adapter, etc.
+            // - The mediaTracks observer + setTracks call continues to work unchanged.
+            // - Original info_activity.xml (complex Coordinator/Collapsing/AppBar) untouched.
+            // - Zero risk to the shipping media info screen.
+            // -----------------------------------------------------------------
             adapter = MediaInfoAdapter()
             binding.list.layoutManager = LinearLayoutManager(binding.root.context)
             binding.list.adapter = adapter

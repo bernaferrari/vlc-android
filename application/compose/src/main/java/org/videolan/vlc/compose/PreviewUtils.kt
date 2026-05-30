@@ -479,6 +479,85 @@ fun VLCInfoItemDarkPreview() {
     }
 }
 
+// ============================================================
+// WAVE 1.3 ENHANCEMENT (compose-2l4.1.3 / bd compose-l94)
+// Realistic "Media Info Track List" mocks simulating exactly what
+// MediaInfoAdapter renders for a video file's track list inside
+// InfoActivity (the primary host surface for this leaf).
+// These exercise the leadingContent slot mapping (♪ 📺 📝) +
+// realistic subtitle strings that come from appendCommon/append* helpers.
+// Directly referenced from the new comments in MediaInfoAdapter.kt
+// and the combined mock already present in ComposeInteropLabActivity.
+// ============================================================
+
+@Preview(
+    name = "Media Info Track List Mock (MediaInfoAdapter simulation) - Light",
+    showBackground = true,
+    backgroundColor = 0xFFFFFFFF,
+    widthDp = 360,
+    heightDp = 260
+)
+@Composable
+fun MediaInfoTrackListLightPreview() {
+    VLCTheme(darkTheme = false) {
+        Column(Modifier.padding(4.dp).background(VLCThemeDefaults.colors.backgroundDefault)) {
+            // Simulates the exact rows MediaInfoAdapter produces for a typical movie
+            VLCInfoItem(
+                title = "Video",
+                subtitle = "1920×1080 • 23.98 fps • Codec: h264 • 8.2 Mbps",
+                leadingContent = { Text("📺", color = VLCThemeDefaults.colors.fontAudioLight) }
+            )
+            VLCInfoItem(
+                title = "Audio",
+                subtitle = "Bitrate: 320 kb/s • Codec: aac • Channels: 2 • Language: eng",
+                leadingContent = { Text("♪", color = VLCThemeDefaults.colors.fontAudioLight) }
+            )
+            VLCInfoItem(
+                title = "Audio",
+                subtitle = "Bitrate: 192 kb/s • Codec: ac3 • Channels: 6 • Language: eng",
+                leadingContent = { Text("♪", color = VLCThemeDefaults.colors.fontAudioLight) }
+            )
+            VLCInfoItem(
+                title = "Text",
+                subtitle = "Language: eng • Codec: subrip • Forced: no • Default: yes"
+            )
+            VLCInfoItem(
+                title = "Text",
+                subtitle = "Language: spa • Codec: subrip • Forced: no"
+            )
+        }
+    }
+}
+
+@Preview(
+    name = "Media Info Track List Mock (MediaInfoAdapter simulation) - Dark",
+    showBackground = true,
+    backgroundColor = 0xFF131313,
+    widthDp = 360,
+    heightDp = 260
+)
+@Composable
+fun MediaInfoTrackListDarkPreview() {
+    VLCTheme(darkTheme = true) {
+        Column(Modifier.padding(4.dp).background(VLCThemeDefaults.colors.backgroundDefault)) {
+            VLCInfoItem(
+                title = "Video",
+                subtitle = "1920×1080 • 23.98 fps • Codec: h264 • 8.2 Mbps",
+                leadingContent = { Text("📺", color = VLCThemeDefaults.colors.fontAudioLight) }
+            )
+            VLCInfoItem(
+                title = "Audio",
+                subtitle = "Bitrate: 320 kb/s • Codec: aac • Channels: 2 • Language: eng",
+                leadingContent = { Text("♪", color = VLCThemeDefaults.colors.fontAudioLight) }
+            )
+            VLCInfoItem(
+                title = "Text",
+                subtitle = "Language: eng • Codec: subrip • Forced: no • Default: yes"
+            )
+        }
+    }
+}
+
 @Preview(
     name = "VLCDebugLogLine - Light",
     showBackground = true,
@@ -587,6 +666,8 @@ fun VLCOnboardingWelcomeDarkPreview() {
 // ============================================================
 // WAVE 1.8 RICHER USAGE MOCKS (derived from Compose Interop Lab host)
 // compose-2l4.1.8 cross-cutting: these are the "richer usage mocks" requirement.
+// WAVE 1.3 addition (compose-2l4.1.3): MediaInfoTrackList*Previews were added here
+// (and exercised by the Lab's combined mock) as part of the MediaInfoAdapter host migration.
 // They are extracted / inspired directly from the live interactive examples
 // in ComposeInteropLabActivity.kt (the crown jewel dev-only Lab launched
 // from DebugLogActivity). They provide:
