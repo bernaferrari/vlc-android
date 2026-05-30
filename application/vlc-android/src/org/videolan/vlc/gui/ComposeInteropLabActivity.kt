@@ -347,29 +347,111 @@ fun ComposeInteropLabContent() {
         )
 
         // -----------------------------------------------------------------
-        // 5. VLCDialogConfirmDelete (interactive: real dialog launcher)
+        // 5. VLCDialogConfirmDelete (interactive: real dialog launcher + host context)
+        // WAVE 1 / compose-2l4.1.5 (bd compose-j0e) enhancement:
+        // This now exercises the leaf with *real host context* pulled directly from
+        // the title-generation + icon logic in the actual ConfirmDeleteDialog.kt
+        // (the production shell that inflates dialog_confirm_delete.xml for deletes,
+        // bans, history clears, TV app data clear, etc.).
+        //
+        // Variants below mirror the when-expression in ConfirmDeleteDialog.onCreateView
+        // (single file/folder, multi files+folders, album, playlist, ban-folder special
+        // case with warning icon, clear history, several media). The iconContent slot
+        // demonstrates the mapping site for the AnimatedVectorDrawable "anim_delete"
+        // (looping) vs static ic_warning_medium — see the full recipe + AndroidView
+        // sketch in the 130+ line mission header of ConfirmDeleteDialog.kt.
+        //
+        // This is the "crown jewel" live proof for the "keep shell, swap content"
+        // pattern: the AlertDialog here is the M3 scaffolding analogue; in a future
+        // full migration the legacy ConfirmDeleteDialog keeps all its contracts,
+        // button wiring, result sending, leanback focus etc. while this leaf (or
+        // a Compose ModalBottomSheet wrapper) supplies the icon+title+message.
         // -----------------------------------------------------------------
-        VLCSectionHeader(text = "5. VLCDialogConfirmDelete (dialog_confirm_delete.xml presentational core)")
-        var showDeleteDialog by remember { mutableStateOf(false) }
+        VLCSectionHeader(text = "5. VLCDialogConfirmDelete (dialog_confirm_delete.xml presentational core + real ConfirmDeleteDialog host context)")
 
-        Button(onClick = { showDeleteDialog = true }) {
-            Text("Show Confirm Delete Dialog (uses the leaf)")
+        var showDeleteDialog by remember { mutableStateOf(false) }
+        var deleteVariant by remember { mutableStateOf("single_file") }
+
+        // Real-host-context launcher buttons (mirrors production call sites)
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = { deleteVariant = "single_file"; showDeleteDialog = true }) {
+                    Text("Single file")
+                }
+                OutlinedButton(onClick = { deleteVariant = "multi"; showDeleteDialog = true }) {
+                    Text("Multi (files+folders)")
+                }
+                OutlinedButton(onClick = { deleteVariant = "ban"; showDeleteDialog = true }) {
+                    Text("Ban folder (warning)")
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = { deleteVariant = "album"; showDeleteDialog = true }) {
+                    Text("Album")
+                }
+                OutlinedButton(onClick = { deleteVariant = "playlist"; showDeleteDialog = true }) {
+                    Text("Playlist")
+                }
+                OutlinedButton(onClick = { deleteVariant = "clear_history"; showDeleteDialog = true }) {
+                    Text("Clear history")
+                }
+            }
         }
 
         if (showDeleteDialog) {
+            val (title, message, iconLabel) = when (deleteVariant) {
+                "single_file" -> Triple(
+                    "Delete \"My Video.mp4\"?",
+                    "This action cannot be undone.",
+                    "🗑"
+                )
+                "multi" -> Triple(
+                    "Confirm delete folders and files (3 folders, 12 files)?",
+                    "All selected items will be permanently removed from your device.",
+                    "🗑"
+                )
+                "ban" -> Triple(
+                    "Ban this folder?",
+                    "This will hide the folder and its contents from the media library. Use the ban folder explanation from real host.",
+                    "⚠"
+                )
+                "album" -> Triple(
+                    "Delete album \"Greatest Hits\"?",
+                    "This will remove the album and its tracks from the library.",
+                    "🗑"
+                )
+                "playlist" -> Triple(
+                    "Delete playlist \"Workout Mix\"?",
+                    "The playlist will be deleted (media files remain).",
+                    "🗑"
+                )
+                "clear_history" -> Triple(
+                    "Clear playback history", // mirrors real usage in PreferencesAdvanced + HistoryFragment + TV paths
+                    "This will clear all playback history. This action cannot be undone.",
+                    "⚠"
+                )
+                else -> Triple("Delete this media?", "This will permanently remove the selected file.", "🗑")
+            }
+
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
-                title = { /* title provided by the leaf */ },
+                title = { /* title provided by the leaf for fidelity */ },
                 text = {
                     VLCDialogConfirmDelete(
-                        title = "Delete this media?",
-                        message = "This will permanently remove the selected file from your device. This action cannot be undone and will also delete any associated metadata.",
-                        iconContent = { Text("⚠", style = MaterialTheme.typography.headlineMedium) }
+                        title = title,
+                        message = message,
+                        // In the real ConfirmDeleteDialog host the iconContent would use
+                        // AndroidView + the exact AnimatedVectorDrawableCompat setup
+                        // (anim_delete looping or ic_warning_medium) from the original
+                        // onCreateView. Here we approximate for the Lab demo.
+                        iconContent = {
+                            Text(iconLabel, style = MaterialTheme.typography.headlineMedium)
+                        }
                     )
                 },
                 confirmButton = {
                     TextButton(onClick = { showDeleteDialog = false }) {
-                        Text("DELETE")
+                        Text(if (deleteVariant == "ban") "BAN" else "DELETE")
                     }
                 },
                 dismissButton = {
@@ -381,8 +463,10 @@ fun ComposeInteropLabContent() {
         }
 
         Text(
-            "The leaf supplies only the warning icon + title + message (exactly the presentational subset of the original XML). " +
-            "Dialog scaffolding + actions provided by Material3 AlertDialog at the call site — the correct migration pattern.",
+            "Leaf = only icon + title + message (presentational subset of dialog_confirm_delete.xml). " +
+            "Scaffolding + actions by Material3 AlertDialog here (and will stay in the legacy ConfirmDeleteDialog shell for the hybrid phase). " +
+            "Variants above are live simulations of the exact title logic from ConfirmDeleteDialog.kt (task compose-2l4.1.5 / bd compose-j0e). " +
+            "See that file's mission header for the full keep-shell/swap-content recipe + rollback safety.",
             style = MaterialTheme.typography.bodySmall
         )
 

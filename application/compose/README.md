@@ -143,6 +143,8 @@ The **Compose Interop Lab** (`ComposeInteropLabActivity` + `compose_interop_lab.
   - First real Wave 1 host (list + adapter): `application/vlc-android/src/org/videolan/vlc/gui/DebugLogActivity.kt` + `debug_log.xml` (also contains the Lab launch button)
   - Decoration + browser hosts: Recycler*Decorations + BaseAudioBrowser/Playlist (compose-2l4.1.4)
   - Info surfaces host (MediaInfoAdapter + InfoActivity): `application/vlc-android/src/org/videolan/vlc/gui/video/MediaInfoAdapter.kt` + `application/vlc-android/src/org/videolan/vlc/gui/InfoActivity.kt` (compose-2l4.1.3 / bd compose-l94)
+  - Section header hosts + decorations (compose-2l4.1.4 / bd compose-95d)
+  - Dialog content host (ConfirmDeleteDialog - keep shell/swap content pattern): `application/vlc-android/src/org/videolan/vlc/gui/dialogs/ConfirmDeleteDialog.kt` (compose-2l4.1.5 / bd compose-j0e)
   - Crown jewel cross-cutting Lab (this milestone): `application/vlc-android/src/org/videolan/vlc/gui/ComposeInteropLabActivity.kt` + `compose_interop_lab.xml`
   - All leaves + interop + theme: `application/compose/src/main/java/org/videolan/vlc/compose/{components,interop,theme}/*`
   - Richer mocks derived from the Lab: `application/compose/src/main/java/org/videolan/vlc/compose/PreviewUtils.kt`

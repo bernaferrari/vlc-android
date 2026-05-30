@@ -845,6 +845,101 @@ fun DialogConfirmDeleteMockDarkPreview() {
     }
 }
 
+// =========================================================================
+// WAVE 1 / compose-2l4.1.5: REAL HOST CONTEXT PREVIEWS FOR VLCDialogConfirmDelete
+// (bd compose-j0e - ConfirmDeleteDialog host migration)
+// These mirror the *exact* title generation cases + icon decisions from the
+// production ConfirmDeleteDialog.kt when-expression and ban-folder branch
+// (single file, folders, files+folders, album, playlist, several, ban warning,
+// clear history, etc.). They make the "swap content" target visually regression-
+// testable in Studio with zero device. The iconContent here uses simple symbols;
+// the real host mapping (AndroidView + AnimatedVectorDrawableCompat for the
+// looping anim_delete vs ic_warning_medium) is documented in the mission header
+// of ConfirmDeleteDialog.kt and exercised live (with variant launcher) in the
+// Compose Interop Lab (ComposeInteropLabActivity.kt).
+// See also the DialogConfirmDeleteMock* above (the generic ones from Lab v1).
+// =========================================================================
+
+@Preview(
+    name = "VLCDialogConfirmDelete - Host Single File (Light)",
+    showBackground = true,
+    backgroundColor = 0xFFFFFFFF,
+    widthDp = 360,
+    heightDp = 180
+)
+@Composable
+fun VLCDialogConfirmDeleteHostSingleFileLightPreview() {
+    VLCTheme(darkTheme = false) {
+        VLCDialogConfirmDelete(
+            title = "Delete \"My Video.mp4\"?",
+            message = "This action cannot be undone.",
+            iconContent = { Text("🗑", style = MaterialTheme.typography.headlineMedium) }
+        )
+    }
+}
+
+@Preview(
+    name = "VLCDialogConfirmDelete - Host Ban Folder Warning (Dark)",
+    showBackground = true,
+    backgroundColor = 0xFF131313,
+    widthDp = 360,
+    heightDp = 180
+)
+@Composable
+fun VLCDialogConfirmDeleteHostBanDarkPreview() {
+    VLCTheme(darkTheme = true) {
+        VLCDialogConfirmDelete(
+            title = "Ban this folder?",
+            message = "This will hide the folder and its contents from the media library.",
+            iconContent = { Text("⚠", style = MaterialTheme.typography.headlineMedium) }
+        )
+    }
+}
+
+@Preview(
+    name = "VLCDialogConfirmDelete - Host Multi Folders+Files (Light)",
+    showBackground = true,
+    backgroundColor = 0xFFFFFFFF,
+    widthDp = 360,
+    heightDp = 180
+)
+@Composable
+fun VLCDialogConfirmDeleteHostMultiLightPreview() {
+    VLCTheme(darkTheme = false) {
+        VLCDialogConfirmDelete(
+            title = "Confirm delete folders and files (2 folders, 7 files)?",
+            message = "All selected items will be permanently removed from your device.",
+            iconContent = { Text("🗑", style = MaterialTheme.typography.headlineMedium) }
+        )
+    }
+}
+
+@Preview(
+    name = "VLCDialogConfirmDelete - Host Album + Clear History (Dark)",
+    showBackground = true,
+    backgroundColor = 0xFF131313,
+    widthDp = 360,
+    heightDp = 200
+)
+@Composable
+fun VLCDialogConfirmDeleteHostAlbumHistoryDarkPreview() {
+    VLCTheme(darkTheme = true) {
+        Column {
+            VLCDialogConfirmDelete(
+                title = "Delete album \"Greatest Hits\"?",
+                message = "This will remove the album and its tracks from the library.",
+                iconContent = { Text("🗑", style = MaterialTheme.typography.headlineMedium) }
+            )
+            Spacer(Modifier.height(8.dp))
+            VLCDialogConfirmDelete(
+                title = "Clear playback history",
+                message = "This will clear all playback history. This action cannot be undone.",
+                iconContent = { Text("⚠", style = MaterialTheme.typography.headlineMedium) }
+            )
+        }
+    }
+}
+
 /**
  * Interop Lab snapshot preview: A condensed vertical slice that approximates
  * what the top of the live ComposeInteropLabActivity looks like.
