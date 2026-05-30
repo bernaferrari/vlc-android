@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  =====================================================================================
+  COMPOSE INTEROP LAB - Layout (dev-only, Wave 1 cross-cutting demo)
+  File: compose_interop_lab.xml
+  Host: ComposeInteropLabActivity.kt  (task: compose-2l4.1.8 / bd: compose-iju)
+
+  PURPOSE:
+  This is the dedicated host layout for the "Compose Interop Lab" - the crown jewel
+  interactive showcase for all Wave 0/1 leaf Composables inside a single scrollable
+  dev-only screen. Launched only from DebugLogActivity (or future dev menus) so it
+  remains invisible to production users.
+
+  DESIGN:
+  - Minimal LinearLayout wrapper (title bar area + the interop host).
+  - The ENTIRE scrollable interactive content lives inside one VLCComposeView.
+  - Why? Demonstrates Pattern 1 at full-screen scale for a brand new Activity.
+  - The Activity itself is 100% thin (just inflation + setContent wiring).
+  - Uses no DataBinding, no ViewBinding (per compose module rules).
+  - Scroll handling is delegated to Compose (LazyColumn or Column+verticalScroll inside
+    the setContent lambda) for smooth, realistic interop behavior.
+
+  INTEROP PATTERN DEMONSTRATED (full-screen variant of the established template):
+    <org.videolan.vlc.compose.interop.VLCComposeView
+        android:id="@+id/compose_interop_lab_host" ... />
+    In Kotlin:
+        val host = findViewById<VLCComposeView>(R.id.compose_interop_lab_host)
+        host.setContent {
+            VLCTheme {
+                ComposeInteropLabContent()   // the big scrollable Column with 6+ leaves live
+            }
+        }
+
+  LEAVES EXERCISED HERE (minimum required + educational extras):
+    1. VLCDropdownItem (from dropdown_item.xml)
+    2. VLCSectionHeader (from recycler_section_header*.xml)
+    3. VLCInfoItem (from info_item.xml - track details)
+    4. VLCDebugLogLine (from debug_log_item.xml)
+    5. VLCDialogConfirmDelete (presentational subset of dialog_confirm_delete.xml)
+    6. VLCOnboardingWelcome (static parts of onboarding_welcome.xml)
+    + Combined realistic mocks: sectioned list (headers + info items), dialog-in-context,
+      onboarding full card, live log simulator, interactive toggles where useful.
+
+  WHY THIS IS THE VISIBILITY / TESTABILITY CROWN JEWEL:
+  - One place for the team to see EVERY Wave 1 leaf working live (light + dark via system).
+  - Interactive: buttons that mutate state, "show dialog" that renders the confirm leaf
+    inside a real Material3 AlertDialog (proving composition works inside interop host).
+  - Educational: each example has inline KDoc-style comments in the Composable source.
+  - Gate: This host (like NetworkServerDialog + DebugLogActivity) MUST compile green via
+    ./gradlew :application:vlc-android:compileDebugKotlin (evidence captured in
+    README + bd notes for compose-2l4.1.8).
+  - Rollback: remove the activity declaration + 1 layout + 1 kt file + the launch button
+    wiring from DebugLogActivity + debug_log.xml. Zero impact on shipping code.
+
+  TRACEABILITY (copy into every future host):
+  - Lab Activity: application/vlc-android/src/org/videolan/vlc/gui/ComposeInteropLabActivity.kt
+  - This layout: .../res/layout/compose_interop_lab.xml
+  - Interop: application/compose/src/main/java/.../interop/VLCCompose.kt
+  - Theme + all leaves: application/compose/src/main/java/.../compose/{theme,components}/*
+  - Previews: application/compose/src/main/java/.../compose/PreviewUtils.kt (expanded here)
+  - Launch site: DebugLogActivity.kt + debug_log.xml (additive only)
+  - Manifest: application/vlc-android/AndroidManifest.xml
+  - bd: compose-iju (labeled compose-2l4.1.8), parent Wave 1 epic refs (compose-cb5 etc.)
+  - Reference hosts: NetworkServerDialog.kt (compose-5qk) + DebugLogActivity.kt (compose-2l4.1.2)
+
+  Permanent Exceptions reminder (documented here for all Wave 1 agents):
+  - This lab + all current hosts are fully migratable. Contrast with: native video player
+    surfaces, MediaLibrary JNI heavy lists, certain TV-specific overlays, legacy WebView
+    remnants, low-level rendering paths. Those stay XML / native forever per strategy.
+
+  Build / validate (from repo root in worktree):
+    ./gradlew :application:compose:build
+    ./gradlew :application:vlc-android:compileDebugKotlin   # <-- THE GATE (must be green)
+  Android Studio: open this layout or the Activity, @Previews in PreviewUtils will render.
+
+  Part of Wave 1 epic (compose-2l4 series). See compose-2l4.1.8 cross-cutting notes.
+  =====================================================================================
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="?attr/background_default">
+
+    <!-- Dev-only header bar (keeps it obvious this is a lab, not production UI) -->
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="12dp"
+            android:background="?attr/header_background"
+            android:gravity="center_vertical">
+
+        <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Compose Interop Lab (dev-only • Wave 1)"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/font_default" />
+
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="compose-2l4.1.8"
+                android:textAppearance="?attr/textAppearanceCaption"
+                android:textColor="?attr/font_light" />
+    </LinearLayout>
+
+    <!--
+      THE INTEROP HOST VIEW (Pattern 1 at full-screen lab scale).
+      This single view hosts the entire interactive scrollable demo of 6+ leaves.
+      See ComposeInteropLabActivity.kt for the setContent wiring + the @Composable
+      that builds the Column with live examples + stateful interactions.
+    -->
+    <org.videolan.vlc.compose.interop.VLCComposeView
+            android:id="@+id/compose_interop_lab_host"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+</LinearLayout>

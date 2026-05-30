@@ -49,6 +49,52 @@
             android:layout_height="wrap_content"
             android:text="@string/clear_log" />
 
+    <!--
+      =====================================================================================
+      WAVE 1.8 CROSS-CUTTING: Launch button for the Compose Interop Lab (compose-2l4.1.8)
+      This button (additive only) provides the official dev-only entry point to the
+      "crown jewel" interactive showcase.
+
+      The Lab (ComposeInteropLabActivity + compose_interop_lab.xml) hosts live,
+      scrollable, interactive examples of ALL six Wave 0/1 leaves:
+        VLCDropdownItem, VLCSectionHeader, VLCInfoItem, VLCDebugLogLine,
+        VLCDialogConfirmDelete, VLCOnboardingWelcome
+      plus realistic combined usage (sectioned lists, dialog mock using AlertDialog +
+      the confirm leaf, live log simulator, onboarding variants).
+
+      Why here (in DebugLogActivity's layout)?
+      - DebugLog is already the primary dev-only screen (launched from advanced prefs).
+      - Keeps the lab discoverable exactly where developers doing interop work already are.
+      - 100% additive: the original log buttons, ListView, interop demo header, and
+        all service/client logic remain untouched.
+
+      Wiring (see DebugLogActivity.kt):
+        interopLabButton = findViewById(R.id.btn_compose_interop_lab)
+        interopLabButton.setOnClickListener { startActivity(Intent(this, ComposeInteropLabActivity::class.java)) }
+
+      The Lab itself uses Pattern 1 at full-screen scale (VLCComposeView filling the
+      activity's content area, setContent with VLCTheme + big Column of examples).
+
+      This also serves the "gate enforcement" goal: the Lab Activity is now a required
+      compile canary alongside NetworkServerDialog and DebugLogActivity itself.
+
+      Rollback: remove this button + its id reference + the 2 lines of Kotlin wiring +
+                the Manifest declaration + the two new files. No other changes needed.
+
+      See also:
+        - ComposeInteropLabActivity.kt (the full educational implementation)
+        - compose_interop_lab.xml (the thin host layout)
+        - compose module README (updated pointers + gate policy)
+        - bd compose-iju (labeled compose-2l4.1.8) for cross-cutting notes
+      =====================================================================================
+    -->
+    <Button
+            android:id="@+id/btn_compose_interop_lab"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Open Compose Interop Lab (Wave 1 dev demo)" />
+
     <!-- 
       =====================================================================================
       WAVE 1 HOST MIGRATION - DebugLogActivity (task compose-2l4.1.2)

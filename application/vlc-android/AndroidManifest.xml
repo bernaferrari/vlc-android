@@ -1202,6 +1202,34 @@
         <activity android:name=".gui.DebugLogActivity"
                 android:theme="@style/Theme.VLC"
                 android:launchMode="singleTop" />
+
+        <!--
+          =====================================================================================
+          WAVE 1 CROSS-CUTTING: Compose Interop Lab (dev-only) — compose-2l4.1.8 / bd compose-iju
+          New dedicated host Activity + layout for the "crown jewel" interactive showcase of all
+          Wave 0/1 leaf Composables (DropdownItem, SectionHeader, InfoItem, DebugLogLine,
+          DialogConfirmDelete, OnboardingWelcome, + combined mocks).
+
+          Launched ONLY from DebugLogActivity (additive button in debug_log.xml) or future dev menus.
+          Never part of production navigation. Safe to keep in the tree (debug visibility only).
+
+          Full Pattern 1 interop at screen scale:
+            <org.videolan.vlc.compose.interop.VLCComposeView android:id="@+id/compose_interop_lab_host"/>
+            setContent { VLCTheme { ComposeInteropLabContent() } }  (see ComposeInteropLabActivity.kt)
+
+          This host participates in the mandatory "every host must have green compile gate evidence"
+          policy (see comments in the .kt, expanded README, and bd notes).
+
+          Rollback: delete the three files (kt + xml layout + this declaration) + remove the one
+          launch button + wiring from DebugLogActivity. No other impact.
+
+          Traceability: ComposeInteropLabActivity.kt, compose_interop_lab.xml, DebugLogActivity.kt,
+          compose module leaves + interop + VLCTheme, PreviewUtils.kt (richer mocks), bd compose-iju.
+          =====================================================================================
+        -->
+        <activity android:name=".gui.ComposeInteropLabActivity"
+                android:theme="@style/Theme.VLC"
+                android:exported="false" />
         <service android:name=".DebugLogService"
                 android:process=":logger"
                 android:foregroundServiceType="dataSync" />

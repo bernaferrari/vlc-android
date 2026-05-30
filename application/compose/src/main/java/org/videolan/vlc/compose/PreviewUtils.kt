@@ -583,3 +583,178 @@ fun VLCOnboardingWelcomeDarkPreview() {
         )
     }
 }
+
+// ============================================================
+// WAVE 1.8 RICHER USAGE MOCKS (derived from Compose Interop Lab host)
+// compose-2l4.1.8 cross-cutting: these are the "richer usage mocks" requirement.
+// They are extracted / inspired directly from the live interactive examples
+// in ComposeInteropLabActivity.kt (the crown jewel dev-only Lab launched
+// from DebugLogActivity). They provide:
+//   - Combined realistic compositions (not just isolated leaves)
+//   - Documentation value for future migrators
+//   - Regression coverage in Android Studio previews (no device needed)
+//   - Direct feed into the gate enforcement story (hosts that exercise
+//     these previews must still compile green)
+// ============================================================
+
+/**
+ * Rich mock: A realistic sectioned list using VLCSectionHeader + VLCInfoItem.
+ * This is the exact pattern that will appear in migrated MediaInfo screens,
+ * audio browser sections, etc. Copied/adapted from the "COMBINED MOCK" section
+ * of the Interop Lab (ComposeInteropLabContent).
+ */
+@Preview(
+    name = "Sectioned List Mock (SectionHeader + InfoItem) - Light",
+    showBackground = true,
+    backgroundColor = 0xFFFFFFFF,
+    widthDp = 360,
+    heightDp = 320
+)
+@Composable
+fun SectionedListLightPreview() {
+    VLCTheme(darkTheme = false) {
+        Column(Modifier.padding(8.dp)) {
+            VLCSectionHeader(text = "Video Tracks")
+            VLCInfoItem(title = "H.264", subtitle = "1920×1080 @ 23.97fps • 8.2 Mbps")
+            VLCInfoItem(title = "MPEG-4", subtitle = "1280×720 • 4.1 Mbps")
+            VLCSectionHeader(text = "Audio Tracks")
+            VLCInfoItem(
+                title = "English (AAC)",
+                subtitle = "48 kHz • Stereo • 256 kb/s",
+                leadingContent = { Text("♪", color = VLCThemeDefaults.colors.fontAudioLight) }
+            )
+            VLCSectionHeader(text = "Subtitles")
+            VLCInfoItem(title = "English SRT", subtitle = "Forced: no • Default: yes")
+        }
+    }
+}
+
+@Preview(
+    name = "Sectioned List Mock (SectionHeader + InfoItem) - Dark",
+    showBackground = true,
+    backgroundColor = 0xFF131313,
+    widthDp = 360,
+    heightDp = 320
+)
+@Composable
+fun SectionedListDarkPreview() {
+    VLCTheme(darkTheme = true) {
+        Column(Modifier.padding(8.dp)) {
+            VLCSectionHeader(text = "Video Tracks")
+            VLCInfoItem(title = "H.264", subtitle = "1920×1080 @ 23.97fps • 8.2 Mbps")
+            VLCInfoItem(title = "MPEG-4", subtitle = "1280×720 • 4.1 Mbps")
+            VLCSectionHeader(text = "Audio Tracks")
+            VLCInfoItem(
+                title = "English (AAC)",
+                subtitle = "48 kHz • Stereo • 256 kb/s",
+                leadingContent = { Text("♪", color = VLCThemeDefaults.colors.fontAudioLight) }
+            )
+        }
+    }
+}
+
+/**
+ * Rich mock: Dialog content using VLCDialogConfirmDelete inside a simulated
+ * dialog surface. Mirrors the interactive "Show Confirm Delete Dialog" demo
+ * in the Interop Lab (which wraps the leaf inside a real Material3 AlertDialog).
+ */
+@Preview(
+    name = "Dialog Confirm Delete Mock - Light",
+    showBackground = true,
+    backgroundColor = 0xFFFFFFFF,
+    widthDp = 360,
+    heightDp = 220
+)
+@Composable
+fun DialogConfirmDeleteMockLightPreview() {
+    VLCTheme(darkTheme = false) {
+        // Simulated dialog card (the real usage wraps in AlertDialog)
+        androidx.compose.material3.Surface(
+            modifier = Modifier.padding(16.dp),
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+            tonalElevation = 6.dp
+        ) {
+            VLCDialogConfirmDelete(
+                title = "Delete this media?",
+                message = "This will permanently remove the selected file from your device. This action cannot be undone.",
+                iconContent = { Text("⚠", style = MaterialTheme.typography.headlineMedium) }
+            )
+        }
+    }
+}
+
+@Preview(
+    name = "Dialog Confirm Delete Mock - Dark",
+    showBackground = true,
+    backgroundColor = 0xFF131313,
+    widthDp = 360,
+    heightDp = 220
+)
+@Composable
+fun DialogConfirmDeleteMockDarkPreview() {
+    VLCTheme(darkTheme = true) {
+        androidx.compose.material3.Surface(
+            modifier = Modifier.padding(16.dp),
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+            tonalElevation = 6.dp
+        ) {
+            VLCDialogConfirmDelete(
+                title = "Delete forever",
+                message = "The file will be removed from storage and metadata cleared.",
+                iconContent = { Text("🗑", style = MaterialTheme.typography.headlineMedium) }
+            )
+        }
+    }
+}
+
+/**
+ * Interop Lab snapshot preview: A condensed vertical slice that approximates
+ * what the top of the live ComposeInteropLabActivity looks like.
+ * Useful for quick visual regression of the "crown jewel" host itself.
+ * (The full interactive version with state + dialog launcher lives on-device
+ * via the Lab launched from DebugLogActivity.)
+ */
+@Preview(
+    name = "Interop Lab Snapshot (multiple leaves) - Light",
+    showBackground = true,
+    backgroundColor = 0xFFFFFFFF,
+    widthDp = 360,
+    heightDp = 380
+)
+@Composable
+fun InteropLabSnapshotLightPreview() {
+    VLCTheme(darkTheme = false) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("Compose Interop Lab (snapshot)", style = MaterialTheme.typography.titleMedium)
+            VLCDropdownItem(text = "SFTP (from Lab)")
+            VLCSectionHeader(text = "Section in Lab")
+            VLCInfoItem(title = "Audio", subtitle = "Bitrate + codec details (Lab mock)")
+            VLCDebugLogLine(text = "12:34:56 [lab] ComposeInteropLabContent running")
+            VLCDialogConfirmDelete(
+                title = "Confirm (Lab)",
+                message = "Dialog leaf inside the interop host demo.",
+                iconContent = { Text("⚠") }
+            )
+        }
+    }
+}
+
+@Preview(
+    name = "Interop Lab Snapshot (multiple leaves) - Dark",
+    showBackground = true,
+    backgroundColor = 0xFF131313,
+    widthDp = 360,
+    heightDp = 380
+)
+@Composable
+fun InteropLabSnapshotDarkPreview() {
+    VLCTheme(darkTheme = true) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("Compose Interop Lab (snapshot)", style = MaterialTheme.typography.titleMedium)
+            VLCDropdownItem(text = "SFTP (from Lab)")
+            VLCSectionHeader(text = "Section in Lab")
+            VLCInfoItem(title = "Audio", subtitle = "Bitrate + codec details (Lab mock)")
+            VLCDebugLogLine(text = "12:34:56 [lab] ComposeInteropLabContent running")
+        }
+    }
+}

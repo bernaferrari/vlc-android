@@ -52,6 +52,15 @@ import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.compose.theme.VLCTheme
 // =============================================================================
 
+// =============================================================================
+// WAVE 1.8 CROSS-CUTTING LAB LAUNCH IMPORT (compose-2l4.1.8 / bd compose-iju)
+// Dev-only entry point to the Compose Interop Lab (the crown jewel showcase).
+// Additive only. The Lab itself is the full-screen interop host demonstrating
+// all 6+ Wave 1 leaves live + interactive. See ComposeInteropLabActivity.kt.
+// =============================================================================
+import android.content.Intent
+// =============================================================================
+
 // =========================================================================
 // ==================== WAVE 1 HOST MIGRATION: DebugLogActivity ====================
 // Host file: DebugLogActivity.kt   (task: compose-2l4.1.2 / bd: compose-5wg)
@@ -111,6 +120,18 @@ import org.videolan.vlc.compose.theme.VLCTheme
 //   9. Cross-cutting concerns (theming consistency, Permanent Exceptions list, adapter
 //      recycling notes, TV variants) captured in compose-2l4.1.8 follow-up notes.
 //
+// WAVE 1.8 MILESTONE (this file updated additively):
+//   - Added launch entrypoint (button + Intent) to the brand new Compose Interop Lab
+//     (ComposeInteropLabActivity + compose_interop_lab.xml).
+//   - The Lab is now THE canonical place to see every Wave 1 leaf working live in one
+//     scrollable, interactive screen (sectioned lists, dialog launcher using the delete
+//     leaf inside AlertDialog, live log simulator, onboarding variants, etc.).
+//   - This also serves as the "compile gate canary" host for the documented policy:
+//     every interop host (NetworkServerDialog, DebugLogActivity, ComposeInteropLabActivity)
+//     must have green :application:vlc-android:compileDebugKotlin evidence recorded in
+//     bd (compose-iju) + README.
+//   - All changes strictly additive; zero risk to existing DebugLog functionality.
+//
 // Traceability:
 //   - Leaf: application/compose/src/main/java/org/videolan/vlc/compose/components/DebugLogLine.kt
 //   - Interop: application/compose/src/main/java/org/videolan/vlc/compose/interop/VLCCompose.kt
@@ -121,6 +142,8 @@ import org.videolan.vlc.compose.theme.VLCTheme
 //   - This task: compose-2l4.1.2 (first real Wave 1 host migration post-demo)
 //   - Parent bd: compose-5wg (discovered-from compose-5qk)
 //   - Epic context: Wave 1 leaf migrations (after bootstrap compose-cb5 etc.)
+//   - compose-2l4.1.8 cross-cut (bd compose-iju): added launch to ComposeInteropLabActivity
+//     (the crown jewel full-screen interop demo + gate enforcement harness)
 //   - Permanent Exceptions: native player, MediaLibrary JNI surfaces, certain complex
 //     dialogs/TV overlays, WebView remnants, low-level rendering - stay XML forever.
 //
@@ -138,6 +161,9 @@ class DebugLogActivity : FragmentActivity(), DebugLogService.Client.Callback {
     private lateinit var logView: ListView
     private var logList: MutableList<String> = ArrayList()
     private lateinit var logAdapter: ArrayAdapter<String>
+
+    // WAVE 1.8: Dev-only launch button for the Compose Interop Lab (compose-2l4.1.8)
+    private lateinit var interopLabButton: Button
 
     private val startClickListener = View.OnClickListener {
         startButton.isEnabled = false
@@ -186,6 +212,21 @@ class DebugLogActivity : FragmentActivity(), DebugLogService.Client.Callback {
         copyButton = findViewById(R.id.copy_to_clipboard)
         clearButton = findViewById(R.id.clear_log)
         saveButton = findViewById(R.id.save_to_file)
+
+        // ---------------------------------------------------------------------
+        // WAVE 1.8: INTEROP LAB LAUNCH BUTTON (additive, dev-only, compose-2l4.1.8)
+        // The button is declared in debug_log.xml (see heavy comment block there).
+        // Tapping it launches the Compose Interop Lab — the single most important
+        // cross-cutting demo & gate artifact for the wave. It hosts live interactive
+        // versions of DropdownItem, SectionHeader, InfoItem, DebugLogLine,
+        // DialogConfirmDelete, OnboardingWelcome + realistic combined mocks.
+        // This makes the hybrid pattern (VLCComposeView + VLCTheme) immediately
+        // testable by any developer without needing to hunt through multiple hosts.
+        // ---------------------------------------------------------------------
+        interopLabButton = findViewById(R.id.btn_compose_interop_lab)
+        interopLabButton.setOnClickListener {
+            startActivity(Intent(this@DebugLogActivity, ComposeInteropLabActivity::class.java))
+        }
 
         client = DebugLogService.Client(this, this)
 

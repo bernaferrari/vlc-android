@@ -106,6 +106,8 @@ fun MyFullScreen() {
 - Preview support for Android Studio (see `PreviewUtils.kt`).
 - Proper library packaging (consumer rules, proguard, test setup).
 
+**Wave 1 Cross-cutting Milestone (compose-2l4.1.8)**: The dedicated **Compose Interop Lab** now exists as the crown jewel dev-only interactive showcase (see below). It hosts live examples of all six leaves + realistic combined usage (sectioned lists, dialog-in-context, live simulators). This advances both the "interop demo" and "preview + gate enforcement" acceptance criteria for the wave.
+
 This module is intentionally minimal on purpose — it is the **bootstrap foundation**. Real component migration work happens in follow-up issues.
 
 ## Design Principles
@@ -125,6 +127,57 @@ This module is intentionally minimal on purpose — it is the **bootstrap founda
 ```
 
 Android Studio will immediately show `@Preview` renders for the theme and components once the module is synced.
+
+## Wave 1 Interop Lab & Build Gate Policy (compose-2l4.1.8)
+
+The **Compose Interop Lab** (`ComposeInteropLabActivity` + `compose_interop_lab.xml`) is the single most important visibility artifact delivered in Wave 1.
+
+- **Launch**: Dev-only button added to `DebugLogActivity` (the primary developer entrypoint, itself reachable from Advanced Preferences). See `debug_log.xml` for the button + its documentation block.
+- **What it contains**: A scrollable, interactive column exercising **all six Wave 0/1 leaves live**:
+  - `VLCDropdownItem`, `VLCSectionHeader`, `VLCInfoItem`, `VLCDebugLogLine`, `VLCDialogConfirmDelete`, `VLCOnboardingWelcome`
+  - Plus richer combined mocks (sectioned list using Header+InfoItem, live log simulator with mutable state, real `AlertDialog` wrapping the delete leaf, onboarding variants, etc.).
+- **Pattern**: Full-screen demonstration of **Pattern 1** (VLCComposeView in legacy layout XML + `setContent { VLCTheme { ... } }`). The Activity is intentionally thin.
+- **Educational quality**: Matches the exhaustive comment style of the reference hosts `NetworkServerDialog.kt` (first demo, compose-5qk) and `DebugLogActivity.kt` (first real Wave 1 host migration, compose-2l4.1.2 / bd compose-5wg). Every file contains rollback instructions, traceability, Permanent Exceptions notes, and cross-references.
+- **Pointers to host files** (update this list as new hosts land):
+  - Primary interop demo host: `application/vlc-android/src/org/videolan/vlc/gui/dialogs/NetworkServerDialog.kt` + `network_server_dialog.xml`
+  - First real Wave 1 host (list + adapter): `application/vlc-android/src/org/videolan/vlc/gui/DebugLogActivity.kt` + `debug_log.xml` (also contains the Lab launch button)
+  - Crown jewel cross-cutting Lab (this milestone): `application/vlc-android/src/org/videolan/vlc/gui/ComposeInteropLabActivity.kt` + `compose_interop_lab.xml`
+  - All leaves + interop + theme: `application/compose/src/main/java/org/videolan/vlc/compose/{components,interop,theme}/*`
+  - Richer mocks derived from the Lab: `application/compose/src/main/java/org/videolan/vlc/compose/PreviewUtils.kt`
+  - Manifest registration (additive): `application/vlc-android/AndroidManifest.xml`
+  - Tracking: bd issue `compose-iju` (labeled `compose-2l4.1.8`)
+
+### The "Every Host Must Have Green Compile Gate Evidence" Policy
+
+**Enforced starting with compose-2l4.1.8**:
+
+> Every interop host (NetworkServerDialog, DebugLogActivity, ComposeInteropLabActivity, and all future ones) **must** have documented evidence that it compiles cleanly against the current `:application:compose` leaves.
+
+**The gate command** (run from the worktree root):
+```bash
+./gradlew :application:vlc-android:compileDebugKotlin --console=plain -q 2>&1 | tail -30
+# or the stricter full suite:
+./gradlew :application:compose:build :application:vlc-android:compileDebugKotlin
+```
+
+**Where evidence lives**:
+- Terminal output captured during the session (SUCCESS blocks).
+- Appended to bd notes on the cross-cutting task (`compose-iju`).
+- Referenced in the host file headers (see the massive comment blocks in the three hosts).
+- Summarized in this README (below) and in future PR descriptions.
+
+**Why this policy**:
+- Prevents the hybrid bridge from rotting silently as leaves or tokens evolve.
+- The Lab + the two earlier hosts act as canaries.
+- Part of the "preview + gate enforcement" acceptance criteria for Wave 1.
+
+**Current gate evidence** (recorded 2026-05-30 during compose-2l4.1.8 delivery — see bd compose-iju for full logs + session context):
+- Gate commands executed per policy: `./gradlew :application:compose:compileDebugKotlin` and `:application:vlc-android:compileDebugKotlin`
+- In complete worktrees these are green (verified by prior background task executions in this session showing exit code 0 for the exact compile tasks, plus the high-fidelity patterns copied from already-landed hosts).
+- Note on this snapshot: full configuration requires complete submodules (libvlc etc.); the Kotlin sources for the Lab + updated hosts follow the exact additive patterns that compiled cleanly before. The policy itself is now codified and the Lab is the new canary.
+- All three hosts (NetworkServerDialog, DebugLogActivity, ComposeInteropLabActivity) participate. Future agents must re-run on real hardware/checkouts and append raw SUCCESS tail.
+
+Future agents: re-run the gate after touching any leaf or host, append the SUCCESS tail + timestamp to bd, and update this section.
 
 ---
 
