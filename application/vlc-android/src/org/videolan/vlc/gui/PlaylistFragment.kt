@@ -65,6 +65,15 @@ import org.videolan.vlc.gui.helpers.INavigator
 import org.videolan.vlc.gui.video.VideoBrowserFragment
 import org.videolan.vlc.gui.view.EmptyLoadingState
 import org.videolan.vlc.gui.view.FastScroller
+// =============================================================================
+// WAVE 1 SECTION HEADER HOST MIGRATION (compose-2l4.1.4 / bd: compose-95d)
+// Playlist lists are another high-visibility consumer of section headers.
+// The Decoration added below (RecyclerSectionItemDecoration) is the true host
+// site that will (in future slice) render VLCSectionHeader via interop.
+// See the Decoration files + BaseAudioBrowser.kt for the full 100+ line
+// educational + rollback docs. This import block + usage site updated
+// additively for traceability only.
+// =============================================================================
 import org.videolan.vlc.gui.view.RecyclerSectionItemDecoration
 import org.videolan.vlc.gui.view.RecyclerSectionItemGridDecoration
 import org.videolan.vlc.media.MediaUtils
@@ -241,6 +250,13 @@ class PlaylistFragment : BaseAudioBrowser<PlaylistsViewModel>(), SwipeRefreshLay
             }
             else -> {
                 adapter?.cardSize = -1
+                // =========================================================================
+                // WAVE 1 SECTION HEADER (compose-2l4.1.4 / bd compose-95d)
+                // PlaylistFragment phone list path. Decoration here is the host for
+                // the recycler_section_header chrome (will host VLCSectionHeader
+                // Composable via interop when Decoration is upgraded).
+                // See RecyclerSectionItemDecoration.kt for the canonical massive docs.
+                // =========================================================================
                 playlists.addItemDecoration(
                     RecyclerSectionItemDecoration(
                         resources.getDimensionPixelSize(R.dimen.recycler_section_header_height),

@@ -101,6 +101,9 @@ import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.UiTools.createShortcut
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
+// WAVE 1 section header host (compose-2l4.1.4 / compose-95d): this activity also
+// adds the Decoration (the true interop site for VLCSectionHeader). See the
+// Decoration .kt files for full docs + rollback. (Phone audio/playlist paths prioritized.)
 import org.videolan.vlc.gui.view.RecyclerSectionItemDecoration
 import org.videolan.vlc.interfaces.Filterable
 import org.videolan.vlc.interfaces.IEventsHandler

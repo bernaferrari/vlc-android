@@ -12,6 +12,30 @@ import org.videolan.resources.util.HeaderProvider
 import org.videolan.tools.Settings
 import org.videolan.vlc.R
 
+// =============================================================================
+// WAVE 1 SECTION HEADER HOST MIGRATION (compose-2l4.1.4 / bd: compose-95d)
+// Host file: RecyclerSectionItemGridDecoration.kt (sibling of phone Decoration)
+// Composable target: VLCSectionHeader (SectionHeader.kt) - phone + isTv support
+// Original XMLs: recycler_section_header.xml (phone) + recycler_section_header_tv.xml (TV)
+//
+// This variant is used for grid/card layouts in audio browser etc. It also
+// handles Settings.showTvUi -> inflates the TV XML (different height/padding).
+//
+// TV DECORATION PATH DEFERRED FOR THIS WAVE (per task spec):
+//   - TV uses song_header_item.xml + DataBinding in television module (BaseBrowserTvFragment).
+//   - Those surfaces are closer to Permanent Exceptions for now (complex focus,
+//     leanback, overscan). We document the isTv path here but do not touch TV
+//     inflation or create TV interop wrappers in Wave 1 slice.
+//   - Phone path (non-TV) is the priority for visible impact (audio tabs).
+//
+// All other comments (interop patterns, state update for titles, rollback,
+// Canvas draw timing considerations, full traceability, Permanent Exceptions,
+// hybrid strategy, session completion) are IDENTICAL to the sibling file
+// RecyclerSectionItemDecoration.kt - read that one for the canonical text.
+// The inflateHeaderView here simply chooses phone vs TV XML; the interop
+// sketch would live in the same place (programmatic ComposeView creation).
+// =============================================================================
+
 private const val TAG = "RecyclerSectionItemDecoration"
 
 @SuppressLint("LongLogTag")
@@ -115,6 +139,17 @@ class RecyclerSectionItemGridDecoration(private val headerOffset: Int, private v
     }
 
     private fun inflateHeaderView(parent: RecyclerView): View {
+        // =====================================================================
+        // WAVE 1 INTEROP SKETCH (compose-2l4.1.4) - see full docs in sibling
+        // RecyclerSectionItemDecoration.kt (the phone Decoration).
+        //
+        // TV branch (showTvUi) intentionally left on XML for this wave.
+        // Phone branch would become the programmatic VLCComposeView host
+        // exactly as sketched in the other file (state-driven title updates
+        // before each drawHeader + Canvas draw).
+        //
+        // Rollback / safety: identical guarantees. Original two XMLs untouched.
+        // =====================================================================
         if (Settings.showTvUi) {
             return LayoutInflater.from(parent.context).inflate(R.layout.recycler_section_header_tv, parent, false)
         }

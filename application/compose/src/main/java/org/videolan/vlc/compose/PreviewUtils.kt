@@ -654,6 +654,63 @@ fun SectionedListDarkPreview() {
 }
 
 /**
+ * WAVE 1.4 ENHANCEMENT (compose-2l4.1.4 / bd compose-95d)
+ * Richer audio-browser-realistic sectioned list mock.
+ * Exercises multiple VLCSectionHeader (phone 36dp variant) + realistic
+ * browser items (using listTitle/listSubtitle tokens for fidelity).
+ * Directly feeds the "update PreviewUtils with realistic sectioned list mock"
+ * requirement + demonstrates what BaseAudioBrowser / PlaylistFragment lists
+ * will render once decorations host the Composable.
+ * Also visible in Interop Lab combined mocks.
+ */
+@Preview(
+    name = "Audio Browser Sectioned List Mock (SectionHeader + items) - Light",
+    showBackground = true,
+    backgroundColor = 0xFFFFFFFF,
+    widthDp = 360,
+    heightDp = 380
+)
+@Composable
+fun AudioBrowserSectionedListLightPreview() {
+    VLCTheme(darkTheme = false) {
+        Column(Modifier.padding(4.dp).background(VLCThemeDefaults.colors.backgroundDefault)) {
+            VLCSectionHeader(text = "Recently Played")
+            // Simulated browser rows (title + subtitle using real tokens)
+            Text("Some Awesome Album", color = VLCThemeDefaults.colors.listTitle, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start=16.dp, top=4.dp))
+            Text("Artist Name • 12 tracks", color = VLCThemeDefaults.colors.listSubtitle, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(start=16.dp))
+            Spacer(Modifier.height(8.dp))
+            VLCSectionHeader(text = "All Artists")
+            Text("A Great Artist", color = VLCThemeDefaults.colors.listTitle, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start=16.dp, top=4.dp))
+            Text("42 albums • 512 tracks", color = VLCThemeDefaults.colors.listSubtitle, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(start=16.dp))
+            Spacer(Modifier.height(4.dp))
+            Text("Another Artist With A Very Long Name That Should Ellipsize", color = VLCThemeDefaults.colors.listTitle, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(start=16.dp, top=4.dp))
+        }
+    }
+}
+
+@Preview(
+    name = "Audio Browser Sectioned List Mock (SectionHeader + items) - Dark",
+    showBackground = true,
+    backgroundColor = 0xFF131313,
+    widthDp = 360,
+    heightDp = 380
+)
+@Composable
+fun AudioBrowserSectionedListDarkPreview() {
+    VLCTheme(darkTheme = true) {
+        Column(Modifier.padding(4.dp).background(VLCThemeDefaults.colors.backgroundDefault)) {
+            VLCSectionHeader(text = "Recently Played")
+            Text("Some Awesome Album", color = VLCThemeDefaults.colors.listTitle, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start=16.dp, top=4.dp))
+            Text("Artist Name • 12 tracks", color = VLCThemeDefaults.colors.listSubtitle, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(start=16.dp))
+            Spacer(Modifier.height(8.dp))
+            VLCSectionHeader(text = "All Artists")
+            Text("A Great Artist", color = VLCThemeDefaults.colors.listTitle, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start=16.dp, top=4.dp))
+            Text("42 albums • 512 tracks", color = VLCThemeDefaults.colors.listSubtitle, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(start=16.dp))
+        }
+    }
+}
+
+/**
  * Rich mock: Dialog content using VLCDialogConfirmDelete inside a simulated
  * dialog surface. Mirrors the interactive "Show Confirm Delete Dialog" demo
  * in the Interop Lab (which wraps the leaf inside a real Material3 AlertDialog).

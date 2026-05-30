@@ -271,12 +271,18 @@ fun ComposeInteropLabContent() {
         // -----------------------------------------------------------------
         // 2. VLCSectionHeader (phone + tv variant simulation)
         // -----------------------------------------------------------------
+        // WAVE 1 update (compose-2l4.1.4 / bd compose-95d): the Decoration hosts
+        // (Recycler*ItemDecoration) are now the primary interop targets for this
+        // leaf in real lists (BaseAudioBrowser, PlaylistFragment prioritized for
+        // phone audio impact). This Lab already exercises it live. The new
+        // AudioBrowserSectionedList*Previews in PreviewUtils.kt were added as part
+        // of the same task to keep the "rich mock" requirement fresh.
         VLCSectionHeader(text = "2. VLCSectionHeader (recycler_section_header*.xml)")
         VLCSectionHeader(text = "Recently Played")
         VLCSectionHeader(text = "Audio Books & Extremely Long Section Titles That Must Ellipsize Gracefully")
         VLCSectionHeader(text = "TV Variant Simulation", isTv = true)
         Text(
-            "Token: headerBackground + audioBrowserSeparator. High reuse across audio browser, playlists, media lists.",
+            "Token: headerBackground + audioBrowserSeparator. High reuse across audio browser, playlists, media lists. Decoration interop path documented in RecyclerSectionItemDecoration.kt.",
             style = MaterialTheme.typography.bodySmall
         )
 

@@ -82,6 +82,16 @@ import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.UiTools.createShortcut
 import org.videolan.vlc.gui.helpers.fillActionMode
+// =============================================================================
+// WAVE 1 SECTION HEADER HOST MIGRATION IMPORTS (compose-2l4.1.4 / bd compose-95d)
+// The actual interop hosting of VLCSectionHeader lives in the Decoration classes
+// (RecyclerSectionItemDecoration + Grid variant) which these hosts instantiate.
+// We import the decorations here (already present). When the decorations activate
+// the programmatic VLCComposeView path, this host will automatically benefit
+// (no further changes needed in most cases).
+// Full pattern + rollback docs live in the Decoration .kt files + sibling hosts.
+// Reference: NetworkServerDialog.kt, DebugLogActivity.kt, ComposeInteropLabActivity.kt
+// =============================================================================
 import org.videolan.vlc.gui.view.RecyclerSectionItemDecoration
 import org.videolan.vlc.gui.view.RecyclerSectionItemGridDecoration
 import org.videolan.vlc.interfaces.IEventsHandler
@@ -254,10 +264,38 @@ abstract class BaseAudioBrowser<T : MedialibraryViewModel> : MediaBrowserFragmen
                 val screenWidth = (requireActivity() as? INavigator)?.getFragmentWidth(requireActivity()) ?: requireActivity().getScreenWidth()
                 val itemSize = RecyclerSectionItemGridDecoration.getItemSize(screenWidth, nbColumns, spacing, 16.dp)
                 adapter.cardSize = itemSize
+                // Grid path also uses the sibling GridDecoration (which may host SectionHeader interop
+                // in future; TV variant via showTvUi is deferred per compose-2l4.1.4 scope).
                 displayListInGrid(list, adapter, provider, spacing)
             }
             else -> {
                 adapter.cardSize = -1
+                // =========================================================================
+                // WAVE 1 SECTION HEADER HOSTING (compose-2l4.1.4 / bd: compose-95d)
+                // This is the phone list path in the primary audio browser tabs.
+                // The RecyclerSectionItemDecoration we add here is the *real host* that
+                // inflates recycler_section_header.xml (or will host VLCSectionHeader via
+                // interop in future slice).
+                //
+                // High-visibility: every audio tab (artists/albums/genres etc.) that shows
+                // headers gets its sticky header chrome from the Decoration created here.
+                //
+                // When the Decoration activates the Compose interop path (see its 100+
+                // line header docs), this audio browser will render VLCSectionHeader
+                // (themed via VLCTheme, using headerBackground + audioBrowserSeparator)
+                // with zero additional changes in this file.
+                //
+                // Traceability:
+                //   Leaf: .../compose/components/SectionHeader.kt (VLCSectionHeader)
+                //   Decoration (true interop site): .../gui/view/RecyclerSectionItemDecoration.kt
+                //   This task: compose-2l4.1.4 (bd compose-95d)
+                //   Cross-cut + gate policy: compose-2l4.1.8 (bd compose-iju)
+                //   Interop Lab exercises it directly (ComposeInteropLabContent)
+                //   Previews: PreviewUtils.kt (SectionedList + new AudioBrowser mocks)
+                //
+                // Rollback: the addItemDecoration line is the only active site; reverting
+                // the Decoration file (or this one) instantly restores pre-Wave-1 XML behavior.
+                // =========================================================================
                 list.addItemDecoration(
                     RecyclerSectionItemDecoration(
                         resources.getDimensionPixelSize(R.dimen.recycler_section_header_height),
