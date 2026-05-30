@@ -24,6 +24,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.components.VLCDropdownItem
+import org.videolan.vlc.compose.components.VLCDebugLogLine
+import org.videolan.vlc.compose.components.VLCDialogConfirmDelete
+import org.videolan.vlc.compose.components.VLCInfoItem
+import org.videolan.vlc.compose.components.VLCOnboardingWelcome
+import org.videolan.vlc.compose.components.VLCSectionHeader
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
@@ -72,8 +77,10 @@ private fun PreviewContent() {
         Text(text = "VLC Compose Bootstrap")
         Spacer(modifier = Modifier.height(8.dp))
         VLCDropdownItem(text = "Example dropdown item")
-        Spacer(modifier = Modifier.height(4.dp))
-        VLCDropdownItem(text = "Another item")
+        Spacer(modifier = Modifier.height(12.dp))
+        VLCSectionHeader(text = "Section Example")
+        Spacer(modifier = Modifier.height(8.dp))
+        VLCDebugLogLine(text = "12:34:56.789 [info] compose leaf ready")
     }
 }
 
@@ -379,5 +386,200 @@ private fun DialogEmptyDemo() {
         ) {
             Text("SCAN", color = c.primary)
         }
+    }
+}
+
+// ============================================================
+// Wave 1 Leaf Composables Previews (high-leverage list/dialog/onboarding leaves)
+// All demonstrate light + dark using real VLC tokens + KDoc traceability
+// ============================================================
+
+@Preview(
+    name = "VLCSectionHeader - Light",
+    showBackground = true,
+    backgroundColor = 0xFFFFFFFF,
+    widthDp = 360,
+    heightDp = 120
+)
+@Composable
+fun VLCSectionHeaderLightPreview() {
+    VLCTheme(darkTheme = false) {
+        Column(Modifier.padding(8.dp)) {
+            VLCSectionHeader(text = "Recently Played")
+            Spacer(Modifier.height(8.dp))
+            VLCSectionHeader(text = "Audio Books & Long Titles That Wrap Or Ellipsize Here")
+        }
+    }
+}
+
+@Preview(
+    name = "VLCSectionHeader - Dark",
+    showBackground = true,
+    backgroundColor = 0xFF131313,
+    widthDp = 360,
+    heightDp = 120
+)
+@Composable
+fun VLCSectionHeaderDarkPreview() {
+    VLCTheme(darkTheme = true) {
+        Column(Modifier.padding(8.dp)) {
+            VLCSectionHeader(text = "Songs")
+            Spacer(Modifier.height(8.dp))
+            VLCSectionHeader(text = "Playlists")
+        }
+    }
+}
+
+@Preview(
+    name = "VLCInfoItem - Light (Media Tracks)",
+    showBackground = true,
+    backgroundColor = 0xFFFFFFFF,
+    widthDp = 360,
+    heightDp = 160
+)
+@Composable
+fun VLCInfoItemLightPreview() {
+    VLCTheme(darkTheme = false) {
+        Column(Modifier.padding(8.dp)) {
+            VLCInfoItem(
+                title = "Audio",
+                subtitle = "Bitrate: 320 kb/s • Codec: mp3 • Channels: 2 • Language: eng",
+                leadingContent = { Text("♪", color = VLCThemeDefaults.colors.fontAudioLight) }
+            )
+            VLCInfoItem(
+                title = "Video",
+                subtitle = "1920×1080 • 23.97 fps • Codec: h264",
+                leadingContent = { Text("📺", color = VLCThemeDefaults.colors.fontAudioLight) }
+            )
+            VLCInfoItem(
+                title = "Text",
+                subtitle = "Language: eng • Codec: subrip"
+            )
+        }
+    }
+}
+
+@Preview(
+    name = "VLCInfoItem - Dark (Media Tracks)",
+    showBackground = true,
+    backgroundColor = 0xFF131313,
+    widthDp = 360,
+    heightDp = 160
+)
+@Composable
+fun VLCInfoItemDarkPreview() {
+    VLCTheme(darkTheme = true) {
+        Column(Modifier.padding(8.dp)) {
+            VLCInfoItem(
+                title = "Audio",
+                subtitle = "Bitrate: 320 kb/s • Codec: aac • Channels: 2",
+                leadingContent = { Text("♪", color = VLCThemeDefaults.colors.fontAudioLight) }
+            )
+        }
+    }
+}
+
+@Preview(
+    name = "VLCDebugLogLine - Light",
+    showBackground = true,
+    backgroundColor = 0xFFFFFFFF,
+    widthDp = 360,
+    heightDp = 140
+)
+@Composable
+fun VLCDebugLogLineLightPreview() {
+    VLCTheme(darkTheme = false) {
+        Column(Modifier.padding(4.dp)) {
+            VLCDebugLogLine(text = "VLC media player 3.6.0 Vetinari")
+            VLCDebugLogLine(text = "[8f3a2b] main libvlc: Running vlc with the default interface")
+            VLCDebugLogLine(text = "[warn] direct3d11 vout: Failed to create texture (hr=0x80070057)")
+        }
+    }
+}
+
+@Preview(
+    name = "VLCDebugLogLine - Dark",
+    showBackground = true,
+    backgroundColor = 0xFF131313,
+    widthDp = 360,
+    heightDp = 140
+)
+@Composable
+fun VLCDebugLogLineDarkPreview() {
+    VLCTheme(darkTheme = true) {
+        Column(Modifier.padding(4.dp)) {
+            VLCDebugLogLine(text = "I/DEBUG: signal 11 (SIGSEGV), code 1 (SEGV_MAPERR)")
+            VLCDebugLogLine(text = "D/VLC: [h264 @ 0x7f8b2c] Profile: High@5.1")
+        }
+    }
+}
+
+@Preview(
+    name = "VLCDialogConfirmDelete - Light",
+    showBackground = true,
+    backgroundColor = 0xFFFFFFFF,
+    widthDp = 360,
+    heightDp = 200
+)
+@Composable
+fun VLCDialogConfirmDeleteLightPreview() {
+    VLCTheme(darkTheme = false) {
+        VLCDialogConfirmDelete(
+            title = "Confirm delete",
+            message = "This will permanently delete the selected media from your device. This action cannot be undone.",
+            iconContent = { Text("⚠", style = MaterialTheme.typography.headlineMedium) }
+        )
+    }
+}
+
+@Preview(
+    name = "VLCDialogConfirmDelete - Dark",
+    showBackground = true,
+    backgroundColor = 0xFF131313,
+    widthDp = 360,
+    heightDp = 200
+)
+@Composable
+fun VLCDialogConfirmDeleteDarkPreview() {
+    VLCTheme(darkTheme = true) {
+        VLCDialogConfirmDelete(
+            title = "Delete forever",
+            message = "The file will be removed from storage.",
+            iconContent = { Text("🗑", style = MaterialTheme.typography.headlineMedium) }
+        )
+    }
+}
+
+@Preview(
+    name = "VLCOnboardingWelcome - Light (static parts)",
+    showBackground = true,
+    backgroundColor = 0xFF011422,
+    widthDp = 360,
+    heightDp = 420
+)
+@Composable
+fun VLCOnboardingWelcomeLightPreview() {
+    VLCTheme(darkTheme = false) {
+        VLCOnboardingWelcome(
+            title = "Welcome to VLC for Android",
+            subtitle = "The best open source video and audio player, now on your mobile device."
+        )
+    }
+}
+
+@Preview(
+    name = "VLCOnboardingWelcome - Dark (static parts)",
+    showBackground = true,
+    backgroundColor = 0xFF011422,
+    widthDp = 360,
+    heightDp = 420
+)
+@Composable
+fun VLCOnboardingWelcomeDarkPreview() {
+    VLCTheme(darkTheme = true) {
+        VLCOnboardingWelcome(
+            title = "Welcome to VLC for Android",
+            subtitle = "Play everything. Free. No ads. No tracking."
+        )
     }
 }

@@ -27,7 +27,8 @@ import androidx.compose.ui.unit.sp
  *   (Theme.VLC.Apearance + Theme.VLC.Apearance.Black + variants in values-night, v21, v23 etc.)
  * - Prioritization: freq of ?attr/ in layout*/ (font_default 81x, background_default 26x, etc.)
  *   + key files: audio_player.xml (player chrome/HUD), browser_item.xml (media lists),
- *     about.xml, audio_browser.xml, video_*_card.xml, empty states, dialogs.
+ *     about.xml, audio_browser.xml, video_*_card.xml, empty states, dialogs,
+ *     recycler_section_header*.xml, info_item.xml, debug_log_item.xml, dialog_*.xml, onboarding_*.xml.
  *
  * This enables future leaf migrations (audio browser, player, about, onboarding, lists)
  * to use correct colors without hard-coded values.
@@ -161,6 +162,14 @@ data class VLCColorScheme(
     val emptyBackground: Color,
     val emptyForeground: Color,
     val emptyTitle: Color,
+
+    // --- Additional tokens for Wave 1 leaf Composables (section headers, onboarding) ---
+    /** ?attr/header_background (recycler_section_header.xml + _tv.xml; light=#eaffffff, dark=dark_background; TV often gradient drawable) */
+    val headerBackground: Color,
+    /** ?attr/audio_browser_separator (recycler_section_header.xml:12 textColor; orange accent) */
+    val audioBrowserSeparator: Color,
+    /** @color/onboarding_grey (onboarding_*.xml tools:background + Theme.VLC.Onboarding.* ; deep blue-grey #011422) */
+    val onboardingBackground: Color,
 )
 
 /** Light scheme - derived from Theme.VLC.Apearance (MaterialComponents.Light.NoActionBar parent) */
@@ -201,6 +210,10 @@ private val LightVLCColors = VLCColorScheme(
     emptyBackground = Grey50,                     // :98
     emptyForeground = Grey300,                    // :97
     emptyTitle = Grey850,                         // :104
+    // Wave 1 leaf tokens (light)
+    headerBackground = Color(0xEAFFFFFF),         // whitetransparent_ea from colors.xml + styles:56
+    audioBrowserSeparator = Orange800,            // styles.xml:61
+    onboardingBackground = OnboardingGrey,        // colors.xml:127 + onboarding styles
 )
 
 /** Dark scheme - derived from Theme.VLC.Apearance.Black (and values-night parent) */
@@ -241,6 +254,10 @@ private val DarkVLCColors = VLCColorScheme(
     emptyBackground = Grey900,                    // :293
     emptyForeground = Grey800,                    // :292
     emptyTitle = Grey300,                         // :299
+    // Wave 1 leaf tokens (dark)
+    headerBackground = DarkBackground,            // styles.xml:250
+    audioBrowserSeparator = Orange500,            // styles.xml:255
+    onboardingBackground = OnboardingGrey,        // colors.xml:127
 )
 
 // CompositionLocal for access to full VLC semantic tokens (beyond MaterialTheme.colorScheme)

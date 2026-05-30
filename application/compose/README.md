@@ -93,9 +93,16 @@ fun MyFullScreen() {
 
 ## Current Status
 
-- Basic theming foundation (`VLCTheme`, placeholder semantic tokens mapped from future `colors.xml` + `styles.xml` audit).
+- Basic theming foundation (`VLCTheme`, placeholder semantic tokens mapped from future `colors.xml` + `styles.xml` audit). Tokens expanded with Wave 1 additions (headerBackground, audioBrowserSeparator, onboardingBackground).
 - Interop helpers (`VLCComposeView`, `VLCAbstractComposeWidget`).
-- One example leaf component: `VLCDropdownItem` (Compose equivalent of legacy `dropdown_item.xml`).
+- Leaf Composables (Wave 1):
+  - `VLCDropdownItem` (original)
+  - `VLCSectionHeader` (recycler_section_header.xml + tv variant)
+  - `VLCInfoItem` (info_item.xml - high reuse in track info)
+  - `VLCDebugLogLine` (debug_log_item.xml)
+  - `VLCDialogConfirmDelete` (presentational parts of dialog_confirm_delete.xml)
+  - `VLCOnboardingWelcome` (static parts of onboarding_welcome.xml)
+- All new leaves respect full VLCTheme tokens + typography, have rich light/dark @Previews, and full KDoc traceability to original XML paths.
 - Preview support for Android Studio (see `PreviewUtils.kt`).
 - Proper library packaging (consumer rules, proguard, test setup).
 
