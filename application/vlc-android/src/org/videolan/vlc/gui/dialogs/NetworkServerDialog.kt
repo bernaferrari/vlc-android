@@ -34,6 +34,7 @@ import java.util.Locale
 // =============================================================================
 import androidx.compose.ui.platform.ComposeView
 import org.videolan.vlc.compose.components.VLCDropdownItem
+import org.videolan.vlc.compose.components.VLCDebugLogLine
 import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.compose.theme.VLCTheme
 // =============================================================================
@@ -143,9 +144,12 @@ class NetworkServerDialog : VLCBottomSheetDialogFragment(), AdapterView.OnItemSe
         //      (this file still references R.layout.dropdown_item - do not delete).
         //   6. For list/spinner items: evolve to custom adapters returning ComposeView rows
         //      when the whole list host is ready for deeper migration (see DebugLogActivity
-        //      for next candidate using VLCDebugLogLine + debug_log_item.xml).
+        //      for next candidate using VLCDebugLogLine + debug_log_item.xml - this is now
+        //      the first real Wave 1 host: task compose-2l4.1.2 / bd compose-5wg).
         //   7. Document everything with comments like these so the next agent can replicate
         //      instantly without re-research.
+        //   8. Cross-host exercise: the interop demo area here (NetworkServerDialog) now also
+        //      hosts VLCDebugLogLine as proof the leaf works in multiple legacy contexts.
         //
         // Preview note: The embedded VLCDropdownItem will render using Material3 + VLCTheme
         // tokens (light/dark automatically). It matches the visual intent of dropdown_item.xml.
@@ -169,6 +173,23 @@ class NetworkServerDialog : VLCBottomSheetDialogFragment(), AdapterView.OnItemSe
             VLCTheme {
                 VLCDropdownItem(
                     text = "FTPS (Compose interop demo)"
+                )
+            }
+        }
+
+        // ---------------------------------------------------------------------
+        // WAVE 1 / compose-2l4.1.2 EXERCISE: Second interop host in the primary demo area.
+        // This renders VLCDebugLogLine (leaf equivalent of debug_log_item.xml) using
+        // Pattern 1 (VLCComposeView from layout) right inside the established
+        // NetworkServerDialog interop demo. Proves leaves are reusable across hosts.
+        // Theming via VLCTheme ensures light/dark consistency.
+        // See DebugLogActivity.kt for the full host migration (list rows + adapter pattern).
+        // ---------------------------------------------------------------------
+        val composeDebugLogHost = view.findViewById<VLCComposeView>(R.id.compose_interop_debuglog_demo)
+        composeDebugLogHost?.setContent {
+            VLCTheme {
+                VLCDebugLogLine(
+                    text = "12:34:56 [compose] VLCDebugLogLine hosted in NetworkServerDialog (interop demo area, task compose-2l4.1.2)"
                 )
             }
         }

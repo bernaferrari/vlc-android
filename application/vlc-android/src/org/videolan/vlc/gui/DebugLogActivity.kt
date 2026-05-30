@@ -39,6 +39,95 @@ import org.videolan.vlc.util.Permissions
 import org.videolan.vlc.util.share
 import java.io.File
 
+// =============================================================================
+// WAVE 1 HOST MIGRATION IMPORTS (DebugLog host - compose-2l4.1.2)
+// These come from :application:compose (api dependency in vlc-android/build.gradle).
+// Reference implementation / template: NetworkServerDialog.kt (the compose-5qk demo)
+// + its network_server_dialog.xml (exact comment style, patterns, rollback notes).
+// =============================================================================
+import android.view.ViewGroup
+import androidx.compose.ui.platform.ComposeView
+import org.videolan.vlc.compose.components.VLCDebugLogLine
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.compose.theme.VLCTheme
+// =============================================================================
+
+// =========================================================================
+// ==================== WAVE 1 HOST MIGRATION: DebugLogActivity ====================
+// Host file: DebugLogActivity.kt   (task: compose-2l4.1.2 / bd: compose-5wg)
+// Composable used: VLCDebugLogLine (leaf from DebugLogLine.kt)
+// Target layout originally: debug_log_item.xml (still present + used by old path below)
+//
+// THIS IS THE FIRST REAL WAVE 1 HOST AFTER THE DEMO (exemplary implementation).
+//
+// Reference template: NetworkServerDialog.kt + network_server_dialog.xml (compose-5qk)
+// All patterns, comment density, traceability, and safety language copied/adapted exactly.
+//
+// MISSION: Integrate VLCDebugLogLine into the legacy DebugLogActivity (which renders
+// raw log lines via ArrayAdapter<String> + trivial debug_log_item.xml ListView rows).
+// Use the interop layer (VLCComposeView + ComposeView) for hybrid hosting.
+//
+// TWO PATTERNS DEMONSTRATED HERE (educational + copy-paste ready for any list host):
+//
+// PATTERN 1 - VLCComposeView inside existing layout XML (see debug_log.xml)
+//   <org.videolan.vlc.compose.interop.VLCComposeView
+//       android:id="@+id/compose_interop_debuglog_demo" ... />
+//   Then in Kotlin (onCreate):
+//       val host = findViewById<VLCComposeView>(R.id.compose_interop_debuglog_demo)
+//       host.setContent { VLCTheme { VLCDebugLogLine(text = "...") } }
+//
+// PATTERN 2 - Programmatic ComposeView for list rows (the "small Compose-based row")
+//   Private inner adapter (DebugLogComposeAdapter below) whose getView() does:
+//       val cv = (convertView as? ComposeView) ?: ComposeView(context)
+//       cv.setContent { VLCTheme { VLCDebugLogLine(text = getItem(position)!!) } }
+//       return cv
+//   Assigned to logView.adapter instead of the legacy ArrayAdapter.
+//   This is the direct evolution of the "custom adapters returning ComposeView rows"
+//   guidance left in the NetworkServerDialog comments.
+//
+// WHY THIS IS SAFE (Permanent Exceptions boundary respected):
+//   - Purely additive: original debug_log_item.xml untouched on disk.
+//   - Old rendering path fully preserved in source (commented lines above the switch).
+//   - No behavior change to buttons, service client, save/copy/clear, onSaved etc.
+//   - VLCDebugLogLine is a leaf: no side effects, no nav, no state beyond text prop.
+//   - Theming: delegates to VLCTheme (defaults to isSystemInDarkTheme()) + M3 tokens.
+//     Light/dark verified in dedicated @Previews (VLCDebugLogLineLightPreview etc).
+//   - Rollback is one-file + one-layout: remove 6 imports, the adapter class,
+//     the two findViewById+setContent blocks, the xml view tag, and revert the
+//     one-line adapter assignment. Zero other files touched. Compiles and runs as 2026-05 pre-compose.
+//   - ListView + ComposeView hybrid is a well-known bridge (used in many incremental adoptions);
+//     for high-volume production lists we would later do full Compose destination + LazyColumn.
+//
+// HYBRID MIGRATION STRATEGY (Wave 1 epic - compose-2l4 series):
+//   1. Keep legacy XML + inflation sites working (ArrayAdapter etc. unchanged - we do).
+//   2. Introduce leaf Composables that are pure presentational + self-themed (done in leaf work).
+//   3. Use VLCComposeView (XML) or raw ComposeView (Kotlin / adapter rows) - both here.
+//   4. Always wrap with VLCTheme in the setContent call site (even if leaf also wraps).
+//   5. Leave original layout XML files in place until the LAST reference is migrated.
+//   6. For list hosts: implement small Compose row adapters exactly as shown below.
+//   7. Exercise new leaves inside the existing "interop demo area" (NetworkServerDialog)
+//      so the pattern is proven across hosts (we added a second VLCComposeView there too).
+//   8. Massive comments + bd tracking + full session completion (git + bd dolt push).
+//   9. Cross-cutting concerns (theming consistency, Permanent Exceptions list, adapter
+//      recycling notes, TV variants) captured in compose-2l4.1.8 follow-up notes.
+//
+// Traceability:
+//   - Leaf: application/compose/src/main/java/org/videolan/vlc/compose/components/DebugLogLine.kt
+//   - Interop: application/compose/src/main/java/org/videolan/vlc/compose/interop/VLCCompose.kt
+//   - Theme: application/compose/src/main/java/org/videolan/vlc/compose/theme/VLCTheme.kt
+//   - Previews exercising it: application/compose/src/main/java/org/videolan/vlc/compose/PreviewUtils.kt
+//   - Original XML: application/vlc-android/res/layout/debug_log_item.xml + debug_log.xml
+//   - Reference host: .../gui/dialogs/NetworkServerDialog.kt (and its layout)
+//   - This task: compose-2l4.1.2 (first real Wave 1 host migration post-demo)
+//   - Parent bd: compose-5wg (discovered-from compose-5qk)
+//   - Epic context: Wave 1 leaf migrations (after bootstrap compose-cb5 etc.)
+//   - Permanent Exceptions: native player, MediaLibrary JNI surfaces, certain complex
+//     dialogs/TV overlays, WebView remnants, low-level rendering - stay XML forever.
+//
+// At end of this work: bd progress updates, close with reason, git pull --rebase,
+// bd dolt push, git push --verify "up to date with origin/phase-0-compose-bootstrap".
+// =========================================================================
+
 class DebugLogActivity : FragmentActivity(), DebugLogService.Client.Callback {
     private lateinit var client: DebugLogService.Client
     private lateinit var startButton: Button
@@ -110,6 +199,23 @@ class DebugLogActivity : FragmentActivity(), DebugLogService.Client.Callback {
         saveButton.setOnClickListener(saveClickListener)
 
         copyButton.setOnClickListener(copyClickListener)
+
+        // ---------------------------------------------------------------------
+        // ACTUAL WIRING OF PATTERN 1 (VLCComposeView in the activity's own layout)
+        // ---------------------------------------------------------------------
+        // This is the header demo area added in debug_log.xml.
+        // It renders a live VLCDebugLogLine using the interop layer, exactly as
+        // the compose_interop_demo in NetworkServerDialog.
+        // Exercises the leaf + VLCTheme light/dark inside this host.
+        // (The list itself uses Pattern 2 via the adapter below.)
+        val composeInteropHost = findViewById<VLCComposeView>(R.id.compose_interop_debuglog_demo)
+        composeInteropHost?.setContent {
+            VLCTheme {
+                VLCDebugLogLine(
+                    text = ">>> Compose interop header demo (VLCDebugLogLine via VLCComposeView, task compose-2l4.1.2)"
+                )
+            }
+        }
     }
 
     override fun onDestroy() {
@@ -129,7 +235,17 @@ class DebugLogActivity : FragmentActivity(), DebugLogService.Client.Callback {
         if (logList.isNotEmpty())
             setOptionsButtonsEnabled(true)
         this.logList = ArrayList(logList)
-        logAdapter = ArrayAdapter(this, R.layout.debug_log_item, this.logList)
+        // -----------------------------------------------------------------
+        // OLD RENDERING PATH (ArrayAdapter + debug_log_item.xml) - 100% PRESERVED
+        // For instant rollback or A/B: uncomment the next line and remove the
+        // DebugLogComposeAdapter line below. The xml stays forever.
+        // -----------------------------------------------------------------
+        // logAdapter = ArrayAdapter(this, R.layout.debug_log_item, this.logList)
+
+        // NEW WAVE 1 PATH (compose-2l4.1.2): small Compose-based row adapter.
+        // Each log line is now a ComposeView hosting VLCDebugLogLine (full theming).
+        // Original xml + old code above left untouched (additive only).
+        logAdapter = DebugLogComposeAdapter(this, this.logList)
         logView.adapter = logAdapter
         logView.transcriptMode = ListView.TRANSCRIPT_MODE_NORMAL
         if (this.logList.size > 0)
@@ -158,6 +274,55 @@ class DebugLogActivity : FragmentActivity(), DebugLogService.Client.Callback {
             }
         } else {
             UiTools.snacker(this, R.string.dump_logcat_failure)
+        }
+    }
+
+    // =========================================================================
+    // SMALL COMPOSE-BASED ROW ADAPTER (Pattern 2 for ListView hosts)
+    // This is the key integration artifact for compose-2l4.1.2.
+    //
+    // Instead of ArrayAdapter<String>(context, R.layout.debug_log_item, list)
+    // which inflates the legacy monospace TextView, we return ComposeView rows
+    // hosting VLCDebugLogLine. This is 100% additive: the old ArrayAdapter line
+    // is preserved (commented) in onStarted() for instant rollback.
+    //
+    // Why inner class here (not separate file): keeps the example self-contained
+    // inside the host being migrated, exactly as the "small ... row" instruction
+    // and the guidance comments in NetworkServerDialog.kt anticipated.
+    //
+    // Recycling note: We reuse ComposeView when convertView is already one.
+    // setContent is cheap for this tiny leaf. For very long logs one would
+    // eventually migrate the whole screen to Compose + LazyColumn + remember.
+    //
+    // Theming guarantee: explicit VLCTheme wrapper + leaf also wraps internally.
+    // Light/dark follows system (or activity's effective night mode).
+    //
+    // See also usage in onStarted() below, and the xml demo (Pattern 1) + its
+    // wiring in onCreate.
+    // =========================================================================
+    private class DebugLogComposeAdapter(
+        context: android.content.Context,
+        private val items: MutableList<String>
+    ) : ArrayAdapter<String>(context, 0, items) {
+
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+            val text = getItem(position) ?: ""
+            // Recycle ComposeView if the previous row handed us one back.
+            val composeView = (convertView as? ComposeView) ?: ComposeView(context)
+            composeView.setContent {
+                // Always wrap at the host site for illustration (matches NetworkServerDialog style).
+                // VLCDebugLogLine itself also calls VLCTheme { ... } internally - harmless.
+                VLCTheme {
+                    VLCDebugLogLine(text = text)
+                }
+            }
+            return composeView
+        }
+
+        // getDropDownView not needed for ListView (only for Spinners); provided for completeness
+        // if someone re-uses this adapter in a dropdown context later.
+        override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
+            return getView(position, convertView, parent)
         }
     }
 

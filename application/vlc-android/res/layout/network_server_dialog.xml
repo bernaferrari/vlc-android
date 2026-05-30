@@ -69,10 +69,13 @@
           * Original XML layouts (dropdown_item.xml etc.) are preserved during demonstration.
           * Next step example: replace ArrayAdapter usages with custom adapters whose
             getView()/getDropDownView() return recycled ComposeViews for full migration.
+            See DebugLogActivity.kt (task compose-2l4.1.2 / compose-5wg) which applies Pattern 2
+            to a real ListView via small Compose-based row adapter + VLCDebugLogLine.
           * Rollback: remove the id usage + the view tag; no other changes required.
 
           See also: application/compose/src/main/java/.../interop/VLCCompose.kt
                     application/compose/src/main/java/.../components/DropdownItem.kt
+                    application/compose/src/main/java/.../components/DebugLogLine.kt (VLCDebugLogLine)
           =====================================================================================
         -->
         <org.videolan.vlc.compose.interop.VLCComposeView
@@ -86,6 +89,26 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/view2" />
+
+        <!-- 
+          SECOND INTEROP DEMO (additive, Wave 1 follow-up exercise in the primary interop demo area):
+          Hosts VLCDebugLogLine (the leaf for debug_log_item.xml) via Pattern 1 right here in
+          NetworkServerDialog (the reference "interop demo area").
+          This exercises the new leaf from compose-2l4.1.2 work inside the established demo host.
+          Wired in NetworkServerDialog.kt (second findViewById + setContent block).
+          Rollback: remove this block + the kt wiring; dialog unaffected.
+        -->
+        <org.videolan.vlc.compose.interop.VLCComposeView
+                android:id="@+id/compose_interop_debuglog_demo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="8dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/compose_interop_debuglog_demo" />
 
         <androidx.appcompat.widget.AppCompatSpinner
                 android:id="@+id/server_protocol"
@@ -121,7 +144,7 @@
                 android:minWidth="30dp"
                 android:singleLine="true"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/compose_interop_demo" />
+                app:layout_constraintTop_toBottomOf="@+id/compose_interop_debuglog_demo" />
 
         <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/server_domain"

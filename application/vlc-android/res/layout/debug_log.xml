@@ -49,6 +49,64 @@
             android:layout_height="wrap_content"
             android:text="@string/clear_log" />
 
+    <!-- 
+      =====================================================================================
+      WAVE 1 HOST MIGRATION - DebugLogActivity (task compose-2l4.1.2)
+      VLCComposeView embedded directly inside legacy XML layout (debug_log.xml).
+
+      This is Pattern #1 (see NetworkServerDialog / network_server_dialog.xml as exact template).
+
+      - The tag is a normal custom view; no dataBinding or special inflation needed.
+      - In Kotlin host (see DebugLogActivity.kt): 
+            val composeHost = findViewById<VLCComposeView>(R.id.compose_interop_debuglog_demo)
+            composeHost.setContent {
+                VLCTheme {
+                    VLCDebugLogLine(text = "Compose-powered log line (interop demo)")
+                }
+            }
+
+      BEFORE (legacy): debug_log_item.xml (trivial 5-line monospace TextView) inflated by
+                       ArrayAdapter<String> for the ListView log rows. STILL FULLY PRESERVED.
+      AFTER (demo + migration): Legacy ArrayAdapter path + debug_log_item.xml remain 100%
+                                compilable and available (additive only; see comments in .kt).
+                                + Live Compose rendering of VLCDebugLogLine appears here as
+                                  header demo + (via custom adapter row pattern) for actual log lines.
+
+      Hybrid migration strategy notes (copy-paste for future Wave 1+ hosts):
+      * Leaf Composables (VLCDebugLogLine, VLCDropdownItem, VLCInfoItem, ...) are safe to host
+        immediately: zero side effects, self-contained, wrap their own VLCTheme (or accept explicit).
+      * Two patterns (both used in this host):
+          1. Layout XML + findViewById<VLCComposeView> + setContent { VLCTheme { Leaf(...) } }
+          2. Programmatic: ComposeView(context) inside custom adapter getView() for list rows.
+      * Original XML layouts (debug_log_item.xml) are preserved during + after demonstration.
+        Rollback: delete the new id usage + view tag + new adapter class + 5 imports;
+                  the ListView + old ArrayAdapter line continue to function exactly as before.
+      * For lists: the small Compose-based row adapter below demonstrates the bridge for
+        ArrayAdapter/ListView/RecyclerView hosts. (Full migration of this screen would later
+        replace ListView entirely with LazyColumn inside a Compose screen.)
+      * Theming: light/dark via VLCTheme + isSystemInDarkTheme() (or explicit). Matches
+        Material3 bodySmall + Monospace. Previews in PreviewUtils.kt + VLCDebugLogLine.kt
+        verify both modes.
+      * Permanent Exceptions boundary: This host (debug log viewer) is fully migratable;
+        contrast with native player surfaces, complex MediaLibrary JNI, certain TV overlays,
+        or WebView-based legacy that stay outside Compose forever.
+      * Wave 1 epic / traceability: This is the first real post-demo Wave 1 host migration
+        (compose-2l4.1.2). Reference implementation: compose-5qk (NetworkServerDialog.kt +
+        network_server_dialog.xml). See also: compose-5wg (bd), VLCDebugLogLine.kt,
+        VLCCompose.kt, VLCTheme.kt, and cross-cutting notes (compose-2l4.1.8).
+
+      See also: application/compose/src/main/java/org/videolan/vlc/compose/components/DebugLogLine.kt
+                application/compose/src/main/java/org/videolan/vlc/compose/interop/VLCCompose.kt
+                application/vlc-android/src/org/videolan/vlc/gui/dialogs/NetworkServerDialog.kt
+      =====================================================================================
+    -->
+    <org.videolan.vlc.compose.interop.VLCComposeView
+            android:id="@+id/compose_interop_debuglog_demo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="4dp" />
+
     <ListView
             android:id="@+id/log_list"
             android:layout_width="match_parent"
