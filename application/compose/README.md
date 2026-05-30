@@ -145,6 +145,7 @@ The **Compose Interop Lab** (`ComposeInteropLabActivity` + `compose_interop_lab.
   - Info surfaces host (MediaInfoAdapter + InfoActivity): `application/vlc-android/src/org/videolan/vlc/gui/video/MediaInfoAdapter.kt` + `application/vlc-android/src/org/videolan/vlc/gui/InfoActivity.kt` (compose-2l4.1.3 / bd compose-l94)
   - Section header hosts + decorations (compose-2l4.1.4 / bd compose-95d)
   - Dialog content host (ConfirmDeleteDialog - keep shell/swap content pattern): `application/vlc-android/src/org/videolan/vlc/gui/dialogs/ConfirmDeleteDialog.kt` (compose-2l4.1.5 / bd compose-j0e)
+  - Onboarding first-run host (high-visibility welcome flow): `application/vlc-android/src/org/videolan/vlc/gui/onboarding/OnboardingWelcomeFragment.kt` (compose-2l4.1.6 / bd compose-mdj) — real logo slot + land variant noted, layouts 100% preserved
   - Crown jewel cross-cutting Lab (this milestone): `application/vlc-android/src/org/videolan/vlc/gui/ComposeInteropLabActivity.kt` + `compose_interop_lab.xml`
   - All leaves + interop + theme: `application/compose/src/main/java/org/videolan/vlc/compose/{components,interop,theme}/*`
   - Richer mocks derived from the Lab: `application/compose/src/main/java/org/videolan/vlc/compose/PreviewUtils.kt`
@@ -155,7 +156,7 @@ The **Compose Interop Lab** (`ComposeInteropLabActivity` + `compose_interop_lab.
 
 **Enforced starting with compose-2l4.1.8**:
 
-> Every interop host (NetworkServerDialog, DebugLogActivity, MediaInfoAdapter/InfoActivity, ComposeInteropLabActivity, and all future ones) **must** have documented evidence that it compiles cleanly against the current `:application:compose` leaves.
+> Every interop host (NetworkServerDialog, DebugLogActivity, MediaInfoAdapter/InfoActivity, ComposeInteropLabActivity, OnboardingWelcomeFragment, and all future ones) **must** have documented evidence that it compiles cleanly against the current `:application:compose` leaves.
 
 **The gate command** (run from the worktree root):
 ```bash

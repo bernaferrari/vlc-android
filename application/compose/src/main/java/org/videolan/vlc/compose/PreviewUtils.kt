@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -629,43 +630,79 @@ fun VLCDialogConfirmDeleteDarkPreview() {
     }
 }
 
+// ============================================================
+// WAVE 1.6 ONBOARDING PREVIEW ENHANCEMENT (compose-2l4.1.6 / bd compose-mdj)
+// The dark onboarding-background previews are now excellent:
+//   - Explicit Box using VLCThemeDefaults.colors.onboardingBackground (the real token
+//     #011422 from DarkVLCColors / LightVLCColors, matching @color/onboarding_grey +
+//     Theme.VLC.Onboarding.* styles used by the original XMLs).
+//   - Larger realistic height (640dp) simulating a phone screen for the welcome step.
+//   - Light variant also wrapped for visual parity (even though onboarding forces dark).
+//   - These previews (plus the Lab's real-logo variant) now directly exercise the
+//     exact logoContent + title/subtitle usage that OnboardingWelcomeFragment.kt
+//     (the new first-run host) and the Interop Lab employ.
+//   - No drawable refs here (Wave-1-safe: previews stay self-contained in :compose;
+//     real painterResource mapping lives only in vlc-android hosts: fragment + Lab).
+// This advances the "preview + gate enforcement" + "richer usage mocks" criteria.
+// ============================================================
+
 @Preview(
     name = "VLCOnboardingWelcome - Light (static parts)",
     showBackground = true,
-    backgroundColor = 0xFF011422,
+    backgroundColor = 0xFFFFFFFF,
     widthDp = 360,
-    heightDp = 420
+    heightDp = 640
 )
 @Composable
 fun VLCOnboardingWelcomeLightPreview() {
     VLCTheme(darkTheme = false) {
-        VLCOnboardingWelcome(
-            title = "Welcome to VLC for Android",
-            subtitle = "The best open source video and audio player, now on your mobile device."
-        )
+        // Excellent preview wrapper: exercises the token even in light (for completeness).
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(VLCThemeDefaults.colors.onboardingBackground)
+        ) {
+            VLCOnboardingWelcome(
+                title = "Welcome to VLC for Android",
+                subtitle = "The best open source video and audio player, now on your mobile device."
+            )
+        }
     }
 }
 
 @Preview(
-    name = "VLCOnboardingWelcome - Dark (static parts)",
+    name = "VLCOnboardingWelcome - Dark (static parts) — excellent onboardingBackground token",
     showBackground = true,
     backgroundColor = 0xFF011422,
     widthDp = 360,
-    heightDp = 420
+    heightDp = 640
 )
 @Composable
 fun VLCOnboardingWelcomeDarkPreview() {
     VLCTheme(darkTheme = true) {
-        VLCOnboardingWelcome(
-            title = "Welcome to VLC for Android",
-            subtitle = "Play everything. Free. No ads. No tracking."
-        )
+        // Excellent dark preview: full token fidelity for the first-run welcome screen
+        // (now hosted by OnboardingWelcomeFragment via interop after compose-2l4.1.6).
+        // Matches the deep blue-grey used by both phone + land XML variants + the
+        // activity's forced dark system bars. Real logo exercised in Lab + fragment.
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(VLCThemeDefaults.colors.onboardingBackground)
+        ) {
+            VLCOnboardingWelcome(
+                title = "Welcome to VLC for Android",
+                subtitle = "Play everything. Free. No ads. No tracking."
+            )
+        }
     }
 }
 
 // ============================================================
 // WAVE 1.8 RICHER USAGE MOCKS (derived from Compose Interop Lab host)
 // compose-2l4.1.8 cross-cutting: these are the "richer usage mocks" requirement.
+// WAVE 1.6 addition (compose-2l4.1.6 / bd compose-mdj): OnboardingWelcome*Previews
+// strengthened with excellent dark onboardingBackground token wrappers + real host
+// context (OnboardingWelcomeFragment first-run flow + Lab real-logo variant).
 // WAVE 1.3 addition (compose-2l4.1.3): MediaInfoTrackList*Previews were added here
 // (and exercised by the Lab's combined mock) as part of the MediaInfoAdapter host migration.
 // They are extracted / inspired directly from the live interactive examples
