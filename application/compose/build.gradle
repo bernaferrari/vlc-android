@@ -1,0 +1,64 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose'
+}
+
+android {
+    namespace = 'org.videolan.vlc.compose'
+
+    defaultConfig {
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles 'consumer-rules.pro'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {}
+        // Match patterns used by sibling modules for build variant compatibility
+        vlcBundle {
+            initWith release
+            matchingFallbacks = ['release']
+        }
+    }
+
+    buildFeatures {
+        compose = true
+        // Explicitly do NOT enable dataBinding or viewBinding here (hybrid migration strategy)
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+    def composeBom = platform("androidx.compose:compose-bom:$rootProject.ext.composeBomVersion")
+    implementation composeBom
+
+    implementation "androidx.compose.ui:ui"
+    implementation "androidx.compose.ui:ui-tooling-preview"
+    implementation "androidx.compose.material3:material3"
+    implementation "androidx.compose.foundation:foundation"
+
+    debugImplementation "androidx.compose.ui:ui-tooling"
+    debugImplementation "androidx.compose.ui:ui-test-manifest"
+
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:$rootProject.ext.lifecycleVersion"
+
+    // Test dependencies (aligned with project conventions + Compose specifics)
+    testImplementation "junit:junit:$rootProject.ext.junitVersion"
+
+    androidTestImplementation "androidx.test.ext:junit:$rootProject.ext.junitExtVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$rootProject.ext.espressoVersion"
+    androidTestImplementation composeBom
+    androidTestImplementation "androidx.compose.ui:ui-test-junit4"
+}
