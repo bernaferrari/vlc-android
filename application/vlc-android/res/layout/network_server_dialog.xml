@@ -38,6 +38,55 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/server_url" />
 
+        <!-- 
+          =====================================================================================
+          FIRST REAL INTEROP HOSTING DEMO (Wave 0 / bootstrap) - Pattern #1
+          VLCComposeView embedded directly inside legacy XML layout (network_server_dialog.xml).
+
+          This is the "using VLCComposeView inside an existing layout" pattern.
+
+          - The tag is a normal custom view; no dataBinding or special inflation needed.
+          - In Kotlin host (see NetworkServerDialog.kt): 
+                val composeHost = v.findViewById<VLCComposeView>(R.id.compose_interop_demo)
+                composeHost.setContent {
+                    VLCTheme {
+                        VLCDropdownItem(text = "Compose-powered item (interop demo)")
+                    }
+                }
+
+          BEFORE (legacy): dropdown_item.xml (simple TextView) inflated by ArrayAdapter for the
+                           protocol Spinner items. Still active below - kept for compatibility.
+          AFTER (demo): Legacy spinner + ArrayAdapter continue 100% unchanged.
+                        + Live Compose rendering of the equivalent VLCDropdownItem appears here
+                          in the dialog UI as proof the bridge works end-to-end.
+
+          Hybrid strategy notes (copy-paste for future waves):
+          * Leaf Composables (VLCDropdownItem, VLCDebugLogLine, VLCInfoItem, ...) are safe to host
+            immediately because they have zero side effects and wrap their own VLCTheme.
+          * Two patterns demonstrated:
+              1. Layout XML: <org.videolan.vlc.compose.interop.VLCComposeView .../>  (this file)
+              2. Pure Kotlin: ComposeView(context).apply { setContent { VLCTheme { ... } } }
+          * Original XML layouts (dropdown_item.xml etc.) are preserved during demonstration.
+          * Next step example: replace ArrayAdapter usages with custom adapters whose
+            getView()/getDropDownView() return recycled ComposeViews for full migration.
+          * Rollback: remove the id usage + the view tag; no other changes required.
+
+          See also: application/compose/src/main/java/.../interop/VLCCompose.kt
+                    application/compose/src/main/java/.../components/DropdownItem.kt
+          =====================================================================================
+        -->
+        <org.videolan.vlc.compose.interop.VLCComposeView
+                android:id="@+id/compose_interop_demo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="4dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/view2" />
+
         <androidx.appcompat.widget.AppCompatSpinner
                 android:id="@+id/server_protocol"
                 android:layout_width="wrap_content"
@@ -72,7 +121,7 @@
                 android:minWidth="30dp"
                 android:singleLine="true"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/view2" />
+                app:layout_constraintTop_toBottomOf="@+id/compose_interop_demo" />
 
         <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/server_domain"

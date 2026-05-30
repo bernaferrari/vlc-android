@@ -1,6 +1,9 @@
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
+    // Compose plugin required for any module hosting inline @Composable content / setContent lambdas (hybrid interop).
+    // Enables Compose compiler for Kotlin sources in this legacy module when we embed ComposeView + Composable trees.
+    id 'org.jetbrains.kotlin.plugin.compose'
     id 'kotlin-kapt'
     id 'com.google.devtools.ksp'
     id 'kotlin-parcelize'
@@ -126,6 +129,11 @@ android {
         renderScript = true
         aidl = true
         buildConfig = true
+        // Enable Compose build feature for hybrid interop hosting.
+        // Allows this legacy module (vlc-android) to compile Kotlin files containing
+        // ComposeView.setContent { VLCTheme { LeafComposable(...) } } call sites.
+        // This is the key enabler for the "First Real Hosting Migration" pattern.
+        compose = true
     }
 }
 
@@ -164,6 +172,7 @@ dependencies {
     signedReleaseApi "org.videolan.android:medialibrary-all:$rootProject.ext.medialibraryVersion"
     api project(':application:tools')
     api project(':application:resources')
+    api project(':application:compose')  // Wires the new leaf Composables + VLCComposeView interop for hybrid hosting (first real usage demo)
     api project(':application:mediadb')
     api project(':application:live-plot-graph')
 
@@ -204,6 +213,15 @@ dependencies {
     api "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
     api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$rootProject.ext.kotlinx_version"
     api "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.ext.kotlinx_version"
+
+    // Compose runtime for hybrid interop (required in host modules that directly use ComposeView + setContent lambdas).
+    // The BOM + ui provide ComposeView, AbstractComposeView, and @Composable support alongside the plugin.
+    // The :application:compose module provides the actual themed leaf components (VLCDropdownItem etc) and VLCComposeView subclass.
+    def composeBom = platform("androidx.compose:compose-bom:$rootProject.ext.composeBomVersion")
+    implementation composeBom
+    implementation "androidx.compose.ui:ui"
+    debugImplementation "androidx.compose.ui:ui-tooling"
+    // Note: no material3 here - we consume only through the compose module's VLCTheme wrapper to keep token fidelity.
 
     implementation 'nl.dionsegijn:konfetti-xml:2.0.4'
     implementation 'com.google.zxing:core:3.4.0'
