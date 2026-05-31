@@ -20,26 +20,65 @@
 
 package org.videolan.vlc.gui.dialogs
 
-import android.os.Bundle
-import android.view.LayoutInflater
+import android.graphics.Bitmap
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
+import android.view.accessibility.AccessibilityEvent
+import android.widget.FrameLayout
+import androidx.annotation.DrawableRes
 import androidx.core.content.pm.ShortcutManagerCompat
-import androidx.core.os.bundleOf
-import androidx.databinding.DataBindingUtil
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.fragment.app.FragmentActivity
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.resources.AndroidDevices
+import org.videolan.tools.Settings
 import org.videolan.tools.isStarted
 import org.videolan.vlc.R
 import org.videolan.vlc.VlcMigrationHelper
-import org.videolan.vlc.databinding.ContextItemBinding
-import org.videolan.vlc.databinding.ContextualSheetBinding
+import org.videolan.vlc.compose.theme.VLCTheme
+import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.util.ContextOption
 import org.videolan.vlc.util.ContextOption.CTX_ADD_FOLDER_AND_SUB_PLAYLIST
 import org.videolan.vlc.util.ContextOption.CTX_ADD_FOLDER_PLAYLIST
@@ -83,170 +122,312 @@ import org.videolan.vlc.util.ContextOption.CTX_SHARE
 import org.videolan.vlc.util.ContextOption.CTX_STOP_AFTER_THIS
 import org.videolan.vlc.util.ContextOption.CTX_UNGROUP
 import org.videolan.vlc.util.FlagSet
+import org.videolan.vlc.util.ThumbnailsProvider
+import org.videolan.vlc.util.isTalkbackIsEnabled
 
 const val CTX_TITLE_KEY = "CTX_TITLE_KEY"
 const val CTX_POSITION_KEY = "CTX_POSITION_KEY"
 const val CTX_FLAGS_KEY = "CTX_FLAGS_KEY"
 const val CTX_MEDIA_KEY = "CTX_MEDIA_KEY"
 
-class ContextSheet : VLCBottomSheetDialogFragment() {
-    override fun getDefaultState(): Int = STATE_EXPANDED
-
-    override fun needToManageOrientation(): Boolean = false
-
-    private lateinit var binding: ContextualSheetBinding
-    private lateinit var menuItems: List<CtxMenuItem>
-    lateinit var receiver: CtxActionReceiver
-    private var itemPosition = -1
-
-    override fun initialFocusedView(): View = binding.ctxList
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        itemPosition = arguments?.getInt(CTX_POSITION_KEY) ?: -1
-        if (!this::receiver.isInitialized) restoreReceiver(savedInstanceState)
+private class ContextSheetComposeDialog(
+    private val activity: FragmentActivity,
+    private val receiver: CtxActionReceiver,
+    private val position: Int,
+    private val title: String,
+    private val media: MediaLibraryItem?,
+    private val menuItems: List<CtxMenuItem>
+) {
+    private val dialog = if (Settings.showTvUi) {
+        BottomSheetDialog(activity, R.style.Theme_VLC_Black_BottomSheet)
+    } else {
+        BottomSheetDialog(activity)
     }
+    private var rootView: ComposeView? = null
 
-    private fun restoreReceiver(savedInstanceState: Bundle?) {
-        if (savedInstanceState != null) {
-            val fragments = requireActivity().supportFragmentManager.fragments
-            for ((index, fragment) in fragments.withIndex()) {
-                if (fragment is CtxActionReceiver) {
-                    receiver = fragment
-                    return
-                } else if (index > 1) break
-            }
-        }
-        dismiss()
-    }
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        binding = DataBindingUtil.inflate(inflater, R.layout.contextual_sheet, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        if (arguments?.containsKey(CTX_MEDIA_KEY) == true) {
-            val media: MediaLibraryItem = arguments?.get(CTX_MEDIA_KEY) as MediaLibraryItem
-
-            binding.item = media
-            val artwork = when (media) {
-                is MediaWrapper -> media.artworkURL
-                else -> media.artworkMrl
-            }
-            binding.showCover = !artwork.isNullOrBlank()
-            binding.ctxCoverTitle.text = media.title
-            binding.ctxTitle.text = media.title
-        } else if (arguments?.containsKey(CTX_TITLE_KEY) == true) {
-            binding.ctxCoverTitle.text = arguments?.getString(CTX_TITLE_KEY)
-                    ?: ""
-        }
-        binding.ctxList.layoutManager = LinearLayoutManager(requireContext())
-        binding.ctxList.adapter = ContextAdapter()
-        val flags = FlagSet(ContextOption::class.java).apply {
-            setCapabilities(arguments?.getLong(CTX_FLAGS_KEY) ?: 0)
-        }
-        menuItems = populateMenuItems(flags)
-    }
-
-    private fun populateMenuItems(flags: FlagSet<ContextOption>) = mutableListOf<CtxMenuItem>().apply {
-
-        if (flags.contains(CTX_PLAY)) add(Simple(CTX_PLAY, getString(R.string.play), R.drawable.ic_play))
-        if (flags.contains(CTX_QUICK_PLAY)) add(Simple(CTX_QUICK_PLAY, getString(R.string.quick_play), R.drawable.ic_play))
-        if (flags.contains(CTX_PLAY_SHUFFLE)) add(Simple(CTX_PLAY_SHUFFLE, getString(R.string.shuffle_play), R.drawable.ic_shuffle))
-        if (flags.contains(CTX_PLAY_FROM_START)) add(Simple(CTX_PLAY_FROM_START, getString(R.string.play_from_start), R.drawable.ic_play_from_start))
-        if (flags.contains(CTX_PLAY_ALL)) add(Simple(CTX_PLAY_ALL, getString(R.string.play_all), R.drawable.ic_play_all))
-        if (flags.contains(CTX_PLAY_AS_AUDIO)) add(Simple(CTX_PLAY_AS_AUDIO, getString(R.string.play_as_audio), R.drawable.ic_play_as_audio))
-        if (flags.contains(CTX_APPEND)) add(Simple(CTX_APPEND, getString(R.string.append), R.drawable.ic_play_append))
-        if (flags.contains(CTX_PLAY_NEXT)) add(Simple(CTX_PLAY_NEXT, getString(R.string.insert_next), R.drawable.ic_play_next))
-        if (flags.contains(CTX_DOWNLOAD_SUBTITLES) && VlcMigrationHelper.isLolliPopOrLater) add(Simple(CTX_DOWNLOAD_SUBTITLES, getString(R.string.download_subtitles), R.drawable.ic_download_subtitles))
-        if (flags.contains(CTX_INFORMATION)) add(Simple(CTX_INFORMATION, getString(R.string.info), R.drawable.ic_information))
-        if (flags.contains(CTX_GO_TO_ALBUM)) add(Simple(CTX_GO_TO_ALBUM, getString(R.string.go_to_album), R.drawable.ic_album))
-        if (flags.contains(CTX_GO_TO_ARTIST)) add(Simple(CTX_GO_TO_ARTIST, getString(R.string.go_to_artist), R.drawable.ic_no_artist))
-        if (flags.contains(CTX_GO_TO_ALBUM_ARTIST)) add(Simple(CTX_GO_TO_ALBUM_ARTIST, getString(R.string.go_to_album_artist), R.drawable.ic_no_artist))
-        if (flags.contains(CTX_ADD_TO_PLAYLIST)) add(Simple(CTX_ADD_TO_PLAYLIST, getString(R.string.add_to_playlist), R.drawable.ic_add_to_playlist))
-        if (flags.contains(CTX_SET_RINGTONE) && AndroidDevices.isPhone) add(Simple(CTX_SET_RINGTONE, getString(R.string.set_song), R.drawable.ic_set_ringtone))
-        if (flags.contains(CTX_FAV_ADD)) add(Simple(CTX_FAV_ADD, getString(R.string.favorites_add), R.drawable.ic_fav_add))
-        if (flags.contains(CTX_ADD_SCANNED)) add(Simple(CTX_ADD_SCANNED, getString(R.string.add_to_scanned), R.drawable.ic_add_to_scan))
-        if (flags.contains(CTX_FAV_EDIT)) add(Simple(CTX_FAV_EDIT, getString(R.string.favorites_edit), R.drawable.ic_edit))
-        if (flags.contains(CTX_FAV_REMOVE)) add(Simple(CTX_FAV_REMOVE, getString(R.string.favorites_remove), R.drawable.ic_fav_remove))
-        if (flags.contains(CTX_REMOVE_FROM_PLAYLIST)) add(Simple(CTX_REMOVE_FROM_PLAYLIST, getString(R.string.remove), R.drawable.ic_remove_from_playlist))
-        if (flags.contains(CTX_STOP_AFTER_THIS)) add(Simple(CTX_STOP_AFTER_THIS, getString(R.string.stop_after_this), R.drawable.ic_stop_after_this))
-        if (flags.contains(CTX_RENAME)) add(Simple(CTX_RENAME, getString(R.string.rename), R.drawable.ic_edit))
-        if (flags.contains(CTX_COPY)) add(Simple(CTX_COPY, getString(R.string.copy_to_clipboard), R.drawable.ic_link))
-        if (flags.contains(CTX_DELETE)) add(Simple(CTX_DELETE, getString(R.string.delete), R.drawable.ic_delete))
-        if (flags.contains(CTX_SHARE)) add(Simple(CTX_SHARE, getString(R.string.share), R.drawable.ic_share))
-        if (flags.contains(CTX_ADD_SHORTCUT) && ShortcutManagerCompat.isRequestPinShortcutSupported(requireActivity())) add(Simple(CTX_ADD_SHORTCUT, getString(R.string.create_shortcut), R.drawable.ic_app_shortcut))
-        if (flags.contains(CTX_FIND_METADATA)) add(Simple(CTX_FIND_METADATA, getString(R.string.find_metadata), R.drawable.ic_delete))
-        if (flags.contains(CTX_ADD_FOLDER_PLAYLIST)) add(Simple(CTX_ADD_FOLDER_PLAYLIST, getString(R.string.this_folder), R.drawable.ic_add_to_playlist))
-        if (flags.contains(CTX_ADD_FOLDER_AND_SUB_PLAYLIST)) add(Simple(CTX_ADD_FOLDER_AND_SUB_PLAYLIST, getString(R.string.all_subfolders), R.drawable.ic_add_to_playlist))
-        if (flags.contains(CTX_ADD_GROUP)) add(Simple(CTX_ADD_GROUP, getString(R.string.add_to_group), R.drawable.ic_add_to_group))
-        if (flags.contains(CTX_REMOVE_GROUP)) add(Simple(CTX_REMOVE_GROUP, getString(R.string.remove_from_group), R.drawable.ic_remove_from_group))
-        if (flags.contains(CTX_RENAME_GROUP)) add(Simple(CTX_RENAME_GROUP, getString(R.string.rename_group), R.drawable.ic_edit))
-        if (flags.contains(CTX_UNGROUP)) add(Simple(CTX_UNGROUP, getString(R.string.ungroup), R.drawable.ic_delete))
-        if (flags.contains(CTX_GROUP_SIMILAR)) add(Simple(CTX_GROUP_SIMILAR, getString(R.string.group_similar), R.drawable.ic_group_auto))
-        if (flags.contains(CTX_MARK_AS_PLAYED)) add(Simple(CTX_MARK_AS_PLAYED, getString(R.string.mark_as_played), R.drawable.ic_mark_as_played))
-        if (flags.contains(CTX_MARK_AS_UNPLAYED)) add(Simple(CTX_MARK_AS_UNPLAYED, getString(R.string.mark_as_not_played), R.drawable.ic_mark_as_not_played))
-        if (flags.contains(CTX_MARK_ALL_AS_PLAYED)) add(Simple(CTX_MARK_ALL_AS_PLAYED, getString(R.string.mark_all_as_played), R.drawable.ic_mark_all_as_played))
-        if (flags.contains(CTX_MARK_ALL_AS_UNPLAYED)) add(Simple(CTX_MARK_ALL_AS_UNPLAYED, getString(R.string.mark_all_as_not_played), R.drawable.ic_mark_all_as_not_played))
-        if (flags.contains(CTX_GO_TO_FOLDER)) add(Simple(CTX_GO_TO_FOLDER, getString(R.string.go_to_folder), R.drawable.ic_browse_parent))
-        if (flags.contains(CTX_CUSTOM_REMOVE)) add(Simple(CTX_CUSTOM_REMOVE, getString(R.string.remove_custom_path), R.drawable.ic_delete))
-        if (flags.contains(CTX_BAN_FOLDER)) add(Simple(CTX_BAN_FOLDER, getString(R.string.group_ban_folder), R.drawable.ic_hide_source))
-    }
-
-    inner class ContextAdapter : RecyclerView.Adapter<ContextAdapter.ViewHolder>() {
-
-        private val inflater: LayoutInflater by lazy(LazyThreadSafetyMode.NONE) { LayoutInflater.from(requireContext()) }
-
-        inner class ViewHolder(val binding: ContextItemBinding) : RecyclerView.ViewHolder(binding.root) {
-            private val textColor = binding.contextOptionTitle.currentTextColor
-            private val focusedColor by lazy(LazyThreadSafetyMode.NONE) { ContextCompat.getColor(itemView.context, R.color.orange500transparent) }
-
-            init {
-                itemView.setOnClickListener {
-                    receiver.onCtxAction(itemPosition, menuItems[layoutPosition].id)
-                    dismiss()
+    fun show() {
+        rootView = ComposeView(activity).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+            setContent {
+                VLCTheme {
+                    ContextSheetContent(
+                        title = title,
+                        media = media,
+                        menuItems = menuItems,
+                        onItemSelected = ::onItemSelected
+                    )
                 }
-                itemView.setOnFocusChangeListener { _, hasFocus -> binding.contextOptionTitle.setTextColor(if (hasFocus) focusedColor else textColor) }
             }
         }
+        dialog.setContentView(rootView!!)
+        dialog.setOnShowListener { configureBottomSheet() }
+        dialog.setOnDismissListener { rootView = null }
+        dialog.show()
+    }
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(ContextItemBinding.inflate(inflater, parent, false))
+    private fun onItemSelected(item: CtxMenuItem) {
+        receiver.onCtxAction(position, item.id)
+        dialog.dismiss()
+    }
 
-        override fun getItemCount() = menuItems.size
-
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            holder.binding.menuItem = menuItems[position]
-            holder.binding.contextOptionIcon.setImageResource(menuItems[position].icon)
+    private fun configureBottomSheet() {
+        dialog.window?.setLayout(
+            activity.resources.getDimensionPixelSize(R.dimen.default_context_width),
+            ViewGroup.LayoutParams.MATCH_PARENT
+        )
+        dialog.findViewById<View>(R.id.touch_outside)?.apply {
+            isFocusable = false
+            isFocusableInTouchMode = false
+        }
+        rootView?.let { view ->
+            if (AndroidDevices.isTv) {
+                val overscan = activity.resources.getDimensionPixelSize(org.videolan.resources.R.dimen.tv_overscan_vertical)
+                view.setPadding(view.paddingLeft, view.paddingTop, view.paddingRight, view.paddingBottom + overscan)
+            }
+            view.isFocusable = true
+            view.isFocusableInTouchMode = true
+            view.requestFocus()
+            if (activity.isTalkbackIsEnabled()) view.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED)
+        }
+        dialog.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)?.let { bottomSheet ->
+            val behavior = BottomSheetBehavior.from(bottomSheet)
+            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+            if (AndroidDevices.isChromeBook) behavior.isDraggable = false
         }
     }
 }
 
-sealed class CtxMenuItem(val id: ContextOption, val title: String, val icon: Int)
-class Simple(id: ContextOption, title: String, icon: Int = 0) : CtxMenuItem(id, title, icon)
+@Composable
+private fun ContextSheetContent(
+    title: String,
+    media: MediaLibraryItem?,
+    menuItems: List<CtxMenuItem>,
+    onItemSelected: (CtxMenuItem) -> Unit
+) {
+    val colors = VLCThemeDefaults.colors
+    Surface(
+        color = colors.backgroundDefault,
+        contentColor = colors.fontDefault,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            item {
+                ContextSheetHeader(
+                    title = title,
+                    media = media
+                )
+            }
+            items(menuItems) { item ->
+                ContextActionRow(
+                    item = item,
+                    onClick = { onItemSelected(item) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ContextSheetHeader(
+    title: String,
+    media: MediaLibraryItem?
+) {
+    val coverMedia = media?.takeIf { it.contextArtwork?.isNotBlank() == true }
+    if (coverMedia != null) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .heightIn(min = 56.dp)
+        ) {
+            ContextCover(media = coverMedia)
+            Text(
+                text = title,
+                color = VLCThemeDefaults.colors.fontDefault,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 18.sp
+                ),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 16.dp)
+            )
+        }
+    } else {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 56.dp)
+                .padding(horizontal = 16.dp)
+        ) {
+            Text(
+                text = title,
+                color = VLCThemeDefaults.colors.fontDefault,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 18.sp
+                ),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
+private fun ContextCover(media: MediaLibraryItem) {
+    val colors = VLCThemeDefaults.colors
+    val width = with(LocalDensity.current) { 48.dp.roundToPx() }
+    val thumbnail: Bitmap? by produceState<Bitmap?>(
+        initialValue = null,
+        key1 = media.id,
+        key2 = media.title,
+        key3 = media.contextArtwork
+    ) {
+        value = ThumbnailsProvider.obtainBitmap(media, width)
+    }
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(48.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .background(colors.backgroundDefaultDarker)
+    ) {
+        if (thumbnail != null) {
+            Image(
+                bitmap = thumbnail!!.asImageBitmap(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.size(48.dp)
+            )
+        } else {
+            Icon(
+                painter = painterResource(contextCoverIcon(media)),
+                contentDescription = null,
+                tint = colors.fontDefault,
+                modifier = Modifier.size(32.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ContextActionRow(
+    item: CtxMenuItem,
+    onClick: () -> Unit
+) {
+    val colors = VLCThemeDefaults.colors
+    var focused by remember { mutableStateOf(false) }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(24.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .clickable(onClick = onClick)
+            .onFocusChanged { focused = it.isFocused }
+            .focusable()
+            .padding(start = 24.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+    ) {
+        if (item.icon != 0) {
+            Icon(
+                painter = painterResource(item.icon),
+                contentDescription = null,
+                tint = if (focused) colors.primary else colors.fontDefault,
+                modifier = Modifier.size(24.dp)
+            )
+        } else {
+            Spacer(modifier = Modifier.width(24.dp))
+        }
+        Text(
+            text = item.title,
+            color = if (focused) colors.primary else colors.listTitle,
+            style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+private val MediaLibraryItem.contextArtwork: String?
+    get() = when (this) {
+        is MediaWrapper -> artworkURL
+        else -> artworkMrl
+    }
+
+@DrawableRes
+private fun contextCoverIcon(media: MediaLibraryItem): Int {
+    return when (media) {
+        is MediaWrapper -> when (media.type) {
+            MediaWrapper.TYPE_VIDEO -> R.drawable.ic_video
+            MediaWrapper.TYPE_DIR -> R.drawable.ic_folder
+            else -> R.drawable.ic_playlist_audio
+        }
+        else -> R.drawable.ic_no_media
+    }
+}
+
+private fun populateMenuItems(activity: FragmentActivity, flags: FlagSet<ContextOption>) = mutableListOf<CtxMenuItem>().apply {
+
+    if (flags.contains(CTX_PLAY)) add(Simple(CTX_PLAY, activity.getString(R.string.play), R.drawable.ic_play))
+    if (flags.contains(CTX_QUICK_PLAY)) add(Simple(CTX_QUICK_PLAY, activity.getString(R.string.quick_play), R.drawable.ic_play))
+    if (flags.contains(CTX_PLAY_SHUFFLE)) add(Simple(CTX_PLAY_SHUFFLE, activity.getString(R.string.shuffle_play), R.drawable.ic_shuffle))
+    if (flags.contains(CTX_PLAY_FROM_START)) add(Simple(CTX_PLAY_FROM_START, activity.getString(R.string.play_from_start), R.drawable.ic_play_from_start))
+    if (flags.contains(CTX_PLAY_ALL)) add(Simple(CTX_PLAY_ALL, activity.getString(R.string.play_all), R.drawable.ic_play_all))
+    if (flags.contains(CTX_PLAY_AS_AUDIO)) add(Simple(CTX_PLAY_AS_AUDIO, activity.getString(R.string.play_as_audio), R.drawable.ic_play_as_audio))
+    if (flags.contains(CTX_APPEND)) add(Simple(CTX_APPEND, activity.getString(R.string.append), R.drawable.ic_play_append))
+    if (flags.contains(CTX_PLAY_NEXT)) add(Simple(CTX_PLAY_NEXT, activity.getString(R.string.insert_next), R.drawable.ic_play_next))
+    if (flags.contains(CTX_DOWNLOAD_SUBTITLES) && VlcMigrationHelper.isLolliPopOrLater) add(Simple(CTX_DOWNLOAD_SUBTITLES, activity.getString(R.string.download_subtitles), R.drawable.ic_download_subtitles))
+    if (flags.contains(CTX_INFORMATION)) add(Simple(CTX_INFORMATION, activity.getString(R.string.info), R.drawable.ic_information))
+    if (flags.contains(CTX_GO_TO_ALBUM)) add(Simple(CTX_GO_TO_ALBUM, activity.getString(R.string.go_to_album), R.drawable.ic_album))
+    if (flags.contains(CTX_GO_TO_ARTIST)) add(Simple(CTX_GO_TO_ARTIST, activity.getString(R.string.go_to_artist), R.drawable.ic_no_artist))
+    if (flags.contains(CTX_GO_TO_ALBUM_ARTIST)) add(Simple(CTX_GO_TO_ALBUM_ARTIST, activity.getString(R.string.go_to_album_artist), R.drawable.ic_no_artist))
+    if (flags.contains(CTX_ADD_TO_PLAYLIST)) add(Simple(CTX_ADD_TO_PLAYLIST, activity.getString(R.string.add_to_playlist), R.drawable.ic_add_to_playlist))
+    if (flags.contains(CTX_SET_RINGTONE) && AndroidDevices.isPhone) add(Simple(CTX_SET_RINGTONE, activity.getString(R.string.set_song), R.drawable.ic_set_ringtone))
+    if (flags.contains(CTX_FAV_ADD)) add(Simple(CTX_FAV_ADD, activity.getString(R.string.favorites_add), R.drawable.ic_fav_add))
+    if (flags.contains(CTX_ADD_SCANNED)) add(Simple(CTX_ADD_SCANNED, activity.getString(R.string.add_to_scanned), R.drawable.ic_add_to_scan))
+    if (flags.contains(CTX_FAV_EDIT)) add(Simple(CTX_FAV_EDIT, activity.getString(R.string.favorites_edit), R.drawable.ic_edit))
+    if (flags.contains(CTX_FAV_REMOVE)) add(Simple(CTX_FAV_REMOVE, activity.getString(R.string.favorites_remove), R.drawable.ic_fav_remove))
+    if (flags.contains(CTX_REMOVE_FROM_PLAYLIST)) add(Simple(CTX_REMOVE_FROM_PLAYLIST, activity.getString(R.string.remove), R.drawable.ic_remove_from_playlist))
+    if (flags.contains(CTX_STOP_AFTER_THIS)) add(Simple(CTX_STOP_AFTER_THIS, activity.getString(R.string.stop_after_this), R.drawable.ic_stop_after_this))
+    if (flags.contains(CTX_RENAME)) add(Simple(CTX_RENAME, activity.getString(R.string.rename), R.drawable.ic_edit))
+    if (flags.contains(CTX_COPY)) add(Simple(CTX_COPY, activity.getString(R.string.copy_to_clipboard), R.drawable.ic_link))
+    if (flags.contains(CTX_DELETE)) add(Simple(CTX_DELETE, activity.getString(R.string.delete), R.drawable.ic_delete))
+    if (flags.contains(CTX_SHARE)) add(Simple(CTX_SHARE, activity.getString(R.string.share), R.drawable.ic_share))
+    if (flags.contains(CTX_ADD_SHORTCUT) && ShortcutManagerCompat.isRequestPinShortcutSupported(activity)) add(Simple(CTX_ADD_SHORTCUT, activity.getString(R.string.create_shortcut), R.drawable.ic_app_shortcut))
+    if (flags.contains(CTX_FIND_METADATA)) add(Simple(CTX_FIND_METADATA, activity.getString(R.string.find_metadata), R.drawable.ic_delete))
+    if (flags.contains(CTX_ADD_FOLDER_PLAYLIST)) add(Simple(CTX_ADD_FOLDER_PLAYLIST, activity.getString(R.string.this_folder), R.drawable.ic_add_to_playlist))
+    if (flags.contains(CTX_ADD_FOLDER_AND_SUB_PLAYLIST)) add(Simple(CTX_ADD_FOLDER_AND_SUB_PLAYLIST, activity.getString(R.string.all_subfolders), R.drawable.ic_add_to_playlist))
+    if (flags.contains(CTX_ADD_GROUP)) add(Simple(CTX_ADD_GROUP, activity.getString(R.string.add_to_group), R.drawable.ic_add_to_group))
+    if (flags.contains(CTX_REMOVE_GROUP)) add(Simple(CTX_REMOVE_GROUP, activity.getString(R.string.remove_from_group), R.drawable.ic_remove_from_group))
+    if (flags.contains(CTX_RENAME_GROUP)) add(Simple(CTX_RENAME_GROUP, activity.getString(R.string.rename_group), R.drawable.ic_edit))
+    if (flags.contains(CTX_UNGROUP)) add(Simple(CTX_UNGROUP, activity.getString(R.string.ungroup), R.drawable.ic_delete))
+    if (flags.contains(CTX_GROUP_SIMILAR)) add(Simple(CTX_GROUP_SIMILAR, activity.getString(R.string.group_similar), R.drawable.ic_group_auto))
+    if (flags.contains(CTX_MARK_AS_PLAYED)) add(Simple(CTX_MARK_AS_PLAYED, activity.getString(R.string.mark_as_played), R.drawable.ic_mark_as_played))
+    if (flags.contains(CTX_MARK_AS_UNPLAYED)) add(Simple(CTX_MARK_AS_UNPLAYED, activity.getString(R.string.mark_as_not_played), R.drawable.ic_mark_as_not_played))
+    if (flags.contains(CTX_MARK_ALL_AS_PLAYED)) add(Simple(CTX_MARK_ALL_AS_PLAYED, activity.getString(R.string.mark_all_as_played), R.drawable.ic_mark_all_as_played))
+    if (flags.contains(CTX_MARK_ALL_AS_UNPLAYED)) add(Simple(CTX_MARK_ALL_AS_UNPLAYED, activity.getString(R.string.mark_all_as_not_played), R.drawable.ic_mark_all_as_not_played))
+    if (flags.contains(CTX_GO_TO_FOLDER)) add(Simple(CTX_GO_TO_FOLDER, activity.getString(R.string.go_to_folder), R.drawable.ic_browse_parent))
+    if (flags.contains(CTX_CUSTOM_REMOVE)) add(Simple(CTX_CUSTOM_REMOVE, activity.getString(R.string.remove_custom_path), R.drawable.ic_delete))
+    if (flags.contains(CTX_BAN_FOLDER)) add(Simple(CTX_BAN_FOLDER, activity.getString(R.string.group_ban_folder), R.drawable.ic_hide_source))
+}
+
+sealed class CtxMenuItem(val id: ContextOption, val title: String, @DrawableRes val icon: Int)
+class Simple(id: ContextOption, title: String, @DrawableRes icon: Int = 0) : CtxMenuItem(id, title, icon)
 
 interface CtxActionReceiver {
     fun onCtxAction(position: Int, option: ContextOption)
 }
 
 /**
- * Show the bottom sheet containing the context actions
- *
- * @param activity the activity to use to launch the BottomSheet
- * @param receiver the `CtxActionReceiver` managing the result
- * @param arguments the arguments to send to the [VLCBottomSheetDialogFragment]
- */
-private fun showContext(activity: FragmentActivity, receiver: CtxActionReceiver, arguments:Bundle) {
-    if (!activity.isStarted()) return
-    val ctxDialog = ContextSheet()
-    ctxDialog.arguments = arguments
-    ctxDialog.receiver = receiver
-    ctxDialog.show(activity.supportFragmentManager, "context")
-}
-
-/**
- * Show the bottom sheet containing the context actions. Depending on [media] type, it generate the right arguments
+ * Show the bottom sheet containing the context actions. Depending on [media] type, it generates the right title.
  *
  * @param activity the activity to use to launch the BottomSheet
  * @param receiver the `CtxActionReceiver` managing the result
@@ -256,13 +437,12 @@ private fun showContext(activity: FragmentActivity, receiver: CtxActionReceiver,
  */
 fun showContext(activity: FragmentActivity, receiver: CtxActionReceiver, position: Int, media: MediaLibraryItem?, flags: FlagSet<ContextOption>) {
     if (!activity.isStarted()) return
-    val arguments = when (media) {
-        is MediaLibraryItem -> {
-            bundleOf(CTX_MEDIA_KEY to media, CTX_POSITION_KEY to position,
-                    CTX_FLAGS_KEY to flags.getCapabilities())
-        }
-        else -> bundleOf(CTX_TITLE_KEY to (media?.title ?: ""), CTX_POSITION_KEY to position,
-                CTX_FLAGS_KEY to flags.getCapabilities())
-    }
-    showContext(activity, receiver, arguments)
+    ContextSheetComposeDialog(
+        activity = activity,
+        receiver = receiver,
+        position = position,
+        title = media?.title ?: "",
+        media = media,
+        menuItems = populateMenuItems(activity, flags)
+    ).show()
 }
