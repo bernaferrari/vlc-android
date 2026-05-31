@@ -85,7 +85,7 @@ import org.videolan.vlc.gui.DebugLogActivity
 import org.videolan.vlc.gui.browser.EXTRA_MRL
 import org.videolan.vlc.gui.browser.FilePickerActivity
 import org.videolan.vlc.gui.browser.KEY_PICKER_TYPE
-import org.videolan.vlc.gui.dialogs.ConfirmDeleteDialog
+import org.videolan.vlc.gui.dialogs.showConfirmDeleteComposeDialog
 import org.videolan.vlc.gui.dialogs.showUpdateComposeDialog
 import org.videolan.vlc.gui.helpers.MedialibraryUtils
 import org.videolan.vlc.gui.helpers.UiTools
@@ -174,9 +174,11 @@ class PreferencesAdvanced : BasePreferenceFragment(), SharedPreferences.OnShared
             }
 
             "clear_history" -> {
-                val dialog = ConfirmDeleteDialog.newInstance(title = getString(R.string.clear_playback_history), description = getString(R.string.clear_history_message), buttonText = getString(R.string.clear_history))
-                dialog.show((activity as FragmentActivity).supportFragmentManager, ConfirmDeleteDialog::class.simpleName)
-                dialog.setListener {
+                (activity as FragmentActivity).showConfirmDeleteComposeDialog(
+                    title = getString(R.string.clear_playback_history),
+                    description = getString(R.string.clear_history_message),
+                    buttonText = getString(R.string.clear_history)
+                ) {
                     Medialibrary.getInstance().clearHistory(Medialibrary.HISTORY_TYPE_GLOBAL)
                     Settings.getInstance(activity).edit()
                             .remove(KEY_AUDIO_LAST_PLAYLIST)
@@ -195,9 +197,13 @@ class PreferencesAdvanced : BasePreferenceFragment(), SharedPreferences.OnShared
 
             "clear_app_data" -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    val dialog = ConfirmDeleteDialog.newInstance(title = getString(R.string.clear_app_data), description = getString(R.string.clear_app_data_message), buttonText = getString(R.string.clear))
-                    dialog.show((activity as FragmentActivity).supportFragmentManager, ConfirmDeleteDialog::class.simpleName)
-                    dialog.setListener { (activity.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager).clearApplicationUserData() }
+                    (activity as FragmentActivity).showConfirmDeleteComposeDialog(
+                        title = getString(R.string.clear_app_data),
+                        description = getString(R.string.clear_app_data_message),
+                        buttonText = getString(R.string.clear)
+                    ) {
+                        (activity.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager).clearApplicationUserData()
+                    }
                 } else {
                     val i = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                     i.addCategory(Intent.CATEGORY_DEFAULT)
@@ -219,16 +225,11 @@ class PreferencesAdvanced : BasePreferenceFragment(), SharedPreferences.OnShared
                     }
                 } else {
                     val roots = medialibrary.foldersList
-                    val dialog = ConfirmDeleteDialog.newInstance(
+                    (activity as FragmentActivity).showConfirmDeleteComposeDialog(
                             title = getString(R.string.clear_media_db),
                             description = getString(R.string.clear_media_db_message),
                             buttonText = getString(R.string.clear)
-                    )
-                    dialog.show(
-                            (activity as FragmentActivity).supportFragmentManager,
-                            ConfirmDeleteDialog::class.simpleName
-                    )
-                    dialog.setListener {
+                    ) {
                         launch {
                             activity.stopService(Intent(activity, MediaParsingService::class.java))
                             withContext((Dispatchers.IO)) {

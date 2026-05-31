@@ -82,7 +82,7 @@ import org.videolan.vlc.compose.theme.VLCTheme
 //     2. VLCSectionHeader    - list section headers, from recycler_section_header*.xml
 //     3. VLCInfoItem         - media track details, from info_item.xml (high reuse)
 //     4. VLCDebugLogLine     - log lines, from debug_log_item.xml (also used in DebugLog host)
-//     5. VLCDialogConfirmDelete - presentational core of dialog_confirm_delete.xml
+//     5. VLCDialogConfirmDelete - presentational core used by ConfirmDeleteComposeDialog
 //     6. VLCOnboardingWelcome - static branding parts of onboarding_welcome.xml (now also exercised by real OnboardingWelcomeFragment host, compose-2l4.1.6)
 //
 //   Interactive / richer demos added for educational value + gate visibility:
@@ -354,24 +354,22 @@ fun ComposeInteropLabContent() {
         // 5. VLCDialogConfirmDelete (interactive: real dialog launcher + host context)
         // WAVE 1 / compose-2l4.1.5 (bd compose-j0e) enhancement:
         // This now exercises the leaf with *real host context* pulled directly from
-        // the title-generation + icon logic in the actual ConfirmDeleteDialog.kt
-        // (the production shell that inflates dialog_confirm_delete.xml for deletes,
-        // bans, history clears, TV app data clear, etc.).
+        // the title-generation + icon logic in ConfirmDeleteComposeDialog.kt
+        // (the production Compose bottom sheet for deletes, bans, history clears,
+        // TV app data clear, etc.).
         //
-        // Variants below mirror the when-expression in ConfirmDeleteDialog.onCreateView
+        // Variants below mirror the title when-expression in ConfirmDeleteComposeDialog
         // (single file/folder, multi files+folders, album, playlist, ban-folder special
         // case with warning icon, clear history, several media). The iconContent slot
         // demonstrates the mapping site for the AnimatedVectorDrawable "anim_delete"
-        // (looping) vs static ic_warning_medium — see the full recipe + AndroidView
-        // sketch in the 130+ line mission header of ConfirmDeleteDialog.kt.
+        // (looping) vs static ic_warning_medium.
         //
-        // This is the "crown jewel" live proof for the "keep shell, swap content"
-        // pattern: the AlertDialog here is the M3 scaffolding analogue; in a future
-        // full migration the legacy ConfirmDeleteDialog keeps all its contracts,
-        // button wiring, result sending, leanback focus etc. while this leaf (or
-        // a Compose ModalBottomSheet wrapper) supplies the icon+title+message.
+        // This is the "crown jewel" live proof for the migrated Compose content:
+        // the AlertDialog here is a lightweight lab analogue of the production
+        // Compose bottom sheet, which now owns actions, result sending, and TV
+        // focus setup directly.
         // -----------------------------------------------------------------
-        VLCSectionHeader(text = "5. VLCDialogConfirmDelete (dialog_confirm_delete.xml presentational core + real ConfirmDeleteDialog host context)")
+        VLCSectionHeader(text = "5. VLCDialogConfirmDelete (Compose confirm delete host context)")
 
         var showDeleteDialog by remember { mutableStateOf(false) }
         var deleteVariant by remember { mutableStateOf("single_file") }
@@ -444,10 +442,10 @@ fun ComposeInteropLabContent() {
                     VLCDialogConfirmDelete(
                         title = title,
                         message = message,
-                        // In the real ConfirmDeleteDialog host the iconContent would use
+                        // In the real ConfirmDeleteComposeDialog host the iconContent uses
                         // AndroidView + the exact AnimatedVectorDrawableCompat setup
-                        // (anim_delete looping or ic_warning_medium) from the original
-                        // onCreateView. Here we approximate for the Lab demo.
+                        // (anim_delete looping or ic_warning_medium). Here we approximate
+                        // for the Lab demo.
                         iconContent = {
                             Text(iconLabel, style = MaterialTheme.typography.headlineMedium)
                         }
@@ -467,10 +465,9 @@ fun ComposeInteropLabContent() {
         }
 
         Text(
-            "Leaf = only icon + title + message (presentational subset of dialog_confirm_delete.xml). " +
-            "Scaffolding + actions by Material3 AlertDialog here (and will stay in the legacy ConfirmDeleteDialog shell for the hybrid phase). " +
-            "Variants above are live simulations of the exact title logic from ConfirmDeleteDialog.kt (task compose-2l4.1.5 / bd compose-j0e). " +
-            "See that file's mission header for the full keep-shell/swap-content recipe + rollback safety.",
+            "Leaf = icon + title + message. " +
+            "Scaffolding + actions by Material3 AlertDialog here, matching the production ConfirmDeleteComposeDialog bottom sheet. " +
+            "Variants above are live simulations of the title logic from ConfirmDeleteComposeDialog.kt (task compose-2l4.1.5 / bd compose-j0e).",
             style = MaterialTheme.typography.bodySmall
         )
 

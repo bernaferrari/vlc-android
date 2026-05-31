@@ -19,13 +19,11 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
 /**
  * Compose presentational leaf for dialog content.
  *
- * Focused subset of application/vlc-android/res/layout/dialog_confirm_delete.xml
- * (the warning icon + bold title + descriptive message).
+ * Focused confirm-delete content (warning icon + bold title + descriptive message).
  *
- * The original also contains action Buttons (delete/cancel) and a delete_animation
- * ImageView + ConstraintLayout + Barrier. Those are intentionally omitted here:
- * in Compose migration the dialog scaffolding (AlertDialog / ModalBottomSheet)
- * + actions will be provided by the caller using Material3 components.
+ * Actions are intentionally omitted here: the dialog scaffolding (AlertDialog /
+ * ModalBottomSheet) and action handling are provided by the caller using
+ * Material3 components.
  *
  * This enables reuse of the "are you sure you want to delete X?" messaging
  * pattern across multiple delete confirmation sites.

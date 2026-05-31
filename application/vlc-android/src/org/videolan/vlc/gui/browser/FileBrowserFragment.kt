@@ -30,7 +30,6 @@ import android.view.View
 import androidx.appcompat.view.ActionMode
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -42,7 +41,7 @@ import org.videolan.tools.removeFileScheme
 import org.videolan.vlc.R
 import org.videolan.vlc.gui.SecondaryActivity
 import org.videolan.vlc.gui.dialogs.CONFIRM_DELETE_DIALOG_RESULT_BAN_FOLDER
-import org.videolan.vlc.gui.dialogs.ConfirmDeleteDialog
+import org.videolan.vlc.gui.dialogs.showConfirmDeleteComposeDialog
 import org.videolan.vlc.gui.helpers.MedialibraryUtils
 import org.videolan.vlc.gui.helpers.fillActionMode
 import org.videolan.vlc.util.ContextOption
@@ -117,8 +116,13 @@ open class FileBrowserFragment : BaseBrowserFragment() {
         when (option) {
             CTX_FAV_ADD -> lifecycleScope.launch { browserFavRepository.addLocalFavItem(mw!!.uri, mw.title, mw.artworkURL) }
             CTX_BAN_FOLDER -> {
-                val dialog = ConfirmDeleteDialog.newInstance(medias = arrayListOf(mw!!), title = getString(R.string.group_ban_folder), description = getString(R.string.ban_folder_explanation, getString(R.string.medialibrary_directories)), buttonText = getString(R.string.ban_folder), resultType = CONFIRM_DELETE_DIALOG_RESULT_BAN_FOLDER)
-                dialog.show((activity as FragmentActivity).supportFragmentManager, ConfirmDeleteDialog::class.simpleName)
+                requireActivity().showConfirmDeleteComposeDialog(
+                    medias = arrayListOf(mw!!),
+                    title = getString(R.string.group_ban_folder),
+                    description = getString(R.string.ban_folder_explanation, getString(R.string.medialibrary_directories)),
+                    buttonText = getString(R.string.ban_folder),
+                    resultType = CONFIRM_DELETE_DIALOG_RESULT_BAN_FOLDER
+                )
             }
             else -> super.onCtxAction(position, option)
         }

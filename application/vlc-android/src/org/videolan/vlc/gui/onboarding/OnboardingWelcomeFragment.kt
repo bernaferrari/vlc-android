@@ -35,7 +35,7 @@ package org.videolan.vlc.gui.onboarding
 //   - DebugLogActivity.kt (first real Wave 1 host + adapter patterns, compose-2l4.1.2 / bd compose-5wg)
 //   - MediaInfoAdapter + InfoActivity (compose-l94 / bd compose-l94)
 //   - Recycler*Decorations + phone hosts (compose-2l4.1.4 / bd compose-95d)
-//   - ConfirmDeleteDialog.kt (keep-shell/swap-content, compose-2l4.1.5 / bd compose-j0e)
+//   - ConfirmDeleteComposeDialog.kt (Compose dialog host, compose-2l4.1.5 / bd compose-j0e)
 //   - ComposeInteropLabActivity.kt (crown jewel cross-cut, compose-2l4.1.8 / bd compose-iju)
 // =============================================================================
 import android.view.ViewGroup
@@ -61,7 +61,7 @@ import org.videolan.vlc.compose.theme.VLCTheme
 // Reference templates (exact comment density, safety language, traceability copied/adapted):
 //   NetworkServerDialog.kt (minimal Pattern 1 demo) + DebugLogActivity.kt (richness + Lab launch)
 //   + MediaInfoAdapter.kt (Pattern 2 programmatic + icon slot mapping) + Recycler decorations
-//   + ConfirmDeleteDialog.kt (keep-shell pattern) + the Interop Lab (compose-2l4.1.8).
+//   + ConfirmDeleteComposeDialog.kt + the Interop Lab (compose-2l4.1.8).
 //
 // MISSION: Replace the static presentational content of the very first screen users see
 // on fresh install or upgrade (the branded "Welcome to VLC!" + cone logo + subtitle
@@ -176,7 +176,7 @@ import org.videolan.vlc.compose.theme.VLCTheme
 //   - Rich host example: DebugLogActivity.kt + debug_log.xml (compose-2l4.1.2)
 //   - Info host: MediaInfoAdapter.kt + InfoActivity.kt (compose-2l4.1.3 / bd compose-l94)
 //   - Decoration host: RecyclerSectionItemDecoration.kt + BaseAudioBrowser.kt etc (compose-2l4.1.4 / bd compose-95d)
-//   - Dialog host: ConfirmDeleteDialog.kt + dialog_confirm_delete.xml (compose-2l4.1.5 / bd compose-j0e)
+//   - Dialog host: ConfirmDeleteComposeDialog.kt (compose-2l4.1.5 / bd compose-j0e)
 //   - Crown jewel: ComposeInteropLabActivity.kt + compose_interop_lab.xml (compose-2l4.1.8 / bd compose-iju)
 //   - This task: compose-2l4.1.6 (bd: compose-mdj, discovered-from compose-iju)
 //   - Cross-cut + Permanent Exceptions + gate policy: bd compose-iju (Wave 1.8)

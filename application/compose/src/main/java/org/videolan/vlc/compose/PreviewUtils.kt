@@ -884,16 +884,15 @@ fun DialogConfirmDeleteMockDarkPreview() {
 
 // =========================================================================
 // WAVE 1 / compose-2l4.1.5: REAL HOST CONTEXT PREVIEWS FOR VLCDialogConfirmDelete
-// (bd compose-j0e - ConfirmDeleteDialog host migration)
+// (bd compose-j0e - ConfirmDeleteComposeDialog host migration)
 // These mirror the *exact* title generation cases + icon decisions from the
-// production ConfirmDeleteDialog.kt when-expression and ban-folder branch
+// production ConfirmDeleteComposeDialog.kt when-expression and ban-folder branch
 // (single file, folders, files+folders, album, playlist, several, ban warning,
-// clear history, etc.). They make the "swap content" target visually regression-
-// testable in Studio with zero device. The iconContent here uses simple symbols;
-// the real host mapping (AndroidView + AnimatedVectorDrawableCompat for the
-// looping anim_delete vs ic_warning_medium) is documented in the mission header
-// of ConfirmDeleteDialog.kt and exercised live (with variant launcher) in the
-// Compose Interop Lab (ComposeInteropLabActivity.kt).
+// clear history, etc.). They make the Compose host visually regression-testable
+// in Studio with zero device. The iconContent here uses simple symbols; the real
+// host mapping uses AndroidView + AnimatedVectorDrawableCompat for the looping
+// anim_delete vs ic_warning_medium and is exercised live in the Compose Interop
+// Lab (ComposeInteropLabActivity.kt).
 // See also the DialogConfirmDeleteMock* above (the generic ones from Lab v1).
 // =========================================================================
 

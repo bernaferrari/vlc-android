@@ -67,7 +67,7 @@ import org.videolan.vlc.gui.DialogActivity
 import org.videolan.vlc.gui.DialogActivity.Companion.EXTRA_MEDIA
 import org.videolan.vlc.gui.dialogs.CONFIRM_DELETE_DIALOG_MEDIALIST
 import org.videolan.vlc.gui.dialogs.CONFIRM_DELETE_DIALOG_RESULT
-import org.videolan.vlc.gui.dialogs.ConfirmDeleteDialog
+import org.videolan.vlc.gui.dialogs.showConfirmDeleteComposeDialog
 import org.videolan.vlc.gui.helpers.AudioUtil
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
@@ -495,8 +495,7 @@ class MediaItemDetailsFragment : DetailsSupportFragment(), CoroutineScope by Mai
     }
 
     private fun delete() {
-        val dialog = ConfirmDeleteDialog.newInstance(arrayListOf(viewModel.media))
-        dialog.show(requireActivity().supportFragmentManager, ConfirmDeleteDialog::class.simpleName)
+        requireActivity().showConfirmDeleteComposeDialog(arrayListOf(viewModel.media))
     }
 }
 

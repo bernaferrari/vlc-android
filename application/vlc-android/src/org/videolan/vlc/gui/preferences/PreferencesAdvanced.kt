@@ -39,7 +39,6 @@ import android.widget.Toast
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.core.text.isDigitsOnly
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.CheckBoxPreference
 import androidx.preference.EditTextPreference
@@ -88,7 +87,7 @@ import org.videolan.vlc.gui.browser.FilePickerActivity
 import org.videolan.vlc.gui.browser.KEY_PICKER_TYPE
 import org.videolan.vlc.gui.dialogs.CONFIRM_DELETE_DIALOG_RESULT
 import org.videolan.vlc.gui.dialogs.CONFIRM_DELETE_DIALOG_RESULT_TYPE
-import org.videolan.vlc.gui.dialogs.ConfirmDeleteDialog
+import org.videolan.vlc.gui.dialogs.showConfirmDeleteComposeDialog
 import org.videolan.vlc.gui.dialogs.showUpdateComposeDialog
 import org.videolan.vlc.gui.helpers.MedialibraryUtils
 import org.videolan.vlc.gui.helpers.UiTools
@@ -244,8 +243,12 @@ class PreferencesAdvanced : BasePreferenceFragment(), SharedPreferences.OnShared
                 return true
             }
             "clear_history" -> {
-                val dialog = ConfirmDeleteDialog.newInstance(title = getString(R.string.clear_playback_history), description = getString(R.string.clear_history_message), buttonText = getString(R.string.clear_history), resultType = RESULT_VALUE_CLEAR_HISTORY)
-                dialog.show((activity as FragmentActivity).supportFragmentManager, ConfirmDeleteDialog::class.simpleName)
+                requireActivity().showConfirmDeleteComposeDialog(
+                    title = getString(R.string.clear_playback_history),
+                    description = getString(R.string.clear_history_message),
+                    buttonText = getString(R.string.clear_history),
+                    resultType = RESULT_VALUE_CLEAR_HISTORY
+                )
                 return true
             }
             "clear_media_db" -> {
@@ -259,28 +262,23 @@ class PreferencesAdvanced : BasePreferenceFragment(), SharedPreferences.OnShared
                         ).show()
                     }
                 } else {
-                    val dialog = ConfirmDeleteDialog.newInstance(
+                    requireActivity().showConfirmDeleteComposeDialog(
                         title = getString(R.string.clear_media_db),
                         description = getString(R.string.clear_media_db_message),
                         buttonText = getString(R.string.clear),
                         resultType = RESULT_VALUE_CLEAR_MEDIA_DATABASE
-                    )
-                    dialog.show(
-                        requireActivity().supportFragmentManager,
-                        ConfirmDeleteDialog::class.simpleName
                     )
                     return true
                 }
             }
             "clear_app_data" -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    val dialog = ConfirmDeleteDialog.newInstance(
+                    requireActivity().showConfirmDeleteComposeDialog(
                         title = getString(R.string.clear_app_data),
                         description = getString(R.string.clear_app_data_message),
                         buttonText = getString(R.string.clear),
                         resultType = RESULT_VALUE_CLEAR_APP_DATA
                     )
-                    dialog.show(requireActivity().supportFragmentManager, ConfirmDeleteDialog::class.simpleName)
                 } else {
                     val i = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                     i.addCategory(Intent.CATEGORY_DEFAULT)
