@@ -37,7 +37,7 @@ import org.videolan.tools.KEY_ANDROID_AUTO_QUEUE_INFO_POS_VAL
 import org.videolan.tools.Settings
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
-import org.videolan.vlc.gui.dialogs.AutoInfoDialog
+import org.videolan.vlc.gui.dialogs.showAutoInfoComposeDialog
 import java.lang.NumberFormatException
 
 class PreferencesAndroidAuto : BasePreferenceFragment(), SharedPreferences.OnSharedPreferenceChangeListener {
@@ -68,7 +68,7 @@ class PreferencesAndroidAuto : BasePreferenceFragment(), SharedPreferences.OnSha
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.menu_android_auto_info)
-            AutoInfoDialog.newInstance().show(requireActivity().supportFragmentManager, "AutoInfoDialog")
+            requireActivity().showAutoInfoComposeDialog()
         return super.onOptionsItemSelected(item)
     }
 
