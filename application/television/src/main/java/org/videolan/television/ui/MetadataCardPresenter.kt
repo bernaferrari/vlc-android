@@ -23,7 +23,7 @@
  */
 
 /*****************************************************************************
- * PersonCardPresenter.java
+ * MetadataCardPresenter.java
  *
  * Copyright © 2014-2015 VLC authors, VideoLAN and VideoLabs
  * Author: Nicolas POMEPUY
