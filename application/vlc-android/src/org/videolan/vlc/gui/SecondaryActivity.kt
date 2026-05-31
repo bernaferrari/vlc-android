@@ -98,7 +98,7 @@ import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.UiTools.createShortcut
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
 import org.videolan.vlc.gui.network.StreamPanelContent
-import org.videolan.vlc.gui.video.VideoGridFragment
+import org.videolan.vlc.gui.video.SecondaryVideoScreenController
 import org.videolan.vlc.gui.video.VideoPlayerActivity
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.media.PlaylistManager
@@ -130,6 +130,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
     private var historySelection: MutableState<Set<Int>>? = null
     private var historyActionMode: ActionMode? = null
     private var historyCleanMenuItem: MenuItem? = null
+    private var videoGroupController: SecondaryVideoScreenController? = null
     override val displayTitle = true
     private val dialogsDelegate = DialogDelegate()
     val isOnboarding:Boolean
@@ -181,6 +182,8 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
                 setupStreamsContent(fph as ViewGroup)
             } else if (fragmentId == HISTORY) {
                 setupHistoryContent(fph as ViewGroup)
+            } else if (fragmentId == VIDEO_GROUP_LIST) {
+                setupVideoGroupContent(fph as ViewGroup)
             } else {
                 fragmentId?.let { fetchSecondaryFragment(it) }
                 if (fragment == null) {
@@ -200,10 +203,16 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         super.onStart()
         streamsModel?.refresh()
         historyModel?.refresh()
+        videoGroupController?.onVisible()
         when (intent.getStringExtra(KEY_FRAGMENT)) {
             STREAMS -> supportActionBar?.setTitle(R.string.streams)
             HISTORY -> supportActionBar?.setTitle(R.string.history)
         }
+    }
+
+    override fun onStop() {
+        videoGroupController?.onHidden()
+        super.onStop()
     }
 
     override fun fireDialog(dialog: Dialog) {
@@ -233,7 +242,10 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == ACTIVITY_RESULT_SECONDARY) {
-            if (resultCode == RESULT_RESCAN) this.reloadLibrary()
+            if (resultCode == RESULT_RESCAN) {
+                this.reloadLibrary()
+                videoGroupController?.refresh()
+            }
         }
     }
 
@@ -245,6 +257,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
             historyCleanMenuItem = menu.findItem(R.id.ml_menu_clean)
             updateHistoryCleanMenuVisibility()
         }
+        videoGroupController?.prepareOptionsMenu(menu)
         return result
     }
 
@@ -252,6 +265,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         menu?.findItem(R.id.ml_menu_refresh)?.isVisible = Permissions.canReadStorage(this)
         menu?.findItem(R.id.incognito_mode)?.isChecked = Settings.getInstance(this).getBoolean(KEY_INCOGNITO, false)
         updateHistoryCleanMenuVisibility(menu?.findItem(R.id.ml_menu_clean))
+        menu?.let { videoGroupController?.prepareOptionsMenu(it) }
         return super.onPrepareOptionsMenu(menu)
     }
 
@@ -272,6 +286,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
                 if (Permissions.canReadStorage(this)) {
                     val ml = Medialibrary.getInstance()
                     if (!ml.isWorking) reloadLibrary()
+                    videoGroupController?.refresh()
                 }
                 return true
             }
@@ -282,6 +297,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
                 return true
             }
         }
+        if (videoGroupController?.onOptionsItemSelected(item) == true) return true
         return super.onOptionsItemSelected(item)
     }
 
@@ -452,6 +468,26 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         model.refresh()
     }
 
+    private fun setupVideoGroupContent(container: ViewGroup) {
+        val controller = videoGroupController ?: SecondaryVideoScreenController(
+            activity = this,
+            folder = intent.parcelable(KEY_FOLDER),
+            group = intent.parcelable(KEY_GROUP)
+        ).also { videoGroupController = it }
+
+        container.removeAllViews()
+        ComposeView(this).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+            setContent {
+                VLCTheme {
+                    controller.Content()
+                }
+            }
+            container.addView(this, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        }
+        controller.onVisible()
+    }
+
     private fun setupHistoryFilterMenu(menu: Menu) {
         val item = menu.findItem(R.id.ml_menu_filter) ?: return
         val model = historyModel ?: return
@@ -611,12 +647,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
                 }
             }
             VIDEO_GROUP_LIST -> {
-                fragment = VideoGridFragment().apply {
-                    arguments = bundleOf(
-                        KEY_FOLDER to intent.parcelable(KEY_FOLDER),
-                        KEY_GROUP to intent.parcelable(KEY_GROUP)
-                    )
-                }
+                throw IllegalArgumentException("Video group routes are hosted by Compose.")
             }
             STORAGE_BROWSER, STORAGE_BROWSER_ONBOARDING -> {
                 fragment = MLStorageBrowserFragment.newInstance(id == STORAGE_BROWSER_ONBOARDING)
