@@ -19,6 +19,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
  */
 
+package org.videolan.vlc.gui.onboarding
+
 /*
  * **************************************************************************
  *  OnboardingWelcomeFragment.kt (Wave 1 host migration)
@@ -42,6 +44,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.components.VLCOnboardingWelcome
 import org.videolan.vlc.compose.theme.VLCTheme
 // =============================================================================
@@ -196,16 +199,11 @@ import org.videolan.vlc.compose.theme.VLCTheme
 //   - Clean stashes etc. Hand-off ready for next Wave 1 slice.
 // =========================================================================
 
-package org.videolan.vlc.gui.onboarding
-
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import android.widget.TextView
 import org.videolan.vlc.R
 
-// Note: TextView import kept only for the (now-unused in active path) commented rollback block.
 // The active field below is View to accommodate the ComposeView root.
 
 class OnboardingWelcomeFragment : OnboardingFragment() {

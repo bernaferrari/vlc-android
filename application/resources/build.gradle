@@ -60,6 +60,8 @@ static def getOSApiKey(project) {
 }
 
 dependencies {
+    def localLibVlc = rootProject.findProject(':libvlcjni:libvlc')
+
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     api 'androidx.multidex:multidex:2.0.1'
 
@@ -68,7 +70,11 @@ dependencies {
     api "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.ext.kotlinx_version"
 
     api project(':application:tools')
-    devApi project(':libvlcjni:libvlc')
+    if (localLibVlc != null) {
+        devApi localLibVlc
+    } else {
+        devApi "org.videolan.android:libvlc-all:$rootProject.ext.libvlcVersion"
+    }
     devApi project(':medialibrary')
     debugApi "org.videolan.android:libvlc-all:$rootProject.ext.libvlcVersion"
     debugApi "org.videolan.android:medialibrary-all:$rootProject.ext.medialibraryVersion"

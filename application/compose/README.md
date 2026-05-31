@@ -122,8 +122,8 @@ This module is intentionally minimal on purpose — it is the **bootstrap founda
 
 ```bash
 # From repo root (worktree)
-./gradlew :application:compose:build
-./gradlew :application:compose:connectedCheck   # requires device/emulator
+gradle :application:compose:build --no-daemon --console=plain
+gradle :application:compose:connectedCheck --no-daemon --console=plain   # requires device/emulator
 ```
 
 Android Studio will immediately show `@Preview` renders for the theme and components once the module is synced.
@@ -160,9 +160,9 @@ The **Compose Interop Lab** (`ComposeInteropLabActivity` + `compose_interop_lab.
 
 **The gate command** (run from the worktree root):
 ```bash
-./gradlew :application:vlc-android:compileDebugKotlin --console=plain -q 2>&1 | tail -30
+ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:vlc-android:compileDebugKotlin --no-daemon --console=plain
 # or the stricter full suite:
-./gradlew :application:compose:build :application:vlc-android:compileDebugKotlin
+ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:compose:build :application:vlc-android:compileDebugKotlin --no-daemon --console=plain
 ```
 
 **Where evidence lives**:
@@ -176,12 +176,10 @@ The **Compose Interop Lab** (`ComposeInteropLabActivity` + `compose_interop_lab.
 - The Lab + the two earlier hosts act as canaries.
 - Part of the "preview + gate enforcement" acceptance criteria for Wave 1.
 
-**Current gate evidence** (recorded 2026-05-30 during compose-2l4.1.8 + 2l4.1.3 delivery — see bd compose-iju and compose-l94 for full logs + session context):
-- Gate commands executed per policy (this session, compose-2l4.1.3): `gradle :application:compose:compileDebugKotlin --console=plain -q` and `gradle :application:vlc-android:compileDebugKotlin --console=plain -q`
-- Both hit the documented worktree limitation: "Configuring project ':libvlcjni:libvlc' without an existing directory is not allowed." (identical to compose-95d / compose-iju sessions).
-- In complete worktrees these are green (verified by prior background task executions showing exit 0 for identical commands + the additive patterns from landed hosts).
-- Note on this snapshot: full configuration requires complete submodules (libvlc etc.); the Kotlin sources (MediaInfoAdapter.kt + InfoActivity.kt + new Previews + Lab/PreviewUtils updates) follow the exact additive patterns that previously produced clean compiles. MediaInfoAdapter now participates as a compile canary for info surfaces.
-- All hosts (NetworkServerDialog, DebugLogActivity, MediaInfoAdapter/InfoActivity, ComposeInteropLabActivity) participate. Future agents must re-run on real checkouts and append raw SUCCESS tail.
+**Current gate evidence**:
+- 2026-05-31: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:vlc-android:compileDebugKotlin --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 1m 24s` after the worktree was made tolerant of absent local `libvlcjni/libvlc` by falling back to the published `org.videolan.android:libvlc-all` artifact.
+- 2026-05-31: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:compose:build --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 1m 37s`.
+- All current Wave 0/1 hosts (NetworkServerDialog, DebugLogActivity, MediaInfoAdapter/InfoActivity, ComposeInteropLabActivity, OnboardingWelcomeFragment, OTPCodeActivity) participate in the app Kotlin gate.
 
 Future agents: re-run the gate after touching any leaf or host, append the SUCCESS tail + timestamp to bd, and update this section.
 

@@ -70,7 +70,7 @@
 
   Build / validate (from repo root in worktree):
     ./gradlew :application:compose:build
-    ./gradlew :application:vlc-android:compileDebugKotlin   # <-- THE GATE (must be green)
+    ./gradlew :application:vlc-android:compileDebugKotlin   # THE GATE (must be green)
   Android Studio: open this layout or the Activity, @Previews in PreviewUtils will render.
 
   Part of Wave 1 epic (compose-2l4 series). See compose-2l4.1.8 cross-cutting notes.

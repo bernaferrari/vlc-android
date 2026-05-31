@@ -3,6 +3,9 @@ pluginManagement {
         google()
         mavenCentral()
     }
+    plugins {
+        id("org.jetbrains.kotlin.plugin.compose") version '2.1.20'
+    }
 }
 
 plugins {
@@ -18,7 +21,10 @@ android {
     buildToolsVersion = '36.0.0'
 }
 
-include ':libvlcjni:libvlc', ':medialibrary'
+if (file('libvlcjni/libvlc').isDirectory()) {
+    include ':libvlcjni:libvlc'
+}
+include ':medialibrary'
 include ':application:tools', ':application:resources', ':application:compose', ':application:mediadb', ':application:app', ':application:live-plot-graph', ':application:television', ':application:donations', ':application:remote-access-server'
 include ':application:vlc-android'
 include ':application:moviepedia'

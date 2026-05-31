@@ -37,10 +37,15 @@ class PathAdapter(val browser: PathAdapterListener, val media: MediaWrapper) : R
     override fun getItemCount() = segments.size
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val segmentUri = segments[position].toUri()
+        val segmentPath = segmentUri.path
         val text: String? = when {
             //substitute a storage path to its name. See [replaceStoragePath]
-            PathOperationDelegate.storages.containsKey(segments[position].toUri().path) -> pathOperationDelegate.retrieveSafePath(PathOperationDelegate.storages.valueAt(PathOperationDelegate.storages.indexOfKey(segments[position].toUri().path)))
-            else -> segments[position].toUri().lastPathSegment
+            segmentPath != null && PathOperationDelegate.storages.containsKey(segmentPath) -> {
+                val safePath = PathOperationDelegate.storages.valueAt(PathOperationDelegate.storages.indexOfKey(segmentPath))
+                safePath?.let { pathOperationDelegate.retrieveSafePath(it) }
+            }
+            else -> segmentUri.lastPathSegment
         }
         holder.root.text = text
         text?.let {

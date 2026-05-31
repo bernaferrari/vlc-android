@@ -162,7 +162,12 @@ task generateSources(type: Jar) {
 }
 
 dependencies {
-    devApi project(':libvlcjni:libvlc')
+    def localLibVlc = rootProject.findProject(':libvlcjni:libvlc')
+    if (localLibVlc != null) {
+        devApi localLibVlc
+    } else {
+        devApi "org.videolan.android:libvlc-all:$rootProject.ext.libvlcVersion"
+    }
     devApi project(':medialibrary')
     debugApi "org.videolan.android:libvlc-all:$rootProject.ext.libvlcVersion"
     debugApi "org.videolan.android:medialibrary-all:$rootProject.ext.medialibraryVersion"
@@ -215,13 +220,15 @@ dependencies {
     api "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.ext.kotlinx_version"
 
     // Compose runtime for hybrid interop (required in host modules that directly use ComposeView + setContent lambdas).
-    // The BOM + ui provide ComposeView, AbstractComposeView, and @Composable support alongside the plugin.
+    // The BOM + ui/foundation/material3 provide ComposeView, AbstractComposeView, and direct @Composable imports
+    // used by the debug interop lab and a few host-side slots alongside the plugin.
     // The :application:compose module provides the actual themed leaf components (VLCDropdownItem etc) and VLCComposeView subclass.
     def composeBom = platform("androidx.compose:compose-bom:$rootProject.ext.composeBomVersion")
     implementation composeBom
     implementation "androidx.compose.ui:ui"
+    implementation "androidx.compose.foundation:foundation"
+    implementation "androidx.compose.material3:material3"
     debugImplementation "androidx.compose.ui:ui-tooling"
-    // Note: no material3 here - we consume only through the compose module's VLCTheme wrapper to keep token fidelity.
 
     implementation 'nl.dionsegijn:konfetti-xml:2.0.4'
     implementation 'com.google.zxing:core:3.4.0'
