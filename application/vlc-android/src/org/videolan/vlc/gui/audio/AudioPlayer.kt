@@ -104,10 +104,10 @@ import org.videolan.vlc.gui.MainActivity
 import org.videolan.vlc.gui.SecondaryActivity
 import org.videolan.vlc.gui.dialogs.CONFIRM_BOOKMARK_RENAME_DIALOG_RESULT
 import org.videolan.vlc.gui.dialogs.CtxActionReceiver
-import org.videolan.vlc.gui.dialogs.PlaybackSpeedDialog
 import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_MEDIA
 import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_NEW_NAME
 import org.videolan.vlc.gui.dialogs.showContext
+import org.videolan.vlc.gui.dialogs.showPlaybackSpeedComposeDialog
 import org.videolan.vlc.gui.dialogs.showSleepTimerComposeDialog
 import org.videolan.vlc.gui.helpers.AudioUtil.setRingtone
 import org.videolan.vlc.gui.helpers.BookmarkListDelegate
@@ -307,8 +307,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
             playlistModel.progress.value?.let { updateProgress(it) }
         }
         binding.playbackSpeedQuickAction.setOnClickListener {
-            val newFragment = PlaybackSpeedDialog.newInstance()
-            newFragment.show(requireActivity().supportFragmentManager, "playback_speed")
+            requireActivity().showPlaybackSpeedComposeDialog()
         }
         binding.playbackSpeedQuickAction.setOnLongClickListener {
             playlistModel.service?.setRate(1F, true)

@@ -1,11 +1,5 @@
 package org.videolan.vlc.gui.dialogs
 
-import android.view.KeyEvent
-import android.view.View
-import android.view.ViewGroup
-import android.view.accessibility.AccessibilityEvent
-import android.view.inputmethod.BaseInputConnection
-import android.widget.FrameLayout
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -39,10 +33,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -50,12 +42,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.lifecycleScope
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import org.videolan.resources.AndroidDevices
 import org.videolan.tools.SLEEP_TIMER_DEFAULT_INTERVAL
 import org.videolan.tools.SLEEP_TIMER_DEFAULT_RESET_INTERACTION
 import org.videolan.tools.SLEEP_TIMER_DEFAULT_WAIT
@@ -65,12 +51,8 @@ import org.videolan.tools.Settings
 import org.videolan.tools.putSingle
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
-import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
-import org.videolan.vlc.gui.dialogs.VLCBottomSheetDialogFragment.Companion.shouldInterceptRemote
 import org.videolan.vlc.gui.helpers.TalkbackUtil
-import org.videolan.vlc.gui.video.VideoPlayerActivity.Companion.videoRemoteFlow
-import org.videolan.vlc.util.EmptyPBSCallback
 import java.util.Calendar
 
 fun FragmentActivity.showJumpToTimeComposeDialog(onDismiss: (() -> Unit)? = null) {
@@ -99,122 +81,17 @@ private enum class TimePickerMode {
 }
 
 private class PlaybackTimePickerComposeDialog(
-    private val activity: FragmentActivity,
+    activity: FragmentActivity,
     private val mode: TimePickerMode,
     private val forDefault: Boolean = false,
-    private val onDismiss: (() -> Unit)? = null
-) : PlaybackService.Callback by EmptyPBSCallback {
+    onDismiss: (() -> Unit)? = null
+) : PlaybackComposeBottomSheetDialog(
+    activity = activity,
+    onDismiss = onDismiss,
+    dismissOnServiceEnded = mode != TimePickerMode.SleepTimer || !forDefault,
+    dismissOnPlaybackEnded = mode != TimePickerMode.SleepTimer || !forDefault
+) {
     private val settings = Settings.getInstance(activity)
-    private val dialog = if (Settings.showTvUi) {
-        BottomSheetDialog(activity, R.style.Theme_VLC_Black_BottomSheet)
-    } else {
-        BottomSheetDialog(activity)
-    }
-    private var rootView: ComposeView? = null
-    private var service: PlaybackService? = null
-    private var serviceJob: Job? = null
-    private var remoteJob: Job? = null
-
-    fun show() {
-        rootView = ComposeView(activity).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
-                VLCTheme {
-                    TimePickerContent()
-                }
-            }
-        }
-        dialog.setContentView(rootView!!)
-        dialog.setOnShowListener { configureBottomSheet() }
-        dialog.setOnDismissListener { cleanup() }
-        dialog.show()
-        startServiceTracking()
-        startRemoteSupport()
-    }
-
-    override fun update() {
-        if (mode != TimePickerMode.SleepTimer || forDefault) return
-        if (service?.playlistManager?.hasCurrentMedia() != true) dialog.dismiss()
-    }
-
-    private fun startServiceTracking() {
-        serviceJob = activity.lifecycleScope.launch {
-            PlaybackService.serviceFlow.collect { onServiceChanged(it) }
-        }
-    }
-
-    private fun onServiceChanged(newService: PlaybackService?) {
-        if (newService === service) {
-            if (newService == null && (mode != TimePickerMode.SleepTimer || !forDefault)) dialog.dismiss()
-            return
-        }
-        service?.removeCallback(this)
-        service = newService
-        if (newService != null) {
-            newService.addCallback(this)
-        } else if (mode != TimePickerMode.SleepTimer || !forDefault) {
-            dialog.dismiss()
-        }
-    }
-
-    private fun startRemoteSupport() {
-        shouldInterceptRemote.postValue(true)
-        remoteJob = activity.lifecycleScope.launch {
-            videoRemoteFlow.collect { action ->
-                val keyCode = when (action) {
-                    "up" -> KeyEvent.KEYCODE_DPAD_UP
-                    "down" -> KeyEvent.KEYCODE_DPAD_DOWN
-                    "right" -> KeyEvent.KEYCODE_DPAD_RIGHT
-                    "left" -> KeyEvent.KEYCODE_DPAD_LEFT
-                    "center" -> KeyEvent.KEYCODE_DPAD_CENTER
-                    "back" -> KeyEvent.KEYCODE_BACK
-                    else -> null
-                }
-                keyCode?.let {
-                    rootView?.simulateKeyPress(it)
-                    videoRemoteFlow.emit(null)
-                }
-            }
-        }
-    }
-
-    private fun cleanup() {
-        shouldInterceptRemote.postValue(false)
-        remoteJob?.cancel()
-        remoteJob = null
-        serviceJob?.cancel()
-        serviceJob = null
-        service?.removeCallback(this)
-        service = null
-        rootView = null
-        onDismiss?.invoke()
-    }
-
-    private fun configureBottomSheet() {
-        dialog.window?.setLayout(
-            activity.resources.getDimensionPixelSize(R.dimen.default_context_width),
-            ViewGroup.LayoutParams.MATCH_PARENT
-        )
-        dialog.findViewById<View>(R.id.touch_outside)?.apply {
-            isFocusable = false
-            isFocusableInTouchMode = false
-        }
-        rootView?.let { view ->
-            if (AndroidDevices.isTv) {
-                val overscan = activity.resources.getDimensionPixelSize(org.videolan.resources.R.dimen.tv_overscan_vertical)
-                view.setPadding(view.paddingLeft, view.paddingTop, view.paddingRight, view.paddingBottom + overscan)
-            }
-            view.isFocusable = true
-            view.isFocusableInTouchMode = true
-            view.requestFocus()
-            view.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED)
-        }
-        dialog.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)?.let { bottomSheet ->
-            val behavior = BottomSheetBehavior.from(bottomSheet)
-            behavior.state = BottomSheetBehavior.STATE_EXPANDED
-            if (AndroidDevices.isChromeBook) behavior.isDraggable = false
-        }
-    }
 
     private fun executeAction(rawTime: String, wait: Boolean, reset: Boolean) {
         val time = parseTime(rawTime, maxTimeSize())
@@ -223,7 +100,7 @@ private class PlaybackTimePickerComposeDialog(
                 service?.let {
                     it.setTime(time.millis)
                     it.playlistManager.player.updateProgress(time.millis)
-                    dialog.dismiss()
+                    dismiss()
                 }
             }
             TimePickerMode.SleepTimer -> executeSleepTimer(time, wait, reset)
@@ -238,7 +115,7 @@ private class PlaybackTimePickerComposeDialog(
                 putBoolean(SLEEP_TIMER_DEFAULT_WAIT, wait)
                 putBoolean(SLEEP_TIMER_DEFAULT_RESET_INTERACTION, reset)
             }
-            dialog.dismiss()
+            dismiss()
             return
         }
 
@@ -252,7 +129,7 @@ private class PlaybackTimePickerComposeDialog(
         sleepTime.timeInMillis = sleepTime.timeInMillis + interval
         sleepTime.set(Calendar.SECOND, 0)
         service?.setSleepTimer(sleepTime)
-        dialog.dismiss()
+        dismiss()
     }
 
     private fun removeCurrentSleepTimer() {
@@ -263,7 +140,7 @@ private class PlaybackTimePickerComposeDialog(
             service?.setSleepTimer(null)
             settings.putSingle(SLEEP_TIMER_WAIT, false)
         }
-        dialog.dismiss()
+        dismiss()
     }
 
     private fun maxTimeSize() = if (mode == TimePickerMode.SleepTimer) 4 else 6
@@ -294,7 +171,7 @@ private class PlaybackTimePickerComposeDialog(
     }
 
     @Composable
-    private fun TimePickerContent() {
+    override fun Content() {
         var rawTime by rememberSaveable { mutableStateOf(initialRawTime()) }
         var wait by rememberSaveable { mutableStateOf(initialWaitChecked()) }
         var reset by rememberSaveable { mutableStateOf(initialResetChecked()) }
@@ -475,14 +352,6 @@ private fun CheckboxRow(
         Checkbox(checked = checked, onCheckedChange = null)
         Text(text = text)
     }
-}
-
-private fun View.simulateKeyPress(key: Int) {
-    val inputConnection = BaseInputConnection(this, true)
-    val downEvent = KeyEvent(KeyEvent.ACTION_DOWN, key)
-    val upEvent = KeyEvent(KeyEvent.ACTION_UP, key)
-    inputConnection.sendKeyEvent(downEvent)
-    inputConnection.sendKeyEvent(upEvent)
 }
 
 private data class ParsedTime(

@@ -1,7 +1,6 @@
 package org.videolan.vlc.gui.helpers
 
 import android.annotation.SuppressLint
-import android.content.DialogInterface
 import android.content.Intent
 import android.support.v4.media.session.PlaybackStateCompat
 import android.view.Gravity
@@ -12,7 +11,6 @@ import android.view.accessibility.AccessibilityEvent
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.widget.ViewStubCompat
-import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
 import androidx.leanback.widget.BrowseFrameLayout
 import androidx.leanback.widget.BrowseFrameLayout.OnFocusSearchListener
@@ -35,12 +33,11 @@ import org.videolan.vlc.databinding.PlayerOptionItemBinding
 import org.videolan.vlc.gui.AudioPlayerContainerActivity
 import org.videolan.vlc.gui.BaseActivity
 import org.videolan.vlc.gui.DiffUtilAdapter
-import org.videolan.vlc.gui.dialogs.PlaybackSpeedDialog
-import org.videolan.vlc.gui.dialogs.SelectChapterDialog
-import org.videolan.vlc.gui.dialogs.VLCBottomSheetDialogFragment
 import org.videolan.vlc.gui.dialogs.showAudioControlsSettingsComposeDialog
 import org.videolan.vlc.gui.dialogs.showEqualizerComposeDialog
 import org.videolan.vlc.gui.dialogs.showJumpToTimeComposeDialog
+import org.videolan.vlc.gui.dialogs.showPlaybackSpeedComposeDialog
+import org.videolan.vlc.gui.dialogs.showSelectChapterComposeDialog
 import org.videolan.vlc.gui.dialogs.showSleepTimerComposeDialog
 import org.videolan.vlc.gui.dialogs.showVideoControlsSettingsComposeDialog
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
@@ -203,7 +200,7 @@ class PlayerOptionsDelegate(val activity: FragmentActivity, val service: Playbac
     fun onClick(option: PlayerOption) {
         when (option.id) {
             ID_SLEEP -> {
-                showFragment(ID_SLEEP)
+                showPlaybackDialog(ID_SLEEP)
             }
             ID_PLAY_AS_AUDIO -> (activity as VideoPlayerActivity).switchToAudioMode(true)
             ID_PLAY_AS_VIDEO -> {
@@ -300,17 +297,18 @@ class PlayerOptionsDelegate(val activity: FragmentActivity, val service: Playbac
                 hide()
                 activity.lifecycleScope.launch { activity.checkPIN(true) }
             }
-            else -> showFragment(option.id)
+            else -> showPlaybackDialog(option.id)
         }
     }
 
-    private fun showFragment(id: Long) {
-        val newFragment: DialogFragment
-        val tag: String
+    private fun showPlaybackDialog(id: Long) {
         when (id) {
             ID_PLAYBACK_SPEED -> {
-                newFragment = PlaybackSpeedDialog.newInstance()
-                tag = "playback_speed"
+                activity.showPlaybackSpeedComposeDialog {
+                    (activity as? VideoPlayerActivity)?.overlayDelegate?.dimStatusBar(true)
+                }
+                hide()
+                return
             }
             ID_JUMP_TO -> {
                 activity.showJumpToTimeComposeDialog {
@@ -327,8 +325,11 @@ class PlayerOptionsDelegate(val activity: FragmentActivity, val service: Playbac
                 return
             }
             ID_CHAPTER_TITLE -> {
-                newFragment = SelectChapterDialog.newInstance()
-                tag = "select_chapter"
+                activity.showSelectChapterComposeDialog {
+                    (activity as? VideoPlayerActivity)?.overlayDelegate?.dimStatusBar(true)
+                }
+                hide()
+                return
             }
             ID_EQUALIZER -> {
                 activity.showEqualizerComposeDialog(warnBeforeSettings = activity is VideoPlayerActivity) {
@@ -344,10 +345,6 @@ class PlayerOptionsDelegate(val activity: FragmentActivity, val service: Playbac
             }
             else -> return
         }
-        if (newFragment is VLCBottomSheetDialogFragment && activity is VideoPlayerActivity)
-            newFragment.onDismissListener = DialogInterface.OnDismissListener { activity.overlayDelegate.dimStatusBar(true) }
-        newFragment.show(activity.supportFragmentManager, tag)
-        hide()
     }
 
     private fun setRepeatMode() {

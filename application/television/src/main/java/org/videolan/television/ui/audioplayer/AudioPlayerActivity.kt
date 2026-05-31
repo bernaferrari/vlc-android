@@ -65,10 +65,10 @@ import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.gui.dialogs.CONFIRM_BOOKMARK_RENAME_DIALOG_RESULT
-import org.videolan.vlc.gui.dialogs.PlaybackSpeedDialog
 import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_MEDIA
 import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_NEW_NAME
 import org.videolan.vlc.gui.dialogs.showEqualizerComposeDialog
+import org.videolan.vlc.gui.dialogs.showPlaybackSpeedComposeDialog
 import org.videolan.vlc.gui.dialogs.showSleepTimerComposeDialog
 import org.videolan.vlc.gui.helpers.AudioUtil
 import org.videolan.vlc.gui.helpers.BookmarkListDelegate
@@ -140,8 +140,7 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
         playToPause = AnimatedVectorDrawableCompat.create(this, R.drawable.anim_play_pause_video)!!
         pauseToPlay = AnimatedVectorDrawableCompat.create(this, R.drawable.anim_pause_play_video)!!
         binding.playbackSpeedQuickAction.setOnClickListener {
-            val newFragment = PlaybackSpeedDialog.newInstance()
-            newFragment.show(supportFragmentManager, "playback_speed")
+            showPlaybackSpeedComposeDialog()
         }
         binding.playbackSpeedQuickAction.setOnLongClickListener {
             model.service?.setRate(1F, true)
