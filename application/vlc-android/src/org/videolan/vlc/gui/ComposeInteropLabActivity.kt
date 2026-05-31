@@ -428,7 +428,7 @@ fun ComposeInteropLabContent() {
                     "🗑"
                 )
                 "clear_history" -> Triple(
-                    "Clear playback history", // mirrors real usage in PreferencesAdvanced + HistoryFragment + TV paths
+                    "Clear playback history", // mirrors real usage in PreferencesAdvanced + Compose history screen + TV paths
                     "This will clear all playback history. This action cannot be undone.",
                     "⚠"
                 )

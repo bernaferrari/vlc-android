@@ -26,13 +26,14 @@ package org.videolan.vlc.gui
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.view.ActionMode
+import androidx.appcompat.widget.SearchView
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.ComposeView
@@ -59,14 +60,20 @@ import org.videolan.resources.AndroidDevices
 import org.videolan.resources.KEY_ANIMATED
 import org.videolan.resources.KEY_FOLDER
 import org.videolan.resources.KEY_GROUP
+import org.videolan.resources.TAG_ITEM
 import org.videolan.resources.util.applyOverscanMargin
 import org.videolan.resources.util.parcelable
-import org.videolan.tools.copy
+import org.videolan.tools.KEY_AUDIO_LAST_PLAYLIST
 import org.videolan.tools.KEY_INCOGNITO
+import org.videolan.tools.KEY_MEDIA_LAST_PLAYLIST
+import org.videolan.tools.KeyHelper
+import org.videolan.tools.PLAYBACK_HISTORY
 import org.videolan.tools.RESULT_RESCAN
 import org.videolan.tools.RESULT_RESTART
 import org.videolan.tools.Settings
+import org.videolan.tools.copy
 import org.videolan.tools.isValidUrl
+import org.videolan.tools.retrieveParent
 import org.videolan.vlc.R
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.compose.theme.VLCTheme
@@ -77,20 +84,24 @@ import org.videolan.vlc.gui.browser.KEY_JUMP_TO
 import org.videolan.vlc.gui.browser.KEY_MEDIA
 import org.videolan.vlc.gui.browser.MLStorageBrowserFragment
 import org.videolan.vlc.gui.browser.NetworkBrowserFragment
+import org.videolan.vlc.gui.dialogs.CONFIRM_DELETE_DIALOG_RESULT
 import org.videolan.vlc.gui.dialogs.CONFIRM_RENAME_DIALOG_RESULT
 import org.videolan.vlc.gui.dialogs.CtxActionReceiver
 import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_MEDIA
 import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_NEW_NAME
 import org.videolan.vlc.gui.dialogs.SavePlaylistDialog
+import org.videolan.vlc.gui.dialogs.showConfirmDeleteComposeDialog
 import org.videolan.vlc.gui.dialogs.showContext
 import org.videolan.vlc.gui.dialogs.showRenameComposeDialog
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.UiTools.createShortcut
+import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
 import org.videolan.vlc.gui.network.StreamPanelContent
 import org.videolan.vlc.gui.video.VideoGridFragment
 import org.videolan.vlc.gui.video.VideoPlayerActivity
 import org.videolan.vlc.media.MediaUtils
+import org.videolan.vlc.media.PlaylistManager
 import org.videolan.vlc.reloadLibrary
 import org.videolan.vlc.util.ContextOption
 import org.videolan.vlc.util.ContextOption.CTX_ADD_SHORTCUT
@@ -104,6 +115,7 @@ import org.videolan.vlc.util.FlagSet
 import org.videolan.vlc.util.IDialogManager
 import org.videolan.vlc.util.Permissions
 import org.videolan.vlc.util.isSchemeNetwork
+import org.videolan.vlc.viewmodels.HistoryModel
 import org.videolan.vlc.viewmodels.StreamsModel
 
 class SecondaryActivity : ContentActivity(), IDialogManager {
@@ -113,6 +125,11 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
     private var streamsRoot: View? = null
     private var streamsSearchText: MutableState<String>? = null
     private var streamsClipboardText: MutableState<String?>? = null
+    private var historyModel: HistoryModel? = null
+    private var historyItems: MutableState<List<MediaWrapper>>? = null
+    private var historySelection: MutableState<Set<Int>>? = null
+    private var historyActionMode: ActionMode? = null
+    private var historyCleanMenuItem: MenuItem? = null
     override val displayTitle = true
     private val dialogsDelegate = DialogDelegate()
     val isOnboarding:Boolean
@@ -162,6 +179,8 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
             val fragmentId = intent.getStringExtra(KEY_FRAGMENT)
             if (fragmentId == STREAMS) {
                 setupStreamsContent(fph as ViewGroup)
+            } else if (fragmentId == HISTORY) {
+                setupHistoryContent(fph as ViewGroup)
             } else {
                 fragmentId?.let { fetchSecondaryFragment(it) }
                 if (fragment == null) {
@@ -180,7 +199,11 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
     override fun onStart() {
         super.onStart()
         streamsModel?.refresh()
-        if (intent.getStringExtra(KEY_FRAGMENT) == STREAMS) supportActionBar?.setTitle(R.string.streams)
+        historyModel?.refresh()
+        when (intent.getStringExtra(KEY_FRAGMENT)) {
+            STREAMS -> supportActionBar?.setTitle(R.string.streams)
+            HISTORY -> supportActionBar?.setTitle(R.string.history)
+        }
     }
 
     override fun fireDialog(dialog: Dialog) {
@@ -214,15 +237,37 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val result = super.onCreateOptionsMenu(menu)
+        if (isHistoryContent()) {
+            setupHistoryFilterMenu(menu)
+            menuInflater.inflate(R.menu.fragment_option_history, menu)
+            historyCleanMenuItem = menu.findItem(R.id.ml_menu_clean)
+            updateHistoryCleanMenuVisibility()
+        }
+        return result
+    }
+
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         menu?.findItem(R.id.ml_menu_refresh)?.isVisible = Permissions.canReadStorage(this)
         menu?.findItem(R.id.incognito_mode)?.isChecked = Settings.getInstance(this).getBoolean(KEY_INCOGNITO, false)
+        updateHistoryCleanMenuVisibility(menu?.findItem(R.id.ml_menu_clean))
         return super.onPrepareOptionsMenu(menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // Handle item selection
         when (item.itemId) {
+            R.id.ml_menu_clean -> {
+                if (isHistoryContent()) {
+                    showConfirmDeleteComposeDialog(
+                        title = getString(R.string.clear_playback_history),
+                        description = getString(R.string.clear_history_message),
+                        buttonText = getString(R.string.clear_history)
+                    )
+                    return true
+                }
+            }
             R.id.ml_menu_refresh -> {
                 if (Permissions.canReadStorage(this)) {
                     val ml = Medialibrary.getInstance()
@@ -365,6 +410,194 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         }
     }
 
+    private fun setupHistoryContent(container: ViewGroup) {
+        val model = ViewModelProvider(this, HistoryModel.Factory(this))[HistoryModel::class.java]
+        historyModel = model
+        val itemsState = mutableStateOf<List<MediaWrapper>>(emptyList())
+        val loadingState = mutableStateOf(false)
+        val selectionState = mutableStateOf<Set<Int>>(emptySet())
+        historyItems = itemsState
+        historySelection = selectionState
+
+        container.removeAllViews()
+        ComposeView(this).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+            setContent {
+                VLCTheme {
+                    HistoryScreenContent(
+                        items = itemsState.value,
+                        loading = loadingState.value,
+                        selectedPositions = selectionState.value,
+                        onRefresh = { model.refresh() },
+                        onItemClicked = ::onHistoryItemClicked,
+                        onItemLongClicked = ::onHistoryItemLongClicked,
+                        onRemoveClicked = ::removeHistoryItem
+                    )
+                }
+            }
+            container.addView(this, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        }
+
+        model.dataset.observe(this) { list ->
+            itemsState.value = list.orEmpty()
+            selectionState.value = selectionState.value.filter { it < itemsState.value.size }.toSet()
+            updateHistoryCleanMenuVisibility()
+            historyActionMode?.invalidate()
+        }
+        model.loading.observe(this) { loadingState.value = it == true }
+        supportFragmentManager.setFragmentResultListener(CONFIRM_DELETE_DIALOG_RESULT, this) { _, _ ->
+            clearHistory()
+            finish()
+        }
+        model.refresh()
+    }
+
+    private fun setupHistoryFilterMenu(menu: Menu) {
+        val item = menu.findItem(R.id.ml_menu_filter) ?: return
+        val model = historyModel ?: return
+        item.isVisible = true
+        val searchView = item.actionView as? SearchView ?: return
+        searchView.queryHint = getString(R.string.search_in_list_hint)
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?) = false
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                val query = newText.orEmpty()
+                if (query.isEmpty()) model.restore() else model.filter(query)
+                return true
+            }
+        })
+        item.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem) = true
+
+            override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
+                model.restore()
+                return true
+            }
+        })
+        model.filterQuery?.takeIf { it.isNotEmpty() }?.let { query ->
+            searchView.post {
+                item.expandActionView()
+                searchView.clearFocus()
+                UiTools.setKeyboardVisibility(searchView, false)
+                searchView.setQuery(query, false)
+            }
+        }
+    }
+
+    private fun updateHistoryCleanMenuVisibility(item: MenuItem? = historyCleanMenuItem) {
+        item?.isVisible = isHistoryContent() &&
+                Settings.getInstance(this).getBoolean(PLAYBACK_HISTORY, true) &&
+                historyItems?.value.orEmpty().isNotEmpty()
+    }
+
+    private fun isHistoryContent() = intent.getStringExtra(KEY_FRAGMENT) == HISTORY
+
+    private fun onHistoryItemClicked(position: Int, item: MediaWrapper) {
+        if (KeyHelper.isShiftPressed && historyActionMode == null) {
+            onHistoryItemLongClicked(position, item)
+            return
+        }
+        if (historyActionMode != null) {
+            toggleHistorySelection(position)
+            return
+        }
+        if (position != 0) historyModel?.moveUp(item)
+        MediaUtils.openMedia(this, item)
+    }
+
+    private fun onHistoryItemLongClicked(position: Int, @Suppress("UNUSED_PARAMETER") item: MediaWrapper) {
+        toggleHistorySelection(position, forceSelected = true)
+    }
+
+    private fun toggleHistorySelection(position: Int, forceSelected: Boolean = false) {
+        val state = historySelection ?: return
+        val selection = state.value.toMutableSet()
+        if (forceSelected) selection.add(position)
+        else if (!selection.add(position)) selection.remove(position)
+        state.value = selection
+        if (selection.isNotEmpty() && historyActionMode == null) startHistoryActionMode()
+        if (selection.isEmpty()) historyActionMode?.finish() else historyActionMode?.invalidate()
+    }
+
+    private fun startHistoryActionMode() {
+        historyActionMode = startSupportActionMode(object : ActionMode.Callback {
+            override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
+                mode.menuInflater.inflate(R.menu.action_mode_history, menu)
+                return true
+            }
+
+            override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
+                val selection = selectedHistoryItems()
+                if (selection.isEmpty()) {
+                    mode.finish()
+                    return false
+                }
+                mode.title = getString(R.string.selection_count, selection.size)
+                menu.findItem(R.id.action_history_info).isVisible = selection.size == 1
+                menu.findItem(R.id.action_history_append).isVisible = PlaylistManager.hasMedia()
+                menu.findItem(R.id.action_go_to_folder).isVisible = selection.size == 1 && selection.first().uri.retrieveParent() != null
+                return true
+            }
+
+            override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
+                val selection = selectedHistoryItems()
+                if (selection.isNotEmpty()) {
+                    when (item.itemId) {
+                        R.id.action_history_play -> MediaUtils.openList(this@SecondaryActivity, selection, 0)
+                        R.id.action_history_append -> MediaUtils.appendMedia(this@SecondaryActivity, selection)
+                        R.id.action_history_info -> showHistoryInfoDialog(selection.first())
+                        R.id.action_go_to_folder -> showHistoryParentFolder(selection.first())
+                        else -> {
+                            mode.finish()
+                            return false
+                        }
+                    }
+                }
+                mode.finish()
+                return true
+            }
+
+            override fun onDestroyActionMode(mode: ActionMode) {
+                historyActionMode = null
+                historySelection?.value = emptySet()
+            }
+        })
+    }
+
+    private fun selectedHistoryItems(): List<MediaWrapper> {
+        val items = historyItems?.value.orEmpty()
+        return historySelection?.value.orEmpty().sorted().mapNotNull { items.getOrNull(it) }
+    }
+
+    private fun removeHistoryItem(@Suppress("UNUSED_PARAMETER") position: Int, item: MediaWrapper) {
+        if (!showPinIfNeeded()) historyModel?.removeFromHistory(item)
+    }
+
+    private fun clearHistory() {
+        Medialibrary.getInstance().clearHistory(Medialibrary.HISTORY_TYPE_GLOBAL)
+        historyModel?.clearHistory()
+        Settings.getInstance(this).edit().remove(KEY_AUDIO_LAST_PLAYLIST).remove(KEY_MEDIA_LAST_PLAYLIST).apply()
+        updateHistoryCleanMenuVisibility()
+    }
+
+    private fun showHistoryInfoDialog(media: MediaWrapper) {
+        val intent = Intent(this, InfoActivity::class.java)
+        intent.putExtra(TAG_ITEM, media)
+        startActivity(intent)
+    }
+
+    private fun showHistoryParentFolder(media: MediaWrapper) {
+        val parent = MLServiceLocator.getAbstractMediaWrapper(media.uri.retrieveParent()).apply {
+            type = MediaWrapper.TYPE_DIR
+        }
+        startActivity(Intent(applicationContext, SecondaryActivity::class.java).apply {
+            putExtra(KEY_MEDIA, parent)
+            putExtra(KEY_JUMP_TO, media)
+            putExtra(KEY_FRAGMENT, FILE_BROWSER)
+        })
+    }
+
     private fun fetchSecondaryFragment(id: String) {
         when (id) {
             ALBUMS_SONGS -> {
@@ -377,7 +610,6 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
                     )
                 }
             }
-            HISTORY -> fragment = HistoryFragment()
             VIDEO_GROUP_LIST -> {
                 fragment = VideoGridFragment().apply {
                     arguments = bundleOf(

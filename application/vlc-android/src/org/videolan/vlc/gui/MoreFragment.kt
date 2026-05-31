@@ -67,7 +67,7 @@ import org.videolan.vlc.util.launchWhenStarted
 import org.videolan.vlc.viewmodels.HistoryModel
 import org.videolan.vlc.viewmodels.StreamsModel
 
-private const val TAG = "VLC/HistoryFragment"
+private const val TAG = "VLC/MoreFragment"
 private const val KEY_SELECTION = "key_selection"
 
 class MoreFragment : BaseFragment(), IRefreshable, IHistory, IDialogManager,
