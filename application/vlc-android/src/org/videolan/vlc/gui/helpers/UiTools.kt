@@ -145,6 +145,7 @@ import org.videolan.vlc.gui.browser.MediaBrowserFragment
 import org.videolan.vlc.gui.dialogs.SavePlaylistDialog
 import org.videolan.vlc.gui.dialogs.VideoTracksDialog
 import org.videolan.vlc.gui.dialogs.showAddToGroupComposeDialog
+import org.videolan.vlc.gui.dialogs.showSavePlaylistComposeDialog
 import org.videolan.vlc.gui.dialogs.showVideoTracksComposeDialog
 import org.videolan.vlc.gui.helpers.BitmapUtil.vectorToBitmap
 import org.videolan.vlc.gui.helpers.hf.PinCodeDelegate
@@ -470,21 +471,20 @@ object UiTools {
 
     fun FragmentActivity.addToPlaylistAsync(parent: String, includeSubfolders: Boolean = false, defaultTitle:String = "") {
         if (!isStarted()) return
-        val savePlaylistDialog = SavePlaylistDialog()
-        savePlaylistDialog.arguments = bundleOf(SavePlaylistDialog.KEY_FOLDER to parent,
-                SavePlaylistDialog.KEY_SUB_FOLDERS to includeSubfolders, SavePlaylistDialog.KEY_DEFAULT_TITLE to defaultTitle)
-        savePlaylistDialog.show(supportFragmentManager, "fragment_add_to_playlist")
+        showSavePlaylistComposeDialog(
+            folder = parent,
+            includeSubfolders = includeSubfolders,
+            defaultTitle = defaultTitle
+        )
     }
 
     fun FragmentActivity.addToPlaylist(list: List<MediaWrapper>) {
         addToPlaylist(list.toTypedArray(), SavePlaylistDialog.KEY_NEW_TRACKS)
     }
 
-    fun FragmentActivity.addToPlaylist(tracks: Array<MediaWrapper>, key: String) {
+    fun FragmentActivity.addToPlaylist(tracks: Array<MediaWrapper>, _key: String) {
         if (!isStarted()) return
-        val savePlaylistDialog = SavePlaylistDialog()
-        savePlaylistDialog.arguments = bundleOf(key to tracks)
-        savePlaylistDialog.show(supportFragmentManager, "fragment_add_to_playlist")
+        showSavePlaylistComposeDialog(tracks = tracks)
     }
 
     /**

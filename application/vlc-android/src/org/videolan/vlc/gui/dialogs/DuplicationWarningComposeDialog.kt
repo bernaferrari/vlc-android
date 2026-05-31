@@ -38,16 +38,18 @@ object DuplicationWarningResult {
 fun FragmentActivity.showDuplicationWarningComposeDialog(
     shouldShowThreeOptions: Boolean,
     playlistTitles: List<String>,
-    duplicationMessages: List<String>
+    duplicationMessages: List<String>,
+    onOptionSelected: ((Int) -> Unit)? = null
 ) {
-    DuplicationWarningComposeDialog(this, shouldShowThreeOptions, playlistTitles, duplicationMessages).show()
+    DuplicationWarningComposeDialog(this, shouldShowThreeOptions, playlistTitles, duplicationMessages, onOptionSelected).show()
 }
 
 private class DuplicationWarningComposeDialog(
     private val activity: FragmentActivity,
     private val shouldShowThreeOptions: Boolean,
     private val playlistTitles: List<String>,
-    private val duplicationMessages: List<String>
+    private val duplicationMessages: List<String>,
+    private val onOptionSelected: ((Int) -> Unit)?
 ) {
     private val dialog = if (Settings.showTvUi) {
         BottomSheetDialog(activity, R.style.Theme_VLC_Black_BottomSheet)
@@ -105,8 +107,10 @@ private class DuplicationWarningComposeDialog(
     }
 
     private fun publishResultAndDismiss(option: Int) {
-        val bundle: Bundle = bundleOf(DuplicationWarningResult.OPTION_KEY to option)
-        activity.supportFragmentManager.setFragmentResult(DuplicationWarningResult.REQUEST_KEY, bundle)
+        onOptionSelected?.invoke(option) ?: run {
+            val bundle: Bundle = bundleOf(DuplicationWarningResult.OPTION_KEY to option)
+            activity.supportFragmentManager.setFragmentResult(DuplicationWarningResult.REQUEST_KEY, bundle)
+        }
         dialog.dismiss()
     }
 
