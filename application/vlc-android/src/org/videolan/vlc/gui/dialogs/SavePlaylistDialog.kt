@@ -56,12 +56,12 @@ import org.videolan.tools.setVisible
 import org.videolan.vlc.R
 import org.videolan.vlc.databinding.DialogPlaylistBinding
 import org.videolan.vlc.gui.SimpleAdapter
-import org.videolan.vlc.gui.dialogs.DuplicationWarningDialog.Companion.ADD_ALL
-import org.videolan.vlc.gui.dialogs.DuplicationWarningDialog.Companion.ADD_NEW
-import org.videolan.vlc.gui.dialogs.DuplicationWarningDialog.Companion.CANCEL
-import org.videolan.vlc.gui.dialogs.DuplicationWarningDialog.Companion.NO_OPTION
-import org.videolan.vlc.gui.dialogs.DuplicationWarningDialog.Companion.OPTION_KEY
-import org.videolan.vlc.gui.dialogs.DuplicationWarningDialog.Companion.REQUEST_KEY
+import org.videolan.vlc.gui.dialogs.DuplicationWarningResult.ADD_ALL
+import org.videolan.vlc.gui.dialogs.DuplicationWarningResult.ADD_NEW
+import org.videolan.vlc.gui.dialogs.DuplicationWarningResult.CANCEL
+import org.videolan.vlc.gui.dialogs.DuplicationWarningResult.NO_OPTION
+import org.videolan.vlc.gui.dialogs.DuplicationWarningResult.OPTION_KEY
+import org.videolan.vlc.gui.dialogs.DuplicationWarningResult.REQUEST_KEY
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
 import org.videolan.vlc.providers.FileBrowserProvider
@@ -379,8 +379,7 @@ class SavePlaylistDialog : VLCBottomSheetDialogFragment(), View.OnClickListener,
         if (duplicationMessages.isEmpty() || binding.replaceSwitch.isChecked) {
             processNextItem(newTracks)
         } else {
-            val warningDialog = DuplicationWarningDialog.newInstance(shouldShowThreeOptions,titles, ArrayList(duplicationMessages))
-            warningDialog.show(requireActivity().supportFragmentManager, "duplicationWarningDialog")
+            requireActivity().showDuplicationWarningComposeDialog(shouldShowThreeOptions, titles, duplicationMessages)
         }
     }
 
