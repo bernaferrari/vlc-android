@@ -54,8 +54,8 @@ import org.videolan.vlc.R
 import org.videolan.vlc.gui.PinCodeActivity
 import org.videolan.vlc.gui.PinCodeReason
 import org.videolan.vlc.gui.SecondaryActivity
-import org.videolan.vlc.gui.dialogs.PermissionListDialog
 import org.videolan.vlc.gui.dialogs.showConfirmPreferenceChangeComposeDialog
+import org.videolan.vlc.gui.dialogs.showPermissionListComposeDialog
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 class PreferencesFragment : BasePreferenceFragment(), SharedPreferences.OnSharedPreferenceChangeListener {
@@ -157,7 +157,7 @@ class PreferencesFragment : BasePreferenceFragment(), SharedPreferences.OnShared
                 return true
             }
             "permissions" -> {
-                PermissionListDialog.newInstance().show((activity as FragmentActivity).supportFragmentManager, "PermissionListDialog")
+                (activity as FragmentActivity).showPermissionListComposeDialog()
                 return true
             }
             else -> super.onPreferenceTreeClick(preference)

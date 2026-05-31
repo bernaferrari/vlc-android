@@ -58,8 +58,8 @@ import org.videolan.vlc.gui.PinCodeReason
 import org.videolan.vlc.gui.SecondaryActivity
 import org.videolan.vlc.gui.dialogs.CONFIRM_PREFERENCE_CHANGE_DIALOG_RESULT
 import org.videolan.vlc.gui.dialogs.PREFERENCE_KEY
-import org.videolan.vlc.gui.dialogs.PermissionListDialog
 import org.videolan.vlc.gui.dialogs.showConfirmPreferenceChangeComposeDialog
+import org.videolan.vlc.gui.dialogs.showPermissionListComposeDialog
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.preferences.search.PreferenceItem
 import org.videolan.vlc.util.Permissions
@@ -175,8 +175,7 @@ class PreferencesFragment : BasePreferenceFragment(), SharedPreferences.OnShared
                 }
             }
             "permissions" -> {
-                PermissionListDialog.newInstance().show(requireActivity().supportFragmentManager, "PermissionListDialog")
-
+                requireActivity().showPermissionListComposeDialog()
             }
             "remote_access_category" -> loadFragment(PreferencesRemoteAccess())
             "android_auto_category" -> loadFragment(PreferencesAndroidAuto())

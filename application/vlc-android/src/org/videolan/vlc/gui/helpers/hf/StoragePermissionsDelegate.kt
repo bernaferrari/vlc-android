@@ -52,7 +52,7 @@ import org.videolan.tools.Settings
 import org.videolan.tools.isCallable
 import org.videolan.tools.putSingle
 import org.videolan.vlc.StartActivity
-import org.videolan.vlc.gui.dialogs.PermissionListDialog
+import org.videolan.vlc.gui.dialogs.showPermissionListComposeDialog
 import org.videolan.vlc.gui.onboarding.ONBOARDING_DONE_KEY
 import org.videolan.vlc.util.FileUtils
 import org.videolan.vlc.util.Permissions
@@ -143,10 +143,7 @@ class StoragePermissionsDelegate : BaseHeadlessFragment() {
             if (intent.isCallable(requireActivity())) {
                 //StartActivity doesn't have the right theme for the dialog. Fallback to no dialog
                 if (withDialog && requireActivity() !is StartActivity)
-                    PermissionListDialog.newInstance().show(
-                        requireActivity().supportFragmentManager,
-                        PermissionListDialog::class.simpleName
-                    )
+                    requireActivity().showPermissionListComposeDialog()
                 else
                     askAllAccessPermission(intent)
                 return
