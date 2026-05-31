@@ -255,7 +255,7 @@ class MainActivity : ContentActivity(),
 
     override fun onSaveInstanceState(outState: Bundle) {
         val current = currentFragment
-        supportFragmentManager.putFragment(outState, "current_fragment", current!!)
+        if (current != null) supportFragmentManager.putFragment(outState, "current_fragment", current)
         outState.putInt(EXTRA_TARGET, currentFragmentId)
         super.onSaveInstanceState(outState)
     }
@@ -321,6 +321,7 @@ class MainActivity : ContentActivity(),
     }
 
     private fun forceRefresh(current: Fragment?) {
+        if (refreshCurrentScreen()) return
         if (!mediaLibrary.isWorking) {
             if (current != null && current is IRefreshable)
                 (current as IRefreshable).refresh()
