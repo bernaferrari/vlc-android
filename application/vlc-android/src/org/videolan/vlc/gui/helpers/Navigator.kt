@@ -55,7 +55,7 @@ import org.videolan.vlc.R
 import org.videolan.vlc.gui.BaseFragment
 import org.videolan.vlc.gui.MainActivity
 import org.videolan.vlc.gui.MoreScreenController
-import org.videolan.vlc.gui.PlaylistFragment
+import org.videolan.vlc.gui.PlaylistScreenController
 import org.videolan.vlc.gui.audio.AudioBrowserFragment
 import org.videolan.vlc.gui.browser.BaseBrowserFragment
 import org.videolan.vlc.gui.browser.MainBrowserScreenController
@@ -78,6 +78,7 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
     private var forExpresso: ArrayList<MediaLibraryItem>? = null
     private var moreController: MoreScreenController? = null
     private var mainBrowserController: MainBrowserScreenController? = null
+    private var playlistController: PlaylistScreenController? = null
 
 
     override fun MainActivity.setupNavigation(state: Bundle?) {
@@ -105,7 +106,6 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
     private fun getNewFragment(id: Int): Fragment {
         return when (id) {
             R.id.nav_audio -> AudioBrowserFragment()
-            R.id.nav_playlists -> PlaylistFragment()
             else -> VideoBrowserFragment()
         }
     }
@@ -114,6 +114,7 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
         when (id) {
             R.id.nav_more -> showMoreScreen()
             R.id.nav_directories -> showMainBrowserScreen()
+            R.id.nav_playlists -> showPlaylistScreen()
             else -> showFragment(id)
         }
     }
@@ -199,10 +200,38 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
         currentFragmentId = R.id.nav_directories
     }
 
+    private fun showPlaylistScreen() {
+        val fm = activity.supportFragmentManager
+        if (currentFragment is BaseBrowserFragment) fm.popBackStackImmediate("root", FragmentManager.POP_BACK_STACK_INCLUSIVE)
+        clearComposeScreenIfNeeded()
+        clearCurrentFragmentNow()
+
+        val controller = playlistController ?: PlaylistScreenController(activity).also { playlistController = it }
+        val container = activity.findViewById<ViewGroup>(R.id.fragment_placeholder)
+        container.removeAllViews()
+        container.addView(
+            ComposeView(activity).apply {
+                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+                setContent {
+                    VLCTheme {
+                        controller.Content()
+                    }
+                }
+            },
+            ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+        )
+        controller.onVisible()
+        updateCheckedItem(R.id.nav_playlists)
+        activity.invalidateOptionsMenu()
+        currentFragment = null
+        currentFragmentId = R.id.nav_playlists
+    }
+
     private fun clearComposeScreenIfNeeded() {
-        if (currentFragmentId != R.id.nav_more && currentFragmentId != R.id.nav_directories) return
+        if (currentFragmentId != R.id.nav_more && currentFragmentId != R.id.nav_directories && currentFragmentId != R.id.nav_playlists) return
         moreController?.onHidden()
         mainBrowserController?.onHidden()
+        playlistController?.onHidden()
         activity.findViewById<ViewGroup>(R.id.fragment_placeholder).removeAllViews()
     }
 
@@ -269,19 +298,28 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
                 mainBrowserController?.refresh()
                 true
             }
+            R.id.nav_playlists -> {
+                playlistController?.refresh()
+                true
+            }
             else -> false
         }
     }
 
     override fun prepareCurrentScreenOptions(menu: Menu) {
         if (currentFragmentId == R.id.nav_directories) mainBrowserController?.prepareOptionsMenu(menu)
+        if (currentFragmentId == R.id.nav_playlists) playlistController?.prepareOptionsMenu(menu)
     }
 
     override fun onCurrentScreenOptionsItemSelected(item: MenuItem): Boolean {
-        return currentFragmentId == R.id.nav_directories && mainBrowserController?.onOptionsItemSelected(item) == true
+        return when (currentFragmentId) {
+            R.id.nav_directories -> mainBrowserController?.onOptionsItemSelected(item) == true
+            R.id.nav_playlists -> playlistController?.onOptionsItemSelected(item) == true
+            else -> false
+        }
     }
 
-    private fun currentIdIsComposeScreen() = currentFragmentId == R.id.nav_more || currentFragmentId == R.id.nav_directories
+    private fun currentIdIsComposeScreen() = currentFragmentId == R.id.nav_more || currentFragmentId == R.id.nav_directories || currentFragmentId == R.id.nav_playlists
 
 
     private fun updateCheckedItem(id: Int) {
