@@ -35,7 +35,6 @@ import androidx.activity.addCallback
 import androidx.appcompat.view.ActionMode
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
-import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
@@ -70,9 +69,7 @@ import org.videolan.vlc.StartActivity
 import org.videolan.vlc.gui.audio.AudioBrowserFragment
 import org.videolan.vlc.gui.dialogs.NotificationPermissionManager
 import org.videolan.vlc.gui.dialogs.PermissionListDialog
-import org.videolan.vlc.gui.dialogs.UPDATE_DATE
-import org.videolan.vlc.gui.dialogs.UPDATE_URL
-import org.videolan.vlc.gui.dialogs.UpdateDialog
+import org.videolan.vlc.gui.dialogs.showUpdateComposeDialog
 import org.videolan.vlc.gui.helpers.INavigator
 import org.videolan.vlc.gui.helpers.Navigator
 import org.videolan.vlc.gui.helpers.UiTools
@@ -147,11 +144,8 @@ class MainActivity : ContentActivity(),
                     .show()
                 return@launch
             }
-            AutoUpdate.checkUpdate(this@MainActivity.application) {url, date ->
-                val updateDialog = UpdateDialog().apply {
-                    arguments = bundleOf(UPDATE_URL to url, UPDATE_DATE to date.time)
-                }
-                updateDialog.show(supportFragmentManager, "fragment_update")
+            AutoUpdate.checkUpdate(this@MainActivity.application) { url, date ->
+                showUpdateComposeDialog(url, date)
             }
         }
         if (settings.getBoolean(KEY_LAST_SESSION_CRASHED, false)) {
