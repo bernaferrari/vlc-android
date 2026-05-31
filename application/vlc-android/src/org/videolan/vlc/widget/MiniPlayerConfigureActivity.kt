@@ -56,7 +56,7 @@ import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.R
 import org.videolan.vlc.databinding.WidgetMiniPlayerConfigureBinding
 import org.videolan.vlc.gui.BaseActivity
-import org.videolan.vlc.gui.dialogs.WidgetExplanationDialog
+import org.videolan.vlc.gui.dialogs.showWidgetExplanationComposeDialog
 import org.videolan.vlc.gui.helpers.bitmapFromView
 import org.videolan.vlc.gui.preferences.widgets.PreferencesWidgets
 import org.videolan.vlc.gui.preferences.widgets.WIDGET_ID
@@ -151,8 +151,7 @@ class MiniPlayerConfigureActivity : BaseActivity() {
         }
 
         if (!settings.getBoolean(PREF_WIDGETS_TIPS_SHOWN, false)) {
-            val widgetExplanationDialog = WidgetExplanationDialog()
-            widgetExplanationDialog.show(supportFragmentManager, "fragment_widget_explanation")
+            showWidgetExplanationComposeDialog()
             settings.putSingle(PREF_WIDGETS_TIPS_SHOWN, true)
         }
     }
@@ -200,8 +199,7 @@ class MiniPlayerConfigureActivity : BaseActivity() {
                 return true
             }
             R.id.widget_info -> {
-                val widgetExplanationDialog = WidgetExplanationDialog()
-                widgetExplanationDialog.show(supportFragmentManager, "fragment_widget_explanation")
+                showWidgetExplanationComposeDialog()
                 return true
             }
         }
