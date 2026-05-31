@@ -639,8 +639,8 @@ fun VLCDialogConfirmDeleteDarkPreview() {
 //   - Larger realistic height (640dp) simulating a phone screen for the welcome step.
 //   - Light variant also wrapped for visual parity (even though onboarding forces dark).
 //   - These previews (plus the Lab's real-logo variant) now directly exercise the
-//     exact logoContent + title/subtitle usage that OnboardingWelcomeFragment.kt
-//     (the new first-run host) and the Interop Lab employ.
+//     title/subtitle usage that the first-run Compose onboarding flow and the
+//     Interop Lab employ.
 //   - No drawable refs here (Wave-1-safe: previews stay self-contained in :compose;
 //     real painterResource mapping lives only in vlc-android hosts: fragment + Lab).
 // This advances the "preview + gate enforcement" + "richer usage mocks" criteria.
@@ -680,10 +680,8 @@ fun VLCOnboardingWelcomeLightPreview() {
 @Composable
 fun VLCOnboardingWelcomeDarkPreview() {
     VLCTheme(darkTheme = true) {
-        // Excellent dark preview: full token fidelity for the first-run welcome screen
-        // (now hosted by OnboardingWelcomeFragment via interop after compose-2l4.1.6).
-        // Matches the deep blue-grey used by both phone + land XML variants + the
-        // activity's forced dark system bars. Real logo exercised in Lab + fragment.
+        // Excellent dark preview: full token fidelity for the first-run welcome screen.
+        // Matches the deep blue-grey used by the onboarding activity's forced dark bars.
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -702,7 +700,7 @@ fun VLCOnboardingWelcomeDarkPreview() {
 // compose-2l4.1.8 cross-cutting: these are the "richer usage mocks" requirement.
 // WAVE 1.6 addition (compose-2l4.1.6 / bd compose-mdj): OnboardingWelcome*Previews
 // strengthened with excellent dark onboardingBackground token wrappers + real host
-// context (OnboardingWelcomeFragment first-run flow + Lab real-logo variant).
+// context (full Compose first-run flow + Lab real-logo variant).
 // WAVE 1.3 addition (compose-2l4.1.3): MediaInfoTrackList*Previews were added here
 // (and exercised by the Lab's combined mock) as part of the MediaInfoAdapter host migration.
 // They are extracted / inspired directly from the live interactive examples

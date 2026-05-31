@@ -18,9 +18,8 @@ import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
 /**
- * Compose equivalent of the static presentational parts of:
- *   application/vlc-android/res/layout/onboarding_welcome.xml
- *   (also layout-land variant has similar structure)
+ * Compose equivalent of the static presentational parts of the former phone
+ * onboarding welcome XML layouts.
  *
  * Renders:
  *   - Centered branding image / logo area (via slot)
@@ -31,8 +30,8 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
  * onboarding_grey background). This leaf uses the dedicated
  * VLCThemeDefaults.colors.onboardingBackground when wrapped.
  *
- * The theme selection step (onboarding_theme.xml) and later scanning/permission
- * steps are more interactive and left for subsequent waves.
+ * The full phone onboarding flow is now rendered directly in Compose by
+ * OnboardingActivity.
  *
  * @param title The welcome title string (e.g. "Welcome to VLC")
  * @param subtitle The explanatory subtitle

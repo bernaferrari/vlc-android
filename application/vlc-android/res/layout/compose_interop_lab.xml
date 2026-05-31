@@ -37,7 +37,7 @@
     3. VLCInfoItem (from info_item.xml - track details)
     4. VLCDebugLogLine (from debug_log_item.xml)
     5. VLCDialogConfirmDelete (presentational subset of dialog_confirm_delete.xml)
-    6. VLCOnboardingWelcome (static parts of onboarding_welcome.xml)
+    6. VLCOnboardingWelcome (static phone welcome branding leaf)
     + Combined realistic mocks: sectioned list (headers + info items), dialog-in-context,
       onboarding full card, live log simulator, interactive toggles where useful.
 

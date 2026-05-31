@@ -6,24 +6,21 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.view.View
-import android.widget.Button
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.app.ActivityCompat
 import androidx.core.content.edit
-import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updatePadding
-import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import org.videolan.resources.ACTIVITY_RESULT_PREFERENCES
 import org.videolan.resources.AndroidDevices
 import org.videolan.resources.EXTRA_FIRST_RUN
 import org.videolan.resources.EXTRA_UPGRADE
+import org.videolan.resources.KEY_ANIMATED
 import org.videolan.resources.PREF_FIRST_RUN
 import org.videolan.resources.util.startMedialibrary
 import org.videolan.tools.KEY_APP_THEME
@@ -34,80 +31,78 @@ import org.videolan.tools.ML_SCAN_ON
 import org.videolan.tools.NOTIFICATION_PERMISSION_ASKED
 import org.videolan.tools.RESULT_RESTART
 import org.videolan.tools.Settings
+import org.videolan.tools.putSingle
 import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.MediaParsingService
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.gui.MainActivity
+import org.videolan.vlc.gui.SecondaryActivity
 import org.videolan.vlc.gui.helpers.hf.NotificationDelegate.Companion.getNotificationPermission
 import org.videolan.vlc.gui.helpers.hf.StoragePermissionsDelegate.Companion.getStoragePermission
 import org.videolan.vlc.util.Permissions
 
-
 const val ONBOARDING_DONE_KEY = "app_onboarding_done"
 
-class OnboardingActivity : AppCompatActivity(), OnboardingFragmentListener {
-    private lateinit var nextButton: Button
+class OnboardingActivity : AppCompatActivity() {
     private val viewModel: OnboardingViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         if (AndroidDevices.canUseSystemNightMode()) enableEdgeToEdge()
         WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightNavigationBars = false
         WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = false
         super.onCreate(savedInstanceState)
-//        viewModel.permissionGranted = Permissions.canReadStorage(applicationContext)
-        setContentView(R.layout.activity_onboarding)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.container)) { v, windowInsets ->
-            val bars = windowInsets.getInsets(
-                WindowInsetsCompat.Type.systemBars()
-                        or WindowInsetsCompat.Type.displayCutout()
-            )
-            v.updatePadding(
-                left = bars.left,
-                top = bars.top,
-                right = bars.right,
-                bottom = bars.bottom,
-            )
-            WindowInsetsCompat.CONSUMED
-        }
-        showFragment(viewModel.currentFragment)
-    }
 
-    fun showFragment(fragmentName:FragmentName, backward:Boolean = false) {
-        val fragment = supportFragmentManager.getFragment(Bundle(), fragmentName.name) ?:
-        when (fragmentName) {
-            FragmentName.WELCOME -> OnboardingWelcomeFragment.newInstance()
-            FragmentName.ASK_PERMISSION -> OnboardingPermissionFragment.newInstance()
-            FragmentName.SCAN -> OnboardingScanningFragment.newInstance()
-            FragmentName.NO_PERMISSION -> OnboardingNoPermissionFragment.newInstance()
-            FragmentName.NOTIFICATION_PERMISSION -> OnboardingNotificationPermissionFragment.newInstance()
-            FragmentName.THEME -> OnboardingThemeFragment.newInstance()
-        }
-        (fragment as OnboardingFragment).onboardingFragmentListener = this
-        supportFragmentManager.commit {
-            if (!backward) setCustomAnimations(
-                 R.anim.anim_enter_right,
-                 R.anim.anim_leave_left,
-                 android.R.anim.fade_in,
-                 android.R.anim.fade_out
-            ) else setCustomAnimations(
-                    R.anim.anim_enter_left,
-                    R.anim.anim_leave_right,
-                    android.R.anim.fade_in,
-                    android.R.anim.fade_out
-            )
-            replace(R.id.fragment_onboarding_placeholder, fragment, fragmentName.name)
-        }
-        viewModel.currentFragment = fragmentName
-        findViewById<View>(R.id.skip_button).setOnClickListener { onDone() }
-        nextButton = findViewById(R.id.next_button)
-        nextButton.setOnClickListener { onNext() }
+        setContentView(
+            ComposeView(this).apply {
+                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+                setContent {
+                    VLCTheme(darkTheme = true) {
+                        OnboardingContent(
+                            step = viewModel.currentStep,
+                            permissionType = viewModel.permissionType,
+                            scanStorages = viewModel.scanStorages,
+                            theme = viewModel.theme,
+                            onSkip = ::onDone,
+                            onNext = ::onNext,
+                            onPermissionTypeSelected = { viewModel.permissionType = it },
+                            onGrantPermission = {
+                                viewModel.permissionAlreadyAsked = false
+                                showStep(OnboardingStep.ASK_PERMISSION)
+                            },
+                            onScanStoragesChanged = ::setScanStorages,
+                            onCustomizeScan = ::openStorageCustomization,
+                            onThemeSelected = { viewModel.theme = it }
+                        )
+                    }
+                }
+            }
+        )
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        Permissions.sAlertDialog?.run { dismiss() }
+        Permissions.sAlertDialog?.dismiss()
     }
 
-    override fun onDone() {
+    private fun showStep(step: OnboardingStep) {
+        viewModel.currentStep = step
+    }
+
+    private fun setScanStorages(enabled: Boolean) {
+        Settings.getInstance(this).putSingle(KEY_MEDIALIBRARY_SCAN, if (enabled) ML_SCAN_ON else ML_SCAN_OFF)
+        viewModel.scanStorages = enabled
+    }
+
+    private fun openStorageCustomization() {
+        val intent = Intent(applicationContext, SecondaryActivity::class.java)
+        intent.putExtra("fragment", SecondaryActivity.STORAGE_BROWSER_ONBOARDING)
+        intent.putExtra(KEY_ANIMATED, true)
+        startActivity(intent)
+        overridePendingTransition(R.anim.slide_in_bottom, R.anim.no_animation)
+    }
+
+    private fun onDone() {
         setResult(RESULT_RESTART)
         Settings.getInstance(this).edit {
             putInt(PREF_FIRST_RUN, BuildConfig.VLC_VERSION_CODE)
@@ -145,14 +140,17 @@ class OnboardingActivity : AppCompatActivity(), OnboardingFragmentListener {
             viewModel.permissionAlreadyAsked = true
             if (onlyMedia && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 ActivityCompat.requestPermissions(
-                    this@OnboardingActivity, arrayOf<String>(
+                    this@OnboardingActivity,
+                    arrayOf(
                         Manifest.permission.READ_MEDIA_AUDIO,
                         Manifest.permission.READ_MEDIA_IMAGES,
                         Manifest.permission.READ_MEDIA_VIDEO
-                    ), Permissions.FINE_STORAGE_PERMISSION_REQUEST_CODE
+                    ),
+                    Permissions.FINE_STORAGE_PERMISSION_REQUEST_CODE
                 )
                 return@launch
-            } else getStoragePermission(withDialog = false, onlyMedia = onlyMedia)
+            }
+            getStoragePermission(withDialog = false, onlyMedia = onlyMedia)
             onNext()
         }
     }
@@ -168,36 +166,38 @@ class OnboardingActivity : AppCompatActivity(), OnboardingFragmentListener {
         }
     }
 
-    override fun onNext() {
-        when(viewModel.currentFragment) {
-            FragmentName.WELCOME -> if (Permissions.canReadStorage(this)) showFragment(FragmentName.SCAN) else showFragment(FragmentName.ASK_PERMISSION)
-            FragmentName.ASK_PERMISSION -> {
-//                if (viewModel.permissionType == PermissionType.MEDIA && Permissions.isStoragePermissionIncomplete(
-//                        this
-//                    )
-//                ) askPermission()
-//                else
-                    if (viewModel.permissionType != PermissionType.NONE && !viewModel.permissionAlreadyAsked) askPermission() else showFragment(
-                    if (Permissions.canReadStorage(applicationContext)) FragmentName.SCAN else FragmentName.NO_PERMISSION
-                )
+    private fun onNext() {
+        when (viewModel.currentStep) {
+            OnboardingStep.WELCOME -> {
+                showStep(if (Permissions.canReadStorage(this)) OnboardingStep.SCAN else OnboardingStep.ASK_PERMISSION)
             }
-            FragmentName.NO_PERMISSION -> showFragment(if (Permissions.canReadStorage(applicationContext)) FragmentName.SCAN else FragmentName.THEME)
-            FragmentName.NOTIFICATION_PERMISSION -> if(!Permissions.canSendNotifications(applicationContext) && !viewModel.notificationPermissionAlreadyAsked) askNotificationPermission() else showFragment(FragmentName.THEME)
-            FragmentName.SCAN -> if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S && !Permissions.canSendNotifications(applicationContext)) showFragment(FragmentName.NOTIFICATION_PERMISSION) else showFragment(FragmentName.THEME)
-            else ->  onDone()
+            OnboardingStep.ASK_PERMISSION -> {
+                if (viewModel.permissionType != PermissionType.NONE && !viewModel.permissionAlreadyAsked) {
+                    askPermission()
+                } else {
+                    showStep(if (Permissions.canReadStorage(applicationContext)) OnboardingStep.SCAN else OnboardingStep.NO_PERMISSION)
+                }
+            }
+            OnboardingStep.NO_PERMISSION -> {
+                showStep(if (Permissions.canReadStorage(applicationContext)) OnboardingStep.SCAN else OnboardingStep.THEME)
+            }
+            OnboardingStep.NOTIFICATION_PERMISSION -> {
+                if (!Permissions.canSendNotifications(applicationContext) && !viewModel.notificationPermissionAlreadyAsked) {
+                    askNotificationPermission()
+                } else {
+                    showStep(OnboardingStep.THEME)
+                }
+            }
+            OnboardingStep.SCAN -> {
+                if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S && !Permissions.canSendNotifications(applicationContext)) {
+                    showStep(OnboardingStep.NOTIFICATION_PERMISSION)
+                } else {
+                    showStep(OnboardingStep.THEME)
+                }
+            }
+            OnboardingStep.THEME -> onDone()
         }
-        if (viewModel.currentFragment == FragmentName.THEME) nextButton.text = getString(R.string.done)
     }
-
-}
-
-enum class FragmentName {
-    WELCOME,
-    ASK_PERMISSION,
-    SCAN,
-    NO_PERMISSION,
-    NOTIFICATION_PERMISSION,
-    THEME
 }
 
 fun Activity.startOnboarding() = startActivityForResult(Intent(this, OnboardingActivity::class.java), ACTIVITY_RESULT_PREFERENCES)

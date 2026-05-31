@@ -83,7 +83,7 @@ import org.videolan.vlc.compose.theme.VLCTheme
 //     3. VLCInfoItem         - media track details, from info_item.xml (high reuse)
 //     4. VLCDebugLogLine     - log lines, from debug_log_item.xml (also used in DebugLog host)
 //     5. VLCDialogConfirmDelete - presentational core used by ConfirmDeleteComposeDialog
-//     6. VLCOnboardingWelcome - static branding parts of onboarding_welcome.xml (now also exercised by real OnboardingWelcomeFragment host, compose-2l4.1.6)
+//     6. VLCOnboardingWelcome - static branding leaf for the former phone welcome step
 //
 //   Interactive / richer demos added for educational value + gate visibility:
 //     - Sectioned list mock (VLCSectionHeader + multiple VLCInfoItem rows) simulating
@@ -91,7 +91,7 @@ import org.videolan.vlc.compose.theme.VLCTheme
 //     - Stateful "live log simulator" using VLCDebugLogLine + button that appends lines.
 //     - Dialog mock: Button opens a real Material3 AlertDialog whose content is the
 //       VLCDialogConfirmDelete leaf + action buttons (proves nesting + interop works).
-//     - Onboarding card variant (different subtitle, REAL logo via painterResource in slot — now matches the production OnboardingWelcomeFragment.kt migration for first-run flow, compose-2l4.1.6).
+//     - Onboarding card variant (different subtitle, REAL logo via painterResource in slot).
 //     - Explicit light/dark notes + "System theme follows device setting".
 //
 // TWO PATTERNS DEMONSTRATED (at full-screen lab scale):
@@ -158,7 +158,7 @@ import org.videolan.vlc.compose.theme.VLCTheme
 //   - List host example: DebugLogActivity.kt + debug_log.xml (compose-2l4.1.2 / bd compose-5wg)
 //   - Decoration + browser host: Recycler*ItemDecoration + BaseAudioBrowser etc. (compose-2l4.1.4 / bd compose-95d)
 //   - Info surfaces host: MediaInfoAdapter.kt + InfoActivity.kt (compose-2l4.1.3 / bd compose-l94)
-//   - Onboarding first-run host: OnboardingWelcomeFragment.kt (compose-2l4.1.6 / bd compose-mdj) — real logo slot + fragment context exercised here too
+//   - Onboarding first-run flow: OnboardingActivity.kt (full Compose phone flow)
 //   - This cross-cutting task: compose-2l4.1.8 (bd: compose-iju)
 //   - Earlier bootstrap: compose-cb5, compose-5wg (closed)
 //   - Epic context: Wave 1 leaf migrations after phase-0-compose-bootstrap
@@ -472,17 +472,12 @@ fun ComposeInteropLabContent() {
         )
 
         // -----------------------------------------------------------------
-        // 6. VLCOnboardingWelcome (two variants) — enhanced compose-2l4.1.6
+        // 6. VLCOnboardingWelcome (two variants)
         // -----------------------------------------------------------------
-        // Real fragment context: This section now exercises the exact logoContent +
-        // title/subtitle + onboardingBackground usage that the migrated
-        // OnboardingWelcomeFragment (compose-2l4.1.6 / bd compose-mdj) uses for the
-        // real first-run welcome screen. See OnboardingWelcomeFragment.kt mission
-        // header for the full "programmatic ComposeView for dedicated leaf fragment"
-        // pattern + talkback adaptation + land variant notes + rollback matrix.
-        // The real @drawable/ic_icon (same asset as both onboarding_welcome.xml variants)
-        // is mapped here via painterResource — identical to the production host.
-        VLCSectionHeader(text = "6. VLCOnboardingWelcome (onboarding_welcome.xml static parts) — now mirrors OnboardingWelcomeFragment host")
+        // This section keeps exercising the reusable welcome branding leaf. The
+        // production phone onboarding flow is now rendered directly by full Compose
+        // content in OnboardingActivity.
+        VLCSectionHeader(text = "6. VLCOnboardingWelcome")
         VLCOnboardingWelcome(
             title = "Welcome to VLC for Android",
             subtitle = "The best open source video and audio player, now on your mobile device. Free. No ads. No tracking."
@@ -490,12 +485,11 @@ fun ComposeInteropLabContent() {
 
         Spacer(Modifier.height(12.dp))
 
-        // Variant with REAL logo (painterResource) exercising the slot exactly as the
-        // new OnboardingWelcomeFragment.kt does post compose-2l4.1.6. This is the
-        // "real fragment context" enhancement + excellent dark onboarding bg signal.
+        // Variant with REAL logo (painterResource) exercising the slot used by the
+        // full Compose phone onboarding flow.
         VLCOnboardingWelcome(
             title = "Onboarding (real VLC icon via logoContent slot)",
-            subtitle = "This is the production mapping used by OnboardingWelcomeFragment (first-run flow). Land variant layout also preserved 100%.",
+            subtitle = "This mirrors the visual branding used by the first-run Compose onboarding flow.",
             logoContent = {
                 Image(
                     painter = painterResource(R.drawable.ic_icon),
