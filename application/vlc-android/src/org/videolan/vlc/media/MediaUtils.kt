@@ -9,7 +9,6 @@ import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.util.Log
 import androidx.annotation.WorkerThread
-import androidx.appcompat.app.AppCompatActivity
 import androidx.collection.SimpleArrayMap
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
@@ -56,7 +55,7 @@ import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
 import org.videolan.vlc.gui.AudioPlayerContainerActivity
 import org.videolan.vlc.gui.DialogActivity
-import org.videolan.vlc.gui.dialogs.SubtitleDownloaderDialogFragment
+import org.videolan.vlc.gui.dialogs.showSubtitleDownloaderComposeDialog
 import org.videolan.vlc.providers.medialibrary.FoldersProvider
 import org.videolan.vlc.providers.medialibrary.MedialibraryProvider
 import org.videolan.vlc.providers.medialibrary.VideoGroupsProvider
@@ -78,18 +77,7 @@ private typealias MediaContentResolver = SimpleArrayMap<String, IMediaContentRes
 
 object MediaUtils {
     fun getSubs(activity: FragmentActivity, media: MediaWrapper) {
-        if (activity is AppCompatActivity) showSubtitleDownloaderDialogFragment(activity, media.uri, media.title)
-        else {
-            val intent = Intent(activity, DialogActivity::class.java).setAction(DialogActivity.KEY_SUBS_DL)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            intent.putExtra(DialogActivity.EXTRA_MEDIA, media)
-            ContextCompat.startActivity(activity, intent, null)
-        }
-    }
-
-
-    fun showSubtitleDownloaderDialogFragment(activity: FragmentActivity, mediaUris: Uri, mediaTitles:String) {
-        SubtitleDownloaderDialogFragment.newInstance(mediaUris, mediaTitles).show(activity.supportFragmentManager, "Subtitle_downloader")
+        activity.showSubtitleDownloaderComposeDialog(media.uri, media.title)
     }
 
 

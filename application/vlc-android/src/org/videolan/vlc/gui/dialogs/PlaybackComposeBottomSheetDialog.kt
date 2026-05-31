@@ -20,7 +20,7 @@ import org.videolan.tools.Settings
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.theme.VLCTheme
-import org.videolan.vlc.gui.dialogs.VLCBottomSheetDialogFragment.Companion.shouldInterceptRemote
+import org.videolan.vlc.gui.dialogs.PlaybackRemoteControl.shouldInterceptRemote
 import org.videolan.vlc.gui.video.VideoPlayerActivity.Companion.videoRemoteFlow
 import org.videolan.vlc.util.EmptyPBSCallback
 
