@@ -104,11 +104,11 @@ import org.videolan.vlc.gui.dialogs.DISPLAY_IN_CARDS
 import org.videolan.vlc.gui.dialogs.DisplaySettingsDialog
 import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_MEDIA
 import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_NEW_NAME
-import org.videolan.vlc.gui.dialogs.RenameDialog
 import org.videolan.vlc.gui.dialogs.SHOW_HIDDEN_FILES
 import org.videolan.vlc.gui.dialogs.SHOW_ONLY_MULTIMEDIA_FILES
 import org.videolan.vlc.gui.dialogs.SavePlaylistDialog
 import org.videolan.vlc.gui.dialogs.showContext
+import org.videolan.vlc.gui.dialogs.showRenameComposeDialog
 import org.videolan.vlc.gui.helpers.DefaultPlaybackAction
 import org.videolan.vlc.gui.helpers.DefaultPlaybackActionMediaType
 import org.videolan.vlc.gui.helpers.MedialibraryUtils
@@ -872,8 +872,7 @@ abstract class BaseBrowserFragment : MediaBrowserFragment<BrowserModel>(), IRefr
 
             CTX_DELETE -> removeItem(mw)
             CTX_RENAME -> {
-                val dialog = RenameDialog.newInstance(mw, true)
-                dialog.show(requireActivity().supportFragmentManager, RenameDialog::class.simpleName)
+                requireActivity().showRenameComposeDialog(mw, true)
             }
 
             CTX_INFORMATION -> requireActivity().showMediaInfo(mw)

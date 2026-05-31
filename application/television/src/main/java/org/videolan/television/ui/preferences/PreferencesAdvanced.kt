@@ -88,7 +88,6 @@ import org.videolan.vlc.gui.browser.FilePickerActivity
 import org.videolan.vlc.gui.browser.KEY_PICKER_TYPE
 import org.videolan.vlc.gui.dialogs.ConfirmDeleteDialog
 import org.videolan.vlc.gui.dialogs.NEW_INSTALL
-import org.videolan.vlc.gui.dialogs.RenameDialog
 import org.videolan.vlc.gui.dialogs.UPDATE_DATE
 import org.videolan.vlc.gui.dialogs.UPDATE_URL
 import org.videolan.vlc.gui.dialogs.UpdateDialog
@@ -183,7 +182,7 @@ class PreferencesAdvanced : BasePreferenceFragment(), SharedPreferences.OnShared
 
             "clear_history" -> {
                 val dialog = ConfirmDeleteDialog.newInstance(title = getString(R.string.clear_playback_history), description = getString(R.string.clear_history_message), buttonText = getString(R.string.clear_history))
-                dialog.show((activity as FragmentActivity).supportFragmentManager, RenameDialog::class.simpleName)
+                dialog.show((activity as FragmentActivity).supportFragmentManager, ConfirmDeleteDialog::class.simpleName)
                 dialog.setListener {
                     Medialibrary.getInstance().clearHistory(Medialibrary.HISTORY_TYPE_GLOBAL)
                     Settings.getInstance(activity).edit()
@@ -204,7 +203,7 @@ class PreferencesAdvanced : BasePreferenceFragment(), SharedPreferences.OnShared
             "clear_app_data" -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                     val dialog = ConfirmDeleteDialog.newInstance(title = getString(R.string.clear_app_data), description = getString(R.string.clear_app_data_message), buttonText = getString(R.string.clear))
-                    dialog.show((activity as FragmentActivity).supportFragmentManager, RenameDialog::class.simpleName)
+                    dialog.show((activity as FragmentActivity).supportFragmentManager, ConfirmDeleteDialog::class.simpleName)
                     dialog.setListener { (activity.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager).clearApplicationUserData() }
                 } else {
                     val i = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
@@ -234,7 +233,7 @@ class PreferencesAdvanced : BasePreferenceFragment(), SharedPreferences.OnShared
                     )
                     dialog.show(
                             (activity as FragmentActivity).supportFragmentManager,
-                            RenameDialog::class.simpleName
+                            ConfirmDeleteDialog::class.simpleName
                     )
                     dialog.setListener {
                         launch {

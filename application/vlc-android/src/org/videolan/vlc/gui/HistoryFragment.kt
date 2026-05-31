@@ -52,7 +52,6 @@ import org.videolan.vlc.R
 import org.videolan.vlc.gui.browser.MediaBrowserFragment
 import org.videolan.vlc.gui.dialogs.CONFIRM_DELETE_DIALOG_RESULT
 import org.videolan.vlc.gui.dialogs.ConfirmDeleteDialog
-import org.videolan.vlc.gui.dialogs.RenameDialog
 import org.videolan.vlc.gui.helpers.Click
 import org.videolan.vlc.gui.helpers.ImageClick
 import org.videolan.vlc.gui.helpers.LongClick
@@ -155,7 +154,7 @@ class HistoryFragment : MediaBrowserFragment<HistoryModel>(), IRefreshable, IHis
             R.id.ml_menu_clean -> {
 
                 val dialog = ConfirmDeleteDialog.newInstance(title = getString(R.string.clear_playback_history), description = getString(R.string.clear_history_message), buttonText = getString(R.string.clear_history))
-                dialog.show((activity as FragmentActivity).supportFragmentManager, RenameDialog::class.simpleName)
+                dialog.show((activity as FragmentActivity).supportFragmentManager, ConfirmDeleteDialog::class.simpleName)
                 true
             }
             else -> super.onOptionsItemSelected(item)

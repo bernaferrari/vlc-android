@@ -59,7 +59,7 @@ import org.videolan.vlc.gui.dialogs.DisplaySettingsDialog
 import org.videolan.vlc.gui.dialogs.ONLY_FAVS
 import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_MEDIA
 import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_NEW_NAME
-import org.videolan.vlc.gui.dialogs.RenameDialog
+import org.videolan.vlc.gui.dialogs.showRenameComposeDialog
 import org.videolan.vlc.gui.helpers.DefaultPlaybackActionMediaType
 import org.videolan.vlc.gui.helpers.INavigator
 import org.videolan.vlc.gui.video.VideoBrowserFragment
@@ -291,8 +291,7 @@ class PlaylistFragment : BaseAudioBrowser<PlaylistsViewModel>(), SwipeRefreshLay
             CTX_PLAY_ALL -> MediaUtils.playAll(activity, viewModel.provider as MedialibraryProvider<MediaWrapper>, position, false)
             CTX_RENAME -> {
                 val media = getCurrentAdapter()?.getItem(position) ?: return
-                val dialog = RenameDialog.newInstance(media)
-                dialog.show(requireActivity().supportFragmentManager, RenameDialog::class.simpleName)
+                requireActivity().showRenameComposeDialog(media)
             }
             else -> super.onCtxAction(position, option)
         }

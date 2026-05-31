@@ -89,7 +89,6 @@ import org.videolan.vlc.gui.browser.KEY_PICKER_TYPE
 import org.videolan.vlc.gui.dialogs.CONFIRM_DELETE_DIALOG_RESULT
 import org.videolan.vlc.gui.dialogs.CONFIRM_DELETE_DIALOG_RESULT_TYPE
 import org.videolan.vlc.gui.dialogs.ConfirmDeleteDialog
-import org.videolan.vlc.gui.dialogs.RenameDialog
 import org.videolan.vlc.gui.dialogs.showUpdateComposeDialog
 import org.videolan.vlc.gui.helpers.MedialibraryUtils
 import org.videolan.vlc.gui.helpers.UiTools
@@ -246,7 +245,7 @@ class PreferencesAdvanced : BasePreferenceFragment(), SharedPreferences.OnShared
             }
             "clear_history" -> {
                 val dialog = ConfirmDeleteDialog.newInstance(title = getString(R.string.clear_playback_history), description = getString(R.string.clear_history_message), buttonText = getString(R.string.clear_history), resultType = RESULT_VALUE_CLEAR_HISTORY)
-                dialog.show((activity as FragmentActivity).supportFragmentManager, RenameDialog::class.simpleName)
+                dialog.show((activity as FragmentActivity).supportFragmentManager, ConfirmDeleteDialog::class.simpleName)
                 return true
             }
             "clear_media_db" -> {
@@ -268,7 +267,7 @@ class PreferencesAdvanced : BasePreferenceFragment(), SharedPreferences.OnShared
                     )
                     dialog.show(
                         requireActivity().supportFragmentManager,
-                        RenameDialog::class.simpleName
+                        ConfirmDeleteDialog::class.simpleName
                     )
                     return true
                 }
@@ -281,7 +280,7 @@ class PreferencesAdvanced : BasePreferenceFragment(), SharedPreferences.OnShared
                         buttonText = getString(R.string.clear),
                         resultType = RESULT_VALUE_CLEAR_APP_DATA
                     )
-                    dialog.show(requireActivity().supportFragmentManager, RenameDialog::class.simpleName)
+                    dialog.show(requireActivity().supportFragmentManager, ConfirmDeleteDialog::class.simpleName)
                 } else {
                     val i = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                     i.addCategory(Intent.CATEGORY_DEFAULT)

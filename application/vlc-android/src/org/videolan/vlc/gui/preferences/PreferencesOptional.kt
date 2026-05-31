@@ -31,7 +31,6 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceScreen
 import org.videolan.vlc.R
 import org.videolan.vlc.gui.dialogs.FeatureFlagWarningDialog
-import org.videolan.vlc.gui.dialogs.RenameDialog
 import org.videolan.vlc.util.FeatureFlag
 import org.videolan.vlc.util.FeatureFlagManager
 
@@ -85,7 +84,7 @@ class PreferencesOptional : BasePreferenceFragment(), SharedPreferences.OnShared
                 val dialog = FeatureFlagWarningDialog.newInstance(it) {
                     currentPreference.isChecked = true
                 }
-                dialog.show((activity as FragmentActivity).supportFragmentManager, RenameDialog::class.simpleName)
+                dialog.show((activity as FragmentActivity).supportFragmentManager, FeatureFlagWarningDialog::class.simpleName)
                 return true
             }
         }

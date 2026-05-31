@@ -99,10 +99,10 @@ import org.videolan.vlc.gui.dialogs.KEY_PERMISSION_CHANGED
 import org.videolan.vlc.gui.dialogs.ONLY_FAVS
 import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_MEDIA
 import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_NEW_NAME
-import org.videolan.vlc.gui.dialogs.RenameDialog
 import org.videolan.vlc.gui.dialogs.SavePlaylistDialog
 import org.videolan.vlc.gui.dialogs.VIDEO_GROUPING
 import org.videolan.vlc.gui.dialogs.showContext
+import org.videolan.vlc.gui.dialogs.showRenameComposeDialog
 import org.videolan.vlc.gui.helpers.AudioUtil.setRingtone
 import org.videolan.vlc.gui.helpers.DefaultPlaybackAction
 import org.videolan.vlc.gui.helpers.DefaultPlaybackActionMediaType
@@ -681,12 +681,11 @@ class VideoGridFragment : MediaBrowserFragment<VideosViewModel>(), SwipeRefreshL
 
     private fun banFolder(folder: Folder) {
         val dialog = ConfirmDeleteDialog.newInstance(medias = arrayListOf(folder), title = getString(R.string.group_ban_folder), description = getString(R.string.ban_folder_explanation, getString(R.string.medialibrary_directories)), buttonText = getString(R.string.ban_folder), resultType = CONFIRM_DELETE_DIALOG_RESULT_BAN_FOLDER)
-        dialog.show((activity as FragmentActivity).supportFragmentManager, RenameDialog::class.simpleName)
+        dialog.show((activity as FragmentActivity).supportFragmentManager, ConfirmDeleteDialog::class.simpleName)
     }
 
     private fun renameGroup(media: VideoGroup) {
-        val dialog = RenameDialog.newInstance(media)
-        dialog.show(requireActivity().supportFragmentManager, RenameDialog::class.simpleName)
+        requireActivity().showRenameComposeDialog(media)
     }
 
     private val thumbObs = Observer<MediaWrapper> { media ->

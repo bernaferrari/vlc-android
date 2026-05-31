@@ -37,11 +37,11 @@ import org.videolan.resources.*
 import org.videolan.tools.copy
 import org.videolan.vlc.R
 import org.videolan.vlc.gui.dialogs.CtxActionReceiver
-import org.videolan.vlc.gui.dialogs.RenameDialog
 import org.videolan.vlc.gui.dialogs.SavePlaylistDialog
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.UiTools.createShortcut
+import org.videolan.vlc.gui.dialogs.showRenameComposeDialog
 import org.videolan.vlc.gui.video.VideoPlayerActivity
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.util.ContextOption
@@ -115,8 +115,7 @@ class StreamsFragmentDelegate : IStreamsFragmentDelegate, CtxActionReceiver {
     }
 
     private fun renameStream(position: Int) {
-        val dialog = RenameDialog.newInstance(viewModel.dataset.get(position))
-        dialog.show(fragment.requireActivity().supportFragmentManager, RenameDialog::class.simpleName)
+        fragment.requireActivity().showRenameComposeDialog(viewModel.dataset.get(position))
     }
 
     override fun renameStream(media: MediaWrapper, name: String) {

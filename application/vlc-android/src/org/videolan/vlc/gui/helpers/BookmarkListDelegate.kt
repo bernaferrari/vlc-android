@@ -44,7 +44,7 @@ import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
-import org.videolan.vlc.gui.dialogs.RenameDialog
+import org.videolan.vlc.gui.dialogs.showRenameComposeDialog
 import org.videolan.vlc.util.LocaleUtil
 import org.videolan.vlc.viewmodels.BookmarkModel
 
@@ -159,8 +159,7 @@ class BookmarkListDelegate(val activity: FragmentActivity, val service: Playback
         menu.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.bookmark_rename -> {
-                    val dialog = RenameDialog.newInstance(bookmark)
-                    dialog.show(activity.supportFragmentManager, RenameDialog::class.simpleName)
+                    activity.showRenameComposeDialog(bookmark)
                     true
                 }
                 R.id.bookmark_delete -> {
