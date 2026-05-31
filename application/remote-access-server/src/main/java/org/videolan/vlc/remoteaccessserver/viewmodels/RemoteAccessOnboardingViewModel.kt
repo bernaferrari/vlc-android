@@ -25,10 +25,9 @@
 package org.videolan.vlc.remoteaccessserver.viewmodels
 
 import androidx.lifecycle.ViewModel
-import org.videolan.vlc.remoteaccessserver.gui.remoteaccess.onboarding.FragmentName
+import org.videolan.vlc.remoteaccessserver.gui.remoteaccess.onboarding.OnboardingPage
 
 class RemoteAccessOnboardingViewModel : ViewModel() {
 
-    var currentFragment = FragmentName.WELCOME
+    var currentPage = OnboardingPage.WELCOME
 }
-
