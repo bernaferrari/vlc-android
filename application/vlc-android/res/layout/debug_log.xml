@@ -100,7 +100,7 @@
       WAVE 1 HOST MIGRATION - DebugLogActivity (task compose-2l4.1.2)
       VLCComposeView embedded directly inside legacy XML layout (debug_log.xml).
 
-      This is Pattern #1 (see NetworkServerDialog / network_server_dialog.xml as exact template).
+      This is Pattern #1 (see DebugLogActivity.kt for the matching host wiring).
 
       - The tag is a normal custom view; no dataBinding or special inflation needed.
       - In Kotlin host (see DebugLogActivity.kt): 
@@ -137,8 +137,8 @@
         contrast with native player surfaces, complex MediaLibrary JNI, certain TV overlays,
         or WebView-based legacy that stay outside Compose forever.
       * Wave 1 epic / traceability: This is the first real post-demo Wave 1 host migration
-        (compose-2l4.1.2). Reference implementation: compose-5qk (NetworkServerDialog.kt +
-        network_server_dialog.xml). See also: compose-5wg (bd), VLCDebugLogLine.kt,
+        (compose-2l4.1.2). Historical reference: compose-5qk (NetworkServerDialog.kt,
+        now full Compose). See also: compose-5wg (bd), VLCDebugLogLine.kt,
         VLCCompose.kt, VLCTheme.kt, and cross-cutting notes (compose-2l4.1.8).
 
       See also: application/compose/src/main/java/org/videolan/vlc/compose/components/DebugLogLine.kt

@@ -38,7 +38,7 @@ import org.videolan.resources.util.parcelable
 import org.videolan.vlc.R
 import org.videolan.vlc.StartActivity
 import org.videolan.vlc.compose.components.VLCExternalDeviceDialogContent
-import org.videolan.vlc.gui.dialogs.NetworkServerDialog
+import org.videolan.vlc.gui.dialogs.showNetworkServerComposeDialog
 import org.videolan.vlc.gui.helpers.MedialibraryUtils
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.util.showVlcDialog
@@ -114,11 +114,10 @@ class DialogActivity : BaseActivity() {
     }
 
     private fun setupServerDialog() {
-        val networkServerDialog = NetworkServerDialog()
-        intent.parcelable<MediaWrapper>(EXTRA_MEDIA)?.let {
-            networkServerDialog.setServer(it)
-        }
-        networkServerDialog.show(supportFragmentManager, "fragment_edit_network")
+        showNetworkServerComposeDialog(
+            server = intent.parcelable<MediaWrapper>(EXTRA_MEDIA),
+            finishOnDismiss = true
+        )
     }
 
     private fun setupSubsDialog() {

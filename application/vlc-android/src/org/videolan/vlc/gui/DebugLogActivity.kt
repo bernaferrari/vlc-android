@@ -42,8 +42,7 @@ import java.io.File
 // =============================================================================
 // WAVE 1 HOST MIGRATION IMPORTS (DebugLog host - compose-2l4.1.2)
 // These come from :application:compose (api dependency in vlc-android/build.gradle).
-// Reference implementation / template: NetworkServerDialog.kt (the compose-5qk demo)
-// + its network_server_dialog.xml (exact comment style, patterns, rollback notes).
+// Original reference template: NetworkServerDialog.kt (compose-5qk; now full Compose).
 // =============================================================================
 import android.view.ViewGroup
 import androidx.compose.ui.platform.ComposeView
@@ -69,7 +68,7 @@ import android.content.Intent
 //
 // THIS IS THE FIRST REAL WAVE 1 HOST AFTER THE DEMO (exemplary implementation).
 //
-// Reference template: NetworkServerDialog.kt + network_server_dialog.xml (compose-5qk)
+// Original reference template: NetworkServerDialog.kt (compose-5qk; now full Compose).
 // All patterns, comment density, traceability, and safety language copied/adapted exactly.
 //
 // MISSION: Integrate VLCDebugLogLine into the legacy DebugLogActivity (which renders
@@ -246,7 +245,7 @@ class DebugLogActivity : FragmentActivity(), DebugLogService.Client.Callback {
         // ---------------------------------------------------------------------
         // This is the header demo area added in debug_log.xml.
         // It renders a live VLCDebugLogLine using the interop layer, exactly as
-        // the compose_interop_demo in NetworkServerDialog.
+        // the original compose interop demo.
         // Exercises the leaf + VLCTheme light/dark inside this host.
         // (The list itself uses Pattern 2 via the adapter below.)
         val composeInteropHost = findViewById<VLCComposeView>(R.id.compose_interop_debuglog_demo)

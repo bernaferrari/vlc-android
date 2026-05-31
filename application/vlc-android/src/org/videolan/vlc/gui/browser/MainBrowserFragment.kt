@@ -58,8 +58,8 @@ import org.videolan.vlc.gui.SecondaryActivity
 import org.videolan.vlc.gui.dialogs.CONFIRM_PERMISSION_CHANGED
 import org.videolan.vlc.gui.dialogs.CtxActionReceiver
 import org.videolan.vlc.gui.dialogs.KEY_PERMISSION_CHANGED
-import org.videolan.vlc.gui.dialogs.NetworkServerDialog
 import org.videolan.vlc.gui.dialogs.showContext
+import org.videolan.vlc.gui.dialogs.showNetworkServerComposeDialog
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylistAsync
 import org.videolan.vlc.gui.helpers.UiTools.showMediaInfo
@@ -350,14 +350,7 @@ class MainBrowserFragment : BaseFragment(), View.OnClickListener, CtxActionRecei
     override fun onClick(v: View) { }
 
     private fun showAddServerDialog(mw: MediaWrapper?) {
-        val fm = try {
-            parentFragmentManager
-        } catch (e: IllegalStateException) {
-            return
-        }
-        val dialog = NetworkServerDialog()
-        mw?.let { dialog.setServer(it) }
-        dialog.show(fm, "fragment_add_server")
+        activity?.showNetworkServerComposeDialog(mw)
     }
 
     inner class MainBrowserContainer(

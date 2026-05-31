@@ -75,7 +75,7 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
 //
 // PATTERN 1 - VLCComposeView inside existing layout XML (not activated in this
 //   host because the info_activity.xml is complex DataBinding + Coordinator +
-//   collapsing toolbar; we keep risk zero. See debug_log.xml + network_server_dialog.xml
+//   collapsing toolbar; we keep risk zero. See debug_log.xml and ComposeInteropLabActivity
 //   for live examples of the <org.videolan.vlc.compose.interop.VLCComposeView> tag
 //   + findViewById + setContent { VLCTheme { VLCInfoItem(...) } } wiring.)
 //

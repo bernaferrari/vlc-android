@@ -172,7 +172,7 @@ import org.videolan.vlc.compose.theme.VLCTheme
 //     + application/vlc-android/res/layout-land/onboarding_welcome.xml
 //   - Host activity + flow: application/vlc-android/src/org/videolan/vlc/gui/onboarding/OnboardingActivity.kt
 //   - Base: OnboardingFragment.kt (talkback contract)
-//   - Reference demo: NetworkServerDialog.kt + network_server_dialog.xml (compose-5qk)
+//   - Historical demo: NetworkServerDialog.kt (compose-5qk; now full Compose)
 //   - Rich host example: DebugLogActivity.kt + debug_log.xml (compose-2l4.1.2)
 //   - Info host: MediaInfoAdapter.kt + InfoActivity.kt (compose-2l4.1.3 / bd compose-l94)
 //   - Decoration host: RecyclerSectionItemDecoration.kt + BaseAudioBrowser.kt etc (compose-2l4.1.4 / bd compose-95d)

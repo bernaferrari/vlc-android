@@ -154,7 +154,7 @@ import org.videolan.vlc.compose.theme.VLCTheme
 //   - Theme + tokens: .../theme/VLCTheme.kt (see VLCColorScheme for ?attr/ origins)
 //   - Previews (now richer): .../compose/PreviewUtils.kt (sectioned list, dialog mock, etc.)
 //   - Launch host: DebugLogActivity.kt (compose-2l4.1.2) + debug_log.xml
-//   - Reference demo host: NetworkServerDialog.kt + network_server_dialog.xml (compose-5qk)
+//   - Historical demo host: NetworkServerDialog.kt (compose-5qk; now full Compose)
 //   - List host example: DebugLogActivity.kt + debug_log.xml (compose-2l4.1.2 / bd compose-5wg)
 //   - Decoration + browser host: Recycler*ItemDecoration + BaseAudioBrowser etc. (compose-2l4.1.4 / bd compose-95d)
 //   - Info surfaces host: MediaInfoAdapter.kt + InfoActivity.kt (compose-2l4.1.3 / bd compose-l94)
