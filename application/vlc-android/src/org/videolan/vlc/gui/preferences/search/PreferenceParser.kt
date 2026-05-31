@@ -49,6 +49,24 @@ import org.videolan.tools.BROWSER_SHOW_HIDDEN_FILES
 import org.videolan.tools.BROWSER_SHOW_ONLY_MULTIMEDIA
 import org.videolan.tools.CloseableUtils
 import org.videolan.tools.DISPLAY_UNDER_NOTCH
+import org.videolan.tools.ENABLE_BRIGHTNESS_GESTURE
+import org.videolan.tools.ENABLE_DOUBLE_TAP_PLAY
+import org.videolan.tools.ENABLE_DOUBLE_TAP_SEEK
+import org.videolan.tools.ENABLE_FASTPLAY
+import org.videolan.tools.ENABLE_SCALE_GESTURE
+import org.videolan.tools.ENABLE_SEEK_BUTTONS
+import org.videolan.tools.ENABLE_SWIPE_SEEK
+import org.videolan.tools.ENABLE_VOLUME_GESTURE
+import org.videolan.tools.FASTPLAY_SPEED
+import org.videolan.tools.KEY_AUDIO_BOOST
+import org.videolan.tools.KEY_AUDIO_FORCE_SHUFFLE
+import org.videolan.tools.KEY_AUDIO_JUMP_DELAY
+import org.videolan.tools.KEY_AUDIO_LONG_JUMP_DELAY
+import org.videolan.tools.KEY_AUDIO_SHOW_BOOkMARK_BUTTONS
+import org.videolan.tools.KEY_AUDIO_SHOW_BOOKMARK_MARKERS
+import org.videolan.tools.KEY_AUDIO_SHOW_CHAPTER_BUTTONS
+import org.videolan.tools.KEY_AUDIO_SHOW_TRACK_NUMBERS
+import org.videolan.tools.KEY_BLURRED_COVER_BACKGROUND
 import org.videolan.tools.KEY_CURRENT_EQUALIZER_ID
 import org.videolan.tools.KEY_ARTISTS_SHOW_ALL
 import org.videolan.tools.KEY_CUSTOM_LIBVLC_OPTIONS
@@ -58,13 +76,24 @@ import org.videolan.tools.KEY_PLAYBACK_SPEED_AUDIO_GLOBAL
 import org.videolan.tools.KEY_PLAYBACK_SPEED_AUDIO_GLOBAL_VALUE
 import org.videolan.tools.KEY_PLAYBACK_SPEED_VIDEO_GLOBAL
 import org.videolan.tools.KEY_PLAYBACK_SPEED_VIDEO_GLOBAL_VALUE
+import org.videolan.tools.KEY_SAVE_INDIVIDUAL_AUDIO_DELAY
 import org.videolan.tools.KEY_SHOW_WHATS_NEW
+import org.videolan.tools.KEY_VIDEO_CONFIRM_RESUME
+import org.videolan.tools.KEY_VIDEO_DOUBLE_TAP_JUMP_DELAY
+import org.videolan.tools.KEY_VIDEO_JUMP_DELAY
+import org.videolan.tools.KEY_VIDEO_LONG_JUMP_DELAY
+import org.videolan.tools.LOCK_USE_SENSOR
+import org.videolan.tools.POPUP_KEEPSCREEN
 import org.videolan.tools.PREF_RESTORE_VIDEO_TIPS_SHOWN
 import org.videolan.tools.PREF_SHOW_VIDEO_SETTINGS_DISCLAIMER
 import org.videolan.tools.PREF_TIPS_SHOWN
 import org.videolan.tools.PREF_WIDGETS_TIPS_SHOWN
+import org.videolan.tools.SAVE_BRIGHTNESS
+import org.videolan.tools.SCREENSHOT_MODE
 import org.videolan.tools.SCREEN_ORIENTATION
 import org.videolan.tools.Settings
+import org.videolan.tools.VIDEO_HUD_TIMEOUT
+import org.videolan.tools.VIDEO_TRANSITION_SHOW
 import org.videolan.tools.deleteSharedPreferences
 import org.videolan.tools.getContextWithLocale
 import org.videolan.tools.putSingle
@@ -93,6 +122,8 @@ import java.io.IOException
 import java.io.OutputStreamWriter
 
 object PreferenceParser {
+    const val VIDEO_CONTROLS_PARENT_SCREEN = -1001
+    const val AUDIO_CONTROLS_PARENT_SCREEN = -1002
 
     // Other settings that should be backed up and restored
     val additionalSettings = arrayOf(
@@ -127,14 +158,12 @@ object PreferenceParser {
     fun parsePreferences(context: Context, parseUIPrefs: Boolean = false): ArrayList<PreferenceItem> {
         val result = ArrayList<PreferenceItem>()
         arrayListOf(R.xml.preferences, R.xml.preferences_adv, R.xml.preferences_audio, R.xml.preferences_parental_control, R.xml.preferences_casting, R.xml.preferences_subtitles, R.xml.preferences_ui, R.xml.preferences_video, R.xml.preferences_remote_access, R.xml.preferences_android_auto)
-            .apply {
-                if (parseUIPrefs) {
-                    this.add(R.xml.preferences_video_controls)
-                    this.add(R.xml.preferences_audio_controls)
-                }
+            .forEach {
+                result.addAll(parsePreferences(context, it))
             }
-        .forEach {
-            result.addAll(parsePreferences(context, it))
+        if (parseUIPrefs) {
+            result.addAll(buildControlPreferenceItems(context, forVideo = true))
+            result.addAll(buildControlPreferenceItems(context, forVideo = false))
         }
         return result
     }
@@ -147,19 +176,77 @@ object PreferenceParser {
      * @return a list of [PreferenceItem]
      */
     fun parseControlPreferences(context: Context, forVideo: Boolean): ArrayList<PreferenceItem> {
-        val result = ArrayList<PreferenceItem>()
-        arrayListOf<Int>()
-            .apply {
-                if (forVideo)
-                    this.add(R.xml.preferences_video_controls)
-                else
-                    this.add(R.xml.preferences_audio_controls)
-            }
-        .forEach {
-            result.addAll(parsePreferences(context, it))
-        }
-        return result
+        return buildControlPreferenceItems(context, forVideo)
     }
+
+    private fun buildControlPreferenceItems(context: Context, forVideo: Boolean): ArrayList<PreferenceItem> {
+        val englishContext = context.applicationContext.getContextWithLocale("en")
+        val definitions = if (forVideo) videoControlPreferenceDefinitions() else audioControlPreferenceDefinitions()
+        val parentScreen = if (forVideo) VIDEO_CONTROLS_PARENT_SCREEN else AUDIO_CONTROLS_PARENT_SCREEN
+        return ArrayList(definitions.map { definition ->
+            val summary = definition.summaryRes?.let { summaryRes ->
+                definition.summaryArg?.let { context.getString(summaryRes, it) } ?: context.getString(summaryRes)
+            } ?: ""
+            val summaryEng = definition.summaryRes?.let { summaryRes ->
+                definition.summaryArg?.let { englishContext.getString(summaryRes, it) } ?: englishContext.getString(summaryRes)
+            } ?: ""
+            PreferenceItem(
+                key = definition.key,
+                parentScreen = parentScreen,
+                title = context.getString(definition.titleRes),
+                summary = summary,
+                titleEng = englishContext.getString(definition.titleRes),
+                summaryEng = summaryEng,
+                category = context.getString(definition.categoryRes),
+                categoryEng = englishContext.getString(definition.categoryRes),
+                defaultValue = definition.defaultValue
+            )
+        })
+    }
+
+    private fun videoControlPreferenceDefinitions() = listOf(
+        ControlPreferenceDefinition(KEY_AUDIO_BOOST, R.string.audio_boost_title, R.string.audio_boost_summary, R.string.controls_setting, "true"),
+        ControlPreferenceDefinition(KEY_SAVE_INDIVIDUAL_AUDIO_DELAY, R.string.save_audiodelay_title, R.string.save_audiodelay_summary, R.string.controls_setting, "true"),
+        ControlPreferenceDefinition(KEY_VIDEO_CONFIRM_RESUME, R.string.confirm_resume_title, null, R.string.controls_setting, "0"),
+        ControlPreferenceDefinition(ENABLE_VOLUME_GESTURE, R.string.enable_volume_gesture_title, R.string.enable_volume_gesture_summary, R.string.gestures, "true"),
+        ControlPreferenceDefinition(ENABLE_BRIGHTNESS_GESTURE, R.string.enable_brightness_gesture_title, R.string.enable_brightness_gesture_summary, R.string.gestures, "true"),
+        ControlPreferenceDefinition(SAVE_BRIGHTNESS, R.string.save_brightness_title, R.string.save_brightness_summary, R.string.gestures, "false"),
+        ControlPreferenceDefinition(ENABLE_SWIPE_SEEK, R.string.enable_swipe_seek_title, R.string.enable_swipe_seek_summary, R.string.gestures, "true"),
+        ControlPreferenceDefinition(ENABLE_SCALE_GESTURE, R.string.enable_scale_gesture_title, R.string.enable_scale_gesture_summary, R.string.gestures, "true"),
+        ControlPreferenceDefinition(ENABLE_DOUBLE_TAP_SEEK, R.string.enable_double_tap_seek_title, R.string.enable_double_tap_seek_summary, R.string.gestures, "true"),
+        ControlPreferenceDefinition(KEY_VIDEO_DOUBLE_TAP_JUMP_DELAY, R.string.video_double_tap_jump_delay, R.string.jump_delay_summary, R.string.gestures, "10", "10"),
+        ControlPreferenceDefinition(ENABLE_DOUBLE_TAP_PLAY, R.string.enable_double_tap_play_title, R.string.enable_double_tap_play_summary, R.string.gestures, "true"),
+        ControlPreferenceDefinition(SCREENSHOT_MODE, R.string.enable_video_screenshot, null, R.string.gestures, "0"),
+        ControlPreferenceDefinition(ENABLE_FASTPLAY, R.string.enable_tap_and_hold_fastplay_title, R.string.enable_tap_and_hold_fastplay_summary, R.string.gestures, "false"),
+        ControlPreferenceDefinition(FASTPLAY_SPEED, R.string.fastplay_speed_title, null, R.string.gestures, "20"),
+        ControlPreferenceDefinition(ENABLE_SEEK_BUTTONS, R.string.enable_seek_buttons, R.string.enable_seek_buttons_summary, R.string.player_controls, "false"),
+        ControlPreferenceDefinition(KEY_VIDEO_JUMP_DELAY, R.string.jump_delay, R.string.jump_delay_summary, R.string.player_controls, "10", "10"),
+        ControlPreferenceDefinition(KEY_VIDEO_LONG_JUMP_DELAY, R.string.long_jump_delay, R.string.jump_delay_summary, R.string.player_controls, "20", "20"),
+        ControlPreferenceDefinition(POPUP_KEEPSCREEN, R.string.popup_keepscreen_title, R.string.popup_keepscreen_summary, R.string.player_controls, "false"),
+        ControlPreferenceDefinition(VIDEO_HUD_TIMEOUT, R.string.video_hud_timeout, null, R.string.player_controls, "4"),
+        ControlPreferenceDefinition(VIDEO_TRANSITION_SHOW, R.string.video_transition_title, R.string.video_transition_summary, R.string.player_controls, "true"),
+        ControlPreferenceDefinition(LOCK_USE_SENSOR, R.string.lock_use_sensor_title, R.string.lock_use_sensor_summary, R.string.player_controls, "true")
+    )
+
+    private fun audioControlPreferenceDefinitions() = listOf(
+        ControlPreferenceDefinition(KEY_AUDIO_JUMP_DELAY, R.string.jump_delay, R.string.jump_delay_summary, R.string.controls_prefs_category, "10", "10"),
+        ControlPreferenceDefinition(KEY_AUDIO_LONG_JUMP_DELAY, R.string.long_jump_delay, R.string.jump_delay_summary, R.string.controls_prefs_category, "20", "20"),
+        ControlPreferenceDefinition(KEY_AUDIO_FORCE_SHUFFLE, R.string.force_shuffle_title, R.string.force_shuffle_summary, R.string.controls_prefs_category, "false"),
+        ControlPreferenceDefinition(KEY_BLURRED_COVER_BACKGROUND, R.string.blurred_cover_background_title, R.string.blurred_cover_background_summary, R.string.interface_prefs_screen, "true"),
+        ControlPreferenceDefinition(KEY_AUDIO_SHOW_TRACK_NUMBERS, R.string.albums_show_track_numbers, null, R.string.interface_prefs_screen, "false"),
+        ControlPreferenceDefinition(KEY_AUDIO_SHOW_CHAPTER_BUTTONS, R.string.show_chapter_buttons, R.string.show_chapter_buttons_summary, R.string.interface_prefs_screen, "true"),
+        ControlPreferenceDefinition(KEY_AUDIO_SHOW_BOOkMARK_BUTTONS, R.string.show_bookmark_buttons, R.string.show_bookmark_buttons_summary, R.string.interface_prefs_screen, "true"),
+        ControlPreferenceDefinition(KEY_AUDIO_SHOW_BOOKMARK_MARKERS, R.string.show_bookmark_markers, R.string.show_bookmark_markers_summary, R.string.interface_prefs_screen, "true")
+    )
+
+    private data class ControlPreferenceDefinition(
+        val key: String,
+        val titleRes: Int,
+        val summaryRes: Int?,
+        val categoryRes: Int,
+        val defaultValue: String,
+        val summaryArg: String? = null
+    )
 
     /**
      * Compares the preference list with the set settings to get the list of the changed settings by the user

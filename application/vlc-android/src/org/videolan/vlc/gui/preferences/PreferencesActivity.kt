@@ -45,6 +45,8 @@ import org.videolan.vlc.R
 import org.videolan.vlc.gui.BaseActivity
 import org.videolan.vlc.gui.PinCodeActivity
 import org.videolan.vlc.gui.PinCodeReason
+import org.videolan.vlc.gui.dialogs.showAudioControlsSettingsComposeDialog
+import org.videolan.vlc.gui.dialogs.showVideoControlsSettingsComposeDialog
 import org.videolan.vlc.gui.preferences.search.PreferenceItem
 import org.videolan.vlc.gui.preferences.search.PreferenceParser
 import org.videolan.vlc.gui.preferences.search.PreferenceSearchActivity
@@ -157,6 +159,16 @@ class PreferencesActivity : BaseActivity() {
             val pref = withContext(Dispatchers.IO) {
                 PreferenceParser.parsePreferences(activity, true)
             }.first { it.key == prefKey }
+            when (pref.parentScreen) {
+                PreferenceParser.VIDEO_CONTROLS_PARENT_SCREEN -> {
+                    activity.showVideoControlsSettingsComposeDialog()
+                    return
+                }
+                PreferenceParser.AUDIO_CONTROLS_PARENT_SCREEN -> {
+                    activity.showAudioControlsSettingsComposeDialog()
+                    return
+                }
+            }
             val intent = Intent(activity, PreferencesActivity::class.java)
             intent.putExtra(EXTRA_PREF_END_POINT, pref)
             activity.startActivityForResult(intent, ACTIVITY_RESULT_PREFERENCES)

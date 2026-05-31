@@ -35,14 +35,14 @@ import org.videolan.vlc.databinding.PlayerOptionItemBinding
 import org.videolan.vlc.gui.AudioPlayerContainerActivity
 import org.videolan.vlc.gui.BaseActivity
 import org.videolan.vlc.gui.DiffUtilAdapter
-import org.videolan.vlc.gui.dialogs.AudioControlsSettingsDialog
 import org.videolan.vlc.gui.dialogs.JumpToTimeDialog
 import org.videolan.vlc.gui.dialogs.PlaybackSpeedDialog
 import org.videolan.vlc.gui.dialogs.SelectChapterDialog
 import org.videolan.vlc.gui.dialogs.SleepTimerDialog
 import org.videolan.vlc.gui.dialogs.VLCBottomSheetDialogFragment
-import org.videolan.vlc.gui.dialogs.VideoControlsSettingsDialog
+import org.videolan.vlc.gui.dialogs.showAudioControlsSettingsComposeDialog
 import org.videolan.vlc.gui.dialogs.showEqualizerComposeDialog
+import org.videolan.vlc.gui.dialogs.showVideoControlsSettingsComposeDialog
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.hf.PinCodeDelegate
 import org.videolan.vlc.gui.helpers.hf.checkPIN
@@ -261,8 +261,7 @@ class PlayerOptionsDelegate(val activity: FragmentActivity, val service: Playbac
             }
             ID_VIDEO_CONTROL_SETTING -> {
                 hide()
-                val videoControlsSettingsDialog = VideoControlsSettingsDialog()
-                videoControlsSettingsDialog.show(activity.supportFragmentManager, "fragment_video_controls_settings")
+                activity.showVideoControlsSettingsComposeDialog()
             }
             ID_SHARE -> {
                 hide()
@@ -288,8 +287,7 @@ class PlayerOptionsDelegate(val activity: FragmentActivity, val service: Playbac
             }
             ID_AUDIO_CONTROL_SETTING -> {
                 hide()
-                val audioControlsSettingsDialog = AudioControlsSettingsDialog()
-                audioControlsSettingsDialog.show(activity.supportFragmentManager, "fragment_audio_controls_settings")
+                activity.showAudioControlsSettingsComposeDialog()
             }
             ID_SAFE_MODE_LOCK -> {
                 hide()
