@@ -1,95 +1,89 @@
 package org.videolan.vlc.gui
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.MenuItem
-import android.view.ViewGroup
-import androidx.databinding.DataBindingUtil
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.appbar.MaterialToolbar
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.videolan.resources.AndroidDevices
 import org.videolan.resources.AppContextProvider
 import org.videolan.resources.util.applyOverscanMargin
 import org.videolan.vlc.R
-import org.videolan.vlc.databinding.AboutAuthorsActivityBinding
-import org.videolan.vlc.databinding.AboutAuthorsItemBinding
-import org.videolan.vlc.gui.helpers.SelectorViewHolder
+import org.videolan.vlc.compose.components.VLCAuthorsScreen
 
 /**
  * Activity showing the different libraries used by VLC for Android and their licenses
  */
 class AuthorsActivity : BaseActivity() {
 
-    internal lateinit var binding: AboutAuthorsActivityBinding
-    override fun getSnackAnchorView(overAudioPlayer:Boolean) = binding.root
-    override val displayTitle = true
+    private var authors by mutableStateOf(emptyList<String>())
+
+    override fun getSnackAnchorView(overAudioPlayer: Boolean) = window.decorView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        binding = DataBindingUtil.setContentView(this, R.layout.about_authors_activity)
-        val toolbar = findViewById<MaterialToolbar>(R.id.main_toolbar)
-        setSupportActionBar(toolbar)
-        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_close_up)
-        title = getString(R.string.authors)
-
-        binding.authorsList.layoutManager = LinearLayoutManager(this)
-        loadAuthors()
+        setContentView(
+            ComposeView(this).apply {
+                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+                setContent {
+                    VLCAuthorsScreen(
+                        title = getString(R.string.authors),
+                        authors = authors,
+                        closeContentDescription = getString(R.string.close),
+                        onClose = ::finish,
+                        closeIconContent = {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_close_up),
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        },
+                        authorIconContent = {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_author),
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    )
+                }
+            }
+        )
         if (AndroidDevices.isTv) {
             applyOverscanMargin(this)
         }
 
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item.itemId) {
-            android.R.id.home -> finish()
+        lifecycleScope.launch {
+            authors = loadAuthors()
         }
-        return super.onOptionsItemSelected(item)
     }
 
     /**
      * Load the authors list from the json file in assets and then populate the list
      */
-    private fun loadAuthors() {
-        lifecycleScope.launchWhenStarted {
-            val authors = withContext(Dispatchers.IO) {
-                val jsonData = AppContextProvider.appResources.openRawResource(R.raw.authors).bufferedReader().use {
-                    it.readText()
-                }
-
-                val moshi = Moshi.Builder().build()
-                val type = Types.newParameterizedType(MutableList::class.java, String::class.java)
-
-                val jsonAdapter: JsonAdapter<List<String>> = moshi.adapter(type)
-
-                jsonAdapter.fromJson(jsonData)!!
-
-            }
-            binding.authorsList.adapter = AuthorsAdapter(authors)
+    private suspend fun loadAuthors(): List<String> = withContext(Dispatchers.IO) {
+        val jsonData = AppContextProvider.appResources.openRawResource(R.raw.authors).bufferedReader().use {
+            it.readText()
         }
+
+        val moshi = Moshi.Builder().build()
+        val type = Types.newParameterizedType(MutableList::class.java, String::class.java)
+
+        val jsonAdapter: JsonAdapter<List<String>> = moshi.adapter(type)
+
+        jsonAdapter.fromJson(jsonData)!!
     }
 }
-
-class AuthorsAdapter(val authors: List<String>) : DiffUtilAdapter<String, AuthorsAdapter.ViewHolder>() {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(AboutAuthorsItemBinding.inflate(LayoutInflater.from(parent.context), parent, false))
-    }
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.binding.author = authors[position]
-    }
-
-    override fun getItemCount() = authors.size
-
-    inner class ViewHolder(vdb: AboutAuthorsItemBinding) : SelectorViewHolder<AboutAuthorsItemBinding>(vdb)
-}
-
-
