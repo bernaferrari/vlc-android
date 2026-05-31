@@ -34,7 +34,7 @@ import androidx.preference.PreferenceScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import org.videolan.vlc.R
-import org.videolan.vlc.gui.dialogs.FeatureFlagWarningDialog
+import org.videolan.vlc.gui.dialogs.showFeatureFlagWarningComposeDialog
 import org.videolan.vlc.util.FeatureFlag
 import org.videolan.vlc.util.FeatureFlagManager
 
@@ -86,10 +86,9 @@ class PreferencesOptional : BasePreferenceFragment(), SharedPreferences.OnShared
                 val currentPreference = findPreference<CheckBoxPreference>(preference.key)!!
                 if (!currentPreference.isChecked) return true
                 currentPreference.isChecked = false
-                val dialog = FeatureFlagWarningDialog.newInstance(it) {
+                (activity as FragmentActivity).showFeatureFlagWarningComposeDialog(it) {
                     currentPreference.isChecked = true
                 }
-                dialog.show((activity as FragmentActivity).supportFragmentManager, FeatureFlagWarningDialog::class.simpleName)
                 return true
             }
         }

@@ -56,8 +56,8 @@ import org.videolan.tools.TV_FOLDERS_FIRST
 import org.videolan.tools.putSingle
 import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.R
-import org.videolan.vlc.gui.dialogs.FeatureTouchOnlyWarningDialog
 import org.videolan.vlc.gui.dialogs.SleepTimerDialog
+import org.videolan.vlc.gui.dialogs.showFeatureTouchOnlyWarningComposeDialog
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 class PreferencesUi : BasePreferenceFragment(), SharedPreferences.OnSharedPreferenceChangeListener {
@@ -132,10 +132,9 @@ class PreferencesUi : BasePreferenceFragment(), SharedPreferences.OnSharedPrefer
             PREF_TV_UI -> {
                 if (!tvUiPref.isChecked && Settings.device.isTv) {
                     tvUiPref.isChecked = true
-                    val dialog = FeatureTouchOnlyWarningDialog.newInstance {
+                    (activity as FragmentActivity).showFeatureTouchOnlyWarningComposeDialog {
                         tvUiPref.isChecked = false
                     }
-                    dialog.show((activity as FragmentActivity).supportFragmentManager, FeatureTouchOnlyWarningDialog::class.simpleName)
                     return true
                 }
             }
