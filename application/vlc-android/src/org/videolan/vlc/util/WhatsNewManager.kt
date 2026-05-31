@@ -30,7 +30,7 @@ import org.videolan.tools.KEY_LAST_WHATS_NEW
 import org.videolan.tools.KEY_SHOW_WHATS_NEW
 import org.videolan.tools.Settings
 import org.videolan.tools.putSingle
-import org.videolan.vlc.gui.dialogs.WhatsNewDialog
+import org.videolan.vlc.gui.dialogs.showWhatsNewComposeDialog
 
 object WhatsNewManager {
     fun launchIfNeeded(context: AppCompatActivity) {
@@ -38,8 +38,7 @@ object WhatsNewManager {
         val needed = preferences.getBoolean(KEY_SHOW_WHATS_NEW, true) && preferences.getString(KEY_LAST_WHATS_NEW, "") != "3.7"
         if (needed) {
             markAsShown(preferences)
-            val whatsNewDialog = WhatsNewDialog()
-            whatsNewDialog.show(context.supportFragmentManager, "fragment_whats_new")
+            context.showWhatsNewComposeDialog()
         }
     }
 
