@@ -1,6 +1,6 @@
 /*
  * ************************************************************************
- *  FilePickerFragmentUITest.kt
+ *  FilePickerActivityUITest.kt
  * *************************************************************************
  * Copyright © 2020 VLC authors and VideoLAN
  * Author: Nicolas POMEPUY
@@ -24,34 +24,24 @@
 
 package org.videolan.vlc.gui.browser
 
-import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.action.ViewActions.click
-import androidx.test.espresso.assertion.ViewAssertions.matches
-import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.rule.ActivityTestRule
-import org.hamcrest.Matchers.equalTo
-import org.hamcrest.Matchers.greaterThan
+import org.junit.Assert.assertFalse
 import org.junit.Rule
 import org.junit.Test
-import org.videolan.vlc.R
 
-class FilePickerFragmentUITest : org.videolan.vlc.BaseUITest() {
+class FilePickerActivityUITest : org.videolan.vlc.BaseUITest() {
     @Rule
     @JvmField
     val activityTestRule = ActivityTestRule(FilePickerActivity::class.java)
 
-    lateinit var activity: FilePickerActivity
+    private lateinit var activity: FilePickerActivity
 
     override fun beforeTest() {
         activity = activityTestRule.activity
     }
 
     @Test
-    fun whenAtSomeFolder_clickOnHomeIconReturnsBackToRoot() {
-        onView(org.videolan.vlc.withRecyclerView(R.id.network_list).atPosition(0)).perform(click())
-        onView(org.videolan.vlc.withRecyclerView(R.id.network_list).atPosition(0)).perform(click())
-
-        onView(withId(R.id.network_list)).check(matches(org.videolan.vlc.withCount(greaterThan(2))))
-
+    fun launchesComposeFilePicker() {
+        assertFalse(activity.isFinishing)
     }
 }

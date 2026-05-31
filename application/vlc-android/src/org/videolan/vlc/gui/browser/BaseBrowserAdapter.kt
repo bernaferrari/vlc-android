@@ -264,10 +264,6 @@ open class BaseBrowserAdapter(val browserContainer: BrowserContainer<MediaLibrar
                 onMoreClick(v)
                 true
             }
-            if (this@BaseBrowserAdapter is FilePickerAdapter) {
-                bindingContainer.itemIcon.isFocusable = false
-            }
-
 
             val focusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
                 itemFocusChanged(layoutPosition, hasFocus, bindingContainer)

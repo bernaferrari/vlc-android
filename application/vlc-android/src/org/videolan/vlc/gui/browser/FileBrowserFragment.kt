@@ -98,10 +98,8 @@ open class FileBrowserFragment : BaseBrowserFragment() {
         when {
             currentMedia != null -> when {
                 AndroidDevices.EXTERNAL_PUBLIC_DIRECTORY == mrl?.removeFileScheme() -> getString(R.string.internal_memory)
-                this is FilePickerFragment -> currentMedia!!.uri.toString()
                 else -> currentMedia!!.title
             }
-            this is FilePickerFragment -> mrl ?: ""
             else -> FileUtils.getFileNameFromPath(mrl)
         }
     }
@@ -131,7 +129,7 @@ open class FileBrowserFragment : BaseBrowserFragment() {
     override fun onMainActionClick(v: View, position: Int, item: MediaLibraryItem) {}
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        if (!(this is FilePickerFragment || this is StorageBrowserFragment))
+        if (this !is StorageBrowserFragment)
             inflater.inflate(R.menu.fragment_option_network, menu)
         super.onCreateOptionsMenu(menu, inflater)
     }
