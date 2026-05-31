@@ -2,127 +2,110 @@ package org.videolan.vlc.gui
 
 import android.os.Bundle
 import android.os.Parcelable
-import android.view.LayoutInflater
-import android.view.MenuItem
-import android.view.ViewGroup
-import androidx.databinding.DataBindingUtil
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.appbar.MaterialToolbar
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import org.videolan.resources.AndroidDevices
 import org.videolan.resources.AppContextProvider
 import org.videolan.resources.util.applyOverscanMargin
 import org.videolan.vlc.R
-import org.videolan.vlc.databinding.LibraryItemBinding
-import org.videolan.vlc.databinding.LicenseActivityBinding
-import org.videolan.vlc.gui.dialogs.LicenseDialog
-import org.videolan.vlc.gui.helpers.SelectorViewHolder
+import org.videolan.vlc.compose.components.VLCLibrariesScreen
+import org.videolan.vlc.compose.components.VLCLibraryLicense
+import org.videolan.vlc.util.openLinkIfPossible
 
 /**
- * Activity showing the different libraries used by VLC for Android and their licenses
+ * Activity showing the different libraries used by VLC for Android and their licenses.
  */
 class LibrariesActivity : BaseActivity() {
 
-    private lateinit var adapter: LibrariesAdapter
-    private lateinit var model: LicenseModel
+    private var libraries by mutableStateOf(emptyList<VLCLibraryLicense>())
 
-    internal lateinit var binding: LicenseActivityBinding
-    override fun getSnackAnchorView(overAudioPlayer:Boolean) = binding.root
-    override val displayTitle = true
+    override fun getSnackAnchorView(overAudioPlayer: Boolean) = window.decorView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        binding = DataBindingUtil.setContentView(this, R.layout.license_activity)
-        val toolbar = findViewById<MaterialToolbar>(R.id.main_toolbar)
-        setSupportActionBar(toolbar)
-        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_close_up)
-        title = getString(R.string.libraries)
-
-        binding.licenses.layoutManager = LinearLayoutManager(this)
-        adapter = LibrariesAdapter {
-            LicenseDialog.newInstance(it).show(supportFragmentManager, "LicenseDialog")
-        }
-        binding.licenses.adapter = adapter
-
-        model = ViewModelProvider(this)[LicenseModel::class.java]
-        model.licenses.observe(this, Observer {
-            adapter.update(it)
-        })
-        lifecycleScope.launchWhenStarted { model.refresh() }
-        if (AndroidDevices.isTv) applyOverscanMargin(this)
-
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item.itemId) {
-            android.R.id.home -> finish()
-        }
-        return super.onOptionsItemSelected(item)
-    }
-
-}
-
-class LibrariesAdapter(private val itemClickHandler: (license: LibraryWithLicense) -> Unit) : DiffUtilAdapter<LibraryWithLicense, LibrariesAdapter.ViewHolder>() {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(LibraryItemBinding.inflate(LayoutInflater.from(parent.context), parent, false))
-    }
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.binding.library = dataset[position]
-    }
-
-    override fun getItemCount() = dataset.size
-
-    inner class ViewHolder(vdb: LibraryItemBinding) : SelectorViewHolder<LibraryItemBinding>(vdb) {
-        init {
-            vdb.root.setOnClickListener { itemClickHandler.invoke(dataset[layoutPosition]) }
-        }
-    }
-}
-
-class LicenseModel : ViewModel() {
-
-    /**
-     * Load libraries the json asset file
-     */
-    suspend fun refresh() {
-        val parsedLicenses = withContext(Dispatchers.IO) {
-            val jsonData = AppContextProvider.appResources.openRawResource(R.raw.libraries).bufferedReader().use {
-                it.readText()
-            }
-
-            val moshi = Moshi.Builder().build()
-
-            val jsonAdapter: JsonAdapter<Licenses> = moshi.adapter(Licenses::class.java)
-
-            val rawLibraries = jsonAdapter.fromJson(jsonData)!!
-            mutableListOf<LibraryWithLicense>().apply {
-                rawLibraries.libraries.forEach { library ->
-                    rawLibraries.licenses.forEach {
-                        if (it.id == library.license) {
-                            add(LibraryWithLicense(library.title, library.copyright, it.name, it.description, it.link))
+        setContentView(
+            ComposeView(this).apply {
+                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+                setContent {
+                    VLCLibrariesScreen(
+                        title = getString(R.string.libraries),
+                        libraries = libraries,
+                        closeContentDescription = getString(R.string.close),
+                        openLinkContentDescription = getString(R.string.talkback_open_in_browser),
+                        onClose = ::finish,
+                        onOpenLicenseLink = { openLinkIfPossible(it) },
+                        closeIconContent = {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_close_up),
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        },
+                        sourceIconContent = {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_sources),
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        },
+                        linkIconContent = {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_website),
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp)
+                            )
                         }
-                    }
-
+                    )
                 }
             }
+        )
+        if (AndroidDevices.isTv) applyOverscanMargin(this)
+
+        lifecycleScope.launch {
+            libraries = loadLibraries()
         }
-        licenses.value = parsedLicenses
     }
 
-    val licenses = MutableLiveData<List<LibraryWithLicense>>()
+    /**
+     * Load libraries from the JSON raw resource and adapt them for the Compose screen.
+     */
+    private suspend fun loadLibraries(): List<VLCLibraryLicense> = withContext(Dispatchers.IO) {
+        val jsonData = AppContextProvider.appResources.openRawResource(R.raw.libraries).bufferedReader().use {
+            it.readText()
+        }
+
+        val moshi = Moshi.Builder().build()
+        val jsonAdapter: JsonAdapter<Licenses> = moshi.adapter(Licenses::class.java)
+        val rawLibraries = jsonAdapter.fromJson(jsonData)!!
+
+        rawLibraries.libraries.mapNotNull { library ->
+            rawLibraries.licenses.firstOrNull { it.id == library.license }?.let { license ->
+                VLCLibraryLicense(
+                    title = library.title,
+                    copyright = library.copyright,
+                    licenseTitle = license.name,
+                    licenseDescription = license.description,
+                    licenseLink = license.link
+                )
+            }
+        }
+    }
 }
 
 data class Licenses(
