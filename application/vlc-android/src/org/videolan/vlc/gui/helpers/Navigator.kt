@@ -26,12 +26,12 @@ package org.videolan.vlc.gui.helpers
 import android.app.Activity
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.view.Menu
 import android.view.MenuItem
 import android.view.ViewGroup
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.content.edit
-import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -58,7 +58,7 @@ import org.videolan.vlc.gui.MoreScreenController
 import org.videolan.vlc.gui.PlaylistFragment
 import org.videolan.vlc.gui.audio.AudioBrowserFragment
 import org.videolan.vlc.gui.browser.BaseBrowserFragment
-import org.videolan.vlc.gui.browser.MainBrowserFragment
+import org.videolan.vlc.gui.browser.MainBrowserScreenController
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.gui.helpers.UiTools.isTablet
 import org.videolan.vlc.gui.video.VideoBrowserFragment
@@ -77,6 +77,7 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
     override lateinit var appbarLayout: AppBarLayout
     private var forExpresso: ArrayList<MediaLibraryItem>? = null
     private var moreController: MoreScreenController? = null
+    private var mainBrowserController: MainBrowserScreenController? = null
 
 
     override fun MainActivity.setupNavigation(state: Bundle?) {
@@ -104,16 +105,17 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
     private fun getNewFragment(id: Int): Fragment {
         return when (id) {
             R.id.nav_audio -> AudioBrowserFragment()
-            R.id.nav_directories -> MainBrowserFragment().apply {
-                arguments = bundleOf(EXTRA_FOR_ESPRESSO to forExpresso)
-            }
             R.id.nav_playlists -> PlaylistFragment()
             else -> VideoBrowserFragment()
         }
     }
 
     private fun showScreen(id: Int) {
-        if (id == R.id.nav_more) showMoreScreen() else showFragment(id)
+        when (id) {
+            R.id.nav_more -> showMoreScreen()
+            R.id.nav_directories -> showMainBrowserScreen()
+            else -> showFragment(id)
+        }
     }
 
     private fun showFragment(id: Int) {
@@ -125,7 +127,7 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
     private fun showFragment(fragment: Fragment, id: Int, tag: String = getTag(id)) {
         val fm = activity.supportFragmentManager
         if (currentFragment is BaseBrowserFragment) fm.popBackStackImmediate("root", FragmentManager.POP_BACK_STACK_INCLUSIVE)
-        clearMoreScreenIfNeeded()
+        clearComposeScreenIfNeeded()
         val ft = fm.beginTransaction()
         ft.replace(R.id.fragment_placeholder, fragment, tag)
         if (BuildConfig.DEBUG) ft.commit()
@@ -135,14 +137,19 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
         currentFragmentId = id
     }
 
-    private fun showMoreScreen() {
-        val fm = activity.supportFragmentManager
-        if (currentFragment is BaseBrowserFragment) fm.popBackStackImmediate("root", FragmentManager.POP_BACK_STACK_INCLUSIVE)
+    private fun clearCurrentFragmentNow() {
         currentFragment?.let { fragment ->
-            val ft = fm.beginTransaction().remove(fragment)
+            val ft = activity.supportFragmentManager.beginTransaction().remove(fragment)
             if (BuildConfig.DEBUG) ft.commitNow()
             else ft.commitNowAllowingStateLoss()
         }
+    }
+
+    private fun showMoreScreen() {
+        val fm = activity.supportFragmentManager
+        if (currentFragment is BaseBrowserFragment) fm.popBackStackImmediate("root", FragmentManager.POP_BACK_STACK_INCLUSIVE)
+        clearComposeScreenIfNeeded()
+        clearCurrentFragmentNow()
 
         val controller = moreController ?: MoreScreenController(activity).also { moreController = it }
         val container = activity.findViewById<ViewGroup>(R.id.fragment_placeholder)
@@ -165,9 +172,37 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
         currentFragmentId = R.id.nav_more
     }
 
-    private fun clearMoreScreenIfNeeded() {
-        if (currentFragmentId != R.id.nav_more) return
+    private fun showMainBrowserScreen() {
+        val fm = activity.supportFragmentManager
+        if (currentFragment is BaseBrowserFragment) fm.popBackStackImmediate("root", FragmentManager.POP_BACK_STACK_INCLUSIVE)
+        clearComposeScreenIfNeeded()
+        clearCurrentFragmentNow()
+
+        val controller = mainBrowserController ?: MainBrowserScreenController(activity, forExpresso).also { mainBrowserController = it }
+        val container = activity.findViewById<ViewGroup>(R.id.fragment_placeholder)
+        container.removeAllViews()
+        container.addView(
+            ComposeView(activity).apply {
+                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+                setContent {
+                    VLCTheme {
+                        controller.Content()
+                    }
+                }
+            },
+            ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+        )
+        controller.onVisible()
+        updateCheckedItem(R.id.nav_directories)
+        activity.invalidateOptionsMenu()
+        currentFragment = null
+        currentFragmentId = R.id.nav_directories
+    }
+
+    private fun clearComposeScreenIfNeeded() {
+        if (currentFragmentId != R.id.nav_more && currentFragmentId != R.id.nav_directories) return
         moreController?.onHidden()
+        mainBrowserController?.onHidden()
         activity.findViewById<ViewGroup>(R.id.fragment_placeholder).removeAllViews()
     }
 
@@ -205,7 +240,7 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
 
         appbarLayout.setExpanded(true, true)
 
-        if (current == null && currentFragmentId != R.id.nav_more) {
+        if (current == null && !currentIdIsComposeScreen()) {
             return false
         }
         if (current is BaseFragment && current.actionMode != null) current.stopActionMode()
@@ -225,10 +260,28 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
     }
 
     override fun refreshCurrentScreen(): Boolean {
-        if (currentFragmentId != R.id.nav_more) return false
-        moreController?.refresh()
-        return true
+        return when (currentFragmentId) {
+            R.id.nav_more -> {
+                moreController?.refresh()
+                true
+            }
+            R.id.nav_directories -> {
+                mainBrowserController?.refresh()
+                true
+            }
+            else -> false
+        }
     }
+
+    override fun prepareCurrentScreenOptions(menu: Menu) {
+        if (currentFragmentId == R.id.nav_directories) mainBrowserController?.prepareOptionsMenu(menu)
+    }
+
+    override fun onCurrentScreenOptionsItemSelected(item: MenuItem): Boolean {
+        return currentFragmentId == R.id.nav_directories && mainBrowserController?.onOptionsItemSelected(item) == true
+    }
+
+    private fun currentIdIsComposeScreen() = currentFragmentId == R.id.nav_more || currentFragmentId == R.id.nav_directories
 
 
     private fun updateCheckedItem(id: Int) {
@@ -258,6 +311,8 @@ interface INavigator {
     fun configurationChanged(size: Int)
     fun getFragmentWidth(activity: Activity): Int
     fun refreshCurrentScreen(): Boolean
+    fun prepareCurrentScreenOptions(menu: Menu)
+    fun onCurrentScreenOptionsItemSelected(item: MenuItem): Boolean
 }
 
 private const val KEY_CURRENT_FRAGMENT = "current_fragment"

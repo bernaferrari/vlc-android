@@ -274,6 +274,7 @@ class MainActivity : ContentActivity(),
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         menu?.findItem(R.id.ml_menu_refresh)?.isVisible = Permissions.canReadStorage(this)
         menu?.findItem(R.id.incognito_mode)?.isChecked = Settings.getInstance(this).getBoolean(KEY_INCOGNITO, false)
+        menu?.let { prepareCurrentScreenOptions(it) }
         return super.onPrepareOptionsMenu(menu)
     }
 
@@ -282,6 +283,7 @@ class MainActivity : ContentActivity(),
      */
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId != R.id.ml_menu_filter) UiTools.setKeyboardVisibility(appBarLayout, false)
+        if (onCurrentScreenOptionsItemSelected(item)) return true
 
         // Handle item selection
         return when (item.itemId) {
