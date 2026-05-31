@@ -30,7 +30,7 @@ import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import org.videolan.tools.Settings
 import org.videolan.tools.putSingle
-import org.videolan.vlc.gui.dialogs.WidgetMigrationDialog
+import org.videolan.vlc.gui.dialogs.showWidgetMigrationComposeDialog
 import org.videolan.vlc.widget.VLCAppWidgetProviderBlack
 import org.videolan.vlc.widget.VLCAppWidgetProviderWhite
 
@@ -42,8 +42,7 @@ object WidgetMigration {
         if (!settings.getBoolean(WIDGET_MIGRATION_KEY, false)) {
             AppWidgetManager.getInstance(context)?.let {manager ->
                 if (manager.getAppWidgetIds(ComponentName(context, VLCAppWidgetProviderWhite::class.java)).isNotEmpty() || manager.getAppWidgetIds(ComponentName(context, VLCAppWidgetProviderBlack::class.java)).isNotEmpty()) {
-                    val widgetMigrationDialog = WidgetMigrationDialog()
-                    widgetMigrationDialog.show(context.supportFragmentManager, "fragment_widget_migration")
+                    context.showWidgetMigrationComposeDialog()
                     return true
                 }
                 val pm: PackageManager = context.application.packageManager
