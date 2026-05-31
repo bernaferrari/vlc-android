@@ -110,6 +110,7 @@ fun MyFullScreen() {
   - `VLCAboutScreen` hosted by `AboutActivity` (former About Fragment/XML and About license/version bottom-sheet Fragment paths removed)
   - `VLCFeedbackScreen` hosted by `FeedbackActivity` (former DataBinding XML layout removed)
   - `VLCPinCodeScreen` hosted by `PinCodeActivity` (former DataBinding PIN keypad XML layout removed)
+  - `VLCSearchScreen` hosted by `SearchActivity` (former DataBinding Activity and result row XML layouts removed)
 - All new leaves respect full VLCTheme tokens + typography, have rich light/dark @Previews, and full KDoc traceability to original XML paths.
 - Preview support for Android Studio (see `PreviewUtils.kt`).
 - Proper library packaging (consumer rules, proguard, test setup).
