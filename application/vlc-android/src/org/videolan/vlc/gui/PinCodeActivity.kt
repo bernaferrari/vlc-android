@@ -24,36 +24,36 @@
 
 package org.videolan.vlc.gui
 
-import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.text.method.PasswordTransformationMethod
 import android.util.Log
 import android.view.KeyEvent
-import android.view.MenuItem
-import android.view.inputmethod.EditorInfo
 import androidx.activity.viewModels
-import androidx.core.view.children
-import androidx.core.widget.doOnTextChanged
-import androidx.databinding.DataBindingUtil
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.google.android.material.textfield.TextInputEditText
 import org.videolan.resources.AndroidDevices
 import org.videolan.resources.util.applyOverscanMargin
 import org.videolan.resources.util.retrieveApplication
 import org.videolan.tools.KEY_SAFE_MODE_PIN
 import org.videolan.tools.Settings
 import org.videolan.tools.putSingle
-import org.videolan.tools.setGone
-import org.videolan.tools.setVisible
 import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.R
-import org.videolan.vlc.databinding.PinCodeActivityBinding
+import org.videolan.vlc.compose.components.VLCPinCodeScreen
 import org.videolan.vlc.gui.helpers.UiTools
 import java.security.MessageDigest
 
@@ -61,182 +61,122 @@ import java.security.MessageDigest
 private const val PIN_CODE_REASON = "pin_code_reason"
 
 /**
- * Activity allowing to setup the safe mode
+ * Activity allowing to setup the safe mode.
  */
 class PinCodeActivity : BaseActivity() {
 
-
     private lateinit var reason: PinCodeReason
     private lateinit var model: SafeModeModel
-    internal lateinit var binding: PinCodeActivityBinding
-    override fun getSnackAnchorView(overAudioPlayer: Boolean) = binding.root
-    override val displayTitle = true
-    private val pinTexts by lazy { arrayOf(binding.pinCode1, binding.pinCode2, binding.pinCode3, binding.pinCode4) }
 
-    @SuppressLint("SetTextI18n")
+    private var reasonText by mutableStateOf("")
+    private var pinCode by mutableStateOf("")
+    private var pinStep by mutableStateOf(PinStep.ENTER_EXISTING)
+    private var nextButtonText by mutableStateOf("")
+    private var showSuccess by mutableStateOf(false)
+    private var showCancel by mutableStateOf(true)
+
+    override fun getSnackAnchorView(overAudioPlayer: Boolean) = window.decorView
+    override val displayTitle = true
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         if (!intent.hasExtra(PIN_CODE_REASON)) throw IllegalStateException("No reason given")
         reason = PinCodeReason.entries.toTypedArray()[intent.getIntExtra(PIN_CODE_REASON, 0)]
-
-        binding = DataBindingUtil.setContentView(this, R.layout.pin_code_activity)
-        if (!Settings.tvUI) {
-            updateFocus()
-            UiTools.setKeyboardVisibility(binding.pinCode1, true)
-            binding.keyboardGrid.setGone()
-        } else {
-            //On TV show virtual keyboard and make edit texts not focusable
-            binding.keyboardGrid.setVisible()
-            binding.keyboardButton1.requestFocus()
-            pinTexts.forEach { it.isFocusable = false }
-        }
-        binding.pinCodeReason.text = getString(when (reason) {
-            PinCodeReason.FIRST_CREATION -> R.string.pin_code_reason_create
-            PinCodeReason.MODIFY -> R.string.pin_code_reason_modify
-            else -> R.string.pin_code_reason_check
-        })
-
-        //Set listeners for edit texts
-        pinTexts.forEach { editText ->
-            editText.doOnTextChanged { text, start, before, count ->
-                text?.let {
-                    val codeFilled = pinTexts.none { it.text.isNullOrBlank() }
-                    //enable next button if possible
-                    binding.nextButton.isEnabled = codeFilled
-                    updateFocus()
-                    //focus next button on TV
-                    if (Settings.tvUI && codeFilled) binding.nextButton.requestFocus()
-                    if (editText == binding.pinCode4 && pinTexts.filter { it.text?.isNotEmpty() == true }.size == 4) next()
-                }
+        reasonText = getString(
+            when (reason) {
+                PinCodeReason.FIRST_CREATION -> R.string.pin_code_reason_create
+                PinCodeReason.MODIFY -> R.string.pin_code_reason_modify
+                else -> R.string.pin_code_reason_check
             }
-            editText.setOnKeyListener { v, keyCode, event ->
-                //Manage backspace button
-                if (keyCode == KeyEvent.KEYCODE_DEL && event.action == KeyEvent.ACTION_DOWN) {
-                    if (editText.text?.isNotEmpty() == true) return@setOnKeyListener false
-                    getLastSetET()?.clearText()
-                    updateFocus()
-                    return@setOnKeyListener true
-                }
-                return@setOnKeyListener false
-            }
-            editText.setOnFocusChangeListener { v, hasFocus ->
-                if (Settings.tvUI) return@setOnFocusChangeListener
-                if (hasFocus) pinTexts.forEach { if (v != it) it.clearFocus() }
-                editText.transformationMethod = PasswordTransformationMethod()
-            }
-        }
+        )
+        nextButtonText = getString(R.string.next)
+        setResult(RESULT_CANCELED)
 
         val getModel by viewModels<SafeModeModel> { SafeModeModel.Factory(this, reason) }
         model = getModel
+        model.step.observe(this) { handleStep(it) }
 
-        //Observe the current step
-        model.step.observe(this) { step ->
-            if (model.step.value == PinStep.EXIT) {
-                finish()
-                return@observe
-            }
-            if (reason == PinCodeReason.CHECK && model.step.value !in arrayOf(PinStep.INVALID, PinStep.ENTER_EXISTING)) {
-                setResult(RESULT_OK)
-                finish()
-                return@observe
-            }
-            if (reason == PinCodeReason.UNLOCK && model.step.value !in arrayOf(PinStep.INVALID, PinStep.ENTER_EXISTING)) {
-                setResult(RESULT_OK)
-                showTips()
-                return@observe
-            }
-
-            when (step) {
-                PinStep.ENTER_EXISTING -> binding.pinCodeTitle.text = getString(R.string.safe_mode_pin)
-                PinStep.ENTER_NEW -> binding.pinCodeTitle.text = getString(R.string.safe_mode_new_pin)
-                PinStep.RE_ENTER -> binding.pinCodeTitle.text = getString(R.string.safe_mode_re_pin)
-                PinStep.NO_MATCH -> binding.pinCodeTitle.text = getString(R.string.safe_mode_no_match)
-                PinStep.INVALID -> binding.pinCodeTitle.text = getString(R.string.safe_mode_invalid_pin)
-                PinStep.LOGIN_SUCCESS -> binding.pinCodeTitle.text = getString(R.string.safe_mode_invalid_pin)
-                PinStep.EXIT -> {}
-            }
-            if (model.isFinalStep()) {
-                pinTexts.forEach { it.imeOptions = EditorInfo.IME_ACTION_DONE }
-                binding.nextButton.text = getString(R.string.done)
-            }
-            if (!Settings.tvUI) updateFocus()
-        }
-
-        pinTexts.forEach {
-            it.setOnEditorActionListener { v, actionId, event ->
-                if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_NEXT) {
-                    next()
+        setContentView(
+            ComposeView(this).apply {
+                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+                setContent {
+                    VLCPinCodeScreen(
+                        reasonText = reasonText,
+                        title = getString(pinStep.titleRes()),
+                        pin = pinCode,
+                        showPinEntry = !showSuccess,
+                        showSuccess = showSuccess,
+                        successText = getString(R.string.pin_unlock_success),
+                        showVirtualKeyboard = Settings.tvUI && !showSuccess,
+                        nextText = nextButtonText,
+                        cancelText = getString(R.string.cancel),
+                        deleteContentDescription = getString(R.string.delete),
+                        nextEnabled = showSuccess || pinCode.length == PIN_LENGTH,
+                        showCancel = showCancel,
+                        onPinChange = ::onPinCodeChanged,
+                        onDigit = ::appendDigit,
+                        onBackspace = ::deleteLastDigit,
+                        onNext = ::next,
+                        onCancel = ::finish,
+                        successIconContent = { PinCodeIcon(R.drawable.ic_pin_lock) },
+                        backspaceIconContent = { PinCodeIcon(R.drawable.ic_backspace_white) }
+                    )
                 }
-                false
             }
-        }
+        )
 
-        binding.nextButton.setOnClickListener {
-            next()
-        }
-        binding.cancelButton.setOnClickListener {
-            finish()
-        }
-        setResult(RESULT_CANCELED)
         if (AndroidDevices.isTv) applyOverscanMargin(this)
-        binding.keyboardGrid.children.forEach {
-            it.setOnClickListener { keyboardButton ->
-                when (keyboardButton.tag) {
-                    "-1" -> {
-                        getLastSetET()?.clearText()
-                    }
+    }
 
-                    else -> getCurrentInput()?.setText(keyboardButton.tag as String)
-                }
-            }
+    private fun handleStep(step: PinStep) {
+        if (step == PinStep.EXIT) {
+            finish()
+            return
+        }
+        if (reason == PinCodeReason.CHECK && step !in arrayOf(PinStep.INVALID, PinStep.ENTER_EXISTING)) {
+            setResult(RESULT_OK)
+            finish()
+            return
+        }
+        if (reason == PinCodeReason.UNLOCK && step !in arrayOf(PinStep.INVALID, PinStep.ENTER_EXISTING)) {
+            setResult(RESULT_OK)
+            showTips()
+            return
         }
 
+        pinStep = step
+        if (model.isFinalStep()) nextButtonText = getString(R.string.done)
     }
 
     private fun showTips() {
-        UiTools.setKeyboardVisibility(binding.pinCode1, false)
+        UiTools.setKeyboardVisibility(window.decorView, false)
+        pinCode = ""
+        showSuccess = true
+        showCancel = false
+        nextButtonText = getString(R.string.done)
+    }
 
-        binding.pinGroup.setGone()
-        binding.sucessGroup.setVisible()
-        binding.nextButton.text = getString(R.string.done)
-        binding.nextButton.isEnabled = true
-        binding.keyboardGrid.setGone()
-        binding.nextButton.requestFocus()
-        binding.cancelButton.setGone()
+    private fun onPinCodeChanged(value: String) {
+        val sanitized = value.filter { it.isDigit() }.take(PIN_LENGTH)
+        val shouldSubmit = sanitized.length == PIN_LENGTH && pinCode.length != PIN_LENGTH
+        pinCode = sanitized
+        if (shouldSubmit) next()
+    }
+
+    private fun appendDigit(digit: String) {
+        if (showSuccess || pinCode.length >= PIN_LENGTH) return
+        val updated = (pinCode + digit).take(PIN_LENGTH)
+        pinCode = updated
+        if (updated.length == PIN_LENGTH) next()
+    }
+
+    private fun deleteLastDigit() {
+        if (pinCode.isNotEmpty()) pinCode = pinCode.dropLast(1)
     }
 
     /**
-     * Get the last filled EditText (or null if all are filled)
-     *
-     */
-    private fun getLastSetET() = pinTexts.reversedArray().firstOrNull { it.text?.isNotBlank() == true }
-
-    /**
-     * Give the focus to the last not filled EditText
-     *
-     */
-    private fun updateFocus() {
-        if (Settings.tvUI) return
-        getCurrentInput()?.requestFocus() ?: binding.pinCode4.requestFocus()
-    }
-
-    /**
-     * Get the current first not filled EditText or null
-     *
-     */
-    private fun getCurrentInput() = pinTexts.firstOrNull { it.text.isNullOrBlank() }
-
-    /**
-     * Get the PIN code text
-     *
-     * @return the PIN code text
-     */
-    private fun getPinCode(): String = buildString { pinTexts.forEach { append(it.text.toString()) } }
-
-
-    /**
-     * Use a keyboard / remote controller to type the PIN
+     * Use a keyboard / remote controller to type the PIN.
      *
      * @param keyCode
      * @param event
@@ -245,57 +185,57 @@ class PinCodeActivity : BaseActivity() {
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         return when (keyCode) {
             KeyEvent.KEYCODE_0, KeyEvent.KEYCODE_NUMPAD_0 -> {
-                getCurrentInput()?.setText("0")
+                appendDigit("0")
                 true
             }
 
             KeyEvent.KEYCODE_1, KeyEvent.KEYCODE_NUMPAD_1 -> {
-                getCurrentInput()?.setText("1")
+                appendDigit("1")
                 true
             }
 
             KeyEvent.KEYCODE_2, KeyEvent.KEYCODE_NUMPAD_2 -> {
-                getCurrentInput()?.setText("2")
+                appendDigit("2")
                 true
             }
 
             KeyEvent.KEYCODE_3, KeyEvent.KEYCODE_NUMPAD_3 -> {
-                getCurrentInput()?.setText("3")
+                appendDigit("3")
                 true
             }
 
             KeyEvent.KEYCODE_4, KeyEvent.KEYCODE_NUMPAD_4 -> {
-                getCurrentInput()?.setText("4")
+                appendDigit("4")
                 true
             }
 
             KeyEvent.KEYCODE_5, KeyEvent.KEYCODE_NUMPAD_5 -> {
-                getCurrentInput()?.setText("5")
+                appendDigit("5")
                 true
             }
 
             KeyEvent.KEYCODE_6, KeyEvent.KEYCODE_NUMPAD_6 -> {
-                getCurrentInput()?.setText("6")
+                appendDigit("6")
                 true
             }
 
             KeyEvent.KEYCODE_7, KeyEvent.KEYCODE_NUMPAD_7 -> {
-                getCurrentInput()?.setText("7")
+                appendDigit("7")
                 true
             }
 
             KeyEvent.KEYCODE_8, KeyEvent.KEYCODE_NUMPAD_8 -> {
-                getCurrentInput()?.setText("8")
+                appendDigit("8")
                 true
             }
 
             KeyEvent.KEYCODE_9, KeyEvent.KEYCODE_NUMPAD_9 -> {
-                getCurrentInput()?.setText("9")
+                appendDigit("9")
                 true
             }
 
             KeyEvent.KEYCODE_DEL -> {
-                getLastSetET()?.clearText()
+                deleteLastDigit()
                 true
             }
 
@@ -309,43 +249,56 @@ class PinCodeActivity : BaseActivity() {
     }
 
     /**
-     * Move to next step
-     *
+     * Move to next step.
      */
     private fun next() {
+        val currentPin = pinCode
         if (model.step.value == PinStep.RE_ENTER || model.step.value == PinStep.NO_MATCH) {
-            if (model.checkMatch(getPinCode())) {
-                model.savePin(getPinCode())
+            if (model.checkMatch(currentPin)) {
+                model.savePin(currentPin)
                 setResult(RESULT_OK)
                 finish()
             } else {
-                pinTexts.forEach { it.clearText() }
+                pinCode = ""
                 return
             }
         }
-        if (BuildConfig.DEBUG) Log.d(this::class.java.simpleName, "nextStep: ${getPinCode()}", Exception("Give me a stacktrace"))
-        model.nextStep(getPinCode())
-        pinTexts.forEach { it.clearText() }
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            android.R.id.home -> finish()
-        }
-        return super.onOptionsItemSelected(item)
+        if (BuildConfig.DEBUG) Log.d(this::class.java.simpleName, "nextStep: $currentPin", Exception("Give me a stacktrace"))
+        model.nextStep(currentPin)
+        pinCode = ""
     }
 
     companion object {
+        private const val PIN_LENGTH = 4
+
         fun getIntent(context: Context, reason: PinCodeReason) = Intent(context, PinCodeActivity::class.java).apply {
             putExtra(PIN_CODE_REASON, reason.ordinal)
         }
     }
+}
 
+private fun PinStep.titleRes() = when (this) {
+    PinStep.ENTER_EXISTING -> R.string.safe_mode_pin
+    PinStep.ENTER_NEW -> R.string.safe_mode_new_pin
+    PinStep.RE_ENTER -> R.string.safe_mode_re_pin
+    PinStep.NO_MATCH -> R.string.safe_mode_no_match
+    PinStep.INVALID -> R.string.safe_mode_invalid_pin
+    PinStep.LOGIN_SUCCESS -> R.string.safe_mode_invalid_pin
+    PinStep.EXIT -> R.string.safe_mode_pin
+}
+
+@androidx.compose.runtime.Composable
+private fun PinCodeIcon(drawable: Int) {
+    Icon(
+        painter = painterResource(drawable),
+        contentDescription = null,
+        modifier = Modifier.size(24.dp)
+    )
 }
 
 class SafeModeModel(application: Application, val reason: PinCodeReason) : AndroidViewModel(application) {
     /**
-     * Proceed to old pin verification and go to the next step
+     * Proceed to old pin verification and go to the next step.
      *
      * @param pin the entered pin
      */
@@ -367,7 +320,7 @@ class SafeModeModel(application: Application, val reason: PinCodeReason) : Andro
     }
 
     /**
-     * Is i currently the final step
+     * Is i currently the final step.
      *
      * @return true if it is
      */
@@ -376,7 +329,7 @@ class SafeModeModel(application: Application, val reason: PinCodeReason) : Andro
     }
 
     /**
-     * Check if re-entered pin is the same as the entered one
+     * Check if re-entered pin is the same as the entered one.
      *
      * @param pin the entered pin
      * @return true if pins match
@@ -388,7 +341,7 @@ class SafeModeModel(application: Application, val reason: PinCodeReason) : Andro
     }
 
     /**
-     * Check if the entered pin is valid
+     * Check if the entered pin is valid.
      *
      * @param pin the entered pin
      * @return true if it's valid
@@ -396,7 +349,7 @@ class SafeModeModel(application: Application, val reason: PinCodeReason) : Andro
     private fun checkValid(pin: String) = getSha256(pin) == Settings.getInstance(getApplication()).getString(KEY_SAFE_MODE_PIN, "")
 
     /**
-     * Save the new pin to the sharedpreferences. it's saved as a sha256 hash
+     * Save the new pin to the sharedpreferences. it's saved as a sha256 hash.
      *
      * @param pin the pin to save
      */
@@ -405,7 +358,7 @@ class SafeModeModel(application: Application, val reason: PinCodeReason) : Andro
     }
 
     /**
-     * Get the sha256 hash of a string
+     * Get the sha256 hash of a string.
      *
      * @param input the input string
      * @return the sha256 hash
@@ -433,7 +386,6 @@ class SafeModeModel(application: Application, val reason: PinCodeReason) : Andro
     }
 }
 
-
 enum class PinStep {
     ENTER_EXISTING, INVALID, ENTER_NEW, RE_ENTER, NO_MATCH, LOGIN_SUCCESS, EXIT;
 }
@@ -441,9 +393,3 @@ enum class PinStep {
 enum class PinCodeReason {
     FIRST_CREATION, MODIFY, CHECK, UNLOCK
 }
-
-fun TextInputEditText.clearText() {
-    text?.clear()
-    requestLayout()
-}
-
