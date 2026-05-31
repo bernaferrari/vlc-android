@@ -142,9 +142,9 @@ import org.videolan.vlc.VlcMigrationHelper
 import org.videolan.vlc.gui.BaseActivity
 import org.videolan.vlc.gui.InfoActivity
 import org.videolan.vlc.gui.browser.MediaBrowserFragment
-import org.videolan.vlc.gui.dialogs.AddToGroupDialog
 import org.videolan.vlc.gui.dialogs.SavePlaylistDialog
 import org.videolan.vlc.gui.dialogs.VideoTracksDialog
+import org.videolan.vlc.gui.dialogs.showAddToGroupComposeDialog
 import org.videolan.vlc.gui.helpers.BitmapUtil.vectorToBitmap
 import org.videolan.vlc.gui.helpers.hf.PinCodeDelegate
 import org.videolan.vlc.gui.helpers.hf.checkPIN
@@ -511,9 +511,7 @@ object UiTools {
 
     fun FragmentActivity.addToGroup(tracks: List<MediaWrapper>, forbidNewGroup:Boolean) {
         if (!isStarted()) return
-        val addToGroupDialog = AddToGroupDialog()
-        addToGroupDialog.arguments = bundleOf(AddToGroupDialog.KEY_TRACKS to tracks.toTypedArray(), AddToGroupDialog.FORBID_NEW_GROUP to forbidNewGroup)
-        addToGroupDialog.show(supportFragmentManager, "fragment_add_to_group")
+        showAddToGroupComposeDialog(tracks, forbidNewGroup)
     }
 
     /**

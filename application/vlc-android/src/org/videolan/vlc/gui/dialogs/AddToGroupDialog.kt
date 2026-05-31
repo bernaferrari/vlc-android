@@ -24,155 +24,369 @@
 
 package org.videolan.vlc.gui.dialogs
 
-import android.os.Bundle
-import android.view.LayoutInflater
+import android.graphics.Bitmap
 import android.view.View
 import android.view.ViewGroup
+import android.view.accessibility.AccessibilityEvent
+import android.widget.FrameLayout
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
-import androidx.fragment.app.setFragmentResult
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.videolan.medialibrary.interfaces.Medialibrary
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.medialibrary.interfaces.media.VideoGroup
 import org.videolan.medialibrary.media.DummyItem
+import org.videolan.medialibrary.media.MediaLibraryItem
+import org.videolan.resources.AndroidDevices
 import org.videolan.resources.DUMMY_NEW_GROUP
-import org.videolan.resources.util.parcelableArray
 import org.videolan.tools.AppScope
-import org.videolan.tools.CoroutineContextProvider
-import org.videolan.tools.DependencyProvider
+import org.videolan.tools.Settings
 import org.videolan.vlc.R
-import org.videolan.vlc.databinding.DialogAddToGroupBinding
-import org.videolan.vlc.gui.SimpleAdapter
+import org.videolan.vlc.compose.theme.VLCTheme
+import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
+import org.videolan.vlc.util.ThumbnailsProvider
+import org.videolan.vlc.util.isTalkbackIsEnabled
 import org.videolan.vlc.viewmodels.mobile.VideoGroupingType
 import org.videolan.vlc.viewmodels.mobile.VideosViewModel
 import java.util.LinkedList
 
 const val CONFIRM_ADD_TO_GROUP_RESULT = "CONFIRM_ADD_TO_GROUP_RESULT"
 
-class AddToGroupDialog : VLCBottomSheetDialogFragment(), SimpleAdapter.ClickHandler {
-    override fun getDefaultState(): Int = STATE_EXPANDED
+object AddToGroupDialog {
+    const val TAG = "VLC/AddToGroupDialog"
 
-    override fun needToManageOrientation(): Boolean = false
+    const val KEY_TRACKS = "ADD_TO_GROUP_TRACKS"
+    const val FORBID_NEW_GROUP = "FORBID_NEW_GROUP"
+}
 
-    private lateinit var viewModel: VideosViewModel
-    private var forbidNewGroup: Boolean = true
-    private var isLoading: Boolean = false
-        set(value) {
-            field = value
-            if (::binding.isInitialized) binding.isLoading = value
+private var isAddToGroupComposeDialogShowing = false
+
+fun FragmentActivity.showAddToGroupComposeDialog(
+    tracks: List<MediaWrapper>,
+    forbidNewGroup: Boolean
+) {
+    if (isAddToGroupComposeDialogShowing) return
+    isAddToGroupComposeDialogShowing = true
+    lifecycleScope.launch {
+        if (showPinIfNeeded()) {
+            isAddToGroupComposeDialogShowing = false
+            return@launch
         }
-    private lateinit var binding: DialogAddToGroupBinding
-    private lateinit var adapter: SimpleAdapter
-    private lateinit var newTrack: Array<MediaWrapper>
-    private lateinit var medialibrary: Medialibrary
-
-    private val coroutineContextProvider: CoroutineContextProvider
-
-    override fun initialFocusedView(): View = binding.list
-
-    init {
-        registerCreator { CoroutineContextProvider() }
-        coroutineContextProvider = get(0)
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        lifecycleScope.launch { if (requireActivity().showPinIfNeeded()) dismiss() }
-        super.onCreate(savedInstanceState)
-        medialibrary = Medialibrary.getInstance()
-        adapter = SimpleAdapter(this)
-        newTrack = try {
-            @Suppress("UNCHECKED_CAST")
-            val tracks = requireArguments().parcelableArray<MediaWrapper>(KEY_TRACKS) as Array<MediaWrapper>
-            tracks
-        } catch (e: Exception) {
-            emptyArray()
-        }
-
-        forbidNewGroup = try {
-            requireArguments().getBoolean(FORBID_NEW_GROUP)
-        } catch (e: Exception) {
-            true
-        }
-    }
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        binding = DialogAddToGroupBinding.inflate(layoutInflater, container, false)
-        binding.isLoading = isLoading
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-
-        binding.list.layoutManager = LinearLayoutManager(view.context)
-        binding.list.adapter = adapter
-        //we have to create the viewmodel that way to avoid the cache from ViewModelProvider which will send the model from the calling activity that may have a different groupingType
-        viewModel = VideosViewModel.Factory(requireContext(), VideoGroupingType.NAME, null, null).create(VideosViewModel::class.java)
-        updateEmptyView()
-        viewModel.provider.pagedList.observe(viewLifecycleOwner) {
-
-            val groupList = it.filter { group -> group is VideoGroup && group.mediaCount() > 1 }.apply {
-                forEach { mediaLibraryItem -> mediaLibraryItem.description = resources.getQuantityString(R.plurals.media_quantity, mediaLibraryItem.tracksCount, mediaLibraryItem.tracksCount) }
-            }.toMutableList().apply {
-                if (newTrack.size > 1 && !forbidNewGroup) {
-                    this.add(0, DummyItem(DUMMY_NEW_GROUP, getString(R.string.new_group), getString(R.string.new_group_desc)))
-                }
-            }
-            adapter.submitList(groupList)
-            updateEmptyView(groupList.isEmpty())
-        }
-    }
-
-    private fun updateEmptyView(empty:Boolean = true) {
-        binding.empty.visibility = if (empty) View.VISIBLE else View.GONE
-    }
-
-    private fun addToGroup(videoGroup: VideoGroup) {
-        AppScope.launch(coroutineContextProvider.IO) {
-            if (newTrack.isEmpty()) return@launch
-            val ids = LinkedList<Long>()
-            for (mw in newTrack) {
-                val id = mw.id
-                if (id == 0L) {
-                    var media = medialibrary.getMedia(mw.uri)
-                    if (media != null)
-                        ids.add(media.id)
-                    else {
-                        media = medialibrary.addMedia(mw.location, -1L)
-                        if (media != null) ids.add(media.id)
-                    }
-                } else
-                    ids.add(id)
-            }
-            ids.forEach {
-                videoGroup.add(it)
-            }
-        }
-        dismiss()
-    }
-
-    override fun onClick(position: Int) {
-        when (val item = adapter.currentList[position]) {
-            is DummyItem -> {
-                setFragmentResult(CONFIRM_ADD_TO_GROUP_RESULT, bundleOf(KEY_TRACKS to newTrack))
-                dismiss()
-            }
-            else -> addToGroup(item as VideoGroup)
-
-        }
-    }
-
-    companion object : DependencyProvider<Any>() {
-
-        const val TAG = "VLC/SavePlaylistDialog"
-
-        const val KEY_TRACKS = "ADD_TO_GROUP_TRACKS"
-        const val FORBID_NEW_GROUP = "FORBID_NEW_GROUP"
+        AddToGroupComposeDialog(
+            activity = this@showAddToGroupComposeDialog,
+            tracks = tracks.toTypedArray(),
+            forbidNewGroup = forbidNewGroup,
+            onDismissed = { isAddToGroupComposeDialogShowing = false }
+        ).show()
     }
 }
 
+private class AddToGroupComposeDialog(
+    private val activity: FragmentActivity,
+    private val tracks: Array<MediaWrapper>,
+    private val forbidNewGroup: Boolean,
+    private val onDismissed: () -> Unit
+) {
+    private val medialibrary = Medialibrary.getInstance()
+    private val dialog = if (Settings.showTvUi) {
+        BottomSheetDialog(activity, R.style.Theme_VLC_Black_BottomSheet)
+    } else {
+        BottomSheetDialog(activity)
+    }
+    private val groups = mutableStateOf<List<MediaLibraryItem>>(emptyList())
+    private val isLoading = mutableStateOf(true)
+    private val viewModel = VideosViewModel.Factory(activity, VideoGroupingType.NAME, null, null)
+        .create(VideosViewModel::class.java)
+    private var rootView: ComposeView? = null
+    private val groupsObserver = Observer<List<MediaLibraryItem>?> { items ->
+        groups.value = items.orEmpty()
+            .filterIsInstance<VideoGroup>()
+            .filter { it.mediaCount() > 1 }
+            .onEach { group ->
+                group.description = activity.resources.getQuantityString(
+                    R.plurals.media_quantity,
+                    group.tracksCount,
+                    group.tracksCount
+                )
+            }
+            .map { it as MediaLibraryItem }
+            .toMutableList()
+            .apply {
+                if (tracks.size > 1 && !forbidNewGroup) {
+                    add(0, DummyItem(DUMMY_NEW_GROUP, activity.getString(R.string.new_group), activity.getString(R.string.new_group_desc)))
+                }
+            }
+        isLoading.value = false
+    }
+
+    fun show() {
+        setupContent()
+        viewModel.provider.pagedList.observe(activity, groupsObserver)
+        dialog.show()
+        configureBottomSheet()
+    }
+
+    private fun setupContent() {
+        rootView = ComposeView(activity).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+            setContent {
+                VLCTheme {
+                    AddToGroupContent(
+                        title = activity.getString(R.string.add_to_group),
+                        emptyText = activity.getString(R.string.no_group_found),
+                        groups = groups.value,
+                        isLoading = isLoading.value,
+                        onGroupSelected = ::onItemSelected
+                    )
+                }
+            }
+        }
+        dialog.setContentView(rootView!!)
+        dialog.setOnDismissListener {
+            viewModel.provider.pagedList.removeObserver(groupsObserver)
+            rootView = null
+            onDismissed()
+        }
+    }
+
+    private fun onItemSelected(item: MediaLibraryItem) {
+        when (item) {
+            is DummyItem -> {
+                activity.supportFragmentManager.setFragmentResult(
+                    CONFIRM_ADD_TO_GROUP_RESULT,
+                    bundleOf(AddToGroupDialog.KEY_TRACKS to tracks)
+                )
+                dialog.dismiss()
+            }
+            is VideoGroup -> addToGroup(item)
+        }
+    }
+
+    private fun addToGroup(videoGroup: VideoGroup) {
+        AppScope.launch(Dispatchers.IO) {
+            if (tracks.isEmpty()) return@launch
+            val ids = LinkedList<Long>()
+            for (mediaWrapper in tracks) {
+                val id = mediaWrapper.id
+                if (id == 0L) {
+                    var media = medialibrary.getMedia(mediaWrapper.uri)
+                    if (media != null) {
+                        ids.add(media.id)
+                    } else {
+                        media = medialibrary.addMedia(mediaWrapper.location, -1L)
+                        if (media != null) ids.add(media.id)
+                    }
+                } else {
+                    ids.add(id)
+                }
+            }
+            ids.forEach { videoGroup.add(it) }
+        }
+        dialog.dismiss()
+    }
+
+    private fun configureBottomSheet() {
+        dialog.window?.setLayout(
+            activity.resources.getDimensionPixelSize(R.dimen.default_context_width),
+            ViewGroup.LayoutParams.MATCH_PARENT
+        )
+        dialog.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)?.let { bottomSheet ->
+            val behavior = BottomSheetBehavior.from(bottomSheet)
+            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+            if (AndroidDevices.isChromeBook) behavior.isDraggable = false
+        }
+        dialog.findViewById<View>(R.id.touch_outside)?.isFocusable = false
+        dialog.findViewById<View>(R.id.touch_outside)?.isFocusableInTouchMode = false
+        rootView?.let { view ->
+            if (AndroidDevices.isTv) {
+                val overscan = activity.resources.getDimensionPixelSize(org.videolan.resources.R.dimen.tv_overscan_vertical)
+                view.setPadding(view.paddingLeft, view.paddingTop, view.paddingRight, view.paddingBottom + overscan)
+            }
+            view.isFocusable = true
+            view.isFocusableInTouchMode = true
+            view.requestFocus()
+            if (activity.isTalkbackIsEnabled()) view.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED)
+        }
+    }
+}
+
+@Composable
+private fun AddToGroupContent(
+    title: String,
+    emptyText: String,
+    groups: List<MediaLibraryItem>,
+    isLoading: Boolean,
+    onGroupSelected: (MediaLibraryItem) -> Unit
+) {
+    val colors = VLCThemeDefaults.colors
+    Surface(
+        color = colors.backgroundDefault,
+        contentColor = colors.fontDefault,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                Text(
+                    text = title,
+                    color = colors.fontDefault,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.weight(1f)
+                )
+                if (isLoading) CircularProgressIndicator(modifier = Modifier.size(32.dp))
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp)
+                    .heightIn(min = 72.dp, max = 520.dp)
+            ) {
+                if (!isLoading && groups.isEmpty()) {
+                    Text(
+                        text = emptyText,
+                        color = colors.fontLight,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(16.dp)
+                    )
+                } else {
+                    LazyColumn(
+                        contentPadding = PaddingValues(vertical = 4.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        items(groups, key = { "${it.itemType}-${it.id}-${it.title}" }) { item ->
+                            AddToGroupRow(item = item, onClick = { onGroupSelected(item) })
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AddToGroupRow(
+    item: MediaLibraryItem,
+    onClick: () -> Unit
+) {
+    val colors = VLCThemeDefaults.colors
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .focusable()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        AddToGroupThumbnail(item)
+        Spacer(modifier = Modifier.width(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = item.title,
+                color = colors.listTitle,
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            if (!item.description.isNullOrBlank()) {
+                Text(
+                    text = item.description,
+                    color = colors.listSubtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AddToGroupThumbnail(item: MediaLibraryItem) {
+    val colors = VLCThemeDefaults.colors
+    val width = with(LocalDensity.current) { 48.dp.roundToPx() }
+    val thumbnail: Bitmap? by produceState<Bitmap?>(initialValue = null, key1 = item.id, key2 = item.title) {
+        value = withContext(Dispatchers.IO) {
+            (item as? VideoGroup)?.let { ThumbnailsProvider.getVideoGroupThumbnail(it, width) }
+        }
+    }
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(48.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .background(colors.backgroundDefaultDarker)
+    ) {
+        if (thumbnail != null) {
+            Image(
+                bitmap = thumbnail!!.asImageBitmap(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.size(48.dp)
+            )
+        } else {
+            Icon(
+                painter = painterResource(if (item is DummyItem) R.drawable.ic_add_to_group else R.drawable.ic_group),
+                contentDescription = null,
+                tint = if (item is DummyItem) colors.primary else Color.Unspecified,
+                modifier = Modifier.size(32.dp)
+            )
+        }
+    }
+}
