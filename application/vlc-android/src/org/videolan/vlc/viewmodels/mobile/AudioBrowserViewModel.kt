@@ -30,7 +30,6 @@ import org.videolan.tools.KEY_ARTISTS_SHOW_ALL
 import org.videolan.tools.KEY_AUDIO_CURRENT_TAB
 import org.videolan.tools.KEY_AUDIO_RESUME_CARD
 import org.videolan.tools.Settings
-import org.videolan.vlc.gui.audio.AudioBrowserFragment
 import org.videolan.vlc.providers.medialibrary.AlbumsProvider
 import org.videolan.vlc.providers.medialibrary.ArtistsProvider
 import org.videolan.vlc.providers.medialibrary.GenresProvider
@@ -84,5 +83,3 @@ class AudioBrowserViewModel(context: Context) : MedialibraryViewModel(context) {
         }
     }
 }
-
-internal fun AudioBrowserFragment.getViewModel() = ViewModelProvider(requireActivity(), AudioBrowserViewModel.Factory(requireContext()))[AudioBrowserViewModel::class.java]

@@ -76,7 +76,6 @@ import org.videolan.vlc.R
 import org.videolan.vlc.databinding.HeaderMediaListActivityBinding
 import org.videolan.vlc.gui.audio.AudioAlbumTracksAdapter
 import org.videolan.vlc.gui.audio.AudioBrowserAdapter
-import org.videolan.vlc.gui.audio.AudioBrowserFragment
 import org.videolan.vlc.gui.dialogs.CONFIRM_DELETE_DIALOG_MEDIALIST
 import org.videolan.vlc.gui.dialogs.CONFIRM_DELETE_DIALOG_RESULT
 import org.videolan.vlc.gui.dialogs.CONFIRM_RENAME_DIALOG_RESULT
@@ -187,9 +186,9 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
         }
 
         val playlist = if (savedInstanceState != null)
-            savedInstanceState.parcelable<Parcelable>(AudioBrowserFragment.TAG_ITEM) as MediaLibraryItem?
+            savedInstanceState.parcelable<Parcelable>(TAG_ITEM) as MediaLibraryItem?
         else
-            intent.parcelable<Parcelable>(AudioBrowserFragment.TAG_ITEM) as MediaLibraryItem?
+            intent.parcelable<Parcelable>(TAG_ITEM) as MediaLibraryItem?
         if (playlist == null) {
             finish()
             return
@@ -256,7 +255,7 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
                     val artist = (viewModel.playlist as Album).retrieveAlbumArtist()
                     val i = Intent(this@HeaderMediaListActivity, SecondaryActivity::class.java)
                     i.putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.ALBUMS_SONGS)
-                    i.putExtra(AudioBrowserFragment.TAG_ITEM, artist)
+                    i.putExtra(TAG_ITEM, artist)
                     i.putExtra(ARTIST_FROM_ALBUM, true)
                     i.flags = i.flags or Intent.FLAG_ACTIVITY_NO_HISTORY
                     startActivity(i)
@@ -350,7 +349,7 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
 
     public override fun onSaveInstanceState(outState: Bundle) {
         viewModel.playlist?.let {
-            outState.putParcelable(AudioBrowserFragment.TAG_ITEM, it)
+            outState.putParcelable(TAG_ITEM, it)
         }
         super.onSaveInstanceState(outState)
     }
@@ -600,7 +599,7 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
                 val artist = if (media is Album) media.retrieveAlbumArtist() else (media as MediaWrapper).artist
                 val i = Intent(this@HeaderMediaListActivity, SecondaryActivity::class.java)
                 i.putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.ALBUMS_SONGS)
-                i.putExtra(AudioBrowserFragment.TAG_ITEM, artist)
+                i.putExtra(TAG_ITEM, artist)
                 i.putExtra(ARTIST_FROM_ALBUM, true)
                 i.flags = i.flags or Intent.FLAG_ACTIVITY_NO_HISTORY
                 startActivity(i)
@@ -609,7 +608,7 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
                 val artist = (media as MediaWrapper).albumArtist
                 val i = Intent(this@HeaderMediaListActivity, SecondaryActivity::class.java)
                 i.putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.ALBUMS_SONGS)
-                i.putExtra(AudioBrowserFragment.TAG_ITEM, artist)
+                i.putExtra(TAG_ITEM, artist)
                 i.putExtra(ARTIST_FROM_ALBUM, true)
                 i.flags = i.flags or Intent.FLAG_ACTIVITY_NO_HISTORY
                 startActivity(i)

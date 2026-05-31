@@ -26,7 +26,6 @@ import androidx.lifecycle.ViewModelProvider
 import org.videolan.medialibrary.interfaces.media.Album
 import org.videolan.medialibrary.interfaces.media.Artist
 import org.videolan.medialibrary.media.MediaLibraryItem
-import org.videolan.vlc.gui.audio.AudioAlbumsSongsFragment
 import org.videolan.vlc.providers.medialibrary.AlbumsProvider
 import org.videolan.vlc.providers.medialibrary.TracksProvider
 import org.videolan.vlc.viewmodels.MedialibraryViewModel
@@ -58,5 +57,3 @@ class AlbumSongsViewModel(context: Context, val parent: MediaLibraryItem) : Medi
         }
     }
 }
-
-internal fun AudioAlbumsSongsFragment.getViewModel(item : MediaLibraryItem) = ViewModelProvider(requireActivity(), AlbumSongsViewModel.Factory(requireContext(), item))[AlbumSongsViewModel::class.java]

@@ -437,14 +437,14 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
                 CTX_GO_TO_FOLDER -> showParentFolder(playlistAdapter.getItem(position))
                 CTX_GO_TO_ALBUM -> {
                     val i = Intent(requireActivity(), HeaderMediaListActivity::class.java)
-                    i.putExtra(AudioBrowserFragment.TAG_ITEM, playlistAdapter.getItem(position).album)
+                    i.putExtra(TAG_ITEM, playlistAdapter.getItem(position).album)
                     startActivity(i)
                 }
                 CTX_GO_TO_ARTIST -> lifecycleScope.launch(Dispatchers.IO) {
                     val artist = playlistAdapter.getItem(position).artist
                     val i = Intent(requireActivity(), SecondaryActivity::class.java)
                     i.putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.ALBUMS_SONGS)
-                    i.putExtra(AudioBrowserFragment.TAG_ITEM, artist)
+                    i.putExtra(TAG_ITEM, artist)
                     i.putExtra(ARTIST_FROM_ALBUM, true)
                     i.flags = i.flags or Intent.FLAG_ACTIVITY_NO_HISTORY
                     startActivity(i)

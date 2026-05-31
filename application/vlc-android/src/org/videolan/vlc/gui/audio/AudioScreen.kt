@@ -92,6 +92,7 @@ import org.videolan.resources.AppContextProvider
 import org.videolan.resources.MEDIALIBRARY_PAGE_SIZE
 import org.videolan.resources.PLAYLIST_TYPE_AUDIO
 import org.videolan.resources.TAG_ITEM
+import org.videolan.tools.KEY_AUDIO_ALBUM_SONG_CURRENT_TAB
 import org.videolan.tools.KEY_ARTISTS_SHOW_ALL
 import org.videolan.tools.KEY_AUDIO_CURRENT_TAB
 import org.videolan.tools.KEY_AUDIO_LAST_PLAYLIST
@@ -157,6 +158,7 @@ import org.videolan.vlc.util.ContextOption.Companion.createCtxTrackFlags
 import org.videolan.vlc.util.Permissions
 import org.videolan.vlc.util.share
 import org.videolan.vlc.viewmodels.DisplaySettingsViewModel
+import org.videolan.vlc.viewmodels.mobile.AlbumSongsViewModel
 import org.videolan.vlc.viewmodels.mobile.AudioBrowserViewModel
 import java.security.SecureRandom
 import kotlin.math.min
@@ -167,7 +169,9 @@ private const val MODE_TRACKS = 2
 private const val MODE_GENRES = 3
 private const val MODE_PLAYLISTS = 4
 private const val MODE_TOTAL = 5
-private const val AUDIO_TAG_ITEM = "ML_ITEM"
+private const val MODE_SECONDARY_ALBUMS = 0
+private const val MODE_SECONDARY_SONGS = 1
+private const val MODE_SECONDARY_TOTAL = 2
 
 class AudioScreenController(private val activity: MainActivity) : DefaultLifecycleObserver, CtxActionReceiver {
 
@@ -490,7 +494,7 @@ class AudioScreenController(private val activity: MainActivity) : DefaultLifecyc
             withContext(Dispatchers.Main) {
                 activity.startActivity(Intent(activity, SecondaryActivity::class.java).apply {
                     putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.ALBUMS_SONGS)
-                    putExtra(AUDIO_TAG_ITEM, artist)
+                    putExtra(TAG_ITEM, artist)
                     putExtra(ARTIST_FROM_ALBUM, true)
                     flags = flags or Intent.FLAG_ACTIVITY_NO_HISTORY
                 })
@@ -582,6 +586,353 @@ class AudioScreenController(private val activity: MainActivity) : DefaultLifecyc
         MODE_TRACKS -> DefaultPlaybackActionMediaType.TRACK
         MODE_GENRES -> DefaultPlaybackActionMediaType.GENRE
         else -> DefaultPlaybackActionMediaType.PLAYLIST
+    }
+}
+
+class SecondaryAudioScreenController(
+    private val activity: SecondaryActivity,
+    private val parent: MediaLibraryItem,
+    private val fromAlbums: Boolean
+) : DefaultLifecycleObserver, CtxActionReceiver {
+
+    private val settings = Settings.getInstance(activity)
+    private val viewModel = ViewModelProvider(
+        activity,
+        AlbumSongsViewModel.Factory(activity, parent)
+    )["secondary-audio-${parent.itemType}-${parent.id}", AlbumSongsViewModel::class.java]
+    private val displaySettingsViewModel = ViewModelProvider(activity)[DisplaySettingsViewModel::class.java]
+
+    private var currentTab by mutableIntStateOf(settings.getInt(KEY_AUDIO_ALBUM_SONG_CURRENT_TAB, MODE_SECONDARY_ALBUMS).coerceIn(0, MODE_SECONDARY_TOTAL - 1))
+    private var itemsByTab by mutableStateOf(List(MODE_SECONDARY_TOTAL) { emptyList<MediaLibraryItem>() })
+    private var loadingByTab by mutableStateOf(List(MODE_SECONDARY_TOTAL) { false })
+    private var displayInCardsByTab by mutableStateOf(viewModel.providersInCard.toList())
+    private var settingsJob: Job? = null
+    private var visible = false
+
+    init {
+        activity.lifecycle.addObserver(this)
+        viewModel.providers.forEachIndexed { index, provider ->
+            provider.pagedList.observe(activity) { list ->
+                updateItems(index, list?.filterNotNull().orEmpty())
+            }
+            provider.loading.observe(activity) { loading ->
+                updateLoading(index, loading == true)
+            }
+        }
+    }
+
+    override fun onDestroy(owner: LifecycleOwner) {
+        settingsJob?.cancel()
+        hideFloatingActionButtons()
+        activity.lifecycle.removeObserver(this)
+    }
+
+    fun onVisible() {
+        if (visible) return
+        visible = true
+        activity.supportActionBar?.title = viewModel.parent.title
+        activity.setTabLayoutVisibility(false)
+        startDisplaySettingsCollector()
+        showFloatingActionButton()
+        viewModel.refresh()
+        activity.invalidateOptionsMenu()
+    }
+
+    fun onHidden() {
+        if (!visible) return
+        visible = false
+        settingsJob?.cancel()
+        settingsJob = null
+        hideFloatingActionButtons()
+    }
+
+    fun refresh() {
+        viewModel.refresh()
+    }
+
+    fun prepareOptionsMenu(menu: Menu) {
+        menu.findItem(R.id.ml_menu_last_playlist)?.isVisible = settings.contains(KEY_AUDIO_LAST_PLAYLIST)
+        menu.findItem(R.id.ml_menu_sortby)?.isVisible = false
+        menu.findItem(R.id.ml_menu_display_options)?.isVisible = true
+        menu.findItem(R.id.play_all)?.isVisible = itemsByTab[currentTab].isNotEmpty()
+        menu.findItem(R.id.shuffle_all)?.isVisible = false
+    }
+
+    fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.ml_menu_last_playlist -> {
+                MediaUtils.loadlastPlaylist(activity, PLAYLIST_TYPE_AUDIO)
+                true
+            }
+            R.id.play_all -> {
+                playCurrentTab()
+                true
+            }
+            R.id.ml_menu_display_options -> {
+                showDisplaySettings()
+                true
+            }
+            else -> false
+        }
+    }
+
+    @Composable
+    fun Content() {
+        AudioScreenContent(
+            selectedTab = currentTab,
+            tabs = listOf(activity.getString(R.string.albums), activity.getString(R.string.songs)),
+            items = itemsByTab[currentTab],
+            loading = loadingByTab[currentTab],
+            displayInCards = displayInCardsByTab[currentTab],
+            onlyFavorites = viewModel.providers[currentTab].onlyFavorites,
+            filterQuery = viewModel.filterQuery,
+            onTabSelected = ::selectTab,
+            onItemClicked = ::onItemClicked,
+            onMoreClicked = ::onMoreClicked,
+            onMainActionClicked = ::onMainActionClicked
+        )
+    }
+
+    private fun updateItems(index: Int, items: List<MediaLibraryItem>) {
+        itemsByTab = itemsByTab.toMutableList().also { it[index] = items }
+        if (index == MODE_SECONDARY_ALBUMS) selectSongsWhenAlbumsAreEmpty()
+        if (visible && index == currentTab) {
+            showFloatingActionButton()
+            activity.invalidateOptionsMenu()
+        }
+    }
+
+    private fun updateLoading(index: Int, loading: Boolean) {
+        loadingByTab = loadingByTab.toMutableList().also { it[index] = loading }
+        if (index == MODE_SECONDARY_ALBUMS) selectSongsWhenAlbumsAreEmpty()
+    }
+
+    private fun selectSongsWhenAlbumsAreEmpty() {
+        if (!visible || currentTab != MODE_SECONDARY_ALBUMS || loadingByTab[MODE_SECONDARY_ALBUMS]) return
+        if (viewModel.albumsProvider.pagedList.value == null || itemsByTab[MODE_SECONDARY_ALBUMS].isNotEmpty() || !viewModel.filterQuery.isNullOrEmpty()) return
+        selectTab(MODE_SECONDARY_SONGS)
+    }
+
+    private fun selectTab(index: Int) {
+        currentTab = index
+        settings.putSingle(KEY_AUDIO_ALBUM_SONG_CURRENT_TAB, index)
+        showFloatingActionButton()
+        activity.invalidateOptionsMenu()
+    }
+
+    private fun startDisplaySettingsCollector() {
+        if (settingsJob != null) return
+        settingsJob = activity.lifecycleScope.launch {
+            displaySettingsViewModel.settingChangeFlow.collect { change ->
+                if (!visible || change.key == "init") return@collect
+                applyDisplayChange(change.key, change.value)
+                displaySettingsViewModel.consume()
+            }
+        }
+    }
+
+    private fun applyDisplayChange(key: String, value: Any) {
+        when (key) {
+            DISPLAY_IN_CARDS -> {
+                val cards = value as Boolean
+                viewModel.providersInCard[currentTab] = cards
+                displayInCardsByTab = displayInCardsByTab.toMutableList().also { it[currentTab] = cards }
+                settings.putSingle(viewModel.displayModeKeys[currentTab], cards)
+            }
+            ONLY_FAVS -> {
+                viewModel.providers[currentTab].showOnlyFavs(value as Boolean)
+                viewModel.refresh()
+            }
+            CURRENT_SORT -> {
+                @Suppress("UNCHECKED_CAST")
+                val sort = value as Pair<Int, Boolean>
+                viewModel.providers[currentTab].sort = sort.first
+                viewModel.providers[currentTab].desc = sort.second
+                viewModel.providers[currentTab].saveSort()
+                viewModel.refresh()
+            }
+            DEFAULT_ACTIONS -> settings.putSingle(defaultActionMediaType().defaultActionKey, (value as DefaultPlaybackAction).name)
+        }
+    }
+
+    private fun showDisplaySettings() {
+        val sorts = arrayListOf(
+            Medialibrary.SORT_ALPHA,
+            Medialibrary.SORT_FILENAME,
+            Medialibrary.SORT_ARTIST,
+            Medialibrary.SORT_ALBUM,
+            Medialibrary.SORT_DURATION,
+            Medialibrary.SORT_RELEASEDATE,
+            Medialibrary.SORT_LASTMODIFICATIONDATE,
+            Medialibrary.SORT_FILESIZE,
+            Medialibrary.NbMedia
+        ).filter { viewModel.providers[currentTab].canSortBy(it) }
+        activity.showDisplaySettingsComposeDialog(
+            displayInCards = viewModel.providersInCard[currentTab],
+            onlyFavs = viewModel.providers[currentTab].onlyFavorites,
+            sorts = sorts,
+            currentSort = viewModel.providers[currentTab].sort,
+            currentSortDesc = viewModel.providers[currentTab].desc,
+            defaultPlaybackActions = defaultActionMediaType().getDefaultPlaybackActions(settings),
+            defaultActionType = activity.getString(defaultActionMediaType().title)
+        )
+    }
+
+    private fun onItemClicked(position: Int, item: MediaLibraryItem) {
+        if (item is Album) {
+            openHeaderList(item)
+            return
+        }
+        onMainActionClicked(position, item)
+    }
+
+    private fun onMainActionClicked(position: Int, item: MediaLibraryItem) {
+        when (defaultActionMediaType().getCurrentPlaybackAction(settings)) {
+            DefaultPlaybackAction.PLAY -> MediaUtils.openList(activity, item.tracks.toList(), 0)
+            DefaultPlaybackAction.ADD_TO_QUEUE -> MediaUtils.appendMedia(activity, item.tracks)
+            DefaultPlaybackAction.INSERT_NEXT -> MediaUtils.insertNext(activity, item.tracks)
+            DefaultPlaybackAction.PLAY_ALL -> {
+                if (currentTab == MODE_SECONDARY_SONGS && item.itemType == MediaLibraryItem.TYPE_MEDIA) {
+                    MediaUtils.playAll(activity, viewModel.tracksProvider, position, false)
+                } else {
+                    MediaUtils.openList(activity, item.tracks.toList(), 0)
+                }
+            }
+        }
+    }
+
+    private fun onMoreClicked(position: Int, item: MediaLibraryItem) {
+        val flags = when (item.itemType) {
+            MediaLibraryItem.TYPE_MEDIA -> createCtxTrackFlags().apply {
+                if ((item as? MediaWrapper)?.isFavorite == true) add(CTX_FAV_REMOVE) else add(CTX_FAV_ADD)
+                val media = item as? MediaWrapper
+                if (media != null && media.artistId != media.albumArtistId) add(CTX_GO_TO_ALBUM_ARTIST)
+            }
+            MediaLibraryItem.TYPE_ALBUM -> createCtxPlaylistAlbumFlags().apply {
+                remove(CTX_RENAME)
+                if (item.tracksCount > 2) add(CTX_PLAY_SHUFFLE)
+                if ((item as? Album)?.isFavorite == true) add(CTX_FAV_REMOVE) else add(CTX_FAV_ADD)
+            }
+            else -> createCtxAudioFlags()
+        }
+        showContext(activity, this, position, item, flags)
+    }
+
+    override fun onCtxAction(position: Int, option: ContextOption) {
+        val item = itemsByTab[currentTab].getOrNull(position) ?: return
+        when (option) {
+            CTX_PLAY -> MediaUtils.playTracks(activity, item, 0)
+            CTX_PLAY_ALL -> if (currentTab == MODE_SECONDARY_SONGS && item.itemType == MediaLibraryItem.TYPE_MEDIA) {
+                MediaUtils.playAll(activity, viewModel.tracksProvider, position, false)
+            } else {
+                MediaUtils.openList(activity, item.tracks.toList(), 0)
+            }
+            CTX_PLAY_SHUFFLE -> MediaUtils.playTracks(activity, item, SecureRandom().nextInt(min(item.tracksCount, MEDIALIBRARY_PAGE_SIZE)), true)
+            CTX_PLAY_AS_AUDIO -> MediaUtils.openList(activity, item.tracks.map {
+                it.addFlags(MediaWrapper.MEDIA_FORCE_AUDIO)
+                it
+            }, 0)
+            CTX_INFORMATION -> showInfoDialog(item)
+            CTX_GO_TO_ALBUM -> (item as? MediaWrapper)?.album?.let { openHeaderList(it) }
+            CTX_GO_TO_ARTIST -> openArtist(item, albumArtist = false)
+            CTX_GO_TO_ALBUM_ARTIST -> openArtist(item, albumArtist = true)
+            CTX_DELETE -> confirmDelete(item) { viewModel.refresh() }
+            CTX_APPEND -> MediaUtils.appendMedia(activity, item.tracks)
+            CTX_PLAY_NEXT -> MediaUtils.insertNext(activity, item.tracks)
+            CTX_ADD_TO_PLAYLIST -> activity.addToPlaylist(item.tracks, SavePlaylistDialog.KEY_NEW_TRACKS)
+            CTX_SET_RINGTONE -> (item as? MediaWrapper)?.let { activity.setRingtone(it) }
+            CTX_SHARE -> (item as? MediaWrapper)?.let { media -> activity.lifecycleScope.launch { activity.share(media) } }
+            CTX_GO_TO_FOLDER -> (item as? MediaWrapper)?.let { showParentFolder(it) }
+            CTX_ADD_SHORTCUT -> activity.lifecycleScope.launch { activity.createShortcut(item) }
+            CTX_FAV_ADD, CTX_FAV_REMOVE -> activity.lifecycleScope.launch {
+                withContext(Dispatchers.IO) { item.isFavorite = option == CTX_FAV_ADD }
+                viewModel.refresh()
+            }
+            else -> {}
+        }
+    }
+
+    private fun playCurrentTab() {
+        if (currentTab == MODE_SECONDARY_ALBUMS) {
+            MediaUtils.playAlbums(activity, viewModel.albumsProvider, 0, false)
+        } else {
+            MediaUtils.playAll(activity, viewModel.tracksProvider, 0, false)
+        }
+    }
+
+    private fun openHeaderList(item: MediaLibraryItem) {
+        activity.startActivity(Intent(activity, HeaderMediaListActivity::class.java).apply {
+            putExtra(TAG_ITEM, item)
+            if (fromAlbums) flags = flags or Intent.FLAG_ACTIVITY_NO_HISTORY
+        })
+    }
+
+    private fun openArtist(item: MediaLibraryItem, albumArtist: Boolean) {
+        activity.lifecycleScope.launch(Dispatchers.IO) {
+            val artist = when {
+                albumArtist && item is MediaWrapper -> item.albumArtist
+                item is Album -> item.retrieveAlbumArtist()
+                item is MediaWrapper -> item.artist
+                else -> null
+            } ?: return@launch
+            withContext(Dispatchers.Main) {
+                activity.startActivity(Intent(activity, SecondaryActivity::class.java).apply {
+                    putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.ALBUMS_SONGS)
+                    putExtra(TAG_ITEM, artist)
+                    putExtra(ARTIST_FROM_ALBUM, true)
+                    flags = flags or Intent.FLAG_ACTIVITY_NO_HISTORY
+                })
+            }
+        }
+    }
+
+    private fun showInfoDialog(item: MediaLibraryItem) {
+        activity.startActivity(Intent(activity, InfoActivity::class.java).apply {
+            putExtra(TAG_ITEM, item)
+        })
+    }
+
+    private fun confirmDelete(item: MediaLibraryItem, onDeleted: () -> Unit) {
+        activity.showConfirmDeleteComposeDialog(arrayListOf(item)) {
+            MediaUtils.deleteItem(activity, item) { failed ->
+                snacker(activity, activity.getString(R.string.msg_delete_failed, failed.title))
+            }
+            onDeleted()
+        }
+    }
+
+    private fun showParentFolder(media: MediaWrapper) {
+        val parent = MLServiceLocator.getAbstractMediaWrapper(media.uri.retrieveParent()).apply {
+            type = MediaWrapper.TYPE_DIR
+        }
+        activity.startActivity(Intent(activity.applicationContext, SecondaryActivity::class.java).apply {
+            putExtra(KEY_MEDIA, parent)
+            putExtra(KEY_JUMP_TO, media)
+            putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.FILE_BROWSER)
+        })
+    }
+
+    private fun showFloatingActionButton() {
+        val fab = activity.findViewById<FloatingActionButton?>(R.id.fab) ?: return
+        val visible = itemsByTab[currentTab].isNotEmpty()
+        ((fab.layoutParams as? CoordinatorLayout.LayoutParams)?.behavior as? FloatingActionButtonBehavior)?.shouldNeverShow = !visible
+        fab.setImageResource(R.drawable.ic_fab_play)
+        fab.contentDescription = activity.getString(R.string.play)
+        fab.setOnClickListener { playCurrentTab() }
+        if (visible) fab.show() else fab.hide()
+        activity.findViewById<FloatingActionButton?>(R.id.fab_large)?.hide()
+    }
+
+    private fun hideFloatingActionButtons() {
+        listOf(R.id.fab, R.id.fab_large).forEach { id ->
+            val fab = activity.findViewById<FloatingActionButton?>(id) ?: return@forEach
+            fab.hide()
+        }
+    }
+
+    private fun defaultActionMediaType() = when (currentTab) {
+        MODE_SECONDARY_ALBUMS -> DefaultPlaybackActionMediaType.ALBUM
+        else -> DefaultPlaybackActionMediaType.TRACK
     }
 }
 

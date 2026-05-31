@@ -27,7 +27,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.videolan.medialibrary.interfaces.media.Playlist
 import org.videolan.medialibrary.media.MediaLibraryItem
-import org.videolan.vlc.gui.PlaylistFragment
 import org.videolan.vlc.providers.medialibrary.MedialibraryProvider
 import org.videolan.vlc.providers.medialibrary.PlaylistsProvider
 import org.videolan.vlc.viewmodels.MedialibraryViewModel
@@ -55,5 +54,3 @@ class PlaylistsViewModel(context: Context, type: Playlist.Type) : MedialibraryVi
         }
     }
 }
-
-internal fun PlaylistFragment.getViewModel(type: Playlist.Type) = ViewModelProvider(this, PlaylistsViewModel.Factory(requireContext(), type))[PlaylistsViewModel::class.java]

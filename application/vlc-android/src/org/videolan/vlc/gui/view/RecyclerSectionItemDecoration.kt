@@ -20,8 +20,8 @@ import kotlin.math.max
 // TV: recycler_section_header_tv.xml (see GridDecoration for showTvUi path - deferred)
 //
 // THIS IS THE TRUE INFLATION / HOST SITE for the high-leverage section header
-// used across audio browsers, playlists, media lists etc. (BaseAudioBrowser,
-// PlaylistFragment, HeaderMediaListActivity are the *callers* that add the
+// used across audio browsers, playlists, media lists etc. (Compose list hosts
+// and HeaderMediaListActivity are the *callers* that add the
 // Decoration to RecyclerView; the actual View creation for the sticky/floating
 // header chrome happens in inflateHeaderView + onDrawOver below).
 //
@@ -114,8 +114,7 @@ import kotlin.math.max
 //   - Original XMLs (never deleted): application/vlc-android/res/layout/recycler_section_header.xml
 //     + recycler_section_header_tv.xml
 //   - Callers / "hosts" that add the decoration (updated with comments in this task):
-//     BaseAudioBrowser.kt (primary phone audio tabs - highest visibility)
-//     PlaylistFragment.kt
+//     Compose audio/playlist screens (primary phone tabs - highest visibility)
 //     HeaderMediaListActivity.kt
 //   - This task: compose-2l4.1.4 (bd: compose-95d) - Section Header Host Migration
 //   - Parent epic: compose-cb5 (Leaf Migration Wave 1)

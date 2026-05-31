@@ -66,7 +66,6 @@ import org.videolan.tools.putSingle
 import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.R
 import org.videolan.vlc.StartActivity
-import org.videolan.vlc.gui.audio.AudioBrowserFragment
 import org.videolan.vlc.gui.dialogs.NotificationPermissionManager
 import org.videolan.vlc.gui.dialogs.showPermissionListComposeDialog
 import org.videolan.vlc.gui.dialogs.showUpdateComposeDialog
@@ -344,9 +343,7 @@ class MainActivity : ContentActivity(),
                 }
                 RESULT_UPDATE_SEEN_MEDIA -> if (currentFragmentId == R.id.nav_video) refreshCurrentScreen()
                 RESULT_UPDATE_ARTISTS -> {
-                    val fragment = currentFragment
-                    if (fragment is AudioBrowserFragment) fragment.viewModel.refresh()
-                    else if (currentFragmentId == R.id.nav_audio) refreshCurrentScreen()
+                    if (currentFragmentId == R.id.nav_audio) refreshCurrentScreen()
                 }
             }
         } else if (requestCode == ACTIVITY_RESULT_OPEN && resultCode == RESULT_OK) {

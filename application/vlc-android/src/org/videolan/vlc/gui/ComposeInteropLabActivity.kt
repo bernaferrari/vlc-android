@@ -156,7 +156,7 @@ import org.videolan.vlc.compose.theme.VLCTheme
 //   - Launch host: DebugLogActivity.kt (compose-2l4.1.2) + debug_log.xml
 //   - Historical demo host: NetworkServerDialog.kt (compose-5qk; now full Compose)
 //   - List host example: DebugLogActivity.kt + debug_log.xml (compose-2l4.1.2 / bd compose-5wg)
-//   - Decoration + browser host: Recycler*ItemDecoration + BaseAudioBrowser etc. (compose-2l4.1.4 / bd compose-95d)
+//   - Decoration + browser host: Recycler*ItemDecoration + active media lists (compose-2l4.1.4 / bd compose-95d)
 //   - Info surfaces host: MediaInfoAdapter.kt + InfoActivity.kt (compose-2l4.1.3 / bd compose-l94)
 //   - Onboarding first-run flow: OnboardingActivity.kt (full Compose phone flow)
 //   - This cross-cutting task: compose-2l4.1.8 (bd: compose-iju)
@@ -280,8 +280,7 @@ fun ComposeInteropLabContent() {
         // -----------------------------------------------------------------
         // WAVE 1 update (compose-2l4.1.4 / bd compose-95d): the Decoration hosts
         // (Recycler*ItemDecoration) are now the primary interop targets for this
-        // leaf in real lists (BaseAudioBrowser, PlaylistFragment prioritized for
-        // phone audio impact). This Lab already exercises it live. The new
+        // leaf in real media lists. This Lab already exercises it live. The new
         // AudioBrowserSectionedList*Previews in PreviewUtils.kt were added as part
         // of the same task to keep the "rich mock" requirement fresh.
         VLCSectionHeader(text = "2. VLCSectionHeader (recycler_section_header*.xml)")

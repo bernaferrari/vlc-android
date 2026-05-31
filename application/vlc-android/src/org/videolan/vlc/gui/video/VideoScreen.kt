@@ -499,7 +499,7 @@ class VideoScreenController(private val activity: MainActivity) : DefaultLifecyc
 
     private fun onPlaylistClicked(@Suppress("UNUSED_PARAMETER") position: Int, playlist: MediaLibraryItem) {
         activity.startActivity(Intent(activity, HeaderMediaListActivity::class.java).apply {
-            putExtra(org.videolan.vlc.gui.audio.AudioBrowserFragment.TAG_ITEM, playlist)
+            putExtra(TAG_ITEM, playlist)
         })
     }
 

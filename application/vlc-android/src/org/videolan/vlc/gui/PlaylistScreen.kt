@@ -84,7 +84,6 @@ import org.videolan.tools.Settings
 import org.videolan.tools.putSingle
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
-import org.videolan.vlc.gui.audio.AudioBrowserFragment
 import org.videolan.vlc.gui.dialogs.CONFIRM_PLAYLIST_RENAME_DIALOG_RESULT
 import org.videolan.vlc.gui.dialogs.CURRENT_SORT
 import org.videolan.vlc.gui.dialogs.DISPLAY_IN_CARDS
@@ -281,7 +280,7 @@ class PlaylistScreenController(private val activity: MainActivity) : DefaultLife
             return
         }
         activity.startActivity(Intent(activity, HeaderMediaListActivity::class.java).apply {
-            putExtra(AudioBrowserFragment.TAG_ITEM, playlist)
+            putExtra(TAG_ITEM, playlist)
         })
     }
 

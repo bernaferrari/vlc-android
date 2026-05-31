@@ -134,6 +134,7 @@ import org.videolan.resources.PLAY_EXTRA_START_TIME
 import org.videolan.resources.PLAY_EXTRA_SUBTITLES_LOCATION
 import org.videolan.resources.PLAY_FROM_SERVICE
 import org.videolan.resources.PLAY_FROM_VIDEOGRID
+import org.videolan.resources.TAG_ITEM
 import org.videolan.resources.TV_AUDIOPLAYER_ACTIVITY
 import org.videolan.resources.buildPkgString
 import org.videolan.resources.util.parcelable
@@ -186,7 +187,6 @@ import org.videolan.vlc.gui.DialogActivity
 import org.videolan.vlc.gui.HeaderMediaListActivity
 import org.videolan.vlc.gui.HeaderMediaListActivity.Companion.ARTIST_FROM_ALBUM
 import org.videolan.vlc.gui.SecondaryActivity
-import org.videolan.vlc.gui.audio.AudioBrowserFragment
 import org.videolan.vlc.gui.audio.PlaylistAdapter
 import org.videolan.vlc.gui.browser.EXTRA_MRL
 import org.videolan.vlc.gui.dialogs.CONFIRM_BOOKMARK_RENAME_DIALOG_RESULT
@@ -1923,14 +1923,14 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                 }
                 CTX_GO_TO_ALBUM -> {
                     val i = Intent(this@VideoPlayerActivity, HeaderMediaListActivity::class.java)
-                    i.putExtra(AudioBrowserFragment.TAG_ITEM, overlayDelegate.playlistAdapter.getItem(position).album)
+                    i.putExtra(TAG_ITEM, overlayDelegate.playlistAdapter.getItem(position).album)
                     startActivity(i)
                 }
                 CTX_GO_TO_ARTIST -> lifecycleScope.launch(Dispatchers.IO) {
                     val artist = overlayDelegate.playlistAdapter.getItem(position).artist
                     val i = Intent(this@VideoPlayerActivity, SecondaryActivity::class.java)
                     i.putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.ALBUMS_SONGS)
-                    i.putExtra(AudioBrowserFragment.TAG_ITEM, artist)
+                    i.putExtra(TAG_ITEM, artist)
                     i.putExtra(ARTIST_FROM_ALBUM, true)
                     i.flags = i.flags or Intent.FLAG_ACTIVITY_NO_HISTORY
                     startActivity(i)

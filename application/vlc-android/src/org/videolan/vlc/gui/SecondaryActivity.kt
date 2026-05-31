@@ -56,6 +56,7 @@ import org.videolan.medialibrary.MLServiceLocator
 import org.videolan.libvlc.Dialog
 import org.videolan.medialibrary.interfaces.Medialibrary
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
+import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.resources.AndroidDevices
 import org.videolan.resources.KEY_ANIMATED
 import org.videolan.resources.KEY_FOLDER
@@ -77,8 +78,7 @@ import org.videolan.tools.retrieveParent
 import org.videolan.vlc.R
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.compose.theme.VLCTheme
-import org.videolan.vlc.gui.audio.AudioAlbumsSongsFragment
-import org.videolan.vlc.gui.audio.AudioBrowserFragment
+import org.videolan.vlc.gui.audio.SecondaryAudioScreenController
 import org.videolan.vlc.gui.browser.FileBrowserFragment
 import org.videolan.vlc.gui.browser.KEY_JUMP_TO
 import org.videolan.vlc.gui.browser.KEY_MEDIA
@@ -131,6 +131,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
     private var historyActionMode: ActionMode? = null
     private var historyCleanMenuItem: MenuItem? = null
     private var videoGroupController: SecondaryVideoScreenController? = null
+    private var audioAlbumsSongsController: SecondaryAudioScreenController? = null
     override val displayTitle = true
     private val dialogsDelegate = DialogDelegate()
     val isOnboarding:Boolean
@@ -184,6 +185,8 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
                 setupHistoryContent(fph as ViewGroup)
             } else if (fragmentId == VIDEO_GROUP_LIST) {
                 setupVideoGroupContent(fph as ViewGroup)
+            } else if (fragmentId == ALBUMS_SONGS) {
+                setupAudioAlbumsSongsContent(fph as ViewGroup)
             } else {
                 fragmentId?.let { fetchSecondaryFragment(it) }
                 if (fragment == null) {
@@ -204,6 +207,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         streamsModel?.refresh()
         historyModel?.refresh()
         videoGroupController?.onVisible()
+        audioAlbumsSongsController?.onVisible()
         when (intent.getStringExtra(KEY_FRAGMENT)) {
             STREAMS -> supportActionBar?.setTitle(R.string.streams)
             HISTORY -> supportActionBar?.setTitle(R.string.history)
@@ -212,6 +216,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
 
     override fun onStop() {
         videoGroupController?.onHidden()
+        audioAlbumsSongsController?.onHidden()
         super.onStop()
     }
 
@@ -245,6 +250,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
             if (resultCode == RESULT_RESCAN) {
                 this.reloadLibrary()
                 videoGroupController?.refresh()
+                audioAlbumsSongsController?.refresh()
             }
         }
     }
@@ -258,6 +264,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
             updateHistoryCleanMenuVisibility()
         }
         videoGroupController?.prepareOptionsMenu(menu)
+        audioAlbumsSongsController?.prepareOptionsMenu(menu)
         return result
     }
 
@@ -266,6 +273,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         menu?.findItem(R.id.incognito_mode)?.isChecked = Settings.getInstance(this).getBoolean(KEY_INCOGNITO, false)
         updateHistoryCleanMenuVisibility(menu?.findItem(R.id.ml_menu_clean))
         menu?.let { videoGroupController?.prepareOptionsMenu(it) }
+        menu?.let { audioAlbumsSongsController?.prepareOptionsMenu(it) }
         return super.onPrepareOptionsMenu(menu)
     }
 
@@ -287,6 +295,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
                     val ml = Medialibrary.getInstance()
                     if (!ml.isWorking) reloadLibrary()
                     videoGroupController?.refresh()
+                    audioAlbumsSongsController?.refresh()
                 }
                 return true
             }
@@ -298,6 +307,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
             }
         }
         if (videoGroupController?.onOptionsItemSelected(item) == true) return true
+        if (audioAlbumsSongsController?.onOptionsItemSelected(item) == true) return true
         return super.onOptionsItemSelected(item)
     }
 
@@ -488,6 +498,31 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         controller.onVisible()
     }
 
+    private fun setupAudioAlbumsSongsContent(container: ViewGroup) {
+        val media = intent.parcelable<MediaLibraryItem>(TAG_ITEM)
+        if (media == null) {
+            finish()
+            return
+        }
+        val controller = audioAlbumsSongsController ?: SecondaryAudioScreenController(
+            activity = this,
+            parent = media,
+            fromAlbums = intent.getBooleanExtra(HeaderMediaListActivity.ARTIST_FROM_ALBUM, false)
+        ).also { audioAlbumsSongsController = it }
+
+        container.removeAllViews()
+        ComposeView(this).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+            setContent {
+                VLCTheme {
+                    controller.Content()
+                }
+            }
+            container.addView(this, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        }
+        controller.onVisible()
+    }
+
     private fun setupHistoryFilterMenu(menu: Menu) {
         val item = menu.findItem(R.id.ml_menu_filter) ?: return
         val model = historyModel ?: return
@@ -637,14 +672,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
     private fun fetchSecondaryFragment(id: String) {
         when (id) {
             ALBUMS_SONGS -> {
-                fragment = AudioAlbumsSongsFragment().apply {
-                    arguments = bundleOf(
-                        AudioBrowserFragment.TAG_ITEM to
-                                intent.parcelable(AudioBrowserFragment.TAG_ITEM),
-                        HeaderMediaListActivity.ARTIST_FROM_ALBUM to
-                                intent.getBooleanExtra(HeaderMediaListActivity.ARTIST_FROM_ALBUM, false)
-                    )
-                }
+                throw IllegalArgumentException("Audio albums/songs routes are hosted by Compose.")
             }
             VIDEO_GROUP_LIST -> {
                 throw IllegalArgumentException("Video group routes are hosted by Compose.")
