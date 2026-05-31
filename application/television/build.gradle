@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.library'
     id 'kotlin-android'
+    id 'org.jetbrains.kotlin.plugin.compose'
     id 'com.google.devtools.ksp'
     id 'kotlin-parcelize'
 }
@@ -13,9 +14,12 @@ android {
         }
     }
 
-    viewBinding.enabled = true
+    buildFeatures {
+        compose = true
+        viewBinding = true
+        dataBinding = true
+    }
 
-    dataBinding.enabled = true
 
     defaultConfig {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -43,6 +47,12 @@ android {
 dependencies {
     implementation project(':application:vlc-android')
     api project(':application:moviepedia')
+    def composeBom = platform("androidx.compose:compose-bom:$rootProject.ext.composeBomVersion")
+    implementation composeBom
+    implementation "androidx.compose.ui:ui"
+    implementation "androidx.compose.foundation:foundation"
+    implementation "androidx.compose.material3:material3"
+    debugImplementation "androidx.compose.ui:ui-tooling"
     testImplementation "androidx.test:core:$rootProject.ext.testCore"
     androidTestImplementation "androidx.test.ext:junit:$rootProject.ext.junitExtVersion"
     implementation 'com.jaredrummler:colorpicker:1.1.0'
