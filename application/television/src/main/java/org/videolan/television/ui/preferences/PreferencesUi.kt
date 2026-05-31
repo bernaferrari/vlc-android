@@ -24,7 +24,6 @@
 package org.videolan.television.ui.preferences
 
 import android.annotation.TargetApi
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
@@ -56,7 +55,7 @@ import org.videolan.tools.TV_FOLDERS_FIRST
 import org.videolan.tools.putSingle
 import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.R
-import org.videolan.vlc.gui.dialogs.SleepTimerDialog
+import org.videolan.vlc.gui.dialogs.showSleepTimerComposeDialog
 import org.videolan.vlc.gui.dialogs.showFeatureTouchOnlyWarningComposeDialog
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
@@ -145,9 +144,9 @@ class PreferencesUi : BasePreferenceFragment(), SharedPreferences.OnSharedPrefer
                 return true
             }
             "default_sleep_timer" -> {
-                val newFragment = SleepTimerDialog.newInstance(true)
-                newFragment.onDismissListener  = DialogInterface.OnDismissListener { manageSleepTimerSummary() }
-                newFragment.show((activity as FragmentActivity).supportFragmentManager, "time")
+                (activity as FragmentActivity).showSleepTimerComposeDialog(forDefault = true) {
+                    manageSleepTimerSummary()
+                }
             }
 
             KEY_SHOW_HEADERS -> {

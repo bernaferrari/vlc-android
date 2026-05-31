@@ -107,8 +107,8 @@ import org.videolan.vlc.gui.dialogs.CtxActionReceiver
 import org.videolan.vlc.gui.dialogs.PlaybackSpeedDialog
 import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_MEDIA
 import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_NEW_NAME
-import org.videolan.vlc.gui.dialogs.SleepTimerDialog
 import org.videolan.vlc.gui.dialogs.showContext
+import org.videolan.vlc.gui.dialogs.showSleepTimerComposeDialog
 import org.videolan.vlc.gui.helpers.AudioUtil.setRingtone
 import org.videolan.vlc.gui.helpers.BookmarkListDelegate
 import org.videolan.vlc.gui.helpers.PlayerOptionsDelegate
@@ -316,8 +316,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
             true
         }
         binding.sleepQuickAction.setOnClickListener {
-            val newFragment = SleepTimerDialog.newInstance()
-            newFragment.show(requireActivity().supportFragmentManager, "time")
+            requireActivity().showSleepTimerComposeDialog()
         }
         binding.sleepQuickAction.setOnLongClickListener {
             playlistModel.service?.setSleepTimer(null)

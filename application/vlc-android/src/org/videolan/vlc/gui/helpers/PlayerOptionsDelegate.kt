@@ -35,13 +35,13 @@ import org.videolan.vlc.databinding.PlayerOptionItemBinding
 import org.videolan.vlc.gui.AudioPlayerContainerActivity
 import org.videolan.vlc.gui.BaseActivity
 import org.videolan.vlc.gui.DiffUtilAdapter
-import org.videolan.vlc.gui.dialogs.JumpToTimeDialog
 import org.videolan.vlc.gui.dialogs.PlaybackSpeedDialog
 import org.videolan.vlc.gui.dialogs.SelectChapterDialog
-import org.videolan.vlc.gui.dialogs.SleepTimerDialog
 import org.videolan.vlc.gui.dialogs.VLCBottomSheetDialogFragment
 import org.videolan.vlc.gui.dialogs.showAudioControlsSettingsComposeDialog
 import org.videolan.vlc.gui.dialogs.showEqualizerComposeDialog
+import org.videolan.vlc.gui.dialogs.showJumpToTimeComposeDialog
+import org.videolan.vlc.gui.dialogs.showSleepTimerComposeDialog
 import org.videolan.vlc.gui.dialogs.showVideoControlsSettingsComposeDialog
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.hf.PinCodeDelegate
@@ -313,12 +313,18 @@ class PlayerOptionsDelegate(val activity: FragmentActivity, val service: Playbac
                 tag = "playback_speed"
             }
             ID_JUMP_TO -> {
-                newFragment = JumpToTimeDialog.newInstance()
-                tag = "time"
+                activity.showJumpToTimeComposeDialog {
+                    (activity as? VideoPlayerActivity)?.overlayDelegate?.dimStatusBar(true)
+                }
+                hide()
+                return
             }
             ID_SLEEP -> {
-                newFragment = SleepTimerDialog.newInstance()
-                tag = "time"
+                activity.showSleepTimerComposeDialog {
+                    (activity as? VideoPlayerActivity)?.overlayDelegate?.dimStatusBar(true)
+                }
+                hide()
+                return
             }
             ID_CHAPTER_TITLE -> {
                 newFragment = SelectChapterDialog.newInstance()

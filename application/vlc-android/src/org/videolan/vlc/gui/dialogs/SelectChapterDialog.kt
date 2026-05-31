@@ -1,6 +1,6 @@
 /**
  * **************************************************************************
- * PickTimeFragment.java
+ * SelectChapterDialog.java
  * ****************************************************************************
  * Copyright © 2015 VLC authors and VideoLAN
  *
@@ -159,7 +159,6 @@ class SelectChapterDialog : PlaybackBottomSheetDialogFragment(), IOnChapterSelec
 interface IOnChapterSelectedListener {
     fun onChapterSelected(position: Int)
 }
-
 
 
 

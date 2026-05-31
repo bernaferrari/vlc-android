@@ -23,7 +23,6 @@
 
 package org.videolan.vlc.gui.preferences
 
-import android.content.DialogInterface
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.text.InputType
@@ -56,7 +55,7 @@ import org.videolan.tools.Settings
 import org.videolan.tools.putSingle
 import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.R
-import org.videolan.vlc.gui.dialogs.SleepTimerDialog
+import org.videolan.vlc.gui.dialogs.showSleepTimerComposeDialog
 import org.videolan.vlc.gui.helpers.UiTools
 
 
@@ -146,9 +145,9 @@ class PreferencesUi : BasePreferenceFragment(), SharedPreferences.OnSharedPrefer
                 return true
             }
             "default_sleep_timer" -> {
-                val newFragment = SleepTimerDialog.newInstance(true)
-                newFragment.onDismissListener  = DialogInterface.OnDismissListener { manageSleepTimerSummary() }
-                newFragment.show(requireActivity().supportFragmentManager, "time")
+                requireActivity().showSleepTimerComposeDialog(forDefault = true) {
+                    manageSleepTimerSummary()
+                }
             }
             KEY_MEDIA_SEEN -> requireActivity().setResult(RESULT_UPDATE_SEEN_MEDIA)
             KEY_ARTISTS_SHOW_ALL -> (activity as PreferencesActivity).updateArtists()
