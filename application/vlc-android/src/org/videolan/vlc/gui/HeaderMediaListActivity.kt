@@ -83,13 +83,13 @@ import org.videolan.vlc.gui.dialogs.CONFIRM_RENAME_DIALOG_RESULT
 import org.videolan.vlc.gui.dialogs.CURRENT_SORT
 import org.videolan.vlc.gui.dialogs.CtxActionReceiver
 import org.videolan.vlc.gui.dialogs.DEFAULT_ACTIONS
-import org.videolan.vlc.gui.dialogs.DisplaySettingsDialog
 import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_MEDIA
 import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_NEW_NAME
 import org.videolan.vlc.gui.dialogs.SHOW_TRACK_NUMBER
 import org.videolan.vlc.gui.dialogs.SavePlaylistDialog
 import org.videolan.vlc.gui.dialogs.showContext
 import org.videolan.vlc.gui.dialogs.showConfirmDeleteComposeDialog
+import org.videolan.vlc.gui.dialogs.showDisplaySettingsComposeDialog
 import org.videolan.vlc.gui.dialogs.showRenameComposeDialog
 import org.videolan.vlc.gui.helpers.AudioUtil
 import org.videolan.vlc.gui.helpers.AudioUtil.setRingtone
@@ -386,7 +386,7 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
                     viewModel.canSortBy(it)
                 }
                 //Open the display settings Bottom sheet
-                DisplaySettingsDialog.newInstance(
+                showDisplaySettingsComposeDialog(
                     displayInCards = null,
                     onlyFavs = null,
                     sorts = sorts,
@@ -396,7 +396,6 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
                     defaultPlaybackActions = DefaultPlaybackActionMediaType.TRACK.getDefaultPlaybackActions(Settings.getInstance(this)),
                     defaultActionType = getString(DefaultPlaybackActionMediaType.TRACK.title)
                 )
-                    .show(supportFragmentManager, "DisplaySettingsDialog")
                 return true
             }
             else -> return super.onOptionsItemSelected(item)

@@ -102,6 +102,7 @@ import org.videolan.vlc.gui.dialogs.SavePlaylistDialog
 import org.videolan.vlc.gui.dialogs.VIDEO_GROUPING
 import org.videolan.vlc.gui.dialogs.showContext
 import org.videolan.vlc.gui.dialogs.showConfirmDeleteComposeDialog
+import org.videolan.vlc.gui.dialogs.showDisplaySettingsComposeDialog
 import org.videolan.vlc.gui.dialogs.showRenameComposeDialog
 import org.videolan.vlc.gui.helpers.AudioUtil.setRingtone
 import org.videolan.vlc.gui.helpers.DefaultPlaybackAction
@@ -278,7 +279,7 @@ class VideoGridFragment : MediaBrowserFragment<VideosViewModel>(), SwipeRefreshL
                     viewModel.provider.canSortBy(it)
                 }
                 //Open the display settings Bottom sheet
-                DisplaySettingsDialog.newInstance(
+                requireActivity().showDisplaySettingsComposeDialog(
                     displayInCards = settings.getBoolean(KEY_VIDEOS_CARDS, true),
                     onlyFavs = viewModel.provider.onlyFavorites,
                     sorts = sorts,
@@ -288,7 +289,6 @@ class VideoGridFragment : MediaBrowserFragment<VideosViewModel>(), SwipeRefreshL
                     defaultPlaybackActions = DefaultPlaybackActionMediaType.VIDEO.getDefaultPlaybackActions(settings),
                     defaultActionType = getString(DefaultPlaybackActionMediaType.VIDEO.title)
                 )
-                        .show(requireActivity().supportFragmentManager, "DisplaySettingsDialog")
             }
             else -> return super.onOptionsItemSelected(item)
         }

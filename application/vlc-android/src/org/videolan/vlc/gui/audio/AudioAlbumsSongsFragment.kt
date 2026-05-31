@@ -56,8 +56,8 @@ import org.videolan.vlc.gui.HeaderMediaListActivity
 import org.videolan.vlc.gui.dialogs.CURRENT_SORT
 import org.videolan.vlc.gui.dialogs.DEFAULT_ACTIONS
 import org.videolan.vlc.gui.dialogs.DISPLAY_IN_CARDS
-import org.videolan.vlc.gui.dialogs.DisplaySettingsDialog
 import org.videolan.vlc.gui.dialogs.ONLY_FAVS
+import org.videolan.vlc.gui.dialogs.showDisplaySettingsComposeDialog
 import org.videolan.vlc.gui.helpers.DefaultPlaybackAction
 import org.videolan.vlc.gui.helpers.DefaultPlaybackActionMediaType
 import org.videolan.vlc.gui.helpers.UiTools
@@ -222,7 +222,7 @@ class AudioAlbumsSongsFragment : BaseAudioBrowser<AlbumSongsViewModel>(), SwipeR
                     viewModel.providers[currentTab].canSortBy(it)
                 }
                 //Open the display settings Bottom sheet
-                DisplaySettingsDialog.newInstance(
+                requireActivity().showDisplaySettingsComposeDialog(
                     displayInCards = viewModel.providersInCard[currentTab],
                     onlyFavs = viewModel.providers[currentTab].onlyFavorites,
                     sorts = sorts,
@@ -231,7 +231,6 @@ class AudioAlbumsSongsFragment : BaseAudioBrowser<AlbumSongsViewModel>(), SwipeR
                     defaultPlaybackActions = getDefaultActionMediaType().getDefaultPlaybackActions(Settings.getInstance(requireActivity())),
                     defaultActionType = getString(getDefaultActionMediaType().title)
                 )
-                    .show(requireActivity().supportFragmentManager, "DisplaySettingsDialog")
                 true
             }
             else -> super.onOptionsItemSelected(item)

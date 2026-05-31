@@ -67,10 +67,10 @@ import org.videolan.vlc.gui.dialogs.CONFIRM_PERMISSION_CHANGED
 import org.videolan.vlc.gui.dialogs.CURRENT_SORT
 import org.videolan.vlc.gui.dialogs.DEFAULT_ACTIONS
 import org.videolan.vlc.gui.dialogs.DISPLAY_IN_CARDS
-import org.videolan.vlc.gui.dialogs.DisplaySettingsDialog
 import org.videolan.vlc.gui.dialogs.KEY_PERMISSION_CHANGED
 import org.videolan.vlc.gui.dialogs.ONLY_FAVS
 import org.videolan.vlc.gui.dialogs.SHOW_ALL_ARTISTS
+import org.videolan.vlc.gui.dialogs.showDisplaySettingsComposeDialog
 import org.videolan.vlc.gui.helpers.DefaultPlaybackAction
 import org.videolan.vlc.gui.helpers.DefaultPlaybackActionMediaType
 import org.videolan.vlc.gui.helpers.UiTools
@@ -331,7 +331,7 @@ class AudioBrowserFragment : BaseAudioBrowser<AudioBrowserViewModel>() {
                 }
 
                 //Open the display settings Bottom sheet
-                DisplaySettingsDialog.newInstance(
+                requireActivity().showDisplaySettingsComposeDialog(
                     displayInCards = viewModel.providersInCard[currentTab],
                     showAllArtists = if (currentTab == 0) Settings.getInstance(requireActivity()).getBoolean(KEY_ARTISTS_SHOW_ALL, false) else null,
                     onlyFavs = viewModel.providers[currentTab].onlyFavorites,
@@ -341,7 +341,6 @@ class AudioBrowserFragment : BaseAudioBrowser<AudioBrowserViewModel>() {
                     defaultPlaybackActions = getDefaultActionMediaType().getDefaultPlaybackActions(settings),
                     defaultActionType = getString(getDefaultActionMediaType().title)
                 )
-                        .show(requireActivity().supportFragmentManager, "DisplaySettingsDialog")
                 true
             }
             else -> super.onOptionsItemSelected(item)

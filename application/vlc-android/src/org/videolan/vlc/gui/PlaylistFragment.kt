@@ -55,10 +55,10 @@ import org.videolan.vlc.gui.audio.BaseAudioBrowser
 import org.videolan.vlc.gui.dialogs.CONFIRM_PLAYLIST_RENAME_DIALOG_RESULT
 import org.videolan.vlc.gui.dialogs.CURRENT_SORT
 import org.videolan.vlc.gui.dialogs.DISPLAY_IN_CARDS
-import org.videolan.vlc.gui.dialogs.DisplaySettingsDialog
 import org.videolan.vlc.gui.dialogs.ONLY_FAVS
 import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_MEDIA
 import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_NEW_NAME
+import org.videolan.vlc.gui.dialogs.showDisplaySettingsComposeDialog
 import org.videolan.vlc.gui.dialogs.showRenameComposeDialog
 import org.videolan.vlc.gui.helpers.DefaultPlaybackActionMediaType
 import org.videolan.vlc.gui.helpers.INavigator
@@ -217,7 +217,7 @@ class PlaylistFragment : BaseAudioBrowser<PlaylistsViewModel>(), SwipeRefreshLay
                     viewModel.provider.canSortBy(it)
                 }
                 //Open the display settings Bottom sheet
-                DisplaySettingsDialog.newInstance(
+                requireActivity().showDisplaySettingsComposeDialog(
                     displayInCards = viewModel.providerInCard,
                     onlyFavs = viewModel.provider.onlyFavorites,
                     sorts = sorts,
@@ -226,7 +226,6 @@ class PlaylistFragment : BaseAudioBrowser<PlaylistsViewModel>(), SwipeRefreshLay
                     defaultPlaybackActions = getDefaultActionMediaType().getDefaultPlaybackActions(Settings.getInstance(requireActivity())),
                     defaultActionType = getString(getDefaultActionMediaType().title)
                 )
-                        .show(requireActivity().supportFragmentManager, "DisplaySettingsDialog")
                 true
             }
             else -> super.onOptionsItemSelected(item)

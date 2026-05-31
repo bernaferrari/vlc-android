@@ -100,7 +100,6 @@ import org.videolan.vlc.gui.dialogs.CURRENT_SORT
 import org.videolan.vlc.gui.dialogs.CtxActionReceiver
 import org.videolan.vlc.gui.dialogs.DEFAULT_ACTIONS
 import org.videolan.vlc.gui.dialogs.DISPLAY_IN_CARDS
-import org.videolan.vlc.gui.dialogs.DisplaySettingsDialog
 import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_MEDIA
 import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_NEW_NAME
 import org.videolan.vlc.gui.dialogs.SHOW_HIDDEN_FILES
@@ -108,6 +107,7 @@ import org.videolan.vlc.gui.dialogs.SHOW_ONLY_MULTIMEDIA_FILES
 import org.videolan.vlc.gui.dialogs.SavePlaylistDialog
 import org.videolan.vlc.gui.dialogs.showContext
 import org.videolan.vlc.gui.dialogs.showConfirmDeleteComposeDialog
+import org.videolan.vlc.gui.dialogs.showDisplaySettingsComposeDialog
 import org.videolan.vlc.gui.dialogs.showRenameComposeDialog
 import org.videolan.vlc.gui.helpers.DefaultPlaybackAction
 import org.videolan.vlc.gui.helpers.DefaultPlaybackActionMediaType
@@ -676,7 +676,7 @@ abstract class BaseBrowserFragment : MediaBrowserFragment<BrowserModel>(), IRefr
                 val settings = Settings.getInstance(requireActivity())
 
                 //Open the display settings Bottom sheet
-                DisplaySettingsDialog.newInstance(
+                requireActivity().showDisplaySettingsComposeDialog(
                     displayInCards = inCards,
                     onlyFavs = null,
                     sorts = sorts,
@@ -687,7 +687,6 @@ abstract class BaseBrowserFragment : MediaBrowserFragment<BrowserModel>(), IRefr
                     defaultPlaybackActions = DefaultPlaybackActionMediaType.FILE.getDefaultPlaybackActions(settings),
                     defaultActionType = getString(R.string.files)
                 )
-                    .show(requireActivity().supportFragmentManager, "DisplaySettingsDialog")
                 true
             }
 
