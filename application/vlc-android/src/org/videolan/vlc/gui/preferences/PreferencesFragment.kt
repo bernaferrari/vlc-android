@@ -30,7 +30,6 @@ import android.os.Bundle
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.os.bundleOf
-import androidx.fragment.app.FragmentActivity
 import androidx.preference.CheckBoxPreference
 import androidx.preference.ListPreference
 import androidx.preference.Preference
@@ -58,9 +57,9 @@ import org.videolan.vlc.gui.PinCodeActivity
 import org.videolan.vlc.gui.PinCodeReason
 import org.videolan.vlc.gui.SecondaryActivity
 import org.videolan.vlc.gui.dialogs.CONFIRM_PREFERENCE_CHANGE_DIALOG_RESULT
-import org.videolan.vlc.gui.dialogs.ConfirmPreferenceChangeDialog
 import org.videolan.vlc.gui.dialogs.PREFERENCE_KEY
 import org.videolan.vlc.gui.dialogs.PermissionListDialog
+import org.videolan.vlc.gui.dialogs.showConfirmPreferenceChangeComposeDialog
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.preferences.search.PreferenceItem
 import org.videolan.vlc.util.Permissions
@@ -185,16 +184,22 @@ class PreferencesFragment : BasePreferenceFragment(), SharedPreferences.OnShared
                 val activity = activity
                 activity?.setResult(RESULT_RESTART)
                 if (!(preference as CheckBoxPreference).isChecked) {
-                    val dialog = ConfirmPreferenceChangeDialog.newInstance(PLAYBACK_HISTORY,getString(R.string.playback_history_title),getString(R.string.playback_history_warning))
-                    dialog.show((activity as FragmentActivity).supportFragmentManager, ConfirmPreferenceChangeDialog::class.simpleName)
+                    activity?.showConfirmPreferenceChangeComposeDialog(
+                        PLAYBACK_HISTORY,
+                        getString(R.string.playback_history_title),
+                        getString(R.string.playback_history_warning)
+                    )
                     preference.isChecked = true
                 }
                 return true
             }
             AUDIO_RESUME_PLAYBACK -> {
                 if (!audioResumePref.isChecked) {
-                    val dialog = ConfirmPreferenceChangeDialog.newInstance(AUDIO_RESUME_PLAYBACK,getString(R.string.audio_resume_playback_title),getString(R.string.audio_resume_playback_warning))
-                    dialog.show((activity as FragmentActivity).supportFragmentManager, ConfirmPreferenceChangeDialog::class.simpleName)
+                    activity?.showConfirmPreferenceChangeComposeDialog(
+                        AUDIO_RESUME_PLAYBACK,
+                        getString(R.string.audio_resume_playback_title),
+                        getString(R.string.audio_resume_playback_warning)
+                    )
                     audioResumePref.isChecked = true
                 }
                 return true
