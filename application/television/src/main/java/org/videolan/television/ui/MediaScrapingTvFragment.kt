@@ -23,7 +23,7 @@
  */
 
 /*****************************************************************************
- * SearchFragment.kt
+ * MediaScrapingTvFragment.kt
  *
  * Copyright © 2014-2018 VLC authors, VideoLAN and VideoLabs
  * Author: Geoffrey Métais
@@ -71,7 +71,7 @@ import org.videolan.television.R
 import org.videolan.television.util.manageHttpException
 import org.videolan.tools.NetworkMonitor
 
-private const val TAG = "SearchFragment"
+private const val TAG = "MediaScrapingTvFragment"
 private const val REQUEST_SPEECH = 1
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
@@ -149,7 +149,7 @@ class MediaScrapingTvFragment : SearchSupportFragment(), SearchSupportFragment.S
     }
 
     private fun updateEmptyView(empty: Boolean) {
-        (activity as? SearchActivity)?.updateEmptyView(empty)
+        (activity as? MediaScrapingTvActivity)?.updateEmptyView(empty)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -160,4 +160,3 @@ class MediaScrapingTvFragment : SearchSupportFragment(), SearchSupportFragment.S
         viewModel.search(media.uri)
     }
 }
-
