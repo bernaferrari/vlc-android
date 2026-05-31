@@ -145,6 +145,7 @@ import org.videolan.vlc.gui.browser.MediaBrowserFragment
 import org.videolan.vlc.gui.dialogs.SavePlaylistDialog
 import org.videolan.vlc.gui.dialogs.VideoTracksDialog
 import org.videolan.vlc.gui.dialogs.showAddToGroupComposeDialog
+import org.videolan.vlc.gui.dialogs.showVideoTracksComposeDialog
 import org.videolan.vlc.gui.helpers.BitmapUtil.vectorToBitmap
 import org.videolan.vlc.gui.helpers.hf.PinCodeDelegate
 import org.videolan.vlc.gui.helpers.hf.checkPIN
@@ -555,11 +556,7 @@ object UiTools {
 
     fun FragmentActivity.showVideoTrack(menuListener:(VideoTracksDialog.VideoTrackOption) -> Unit, trackSelectionListener:(String, VideoTracksDialog.TrackType) -> Unit) {
         if (!isStarted()) return
-        val videoTracksDialog = VideoTracksDialog()
-        videoTracksDialog.arguments = bundleOf()
-        videoTracksDialog.show(supportFragmentManager, "fragment_video_tracks")
-        videoTracksDialog.menuItemListener = menuListener
-        videoTracksDialog.trackSelectionListener = trackSelectionListener
+        showVideoTracksComposeDialog(menuListener, trackSelectionListener)
     }
 
     fun FragmentActivity.showDonations() {

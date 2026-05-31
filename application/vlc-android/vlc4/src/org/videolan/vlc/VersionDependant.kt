@@ -81,7 +81,7 @@ fun Array<IMedia.Track>.convertToVlcTrack(): Array<VlcTrack> {
 }
 
 /**
- * Generates a fake track to be used as "Disable track" in the [TrackAdapter]
+ * Generates a fake track to be used as "Disable track" in track selection UI.
  *
  * @param context the context to use
  * @return a fake track
