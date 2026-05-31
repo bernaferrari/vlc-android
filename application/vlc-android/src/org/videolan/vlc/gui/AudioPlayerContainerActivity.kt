@@ -88,7 +88,7 @@ import org.videolan.vlc.VlcMigrationHelper
 import org.videolan.vlc.gui.audio.AudioPlayer
 import org.videolan.vlc.gui.audio.AudioPlaylistTipsDelegate
 import org.videolan.vlc.gui.audio.AudioTipsDelegate
-import org.videolan.vlc.gui.dialogs.EqualizerFragmentDialog
+import org.videolan.vlc.gui.dialogs.showEqualizerComposeDialog
 import org.videolan.vlc.gui.helpers.BottomNavigationBehavior
 import org.videolan.vlc.gui.helpers.KeycodeListener
 import org.videolan.vlc.gui.helpers.PlayerBehavior
@@ -462,7 +462,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
     }
 
     override fun showEqualizer() {
-        EqualizerFragmentDialog().show(supportFragmentManager, "equalizer")
+        showEqualizerComposeDialog()
     }
 
     override fun increaseRate() {

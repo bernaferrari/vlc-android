@@ -57,9 +57,8 @@ private const val FILE_PICKER_ALL_RESULT_CODE = 10001
 
 /**
  * Equalizer settings activity allowing to enable/disable/delete/export/import
- * presets. The screen itself is now hosted by Compose; the legacy
- * EqualizerFragmentDialog remains available to player callers but is no longer
- * used by this Activity.
+ * presets. The screen itself is now hosted by Compose, including the
+ * equalizer editor controls that used to be shared with the legacy dialog.
  */
 class EqualizerSettingsActivity : BaseActivity() {
 
@@ -430,6 +429,7 @@ class EqualizerSettingsActivity : BaseActivity() {
 
     private fun buildStrings() = VLCEqualizerSettingsStrings(
         title = getString(R.string.equalizer),
+        preferences = getString(R.string.preferences),
         close = getString(R.string.close),
         showEqualizer = getString(R.string.equalizer),
         importEqualizer = getString(R.string.import_equalizer),

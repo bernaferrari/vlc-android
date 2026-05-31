@@ -103,6 +103,7 @@ data class VLCEqualizerEditorState(
 
 data class VLCEqualizerSettingsStrings(
     val title: String,
+    val preferences: String,
     val close: String,
     val showEqualizer: String,
     val importEqualizer: String,
@@ -287,6 +288,74 @@ fun VLCEqualizerSettingsScreen(
                     deleteIconContent = deleteIconContent
                 )
             }
+        }
+    }
+}
+
+/**
+ * Full Compose replacement for:
+ * - application/vlc-android/res/layout/dialog_equalizer.xml
+ * - application/vlc-android/res/layout/equalizer_bar.xml
+ *
+ * The app module owns the BottomSheetDialog host and EqualizerViewModel wiring;
+ * this content owns the player-facing equalizer controls without requiring a
+ * Fragment or legacy XML binding.
+ */
+@Composable
+fun VLCEqualizerEditorDialogContent(
+    state: VLCEqualizerEditorState,
+    strings: VLCEqualizerSettingsStrings,
+    onDismiss: () -> Unit,
+    onOpenSettings: () -> Unit,
+    onEqualizerEnabledChange: (Boolean) -> Unit,
+    onAddEqualizer: () -> Unit,
+    onSelectPreset: (Long) -> Unit,
+    onEditPreset: () -> Unit,
+    onUndo: () -> Unit,
+    onDelete: () -> Unit,
+    onNameChange: (String) -> Unit,
+    onNameFocusChange: (Boolean) -> Unit,
+    onPreampChange: (Float) -> Unit,
+    onBandChange: (Int, Float) -> Unit,
+    onBandChangeFinished: () -> Unit,
+    onSnapBandsChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+    addIconContent: @Composable () -> Unit = { EqualizerIconPlaceholder() },
+    settingsIconContent: @Composable () -> Unit = { EqualizerIconPlaceholder() },
+    editIconContent: @Composable () -> Unit = { EqualizerIconPlaceholder() },
+    undoIconContent: @Composable () -> Unit = { EqualizerIconPlaceholder() },
+    deleteIconContent: @Composable () -> Unit = { EqualizerIconPlaceholder() }
+) {
+    VLCTheme {
+        val colors = VLCThemeDefaults.colors
+        Surface(
+            modifier = modifier.fillMaxWidth(),
+            color = colors.backgroundDefault,
+            contentColor = colors.fontDefault
+        ) {
+            EqualizerEditorSheet(
+                state = state,
+                strings = strings,
+                onDismiss = onDismiss,
+                onOpenSettings = onOpenSettings,
+                onEqualizerEnabledChange = onEqualizerEnabledChange,
+                onAddEqualizer = onAddEqualizer,
+                onSelectPreset = onSelectPreset,
+                onEditPreset = onEditPreset,
+                onUndo = onUndo,
+                onDelete = onDelete,
+                onNameChange = onNameChange,
+                onNameFocusChange = onNameFocusChange,
+                onPreampChange = onPreampChange,
+                onBandChange = onBandChange,
+                onBandChangeFinished = onBandChangeFinished,
+                onSnapBandsChange = onSnapBandsChange,
+                addIconContent = addIconContent,
+                settingsIconContent = settingsIconContent,
+                editIconContent = editIconContent,
+                undoIconContent = undoIconContent,
+                deleteIconContent = deleteIconContent
+            )
         }
     }
 }
@@ -546,6 +615,7 @@ private fun EqualizerEditorSheet(
     state: VLCEqualizerEditorState,
     strings: VLCEqualizerSettingsStrings,
     onDismiss: () -> Unit,
+    onOpenSettings: (() -> Unit)? = null,
     onEqualizerEnabledChange: (Boolean) -> Unit,
     onAddEqualizer: () -> Unit,
     onSelectPreset: (Long) -> Unit,
@@ -559,6 +629,7 @@ private fun EqualizerEditorSheet(
     onBandChangeFinished: () -> Unit,
     onSnapBandsChange: (Boolean) -> Unit,
     addIconContent: @Composable () -> Unit,
+    settingsIconContent: (@Composable () -> Unit)? = null,
     editIconContent: @Composable () -> Unit,
     undoIconContent: @Composable () -> Unit,
     deleteIconContent: @Composable () -> Unit
@@ -585,6 +656,13 @@ private fun EqualizerEditorSheet(
                     onClick = onAddEqualizer,
                     iconContent = addIconContent
                 )
+                if (onOpenSettings != null && settingsIconContent != null) {
+                    EqualizerIconButton(
+                        contentDescription = strings.preferences,
+                        onClick = onOpenSettings,
+                        iconContent = settingsIconContent
+                    )
+                }
                 TextButton(onClick = onDismiss) {
                     Text(strings.done)
                 }
@@ -916,6 +994,7 @@ private val MockEqualizerPresets = listOf(
 
 private val MockEqualizerStrings = VLCEqualizerSettingsStrings(
     title = "Equalizer",
+    preferences = "Settings",
     close = "Close",
     showEqualizer = "Show equalizer",
     importEqualizer = "Import equalizer",

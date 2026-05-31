@@ -112,6 +112,7 @@ fun MyFullScreen() {
   - `VLCPinCodeScreen` hosted by `PinCodeActivity` (former DataBinding PIN keypad XML layout removed)
   - `VLCSearchScreen` hosted by `SearchActivity` (former DataBinding Activity and result row XML layouts removed)
   - `VLCEqualizerSettingsScreen` hosted by `EqualizerSettingsActivity` (former DataBinding Activity/list row XML layouts and menu XML removed)
+  - `VLCEqualizerEditorDialogContent` hosted by a non-Fragment player bottom sheet (former `EqualizerFragmentDialog`, vertical slider views, and dialog XML layouts removed)
 - All new leaves respect full VLCTheme tokens + typography, have rich light/dark @Previews, and full KDoc traceability to original XML paths.
 - Preview support for Android Studio (see `PreviewUtils.kt`).
 - Proper library packaging (consumer rules, proguard, test setup).

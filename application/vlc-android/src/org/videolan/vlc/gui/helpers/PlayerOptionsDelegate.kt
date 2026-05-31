@@ -36,13 +36,13 @@ import org.videolan.vlc.gui.AudioPlayerContainerActivity
 import org.videolan.vlc.gui.BaseActivity
 import org.videolan.vlc.gui.DiffUtilAdapter
 import org.videolan.vlc.gui.dialogs.AudioControlsSettingsDialog
-import org.videolan.vlc.gui.dialogs.EqualizerFragmentDialog
 import org.videolan.vlc.gui.dialogs.JumpToTimeDialog
 import org.videolan.vlc.gui.dialogs.PlaybackSpeedDialog
 import org.videolan.vlc.gui.dialogs.SelectChapterDialog
 import org.videolan.vlc.gui.dialogs.SleepTimerDialog
 import org.videolan.vlc.gui.dialogs.VLCBottomSheetDialogFragment
 import org.videolan.vlc.gui.dialogs.VideoControlsSettingsDialog
+import org.videolan.vlc.gui.dialogs.showEqualizerComposeDialog
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.hf.PinCodeDelegate
 import org.videolan.vlc.gui.helpers.hf.checkPIN
@@ -327,8 +327,11 @@ class PlayerOptionsDelegate(val activity: FragmentActivity, val service: Playbac
                 tag = "select_chapter"
             }
             ID_EQUALIZER -> {
-                newFragment = EqualizerFragmentDialog.newInstance()
-                tag = "equalizer"
+                activity.showEqualizerComposeDialog(warnBeforeSettings = activity is VideoPlayerActivity) {
+                    (activity as? VideoPlayerActivity)?.overlayDelegate?.dimStatusBar(true)
+                }
+                hide()
+                return
             }
             ID_SAVE_PLAYLIST -> {
                 activity.addToPlaylist(service.media)
