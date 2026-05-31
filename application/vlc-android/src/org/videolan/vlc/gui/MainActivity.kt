@@ -349,6 +349,7 @@ class MainActivity : ContentActivity(),
                 RESULT_UPDATE_ARTISTS -> {
                     val fragment = currentFragment
                     if (fragment is AudioBrowserFragment) fragment.viewModel.refresh()
+                    else if (currentFragmentId == R.id.nav_audio) refreshCurrentScreen()
                 }
             }
         } else if (requestCode == ACTIVITY_RESULT_OPEN && resultCode == RESULT_OK) {
