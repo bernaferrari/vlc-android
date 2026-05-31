@@ -102,6 +102,9 @@ fun MyFullScreen() {
   - `VLCDebugLogLine` (debug_log_item.xml)
   - `VLCDialogConfirmDelete` (presentational parts of dialog_confirm_delete.xml)
   - `VLCOnboardingWelcome` (static parts of onboarding_welcome.xml)
+- Full Compose Activity screens:
+  - `VLCOTPCodeScreen` hosted by `OTPCodeActivity` (former OTP Fragment/layout removed)
+  - `VLCBetaWelcomeScreen` hosted by `BetaWelcomeActivity` (former DataBinding XML layout removed)
 - All new leaves respect full VLCTheme tokens + typography, have rich light/dark @Previews, and full KDoc traceability to original XML paths.
 - Preview support for Android Studio (see `PreviewUtils.kt`).
 - Proper library packaging (consumer rules, proguard, test setup).
