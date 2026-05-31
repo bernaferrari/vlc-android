@@ -1,13 +1,11 @@
 package org.videolan.vlc.util
 
-import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
 import org.videolan.libvlc.Dialog
-import org.videolan.vlc.gui.dialogs.VlcLoginDialog
-import org.videolan.vlc.gui.dialogs.VlcProgressDialog
-import org.videolan.vlc.gui.dialogs.VlcQuestionDialog
+import org.videolan.vlc.gui.dialogs.VlcComposeDialogController
+import org.videolan.vlc.gui.dialogs.showVlcComposeDialog
 import videolan.org.commontools.LiveEvent
 
 private const val TAG = "DialogDelegate"
@@ -37,8 +35,7 @@ class DialogDelegate : IDialogDelegate {
         var dialogCounter = 0
 
         override fun onProgressUpdate(dialog: Dialog.ProgressDialog) {
-            val vlcProgressDialog = dialog.context as? VlcProgressDialog ?: return
-            if (vlcProgressDialog.isVisible) vlcProgressDialog.updateProgress()
+            (dialog.context as? VlcComposeDialogController)?.updateProgress()
         }
 
         override fun onDisplay(dialog: Dialog.ErrorMessage) {
@@ -58,7 +55,7 @@ class DialogDelegate : IDialogDelegate {
         }
 
         override fun onCanceled(dialog: Dialog?) {
-            (dialog?.context as? DialogFragment)?.dismiss()
+            (dialog?.context as? VlcComposeDialogController)?.dismissFromVlc()
             dialogEvt.value = Cancel(dialog)
         }
     }
@@ -70,20 +67,8 @@ fun Fragment.showVlcDialog(dialog: Dialog) {
 
 @Suppress("INACCESSIBLE_TYPE")
 fun FragmentActivity.showVlcDialog(dialog: Dialog) {
-    val dialogFragment = when (dialog) {
-        is Dialog.LoginDialog -> VlcLoginDialog().apply {
-            vlcDialog = dialog
-        }
-        is Dialog.QuestionDialog -> VlcQuestionDialog().apply {
-            vlcDialog = dialog
-        }
-        is Dialog.ProgressDialog -> VlcProgressDialog().apply {
-            vlcDialog = dialog
-        }
-        else -> null
-    } ?: return
-    val fm = supportFragmentManager
-    dialogFragment.show(fm, "vlc_dialog_${++DialogDelegate.dialogCounter}")
+    DialogDelegate.dialogCounter++
+    showVlcComposeDialog(dialog)
 }
 
 private sealed class DialogEvt
