@@ -52,9 +52,8 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
  * - application/vlc-android/res/layout/license_activity.xml
  * - application/vlc-android/res/layout/library_item.xml
  *
- * Also provides the LibrariesActivity-owned Compose detail sheet that replaces
- * that screen's use of LicenseDialog. The legacy LicenseDialog remains available
- * for other legacy callers until those screens migrate.
+ * Also provides the LibrariesActivity-owned Compose detail sheet that replaced
+ * that screen's former LicenseDialog usage.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

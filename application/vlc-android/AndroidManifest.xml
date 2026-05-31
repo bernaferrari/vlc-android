@@ -982,6 +982,9 @@
             android:theme="@style/Theme.VLC"
             android:windowSoftInputMode="adjustPan"/>
         <activity
+            android:name=".gui.AboutActivity"
+            android:theme="@style/Theme.VLC"/>
+        <activity
             android:name=".gui.HeaderMediaListActivity"
             android:theme="@style/Theme.VLC.NoStatus"/>
         <activity

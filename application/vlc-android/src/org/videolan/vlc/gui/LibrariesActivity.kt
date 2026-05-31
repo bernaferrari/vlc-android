@@ -1,7 +1,6 @@
 package org.videolan.vlc.gui
 
 import android.os.Bundle
-import android.os.Parcelable
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.getValue
@@ -19,7 +18,6 @@ import com.squareup.moshi.Moshi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.parcelize.Parcelize
 import org.videolan.resources.AndroidDevices
 import org.videolan.resources.AppContextProvider
 import org.videolan.resources.util.applyOverscanMargin
@@ -134,12 +132,3 @@ data class Library(
         @Json(name = "title")
         val title: String
 )
-
-@Parcelize
-data class LibraryWithLicense(
-        val title: String,
-        val copyright: String,
-        val licenseTitle: String,
-        val licenseDescription: String,
-        val licenseLink: String
-) : Parcelable

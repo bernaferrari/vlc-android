@@ -165,9 +165,7 @@ class MoreFragment : BaseFragment(), IRefreshable, IHistory, IDialogManager,
             requireActivity().startActivityForResult(Intent(requireActivity(), PreferencesActivity::class.java), ACTIVITY_RESULT_PREFERENCES)
         }
         aboutButton.setOnClickListener {
-            val i = Intent(requireActivity(), SecondaryActivity::class.java)
-            i.putExtra("fragment", SecondaryActivity.ABOUT)
-            requireActivity().startActivityForResult(i, SecondaryActivity.ACTIVITY_RESULT_SECONDARY)
+            startActivity(Intent(requireActivity(), AboutActivity::class.java))
         }
 //        VLCBilling.getInstance(requireActivity().application).addStatusListener {
 //            manageDonationVisibility()

@@ -107,6 +107,7 @@ fun MyFullScreen() {
   - `VLCBetaWelcomeScreen` hosted by `BetaWelcomeActivity` (former DataBinding XML layout removed)
   - `VLCAuthorsScreen` hosted by `AuthorsActivity` (former DataBinding RecyclerView/list XML removed)
   - `VLCLibrariesScreen` hosted by `LibrariesActivity` (former DataBinding RecyclerView/list XML removed; license detail is Compose in this screen)
+  - `VLCAboutScreen` hosted by `AboutActivity` (former About Fragment/XML and About license/version bottom-sheet Fragment paths removed)
 - All new leaves respect full VLCTheme tokens + typography, have rich light/dark @Previews, and full KDoc traceability to original XML paths.
 - Preview support for Android Studio (see `PreviewUtils.kt`).
 - Proper library packaging (consumer rules, proguard, test setup).

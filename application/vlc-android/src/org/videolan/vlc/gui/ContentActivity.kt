@@ -80,7 +80,6 @@ open class ContentActivity : AudioPlayerContainerActivity(), SearchView.OnQueryT
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val current = currentFragment
         super.onCreateOptionsMenu(menu)
-        if (current is AboutFragment) return true
         menuInflater.inflate(R.menu.activity_option, menu)
         if (current is Filterable) {
             val filterable = current as Filterable?

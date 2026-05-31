@@ -204,7 +204,6 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
                     )
                 }
             }
-            ABOUT -> fragment = AboutFragment()
             STREAMS -> fragment = MRLPanelFragment()
             HISTORY -> fragment = HistoryFragment()
             VIDEO_GROUP_LIST -> {
@@ -238,7 +237,6 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         const val KEY_FRAGMENT = "fragment"
 
         const val ALBUMS_SONGS = "albumsSongs"
-        const val ABOUT = "about"
         const val STREAMS = "streams"
         const val HISTORY = "history"
         const val VIDEO_GROUP_LIST = "videoGroupList"

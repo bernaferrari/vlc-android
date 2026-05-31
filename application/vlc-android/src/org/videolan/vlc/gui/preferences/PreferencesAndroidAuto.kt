@@ -37,7 +37,6 @@ import org.videolan.tools.KEY_ANDROID_AUTO_QUEUE_INFO_POS_VAL
 import org.videolan.tools.Settings
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
-import org.videolan.vlc.gui.dialogs.AboutVersionDialog
 import org.videolan.vlc.gui.dialogs.AutoInfoDialog
 import java.lang.NumberFormatException
 

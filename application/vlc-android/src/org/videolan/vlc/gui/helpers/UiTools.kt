@@ -50,8 +50,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.WindowManager
-import android.view.animation.AccelerateDecelerateInterpolator
-import android.view.animation.OvershootInterpolator
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import android.widget.TextView
@@ -88,13 +86,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import nl.dionsegijn.konfetti.core.Party
-import nl.dionsegijn.konfetti.core.Position
-import nl.dionsegijn.konfetti.core.Rotation
-import nl.dionsegijn.konfetti.core.emitter.Emitter
-import nl.dionsegijn.konfetti.core.models.Shape
-import nl.dionsegijn.konfetti.core.models.Size
-import nl.dionsegijn.konfetti.xml.KonfettiView
 import org.videolan.libvlc.util.AndroidUtil
 import org.videolan.medialibrary.MLServiceLocator
 import org.videolan.medialibrary.Tools
@@ -144,21 +135,14 @@ import org.videolan.tools.dp
 import org.videolan.tools.isStarted
 import org.videolan.tools.putSingle
 import org.videolan.tools.setGone
-import org.videolan.vlc.BuildConfig.VLC_VERSION_NAME
 import org.videolan.vlc.MediaParsingService
 import org.videolan.vlc.R
 import org.videolan.vlc.StartActivity
 import org.videolan.vlc.VlcMigrationHelper
-import org.videolan.vlc.gui.AuthorsActivity
 import org.videolan.vlc.gui.BaseActivity
-import org.videolan.vlc.gui.FeedbackActivity
 import org.videolan.vlc.gui.InfoActivity
-import org.videolan.vlc.gui.LibrariesActivity
-import org.videolan.vlc.gui.LibraryWithLicense
 import org.videolan.vlc.gui.browser.MediaBrowserFragment
-import org.videolan.vlc.gui.dialogs.AboutVersionDialog
 import org.videolan.vlc.gui.dialogs.AddToGroupDialog
-import org.videolan.vlc.gui.dialogs.LicenseDialog
 import org.videolan.vlc.gui.dialogs.SavePlaylistDialog
 import org.videolan.vlc.gui.dialogs.VideoTracksDialog
 import org.videolan.vlc.gui.helpers.BitmapUtil.vectorToBitmap
@@ -172,14 +156,10 @@ import org.videolan.vlc.util.FileUtils
 import org.videolan.vlc.util.LifecycleAwareScheduler
 import org.videolan.vlc.util.SchedulerCallback
 import org.videolan.vlc.util.ThumbnailsProvider
-import org.videolan.vlc.util.openLinkIfPossible
 import org.videolan.vlc.util.trackNumberText
-import java.security.SecureRandom
-import java.util.concurrent.TimeUnit
 import kotlin.math.min
 
 object UiTools {
-    private var logoAnimationRunning: Boolean = false
     var currentNightMode: Int = 0
     private const val TAG = "VLC/UiTools"
     private var DEFAULT_COVER_VIDEO_DRAWABLE: BitmapDrawable? = null
@@ -454,108 +434,6 @@ object UiTools {
     fun setViewOnClickListener(v: View?, ocl: View.OnClickListener?) {
         v?.setOnClickListener(ocl)
     }
-
-    /**
-     * Fill the about main view for mobile and TV
-     */
-    fun fillAboutView(activity: FragmentActivity, v: View) {
-        val builddate = v.context.getString(R.string.build_time)
-        val appVersion = v.findViewById<TextView>(R.id.app_version)
-        appVersion.text = VLC_VERSION_NAME
-        val appVersionDate = v.findViewById<TextView>(R.id.app_version_date)
-        appVersionDate.text = builddate
-        v.findViewById<View>(R.id.sliding_tabs).setGone()
-
-        val logo = v.findViewById<ImageView>(R.id.logo)
-        val konfettiView = v.findViewById<KonfettiView>(R.id.konfetti)
-        logo.setOnClickListener {
-            if (logoAnimationRunning) return@setOnClickListener
-            logoAnimationRunning = true
-            val iter = SecureRandom().nextInt(4) + 1
-            logo.animate().rotationBy(360F * iter).translationY(-24.dp.toFloat()).setDuration(600 + (100L * iter)).setInterpolator(AccelerateDecelerateInterpolator()).withEndAction {
-                logo.animate().translationY(0F).setStartDelay(75).setDuration(300).setInterpolator(OvershootInterpolator(3.0F)).withEndAction {
-                    logoAnimationRunning = false
-                }
-                val partyRight = Party(
-                    colors = listOf(ContextCompat.getColor(activity, R.color.orange200), ContextCompat.getColor(activity, R.color.orange800), ContextCompat.getColor(activity, R.color.orange500)),
-                    angle = 0,
-                    spread = 60,
-                    speed = 3f,
-                    maxSpeed = 18f,
-                    fadeOutEnabled = true,
-                    timeToLive = 2000L,
-                    rotation = Rotation(enabled = false),
-                    shapes = listOf(Shape.Circle),
-                    size = listOf(Size(4), Size(3), Size(2)),
-                    delay = 275,
-                    position = Position.Absolute(logo.x + logo.width - 12.dp, logo.y + logo.height - 24.dp).between(Position.Absolute(logo.x + logo.width - 12.dp, logo.y + logo.height + 24.dp)),
-                    emitter = Emitter(duration = 200, TimeUnit.MILLISECONDS).max(iter*30)
-                )
-                konfettiView.start(partyRight)
-                val partyLeft = Party(
-                    colors = listOf(ContextCompat.getColor(activity, R.color.orange200), ContextCompat.getColor(activity, R.color.orange800), ContextCompat.getColor(activity, R.color.orange500)),
-                    angle = 180,
-                    spread = 60,
-                    speed = 3f,
-                    maxSpeed = 18f,
-                    fadeOutEnabled = true,
-                    timeToLive = 2000L,
-                    rotation = Rotation(enabled = false),
-                    shapes = listOf(Shape.Circle),
-                    size = listOf(Size(4), Size(3), Size(2)),
-                    delay = 275,
-                    position = Position.Absolute(logo.x + 12.dp, logo.y + logo.height - 24.dp).between(Position.Absolute(logo.x + 12.dp, logo.y + logo.height + 24.dp)),
-                    emitter = Emitter(duration = 200, TimeUnit.MILLISECONDS).max(iter*30)
-                )
-                konfettiView.start(partyLeft)
-            }
-        }
-
-        v.findViewById<View>(R.id.version_card).setOnClickListener {
-            AboutVersionDialog.newInstance().show(activity.supportFragmentManager, "AboutVersionDialog")
-        }
-        v.findViewById<View>(R.id.about_website_container).setOnClickListener {
-            activity.openLinkIfPossible("https://www.videolan.org/vlc/")
-        }
-        v.findViewById<View>(R.id.about_report_container).setOnClickListener {
-            activity.startActivity(Intent(activity, FeedbackActivity::class.java))
-        }
-        v.findViewById<View>(R.id.about_sources_container).setOnClickListener {
-            activity.openLinkIfPossible("https://code.videolan.org/videolan/vlc-android")
-        }
-
-        v.findViewById<View>(R.id.about_authors_container).setOnClickListener {
-            activity.startActivity(Intent(activity, AuthorsActivity::class.java))
-        }
-        v.findViewById<View>(R.id.about_libraries_container).setOnClickListener {
-            activity.startActivity(Intent(activity, LibrariesActivity::class.java))
-        }
-        v.findViewById<View>(R.id.about_vlc_card).setOnClickListener {
-           var licenseText = ""
-            activity.lifecycleScope.launchWhenStarted {
-                licenseText = AppContextProvider.appResources.openRawResource(R.raw.vlc_license).bufferedReader().use {
-                   it.readText()
-               }
-            }
-            LicenseDialog.newInstance(LibraryWithLicense(activity.getString(R.string.app_name),activity.getString(R.string.about_copyright) , activity.getString(R.string.about_license), licenseText, "https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt")).show(activity.supportFragmentManager, "LicenseDialog")
-        }
-
-        val donationsButton = v.findViewById<CardView>(R.id.donationsButton)
-//        VLCBilling.getInstance(activity.application).addStatusListener {
-//            manageDonationVisibility(activity,donationsButton)
-//        }
-//        manageDonationVisibility(activity,donationsButton)
-
-
-        donationsButton.setOnClickListener {
-            activity.showDonations()
-        }
-    }
-
-//    private fun manageDonationVisibility(activity: FragmentActivity, donationsButton:View) {
-//        if (VLCBilling.getInstance(activity.application).status == BillingStatus.FAILURE ||  VLCBilling.getInstance(activity.application).skuDetails.isEmpty()) donationsButton.setGone() else donationsButton.setVisible()
-//    }
-
 
     /**
      * Update the incognito mode setting
