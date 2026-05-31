@@ -195,12 +195,12 @@ import org.videolan.vlc.gui.dialogs.CtxActionReceiver
 import org.videolan.vlc.gui.dialogs.PlaybackSpeedDialog
 import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_MEDIA
 import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_NEW_NAME
-import org.videolan.vlc.gui.dialogs.RenderersDialog
 import org.videolan.vlc.gui.dialogs.SleepTimerDialog
 import org.videolan.vlc.gui.dialogs.VLCBottomSheetDialogFragment.Companion.shouldInterceptRemote
 import org.videolan.vlc.gui.dialogs.adapters.VlcTrack
 import org.videolan.vlc.gui.dialogs.showEqualizerComposeDialog
 import org.videolan.vlc.gui.dialogs.showContext
+import org.videolan.vlc.gui.dialogs.showRenderersComposeDialog
 import org.videolan.vlc.gui.helpers.BitmapUtil
 import org.videolan.vlc.gui.helpers.KeycodeListener
 import org.videolan.vlc.gui.helpers.PlayerKeyListenerDelegate
@@ -2002,8 +2002,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
             }
             R.id.player_overlay_navmenu -> showNavMenu()
             R.id.player_overlay_length, R.id.player_overlay_time -> toggleTimeDisplay()
-            R.id.video_renderer -> if (supportFragmentManager.findFragmentByTag("renderers") == null)
-                RenderersDialog().show(supportFragmentManager, "renderers")
+            R.id.video_renderer -> showRenderersComposeDialog()
             R.id.video_secondary_display -> {
                 clone = displayManager.isSecondary
                 recreate()

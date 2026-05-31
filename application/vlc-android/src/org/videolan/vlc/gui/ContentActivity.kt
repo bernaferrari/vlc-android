@@ -37,7 +37,7 @@ import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
 import org.videolan.vlc.RendererDelegate
 import org.videolan.vlc.gui.browser.MLStorageBrowserFragment
-import org.videolan.vlc.gui.dialogs.RenderersDialog
+import org.videolan.vlc.gui.dialogs.showRenderersComposeDialog
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.interfaces.Filterable
 
@@ -115,8 +115,9 @@ open class ContentActivity : AudioPlayerContainerActivity(), SearchView.OnQueryT
                     val renderer = RendererDelegate.renderers.value[0]
                     PlaybackService.renderer.value = renderer
                     UiTools.snacker(this, getString(R.string.casting_connected_renderer, renderer.displayName))
-                } else if (supportFragmentManager.findFragmentByTag("renderers") == null)
-                    RenderersDialog().show(supportFragmentManager, "renderers")
+                } else {
+                    showRenderersComposeDialog()
+                }
                 return true
             }
             R.id.ml_menu_filter -> {
