@@ -3,8 +3,8 @@ package org.videolan.vlc.compose.interop
 import android.content.Context
 import android.util.AttributeSet
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.AbstractComposeView
-import androidx.compose.ui.platform.ComposeView
 import org.videolan.vlc.compose.theme.VLCTheme
 
 /**
@@ -23,11 +23,17 @@ class VLCComposeView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : ComposeView(context, attrs, defStyleAttr) {
+) : AbstractComposeView(context, attrs, defStyleAttr) {
 
-    init {
-        // Ensure we always wrap content in our theme
-        // The actual setContent call from host code will provide the content
+    private val content = mutableStateOf<(@Composable () -> Unit)?>(null)
+
+    fun setContent(content: @Composable () -> Unit) {
+        this.content.value = content
+    }
+
+    @Composable
+    override fun Content() {
+        content.value?.invoke()
     }
 }
 

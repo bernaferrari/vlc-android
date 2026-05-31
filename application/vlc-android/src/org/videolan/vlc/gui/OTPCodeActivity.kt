@@ -25,15 +25,23 @@
 package org.videolan.vlc.gui
 
 import android.os.Bundle
-import androidx.activity.OnBackPressedCallback
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.launch
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.components.VLCOTPCodeScreen
 import org.videolan.vlc.util.RemoteAccessUtils
 
 
 class OTPCodeActivity : BaseActivity() {
 
+    private var code by mutableStateOf<String?>(null)
 
     override fun getSnackAnchorView(overAudioPlayer: Boolean) = window.decorView
     override val displayTitle = true
@@ -41,11 +49,39 @@ class OTPCodeActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.otp_code_activity)
+        setContentView(
+            ComposeView(this).apply {
+                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+                setContent {
+                    VLCOTPCodeScreen(
+                        title = getString(R.string.ra_otp_title),
+                        subtitle = getString(R.string.ra_otp_subtitle),
+                        cancelText = getString(R.string.ra_otp_not_me),
+                        code = code,
+                        onCancel = ::cancelOtpRequest
+                    )
+                }
+            }
+        )
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                RemoteAccessUtils.otpFlow.collect {
+                    if (it == null) {
+                        finish()
+                    } else if (it != code) {
+                        code = it
+                    }
+                }
+            }
+        }
     }
 
-
+    private fun cancelOtpRequest() {
+        lifecycleScope.launch {
+            RemoteAccessUtils.otpCodeRemoveFlow.emit(code)
+            RemoteAccessUtils.otpFlow.emit(null)
+        }
+        finish()
+    }
 }
-
-
-

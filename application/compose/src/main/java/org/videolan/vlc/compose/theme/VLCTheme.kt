@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.sp
  * - Custom attrs: /vlc-android/application/resources/src/main/res/values/attrs.xml (60+ ?attr/...)
  * - Light/Dark mappings: /vlc-android/application/vlc-android/res/values/styles.xml
  *   (Theme.VLC.Apearance + Theme.VLC.Apearance.Black + variants in values-night, v21, v23 etc.)
- * - Prioritization: freq of ?attr/ in layout*/ (font_default 81x, background_default 26x, etc.)
+ * - Prioritization: freq of ?attr/ in layout resources (font_default 81x, background_default 26x, etc.)
  *   + key files: audio_player.xml (player chrome/HUD), browser_item.xml (media lists),
  *     about.xml, audio_browser.xml, video_*_card.xml, empty states, dialogs,
  *     recycler_section_header*.xml, info_item.xml, debug_log_item.xml, dialog_*.xml, onboarding_*.xml.
