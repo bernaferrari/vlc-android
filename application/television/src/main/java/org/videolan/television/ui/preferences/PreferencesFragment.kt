@@ -54,8 +54,8 @@ import org.videolan.vlc.R
 import org.videolan.vlc.gui.PinCodeActivity
 import org.videolan.vlc.gui.PinCodeReason
 import org.videolan.vlc.gui.SecondaryActivity
-import org.videolan.vlc.gui.dialogs.ConfirmPreferenceChangeDialog
 import org.videolan.vlc.gui.dialogs.PermissionListDialog
+import org.videolan.vlc.gui.dialogs.showConfirmPreferenceChangeComposeDialog
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 class PreferencesFragment : BasePreferenceFragment(), SharedPreferences.OnSharedPreferenceChangeListener {
@@ -121,10 +121,13 @@ class PreferencesFragment : BasePreferenceFragment(), SharedPreferences.OnShared
 
                 val audioResumePref = findPreference<CheckBoxPreference>(AUDIO_RESUME_PLAYBACK)
                 if (audioResumePref?.isChecked == false) {
-                    val dialog = ConfirmPreferenceChangeDialog()
-                    dialog.show((activity as FragmentActivity).supportFragmentManager, ConfirmPreferenceChangeDialog::class.simpleName)
-                    dialog.setListener {
-                        Settings.getInstance(activity).edit()
+                    val fragmentActivity = activity as? FragmentActivity ?: return true
+                    fragmentActivity.showConfirmPreferenceChangeComposeDialog(
+                        AUDIO_RESUME_PLAYBACK,
+                        getString(R.string.audio_resume_playback_title),
+                        getString(R.string.audio_resume_playback_warning)
+                    ) {
+                        Settings.getInstance(fragmentActivity).edit()
                                 .remove(KEY_AUDIO_LAST_PLAYLIST)
                                 .remove(KEY_MEDIA_LAST_PLAYLIST_RESUME)
                                 .remove(KEY_CURRENT_AUDIO_RESUME_TITLE)
@@ -134,7 +137,7 @@ class PreferencesFragment : BasePreferenceFragment(), SharedPreferences.OnShared
                                 .remove(KEY_CURRENT_MEDIA)
                                 .remove(KEY_CURRENT_MEDIA_RESUME)
                                 .apply()
-                        activity.setResult(RESULT_RESTART)
+                        fragmentActivity.setResult(RESULT_RESTART)
                         audioResumePref.isChecked = false
                     }
 

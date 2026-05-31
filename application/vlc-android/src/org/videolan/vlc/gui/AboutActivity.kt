@@ -35,7 +35,7 @@ import java.security.MessageDigest
 /**
  * Full Compose About screen. Replaces the former AboutFragment/about.xml path.
  */
-class AboutActivity : BaseActivity() {
+open class AboutActivity : BaseActivity() {
 
     private var licenseText by mutableStateOf("")
 
