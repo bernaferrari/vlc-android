@@ -23,16 +23,23 @@
 
 package org.videolan.vlc.gui
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.videolan.libvlc.Dialog
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.resources.util.parcelable
-import org.videolan.resources.util.parcelableList
 import org.videolan.vlc.R
-import org.videolan.vlc.gui.dialogs.DeviceDialog
+import org.videolan.vlc.StartActivity
+import org.videolan.vlc.compose.components.VLCExternalDeviceDialogContent
 import org.videolan.vlc.gui.dialogs.NetworkServerDialog
+import org.videolan.vlc.gui.helpers.MedialibraryUtils
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.util.showVlcDialog
 
@@ -64,13 +71,47 @@ class DialogActivity : BaseActivity() {
     }
 
     private fun setupDeviceDialog() {
-        window.decorView.alpha = 0f
-        val dialog = DeviceDialog()
         val intent = intent
-        dialog.setDevice(intent.getStringExtra(EXTRA_PATH)!!, intent.getStringExtra(EXTRA_UUID)!!, intent.getBooleanExtra(EXTRA_SCAN, false))
-        dialog.show(supportFragmentManager, "device_dialog")
+        val path = intent.getStringExtra(EXTRA_PATH) ?: return finish()
+        val scan = intent.getBooleanExtra(EXTRA_SCAN, false)
+        setContentView(
+            ComposeView(this).apply {
+                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+                setContent {
+                    VLCExternalDeviceDialogContent(
+                        title = getString(R.string.device_dialog_title),
+                        message = getString(R.string.device_dialog_message),
+                        browseText = getString(R.string.browse_folder),
+                        scanText = getString(R.string.medialibrary_scan),
+                        cancelText = getString(R.string.cancel),
+                        showScan = scan,
+                        onBrowse = { browseDevice(path) },
+                        onScan = { scanDevice(path) },
+                        onCancel = ::finish
+                    )
+                }
+            }
+        )
+        lifecycleScope.launch {
+            delay(30_000L)
+            if (!isFinishing) finish()
+        }
     }
 
+    private fun browseDevice(path: String) {
+        startActivity(
+            Intent(applicationContext, StartActivity::class.java)
+                .putExtra(org.videolan.resources.EXTRA_PATH, path)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
+        finish()
+    }
+
+    private fun scanDevice(path: String) {
+        MedialibraryUtils.addDevice(path, applicationContext)
+        startActivity(Intent(applicationContext, StartActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        finish()
+    }
 
     private fun setupServerDialog() {
         val networkServerDialog = NetworkServerDialog()
