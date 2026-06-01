@@ -229,11 +229,12 @@
             android:layout_height="match_parent"
             android:layout="@layout/player_orientation" />
 
-    <androidx.appcompat.widget.ViewStubCompat
+    <org.videolan.vlc.gui.view.VideoScreenshotOverlayView
             android:id="@+id/player_screenshot_stub"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout="@layout/player_screenshot" />
+            android:visibility="gone"
+            tools:visibility="visible" />
 
 
 </FrameLayout>
