@@ -1,6 +1,6 @@
 /*
  * ************************************************************************
- *  MediaBrowserTvFragment.kt
+ *  MediaBrowserAnimatorDelegate.kt
  * *************************************************************************
  *  Copyright © 2019 VLC authors and VideoLAN
  *

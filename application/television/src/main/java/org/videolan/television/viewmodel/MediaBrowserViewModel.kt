@@ -1,7 +1,6 @@
 package org.videolan.television.viewmodel
 
 import android.content.Context
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import org.videolan.medialibrary.interfaces.media.Playlist
@@ -54,5 +53,3 @@ class MediaBrowserViewModel(context: Context, val category: Long, val parent : M
         }
     }
 }
-
-fun Fragment.getMediaBrowserModel(category: Long, parent : MediaLibraryItem? = null) = ViewModelProvider(requireActivity(), MediaBrowserViewModel.Factory(requireContext(), category, parent))[MediaBrowserViewModel::class.java]

@@ -26,6 +26,7 @@ package org.videolan.television.ui
 
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -60,7 +61,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.FragmentActivity
 import org.videolan.resources.TV_MAIN_ACTIVITY
 import org.videolan.resources.util.canReadStorage
 import org.videolan.television.R
@@ -71,7 +71,7 @@ import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.util.Permissions
 
-class OnboardingActivity : FragmentActivity() {
+class OnboardingActivity : ComponentActivity() {
     private val currentPage = mutableIntStateOf(0)
     private val hasStoragePermission = mutableStateOf(false)
 

@@ -1,6 +1,6 @@
 /*
  * ************************************************************************
- *  MediaBrowserTvFragment.kt
+ *  BaseBrowserTvFragment.kt
  * *************************************************************************
  *  Copyright © 2016-2019 VLC authors and VideoLAN
  *
@@ -65,7 +65,7 @@ import org.videolan.vlc.viewmodels.browser.TYPE_FILE
 import org.videolan.vlc.viewmodels.browser.TYPE_NETWORK
 import org.videolan.vlc.viewmodels.tv.TvBrowserModel
 
-private const val TAG = "MediaBrowserTvFragment"
+private const val TAG = "BaseBrowserTvFragment"
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 abstract class BaseBrowserTvFragment<T> : Fragment(), BrowserFragmentInterface, IEventsHandler<T>,
