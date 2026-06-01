@@ -28,6 +28,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
@@ -71,7 +72,7 @@ class StoragePermissionsDelegate private constructor() {
         val storageAccessGranted = LiveEvent<Boolean>()
         private var permissionRationaleShown = false
 
-        fun FragmentActivity.askStoragePermission(write: Boolean, cb: Runnable?) {
+        fun ComponentActivity.askStoragePermission(write: Boolean, cb: Runnable?) {
             val intent = intent
             val upgrade = intent?.getBooleanExtra(EXTRA_UPGRADE, false) == true
             val firstRun = upgrade && intent.getBooleanExtra(EXTRA_FIRST_RUN, false)
@@ -90,7 +91,7 @@ class StoragePermissionsDelegate private constructor() {
             }
         }
 
-        suspend fun FragmentActivity.getStoragePermission(write: Boolean = false, withDialog:Boolean = true, onlyMedia:Boolean = false) : Boolean = withContext(Dispatchers.Main.immediate) {
+        suspend fun ComponentActivity.getStoragePermission(write: Boolean = false, withDialog:Boolean = true, onlyMedia:Boolean = false) : Boolean = withContext(Dispatchers.Main.immediate) {
             if (isFinishing) return@withContext false
             Settings.getInstance(this@getStoragePermission).putSingle(INITIAL_PERMISSION_ASKED, true)
             when {
@@ -101,19 +102,19 @@ class StoragePermissionsDelegate private constructor() {
             }
         }
 
-        private fun FragmentActivity.shouldRequestReadOrAllAccess(onlyMedia: Boolean) = if (onlyMedia) {
+        private fun ComponentActivity.shouldRequestReadOrAllAccess(onlyMedia: Boolean) = if (onlyMedia) {
             !canReadStorage(this)
         } else {
             !canReadStorage(this) || !Permissions.hasAllAccess(this)
         }
 
-        private suspend fun FragmentActivity.requestStorageAccess(write: Boolean, withDialog: Boolean, onlyMedia: Boolean) : Boolean {
+        private suspend fun ComponentActivity.requestStorageAccess(write: Boolean, withDialog: Boolean, onlyMedia: Boolean) : Boolean {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !onlyMedia && !write) {
                 val uri = Uri.fromParts(SCHEME_PACKAGE, packageName, null)
                 val intent = Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri)
                 if (intent.isCallable(this)) {
                     if (withDialog && this !is StartActivity) {
-                        showPermissionListComposeDialog()
+                        (this as? FragmentActivity)?.showPermissionListComposeDialog()
                         return false
                     }
                     return requestAllFilesAccess(intent)
@@ -133,7 +134,7 @@ class StoragePermissionsDelegate private constructor() {
             return requestRuntimeStoragePermission(permission, write)
         }
 
-        private suspend fun FragmentActivity.requestRuntimeStoragePermission(permission: String, write: Boolean) : Boolean = suspendCancellableCoroutine { continuation ->
+        private suspend fun ComponentActivity.requestRuntimeStoragePermission(permission: String, write: Boolean) : Boolean = suspendCancellableCoroutine { continuation ->
             val resultKey = "$TAG:${System.nanoTime()}"
             var requestPermissionLauncher: ActivityResultLauncher<String>? = null
 
@@ -170,7 +171,7 @@ class StoragePermissionsDelegate private constructor() {
             }
         }
 
-        private suspend fun FragmentActivity.requestAllFilesAccess(intent: Intent) : Boolean = suspendCancellableCoroutine { continuation ->
+        private suspend fun ComponentActivity.requestAllFilesAccess(intent: Intent) : Boolean = suspendCancellableCoroutine { continuation ->
             val resultKey = "$TAG:all:${System.nanoTime()}"
             var settingsLauncher: ActivityResultLauncher<Intent>? = null
 
@@ -195,7 +196,7 @@ class StoragePermissionsDelegate private constructor() {
             }
         }
 
-        private fun getAction(activity: FragmentActivity, firstRun: Boolean, upgrade: Boolean) = Runnable {
+        private fun getAction(activity: ComponentActivity, firstRun: Boolean, upgrade: Boolean) = Runnable {
             if (activity is CustomActionController) activity.onStorageAccessGranted()
             else activity.startMedialibrary(firstRun, upgrade, true)
         }

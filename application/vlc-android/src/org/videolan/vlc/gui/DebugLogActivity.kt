@@ -27,8 +27,8 @@ import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ListView
+import androidx.activity.ComponentActivity
 import androidx.core.content.getSystemService
-import androidx.fragment.app.FragmentActivity
 import com.google.android.material.snackbar.Snackbar
 import org.videolan.libvlc.util.AndroidUtil
 import org.videolan.resources.AndroidDevices
@@ -150,7 +150,7 @@ import android.content.Intent
 // bd dolt push, git push --verify "up to date with origin/phase-0-compose-bootstrap".
 // =========================================================================
 
-class DebugLogActivity : FragmentActivity(), DebugLogService.Client.Callback {
+class DebugLogActivity : ComponentActivity(), DebugLogService.Client.Callback {
     private lateinit var client: DebugLogService.Client
     private lateinit var startButton: Button
     private lateinit var stopButton: Button

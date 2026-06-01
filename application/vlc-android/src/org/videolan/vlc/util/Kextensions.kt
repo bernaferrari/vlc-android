@@ -17,6 +17,7 @@ import android.util.DisplayMetrics
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
 import android.widget.TextView
+import androidx.activity.ComponentActivity
 import androidx.annotation.WorkerThread
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatTextView
@@ -97,7 +98,7 @@ fun String.validateLocation(): Boolean {
 
 inline fun <reified T : ViewModel> FragmentActivity.getModel() = ViewModelProvider(this)[T::class.java]
 
-fun FragmentActivity.share(file: File) {
+fun ComponentActivity.share(file: File) {
     val intentShareFile = Intent(Intent.ACTION_SEND)
     val fileWithinMyDir = File(file.path)
     if (isStarted()) {
@@ -109,7 +110,7 @@ fun FragmentActivity.share(file: File) {
     }
 }
 
-fun FragmentActivity.share(title:String, content: String) {
+fun ComponentActivity.share(title:String, content: String) {
     val intentShareFile = Intent(Intent.ACTION_SEND)
     if (isStarted()) {
         intentShareFile.type = "text/plain"

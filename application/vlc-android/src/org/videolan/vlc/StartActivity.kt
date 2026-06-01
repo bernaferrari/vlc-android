@@ -31,9 +31,9 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.core.content.edit
 import androidx.core.net.toUri
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -90,7 +90,7 @@ import videolan.org.commontools.TV_CHANNEL_SCHEME
 private const val SEND_CRASH_RESULT = 0
 private const val PROPAGATE_RESULT = 1
 private const val TAG = "VLC/StartActivity"
-class StartActivity : FragmentActivity() {
+class StartActivity : ComponentActivity() {
 
     private val idFromShortcut: Int
         get() {

@@ -33,6 +33,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -244,7 +245,7 @@ object Permissions {
                 Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
     }
 
-    fun checkReadStoragePermission(activity: FragmentActivity, exit: Boolean = false, forceAsking: Boolean = false): Boolean {
+    fun checkReadStoragePermission(activity: ComponentActivity, exit: Boolean = false, forceAsking: Boolean = false): Boolean {
         if (AndroidUtil.isMarshMallowOrLater && !canReadStorage(activity)) {
             if (!forceAsking && ActivityCompat.shouldShowRequestPermissionRationale(activity,
                             Manifest.permission.READ_EXTERNAL_STORAGE)) {
@@ -256,7 +257,7 @@ object Permissions {
         return true
     }
 
-    fun askWriteStoragePermission(activity: FragmentActivity, exit: Boolean, callback: Runnable) {
+    fun askWriteStoragePermission(activity: ComponentActivity, exit: Boolean, callback: Runnable) {
         if (ActivityCompat.shouldShowRequestPermissionRationale(activity,
                         Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
             showStoragePermissionDialog(activity, exit)
@@ -293,7 +294,7 @@ object Permissions {
         sAlertDialog = createSettingsDialogCompat(activity, mode)
     }
 
-    fun showStoragePermissionDialog(activity: FragmentActivity, exit: Boolean) {
+    fun showStoragePermissionDialog(activity: ComponentActivity, exit: Boolean) {
         if (activity.isFinishing || sAlertDialog != null && sAlertDialog!!.isShowing) return
         sAlertDialog = if (activity is AppCompatActivity)
             createDialogCompat(activity, exit)
@@ -301,7 +302,7 @@ object Permissions {
             createDialog(activity, exit)
     }
 
-    private fun createDialog(activity: FragmentActivity, exit: Boolean): Dialog {
+    private fun createDialog(activity: ComponentActivity, exit: Boolean): Dialog {
         val dialogBuilder = android.app.AlertDialog.Builder(activity)
                 .setTitle(activity.getString(R.string.allow_storage_access_title))
                 .setMessage(activity.getString(R.string.allow_storage_access_description))
@@ -318,7 +319,7 @@ object Permissions {
         return dialogBuilder.show()
     }
 
-    private fun createDialogCompat(activity: FragmentActivity, exit: Boolean): Dialog {
+    private fun createDialogCompat(activity: ComponentActivity, exit: Boolean): Dialog {
         val dialogBuilder = AlertDialog.Builder(activity)
                 .setTitle(activity.getString(R.string.allow_storage_access_title))
                 .setMessage(activity.getString(R.string.allow_storage_access_description))
@@ -341,7 +342,7 @@ object Permissions {
         }
     }
 
-    fun showAppSettingsPage(activity: FragmentActivity) {
+    fun showAppSettingsPage(activity: ComponentActivity) {
         val i = Intent()
         i.action = "android.settings.APPLICATION_DETAILS_SETTINGS"
         i.addCategory(Intent.CATEGORY_DEFAULT)
@@ -397,7 +398,7 @@ object Permissions {
         return dialogBuilder.show()
     }
 
-    private fun FragmentActivity.requestStoragePermission(write: Boolean = false, callback: Runnable? = null) {
+    private fun ComponentActivity.requestStoragePermission(write: Boolean = false, callback: Runnable? = null) {
         askStoragePermission(write, callback)
     }
 
