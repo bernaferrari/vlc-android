@@ -31,7 +31,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.view.MotionEventCompat
-import androidx.databinding.ViewDataBinding
 import androidx.paging.PagedList
 import org.videolan.libvlc.util.AndroidUtil
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
@@ -51,13 +50,12 @@ class AudioAlbumTracksAdapter @JvmOverloads constructor(
 
     var forceNoTracks = false
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AbstractMediaItemViewHolder<ViewDataBinding> {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AbstractMediaItemViewHolder {
         if (!inflaterInitialized()) {
             inflater = LayoutInflater.from(parent.context)
         }
         val binding = AudioAlbumTrackItemBinding.inflate(inflater, parent, false)
-        @Suppress("UNCHECKED_CAST")
-        return TrackItemViewHolder(binding) as AbstractMediaItemViewHolder<ViewDataBinding>
+        return TrackItemViewHolder(binding)
     }
 
     override fun submitList(pagedList: PagedList<MediaLibraryItem>?) {
@@ -79,7 +77,7 @@ class AudioAlbumTracksAdapter @JvmOverloads constructor(
     }
 
     @TargetApi(Build.VERSION_CODES.M)
-    inner class TrackItemViewHolder(binding: AudioAlbumTrackItemBinding) : AbstractMediaItemViewHolder<AudioAlbumTrackItemBinding>(binding) {
+    inner class TrackItemViewHolder(binding: AudioAlbumTrackItemBinding) : BindingMediaItemViewHolder<AudioAlbumTrackItemBinding>(binding) {
         var onTouchListener: View.OnTouchListener
 
         override val titleView: TextView = binding.title
@@ -143,4 +141,3 @@ class AudioAlbumTracksAdapter @JvmOverloads constructor(
 
     }
 }
-
