@@ -24,11 +24,11 @@ package org.videolan.vlc.gui.view
 
 import android.content.Context
 import android.util.AttributeSet
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -37,7 +37,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
 
 /**
@@ -51,10 +50,17 @@ class VideoHudIconButtonView @JvmOverloads constructor(
 ) : VLCAbstractComposeWidget(context, attrs, defStyleAttr) {
 
     private var iconRes by mutableIntStateOf(readIconResource(attrs))
+    private var contentDescriptionState by mutableStateOf(contentDescription?.toString())
     private var enabledState by mutableStateOf(isEnabled)
+    private var longClickableState by mutableStateOf(isLongClickable)
 
     fun setImageResource(@DrawableRes resourceId: Int) {
         iconRes = resourceId
+    }
+
+    override fun setContentDescription(contentDescription: CharSequence?) {
+        super.setContentDescription(contentDescription)
+        contentDescriptionState = contentDescription?.toString()
     }
 
     override fun setEnabled(enabled: Boolean) {
@@ -62,18 +68,32 @@ class VideoHudIconButtonView @JvmOverloads constructor(
         enabledState = enabled
     }
 
+    override fun setLongClickable(longClickable: Boolean) {
+        super.setLongClickable(longClickable)
+        longClickableState = longClickable
+    }
+
+    override fun setOnLongClickListener(listener: OnLongClickListener?) {
+        super.setOnLongClickListener(listener)
+        longClickableState = isLongClickable || listener != null
+    }
+
+    @OptIn(ExperimentalFoundationApi::class)
     @Composable
     override fun WidgetContent() {
         Box(
             modifier = Modifier
-                .size(48.dp)
-                .clickable(enabled = enabledState) { performClick() },
+                .combinedClickable(
+                    enabled = enabledState,
+                    onClick = { performClick() },
+                    onLongClick = if (longClickableState) ({ performLongClick() }) else null
+                ),
             contentAlignment = Alignment.Center
         ) {
             if (iconRes != 0) {
                 Image(
                     painter = painterResource(iconRes),
-                    contentDescription = contentDescription?.toString()
+                    contentDescription = contentDescriptionState
                 )
             }
         }
