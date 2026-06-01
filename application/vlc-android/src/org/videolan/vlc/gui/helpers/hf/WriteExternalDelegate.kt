@@ -1,20 +1,29 @@
 package org.videolan.vlc.gui.helpers.hf
 
-import android.annotation.TargetApi
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
-import android.os.Bundle
 import android.provider.DocumentsContract
-import androidx.activity.viewModels
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
 import androidx.core.net.toUri
-import androidx.core.os.bundleOf
 import androidx.documentfile.provider.DocumentFile
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import org.videolan.resources.AndroidDevices
 import org.videolan.tools.AppScope
 import org.videolan.tools.Settings
@@ -22,79 +31,11 @@ import org.videolan.tools.putSingle
 import org.videolan.vlc.R
 import org.videolan.vlc.VlcMigrationHelper
 import org.videolan.vlc.util.FileUtils
+import kotlin.coroutines.resume
 
-class WriteExternalDelegate : BaseHeadlessFragment() {
-    private var storage : String? = null
-
-    @TargetApi(Build.VERSION_CODES.O)
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        showDialog()
-    }
-
-    @TargetApi(Build.VERSION_CODES.O)
-    private fun showDialog() {
-        if (!isAdded || isDetached) return
-        val builder = AlertDialog.Builder(requireActivity())
-        builder.setMessage(R.string.sdcard_permission_dialog_message)
-                .setTitle(R.string.sdcard_permission_dialog_title)
-                .setPositiveButton(R.string.ok) { _, _ ->
-                    if (!isAdded || isDetached) return@setPositiveButton
-                    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
-                    storage = arguments?.getString(KEY_STORAGE_PATH)?.apply { intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, toUri()) }
-                    startActivityForResult(intent, REQUEST_CODE_STORAGE_ACCESS)
-                }
-                .setNeutralButton(getString(R.string.dialog_sd_wizard)) { _, _ -> showHelpDialog() }.create().show()
-    }
-
-    private fun showHelpDialog() {
-        if (!isAdded) return
-        activity?.let {
-            val inflater = it.layoutInflater
-            AlertDialog.Builder(it).setView(inflater.inflate(R.layout.dialog_sd_write, null))
-                    .setOnDismissListener { showDialog() }
-                    .create().show()
-        }
-    }
-
-    @TargetApi(Build.VERSION_CODES.KITKAT)
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (data !== null && requestCode == REQUEST_CODE_STORAGE_ACCESS) {
-            if (resultCode == Activity.RESULT_OK) {
-                val context = context ?: return
-                val treeUri = data.data ?: return
-                Settings.getInstance(context).putSingle("tree_uri_$storage", treeUri.toString())
-                val treeFile = DocumentFile.fromTreeUri(context, treeUri)
-                val contentResolver = context.contentResolver
-
-                // revoke access if a permission already exists
-                val persistedUriPermissions = contentResolver.persistedUriPermissions
-                for (uriPermission in persistedUriPermissions) {
-                    val file = DocumentFile.fromTreeUri(context, uriPermission.uri)
-                    if (treeFile?.name == file?.name) {
-                        contentResolver.releasePersistableUriPermission(uriPermission.uri, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-                        model.deferredGrant.complete(false)
-                        exit()
-                        return
-                    }
-                }
-
-                // else set permission
-                contentResolver.takePersistableUriPermission(treeUri, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-                model.deferredGrant.complete(true)
-                exit()
-                return
-            }
-        }
-        model.deferredGrant.complete(false)
-        exit()
-    }
-
+class WriteExternalDelegate private constructor() {
     companion object {
         internal const val TAG = "VLC/WriteExternal"
-        internal const val KEY_STORAGE_PATH = "VLC/storage_path"
-        private const val REQUEST_CODE_STORAGE_ACCESS = 42
 
         fun askForExtWrite(activity: FragmentActivity, uri: Uri, cb: Runnable? = null) {
             AppScope.launch {
@@ -112,15 +53,114 @@ class WriteExternalDelegate : BaseHeadlessFragment() {
     }
 }
 
-suspend fun FragmentActivity.getExtWritePermission(uri: Uri) : Boolean {
-    if (!WriteExternalDelegate.needsWritePermission(uri)) return true
-    val storage = FileUtils.getMediaStorage(uri) ?: return false
-    val model : PermissionViewmodel by viewModels()
-    val fragment = WriteExternalDelegate()
-    model.setupDeferred()
-    fragment.arguments = bundleOf(WriteExternalDelegate.KEY_STORAGE_PATH to storage)
-    supportFragmentManager.beginTransaction().add(fragment, WriteExternalDelegate.TAG).commitAllowingStateLoss()
-    return model.deferredGrant.await()
+suspend fun FragmentActivity.getExtWritePermission(uri: Uri) : Boolean = withContext(Dispatchers.Main.immediate) {
+    if (!WriteExternalDelegate.needsWritePermission(uri)) return@withContext true
+    val storage = FileUtils.getMediaStorage(uri) ?: return@withContext false
+    requestExtWritePermission(storage)
+}
+
+private suspend fun FragmentActivity.requestExtWritePermission(storage: String) : Boolean = suspendCancellableCoroutine { continuation ->
+    val resultKey = "${WriteExternalDelegate.TAG}:${System.nanoTime()}"
+    var launcher: ActivityResultLauncher<Intent>? = null
+    var activeDialog: AlertDialog? = null
+
+    fun unregister() {
+        activeDialog?.setOnDismissListener(null)
+        activeDialog?.dismiss()
+        activeDialog = null
+        launcher?.unregister()
+        launcher = null
+    }
+
+    fun complete(granted: Boolean) {
+        if (continuation.isActive) continuation.resume(granted)
+        unregister()
+    }
+
+    fun showMainDialog() {
+        var waitingForPicker = false
+        var showingHelp = false
+        activeDialog = AlertDialog.Builder(this)
+            .setMessage(R.string.sdcard_permission_dialog_message)
+            .setTitle(R.string.sdcard_permission_dialog_title)
+            .setPositiveButton(R.string.ok) { _, _ ->
+                waitingForPicker = true
+                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+                    putExtra(DocumentsContract.EXTRA_INITIAL_URI, storage.toUri())
+                }
+                try {
+                    launcher?.launch(intent)
+                } catch (_: RuntimeException) {
+                    complete(false)
+                }
+            }
+            .setNeutralButton(getString(R.string.dialog_sd_wizard)) { _, _ ->
+                showingHelp = true
+                showSdWriteHelpDialog {
+                    if (continuation.isActive) showMainDialog()
+                }
+            }
+            .setOnCancelListener {
+                complete(false)
+            }
+            .setOnDismissListener {
+                if (!waitingForPicker && !showingHelp) complete(false)
+            }
+            .create()
+            .also { it.show() }
+    }
+
+    continuation.invokeOnCancellation { unregister() }
+    launcher = activityResultRegistry.register(resultKey, ActivityResultContracts.StartActivityForResult()) { result ->
+        complete(handleExtWriteResult(storage, result.resultCode, result.data))
+    }
+    showMainDialog()
+}
+
+private fun FragmentActivity.showSdWriteHelpDialog(onDismiss: () -> Unit) {
+    AlertDialog.Builder(this)
+        .setView(createSdWriteHelpView())
+        .setOnDismissListener { onDismiss() }
+        .create()
+        .show()
+}
+
+private fun FragmentActivity.createSdWriteHelpView() = ComposeView(this).apply {
+    setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+    setContent {
+        Image(
+            painter = painterResource(R.drawable.img_tips_sdcard),
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.size(
+                width = dimensionResource(R.dimen.dialog_sd_wisard_width),
+                height = dimensionResource(R.dimen.dialog_sd_wisard_height)
+            )
+        )
+    }
+}
+
+private fun FragmentActivity.handleExtWriteResult(storage: String, resultCode: Int, data: Intent?) : Boolean {
+    if (resultCode != Activity.RESULT_OK) return false
+    val treeUri = data?.data ?: return false
+    return saveExtWritePermission(this, storage, treeUri)
+}
+
+private fun saveExtWritePermission(context: Context, storage: String, treeUri: Uri) : Boolean {
+    Settings.getInstance(context).putSingle("tree_uri_$storage", treeUri.toString())
+    val treeFile = DocumentFile.fromTreeUri(context, treeUri)
+    val contentResolver = context.contentResolver
+
+    for (uriPermission in contentResolver.persistedUriPermissions) {
+        val file = DocumentFile.fromTreeUri(context, uriPermission.uri)
+        if (treeFile?.name == file?.name) {
+            contentResolver.releasePersistableUriPermission(uriPermission.uri, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+            return false
+        }
+    }
+
+    contentResolver.takePersistableUriPermission(treeUri, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+    return true
 }
 
 suspend fun Fragment.getExtWritePermission(uri: Uri) = activity?.getExtWritePermission(uri) == true
