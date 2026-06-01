@@ -731,7 +731,7 @@ private fun BoxScope.AudioBrowserArtwork(
 }
 
 @Composable
-private fun AudioBrowserBadges(item: MediaLibraryItem?, card: Boolean, isPresent: Boolean) {
+internal fun AudioBrowserBadges(item: MediaLibraryItem?, card: Boolean, isPresent: Boolean) {
     if (item?.isFavorite == true) {
         AudioBrowserBadgeIcon(if (card) R.drawable.ic_emoji_favorite_white else R.drawable.ic_emoji_favorite, boxed = card)
     }
@@ -768,7 +768,7 @@ private fun AudioBrowserBadgeIcon(icon: Int, boxed: Boolean) {
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-private fun AudioBrowserMoveHandle(onTouch: (MotionEvent) -> Boolean) {
+internal fun AudioBrowserMoveHandle(onTouch: (MotionEvent) -> Boolean) {
     Icon(
             painter = painterResource(R.drawable.ic_move_media),
             contentDescription = stringResource(R.string.more_actions),
@@ -781,7 +781,7 @@ private fun AudioBrowserMoveHandle(onTouch: (MotionEvent) -> Boolean) {
 }
 
 @Composable
-private fun AudioBrowserMoreIcon() {
+internal fun AudioBrowserMoreIcon() {
     Icon(
             painter = painterResource(R.drawable.ic_more),
             contentDescription = stringResource(R.string.more),

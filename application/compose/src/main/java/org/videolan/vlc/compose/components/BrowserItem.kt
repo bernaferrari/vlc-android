@@ -51,7 +51,8 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
  * The legacy XML combines a stable media icon/artwork box, title/subtitle text,
  * selection background, and trailing actions. This leaf owns that layout and
  * theme behavior while keeping artwork, badges, and action icons as slots so
- * app modules can provide their drawables or async thumbnail hosts.
+ * app modules can provide their drawables or async thumbnail hosts. Audio album
+ * track rows can hide the artwork slot and reuse the same title/action layout.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -64,6 +65,7 @@ fun VLCBrowserItemRow(
     contentDescription: String? = null,
     titleMaxLines: Int = 2,
     subtitleMaxLines: Int = 1,
+    showArtwork: Boolean = true,
     onClick: () -> Unit = {},
     onLongClick: (() -> Unit)? = null,
     artworkContent: @Composable BoxScope.() -> Unit = { DefaultBrowserArtworkContent() },
@@ -92,8 +94,10 @@ fun VLCBrowserItemRow(
             modifier = rowModifier,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            BrowserArtwork(size = 40.dp, content = artworkContent)
-            Spacer(modifier = Modifier.width(16.dp))
+            if (showArtwork) {
+                BrowserArtwork(size = 40.dp, content = artworkContent)
+                Spacer(modifier = Modifier.width(16.dp))
+            }
             BrowserItemTexts(
                 title = title,
                 subtitle = subtitle,

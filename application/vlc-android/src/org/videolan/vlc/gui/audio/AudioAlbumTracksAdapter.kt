@@ -25,19 +25,41 @@ package org.videolan.vlc.gui.audio
 
 import android.annotation.TargetApi
 import android.os.Build
-import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.MotionEventCompat
 import androidx.paging.PagedList
+import androidx.recyclerview.widget.RecyclerView
 import org.videolan.libvlc.util.AndroidUtil
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.tools.Settings
 import org.videolan.vlc.BR
+import org.videolan.vlc.R
+import org.videolan.vlc.compose.components.VLCBrowserItemRow
+import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.databinding.AudioAlbumTrackItemBinding
+import org.videolan.vlc.gui.helpers.TalkbackUtil
+import org.videolan.vlc.gui.helpers.UiTools
+import org.videolan.vlc.gui.view.MiniVisualizer
 import org.videolan.vlc.interfaces.IEventsHandler
 import org.videolan.vlc.interfaces.IListEventsHandler
 import org.videolan.vlc.media.MediaUtils
@@ -51,11 +73,11 @@ class AudioAlbumTracksAdapter @JvmOverloads constructor(
     var forceNoTracks = false
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AbstractMediaItemViewHolder {
-        if (!inflaterInitialized()) {
-            inflater = LayoutInflater.from(parent.context)
-        }
-        val binding = AudioAlbumTrackItemBinding.inflate(inflater, parent, false)
-        return TrackItemViewHolder(binding)
+        return AlbumTrackComposeViewHolder(
+                ComposeView(parent.context).apply {
+                    layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                }
+        )
     }
 
     override fun submitList(pagedList: PagedList<MediaLibraryItem>?) {
@@ -74,6 +96,95 @@ class AudioAlbumTracksAdapter @JvmOverloads constructor(
                 //playback just stopped
                 if (currentList?.contains(former) == true || currentMedia == null) notifyItemRangeChanged(0, itemCount)
             }
+    }
+
+    inner class AlbumTrackComposeViewHolder(
+            private val composeView: ComposeView
+    ) : AbstractMediaItemViewHolder(composeView) {
+
+        override fun bindItem(
+                item: MediaLibraryItem?,
+                selected: Boolean,
+                inSelection: Boolean,
+                isCurrent: Boolean,
+                playing: Boolean
+        ) {
+            val media = item as? MediaWrapper
+            val showTrackNumberColumn = media != null && shouldReserveTrackNumberColumn(isCurrent)
+            val showTrackNumberText = media != null && !isCurrent && Settings.showTrackNumber && !forceNoTracks
+            val trackNumberText = if (showTrackNumberText && (media?.trackNumber ?: 0) > 0) "${media?.trackNumber}." else ""
+            val trackNumberContentDescription = media
+                    ?.takeIf { showTrackNumberText && it.trackNumber > 0 }
+                    ?.let { TalkbackUtil.getTrackNumber(composeView.context, it) }
+            val isPresent = media?.isPresent ?: true
+            composeView.setContent {
+                VLCBrowserItemRow(
+                        title = media?.title.orEmpty(),
+                        subtitle = media?.let { MediaUtils.getMediaSubtitle(it) },
+                        selected = selected,
+                        contentDescription = media?.let { TalkbackUtil.getAudioTrack(composeView.context, it) },
+                        titleMaxLines = 1,
+                        showArtwork = showTrackNumberColumn,
+                        onClick = ::onRowClick,
+                        onLongClick = ::onRowLongClick,
+                        artworkContent = {
+                            AlbumTrackLeadingContent(
+                                    trackNumberText = trackNumberText,
+                                    trackNumberContentDescription = trackNumberContentDescription,
+                                    showTrackNumber = showTrackNumberText,
+                                    isCurrent = isCurrent,
+                                    playing = playing
+                            )
+                        },
+                        badgeContent = {
+                            if (canBeReordered && !inSelection) AudioBrowserMoveHandle(onTouch = ::onMoveTouch)
+                            AudioBrowserBadges(item = item, card = false, isPresent = isPresent)
+                            if (selected) AlbumTrackSelectedIcon()
+                        },
+                        moreActionContent = if (isPresent && !inSelection) {
+                            { AudioBrowserMoreIcon() }
+                        } else null,
+                        onMoreClick = ::onMoreActionClick
+                )
+            }
+        }
+
+        private fun shouldReserveTrackNumberColumn(isCurrent: Boolean): Boolean {
+            return when {
+                isCurrent -> true
+                Settings.showTrackNumber && !forceNoTracks -> true
+                currentMedia != null && currentList?.contains(currentMedia) == true -> true
+                else -> false
+            }
+        }
+
+        private fun onRowClick() {
+            bindingAdapterPosition.takeIf { it != RecyclerView.NO_POSITION }?.let { position ->
+                getItem(position)?.let { eventsHandler.onClick(composeView, position, it) }
+            }
+        }
+
+        private fun onRowLongClick() {
+            bindingAdapterPosition.takeIf { it != RecyclerView.NO_POSITION }?.let { position ->
+                getItem(position)?.let { eventsHandler.onLongClick(composeView, position, it) }
+            }
+        }
+
+        private fun onMoreActionClick() {
+            bindingAdapterPosition.takeIf { it != RecyclerView.NO_POSITION }?.let { position ->
+                getItem(position)?.let { eventsHandler.onCtxClick(composeView, position, it) }
+            }
+        }
+
+        private fun onMoveTouch(event: MotionEvent): Boolean {
+            if (listEventsHandler == null) return false
+            if (multiSelectHelper.getSelectionCount() != 0) return false
+            if (MotionEventCompat.getActionMasked(event) == MotionEvent.ACTION_DOWN) {
+                listEventsHandler.onStartDrag(this)
+                return true
+            }
+            return false
+        }
     }
 
     @TargetApi(Build.VERSION_CODES.M)
@@ -140,4 +251,55 @@ class AudioAlbumTracksAdapter @JvmOverloads constructor(
         override fun changePlayingVisibility(isCurrent: Boolean) { }
 
     }
+}
+
+@Composable
+private fun AlbumTrackLeadingContent(
+        trackNumberText: String,
+        trackNumberContentDescription: String?,
+        showTrackNumber: Boolean,
+        isCurrent: Boolean,
+        playing: Boolean
+) {
+    Box(
+            modifier = Modifier.size(40.dp),
+            contentAlignment = Alignment.Center
+    ) {
+        when {
+            isCurrent -> AndroidView(
+                    factory = { context ->
+                        MiniVisualizer(context).apply {
+                            setBarColor(UiTools.getColorFromAttribute(context, R.attr.mini_visualizer_color))
+                        }
+                    },
+                    modifier = Modifier.size(32.dp),
+                    update = { visualizer ->
+                        if (playing) visualizer.start() else visualizer.stop()
+                    }
+            )
+            showTrackNumber -> {
+                Text(
+                        text = trackNumberText,
+                        color = VLCThemeDefaults.colors.listTitle,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Normal,
+                        modifier = if (trackNumberContentDescription != null) {
+                            Modifier.semantics { contentDescription = trackNumberContentDescription }
+                        } else {
+                            Modifier
+                        }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AlbumTrackSelectedIcon() {
+    Icon(
+            painter = painterResource(R.drawable.ic_video_grid_check),
+            contentDescription = null,
+            tint = Color.Unspecified,
+            modifier = Modifier.size(24.dp)
+    )
 }
