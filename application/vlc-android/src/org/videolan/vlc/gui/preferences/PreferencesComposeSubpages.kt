@@ -56,20 +56,26 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import org.videolan.tools.KEY_ANDROID_AUTO_QUEUE_INFO_POS_VAL
+import org.videolan.tools.KEY_ALWAYS_FAST_SEEK
 import org.videolan.tools.KEY_CASTING_AUDIO_ONLY
 import org.videolan.tools.KEY_CASTING_PASSTHROUGH
 import org.videolan.tools.KEY_CASTING_QUALITY
-import org.videolan.tools.KEY_ENABLE_REMOTE_ACCESS
 import org.videolan.tools.KEY_ENABLE_CASTING
+import org.videolan.tools.KEY_ENABLE_CLONE_MODE
+import org.videolan.tools.KEY_ENABLE_REMOTE_ACCESS
 import org.videolan.tools.KEY_PLAYBACK_SPEED_AUDIO_GLOBAL
+import org.videolan.tools.KEY_PREFERRED_RESOLUTION
 import org.videolan.tools.KEY_REMOTE_ACCESS_ML_CONTENT
 import org.videolan.tools.KEY_RESTRICT_SETTINGS
 import org.videolan.tools.KEY_SAFE_MODE
+import org.videolan.tools.KEY_VIDEO_MATCH_FRAME_RATE
+import org.videolan.tools.POPUP_FORCE_LEGACY
 import org.videolan.tools.REMOTE_ACCESS_FILE_BROWSER_CONTENT
 import org.videolan.tools.REMOTE_ACCESS_HISTORY_CONTENT
 import org.videolan.tools.REMOTE_ACCESS_LOGS
 import org.videolan.tools.REMOTE_ACCESS_NETWORK_BROWSER_CONTENT
 import org.videolan.tools.REMOTE_ACCESS_PLAYBACK_CONTROL
+import org.videolan.tools.RESTORE_BACKGROUND_VIDEO
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
@@ -86,8 +92,8 @@ private const val KEY_ANDROID_AUTO_SEEK_BUTTONS = "enable_android_auto_seek_butt
 
 /**
  * Compose replacement for the small phone preference XML screens:
- * preferences_casting.xml, preferences_parental_control.xml, preferences_remote_access.xml,
- * and preferences_android_auto.xml.
+ * preferences_video.xml, preferences_casting.xml, preferences_parental_control.xml,
+ * preferences_remote_access.xml, and preferences_android_auto.xml.
  *
  * Those XML files stay parseable by PreferenceParser for search metadata while this screen owns
  * the active phone rendering path.
@@ -106,7 +112,9 @@ internal fun PreferencesComposeSubpageScreen(
         onPlaybackSpeedGlobalChanged: () -> Unit,
         onRemoteAccessStatusClick: () -> Unit,
         onRemoteAccessEnabledChanged: (Boolean) -> Unit,
-        onRemoteAccessNetworkBrowserChanged: () -> Unit
+        onRemoteAccessNetworkBrowserChanged: () -> Unit,
+        onPreferredResolutionChanged: () -> Unit,
+        onPopupForceLegacyChanged: (Boolean) -> Unit
 ) {
     VLCTheme {
         Box(
@@ -120,6 +128,14 @@ internal fun PreferencesComposeSubpageScreen(
                     verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 when (destination) {
+                    PreferencesRootDestination.Video -> item {
+                        VideoPreferencesContent(
+                                settings = settings,
+                                highlightedKey = highlightedKey,
+                                onPreferredResolutionChanged = onPreferredResolutionChanged,
+                                onPopupForceLegacyChanged = onPopupForceLegacyChanged
+                        )
+                    }
                     PreferencesRootDestination.Casting -> item {
                         CastingPreferencesContent(
                                 settings = settings,
@@ -165,6 +181,73 @@ internal fun PreferencesComposeSubpageScreen(
             }
         }
     }
+}
+
+@Composable
+private fun VideoPreferencesContent(
+        settings: SharedPreferences,
+        highlightedKey: String?,
+        onPreferredResolutionChanged: () -> Unit,
+        onPopupForceLegacyChanged: (Boolean) -> Unit
+) {
+    BooleanPreferenceRow(
+            key = KEY_ALWAYS_FAST_SEEK,
+            settings = settings,
+            title = stringResource(R.string.always_fast_seek),
+            summary = stringResource(R.string.always_fast_seek_summary),
+            defaultValue = false,
+            highlighted = highlightedKey == KEY_ALWAYS_FAST_SEEK
+    )
+    BooleanPreferenceRow(
+            key = POPUP_FORCE_LEGACY,
+            settings = settings,
+            title = stringResource(R.string.popup_force_legacy_title),
+            summary = stringResource(R.string.popup_force_legacy_summary),
+            defaultValue = false,
+            highlighted = highlightedKey == POPUP_FORCE_LEGACY,
+            onAfterChange = onPopupForceLegacyChanged
+    )
+    BooleanPreferenceRow(
+            key = RESTORE_BACKGROUND_VIDEO,
+            settings = settings,
+            title = stringResource(R.string.restore_background_video_title),
+            summary = stringResource(R.string.restore_background_video_summary),
+            defaultValue = false,
+            highlighted = highlightedKey == RESTORE_BACKGROUND_VIDEO
+    )
+    BooleanPreferenceRow(
+            key = KEY_VIDEO_MATCH_FRAME_RATE,
+            settings = settings,
+            title = stringResource(R.string.video_match_frame_rate_title),
+            summary = stringResource(R.string.video_match_frame_rate_summary),
+            defaultValue = false,
+            highlighted = highlightedKey == KEY_VIDEO_MATCH_FRAME_RATE
+    )
+    ListPreferenceRow(
+            key = KEY_PREFERRED_RESOLUTION,
+            settings = settings,
+            title = stringResource(R.string.preferred_resolution),
+            defaultValue = "-1",
+            entries = stringArrayResource(R.array.preferred_resolution).toList(),
+            values = stringArrayResource(R.array.preferred_resolution_values).toList(),
+            highlighted = highlightedKey == KEY_PREFERRED_RESOLUTION,
+            summaryFormatRes = R.string.preferred_resolution_summary,
+            onValueChanged = { onPreferredResolutionChanged() }
+    )
+
+    PreferenceCategoryHeader(title = stringResource(R.string.interface_secondary_display_category_title))
+    StaticPreferenceRow(
+            summary = stringResource(R.string.interface_secondary_display_category_summary),
+            highlighted = highlightedKey == "secondary_display_category_summary"
+    )
+    BooleanPreferenceRow(
+            key = KEY_ENABLE_CLONE_MODE,
+            settings = settings,
+            title = stringResource(R.string.enable_clone_mode),
+            summary = stringResource(R.string.enable_clone_mode_summary),
+            defaultValue = false,
+            highlighted = highlightedKey == KEY_ENABLE_CLONE_MODE
+    )
 }
 
 @Composable
@@ -551,6 +634,31 @@ private fun remoteAccessContentSummary(
     val selectedText = if (selectedEntries.isEmpty()) "-" else TextUtils.separatedString(*selectedEntries.toTypedArray())
     val disabledText = if (disabledEntries.isEmpty()) "-" else TextUtils.separatedString(*disabledEntries.toTypedArray())
     return stringResource(R.string.remote_access_medialibrary_content_summary, selectedText, disabledText)
+}
+
+@Composable
+private fun StaticPreferenceRow(
+        summary: String,
+        highlighted: Boolean
+) {
+    Column(
+            modifier = Modifier
+                    .fillMaxWidth()
+                    .background(if (highlighted) VLCThemeDefaults.colors.subtleSelection else VLCThemeDefaults.colors.backgroundDefault)
+                    .padding(top = 10.dp)
+    ) {
+        Box(modifier = Modifier.padding(horizontal = 8.dp)) {
+            PreferenceText(
+                    title = summary,
+                    summary = null,
+                    enabled = true
+            )
+        }
+        HorizontalDivider(
+                color = VLCThemeDefaults.colors.defaultDivider,
+                modifier = Modifier.padding(top = 10.dp)
+        )
+    }
 }
 
 @Composable

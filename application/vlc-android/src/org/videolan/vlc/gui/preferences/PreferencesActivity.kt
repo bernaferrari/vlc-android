@@ -63,6 +63,7 @@ import org.videolan.tools.KEY_MEDIA_LAST_PLAYLIST_RESUME
 import org.videolan.tools.KEY_RESTRICT_SETTINGS
 import org.videolan.tools.KEY_VIDEO_APP_SWITCH
 import org.videolan.tools.PLAYBACK_HISTORY
+import org.videolan.tools.PREF_SHOW_VIDEO_SETTINGS_DISCLAIMER
 import org.videolan.tools.RESULT_RESTART
 import org.videolan.tools.RESULT_RESTART_APP
 import org.videolan.tools.RESULT_UPDATE_ARTISTS
@@ -258,7 +259,7 @@ class PreferencesActivity : BaseActivity() {
     private fun openRootDestination(destination: PreferencesRootDestination) {
         when (destination) {
             PreferencesRootDestination.Ui -> openPreferenceFragment(PreferencesUi())
-            PreferencesRootDestination.Video -> openPreferenceFragment(PreferencesVideo())
+            PreferencesRootDestination.Video -> showPreferenceSubpage(PreferencesRootDestination.Video)
             PreferencesRootDestination.Subtitles -> openPreferenceFragment(PreferencesSubtitles())
             PreferencesRootDestination.Audio -> openPreferenceFragment(PreferencesAudio())
             PreferencesRootDestination.Casting -> showPreferenceSubpage(PreferencesRootDestination.Casting)
@@ -286,7 +287,7 @@ class PreferencesActivity : BaseActivity() {
                 showAudioControlsSettingsComposeDialog()
             }
             R.xml.preferences_ui -> openPreferenceFragment(PreferencesUi().withEndpoint(endPoint))
-            R.xml.preferences_video -> openPreferenceFragment(PreferencesVideo().withEndpoint(endPoint))
+            R.xml.preferences_video -> showPreferenceSubpage(PreferencesRootDestination.Video, endPoint.key)
             R.xml.preferences_subtitles -> openPreferenceFragment(PreferencesSubtitles().withEndpoint(endPoint))
             R.xml.preferences_audio -> openPreferenceFragment(PreferencesAudio().withEndpoint(endPoint))
             R.xml.preferences_adv -> openPreferenceFragment(PreferencesAdvanced().withEndpoint(endPoint))
@@ -308,6 +309,7 @@ class PreferencesActivity : BaseActivity() {
         activeComposeDestination = destination
         activeComposeHighlight = highlightedKey
         supportActionBar?.title = getString(destination.titleRes())
+        if (destination == PreferencesRootDestination.Video) showVideoSettingsDisclaimerIfNeeded()
         if (destination == PreferencesRootDestination.RemoteAccess) showRemoteAccessOnboardingIfNeeded()
         supportFragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
         findViewById<ViewGroup>(R.id.fragment_placeholder).apply {
@@ -333,7 +335,9 @@ class PreferencesActivity : BaseActivity() {
                             onPlaybackSpeedGlobalChanged = ::onPlaybackSpeedGlobalChanged,
                             onRemoteAccessStatusClick = ::openRemoteAccessStatus,
                             onRemoteAccessEnabledChanged = ::onRemoteAccessEnabledChanged,
-                            onRemoteAccessNetworkBrowserChanged = ::restartRemoteAccessServer
+                            onRemoteAccessNetworkBrowserChanged = ::restartRemoteAccessServer,
+                            onPreferredResolutionChanged = ::restartMediaPipeline,
+                            onPopupForceLegacyChanged = ::onPopupForceLegacyChanged
                         )
                     }
                 }
@@ -410,6 +414,10 @@ class PreferencesActivity : BaseActivity() {
     }
 
     private fun restartCastingPipeline() {
+        restartMediaPipeline()
+    }
+
+    private fun restartMediaPipeline() {
         lifecycleScope.launch {
             VLCInstance.restart()
             restartMediaPlayer()
@@ -427,6 +435,20 @@ class PreferencesActivity : BaseActivity() {
             }
         }
         PlaybackService.updateState()
+    }
+
+    private fun showVideoSettingsDisclaimerIfNeeded() {
+        val settings = Settings.getInstance(this)
+        if (settings.getBoolean(PREF_SHOW_VIDEO_SETTINGS_DISCLAIMER, false)) {
+            UiTools.snackerConfirm(this, getString(R.string.video_settings_disclaimer), indefinite = true) {
+                settings.edit().putBoolean(PREF_SHOW_VIDEO_SETTINGS_DISCLAIMER, false).apply()
+            }
+        }
+    }
+
+    private fun onPopupForceLegacyChanged(forceLegacy: Boolean) {
+        if (forceLegacy && !Permissions.canDrawOverlays(this)) Permissions.checkDrawOverlaysPermission(this)
+        if (!forceLegacy && !Permissions.isPiPAllowed(this)) Permissions.checkPiPPermission(this)
     }
 
     private fun showRemoteAccessOnboardingIfNeeded() {
