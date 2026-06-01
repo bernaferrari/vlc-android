@@ -26,62 +26,65 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
-import android.os.Bundle
 import android.util.Log
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.WorkerThread
 import androidx.appcompat.app.AlertDialog
 import androidx.documentfile.provider.DocumentFile
 import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import org.videolan.medialibrary.MLServiceLocator
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.vlc.R
 
-const val SAF_REQUEST = 85
 const val TAG = "OtgAccess"
 
 const val OTG_SCHEME = "otg"
 
-@TargetApi(Build.VERSION_CODES.LOLLIPOP)
-class OtgAccess : BaseHeadlessFragment() {
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        if (savedInstanceState == null) {
-            AlertDialog.Builder(requireActivity())
-                    .setTitle(resources.getString(R.string.allow_otg))
-                    .setMessage(resources.getString(R.string.allow_otg_description))
-
-                    .setPositiveButton(R.string.ok) { _, _ ->
-                        val safIntent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
-                        try {
-                            startActivityForResult(safIntent, SAF_REQUEST)
-                        } catch (e: ActivityNotFoundException) {
-                            exit()
-                        }
-                    }
-
-                    .setOnCancelListener {
-                        exit()
-                    }
-                    .show()
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
-        if (intent != null && requestCode == SAF_REQUEST) otgRoot.value = intent.data
-        else super.onActivityResult(requestCode, resultCode, intent)
-        exit()
-    }
-
-    companion object {
-        val otgRoot = MutableStateFlow<Uri?>(null)
-    }
+object OtgAccess {
+    val otgRoot = MutableStateFlow<Uri?>(null)
 }
 
+@TargetApi(Build.VERSION_CODES.LOLLIPOP)
 fun FragmentActivity.requestOtgRoot() {
-    supportFragmentManager.beginTransaction().add(OtgAccess(), TAG).commitAllowingStateLoss()
+    lifecycleScope.launch(Dispatchers.Main.immediate) {
+        val resultKey = "$TAG:${System.nanoTime()}"
+        var launcher: ActivityResultLauncher<Intent>? = null
+        lateinit var lifecycleObserver: LifecycleEventObserver
+        fun unregister() {
+            launcher?.unregister()
+            launcher = null
+            lifecycle.removeObserver(lifecycleObserver)
+        }
+        lifecycleObserver = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_DESTROY) unregister()
+        }
+        lifecycle.addObserver(lifecycleObserver)
+        launcher = activityResultRegistry.register(resultKey, ActivityResultContracts.StartActivityForResult()) { result ->
+            result.data?.data?.let { OtgAccess.otgRoot.value = it }
+            unregister()
+        }
+        AlertDialog.Builder(this@requestOtgRoot)
+            .setTitle(resources.getString(R.string.allow_otg))
+            .setMessage(resources.getString(R.string.allow_otg_description))
+            .setPositiveButton(R.string.ok) { _, _ ->
+                try {
+                    launcher?.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE))
+                } catch (_: ActivityNotFoundException) {
+                    unregister()
+                }
+            }
+            .setOnCancelListener {
+                unregister()
+            }
+            .show()
+    }
 }
 
 @WorkerThread

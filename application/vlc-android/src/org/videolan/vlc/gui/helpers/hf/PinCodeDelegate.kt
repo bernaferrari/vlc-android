@@ -1,53 +1,51 @@
 package org.videolan.vlc.gui.helpers.hf
 
-import android.annotation.TargetApi
 import android.app.Activity
-import android.os.Build
-import android.os.Bundle
+import android.content.Intent
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import org.videolan.tools.Settings
 import org.videolan.vlc.gui.DialogActivity
 import org.videolan.vlc.gui.PinCodeActivity
 import org.videolan.vlc.gui.PinCodeReason
 import org.videolan.vlc.gui.video.VideoPlayerActivity
+import kotlin.coroutines.resume
 
-private const val UNLOCK = "unlock"
-class PinCodeDelegate : BaseHeadlessFragment() {
-    private var unlock: Boolean = false
-    var pinCodeResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-       model.complete(result.resultCode == Activity.RESULT_OK)
-        if (result.resultCode == Activity.RESULT_OK && unlock) pinUnlocked.postValue(true)
-        exit()
-        (activity as? DialogActivity)?.finish()
-    }
-
-    @TargetApi(Build.VERSION_CODES.O)
-    override fun onCreate(savedInstanceState: Bundle?) {
-        unlock = arguments?.getBoolean(UNLOCK, false) == true
-        super.onCreate(savedInstanceState)
-        val intent = PinCodeActivity.getIntent(requireActivity(), PinCodeReason.UNLOCK)
-        pinCodeResult.launch(intent)
-    }
-
-    companion object {
-        internal const val TAG = "VLC/PinCode"
-        val pinUnlocked = MutableLiveData(false)
-    }
+object PinCodeDelegate {
+    internal const val TAG = "VLC/PinCode"
+    val pinUnlocked = MutableLiveData(false)
 }
 
-suspend fun FragmentActivity.checkPIN(unlock:Boolean = false) : Boolean {
-    if (this is VideoPlayerActivity) this.waitingForPin = true
-    if (!Settings.safeMode) return true
-    val model : PermissionViewmodel by viewModels()
-    val fragment = PinCodeDelegate().apply {
-        arguments = Bundle().apply { putBoolean(UNLOCK, unlock) }
+suspend fun FragmentActivity.checkPIN(unlock:Boolean = false) : Boolean = withContext(Dispatchers.Main.immediate) {
+    if (this@checkPIN is VideoPlayerActivity) this@checkPIN.waitingForPin = true
+    if (!Settings.safeMode) return@withContext true
+    suspendCancellableCoroutine { continuation ->
+        if (this@checkPIN is DialogActivity) this@checkPIN.preventFinish()
+        val resultKey = "${PinCodeDelegate.TAG}:${System.nanoTime()}"
+        var pinCodeResult: ActivityResultLauncher<Intent>? = null
+        fun unregister() {
+            pinCodeResult?.unregister()
+            pinCodeResult = null
+        }
+        pinCodeResult = activityResultRegistry.register(resultKey, ActivityResultContracts.StartActivityForResult()) { result ->
+            val granted = result.resultCode == Activity.RESULT_OK
+            if (granted && unlock) PinCodeDelegate.pinUnlocked.postValue(true)
+            if (continuation.isActive) continuation.resume(granted)
+            unregister()
+            (this@checkPIN as? DialogActivity)?.finish()
+        }
+        continuation.invokeOnCancellation { unregister() }
+        try {
+            pinCodeResult?.launch(PinCodeActivity.getIntent(this@checkPIN, PinCodeReason.UNLOCK))
+        } catch (_: RuntimeException) {
+            unregister()
+            (this@checkPIN as? DialogActivity)?.finish()
+            if (continuation.isActive) continuation.resume(false)
+        }
     }
-    model.setupDeferred()
-    supportFragmentManager.beginTransaction().add(fragment, PinCodeDelegate.TAG).commitAllowingStateLoss()
-    if (this is DialogActivity) this.preventFinish()
-    return model.deferredGrant.await()
 }
-
