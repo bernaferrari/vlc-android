@@ -8,8 +8,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.appcompat.widget.ViewStubCompat
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.window.layout.FoldingFeature
 import kotlinx.coroutines.delay
@@ -67,7 +67,7 @@ private const val ID_SAFE_MODE_LOCK = 21L
 private const val ID_SAFE_MODE_UNLOCK = 22L
 private const val ID_SHARE = 23L
 @SuppressLint("ShowToast")
-class PlayerOptionsDelegate(val activity: FragmentActivity, val service: PlaybackService, private val showABReapeat:Boolean = true)  {
+class PlayerOptionsDelegate(val activity: ComponentActivity, val service: PlaybackService, private val showABReapeat:Boolean = true)  {
 
     private lateinit var bookmarkClickedListener: () -> Unit
     private lateinit var rootView: PlayerOptionsPanelView

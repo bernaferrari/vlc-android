@@ -2,9 +2,9 @@ package org.videolan.vlc.gui.helpers.hf
 
 import android.app.Activity
 import android.content.Intent
+import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -21,7 +21,7 @@ object PinCodeDelegate {
     val pinUnlocked = MutableLiveData(false)
 }
 
-suspend fun FragmentActivity.checkPIN(unlock:Boolean = false) : Boolean = withContext(Dispatchers.Main.immediate) {
+suspend fun ComponentActivity.checkPIN(unlock:Boolean = false) : Boolean = withContext(Dispatchers.Main.immediate) {
     if (this@checkPIN is VideoPlayerActivity) this@checkPIN.waitingForPin = true
     if (!Settings.safeMode) return@withContext true
     suspendCancellableCoroutine { continuation ->

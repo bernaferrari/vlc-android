@@ -53,6 +53,7 @@ import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.ComponentActivity
 import androidx.annotation.IdRes
 import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
@@ -468,7 +469,7 @@ object UiTools {
         }
     }
 
-    fun FragmentActivity.addToPlaylistAsync(parent: String, includeSubfolders: Boolean = false, defaultTitle:String = "") {
+    fun ComponentActivity.addToPlaylistAsync(parent: String, includeSubfolders: Boolean = false, defaultTitle:String = "") {
         if (!isStarted()) return
         showSavePlaylistComposeDialog(
             folder = parent,
@@ -477,11 +478,11 @@ object UiTools {
         )
     }
 
-    fun FragmentActivity.addToPlaylist(list: List<MediaWrapper>) {
+    fun ComponentActivity.addToPlaylist(list: List<MediaWrapper>) {
         addToPlaylist(list.toTypedArray(), SavePlaylistDialog.KEY_NEW_TRACKS)
     }
 
-    fun FragmentActivity.addToPlaylist(tracks: Array<MediaWrapper>, _key: String) {
+    fun ComponentActivity.addToPlaylist(tracks: Array<MediaWrapper>, _key: String) {
         if (!isStarted()) return
         showSavePlaylistComposeDialog(tracks = tracks)
     }
@@ -491,7 +492,7 @@ object UiTools {
      *
      * @return has the access been blocked
      */
-    fun FragmentActivity.showPinIfNeeded():Boolean {
+    fun ComponentActivity.showPinIfNeeded():Boolean {
         if (Settings.safeMode && PinCodeDelegate.pinUnlocked.value != true) {
             if (Settings.tvUI) {
                 lifecycleScope.launch {

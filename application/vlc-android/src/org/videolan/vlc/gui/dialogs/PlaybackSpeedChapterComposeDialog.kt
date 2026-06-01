@@ -46,8 +46,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.activity.ComponentActivity
 import androidx.core.content.edit
-import androidx.fragment.app.FragmentActivity
 import org.videolan.medialibrary.Tools
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.tools.KEY_INCOGNITO
@@ -68,16 +68,16 @@ import org.videolan.vlc.util.isSchemeStreaming
 import kotlin.math.ln
 import kotlin.math.pow
 
-fun FragmentActivity.showPlaybackSpeedComposeDialog(onDismiss: (() -> Unit)? = null) {
+fun ComponentActivity.showPlaybackSpeedComposeDialog(onDismiss: (() -> Unit)? = null) {
     PlaybackSpeedComposeDialog(this, onDismiss).show()
 }
 
-fun FragmentActivity.showSelectChapterComposeDialog(onDismiss: (() -> Unit)? = null) {
+fun ComponentActivity.showSelectChapterComposeDialog(onDismiss: (() -> Unit)? = null) {
     SelectChapterComposeDialog(this, onDismiss).show()
 }
 
 private class PlaybackSpeedComposeDialog(
-    activity: FragmentActivity,
+    activity: ComponentActivity,
     onDismiss: (() -> Unit)? = null
 ) : PlaybackComposeBottomSheetDialog(activity = activity, onDismiss = onDismiss) {
     private val settings: SharedPreferences = Settings.getInstance(activity)
@@ -292,7 +292,7 @@ private class PlaybackSpeedComposeDialog(
 }
 
 private class SelectChapterComposeDialog(
-    activity: FragmentActivity,
+    activity: ComponentActivity,
     onDismiss: (() -> Unit)? = null
 ) : PlaybackComposeBottomSheetDialog(activity = activity, onDismiss = onDismiss) {
     private var chapters by mutableStateOf<List<ChapterItem>>(emptyList())

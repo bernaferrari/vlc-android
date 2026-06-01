@@ -1,19 +1,16 @@
 package org.videolan.vlc.gui.dialogs
 
-import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
 import android.widget.FrameLayout
+import androidx.activity.ComponentActivity
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.core.os.bundleOf
-import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.setFragmentResult
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import org.videolan.resources.AndroidDevices
@@ -35,21 +32,21 @@ object DuplicationWarningResult {
 /**
  * Compose-hosted duplicate playlist warning bottom sheet.
  */
-fun FragmentActivity.showDuplicationWarningComposeDialog(
+fun ComponentActivity.showDuplicationWarningComposeDialog(
     shouldShowThreeOptions: Boolean,
     playlistTitles: List<String>,
     duplicationMessages: List<String>,
-    onOptionSelected: ((Int) -> Unit)? = null
+    onOptionSelected: (Int) -> Unit
 ) {
     DuplicationWarningComposeDialog(this, shouldShowThreeOptions, playlistTitles, duplicationMessages, onOptionSelected).show()
 }
 
 private class DuplicationWarningComposeDialog(
-    private val activity: FragmentActivity,
+    private val activity: ComponentActivity,
     private val shouldShowThreeOptions: Boolean,
     private val playlistTitles: List<String>,
     private val duplicationMessages: List<String>,
-    private val onOptionSelected: ((Int) -> Unit)?
+    private val onOptionSelected: (Int) -> Unit
 ) {
     private val dialog = if (Settings.showTvUi) {
         BottomSheetDialog(activity, R.style.Theme_VLC_Black_BottomSheet)
@@ -107,10 +104,7 @@ private class DuplicationWarningComposeDialog(
     }
 
     private fun publishResultAndDismiss(option: Int) {
-        onOptionSelected?.invoke(option) ?: run {
-            val bundle: Bundle = bundleOf(DuplicationWarningResult.OPTION_KEY to option)
-            activity.supportFragmentManager.setFragmentResult(DuplicationWarningResult.REQUEST_KEY, bundle)
-        }
+        onOptionSelected(option)
         dialog.dismiss()
     }
 

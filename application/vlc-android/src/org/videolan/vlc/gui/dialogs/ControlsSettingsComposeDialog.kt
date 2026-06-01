@@ -5,6 +5,7 @@ import android.os.Build
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,7 +40,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.getSystemService
-import androidx.fragment.app.FragmentActivity
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import org.videolan.libvlc.util.AndroidUtil
@@ -83,12 +83,12 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
 import org.videolan.vlc.gui.video.VideoPlayerActivity
 
-fun FragmentActivity.showAudioControlsSettingsComposeDialog() {
+fun ComponentActivity.showAudioControlsSettingsComposeDialog() {
     if (showPinIfNeeded()) return
     ControlsSettingsComposeDialog(this, ControlsSettingsMode.Audio).show()
 }
 
-fun FragmentActivity.showVideoControlsSettingsComposeDialog() {
+fun ComponentActivity.showVideoControlsSettingsComposeDialog() {
     if (showPinIfNeeded()) return
     ControlsSettingsComposeDialog(this, ControlsSettingsMode.Video).show()
 }
@@ -101,7 +101,7 @@ private enum class ControlsSettingsMode {
 private data class ListOption(val value: String, val label: String)
 
 private class ControlsSettingsComposeDialog(
-    private val activity: FragmentActivity,
+    private val activity: ComponentActivity,
     private val mode: ControlsSettingsMode
 ) {
     private val settings = Settings.getInstance(activity)

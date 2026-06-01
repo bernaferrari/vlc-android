@@ -4,6 +4,7 @@ import android.content.Intent
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
 import android.widget.FrameLayout
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,7 +20,6 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -56,7 +56,7 @@ import kotlin.math.roundToInt
  * This replaces EqualizerFragmentDialog without changing the player option
  * entry points or EqualizerViewModel behavior.
  */
-fun FragmentActivity.showEqualizerComposeDialog(
+fun ComponentActivity.showEqualizerComposeDialog(
     warnBeforeSettings: Boolean = false,
     onDismiss: (() -> Unit)? = null
 ) {
@@ -64,7 +64,7 @@ fun FragmentActivity.showEqualizerComposeDialog(
 }
 
 private class EqualizerComposeDialog(
-    private val activity: FragmentActivity,
+    private val activity: ComponentActivity,
     private val warnBeforeSettings: Boolean,
     private val onDismiss: (() -> Unit)?
 ) {

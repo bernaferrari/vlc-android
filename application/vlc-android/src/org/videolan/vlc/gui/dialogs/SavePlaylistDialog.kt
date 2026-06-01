@@ -69,7 +69,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.FragmentActivity
+import androidx.activity.ComponentActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -114,7 +114,7 @@ object SavePlaylistDialog {
 
 private var isSavePlaylistComposeDialogShowing = false
 
-fun FragmentActivity.showSavePlaylistComposeDialog(
+fun ComponentActivity.showSavePlaylistComposeDialog(
     tracks: Array<MediaWrapper>? = null,
     folder: String? = null,
     includeSubfolders: Boolean = false,
@@ -139,7 +139,7 @@ fun FragmentActivity.showSavePlaylistComposeDialog(
 }
 
 private class SavePlaylistComposeDialog(
-    private val activity: FragmentActivity,
+    private val activity: ComponentActivity,
     private val initialTracks: Array<MediaWrapper>?,
     private val folder: String?,
     private val includeSubfolders: Boolean,

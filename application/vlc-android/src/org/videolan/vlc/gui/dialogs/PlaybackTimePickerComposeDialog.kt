@@ -40,8 +40,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.activity.ComponentActivity
 import androidx.core.content.edit
-import androidx.fragment.app.FragmentActivity
 import org.videolan.tools.SLEEP_TIMER_DEFAULT_INTERVAL
 import org.videolan.tools.SLEEP_TIMER_DEFAULT_RESET_INTERACTION
 import org.videolan.tools.SLEEP_TIMER_DEFAULT_WAIT
@@ -55,7 +55,7 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.helpers.TalkbackUtil
 import java.util.Calendar
 
-fun FragmentActivity.showJumpToTimeComposeDialog(onDismiss: (() -> Unit)? = null) {
+fun ComponentActivity.showJumpToTimeComposeDialog(onDismiss: (() -> Unit)? = null) {
     PlaybackTimePickerComposeDialog(
         activity = this,
         mode = TimePickerMode.JumpToTime,
@@ -63,7 +63,7 @@ fun FragmentActivity.showJumpToTimeComposeDialog(onDismiss: (() -> Unit)? = null
     ).show()
 }
 
-fun FragmentActivity.showSleepTimerComposeDialog(
+fun ComponentActivity.showSleepTimerComposeDialog(
     forDefault: Boolean = false,
     onDismiss: (() -> Unit)? = null
 ) {
@@ -81,7 +81,7 @@ private enum class TimePickerMode {
 }
 
 private class PlaybackTimePickerComposeDialog(
-    activity: FragmentActivity,
+    activity: ComponentActivity,
     private val mode: TimePickerMode,
     private val forDefault: Boolean = false,
     onDismiss: (() -> Unit)? = null

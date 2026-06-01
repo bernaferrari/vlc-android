@@ -6,10 +6,10 @@ import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
 import android.view.inputmethod.BaseInputConnection
 import android.widget.FrameLayout
+import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -25,7 +25,7 @@ import org.videolan.vlc.gui.video.VideoPlayerActivity.Companion.videoRemoteFlow
 import org.videolan.vlc.util.EmptyPBSCallback
 
 internal abstract class PlaybackComposeBottomSheetDialog(
-    protected val activity: FragmentActivity,
+    protected val activity: ComponentActivity,
     private val onDismiss: (() -> Unit)? = null,
     private val dismissOnServiceEnded: Boolean = true,
     private val dismissOnPlaybackEnded: Boolean = true,
