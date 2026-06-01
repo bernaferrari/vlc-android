@@ -84,7 +84,6 @@ import org.videolan.vlc.gui.helpers.getAudioIconDrawable
 import org.videolan.vlc.gui.helpers.loadImage
 import org.videolan.vlc.gui.view.FadableImageView
 import org.videolan.vlc.gui.view.FastScroller
-import org.videolan.vlc.gui.view.MiniVisualizer
 import org.videolan.vlc.interfaces.IEventsHandler
 import org.videolan.vlc.interfaces.IListEventsHandler
 import org.videolan.vlc.interfaces.SwipeDragHelperAdapter
@@ -116,7 +115,6 @@ open class AudioBrowserAdapter @JvmOverloads constructor(
     private var scheduler: LifecycleAwareScheduler? = null
     var stopReorder = false
     var areSectionsEnabled = true
-    private var currentPlayingVisu: MiniVisualizer? = null
     private var model: PlaylistModel? = null
 
     var currentMedia:MediaWrapper? = null
@@ -178,12 +176,10 @@ open class AudioBrowserAdapter @JvmOverloads constructor(
     override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
         scheduler?.cancelAction("")
         currentMedia = null
-        currentPlayingVisu = null
         super.onDetachedFromRecyclerView(recyclerView)
     }
 
-    fun setCurrentlyPlaying(playing: Boolean) {
-        if (playing) currentPlayingVisu?.start() else currentPlayingVisu?.stop()
+    fun setCurrentlyPlaying(@Suppress("UNUSED_PARAMETER") playing: Boolean) {
         currentMedia?.let { media ->
             currentList?.indexOf(media)?.takeIf { it >= 0 }?.let { notifyItemChanged(it) }
         }
@@ -207,7 +203,6 @@ open class AudioBrowserAdapter @JvmOverloads constructor(
             isCurrent = isCurrent,
             playing = model?.playing != false
         )
-        if (isCurrent) currentPlayingVisu = holder.getMiniVisu()
         if (position == focusNext) {
             holder.itemView.requestFocus()
             focusNext = -1
@@ -463,8 +458,6 @@ open class AudioBrowserAdapter @JvmOverloads constructor(
         }
 
         open fun selectView(selected: Boolean) = Unit
-
-        open fun getMiniVisu(): MiniVisualizer? = null
 
         open fun recycle() = Unit
         open fun changePlayingVisibility(isCurrent: Boolean) = Unit

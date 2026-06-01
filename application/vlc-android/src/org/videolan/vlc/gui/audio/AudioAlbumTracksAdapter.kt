@@ -25,22 +25,34 @@ package org.videolan.vlc.gui.audio
 
 import android.view.MotionEvent
 import android.view.ViewGroup
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.MotionEventCompat
 import androidx.paging.PagedList
 import androidx.recyclerview.widget.RecyclerView
@@ -52,7 +64,6 @@ import org.videolan.vlc.compose.components.VLCBrowserItemRow
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.helpers.TalkbackUtil
 import org.videolan.vlc.gui.helpers.UiTools
-import org.videolan.vlc.gui.view.MiniVisualizer
 import org.videolan.vlc.interfaces.IEventsHandler
 import org.videolan.vlc.interfaces.IListEventsHandler
 import org.videolan.vlc.media.MediaUtils
@@ -195,17 +206,7 @@ private fun AlbumTrackLeadingContent(
             contentAlignment = Alignment.Center
     ) {
         when {
-            isCurrent -> AndroidView(
-                    factory = { context ->
-                        MiniVisualizer(context).apply {
-                            setBarColor(UiTools.getColorFromAttribute(context, R.attr.mini_visualizer_color))
-                        }
-                    },
-                    modifier = Modifier.size(32.dp),
-                    update = { visualizer ->
-                        if (playing) visualizer.start() else visualizer.stop()
-                    }
-            )
+            isCurrent -> AlbumTrackPlayingBars(playing = playing)
             showTrackNumber -> {
                 Text(
                         text = trackNumberText,
@@ -219,6 +220,60 @@ private fun AlbumTrackLeadingContent(
                         }
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun AlbumTrackPlayingBars(playing: Boolean) {
+    val context = LocalContext.current
+    val barColor = Color(UiTools.getColorFromAttribute(context, R.attr.mini_visualizer_color))
+    val heights = if (playing) {
+        val transition = rememberInfiniteTransition(label = "albumTrackPlayingBars")
+        val first by transition.animateFloat(
+                initialValue = 6F,
+                targetValue = 24F,
+                animationSpec = infiniteRepeatable(
+                        animation = tween(durationMillis = 420, easing = LinearEasing),
+                        repeatMode = RepeatMode.Reverse
+                ),
+                label = "albumTrackPlayingBars1"
+        )
+        val second by transition.animateFloat(
+                initialValue = 24F,
+                targetValue = 7F,
+                animationSpec = infiniteRepeatable(
+                        animation = tween(durationMillis = 520, easing = LinearEasing),
+                        repeatMode = RepeatMode.Reverse
+                ),
+                label = "albumTrackPlayingBars2"
+        )
+        val third by transition.animateFloat(
+                initialValue = 10F,
+                targetValue = 28F,
+                animationSpec = infiniteRepeatable(
+                        animation = tween(durationMillis = 460, easing = LinearEasing),
+                        repeatMode = RepeatMode.Reverse
+                ),
+                label = "albumTrackPlayingBars3"
+        )
+        listOf(first.dp, second.dp, third.dp)
+    } else {
+        listOf(4.dp, 4.dp, 4.dp)
+    }
+
+    Row(
+            modifier = Modifier.size(32.dp),
+            horizontalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterHorizontally),
+            verticalAlignment = Alignment.Bottom
+    ) {
+        heights.forEach { height ->
+            Box(
+                    modifier = Modifier
+                            .width(4.dp)
+                            .height(height)
+                            .background(barColor)
+            )
         }
     }
 }
