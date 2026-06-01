@@ -86,7 +86,6 @@ import org.videolan.tools.putSingle
 import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
-import org.videolan.vlc.gui.browser.BaseBrowserFragment
 import org.videolan.vlc.gui.video.VideoPlayerActivity
 import org.videolan.vlc.util.FileUtils
 import org.videolan.vlc.util.awaitMedialibraryStarted
@@ -683,7 +682,6 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
         val canSwitchToVideo = player.canSwitchToVideo()
         launch(Dispatchers.IO) innerLaunch@ {
             val media = if (entryUrl != null) medialibrary.getMedia(entryUrl) else medialibrary.findMedia(currentMedia) ?: return@innerLaunch
-            if (showAudioPlayer.value != true) BaseBrowserFragment.needRefresh.postValue(true)
             if (media.id == 0L) return@innerLaunch
             if (titleIdx > 0) media.setLongMeta(MediaWrapper.META_TITLE, titleIdx.toLong())
             //checks if the [MediaPlayer] has not been reset in the meantime to prevent saving 0

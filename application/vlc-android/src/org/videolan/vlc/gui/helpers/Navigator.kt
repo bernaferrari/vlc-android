@@ -33,7 +33,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.google.android.material.appbar.AppBarLayout
@@ -47,7 +46,6 @@ import org.videolan.resources.ID_DIRECTORIES
 import org.videolan.resources.ID_VIDEO
 import org.videolan.resources.util.parcelableList
 import org.videolan.tools.KEY_FRAGMENT_ID
-import org.videolan.tools.isStarted
 import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.BuildConfig
@@ -57,7 +55,6 @@ import org.videolan.vlc.gui.MainActivity
 import org.videolan.vlc.gui.MoreScreenController
 import org.videolan.vlc.gui.PlaylistScreenController
 import org.videolan.vlc.gui.audio.AudioScreenController
-import org.videolan.vlc.gui.browser.BaseBrowserFragment
 import org.videolan.vlc.gui.browser.MainBrowserScreenController
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.gui.helpers.UiTools.isTablet
@@ -130,7 +127,6 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
 
     private fun showFragment(fragment: Fragment, id: Int, tag: String = getTag(id)) {
         val fm = activity.supportFragmentManager
-        if (currentFragment is BaseBrowserFragment) fm.popBackStackImmediate("root", FragmentManager.POP_BACK_STACK_INCLUSIVE)
         clearComposeScreenIfNeeded()
         val ft = fm.beginTransaction()
         ft.replace(R.id.fragment_placeholder, fragment, tag)
@@ -150,8 +146,6 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
     }
 
     private fun showMoreScreen() {
-        val fm = activity.supportFragmentManager
-        if (currentFragment is BaseBrowserFragment) fm.popBackStackImmediate("root", FragmentManager.POP_BACK_STACK_INCLUSIVE)
         clearComposeScreenIfNeeded()
         clearCurrentFragmentNow()
 
@@ -177,8 +171,6 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
     }
 
     private fun showMainBrowserScreen() {
-        val fm = activity.supportFragmentManager
-        if (currentFragment is BaseBrowserFragment) fm.popBackStackImmediate("root", FragmentManager.POP_BACK_STACK_INCLUSIVE)
         clearComposeScreenIfNeeded()
         clearCurrentFragmentNow()
 
@@ -204,8 +196,6 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
     }
 
     private fun showPlaylistScreen() {
-        val fm = activity.supportFragmentManager
-        if (currentFragment is BaseBrowserFragment) fm.popBackStackImmediate("root", FragmentManager.POP_BACK_STACK_INCLUSIVE)
         clearComposeScreenIfNeeded()
         clearCurrentFragmentNow()
 
@@ -231,8 +221,6 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
     }
 
     private fun showVideoScreen() {
-        val fm = activity.supportFragmentManager
-        if (currentFragment is BaseBrowserFragment) fm.popBackStackImmediate("root", FragmentManager.POP_BACK_STACK_INCLUSIVE)
         clearComposeScreenIfNeeded()
         clearCurrentFragmentNow()
 
@@ -258,8 +246,6 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
     }
 
     private fun showAudioScreen() {
-        val fm = activity.supportFragmentManager
-        if (currentFragment is BaseBrowserFragment) fm.popBackStackImmediate("root", FragmentManager.POP_BACK_STACK_INCLUSIVE)
         clearComposeScreenIfNeeded()
         clearCurrentFragmentNow()
 
@@ -334,12 +320,7 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
         if (current is BaseFragment && current.actionMode != null) current.stopActionMode()
 
         if (currentFragmentId == id) { /* Already selected */
-            // Go back at root level of current mProvider
-            if ((current as? BaseBrowserFragment)?.isStarted() == false) {
-                activity.supportFragmentManager.popBackStackImmediate("root", FragmentManager.POP_BACK_STACK_INCLUSIVE)
-            } else {
-                return false
-            }
+            return false
         } else {
             activity.slideDownAudioPlayer()
             showScreen(id)

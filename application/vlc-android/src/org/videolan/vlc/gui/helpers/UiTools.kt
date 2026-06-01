@@ -141,7 +141,6 @@ import org.videolan.vlc.StartActivity
 import org.videolan.vlc.VlcMigrationHelper
 import org.videolan.vlc.gui.BaseActivity
 import org.videolan.vlc.gui.InfoActivity
-import org.videolan.vlc.gui.browser.MediaBrowserFragment
 import org.videolan.vlc.gui.dialogs.SavePlaylistDialog
 import org.videolan.vlc.gui.dialogs.VideoTracksDialog
 import org.videolan.vlc.gui.dialogs.showAddToGroupComposeDialog
@@ -666,23 +665,6 @@ object UiTools {
         menu.appendSortOrder(provider.context, R.id.ml_menu_sortby_date, R.string.sortby_date_release, sort == Medialibrary.SORT_RELEASEDATE, desc)
         menu.appendSortOrder(provider.context,R.id.ml_menu_sortby_last_modified, R.string.sortby_date_last_modified, sort == Medialibrary.SORT_LASTMODIFICATIONDATE, desc)
         menu.appendSortOrder(provider.context,R.id.ml_menu_sortby_insertion_date, R.string.sortby_date_insertion, sort == Medialibrary.SORT_INSERTIONDATE, desc)
-        //        item = menu.findItem(R.id.ml_menu_sortby_number); TODO sort by track number
-        //        if (item != null) item.setTitle(sort == Medialibrary.SORT_ && !desc ? R.string.sortby_number_desc : R.string.sortby_number);
-
-    }
-
-    fun updateSortTitles(sortable: MediaBrowserFragment<*>) {
-        val menu = sortable.menu ?: return
-        val model = sortable.viewModel
-        val sort = model.sort
-        val desc = model.desc
-        menu.appendSortOrder(sortable.requireActivity(), R.id.ml_menu_sortby_name, R.string.sortby_name, sort == Medialibrary.SORT_ALPHA, desc)
-        menu.appendSortOrder(sortable.requireActivity(), R.id.ml_menu_sortby_filename, R.string.sortby_filename, (sort == Medialibrary.SORT_FILENAME || sort == Medialibrary.SORT_DEFAULT), desc)
-        menu.appendSortOrder(sortable.requireActivity(), R.id.ml_menu_sortby_artist_name, R.string.sortby_artist_name, sort == Medialibrary.SORT_ARTIST, desc)
-        menu.appendSortOrder(sortable.requireActivity(), R.id.ml_menu_sortby_album_name, R.string.sortby_album_name, sort == Medialibrary.SORT_ALBUM, desc)
-        menu.appendSortOrder(sortable.requireActivity(), R.id.ml_menu_sortby_length, R.string.sortby_length, sort == Medialibrary.SORT_DURATION, desc)
-        menu.appendSortOrder(sortable.requireActivity(), R.id.ml_menu_sortby_date, R.string.sortby_date_release, sort == Medialibrary.SORT_RELEASEDATE, desc)
-        menu.appendSortOrder(sortable.requireActivity(),R.id.ml_menu_sortby_last_modified, R.string.sortby_date_last_modified, sort == Medialibrary.SORT_RELEASEDATE, desc)
         //        item = menu.findItem(R.id.ml_menu_sortby_number); TODO sort by track number
         //        if (item != null) item.setTitle(sort == Medialibrary.SORT_ && !desc ? R.string.sortby_number_desc : R.string.sortby_number);
 

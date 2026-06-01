@@ -23,7 +23,6 @@ package org.videolan.vlc.viewmodels.browser
 import android.content.Context
 import androidx.annotation.MainThread
 import androidx.core.content.edit
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -188,8 +187,3 @@ open class BrowserModel(
         }
     }
 }
-
-fun Fragment.getBrowserModel(category: Long, url: String?, showDummyCategory: Boolean = false, mocked: ArrayList<MediaLibraryItem>? = null) = if (category == TYPE_NETWORK)
-    ViewModelProvider(this, NetworkModel.Factory(requireContext(), url, mocked))[NetworkModel::class.java]
-else
-    ViewModelProvider(this, BrowserModel.Factory(requireContext(), url, category, showDummyCategory = showDummyCategory))[BrowserModel::class.java]
