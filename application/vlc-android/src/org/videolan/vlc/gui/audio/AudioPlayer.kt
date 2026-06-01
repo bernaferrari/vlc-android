@@ -104,6 +104,7 @@ import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.components.VLCAudioAbRepeatMarker
 import org.videolan.vlc.compose.components.VLCAudioHeaderActionButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderPlayPauseButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderTimeLabel
@@ -232,6 +233,16 @@ private fun AudioPlayerTransportIcon(@DrawableRes drawable: Int, size: Dp = 32.c
             contentDescription = null,
             tint = VLCThemeDefaults.colors.playerIconColor,
             modifier = Modifier.size(size)
+    )
+}
+
+@Composable
+private fun AudioPlayerAbRepeatMarkerIcon() {
+    Icon(
+            painter = painterResource(R.drawable.ic_abrepeat_marker_audio),
+            contentDescription = null,
+            tint = VLCThemeDefaults.colors.playerIconColor,
+            modifier = Modifier.size(24.composeDp)
     )
 }
 
@@ -381,6 +392,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         setupAudioSeekHudControls()
         setupAudioChapterControls()
         setupAudioHingeControls()
+        setupAudioAbRepeatMarkers()
         setupAudioQueueProgressPill()
         setupPlaybackChips()
 
@@ -723,6 +735,23 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
                     }
                 ) {
                     AudioPlayerTransportIcon(R.drawable.ic_arrow_right, size = 24.composeDp)
+                }
+            }
+        }
+    }
+
+    private fun setupAudioAbRepeatMarkers() {
+        binding.abRepeatMarkerA.setContent {
+            VLCTheme {
+                VLCAudioAbRepeatMarker {
+                    AudioPlayerAbRepeatMarkerIcon()
+                }
+            }
+        }
+        binding.abRepeatMarkerB.setContent {
+            VLCTheme {
+                VLCAudioAbRepeatMarker {
+                    AudioPlayerAbRepeatMarkerIcon()
                 }
             }
         }

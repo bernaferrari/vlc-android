@@ -109,6 +109,7 @@ fun MyFullScreen() {
   - `VLCAudioHeaderPlayPauseButton` (Wave 2 collapsed audio-player mini play/pause control from audio_player.xml)
   - `VLCAudioHeaderTransportButton` (Wave 2 audio-player header + full-player transport + landscape chapter + foldable hinge controls from audio_player.xml)
   - `VLCAudioSeekHudButton` / `VLCAudioSeekDelayLabel` (Wave 2 audio-player cover-mode seek/bookmark HUD controls from audio_player.xml)
+  - `VLCAudioAbRepeatMarker` (Wave 2 audio-player A-B repeat timeline markers from audio_player.xml)
 - Full Compose Activity screens:
   - `VLCOTPCodeScreen` hosted by `OTPCodeActivity` (former OTP Fragment/layout removed)
   - `VLCBetaWelcomeScreen` hosted by `BetaWelcomeActivity` (former DataBinding XML layout removed)
@@ -165,7 +166,7 @@ The **Compose Interop Lab** (`ComposeInteropLabActivity` + `compose_interop_lab.
   - Section header hosts + decorations (compose-2l4.1.4 / bd compose-95d)
   - Dialog content host (ConfirmDeleteDialog - keep shell/swap content pattern): `application/vlc-android/src/org/videolan/vlc/gui/dialogs/ConfirmDeleteDialog.kt` (compose-2l4.1.5 / bd compose-j0e)
   - Onboarding first-run host (high-visibility welcome flow): `application/vlc-android/src/org/videolan/vlc/gui/onboarding/OnboardingWelcomeFragment.kt` (compose-2l4.1.6 / bd compose-mdj) — real logo slot + land variant noted, layouts 100% preserved
-  - Audio player chrome hosts: `application/vlc-android/src/org/videolan/vlc/gui/audio/AudioPlayer.kt` + `audio_player.xml` / `layout-land/audio_player.xml` (`VLCAudioPlayerChips`, `VLCAudioQueueProgressPill`, `VLCAudioHeaderTimeLabel`, `VLCAudioHeaderActionButton`, `VLCAudioHeaderPlayPauseButton`, `VLCAudioHeaderTransportButton`, `VLCAudioSeekHudButton`, `VLCAudioSeekDelayLabel`; compose-q9r.3 / compose-68e; includes foldable hinge affordances)
+  - Audio player chrome hosts: `application/vlc-android/src/org/videolan/vlc/gui/audio/AudioPlayer.kt` + `audio_player.xml` / `layout-land/audio_player.xml` (`VLCAudioPlayerChips`, `VLCAudioQueueProgressPill`, `VLCAudioHeaderTimeLabel`, `VLCAudioHeaderActionButton`, `VLCAudioHeaderPlayPauseButton`, `VLCAudioHeaderTransportButton`, `VLCAudioSeekHudButton`, `VLCAudioSeekDelayLabel`, `VLCAudioAbRepeatMarker`; compose-q9r.3 / compose-68e; includes foldable hinge affordances and A-B repeat markers)
   - Crown jewel cross-cutting Lab (this milestone): `application/vlc-android/src/org/videolan/vlc/gui/ComposeInteropLabActivity.kt` + `compose_interop_lab.xml`
   - All leaves + interop + theme: `application/compose/src/main/java/org/videolan/vlc/compose/{components,interop,theme}/*`
   - Richer mocks derived from the Lab: `application/compose/src/main/java/org/videolan/vlc/compose/PreviewUtils.kt`
@@ -197,6 +198,7 @@ ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:comp
 - Part of the "preview + gate enforcement" acceptance criteria for Wave 1.
 
 **Current gate evidence**:
+- 2026-06-01: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:compose:build :application:vlc-android:compileDebugKotlin --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 20s` after replacing the audio-player A-B repeat timeline markers with `VLCAudioAbRepeatMarker`.
 - 2026-06-01: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:compose:build :application:vlc-android:compileDebugKotlin --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 21s` after replacing the audio-player foldable hinge left/right affordances with `VLCAudioHeaderTransportButton`.
 - 2026-06-01: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:compose:build :application:vlc-android:compileDebugKotlin --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 21s` after replacing the landscape audio-player chapter chevrons with `VLCAudioHeaderTransportButton`.
 - 2026-06-01: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:compose:build :application:vlc-android:compileDebugKotlin --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 21s` after replacing the audio-player AB-repeat reset/stop header actions with `VLCAudioHeaderActionButton`.

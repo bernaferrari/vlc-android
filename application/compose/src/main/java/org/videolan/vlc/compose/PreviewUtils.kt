@@ -28,6 +28,7 @@ import org.videolan.vlc.compose.components.VLCDropdownItem
 import org.videolan.vlc.compose.components.VLCDebugLogLine
 import org.videolan.vlc.compose.components.VLCDialogConfirmDelete
 import org.videolan.vlc.compose.components.VLCInfoItem
+import org.videolan.vlc.compose.components.VLCAudioAbRepeatMarker
 import org.videolan.vlc.compose.components.VLCAudioHeaderActionButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderPlayPauseButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderTimeLabel
@@ -253,6 +254,30 @@ private fun PlayerChromeTokensDemo() {
             speedIconContent = { Text("S", color = c.audioChipsTextColor) },
             sleepIconContent = { Text("Z", color = c.audioChipsTextColor) }
         )
+
+        Spacer(Modifier.height(16.dp))
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            VLCAudioAbRepeatMarker {
+                Box(
+                    Modifier
+                        .size(12.dp)
+                        .background(c.playerIconColor)
+                )
+            }
+            Spacer(Modifier.width(32.dp))
+            VLCAudioAbRepeatMarker {
+                Box(
+                    Modifier
+                        .size(12.dp)
+                        .background(c.playerIconColor)
+                )
+            }
+        }
 
         Spacer(Modifier.height(16.dp))
 

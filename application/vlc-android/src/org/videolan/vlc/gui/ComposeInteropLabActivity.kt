@@ -57,6 +57,7 @@ import org.videolan.vlc.compose.components.VLCDebugLogLine
 import org.videolan.vlc.compose.components.VLCDialogConfirmDelete
 import org.videolan.vlc.compose.components.VLCDropdownItem
 import org.videolan.vlc.compose.components.VLCInfoItem
+import org.videolan.vlc.compose.components.VLCAudioAbRepeatMarker
 import org.videolan.vlc.compose.components.VLCAudioHeaderActionButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderPlayPauseButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderTimeLabel
@@ -340,6 +341,14 @@ fun ComposeInteropLabContent() {
                 Text("Ⅱ", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
             }
         }
+        Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+            VLCAudioAbRepeatMarker {
+                Text("A", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
+            }
+            VLCAudioAbRepeatMarker {
+                Text("B", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
+            }
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             VLCAudioHeaderTransportButton(contentDescription = "Shuffle") {
                 Text("S", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
@@ -393,6 +402,7 @@ fun ComposeInteropLabContent() {
             "The collapsed header time label is also Compose-hosted under the existing header_time ID. " +
             "The search, playlist switch, and overflow actions are Compose-hosted under their existing IDs. " +
             "The AB-repeat reset/stop header actions are also Compose-hosted under ab_repeat_reset and ab_repeat_stop while the service helper still controls their visibility. " +
+            "The A-B repeat timeline markers are Compose-hosted under ab_repeat_marker_a and ab_repeat_marker_b while the guidelines still control their positions. " +
             "The mini play/pause button is Compose-hosted under header_play_pause with the long-press stop action preserved. " +
             "The tablet header transport strip is Compose-hosted under the existing header_shuffle/header_previous/header_large_play_pause/header_next/header_repeat IDs. " +
             "The full-player bottom shuffle/previous/play_pause/next/repeat transport controls now use the same Compose leaf while preserving previous/next long seek. " +
