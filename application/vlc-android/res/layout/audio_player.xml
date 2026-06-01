@@ -293,46 +293,29 @@
                     android:orientation="horizontal"
                     app:layout_constraintGuide_begin="68dp" />
 
-            <ImageView
+            <org.videolan.vlc.compose.interop.VLCComposeView
                     android:id="@+id/playlist_search"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:contentDescription="@string/search"
-                    android:focusable="true"
-                    android:onClick="@{fragment::onSearchClick}"
-                    android:padding="8dp"
                     app:layout_constraintBottom_toBottomOf="@id/guideline_header_bottom"
                     app:layout_constraintEnd_toStartOf="@+id/playlist_switch"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:srcCompat="@drawable/ic_search_audio" />
+                    app:layout_constraintTop_toTopOf="parent" />
 
-            <ImageView
+            <org.videolan.vlc.compose.interop.VLCComposeView
                     android:id="@+id/playlist_switch"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/show_playlist"
-                    android:focusable="true"
-                    android:onClick="@{fragment::onPlaylistSwitchClick}"
-                    android:padding="8dp"
                     app:layout_constraintBottom_toBottomOf="@id/guideline_header_bottom"
                     app:layout_constraintEnd_toStartOf="@+id/adv_function"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:srcCompat="@drawable/ic_playlist_audio_on" />
+                    app:layout_constraintTop_toTopOf="parent" />
 
-            <ImageView
+            <org.videolan.vlc.compose.interop.VLCComposeView
                     android:id="@+id/adv_function"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/advanced"
-                    android:focusable="true"
-                    android:onClick="@{fragment::showAdvancedOptions}"
-                    android:padding="8dp"
                     app:layout_constraintBottom_toBottomOf="@id/guideline_header_bottom"
                     app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:srcCompat="@drawable/ic_overflow_audio" />
+                    app:layout_constraintTop_toTopOf="parent" />
 
             <org.videolan.vlc.compose.interop.VLCComposeView
                     android:id="@+id/header_time"

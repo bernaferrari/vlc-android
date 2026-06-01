@@ -139,6 +139,8 @@ data class VLCColorScheme(
     val defaultDivider: Color,
     /** ?attr/player_icon_color (audio_player.xml:524,578 + HUD chrome) */
     val playerIconColor: Color,
+    /** ?attr/audio_menu_icon (audio_player.xml collapsed header actions) */
+    val audioMenuIcon: Color,
     /** ?attr/about_text_primary (about.xml:35,87 + dark override to orange) */
     val aboutTextPrimary: Color,
     /** ?attr/card_background */
@@ -200,6 +202,7 @@ private val LightVLCColors = VLCColorScheme(
     fontDisabled = Color(0x80616161),             // grey700transparent
     defaultDivider = BlackTransparent20,          // :45
     playerIconColor = Black,                      // :92
+    audioMenuIcon = BlackTransparent50,           // :47
     aboutTextPrimary = Black,                     // :108 (light)
     cardBackground = White,                       // :93
     cardBorder = Grey300,                         // :96
@@ -246,6 +249,7 @@ private val DarkVLCColors = VLCColorScheme(
     fontDisabled = Color(0x80757575),             // grey600transparent variant
     defaultDivider = WhiteTransparent20,          // :239
     playerIconColor = White,                      // :286
+    audioMenuIcon = WhiteTransparent50,           // :241
     aboutTextPrimary = Orange500,                 // :303 (dark)
     cardBackground = Black,                       // :287
     cardBorder = Grey800,                         // :291

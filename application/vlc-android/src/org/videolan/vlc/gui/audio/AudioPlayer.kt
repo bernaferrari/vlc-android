@@ -104,6 +104,7 @@ import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.components.VLCAudioHeaderActionButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderTimeLabel
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
@@ -167,6 +168,12 @@ import kotlin.math.absoluteValue
 private const val TAG = "VLC/AudioPlayer"
 private const val SEARCH_TIMEOUT_MILLIS = 10000L
 
+private data class AudioPlaylistSwitchState(
+        @DrawableRes val icon: Int = R.drawable.ic_playlist_audio_on,
+        val contentDescription: String = "",
+        val usePrimaryTint: Boolean = true
+)
+
 @Composable
 private fun AudioPlayerChipIcon(@DrawableRes drawable: Int) {
     Icon(
@@ -174,6 +181,17 @@ private fun AudioPlayerChipIcon(@DrawableRes drawable: Int) {
             contentDescription = null,
             tint = VLCThemeDefaults.colors.audioChipsTextColor,
             modifier = Modifier.size(18.composeDp)
+    )
+}
+
+@Composable
+private fun AudioPlayerHeaderIcon(@DrawableRes drawable: Int, usePrimaryTint: Boolean = false) {
+    val colors = VLCThemeDefaults.colors
+    Icon(
+            painter = painterResource(drawable),
+            contentDescription = null,
+            tint = if (usePrimaryTint) colors.primary else colors.audioMenuIcon,
+            modifier = Modifier.size(24.composeDp)
     )
 }
 
@@ -190,6 +208,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
     private var audioPlayerChipsState by mutableStateOf(VLCAudioPlayerChipsState())
     private var audioQueueProgressPillState by mutableStateOf(VLCAudioQueueProgressPillState())
     private var audioHeaderTimeText by mutableStateOf("")
+    private var audioPlaylistSwitchState by mutableStateOf(AudioPlaylistSwitchState())
 
     private var showRemainingTime = false
     private var previewingSeek = false
@@ -332,6 +351,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         audioPlayProgressMode = Settings.getInstance(requireActivity()).getBoolean(AUDIO_PLAY_PROGRESS_MODE, false)
         audioHeaderTimeText = getString(R.string.time_0)
         setupAudioHeaderTime()
+        setupAudioHeaderActions()
         setupAudioQueueProgressPill()
         setupPlaybackChips()
 
@@ -386,6 +406,51 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
                 )
             }
         }
+    }
+
+    private fun setupAudioHeaderActions() {
+        binding.playlistSearch.setContent {
+            VLCTheme {
+                VLCAudioHeaderActionButton(
+                    contentDescription = getString(R.string.search),
+                    onClick = { onSearchClick(binding.playlistSearch) }
+                ) {
+                    AudioPlayerHeaderIcon(R.drawable.ic_search_audio)
+                }
+            }
+        }
+        binding.playlistSwitch.setContent {
+            VLCTheme {
+                val state = audioPlaylistSwitchState
+                VLCAudioHeaderActionButton(
+                    contentDescription = state.contentDescription,
+                    onClick = { onPlaylistSwitchClick(binding.playlistSwitch) }
+                ) {
+                    AudioPlayerHeaderIcon(state.icon, usePrimaryTint = state.usePrimaryTint)
+                }
+            }
+        }
+        binding.advFunction.setContent {
+            VLCTheme {
+                VLCAudioHeaderActionButton(
+                    contentDescription = getString(R.string.advanced),
+                    onClick = { showAdvancedOptions(binding.advFunction) }
+                ) {
+                    AudioPlayerHeaderIcon(R.drawable.ic_overflow_audio)
+                }
+            }
+        }
+        updatePlaylistSwitchChrome(isShowingCover())
+    }
+
+    fun updatePlaylistSwitchChrome(showCover: Boolean, announce: Boolean = false) {
+        val text = getString(if (showCover) R.string.hide_playlist else R.string.show_playlist)
+        audioPlaylistSwitchState = AudioPlaylistSwitchState(
+                icon = if (showCover) R.drawable.ic_playlist_audio else R.drawable.ic_playlist_audio_on,
+                contentDescription = text,
+                usePrimaryTint = !showCover
+        )
+        if (announce) binding.playlistSwitch.announceForAccessibility(text)
     }
 
     private fun setupAudioQueueProgressPill() {

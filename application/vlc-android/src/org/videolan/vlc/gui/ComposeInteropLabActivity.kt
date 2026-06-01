@@ -57,6 +57,7 @@ import org.videolan.vlc.compose.components.VLCDebugLogLine
 import org.videolan.vlc.compose.components.VLCDialogConfirmDelete
 import org.videolan.vlc.compose.components.VLCDropdownItem
 import org.videolan.vlc.compose.components.VLCInfoItem
+import org.videolan.vlc.compose.components.VLCAudioHeaderActionButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderTimeLabel
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
@@ -315,9 +316,21 @@ fun ComposeInteropLabContent() {
             }
         )
         VLCAudioHeaderTimeLabel(text = "10:42")
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            VLCAudioHeaderActionButton(contentDescription = "Search") {
+                Text("S", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.audioMenuIcon)
+            }
+            VLCAudioHeaderActionButton(contentDescription = "Show playlist") {
+                Text("P", color = MaterialTheme.colorScheme.primary)
+            }
+            VLCAudioHeaderActionButton(contentDescription = "Advanced") {
+                Text("⋮", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.audioMenuIcon)
+            }
+        }
         Text(
             "Hosted in the real AudioPlayer fragment by replacing the playback_chips ChipGroup with VLCComposeView. " +
             "The collapsed header time label is also Compose-hosted under the existing header_time ID. " +
+            "The search, playlist switch, and overflow actions are Compose-hosted under their existing IDs. " +
             "The player gesture/switcher surface stays outside this slice; the speed and sleep quick actions are now Compose.",
             style = MaterialTheme.typography.bodySmall
         )

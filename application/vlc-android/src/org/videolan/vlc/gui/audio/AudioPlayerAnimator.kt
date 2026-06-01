@@ -120,9 +120,7 @@ internal class AudioPlayerAnimator : IAudioPlayerAnimator, LifecycleObserver {
             field = value
 
             onSlide(1F)
-            binding.playlistSwitch.setImageResource(if (showCover) R.drawable.ic_playlist_audio else R.drawable.ic_playlist_audio_on)
-            binding.playlistSwitch.contentDescription = audioPlayer.getString(if (showCover) R.string.hide_playlist else R.string.show_playlist)
-            binding.playlistSwitch.announceForAccessibility(audioPlayer.getString(if (showCover) R.string.hide_playlist else R.string.show_playlist))
+            audioPlayer.updatePlaylistSwitchChrome(showCover, announce = true)
             audioPlayer.setBottomMargin()
         }
 
