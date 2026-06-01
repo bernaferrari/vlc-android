@@ -73,11 +73,8 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
 //
 // TWO PATTERNS DEMONSTRATED / DOCUMENTED HERE (for any future RV list host):
 //
-// PATTERN 1 - VLCComposeView inside existing layout XML (not activated in this
-//   host because the info_activity.xml is complex DataBinding + Coordinator +
-//   collapsing toolbar; we keep risk zero. See debug_log.xml and ComposeInteropLabActivity
-//   for live examples of the <org.videolan.vlc.compose.interop.VLCComposeView> tag
-//   + findViewById + setContent { VLCTheme { VLCInfoItem(...) } } wiring.)
+// PATTERN 1 - Full-screen ComposeView Activity host (now used by DebugLogActivity
+//   and ComposeInteropLabActivity) for screens whose legacy shell can be removed.
 //
 // PATTERN 2 - Programmatic ComposeView for RecyclerView rows (the adapter row pattern)
 //   Inside onCreateViewHolder:
@@ -128,7 +125,7 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
 //   4. Always wrap setContent content with VLCTheme (even though leaf also wraps internally).
 //   5. Leave original layout XML files in place until the LAST reference is migrated (policy).
 //   6. For RecyclerView hosts: implement the onCreateViewHolder + onBindViewHolder
-//      ComposeView pattern exactly as shown (evolution of DebugLog's getView adapter).
+//      ComposeView pattern exactly as shown.
 //   7. Exercise the leaf inside the Interop Lab (already present before this task) +
 //      richer dedicated mocks in PreviewUtils (we add "Media Info Track List Mock").
 //   8. Massive header comments (this block) + bd tracking (compose-l94) + full
@@ -191,8 +188,7 @@ class MediaInfoAdapter : RecyclerView.Adapter<MediaInfoAdapter.ViewHolder>() {
         // return ViewHolder(inflater.inflate(R.layout.info_item, parent, false))
 
         // NEW WAVE 1 PATH (compose-2l4.1.3): RecyclerView row backed by ComposeView
-        // hosting VLCInfoItem. This is the direct equivalent of DebugLogComposeAdapter's
-        // getView() returning ComposeView, adapted for RecyclerView.ViewHolder.
+        // hosting VLCInfoItem, adapted for RecyclerView.ViewHolder.
         // layoutParams ensure it behaves like a normal list row.
         // The ViewHolder below simply wraps it; all binding happens via setContent.
         val composeView = ComposeView(parent.context).apply {

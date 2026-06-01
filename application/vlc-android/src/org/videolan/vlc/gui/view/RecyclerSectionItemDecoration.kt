@@ -119,7 +119,7 @@ import kotlin.math.max
 //   - This task: compose-2l4.1.4 (bd: compose-95d) - Section Header Host Migration
 //   - Parent epic: compose-cb5 (Leaf Migration Wave 1)
 //   - Cross-cutting: compose-2l4.1.8 / bd compose-iju (notes, Permanent Exceptions, gate policy)
-//   - Interop Lab: ComposeInteropLabActivity.kt + compose_interop_lab.xml (exercises VLCSectionHeader live)
+//   - Interop Lab: ComposeInteropLabActivity.kt (exercises VLCSectionHeader live)
 //   - TV note: file/media browser routes now use Compose directly; GridDecoration still handles
 //     showTvUi + different height for remaining RecyclerView hosts.
 //   - Permanent Exceptions (definitive): native player surfaces, MediaLibrary JNI, certain complex

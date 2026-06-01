@@ -20,7 +20,10 @@
 package org.videolan.vlc.gui
 
 import android.os.Bundle
+import android.view.ViewGroup
 import androidx.activity.ComponentActivity
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import org.videolan.vlc.R
 
 // =============================================================================
@@ -89,152 +92,27 @@ import org.videolan.vlc.compose.components.VLCBrowserItemRow
 import org.videolan.vlc.compose.components.VLCOnboardingWelcome
 import org.videolan.vlc.compose.components.VLCPlayerOptionItem
 import org.videolan.vlc.compose.components.VLCSectionHeader
-import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.compose.theme.VLCTheme
 // =============================================================================
 
-// =========================================================================
-// ==================== WAVE 1: COMPOSE INTEROP LAB (compose-2l4.1.8) ====================
-// Host file: ComposeInteropLabActivity.kt   (cross-cutting task: compose-2l4.1.8 / bd: compose-iju)
-// Layout: compose_interop_lab.xml
-//
-// MISSION: This is the dedicated, dev-only "Compose Interop Lab" - the single most
-// important visibility and testability artifact for the entire Wave 1 (and future waves).
-// It makes the hybrid interop pattern (VLCComposeView + VLCTheme + leaf Composables)
-// immediately tangible, interactive, and copy-paste referenceable for the whole team.
-//
-// Launched exclusively from DebugLogActivity (additive button) or future dev-only menus.
-// Never reachable from production navigation. Safe for permanent inclusion in debug trees.
-//
-// WHAT IT HOSTS (live + interactive, all in one scrollable Column):
-//   Minimum required by acceptance criteria (the 6 Wave 0/1 leaves):
-//     1. VLCDropdownItem     - simple presentational, from dropdown_item.xml
-//     2. VLCSectionHeader    - list section headers, from recycler_section_header*.xml
-//     3. VLCInfoItem         - media track details, from info_item.xml (high reuse)
-//     4. VLCDebugLogLine     - log lines, from debug_log_item.xml (also used in DebugLog host)
-//     5. VLCDialogConfirmDelete - presentational core used by ConfirmDeleteComposeDialog
-//     6. VLCOnboardingWelcome - static branding leaf for the former phone welcome step
-//
-//   Interactive / richer demos added for educational value + gate visibility:
-//     - Sectioned list mock (VLCSectionHeader + multiple VLCInfoItem rows) simulating
-//       a real media info or browser list migration target.
-//     - Stateful "live log simulator" using VLCDebugLogLine + button that appends lines.
-//     - Dialog mock: Button opens a real Material3 AlertDialog whose content is the
-//       VLCDialogConfirmDelete leaf + action buttons (proves nesting + interop works).
-//     - Onboarding card variant (different subtitle, REAL logo via painterResource in slot).
-//     - Explicit light/dark notes + "System theme follows device setting".
-//
-// TWO PATTERNS DEMONSTRATED (at full-screen lab scale):
-//   PATTERN 1 (PRIMARY HERE): VLCComposeView declared in XML layout (this file),
-//     wired via findViewById in onCreate exactly as NetworkServerDialog + DebugLogActivity.
-//     setContent { VLCTheme { ComposeInteropLabContent(...) } }
-//
-//   (Pattern 2 - small ComposeView rows in adapters - is shown in DebugLogActivity's
-//    DebugLogComposeAdapter. The Lab focuses on the "big picture" host + composition.)
-//
-// WHY THIS ADVANCES THE WHOLE WAVE (acceptance criteria):
-//   - Interop demo: one place that exercises ALL current leaves simultaneously + in
-//     realistic combinations (the "rich usage mocks" that also feed PreviewUtils).
-//   - Preview + gate enforcement: Every leaf used here has @Preview coverage in
-//     PreviewUtils.kt. This host itself participates in the mandatory compile gate
-//     (see "BUILD GATE POLICY" below + evidence appended to bd compose-iju).
-//   - Educational quality: matches (and extends) the comment density + traceability of
-//     the reference hosts NetworkServerDialog.kt (compose-5qk) and DebugLogActivity.kt
-//     (compose-2l4.1.2). Future agents copy this header verbatim.
-//
-// BUILD GATE POLICY (enforced + documented for compose-2l4.1.8 and all future hosts):
-//   "Every host must have green compile gate evidence."
-//   - Required command (from worktree root):
-//       ./gradlew :application:vlc-android:compileDebugKotlin --console=plain -q
-//       (or the full :application:compose:build + connected checks for deeper validation)
-//   - Evidence MUST be captured (terminal output showing SUCCESS) and referenced in:
-//       * This file's header comments
-//       * The expanded compose/README.md section on Wave 1 + gates
-//       * bd notes on compose-iju (compose-2l4.1.8)
-//   - Why: Prevents silent rot of interop hosts as the leaf module evolves.
-//     The Lab + DebugLog + NetworkServerDialog are the "canary" hosts.
-//   - This pattern is now mandatory for any new host added in Wave 1+.
-//
-// ROLLBACK (one-file + one-layout + manifest delta):
-//   Delete: ComposeInteropLabActivity.kt, compose_interop_lab.xml
-//   Remove: the <activity> declaration below + the launch wiring from DebugLogActivity.kt
-//           + the single button added to debug_log.xml
-//   Result: zero behavior change. The rest of the app (including all prior interop demos)
-//   continues to compile and run exactly as the 2026-05 pre-lab baseline.
-//
-// THEMING GUARANTEE:
-//   - Explicit VLCTheme wrapper at the setContent site (this Activity).
-//   - Every leaf also wraps VLCTheme internally (defensive + for standalone @Previews).
-//   - Follows isSystemInDarkTheme() by default → automatic light/dark matching the
-//     real app's Theme.VLC.Appearance / Black variants.
-//   - All semantic tokens (headerBackground, audioBrowserSeparator, onboardingBackground,
-//     fontAudioLight, listSubtitle, etc.) exercised here live.
-//
-// Permanent Exceptions boundary (repeated for every Wave 1 agent):
-//   Everything in this Lab is migratable. The 20% that stays forever in XML/native:
-//   - Native player surfaces (VLCVideoView, subtitles, hardware decoding paths)
-//   - Heavy MediaLibrary JNI / medialibrary service surfaces
-//   - Certain complex TV overlays and leanback fragments
-//   - Legacy WebView-based UIs and a few preference screens with custom prefs
-//   See full matrix in bd compose-iju notes and the parent Wave 1 epic artifacts.
-//
-// Traceability (update when new leaves or hosts land):
-//   - All 6 leaves: application/compose/src/main/java/org/videolan/vlc/compose/components/*.kt
-//   - Interop + Abstract widget: .../interop/VLCCompose.kt
-//   - Theme + tokens: .../theme/VLCTheme.kt (see VLCColorScheme for ?attr/ origins)
-//   - Previews (now richer): .../compose/PreviewUtils.kt (sectioned list, dialog mock, etc.)
-//   - Launch host: DebugLogActivity.kt (compose-2l4.1.2) + debug_log.xml
-//   - Historical demo host: NetworkServerDialog.kt (compose-5qk; now full Compose)
-//   - List host example: DebugLogActivity.kt + debug_log.xml (compose-2l4.1.2 / bd compose-5wg)
-//   - Decoration + browser host: Recycler*ItemDecoration + active media lists (compose-2l4.1.4 / bd compose-95d)
-//   - Info surfaces host: MediaInfoAdapter.kt + InfoActivity.kt (compose-2l4.1.3 / bd compose-l94)
-//   - Onboarding first-run flow: OnboardingActivity.kt (full Compose phone flow)
-//   - This cross-cutting task: compose-2l4.1.8 (bd: compose-iju)
-//   - Earlier bootstrap: compose-cb5, compose-5wg (closed)
-//   - Epic context: Wave 1 leaf migrations after phase-0-compose-bootstrap
-//
-// At end of session (MANDATORY):
-//   - bd update compose-iju --notes "..." (detailed evidence + pointers)
-//   - bd close compose-iju --reason "Interop Lab delivered; gate policy documented + enforced; acceptance substantially advanced"
-//   - git pull --rebase
-//   - bd dolt push
-//   - git push
-//   - git status MUST report "up to date with origin/..."
-//   - Clean stashes etc.
-// =========================================================================
-
 /**
- * Dev-only Activity that hosts the full Compose Interop Lab.
- *
- * Thin wrapper: inflation + single VLCComposeView wiring. All the interesting
- * content (the scrollable educational + interactive examples) lives in Compose.
- *
- * This pattern (new Activity whose entire UI is a Compose host via interop) is
- * now the recommended template for any future "full screen" dev tooling or
- * for production destinations once Compose Navigation lands.
+ * Dev-only Compose lab for exercising migration leaves in one interactive screen.
  */
 class ComposeInteropLabActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.compose_interop_lab)
-
-        // ---------------------------------------------------------------------
-        // ACTUAL WIRING - Pattern 1 at full Lab scale (the entire screen)
-        // ---------------------------------------------------------------------
-        // This is the canonical "new dedicated host" example for compose-2l4.1.8.
-        // One VLCComposeView fills the content area. The Composable below builds
-        // a realistic scrollable column exercising every current Wave 1 leaf live.
-        //
-        // Note the explicit VLCTheme { } wrapper at the host boundary (required
-        // for correct token resolution even though leaves also wrap defensively).
-        // ---------------------------------------------------------------------
-        val composeLabHost = findViewById<VLCComposeView>(R.id.compose_interop_lab_host)
-        composeLabHost?.setContent {
-            VLCTheme {
-                ComposeInteropLabContent()
+        setContentView(
+            ComposeView(this).apply {
+                layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+                setContent {
+                    VLCTheme {
+                        ComposeInteropLabContent()
+                    }
+                }
             }
-        }
+        )
     }
 
     companion object {
@@ -281,8 +159,8 @@ fun ComposeInteropLabContent() {
             color = MaterialTheme.colorScheme.primary
         )
         Text(
-            text = "This screen exercises every Wave 0/1 leaf Composable live inside a real legacy Activity host via VLCComposeView + VLCTheme. " +
-                    "It is the single source of truth for hybrid pattern correctness and the mandatory compile gate canary.",
+            text = "This screen exercises every Wave 0/1 leaf Composable live inside a direct Compose Activity host. " +
+                    "It is the single source of truth for leaf behavior and the mandatory compile gate canary.",
             style = MaterialTheme.typography.bodyMedium
         )
         Text(
@@ -631,7 +509,7 @@ fun ComposeInteropLabContent() {
         // -----------------------------------------------------------------
         // 4. VLCDebugLogLine (live simulator - interactive!)
         // -----------------------------------------------------------------
-        VLCSectionHeader(text = "4. VLCDebugLogLine (debug_log_item.xml) — LIVE SIMULATOR")
+        VLCSectionHeader(text = "4. VLCDebugLogLine — LIVE SIMULATOR")
         var logLines by remember { mutableStateOf(listOf(
             "VLC media player 3.6.0 Vetinari",
             "[8f3a2b] main libvlc: Running vlc with the default interface",
@@ -658,7 +536,7 @@ fun ComposeInteropLabContent() {
             }
         }
         Text(
-            "Stateful demo inside the interop host. Matches exactly what DebugLogActivity renders for real logs (both the header demo and the custom adapter rows).",
+            "Stateful demo matching the full-Compose DebugLogActivity log rows.",
             style = MaterialTheme.typography.bodySmall
         )
 

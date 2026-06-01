@@ -10,13 +10,11 @@ import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.theme.VLCTheme
 
 /**
- * Compose equivalent of application/vlc-android/res/layout/debug_log_item.xml
+ * Compose equivalent of the former debug log row TextView.
  *
  * Extremely simple leaf: a single-line (or wrapping) monospace TextView.
  *
- * Used exclusively by DebugLogActivity via ArrayAdapter<String> to display
- * raw debug / logcat-style output lines. No special theming beyond default
- * font + the VLCTheme wrapper for consistency during hybrid migration.
+ * Used by DebugLogActivity to display raw debug / logcat-style output lines.
  *
  * Perfect candidate for direct replacement in log viewer lists.
  */

@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.sp
  * - Prioritization: freq of ?attr/ in layout resources (font_default 81x, background_default 26x, etc.)
  *   + key files: audio_player.xml (player chrome/HUD), browser_item.xml (media lists),
  *     about.xml, audio_browser.xml, video_*_card.xml, empty states, dialogs,
- *     recycler_section_header*.xml, info_item.xml, debug_log_item.xml, dialog_*.xml, onboarding_*.xml.
+ *     recycler_section_header*.xml, info_item.xml, dialog_*.xml, onboarding_*.xml.
  *
  * This enables future leaf migrations (audio browser, player, about, onboarding, lists)
  * to use correct colors without hard-coded values.
