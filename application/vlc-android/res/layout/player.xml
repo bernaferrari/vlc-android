@@ -95,12 +95,13 @@
                 android:visibility="invisible"
                 tools:visibility="visible" />
 
-        <androidx.appcompat.widget.ViewStubCompat
-                android:id="@+id/player_overlay_settings_stub"
-                android:layout="@layout/player_overlay_settings"
+        <org.videolan.vlc.gui.view.VideoDelayOverlayView
+                android:id="@+id/delay_container"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical|end"/>
+                android:layout_gravity="center_vertical|end"
+                android:visibility="invisible"
+                tools:visibility="visible" />
 
         <androidx.appcompat.widget.ViewStubCompat
                 android:id="@+id/player_hud_right_stub"
