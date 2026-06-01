@@ -109,6 +109,7 @@ import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
 import org.videolan.vlc.compose.components.VLCAudioPlayerChips
 import org.videolan.vlc.compose.components.VLCAudioPlayerChipsState
+import org.videolan.vlc.compose.components.VLCAudioResumeVideoHint
 import org.videolan.vlc.compose.components.VLCAudioSeekDelayLabel
 import org.videolan.vlc.compose.components.VLCAudioSeekHudButton
 import org.videolan.vlc.compose.components.VLCAudioTrackInfoText
@@ -270,6 +271,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, IAudioPlayerAnimator by
     private var audioTrackDetailText by mutableStateOf("")
     private var audioTimelineTimeText by mutableStateOf("")
     private var audioTimelineLengthText by mutableStateOf("")
+    private var resumeVideoHintVisible by mutableStateOf(false)
 
     private var showRemainingTime = false
     private var previewingSeek = false
@@ -405,6 +407,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, IAudioPlayerAnimator by
         setupAudioAbRepeatMarkers()
         setupAudioTrackInfoTexts()
         setupAudioQueueProgressPill()
+        setupResumeVideoHint()
         setupPlaybackChips()
 
         setBottomMargin()
@@ -863,6 +866,37 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, IAudioPlayerAnimator by
         }
     }
 
+    private fun setupResumeVideoHint() {
+        binding.resumeVideoHint.setContent {
+            VLCTheme {
+                if (resumeVideoHintVisible) {
+                    VLCAudioResumeVideoHint(
+                            message = getString(R.string.return_to_video),
+                            onClick = {
+                                hideResumeVideoHint()
+                                onResumeToVideoClick()
+                            }
+                    )
+                }
+            }
+        }
+    }
+
+    private fun showResumeVideoHint() {
+        resumeVideoHintVisible = true
+        binding.resumeVideoHint.setVisible()
+        lifecycleScope.launch {
+            delay(4000L)
+            hideResumeVideoHint()
+        }
+    }
+
+    private fun hideResumeVideoHint() {
+        if (!::binding.isInitialized) return
+        resumeVideoHintVisible = false
+        binding.resumeVideoHint.setGone()
+    }
+
     private fun toggleAudioPlayProgressMode() {
         val activity = activity ?: return
         audioPlayProgressMode = !audioPlayProgressMode
@@ -931,7 +965,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, IAudioPlayerAnimator by
         playlistModel.service?.let {
             if (!it.isVideoPlaying && it.videoTracksCount > 0)
                 if ( !forceRestoreVideo && restoreVideoTipCount < 4) {
-                    UiTools.snacker(requireActivity(), R.string.return_to_video)
+                    showResumeVideoHint()
                     settings.putSingle(PREF_RESTORE_VIDEO_TIPS_SHOWN, restoreVideoTipCount + 1)
                 } else if (forceRestoreVideo && !PlaylistManager.playingAsAudio) {
                     onResumeToVideoClick()

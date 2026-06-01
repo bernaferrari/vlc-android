@@ -45,6 +45,7 @@ import org.videolan.vlc.compose.components.VLCAudioPlayerGradientEdge
 import org.videolan.vlc.compose.components.VLCAudioPlaylistSearchField
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
+import org.videolan.vlc.compose.components.VLCAudioResumeVideoHint
 import org.videolan.vlc.compose.components.VLCAudioPlayerChips
 import org.videolan.vlc.compose.components.VLCAudioPlayerChipsState
 import org.videolan.vlc.compose.components.VLCAudioSeekDelayLabel
@@ -345,6 +346,7 @@ private fun PlayerChromeTokensDemo() {
             markerFractions = listOf(0.08f, 0.28f, 0.62f, 0.88f),
             modifier = Modifier.fillMaxWidth()
         )
+        VLCAudioResumeVideoHint(message = "Long tap the cover to restore the video")
 
         Spacer(Modifier.height(16.dp))
 

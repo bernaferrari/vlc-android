@@ -74,6 +74,7 @@ import org.videolan.vlc.compose.components.VLCAudioPlayerGradientEdge
 import org.videolan.vlc.compose.components.VLCAudioPlaylistSearchField
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
+import org.videolan.vlc.compose.components.VLCAudioResumeVideoHint
 import org.videolan.vlc.compose.components.VLCAudioPlayerChips
 import org.videolan.vlc.compose.components.VLCAudioPlayerChipsState
 import org.videolan.vlc.compose.components.VLCAudioSeekDelayLabel
@@ -392,6 +393,7 @@ fun ComposeInteropLabContent() {
             markerFractions = listOf(0.08f, 0.28f, 0.62f, 0.88f),
             modifier = Modifier.fillMaxWidth()
         )
+        VLCAudioResumeVideoHint(message = "Long tap the cover to restore the video")
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             VLCAudioHeaderActionButton(contentDescription = "Search") {
                 Text("S", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.audioMenuIcon)
@@ -487,6 +489,7 @@ fun ComposeInteropLabContent() {
             "The AB-repeat reset/stop header actions are also Compose-hosted under ab_repeat_reset and ab_repeat_stop while the service helper still controls their visibility. " +
             "The A-B repeat timeline markers are Compose-hosted under ab_repeat_marker_a and ab_repeat_marker_b while the guidelines still control their positions. " +
             "The bookmark timeline markers are Compose-drawn under bookmark_marker_container in audio and video HUD hosts, with BookmarkListDelegate now pushing normalized media positions instead of dynamic ImageViews. " +
+            "The restore-video hint is Compose-hosted under resume_video_hint instead of using a transient Material Snackbar from AudioPlayer.onResume. " +
             "The shared A-B repeat add-marker chip icon and add-marker button are Compose-rendered through AbRepeatChipIconView and AbRepeatAddMarkerButtonView inside ab_repeat_controls.xml for both audio and video HUD hosts. " +
             "The mini play/pause button is Compose-hosted under header_play_pause with the long-press stop action preserved. " +
             "The tablet header transport strip is Compose-hosted under the existing header_shuffle/header_previous/header_large_play_pause/header_next/header_repeat IDs. " +
