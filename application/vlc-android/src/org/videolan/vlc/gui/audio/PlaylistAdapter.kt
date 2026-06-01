@@ -25,19 +25,13 @@ package org.videolan.vlc.gui.audio
 
 import android.annotation.TargetApi
 import android.app.Activity
-import android.content.Context
-import android.graphics.Typeface
-import android.graphics.drawable.BitmapDrawable
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import androidx.annotation.MainThread
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.os.bundleOf
-import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.RecyclerView
@@ -45,19 +39,11 @@ import org.videolan.libvlc.util.AndroidUtil
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.resources.AndroidDevices
 import org.videolan.resources.AppContextProvider
-import org.videolan.tools.Settings
-import org.videolan.tools.setGone
-import org.videolan.tools.setVisible
 import org.videolan.vlc.R
-import org.videolan.vlc.databinding.PlaylistItemBinding
 import org.videolan.vlc.gui.DiffUtilAdapter
-import org.videolan.vlc.gui.helpers.MARQUEE_ACTION
-import org.videolan.vlc.gui.helpers.MarqueeViewHolder
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.isTablet
-import org.videolan.vlc.gui.helpers.enableMarqueeEffect
-import org.videolan.vlc.gui.helpers.getBitmapFromDrawable
-import org.videolan.vlc.gui.view.MiniVisualizer
+import org.videolan.vlc.gui.view.PlaylistItemView
 import org.videolan.vlc.interfaces.SwipeDragHelperAdapter
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.util.LifecycleAwareScheduler
@@ -73,30 +59,19 @@ class PlaylistAdapter(private val player: IPlayer) : DiffUtilAdapter<MediaWrappe
 
     var showTrackNumbers: Boolean = false
     var showReorderButtons: Boolean = true
-    private var defaultCoverVideo: BitmapDrawable
-    private var defaultCoverAudio: BitmapDrawable
     private var model: PlaylistModel? = null
-    private var currentPlayingVisu: MiniVisualizer? = null
+    private var currentPlayingItem: PlaylistItemView? = null
     lateinit var scheduler: LifecycleAwareScheduler
-    var marqueeScheduler: LifecycleAwareScheduler? = null
     var stopAfter: Int = -1
         set(value) {
             val old = field
             field = value
-            if (old in 1 until itemCount) notifyItemChanged(old)
-            if (value in 1 until itemCount) notifyItemChanged(value)
+            if (old in 0 until itemCount) notifyItemChanged(old)
+            if (value in 0 until itemCount) notifyItemChanged(value)
 
         }
 
     init {
-        val ctx = when (player) {
-            is Context -> player
-            is Fragment -> player.requireContext()
-            else -> AppContextProvider.appContext
-        }
-
-        defaultCoverAudio = BitmapDrawable(ctx.resources, getBitmapFromDrawable(ctx, R.drawable.ic_song_background))
-        defaultCoverVideo = UiTools.getDefaultVideoDrawable(ctx)
         scheduler =  LifecycleAwareScheduler(this)
     }
 
@@ -127,55 +102,31 @@ class PlaylistAdapter(private val player: IPlayer) : DiffUtilAdapter<MediaWrappe
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val media = getItem(position)
-        holder.binding.media = media
-        holder.binding.subTitle = MediaUtils.getMediaSubtitle(media)
-        holder.binding.scaleType = ImageView.ScaleType.CENTER_CROP
-        holder.binding.stopAfter.visibility = if (stopAfter == position) View.VISIBLE else View.GONE
-        holder.binding.stopAfterThis = (position == stopAfter)
-        holder.binding.showTrackNumbers = showTrackNumbers
-        if (currentIndex == position) {
-            if (model?.playing != false) holder.binding.playing.start() else holder.binding.playing.stop()
-            holder.binding.playing.visibility = View.VISIBLE
-            holder.binding.coverImage.visibility = View.INVISIBLE
-            holder.binding.audioItemTitle.setTypeface(null, Typeface.BOLD)
-            holder.binding.audioItemSubtitle.setTypeface(null, Typeface.BOLD)
-            currentPlayingVisu = holder.binding.playing
-        } else {
-            holder.binding.playing.stop()
-            holder.binding.playing.visibility = View.INVISIBLE
-            holder.binding.audioItemTitle.typeface = null
-            holder.binding.coverImage.visibility = View.VISIBLE
-        }
-
-        if (media.type == MediaWrapper.TYPE_VIDEO) {
-            (holder.binding.coverImage.layoutParams as ConstraintLayout.LayoutParams).dimensionRatio = "16:10"
-            holder.binding.cover = defaultCoverVideo
-        } else {
-            (holder.binding.coverImage.layoutParams as ConstraintLayout.LayoutParams).dimensionRatio = "1"
-            holder.binding.cover = defaultCoverAudio
-        }
-
-        val tablet = holder.binding.itemDelete.context.isTablet() || AndroidDevices.isTv
-        if (tablet) holder.binding.itemDelete.setVisible() else holder.binding.itemDelete.setGone()
-        holder.binding.showReorderButtons = showReorderButtons && tablet
-
-        holder.binding.executePendingBindings()
+        val tablet = holder.playlistItem.context.isTablet() || AndroidDevices.isTv
+        val current = currentIndex == position
+        holder.playlistItem.bind(
+            media = media,
+            subtitle = MediaUtils.getMediaSubtitle(media),
+            showTrackNumbers = showTrackNumbers,
+            showReorderButtons = showReorderButtons && tablet,
+            showDeleteButton = tablet,
+            stopAfterThis = stopAfter == position,
+            current = current,
+            playing = model?.playing != false
+        )
+        if (current) currentPlayingItem = holder.playlistItem
+        else if (currentPlayingItem === holder.playlistItem) currentPlayingItem = null
     }
 
     override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
         super.onDetachedFromRecyclerView(recyclerView)
-        marqueeScheduler?.cancelAction("")
-        currentPlayingVisu?.stop()
-        currentPlayingVisu = null
-    }
-
-    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
-        super.onAttachedToRecyclerView(recyclerView)
-        if (Settings.listTitleEllipsize == 4) marqueeScheduler = enableMarqueeEffect(recyclerView)
+        currentPlayingItem?.setPlaying(false)
+        currentPlayingItem = null
     }
 
     override fun onViewRecycled(holder: ViewHolder) {
-        marqueeScheduler?.cancelAction(MARQUEE_ACTION)
+        if (currentPlayingItem === holder.playlistItem) currentPlayingItem = null
+        holder.playlistItem.setPlaying(false)
         super.onViewRecycled(holder)
     }
 
@@ -225,12 +176,17 @@ class PlaylistAdapter(private val player: IPlayer) : DiffUtilAdapter<MediaWrappe
     }
 
     inner class ViewHolder @TargetApi(Build.VERSION_CODES.M)
-    constructor(v: View) : RecyclerView.ViewHolder(v), MarqueeViewHolder {
-        var binding: PlaylistItemBinding = DataBindingUtil.bind(v)!!
-        override val titleView = binding.audioItemTitle
+    constructor(v: View) : RecyclerView.ViewHolder(v) {
+        val playlistItem = v as PlaylistItemView
 
         init {
-            binding.holder = this
+            playlistItem.setCallbacks(
+                onRowClick = { onClick() },
+                onMoveUpClick = { onMoveUpClick() },
+                onMoveDownClick = { onMoveDownClick() },
+                onDeleteClick = { onDeleteClick() },
+                onMoreClick = { onMoreClick(playlistItem) }
+            )
             if (AndroidUtil.isMarshMallowOrLater)
                 itemView.setOnContextClickListener { view ->
                     onMoreClick(view)
@@ -238,32 +194,36 @@ class PlaylistAdapter(private val player: IPlayer) : DiffUtilAdapter<MediaWrappe
                 }
         }
 
-        fun onClick(@Suppress("UNUSED_PARAMETER") v: View, media: MediaWrapper) {
-            val position = layoutPosition //getMediaPosition(media);
-            player.playItem(position, media)
+        fun onClick() {
+            val position = bindingAdapterPosition
+            if (position != RecyclerView.NO_POSITION) player.playItem(position, getItem(position))
         }
 
         fun onMoreClick(v: View) {
-            val position = layoutPosition
-            player.onPopupMenu(v, position, getItem(position))
+            val position = bindingAdapterPosition
+            if (position != RecyclerView.NO_POSITION) player.onPopupMenu(v, position, getItem(position))
         }
 
-        fun onDeleteClick(@Suppress("UNUSED_PARAMETER") v: View) {
-            onItemDismiss(layoutPosition)
-        }
-        fun onMoveUpClick(@Suppress("UNUSED_PARAMETER") v: View) {
-            if (layoutPosition != 0) onItemMove(layoutPosition, layoutPosition - 1)
+        fun onDeleteClick() {
+            val position = bindingAdapterPosition
+            if (position != RecyclerView.NO_POSITION) onItemDismiss(position)
         }
 
-        fun onMoveDownClick(@Suppress("UNUSED_PARAMETER") v: View) {
-            if (layoutPosition != itemCount - 1) onItemMove(layoutPosition, layoutPosition + 1)
+        fun onMoveUpClick() {
+            val position = bindingAdapterPosition
+            if (position > 0) onItemMove(position, position - 1)
+        }
+
+        fun onMoveDownClick() {
+            val position = bindingAdapterPosition
+            if (position != RecyclerView.NO_POSITION && position != itemCount - 1) onItemMove(position, position + 1)
         }
     }
 
     override fun createCB(): DiffCallback<MediaWrapper> = MediaItemDiffCallback()
 
     fun setCurrentlyPlaying(playing: Boolean) {
-        if (playing) currentPlayingVisu?.start() else currentPlayingVisu?.stop()
+        currentPlayingItem?.setPlaying(playing)
     }
 
     var from = -1

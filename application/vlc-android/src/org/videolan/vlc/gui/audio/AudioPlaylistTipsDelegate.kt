@@ -29,14 +29,12 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.animation.PropertyValuesHolder
 import android.animation.ValueAnimator
-import android.graphics.Typeface
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AccelerateInterpolator
 import android.widget.Button
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
@@ -46,7 +44,6 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
-import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.transition.Fade
@@ -61,18 +58,18 @@ import org.videolan.tools.putSingle
 import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.R
-import org.videolan.vlc.databinding.PlaylistItemBinding
 import org.videolan.vlc.gui.AudioPlayerContainerActivity
 import org.videolan.vlc.gui.helpers.TipsUtils
 import org.videolan.vlc.gui.helpers.UiTools.isTablet
+import org.videolan.vlc.gui.view.PlaylistItemView
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.util.getScreenHeight
 import org.videolan.vlc.util.getScreenWidth
 import org.videolan.vlc.viewmodels.PlaylistModel
 
 class AudioPlaylistTipsDelegate(private val activity: AudioPlayerContainerActivity) {
-    private lateinit var thirdItemBinding: PlaylistItemBinding
-    private lateinit var secondItemBinding: PlaylistItemBinding
+    private lateinit var thirdItemView: PlaylistItemView
+    private lateinit var secondItemView: PlaylistItemView
     var currentTip: AudioPlaylistTipsStep? = null
     private lateinit var initialConstraintSet: ConstraintSet
     private val transition = Fade().apply {
@@ -118,30 +115,24 @@ class AudioPlaylistTipsDelegate(private val activity: AudioPlayerContainerActivi
             playlistModel.currentMediaWrapper?.let {
                 for (i in 0..10) {
                     val v = LayoutInflater.from(activity)
-                        .inflate(R.layout.playlist_item, tracksContainer, false)
-                    var binding: PlaylistItemBinding = DataBindingUtil.bind(v)!!
-                    binding.media = it
-                    binding.scaleType = ImageView.ScaleType.CENTER_CROP
-                    binding.subTitle = MediaUtils.getMediaSubtitle(it)
+                        .inflate(R.layout.playlist_item, tracksContainer, false) as PlaylistItemView
+                    v.bind(
+                        media = it,
+                        subtitle = MediaUtils.getMediaSubtitle(it),
+                        showTrackNumbers = false,
+                        showReorderButtons = activity.isTablet(),
+                        showDeleteButton = true,
+                        stopAfterThis = false,
+                        current = i == 2,
+                        playing = false,
+                        masked = true
+                    )
                     tracksContainer.addView(v)
-                    if (i == 2) {
-                        binding.playing.stop()
-                        binding.playing.visibility = View.VISIBLE
-                        binding.coverImage.visibility = View.INVISIBLE
-                        binding.audioItemTitle.setTypeface(null, Typeface.BOLD)
-                        binding.audioItemSubtitle.setTypeface(null, Typeface.BOLD)
-                    } else {
-                        binding.playing.stop()
-                        binding.playing.visibility = View.INVISIBLE
-                        binding.audioItemTitle.typeface = null
-                        binding.coverImage.visibility = View.VISIBLE
-                    }
-                    binding.masked = true
                     if (i == 1) {
-                        binding.masked = false
-                        binding.itemContainer.setBackgroundColor(getItemColor())
-                        secondItemBinding = binding
-                    } else if (i == 2) thirdItemBinding = binding
+                        v.setMasked(false)
+                        v.setBackgroundColor(getItemColor())
+                        secondItemView = v
+                    } else if (i == 2) thirdItemView = v
                 }
             }
         }
@@ -302,11 +293,11 @@ class AudioPlaylistTipsDelegate(private val activity: AudioPlayerContainerActivi
         when (currentTip) {
             AudioPlaylistTipsStep.REMOVE -> {
                 if (activity.isTablet()){
-                    val indicatorY = secondItemBinding.itemContainer.top + (secondItemBinding.itemContainer.height / 2) - 24.dp
+                    val indicatorY = secondItemView.top + (secondItemView.height / 2) - 24.dp
                     constraintSet.setMargin(R.id.tapIndicatorRearrange, ConstraintSet.TOP, indicatorY)
                     currentAnimations.clear()
                     constraintSet.setVisibility(R.id.tapIndicatorRearrange, View.VISIBLE)
-                    val indicatorX = secondItemBinding.itemDelete.left + (secondItemBinding.itemDelete.width / 2) - 24.dp
+                    val indicatorX = secondItemView.deleteButtonCenterX() - 24.dp
                     constraintSet.setMargin(R.id.tapIndicatorRearrange, ConstraintSet.START, indicatorX)
                     constraintSet.clear(R.id.tapIndicatorRearrange, ConstraintSet.END)
                     TipsUtils.startTapAnimation(listOf(tapIndicatorRearrange))
@@ -315,26 +306,26 @@ class AudioPlaylistTipsDelegate(private val activity: AudioPlayerContainerActivi
                     constraintSet.setVisibility(R.id.tapGestureHorizontal, View.VISIBLE)
                     currentAnimations.clear()
                     currentAnimations.add(TipsUtils.horizontalSwipe(tapGestureHorizontal) {
-                        secondItemBinding.itemContainer.translationX = (it.animatedValue as Float) * 4
+                        secondItemView.translationX = (it.animatedValue as Float) * 4
                     })
                 }
             }
             AudioPlaylistTipsStep.REARRANGE -> {
-                secondItemBinding.itemContainer.translationX = 0F
-                thirdItemBinding.masked = false
-                thirdItemBinding.playing.start()
-                thirdItemBinding.itemContainer.setBackgroundColor(getItemColor())
+                secondItemView.translationX = 0F
+                thirdItemView.setMasked(false)
+                thirdItemView.setPlaying(true)
+                thirdItemView.setBackgroundColor(getItemColor())
 
                 constraintSet.setVisibility(R.id.tapIndicatorRearrange, View.VISIBLE)
-                val indicatorY = thirdItemBinding.itemContainer.top + (thirdItemBinding.itemContainer.height / 2) - 24.dp
+                val indicatorY = thirdItemView.top + (thirdItemView.height / 2) - 24.dp
                 constraintSet.setMargin(R.id.tapIndicatorRearrange, ConstraintSet.TOP, indicatorY)
                 currentAnimations.clear()
                 if (activity.isTablet()){
-                    val indicatorX = thirdItemBinding.itemMoveUp.left + (thirdItemBinding.itemMoveUp.width / 2) - 24.dp
+                    val indicatorX = thirdItemView.moveUpButtonCenterX() - 24.dp
                     constraintSet.setMargin(R.id.tapIndicatorRearrange, ConstraintSet.START, indicatorX)
                     constraintSet.clear(R.id.tapIndicatorRearrange, ConstraintSet.END)
                     TipsUtils.startTapAnimation(listOf(tapIndicatorRearrange))
-                } else currentAnimations.add(dragAndDrop(tapIndicatorRearrange, thirdItemBinding.itemContainer))
+                } else currentAnimations.add(dragAndDrop(tapIndicatorRearrange, thirdItemView))
 
             }
             AudioPlaylistTipsStep.SEEK -> {

@@ -71,6 +71,7 @@ import org.videolan.vlc.compose.components.VLCAudioMiniProgressBar
 import org.videolan.vlc.compose.components.VLCAudioPlayerBackground
 import org.videolan.vlc.compose.components.VLCAudioPlayerGradient
 import org.videolan.vlc.compose.components.VLCAudioPlayerGradientEdge
+import org.videolan.vlc.compose.components.VLCAudioPlaylistItem
 import org.videolan.vlc.compose.components.VLCAudioPlaylistSearchField
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
@@ -402,6 +403,36 @@ fun ComposeInteropLabContent() {
         ) {
             Text("...", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.fontDefault)
         }
+        VLCAudioPlaylistItem(
+            title = "Symphony No. 1",
+            subtitle = "Beethoven",
+            contentDescription = "Symphony No. 1, Beethoven",
+            trackNumberText = "1.",
+            showTrackNumber = true,
+            showReorderButtons = true,
+            showDeleteButton = true,
+            coverContent = {
+                Text("♪", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.fontDefault)
+            },
+            playingContent = {
+                Text("|||", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
+            },
+            stopAfterContent = {
+                Text("S", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
+            },
+            moveUpContent = {
+                Text("^", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
+            },
+            moveDownContent = {
+                Text("v", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
+            },
+            deleteContent = {
+                Text("x", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
+            },
+            moreContent = {
+                Text("...", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
+            }
+        )
         VLCAudioResumeVideoHint(message = "Long tap the cover to restore the video")
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             VLCAudioHeaderActionButton(contentDescription = "Search") {
@@ -515,6 +546,7 @@ fun ComposeInteropLabContent() {
             "The foldable hinge left/right affordances are Compose-hosted under hinge_go_left and hinge_go_right. " +
             "The cover-mode seek/bookmark HUD row is Compose-hosted under the existing audio_rewind/audio_forward IDs with delay labels driven from Settings.audioJumpDelay. " +
             "The shared bookmarks panel is Compose-rendered through BookmarksPanelView in bookmarks.xml, replacing the toolbar, RecyclerView, empty state, bookmark_item.xml rows, and bottom seek/bookmark controls while keeping the audio/video ViewStub hosts stable. " +
+            "The audio playlist rows are Compose-rendered through PlaylistItemView in playlist_item.xml while the RecyclerView host keeps the existing swipe and drag behavior during the list migration. " +
             "The player gesture/switcher surface stays outside this slice; the speed and sleep quick actions are now Compose.",
             style = MaterialTheme.typography.bodySmall
         )

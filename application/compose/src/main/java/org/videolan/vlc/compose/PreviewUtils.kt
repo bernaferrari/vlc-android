@@ -42,6 +42,7 @@ import org.videolan.vlc.compose.components.VLCAudioMiniProgressBar
 import org.videolan.vlc.compose.components.VLCAudioPlayerBackground
 import org.videolan.vlc.compose.components.VLCAudioPlayerGradient
 import org.videolan.vlc.compose.components.VLCAudioPlayerGradientEdge
+import org.videolan.vlc.compose.components.VLCAudioPlaylistItem
 import org.videolan.vlc.compose.components.VLCAudioPlaylistSearchField
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
@@ -355,6 +356,30 @@ private fun PlayerChromeTokensDemo() {
         ) {
             Text("...", color = c.fontDefault)
         }
+        VLCAudioPlaylistItem(
+            title = "Symphony No. 1",
+            subtitle = "Beethoven",
+            contentDescription = "Symphony No. 1, Beethoven",
+            trackNumberText = "1.",
+            showTrackNumber = true,
+            showReorderButtons = true,
+            showDeleteButton = true,
+            coverContent = {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .background(c.fontAudioLight)
+                )
+            },
+            playingContent = {
+                Text("|||", color = c.playerIconColor, style = MaterialTheme.typography.labelMedium)
+            },
+            stopAfterContent = { Text("S", color = c.playerIconColor) },
+            moveUpContent = { Text("^", color = c.playerIconColor) },
+            moveDownContent = { Text("v", color = c.playerIconColor) },
+            deleteContent = { Text("x", color = c.playerIconColor) },
+            moreContent = { Text("...", color = c.playerIconColor) }
+        )
         VLCAudioResumeVideoHint(message = "Long tap the cover to restore the video")
 
         Spacer(Modifier.height(16.dp))
