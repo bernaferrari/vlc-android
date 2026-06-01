@@ -23,4 +23,8 @@
     <item name="swipe_to_unlock" type="id" />
     <item name="fastscroller_bubble" type="id" />
     <item name="fastscroller_handle" type="id" />
+    <item name="player_surface" type="id" />
+    <item name="popup_close" type="id" />
+    <item name="popup_expand" type="id" />
+    <item name="video_play_pause" type="id" />
 </resources>

@@ -31,11 +31,11 @@ import android.os.Looper
 import android.os.Message
 import android.util.Log
 import android.view.GestureDetector
-import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.SurfaceView
 import android.view.View
 import android.widget.ImageView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.NotificationCompat
 import androidx.core.view.GestureDetectorCompat
 import androidx.lifecycle.Observer
@@ -101,8 +101,7 @@ class PopupManager(private val service: PlaybackService) : PlaybackService.Callb
         service.addCallback(this)
         service.isInPiPMode.value = true
         service.isInPiPMode.observeForever(observer)
-        val li = LayoutInflater.from(service.applicationContext)
-        rootView = li.inflate(R.layout.video_popup, null) as PopupLayout
+        rootView = createPopupView()
         val view = rootView ?: return
         if (alwaysOn) view.keepScreenOn = true
         playPauseButton = view.findViewById(R.id.video_play_pause)
@@ -121,6 +120,64 @@ class PopupManager(private val service: PlaybackService) : PlaybackService.Callb
         vlcVout.addCallback(this)
         vlcVout.attachViews(this)
         view.setVLCVOut(vlcVout)
+    }
+
+    private fun createPopupView(): PopupLayout {
+        return PopupLayout(service.applicationContext).apply {
+            keepScreenOn = true
+            val surface = SurfaceView(context).apply { id = R.id.player_surface }
+            addView(surface, ConstraintLayout.LayoutParams(
+                    0,
+                    0
+            ).apply {
+                bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+                endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+                startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+                topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+            })
+
+            val close = ImageView(context).apply {
+                id = R.id.popup_close
+                visibility = View.GONE
+                setImageResource(R.drawable.ic_popup_close_w)
+            }
+            addView(close, ConstraintLayout.LayoutParams(
+                    ConstraintLayout.LayoutParams.WRAP_CONTENT,
+                    ConstraintLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+                topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+            })
+
+            val expand = ImageView(context).apply {
+                id = R.id.popup_expand
+                visibility = View.GONE
+                setImageResource(R.drawable.ic_popup_fullscreen)
+            }
+            addView(expand, ConstraintLayout.LayoutParams(
+                    ConstraintLayout.LayoutParams.WRAP_CONTENT,
+                    ConstraintLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                endToStart = R.id.popup_close
+                topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+            })
+
+            val playPause = ImageView(context).apply {
+                id = R.id.video_play_pause
+                scaleType = ImageView.ScaleType.CENTER
+                visibility = View.GONE
+                setImageResource(R.drawable.ic_popup_pause)
+            }
+            addView(playPause, ConstraintLayout.LayoutParams(
+                    ConstraintLayout.LayoutParams.WRAP_CONTENT,
+                    ConstraintLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+                endToEnd = R.id.player_surface
+                startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+                topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+            })
+        }
     }
 
     override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
