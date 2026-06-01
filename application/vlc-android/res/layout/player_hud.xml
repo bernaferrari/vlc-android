@@ -194,19 +194,17 @@
                 tools:visibility="visible" />
 
 
-        <org.videolan.vlc.gui.view.FocusableTextView
+        <org.videolan.vlc.gui.view.VideoTimelineTimeLabelView
                 android:id="@+id/player_overlay_time"
-                style="@style/VLC.Player.TimeText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="24dp"
                 android:clickable="true"
                 android:focusable="true"
                 android:importantForAccessibility="no"
-                android:gravity="left"
                 android:nextFocusUp="@+id/ab_repeat_container"
                 android:onClick="@{(v) -> player.toggleTimeDisplay()}"
-                android:text="@{Tools.millisToString(progress.time)}"
+                vlc:timelineText="@{Tools.millisToString(progress.time)}"
                 tools:text="0:32"
                 vlc:layout_constraintBottom_toTopOf="@+id/player_overlay_seekbar"
                 vlc:layout_constraintRight_toLeftOf="@+id/player_overlay_length"
@@ -214,15 +212,13 @@
                 vlc:layout_constraintLeft_toLeftOf="parent" />
 
 
-        <org.videolan.vlc.gui.view.FocusableTextView
+        <org.videolan.vlc.gui.view.VideoTimelineTimeLabelView
                 android:id="@+id/player_overlay_length"
-                style="@style/VLC.Player.TimeText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="24dp"
                 android:clickable="true"
                 android:focusable="true"
-                android:gravity="right"
                 android:importantForAccessibility="no"
                 android:nextFocusUp="@+id/ab_repeat_container"
                 android:onClick="@{(v) -> player.toggleTimeDisplay()}"

@@ -66,7 +66,6 @@ import android.view.animation.RotateAnimation
 import android.view.inputmethod.BaseInputConnection
 import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
@@ -200,6 +199,7 @@ import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
 import org.videolan.vlc.gui.helpers.hf.StoragePermissionsDelegate
 import org.videolan.vlc.gui.view.PlayerTimelineSeekBarView
+import org.videolan.vlc.gui.view.VideoTimelineTimeLabelView
 import org.videolan.vlc.interfaces.IPlaybackSettingsController
 import org.videolan.vlc.media.NO_LENGTH_PROGRESS_MAX
 import org.videolan.vlc.media.PlaylistManager
@@ -2643,11 +2643,16 @@ data class PlayerOrientationMode(
 )
 
 @BindingAdapter("length", "time")
-fun setPlaybackTime(view: TextView, length: Long, time: Long) {
-    view.text = if (VideoPlayerActivity.sDisplayRemainingTime && length > 0)
+fun setPlaybackTime(view: VideoTimelineTimeLabelView, length: Long, time: Long) {
+    view.setTimelineText(if (VideoPlayerActivity.sDisplayRemainingTime && length > 0)
         "-" + '\u00A0'.toString() + Tools.millisToString(length - time)
     else
-        Tools.millisToString(length)
+        Tools.millisToString(length))
+}
+
+@BindingAdapter("timelineText")
+fun setTimelineText(view: VideoTimelineTimeLabelView, text: CharSequence?) {
+    view.setTimelineText(text)
 }
 
 @BindingAdapter("constraintPercent")
