@@ -29,24 +29,42 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.appcompat.widget.Toolbar
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.core.text.isDigitsOnly
-import androidx.core.view.ViewCompat
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.appbar.AppBarLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -123,6 +141,8 @@ import org.videolan.vlc.gui.preferences.search.PreferenceParser
 import org.videolan.vlc.gui.preferences.search.PreferenceSearchActivity
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.providers.PickerType
+import org.videolan.vlc.compose.theme.VLCTheme
+import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.util.AutoUpdate
 import org.videolan.vlc.util.FeatureFlag
 import org.videolan.vlc.util.FileUtils
@@ -143,12 +163,11 @@ private const val RESULT_VALUE_CLEAR_APP_DATA = 3
 open class PreferencesActivity : BaseActivity() {
 
     private val searchRequestCode = 167
-    private var mAppBarLayout: AppBarLayout? = null
-    private var activeComposeDestination: PreferencesRootDestination? = null
-    private var activeComposeHighlight: String? = null
+    private var activeComposeDestination by mutableStateOf<PreferencesRootDestination?>(null)
+    private var activeComposeHighlight by mutableStateOf<String?>(null)
     private var pendingSubtitlesRestart = false
     private var needToRestartOnResume = false
-    override val displayTitle = true
+    override val displayTitle = false
     private var pinCodeResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode != RESULT_OK) {
             finish()
@@ -187,10 +206,14 @@ open class PreferencesActivity : BaseActivity() {
             pinCodeResult.launch(intent)
         }
 
-        setContentView(R.layout.preferences_activity)
-        setSupportActionBar(findViewById<View>(R.id.main_toolbar) as Toolbar)
-        mAppBarLayout = findViewById(R.id.appbar)
-        mAppBarLayout!!.post { ViewCompat.setElevation(mAppBarLayout!!, resources.getDimensionPixelSize(R.dimen.default_appbar_elevation).toFloat()) }
+        setContentView(
+            ComposeView(this).apply {
+                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+                setContent {
+                    PreferencesActivityScreen()
+                }
+            }
+        )
         onBackPressedDispatcher.addCallback(this) {
             if (!navigateUp()) finish()
         }
@@ -236,45 +259,163 @@ open class PreferencesActivity : BaseActivity() {
         super.onStop()
     }
 
-    internal fun expandBar() {
-        mAppBarLayout!!.setExpanded(true)
-    }
+    @Composable
+    private fun PreferencesActivityScreen() {
+        VLCTheme {
+            val colors = VLCThemeDefaults.colors
+            val destination = activeComposeDestination
+            val highlightedKey = activeComposeHighlight
+            val title = destination?.let { stringResource(it.titleRes()) } ?: stringResource(R.string.preferences)
+            val settings = Settings.getInstance(this@PreferencesActivity)
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.activity_prefs, menu)
-        return true
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        menu?.findItem(R.id.menu_android_auto_info)?.isVisible = activeComposeDestination == PreferencesRootDestination.AndroidAuto
-        menu?.findItem(R.id.menu_remote_access_onboarding)?.isVisible = activeComposeDestination == PreferencesRootDestination.RemoteAccess
-        return super.onPrepareOptionsMenu(menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            android.R.id.home -> {
-                if (!navigateUp())
-                    finish()
-                return true
-            }
-            R.id.menu_pref_search -> {
-                startActivityForResult(Intent(this, PreferenceSearchActivity::class.java), searchRequestCode)
-            }
-            R.id.menu_android_auto_info -> {
-                if (activeComposeDestination == PreferencesRootDestination.AndroidAuto) {
-                    showAutoInfoComposeDialog()
-                    return true
-                }
-            }
-            R.id.menu_remote_access_onboarding -> {
-                if (activeComposeDestination == PreferencesRootDestination.RemoteAccess) {
-                    openRemoteAccessOnboarding()
-                    return true
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(colors.backgroundDefault)
+            ) {
+                PreferencesTopBar(
+                    title = title,
+                    destination = destination,
+                    onNavigateUp = {
+                        if (!navigateUp()) finish()
+                    },
+                    onSearch = ::openPreferenceSearch,
+                    onAndroidAutoInfo = { showAutoInfoComposeDialog() },
+                    onRemoteAccessOnboarding = ::openRemoteAccessOnboarding
+                )
+                HorizontalDivider(color = colors.defaultDivider)
+                Box(modifier = Modifier.weight(1f)) {
+                    if (destination == null) {
+                        PreferencesRootScreen(
+                            settings = settings,
+                            highlightedKey = highlightedKey,
+                            isVisible = { PreferenceVisibilityManager.isPreferenceVisible(it, settings, false) },
+                            onDirectoriesClick = ::openDirectories,
+                            onPermissionClick = { showPermissionListComposeDialog() },
+                            onEqualizerClick = { startActivity(Intent(applicationContext, EqualizerSettingsActivity::class.java)) },
+                            onCategoryClick = ::openRootDestination,
+                            onPlaybackHistoryDisabled = ::disablePlaybackHistory,
+                            onAudioResumeDisabled = ::disableAudioResumePlayback,
+                            onVideoResumeChanged = ::onVideoResumePlaybackChanged,
+                            onVideoActionSwitchChanged = ::onVideoActionSwitchChanged
+                        )
+                    } else {
+                        PreferencesComposeSubpageScreen(
+                            settings = settings,
+                            destination = destination,
+                            highlightedKey = highlightedKey,
+                            isPinCodeSet = { this@PreferencesActivity.isPinCodeSet() },
+                            onModifyPinCodeClick = {
+                                modifyPinCodeResult.launch(PinCodeActivity.getIntent(this@PreferencesActivity, PinCodeReason.MODIFY))
+                            },
+                            onSafeModeChanged = { Settings.safeMode = it },
+                            onRestartAppRequired = ::setRestartApp,
+                            onRestartCastingPipeline = ::restartCastingPipeline,
+                            onAndroidAutoSettingChanged = ::updateAndroidAutoState,
+                            onPlaybackSpeedGlobalChanged = ::onPlaybackSpeedGlobalChanged,
+                            onRemoteAccessStatusClick = ::openRemoteAccessStatus,
+                            onRemoteAccessEnabledChanged = ::onRemoteAccessEnabledChanged,
+                            onRemoteAccessNetworkBrowserChanged = ::restartRemoteAccessServer,
+                            onPreferredResolutionChanged = ::restartMediaPipeline,
+                            onPopupForceLegacyChanged = ::onPopupForceLegacyChanged,
+                            onHeadsetDetectionChanged = ::detectHeadset,
+                            onAudioReplayGainChanged = ::restartMediaPipeline,
+                            onSoundFontClick = ::openSoundFontPicker,
+                            onRestartRequired = ::setRestart,
+                            onRestartDialogRequired = ::showRestartDialog,
+                            onDefaultSleepTimerClick = ::openDefaultSleepTimer,
+                            onSeenMediaChanged = ::updateSeenMedia,
+                            onSubtitleSettingChanged = ::markSubtitlesRestartPending,
+                            onOptionalFeaturesClick = { showPreferenceSubpage(PreferencesRootDestination.OptionalFeatures) },
+                            onDebugLogsClick = ::openDebugLogs,
+                            onInstallNightlyClick = ::installNightly,
+                            onClearPlaybackHistoryClick = ::confirmClearPlaybackHistory,
+                            onClearMediaDatabaseClick = ::confirmClearMediaDatabase,
+                            onClearAppDataClick = ::confirmClearAppData,
+                            onQuitAppClick = ::quitApp,
+                            onDumpMediaDatabaseClick = ::dumpMediaDatabase,
+                            onDumpAppDatabaseClick = ::dumpAppDatabase,
+                            onExportSettingsClick = ::exportSettings,
+                            onRestoreSettingsClick = ::openSettingsRestorePicker,
+                            onNetworkCachingChanged = ::onNetworkCachingChanged,
+                            onAoutChanged = ::onAoutChanged,
+                            onAdvancedRestartLibVlc = ::restartMediaPipeline,
+                            onCustomLibVlcOptionsChanged = ::onCustomLibVlcOptionsChanged,
+                            onDav1dThreadNumberChanged = ::onDav1dThreadNumberChanged,
+                            onPreferSmbV1Changed = ::onPreferSmbV1Changed,
+                            onQuickPlayChanged = ::onQuickPlayChanged,
+                            onFeatureFlagWarningRequired = ::showFeatureFlagWarning
+                        )
+                    }
                 }
             }
         }
-        return super.onOptionsItemSelected(item)
+    }
+
+    @Composable
+    private fun PreferencesTopBar(
+        title: String,
+        destination: PreferencesRootDestination?,
+        onNavigateUp: () -> Unit,
+        onSearch: () -> Unit,
+        onAndroidAutoInfo: () -> Unit,
+        onRemoteAccessOnboarding: () -> Unit
+    ) {
+        val colors = VLCThemeDefaults.colors
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .background(colors.headerBackground)
+                .padding(horizontal = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            IconButton(onClick = onNavigateUp) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_arrow_back),
+                    contentDescription = stringResource(R.string.close),
+                    tint = colors.fontDefault
+                )
+            }
+            Text(
+                text = title,
+                color = colors.fontDefault,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
+            if (destination == PreferencesRootDestination.RemoteAccess) {
+                IconButton(onClick = onRemoteAccessOnboarding) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_information),
+                        contentDescription = stringResource(R.string.remote_access),
+                        tint = colors.fontDefault
+                    )
+                }
+            }
+            if (destination == PreferencesRootDestination.AndroidAuto) {
+                IconButton(onClick = onAndroidAutoInfo) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_information),
+                        contentDescription = stringResource(R.string.info),
+                        tint = colors.fontDefault
+                    )
+                }
+            }
+            IconButton(onClick = onSearch) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_search),
+                    contentDescription = stringResource(R.string.searchable_hint),
+                    tint = colors.fontDefault
+                )
+            }
+        }
+    }
+
+    private fun openPreferenceSearch() {
+        startActivityForResult(Intent(this, PreferenceSearchActivity::class.java), searchRequestCode)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -289,36 +430,8 @@ open class PreferencesActivity : BaseActivity() {
 
     private fun showPreferencesRoot(highlightedKey: String? = null) {
         flushComposeDestinationSideEffects(activeComposeDestination)
-        expandBar()
         activeComposeDestination = null
         activeComposeHighlight = highlightedKey
-        supportActionBar?.title = getString(R.string.preferences)
-        findViewById<ViewGroup>(R.id.fragment_placeholder).apply {
-            removeAllViews()
-            addView(
-                ComposeView(this@PreferencesActivity).apply {
-                    layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-                    setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-                    setContent {
-                        val settings = Settings.getInstance(this@PreferencesActivity)
-                        PreferencesRootScreen(
-                            settings = settings,
-                            highlightedKey = highlightedKey,
-                            isVisible = { PreferenceVisibilityManager.isPreferenceVisible(it, settings, false) },
-                            onDirectoriesClick = ::openDirectories,
-                            onPermissionClick = { showPermissionListComposeDialog() },
-                            onEqualizerClick = { startActivity(Intent(applicationContext, EqualizerSettingsActivity::class.java)) },
-                            onCategoryClick = ::openRootDestination,
-                            onPlaybackHistoryDisabled = ::disablePlaybackHistory,
-                            onAudioResumeDisabled = ::disableAudioResumePlayback,
-                            onVideoResumeChanged = ::onVideoResumePlaybackChanged,
-                            onVideoActionSwitchChanged = ::onVideoActionSwitchChanged
-                        )
-                    }
-                }
-            )
-        }
-        invalidateOptionsMenu()
     }
 
     private fun openDirectories() {
@@ -386,72 +499,11 @@ open class PreferencesActivity : BaseActivity() {
 
     private fun showPreferenceSubpage(destination: PreferencesRootDestination, highlightedKey: String? = null) {
         if (activeComposeDestination != destination) flushComposeDestinationSideEffects(activeComposeDestination)
-        expandBar()
         activeComposeDestination = destination
         activeComposeHighlight = highlightedKey
-        supportActionBar?.title = getString(destination.titleRes())
         if (destination == PreferencesRootDestination.Ui) ensureUiThemePreferenceDefaults(Settings.getInstance(this))
         if (destination == PreferencesRootDestination.Video) showVideoSettingsDisclaimerIfNeeded()
         if (destination == PreferencesRootDestination.RemoteAccess) showRemoteAccessOnboardingIfNeeded()
-        findViewById<ViewGroup>(R.id.fragment_placeholder).apply {
-            removeAllViews()
-            addView(
-                ComposeView(this@PreferencesActivity).apply {
-                    layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-                    setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-                    setContent {
-                        val settings = Settings.getInstance(this@PreferencesActivity)
-                        PreferencesComposeSubpageScreen(
-                            settings = settings,
-                            destination = destination,
-                            highlightedKey = highlightedKey,
-                            isPinCodeSet = { this@PreferencesActivity.isPinCodeSet() },
-                            onModifyPinCodeClick = {
-                                modifyPinCodeResult.launch(PinCodeActivity.getIntent(this@PreferencesActivity, PinCodeReason.MODIFY))
-                            },
-                            onSafeModeChanged = { Settings.safeMode = it },
-                            onRestartAppRequired = ::setRestartApp,
-                            onRestartCastingPipeline = ::restartCastingPipeline,
-                            onAndroidAutoSettingChanged = ::updateAndroidAutoState,
-                            onPlaybackSpeedGlobalChanged = ::onPlaybackSpeedGlobalChanged,
-                            onRemoteAccessStatusClick = ::openRemoteAccessStatus,
-                            onRemoteAccessEnabledChanged = ::onRemoteAccessEnabledChanged,
-                            onRemoteAccessNetworkBrowserChanged = ::restartRemoteAccessServer,
-                            onPreferredResolutionChanged = ::restartMediaPipeline,
-                            onPopupForceLegacyChanged = ::onPopupForceLegacyChanged,
-                            onHeadsetDetectionChanged = ::detectHeadset,
-                            onAudioReplayGainChanged = ::restartMediaPipeline,
-                            onSoundFontClick = ::openSoundFontPicker,
-                            onRestartRequired = ::setRestart,
-                            onRestartDialogRequired = ::showRestartDialog,
-                            onDefaultSleepTimerClick = ::openDefaultSleepTimer,
-                            onSeenMediaChanged = ::updateSeenMedia,
-                            onSubtitleSettingChanged = ::markSubtitlesRestartPending,
-                            onOptionalFeaturesClick = { showPreferenceSubpage(PreferencesRootDestination.OptionalFeatures) },
-                            onDebugLogsClick = ::openDebugLogs,
-                            onInstallNightlyClick = ::installNightly,
-                            onClearPlaybackHistoryClick = ::confirmClearPlaybackHistory,
-                            onClearMediaDatabaseClick = ::confirmClearMediaDatabase,
-                            onClearAppDataClick = ::confirmClearAppData,
-                            onQuitAppClick = ::quitApp,
-                            onDumpMediaDatabaseClick = ::dumpMediaDatabase,
-                            onDumpAppDatabaseClick = ::dumpAppDatabase,
-                            onExportSettingsClick = ::exportSettings,
-                            onRestoreSettingsClick = ::openSettingsRestorePicker,
-                            onNetworkCachingChanged = ::onNetworkCachingChanged,
-                            onAoutChanged = ::onAoutChanged,
-                            onAdvancedRestartLibVlc = ::restartMediaPipeline,
-                            onCustomLibVlcOptionsChanged = ::onCustomLibVlcOptionsChanged,
-                            onDav1dThreadNumberChanged = ::onDav1dThreadNumberChanged,
-                            onPreferSmbV1Changed = ::onPreferSmbV1Changed,
-                            onQuickPlayChanged = ::onQuickPlayChanged,
-                            onFeatureFlagWarningRequired = ::showFeatureFlagWarning
-                        )
-                    }
-                }
-            )
-        }
-        invalidateOptionsMenu()
     }
 
     private fun navigateUp(): Boolean {
