@@ -94,15 +94,14 @@
                 android:visibility="invisible"
                 tools:visibility="visible" />
 
-        <androidx.appcompat.widget.ViewStubCompat
-                android:id="@+id/player_hud_stub"
+        <include
+                layout="@layout/player_hud"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="bottom"
                 android:layout_marginLeft="@dimen/overlay_margin"
                 android:layout_marginRight="@dimen/overlay_margin"
-                android:layout_marginBottom="@dimen/overlay_margin"
-                android:layout="@layout/player_hud" />
+                android:layout_marginBottom="@dimen/overlay_margin" />
 
         <org.videolan.vlc.gui.view.VideoResizeOverlayView
                 android:id="@+id/player_resize_stub"

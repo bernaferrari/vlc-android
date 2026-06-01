@@ -40,7 +40,6 @@ import android.view.animation.AnimationUtils
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.annotation.StringRes
-import androidx.appcompat.widget.ViewStubCompat
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -49,6 +48,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.net.toUri
 import androidx.core.view.children
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.window.layout.FoldingFeature
@@ -57,6 +57,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.videolan.libvlc.util.AndroidUtil
+import org.videolan.medialibrary.Tools
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.medialibrary.media.MediaWrapperImpl
 import org.videolan.resources.AndroidDevices
@@ -103,6 +104,8 @@ import org.videolan.vlc.gui.view.VideoVerticalProgressOverlayView
 import org.videolan.vlc.isVLC4
 import org.videolan.vlc.manageAbRepeatStep
 import org.videolan.vlc.media.MediaUtils
+import org.videolan.vlc.media.NO_LENGTH_PROGRESS_MAX
+import org.videolan.vlc.media.Progress
 import org.videolan.vlc.util.FileUtils
 import org.videolan.vlc.util.getScreenWidth
 import org.videolan.vlc.util.isSchemeFile
@@ -130,6 +133,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
     private var overlayTimeout = 0
     private val hudBackground: View? by lazy { player.findViewById(R.id.hud_background) }
     private val hudRightBackground: View? by lazy { player.findViewById(R.id.hud_right_background) }
+    private var hudProgressSource: LiveData<Progress>? = null
 
 
     var seekButtons: Boolean = false
@@ -538,14 +542,12 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                 }
             }
 
-            val vsc = player.findViewById<ViewStubCompat>(R.id.player_hud_stub)
-            if (vsc != null) {
+            if (!::hudBinding.isInitialized) {
                 seekButtons = player.settings.getBoolean(ENABLE_SEEK_BUTTONS, false)
-                vsc.setVisible()
                 hudBinding = DataBindingUtil.bind(player.findViewById(R.id.progress_overlay)) ?: return
-                hudBinding.player = player
-                hudBinding.progress = service.playlistManager.player.progress
                 hudBinding.abRepeatMarkerGuidelineContainer.setMarkerIcon(R.drawable.ic_abrepeat_marker)
+                configureHudBindingListeners()
+                observeHudProgress(service)
                 service.playlistManager.abRepeat.observe(player) { abvalues ->
                     if (abvalues.start != -1L && abvalues.stop != -1L && player.settings.getBoolean(KEY_ALWAYS_FAST_SEEK, false)) {
                         hudBinding.fastSeekWarning.setVisible()
@@ -582,7 +584,6 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                 }
                 hudBinding.statsContainer.setOnCloseClickListener { service.playlistManager.videoStatsOn.postValue(false) }
 
-                hudBinding.lifecycleOwner = player
                 updateOrientationIcon()
                 overlayBackground = player.findViewById(R.id.player_overlay_background)
                 if (!AndroidDevices.isChromeBook && !player.isTv
@@ -607,11 +608,47 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                 initPlaylistUi()
                 updateScreenshotButton()
                 if (foldingFeature != null) manageHinge()
-            } else if (::hudBinding.isInitialized) {
-                hudBinding.progress = service.playlistManager.player.progress
-                hudBinding.lifecycleOwner = player
+            } else {
+                observeHudProgress(service)
             }
         }
+    }
+
+    private fun configureHudBindingListeners() {
+        hudBinding.playerOverlayTime.setOnClickListener { player.toggleTimeDisplay() }
+        hudBinding.playerOverlayLength.setOnClickListener { player.toggleTimeDisplay() }
+        hudBinding.playerOverlayTracks.setOnClickListener { player.onAudioSubClick(it) }
+        hudBinding.playlistPrevious.setOnClickListener { player.previous() }
+        hudBinding.playerOverlayPlay.setOnClickListener { player.doPlayPause() }
+        hudBinding.playlistNext.setOnClickListener { player.next() }
+        hudBinding.playerResize.setOnClickListener { player.resizeVideo() }
+        hudBinding.playerResize.setOnLongClickListener { player.displayResize() }
+        hudBinding.playerOverlayAdvFunction.setOnClickListener { player.showAdvancedOptions() }
+    }
+
+    private fun observeHudProgress(service: PlaybackService) {
+        val progressSource = service.playlistManager.player.progress
+        if (hudProgressSource === progressSource) {
+            progressSource.value?.let { updateHudProgress(it, service) }
+            return
+        }
+        hudProgressSource?.removeObservers(player)
+        hudProgressSource = progressSource
+        progressSource.observe(player) { progress ->
+            progress?.let { updateHudProgress(it, service) }
+        }
+        progressSource.value?.let { updateHudProgress(it, service) }
+    }
+
+    private fun updateHudProgress(progress: Progress, service: PlaybackService) {
+        if (!::hudBinding.isInitialized) return
+        hudBinding.playerOverlayTime.setTimelineText(Tools.millisToString(progress.time))
+        hudBinding.playerOverlayLength.setTimelineText(if (VideoPlayerActivity.sDisplayRemainingTime && progress.length > 0)
+            "-" + '\u00A0'.toString() + Tools.millisToString(progress.length - progress.time)
+        else
+            Tools.millisToString(progress.length))
+        hudBinding.playerOverlaySeekbar.progress = service.getTime(progress.time)
+        hudBinding.playerOverlaySeekbar.max = if (progress.length == 0L) NO_LENGTH_PROGRESS_MAX else progress.length.toInt()
     }
 
     fun setTitle(title: String?) {

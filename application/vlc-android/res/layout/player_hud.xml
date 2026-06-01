@@ -3,20 +3,6 @@
         xmlns:tools="http://schemas.android.com/tools"
         xmlns:vlc="http://schemas.android.com/apk/res-auto">
 
-    <data>
-
-        <import type="org.videolan.medialibrary.Tools" />
-
-        <variable
-                name="progress"
-                type="androidx.lifecycle.LiveData&lt;org.videolan.vlc.media.Progress>" />
-
-        <variable
-                name="player"
-                type="org.videolan.vlc.gui.video.VideoPlayerActivity" />
-    </data>
-
-
     <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/progress_overlay"
             android:layout_width="match_parent"
@@ -127,8 +113,6 @@
                 android:focusable="true"
                 android:importantForAccessibility="no"
                 android:nextFocusUp="@+id/ab_repeat_container"
-                android:onClick="@{(v) -> player.toggleTimeDisplay()}"
-                vlc:timelineText="@{Tools.millisToString(progress.time)}"
                 tools:text="0:32"
                 vlc:layout_constraintBottom_toTopOf="@+id/player_overlay_seekbar"
                 vlc:layout_constraintRight_toLeftOf="@+id/player_overlay_length"
@@ -145,13 +129,10 @@
                 android:focusable="true"
                 android:importantForAccessibility="no"
                 android:nextFocusUp="@+id/ab_repeat_container"
-                android:onClick="@{(v) -> player.toggleTimeDisplay()}"
                 tools:text="56:37"
                 vlc:layout_constraintBottom_toTopOf="@+id/player_overlay_seekbar"
                 vlc:layout_constraintRight_toRightOf="parent"
-                vlc:layout_constraintLeft_toRightOf="@+id/player_overlay_time"
-                vlc:length="@{progress.length}"
-                vlc:time="@{progress.time}" />
+                vlc:layout_constraintLeft_toRightOf="@+id/player_overlay_time" />
 
 <!--           ⚠️ margin are set in code!!!-->
         <org.videolan.vlc.gui.view.VideoTimelineSeekBarView
@@ -162,11 +143,9 @@
                 android:layoutDirection="ltr"
                 android:paddingStart="0dp"
                 android:paddingEnd="0dp"
-                android:progress="@{player.service.getTime(progress.time)}"
                 vlc:layout_constraintBottom_toTopOf="@+id/player_overlay_play"
                 vlc:layout_constraintEnd_toEndOf="parent"
-                vlc:layout_constraintStart_toStartOf="parent"
-                vlc:mediamax="@{(int)progress.length}" />
+                vlc:layout_constraintStart_toStartOf="parent" />
 
         <org.videolan.vlc.gui.view.BookmarkMarkerContainerView
                 android:id="@+id/bookmark_marker_container"
@@ -202,7 +181,6 @@
                     android:clickable="true"
                     android:contentDescription="@string/tracks"
                     android:focusable="true"
-                    android:onClick="@{player::onAudioSubClick}"
                     android:src="@drawable/ic_player_audiotrack"
                     tools:visibility="visible"
                     vlc:layout_constraintBottom_toBottomOf="@+id/player_overlay_play"
@@ -247,7 +225,6 @@
                     android:contentDescription="@string/previous"
                     android:focusable="true"
                     android:longClickable="true"
-                    android:onClick="@{(v) -> player.previous()}"
                     android:src="@drawable/ic_player_previous"
                     android:visibility="gone"
                     tools:visibility="visible"
@@ -295,7 +272,6 @@
                     android:clickable="true"
                     android:contentDescription="@string/play"
                     android:focusable="true"
-                    android:onClick="@{(v) -> player.doPlayPause()}"
                     android:src="@drawable/ic_pause_player"
                     tools:visibility="visible"
                     vlc:layout_constraintBottom_toBottomOf="parent"
@@ -345,7 +321,6 @@
                     android:contentDescription="@string/next"
                     android:focusable="true"
                     android:longClickable="true"
-                    android:onClick="@{(v) -> player.next()}"
                     android:src="@drawable/ic_player_next"
                     android:visibility="gone"
                     tools:visibility="visible"
@@ -372,8 +347,6 @@
                     android:clickable="true"
                     android:contentDescription="@string/aspect_ratio"
                     android:focusable="true"
-                    android:onClick="@{(v) -> player.resizeVideo()}"
-                    android:onLongClick="@{(v) -> player.displayResize()}"
                     android:src="@drawable/ic_player_ratio"
                     tools:visibility="visible"
                     vlc:layout_constraintBottom_toBottomOf="@+id/player_overlay_play"
@@ -390,7 +363,6 @@
                     android:clickable="true"
                     android:contentDescription="@string/advanced"
                     android:focusable="true"
-                    android:onClick="@{(v) -> player.showAdvancedOptions()}"
                     android:src="@drawable/ic_player_more"
                     tools:visibility="visible"
                     vlc:layout_constraintBottom_toBottomOf="@+id/player_overlay_play"

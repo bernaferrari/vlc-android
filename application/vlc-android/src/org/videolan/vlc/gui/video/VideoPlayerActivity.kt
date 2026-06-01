@@ -72,9 +72,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.app.BaseContextWrappingDelegate
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
-import androidx.constraintlayout.widget.Guideline
 import androidx.core.content.edit
 import androidx.core.content.getSystemService
 import androidx.core.net.toFile
@@ -82,7 +79,6 @@ import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.databinding.BindingAdapter
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
@@ -198,9 +194,7 @@ import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
 import org.videolan.vlc.gui.helpers.hf.StoragePermissionsDelegate
 import org.videolan.vlc.gui.view.PlayerTimelineSeekBarView
-import org.videolan.vlc.gui.view.VideoTimelineTimeLabelView
 import org.videolan.vlc.interfaces.IPlaybackSettingsController
-import org.videolan.vlc.media.NO_LENGTH_PROGRESS_MAX
 import org.videolan.vlc.media.PlaylistManager
 import org.videolan.vlc.media.ResumeStatus
 import org.videolan.vlc.media.WaitConfirmation
@@ -2637,30 +2631,3 @@ data class PlayerOrientationMode(
         var locked: Boolean = false,
         var orientation: Int = -1
 )
-
-@BindingAdapter("length", "time")
-fun setPlaybackTime(view: VideoTimelineTimeLabelView, length: Long, time: Long) {
-    view.setTimelineText(if (VideoPlayerActivity.sDisplayRemainingTime && length > 0)
-        "-" + '\u00A0'.toString() + Tools.millisToString(length - time)
-    else
-        Tools.millisToString(length))
-}
-
-@BindingAdapter("timelineText")
-fun setTimelineText(view: VideoTimelineTimeLabelView, text: CharSequence?) {
-    view.setTimelineText(text)
-}
-
-@BindingAdapter("constraintPercent")
-fun setConstraintPercent(view: Guideline, percent: Float) {
-    val constraintLayout = view.parent as ConstraintLayout
-    val constraintSet = ConstraintSet()
-    constraintSet.clone(constraintLayout)
-    constraintSet.setGuidelinePercent(view.id, percent)
-    constraintSet.applyTo(constraintLayout)
-}
-
-@BindingAdapter("mediamax")
-fun setProgressMax(view: PlayerTimelineSeekBarView, length: Long) {
-    view.max =  if (length == 0L) NO_LENGTH_PROGRESS_MAX else length.toInt()
-}
