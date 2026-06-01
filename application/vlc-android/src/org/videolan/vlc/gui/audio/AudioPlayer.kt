@@ -116,7 +116,6 @@ import org.videolan.vlc.compose.components.VLCAudioTrackInfoTextStyle
 import org.videolan.vlc.compose.components.VLCAudioTimelineTimeLabel
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
-import org.videolan.vlc.databinding.AudioPlayerBinding
 import org.videolan.vlc.gui.AudioPlayerContainerActivity
 import org.videolan.vlc.gui.HeaderMediaListActivity
 import org.videolan.vlc.gui.HeaderMediaListActivity.Companion.ARTIST_FROM_ALBUM
@@ -138,7 +137,6 @@ import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.UiTools.isTablet
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
 import org.videolan.vlc.gui.video.VideoPlayerActivity
-import org.videolan.vlc.gui.view.AbRepeatControlsView
 import org.videolan.vlc.gui.view.AudioMediaSwitcher
 import org.videolan.vlc.gui.view.AudioMediaSwitcher.AudioMediaSwitcherListener
 import org.videolan.vlc.gui.view.PlayerTimelineSeekBarView
@@ -240,7 +238,7 @@ class AudioPlayer(
         savedInstanceState: Bundle?
 ) : IAudioPlayerAnimator by AudioPlayerAnimator() {
 
-    private lateinit var binding: AudioPlayerBinding
+    private lateinit var binding: AudioPlayerViews
     private lateinit var settings: SharedPreferences
     private val handler by lazy(LazyThreadSafetyMode.NONE) { Handler(Looper.getMainLooper()) }
     lateinit var playlistModel: PlaylistModel
@@ -307,7 +305,9 @@ class AudioPlayer(
         settings = Settings.getInstance(activity)
         playlistModel = PlaylistModel.get(activity)
         bookmarkModel = BookmarkModel.get(activity)
-        binding = AudioPlayerBinding.inflate(LayoutInflater.from(activity), container, true)
+        val root = LayoutInflater.from(activity).inflate(R.layout.audio_player, container, false) as ConstraintLayout
+        container.addView(root)
+        binding = AudioPlayerViews(root)
         setupAnimator(binding)
         lifecycleScope.launch(Dispatchers.Main) {
             activity.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -1664,7 +1664,7 @@ class AudioPlayer(
 
     fun refreshAbRepeatStep() {
         playlistModel.service?.manageAbRepeatStep(binding.abRepeatReset, binding.abRepeatStop, binding.abRepeatContainer) { markerText ->
-            (binding.abRepeatContainer as AbRepeatControlsView).setMarkerText(markerText)
+            binding.abRepeatContainer.setMarkerText(markerText)
         }
     }
 

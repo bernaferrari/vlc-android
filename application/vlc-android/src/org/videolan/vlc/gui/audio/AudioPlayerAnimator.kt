@@ -46,7 +46,6 @@ import org.videolan.tools.Settings
 import org.videolan.tools.dp
 import org.videolan.tools.setVisible
 import org.videolan.vlc.R
-import org.videolan.vlc.databinding.AudioPlayerBinding
 import org.videolan.vlc.gui.AudioPlayerContainerActivity
 import org.videolan.vlc.gui.helpers.AudioUtil
 import org.videolan.vlc.gui.helpers.UiTools
@@ -64,9 +63,9 @@ internal class AudioPlayerAnimator : IAudioPlayerAnimator, LifecycleObserver {
             manageHinge()
         }
 
-    override fun AudioPlayer.setupAnimator(binding: AudioPlayerBinding) {
+    override fun AudioPlayer.setupAnimator(binding: AudioPlayerViews) {
         audioPlayer = this
-        cl = binding.root as ConstraintLayout
+        cl = binding.root
         this@AudioPlayerAnimator.binding = binding
         showPlaylistConstraint.clone(cl)
         hidePlaylistConstraint.clone(cl)
@@ -91,7 +90,7 @@ internal class AudioPlayerAnimator : IAudioPlayerAnimator, LifecycleObserver {
     private val headerHidePlaylistConstraint = ConstraintSet()
     private val headerHidePlaylistLandscapeConstraint = ConstraintSet()
     private var currentCoverArt: String? = null
-    private lateinit var binding: AudioPlayerBinding
+    private lateinit var binding: AudioPlayerViews
     private val transition = AutoTransition().apply {
         interpolator = AccelerateDecelerateInterpolator()
         duration = 300
@@ -311,7 +310,7 @@ interface IAudioPlayerAnimator {
     fun manageHinge()
     fun isShowingCover(): Boolean
     fun showCover(value: Boolean)
-    fun AudioPlayer.setupAnimator(binding: AudioPlayerBinding)
+    fun AudioPlayer.setupAnimator(binding: AudioPlayerViews)
     suspend fun updateBackground()
     fun manageSearchVisibilities(filter: Boolean = false)
     fun onSlide(slideOffset: Float)
