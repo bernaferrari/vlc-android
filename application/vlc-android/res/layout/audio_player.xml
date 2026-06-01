@@ -656,14 +656,15 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <include
+        <org.videolan.vlc.gui.view.AbRepeatControlsView
                 android:id="@+id/ab_repeat_container"
-                layout="@layout/ab_repeat_controls"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
+                android:visibility="gone"
                 app:layout_constraintBottom_toTopOf="@+id/time"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
+                app:layout_constraintStart_toStartOf="parent"
+                tools:visibility="visible" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

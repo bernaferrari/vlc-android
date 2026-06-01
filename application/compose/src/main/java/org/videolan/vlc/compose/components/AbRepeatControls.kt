@@ -14,11 +14,10 @@ import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
 /**
- * Compose replacement for the shared A-B repeat controls include root:
- *   - application/vlc-android/res/layout/ab_repeat_controls.xml
+ * Compose replacement for the former shared A-B repeat controls include root.
  *
- * This collapses the legacy ConstraintLayout + child XML-friendly widgets into
- * one leaf. The app module still supplies the decorative icon content because
+ * This collapses the legacy XML include + child XML-friendly widgets into one
+ * leaf. The app module still supplies the decorative icon content because
  * drawable resources live outside :application:compose.
  */
 @Composable

@@ -17,9 +17,8 @@ import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
 /**
- * XML-friendly Compose replacement for ab_repeat_controls.xml. Audio and video
- * hosts keep the shared ab_repeat_container include ID and drive marker text
- * directly through this root view.
+ * Compose-backed A-B repeat controls root. Audio and video hosts keep the shared
+ * ab_repeat_container ID and drive marker text directly through this view.
  */
 class AbRepeatControlsView @JvmOverloads constructor(
     context: Context,

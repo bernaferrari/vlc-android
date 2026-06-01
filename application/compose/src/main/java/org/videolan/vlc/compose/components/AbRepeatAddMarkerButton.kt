@@ -14,12 +14,11 @@ import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
 /**
- * Compose equivalent of the A-B repeat add-marker button from:
- *   - application/vlc-android/res/layout/ab_repeat_controls.xml
+ * Compose equivalent of the former A-B repeat add-marker button XML.
  *
  * The playback service still owns the state machine that decides whether the
  * label asks for the first or second marker. Hosts pass the computed label
- * through the shared Compose-backed include root.
+ * through the shared Compose-backed root.
  */
 @Composable
 fun VLCAbRepeatAddMarkerButton(

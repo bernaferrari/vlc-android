@@ -127,15 +127,16 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
 
-        <include
+        <org.videolan.vlc.gui.view.AbRepeatControlsView
                 android:id="@+id/ab_repeat_container"
-                layout="@layout/ab_repeat_controls"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginBottom="8dp"
+                android:visibility="gone"
                 vlc:layout_constraintBottom_toTopOf="@+id/player_overlay_time"
-                vlc:layout_constraintStart_toStartOf="parent" />
+                vlc:layout_constraintStart_toStartOf="parent"
+                tools:visibility="visible" />
 
 
         <ImageView

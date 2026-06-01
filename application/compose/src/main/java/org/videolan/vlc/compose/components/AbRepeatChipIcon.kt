@@ -13,11 +13,10 @@ import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
 /**
- * Compose equivalent of the decorative A-B repeat chip icon from:
- *   - application/vlc-android/res/layout/ab_repeat_controls.xml
+ * Compose equivalent of the former decorative A-B repeat chip icon XML.
  *
- * The shared include is used by the audio player and video HUD. The app-side
- * root view supplies the real drawable because :application:compose stays
+ * The shared root is used by the audio player and video HUD. The app-side root
+ * view supplies the real drawable because :application:compose stays
  * resource-isolated.
  */
 @Composable
