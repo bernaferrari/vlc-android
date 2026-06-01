@@ -546,7 +546,7 @@ fun ComposeInteropLabContent() {
             "The foldable hinge left/right affordances are Compose-hosted under hinge_go_left and hinge_go_right. " +
             "The cover-mode seek/bookmark HUD row is Compose-hosted under the existing audio_rewind/audio_forward IDs with delay labels driven from Settings.audioJumpDelay. " +
             "The shared bookmarks panel is Compose-rendered through BookmarksPanelView in bookmarks.xml, replacing the toolbar, RecyclerView, empty state, bookmark_item.xml rows, and bottom seek/bookmark controls while keeping the audio/video ViewStub hosts stable. " +
-            "The audio and video playlist overlays now share AudioPlaylistQueue in VLCComposeView-backed hosts, replacing the former PlaylistAdapter/RecyclerView wiring while PlaylistItemView keeps playlist_item.xml available for the remaining tips fake rows. " +
+            "The audio and video playlist overlays now share AudioPlaylistQueue in VLCComposeView-backed hosts, replacing the former PlaylistAdapter/RecyclerView wiring and the remaining playlist_item.xml bridge, with playlist tips fake rows created programmatically as Compose widgets. " +
             "The player gesture/switcher surface stays outside this slice; the speed and sleep quick actions are now Compose.",
             style = MaterialTheme.typography.bodySmall
         )

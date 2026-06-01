@@ -29,8 +29,9 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.animation.PropertyValuesHolder
 import android.animation.ValueAnimator
+import android.content.Context
+import android.util.AttributeSet
 import android.util.TypedValue
-import android.view.LayoutInflater
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.AccelerateInterpolator
@@ -40,6 +41,11 @@ import android.widget.SeekBar
 import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.appcompat.widget.ViewStubCompat
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.animation.doOnEnd
@@ -57,19 +63,21 @@ import org.videolan.tools.dp
 import org.videolan.tools.putSingle
 import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
+import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
 import org.videolan.vlc.gui.AudioPlayerContainerActivity
 import org.videolan.vlc.gui.helpers.TipsUtils
 import org.videolan.vlc.gui.helpers.UiTools.isTablet
-import org.videolan.vlc.gui.view.PlaylistItemView
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.util.getScreenHeight
 import org.videolan.vlc.util.getScreenWidth
 import org.videolan.vlc.viewmodels.PlaylistModel
+import kotlin.math.roundToInt
 
 class AudioPlaylistTipsDelegate(private val activity: AudioPlayerContainerActivity) {
-    private lateinit var thirdItemView: PlaylistItemView
-    private lateinit var secondItemView: PlaylistItemView
+    private lateinit var thirdItemView: AudioPlaylistTipsItemView
+    private lateinit var secondItemView: AudioPlaylistTipsItemView
     var currentTip: AudioPlaylistTipsStep? = null
     private lateinit var initialConstraintSet: ConstraintSet
     private val transition = Fade().apply {
@@ -114,15 +122,17 @@ class AudioPlaylistTipsDelegate(private val activity: AudioPlayerContainerActivi
             val playlistModel = ViewModelProvider(activity)[PlaylistModel::class.java]
             playlistModel.currentMediaWrapper?.let {
                 for (i in 0..10) {
-                    val v = LayoutInflater.from(activity)
-                        .inflate(R.layout.playlist_item, tracksContainer, false) as PlaylistItemView
+                    val v = AudioPlaylistTipsItemView(activity).apply {
+                        layoutParams = LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        )
+                    }
                     v.bind(
                         media = it,
                         subtitle = MediaUtils.getMediaSubtitle(it),
-                        showTrackNumbers = false,
                         showReorderButtons = activity.isTablet(),
                         showDeleteButton = true,
-                        stopAfterThis = false,
                         current = i == 2,
                         playing = false,
                         masked = true
@@ -374,6 +384,89 @@ class AudioPlaylistTipsDelegate(private val activity: AudioPlayerContainerActivi
             it.cancel()
         }
     }
+}
+
+private data class AudioPlaylistTipsItemState(
+    val media: MediaWrapper? = null,
+    val subtitle: String = "",
+    val showReorderButtons: Boolean = false,
+    val showDeleteButton: Boolean = false,
+    val current: Boolean = false,
+    val playing: Boolean = false,
+    val masked: Boolean = true
+)
+
+private class AudioPlaylistTipsItemView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : VLCAbstractComposeWidget(context, attrs, defStyleAttr) {
+
+    private val tipsOverlayColor = context.resolveComposeColor(R.attr.background_audio_tips)
+    private var state by mutableStateOf(AudioPlaylistTipsItemState())
+
+    fun bind(
+        media: MediaWrapper,
+        subtitle: String,
+        showReorderButtons: Boolean,
+        showDeleteButton: Boolean,
+        current: Boolean,
+        playing: Boolean,
+        masked: Boolean
+    ) {
+        state = AudioPlaylistTipsItemState(
+            media = media,
+            subtitle = subtitle,
+            showReorderButtons = showReorderButtons,
+            showDeleteButton = showDeleteButton,
+            current = current,
+            playing = playing,
+            masked = masked
+        )
+    }
+
+    fun setMasked(masked: Boolean) {
+        state = state.copy(masked = masked)
+    }
+
+    fun setPlaying(playing: Boolean) {
+        state = state.copy(playing = playing)
+    }
+
+    fun deleteButtonCenterX(): Int {
+        val action = actionButtonSizePx()
+        return width - action - action / 2
+    }
+
+    fun moveUpButtonCenterX(): Int {
+        val action = actionButtonSizePx()
+        return width - (action * 3) - action / 2
+    }
+
+    @Composable
+    override fun WidgetContent() {
+        val media = state.media ?: return
+        AudioPlaylistMediaItem(
+            media = media,
+            subtitle = state.subtitle,
+            showTrackNumbers = false,
+            showReorderButtons = state.showReorderButtons,
+            showDeleteButton = state.showDeleteButton,
+            stopAfterThis = false,
+            current = state.current,
+            playing = state.playing,
+            masked = state.masked,
+            tipsOverlayColor = tipsOverlayColor
+        )
+    }
+
+    private fun actionButtonSizePx() = (48 * resources.displayMetrics.density).roundToInt()
+}
+
+private fun Context.resolveComposeColor(attr: Int): Color {
+    val typedValue = TypedValue()
+    theme.resolveAttribute(attr, typedValue, true)
+    return Color(typedValue.data)
 }
 
 /**

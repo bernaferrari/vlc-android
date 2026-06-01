@@ -36,10 +36,9 @@ import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
 /**
- * Compose equivalent of the audio-player playlist row from:
- *   - application/vlc-android/res/layout/playlist_item.xml
+ * Compose equivalent of the legacy audio/video playlist row.
  *
- * The app-side RecyclerView bridge supplies media artwork and action drawables
+ * The app-side queue hosts supply media artwork and action drawables
  * because those resources and async thumbnail helpers live in :vlc-android.
  */
 @OptIn(ExperimentalFoundationApi::class)

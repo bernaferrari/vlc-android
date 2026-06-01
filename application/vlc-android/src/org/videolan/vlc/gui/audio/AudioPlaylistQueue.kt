@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.vlc.R
-import org.videolan.vlc.gui.view.AudioPlaylistMediaItem
 import org.videolan.vlc.media.MediaUtils
 
 internal data class AudioPlaylistScrollRequest(val index: Int, val serial: Int)

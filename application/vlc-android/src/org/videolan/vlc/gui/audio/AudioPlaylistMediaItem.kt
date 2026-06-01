@@ -1,9 +1,7 @@
-package org.videolan.vlc.gui.view
+package org.videolan.vlc.gui.audio
 
 import android.content.Context
 import android.graphics.drawable.BitmapDrawable
-import android.util.AttributeSet
-import android.util.TypedValue
 import android.widget.ImageView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -16,9 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,139 +25,15 @@ import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.tools.Settings
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.components.VLCAudioPlaylistItem
-import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.helpers.TalkbackUtil
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.getBitmapFromDrawable
 import org.videolan.vlc.gui.helpers.loadImage
-import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.util.trackNumberText
-import kotlin.math.roundToInt
-
-data class PlaylistItemState(
-    val media: MediaWrapper? = null,
-    val subtitle: String = "",
-    val showTrackNumbers: Boolean = false,
-    val showReorderButtons: Boolean = false,
-    val showDeleteButton: Boolean = false,
-    val stopAfterThis: Boolean = false,
-    val current: Boolean = false,
-    val playing: Boolean = false,
-    val masked: Boolean = false
-)
-
-/**
- * Compose-backed replacement for playlist_item.xml. RecyclerView remains a
- * temporary host for the video overlay while the audio player queue has moved
- * to a full Compose LazyColumn.
- */
-class PlaylistItemView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : VLCAbstractComposeWidget(context, attrs, defStyleAttr) {
-
-    private var state by mutableStateOf(PlaylistItemState())
-    private val tipsOverlayColor = context.resolveComposeColor(R.attr.background_audio_tips)
-    private var onRowClick: () -> Unit = {}
-    private var onMoveUpClick: () -> Unit = {}
-    private var onMoveDownClick: () -> Unit = {}
-    private var onDeleteClick: () -> Unit = {}
-    private var onMoreClick: () -> Unit = {}
-
-    init {
-        isClickable = true
-        isFocusable = true
-    }
-
-    fun bind(
-        media: MediaWrapper,
-        subtitle: String = MediaUtils.getMediaSubtitle(media),
-        showTrackNumbers: Boolean,
-        showReorderButtons: Boolean,
-        showDeleteButton: Boolean,
-        stopAfterThis: Boolean,
-        current: Boolean,
-        playing: Boolean,
-        masked: Boolean = false
-    ) {
-        state = PlaylistItemState(
-            media = media,
-            subtitle = subtitle,
-            showTrackNumbers = showTrackNumbers,
-            showReorderButtons = showReorderButtons,
-            showDeleteButton = showDeleteButton,
-            stopAfterThis = stopAfterThis,
-            current = current,
-            playing = playing,
-            masked = masked
-        )
-    }
-
-    fun setCallbacks(
-        onRowClick: () -> Unit,
-        onMoveUpClick: () -> Unit,
-        onMoveDownClick: () -> Unit,
-        onDeleteClick: () -> Unit,
-        onMoreClick: () -> Unit
-    ) {
-        this.onRowClick = onRowClick
-        this.onMoveUpClick = onMoveUpClick
-        this.onMoveDownClick = onMoveDownClick
-        this.onDeleteClick = onDeleteClick
-        this.onMoreClick = onMoreClick
-    }
-
-    fun setMasked(masked: Boolean) {
-        state = state.copy(masked = masked)
-    }
-
-    fun setCurrent(current: Boolean, playing: Boolean) {
-        state = state.copy(current = current, playing = playing)
-    }
-
-    fun setPlaying(playing: Boolean) {
-        state = state.copy(playing = playing)
-    }
-
-    fun deleteButtonCenterX(): Int {
-        val action = actionButtonSizePx()
-        return width - action - action / 2
-    }
-
-    fun moveUpButtonCenterX(): Int {
-        val action = actionButtonSizePx()
-        return width - (action * 3) - action / 2
-    }
-
-    @Composable
-    override fun WidgetContent() {
-        val item = state.media ?: return
-        AudioPlaylistMediaItem(
-            media = item,
-            subtitle = state.subtitle,
-            showTrackNumbers = state.showTrackNumbers,
-            showReorderButtons = state.showReorderButtons,
-            showDeleteButton = state.showDeleteButton,
-            stopAfterThis = state.stopAfterThis,
-            current = state.current,
-            playing = state.playing,
-            masked = state.masked,
-            tipsOverlayColor = tipsOverlayColor,
-            onClick = onRowClick,
-            onMoveUpClick = onMoveUpClick,
-            onMoveDownClick = onMoveDownClick,
-            onDeleteClick = onDeleteClick,
-            onMoreClick = onMoreClick
-        )
-    }
-
-    private fun actionButtonSizePx() = (48 * resources.displayMetrics.density).roundToInt()
-}
 
 @Composable
-fun AudioPlaylistMediaItem(
+internal fun AudioPlaylistMediaItem(
     media: MediaWrapper,
     subtitle: String,
     showTrackNumbers: Boolean,
@@ -298,10 +169,4 @@ private fun MediaWrapper.contentDescription(context: Context) = when (type) {
     MediaWrapper.TYPE_DIR, MediaWrapper.TYPE_SUBTITLE, MediaWrapper.TYPE_PLAYLIST -> TalkbackUtil.getDir(context, this, false)
     MediaWrapper.TYPE_ALL -> TalkbackUtil.getAll(this)
     else -> title
-}
-
-private fun Context.resolveComposeColor(attr: Int): Color {
-    val typedValue = TypedValue()
-    theme.resolveAttribute(attr, typedValue, true)
-    return Color(typedValue.data)
 }
