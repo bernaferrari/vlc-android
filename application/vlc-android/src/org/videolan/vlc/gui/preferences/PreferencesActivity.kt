@@ -44,8 +44,12 @@ import kotlinx.coroutines.withContext
 import org.videolan.libvlc.util.AndroidUtil
 import org.videolan.medialibrary.interfaces.Medialibrary
 import org.videolan.resources.ACTIVITY_RESULT_PREFERENCES
+import org.videolan.resources.REMOTE_ACCESS_ONBOARDING
 import org.videolan.resources.VLCInstance
 import org.videolan.resources.util.parcelable
+import org.videolan.resources.util.restartRemoteAccess
+import org.videolan.resources.util.startRemoteAccess
+import org.videolan.resources.util.stopRemoteAccess
 import org.videolan.tools.AUDIO_RESUME_PLAYBACK
 import org.videolan.tools.KEY_AUDIO_LAST_PLAYLIST
 import org.videolan.tools.KEY_CURRENT_AUDIO
@@ -72,6 +76,7 @@ import org.videolan.vlc.gui.EqualizerSettingsActivity
 import org.videolan.vlc.gui.PinCodeActivity
 import org.videolan.vlc.gui.PinCodeReason
 import org.videolan.vlc.gui.SecondaryActivity
+import org.videolan.vlc.StartActivity
 import org.videolan.vlc.gui.dialogs.showAutoInfoComposeDialog
 import org.videolan.vlc.gui.dialogs.showAudioControlsSettingsComposeDialog
 import org.videolan.vlc.gui.dialogs.showPermissionListComposeDialog
@@ -165,6 +170,7 @@ class PreferencesActivity : BaseActivity() {
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         menu?.findItem(R.id.menu_android_auto_info)?.isVisible = activeComposeDestination == PreferencesRootDestination.AndroidAuto
+        menu?.findItem(R.id.menu_remote_access_onboarding)?.isVisible = activeComposeDestination == PreferencesRootDestination.RemoteAccess
         return super.onPrepareOptionsMenu(menu)
     }
 
@@ -181,6 +187,12 @@ class PreferencesActivity : BaseActivity() {
             R.id.menu_android_auto_info -> {
                 if (activeComposeDestination == PreferencesRootDestination.AndroidAuto) {
                     showAutoInfoComposeDialog()
+                    return true
+                }
+            }
+            R.id.menu_remote_access_onboarding -> {
+                if (activeComposeDestination == PreferencesRootDestination.RemoteAccess) {
+                    openRemoteAccessOnboarding()
                     return true
                 }
             }
@@ -257,7 +269,7 @@ class PreferencesActivity : BaseActivity() {
                     parentalPinCodeResult.launch(PinCodeActivity.getIntent(this, PinCodeReason.FIRST_CREATION))
                 }
             }
-            PreferencesRootDestination.RemoteAccess -> openPreferenceFragment(PreferencesRemoteAccess())
+            PreferencesRootDestination.RemoteAccess -> showPreferenceSubpage(PreferencesRootDestination.RemoteAccess)
             PreferencesRootDestination.AndroidAuto -> showPreferenceSubpage(PreferencesRootDestination.AndroidAuto)
             PreferencesRootDestination.Advanced -> openPreferenceFragment(PreferencesAdvanced())
         }
@@ -280,7 +292,7 @@ class PreferencesActivity : BaseActivity() {
             R.xml.preferences_adv -> openPreferenceFragment(PreferencesAdvanced().withEndpoint(endPoint))
             R.xml.preferences_casting -> showPreferenceSubpage(PreferencesRootDestination.Casting, endPoint.key)
             R.xml.preferences_parental_control -> showPreferenceSubpage(PreferencesRootDestination.ParentalControl, endPoint.key)
-            R.xml.preferences_remote_access -> openPreferenceFragment(PreferencesRemoteAccess().withEndpoint(endPoint))
+            R.xml.preferences_remote_access -> showPreferenceSubpage(PreferencesRootDestination.RemoteAccess, endPoint.key)
             R.xml.preferences_android_auto -> showPreferenceSubpage(PreferencesRootDestination.AndroidAuto, endPoint.key)
             else -> showPreferencesRoot(endPoint.key)
         }
@@ -296,6 +308,7 @@ class PreferencesActivity : BaseActivity() {
         activeComposeDestination = destination
         activeComposeHighlight = highlightedKey
         supportActionBar?.title = getString(destination.titleRes())
+        if (destination == PreferencesRootDestination.RemoteAccess) showRemoteAccessOnboardingIfNeeded()
         supportFragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
         findViewById<ViewGroup>(R.id.fragment_placeholder).apply {
             removeAllViews()
@@ -317,7 +330,10 @@ class PreferencesActivity : BaseActivity() {
                             onRestartAppRequired = ::setRestartApp,
                             onRestartCastingPipeline = ::restartCastingPipeline,
                             onAndroidAutoSettingChanged = ::updateAndroidAutoState,
-                            onPlaybackSpeedGlobalChanged = ::onPlaybackSpeedGlobalChanged
+                            onPlaybackSpeedGlobalChanged = ::onPlaybackSpeedGlobalChanged,
+                            onRemoteAccessStatusClick = ::openRemoteAccessStatus,
+                            onRemoteAccessEnabledChanged = ::onRemoteAccessEnabledChanged,
+                            onRemoteAccessNetworkBrowserChanged = ::restartRemoteAccessServer
                         )
                     }
                 }
@@ -411,6 +427,34 @@ class PreferencesActivity : BaseActivity() {
             }
         }
         PlaybackService.updateState()
+    }
+
+    private fun showRemoteAccessOnboardingIfNeeded() {
+        val settings = Settings.getInstance(this)
+        if (!settings.getBoolean(REMOTE_ACCESS_ONBOARDING, false)) {
+            settings.edit().putBoolean(REMOTE_ACCESS_ONBOARDING, true).apply()
+            openRemoteAccessOnboarding()
+        }
+    }
+
+    private fun openRemoteAccessOnboarding() {
+        startActivity(Intent(Intent.ACTION_VIEW).apply { setClassName(this@PreferencesActivity, REMOTE_ACCESS_ONBOARDING) })
+    }
+
+    private fun openRemoteAccessStatus() {
+        startActivity(Intent(this, StartActivity::class.java).apply { action = "vlc.remoteaccess.share" })
+    }
+
+    private fun onRemoteAccessEnabledChanged(enabled: Boolean) {
+        if (enabled) {
+            startRemoteAccess()
+        } else {
+            stopRemoteAccess()
+        }
+    }
+
+    private fun restartRemoteAccessServer() {
+        restartRemoteAccess()
     }
 
     private fun PreferencesRootDestination.titleRes(): Int = when (this) {

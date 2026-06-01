@@ -24,18 +24,23 @@ package org.videolan.vlc.gui.preferences
 
 import android.content.SharedPreferences
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -43,24 +48,35 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import org.videolan.tools.KEY_ANDROID_AUTO_QUEUE_INFO_POS_VAL
 import org.videolan.tools.KEY_CASTING_AUDIO_ONLY
 import org.videolan.tools.KEY_CASTING_PASSTHROUGH
 import org.videolan.tools.KEY_CASTING_QUALITY
+import org.videolan.tools.KEY_ENABLE_REMOTE_ACCESS
 import org.videolan.tools.KEY_ENABLE_CASTING
 import org.videolan.tools.KEY_PLAYBACK_SPEED_AUDIO_GLOBAL
+import org.videolan.tools.KEY_REMOTE_ACCESS_ML_CONTENT
 import org.videolan.tools.KEY_RESTRICT_SETTINGS
 import org.videolan.tools.KEY_SAFE_MODE
+import org.videolan.tools.REMOTE_ACCESS_FILE_BROWSER_CONTENT
+import org.videolan.tools.REMOTE_ACCESS_HISTORY_CONTENT
+import org.videolan.tools.REMOTE_ACCESS_LOGS
+import org.videolan.tools.REMOTE_ACCESS_NETWORK_BROWSER_CONTENT
+import org.videolan.tools.REMOTE_ACCESS_PLAYBACK_CONTROL
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.util.TextUtils
 import kotlin.math.roundToInt
 
+private const val KEY_REMOTE_ACCESS_STATUS = "remote_access_status"
 private const val KEY_ANDROID_AUTO_QUEUE_INFO_POS = "android_auto_queue_info_pos"
 private const val KEY_ANDROID_AUTO_QUEUE_FORMAT = "android_auto_queue_format"
 private const val KEY_ANDROID_AUTO_TITLE_SCALE = "android_auto_title_scale_val"
@@ -70,7 +86,8 @@ private const val KEY_ANDROID_AUTO_SEEK_BUTTONS = "enable_android_auto_seek_butt
 
 /**
  * Compose replacement for the small phone preference XML screens:
- * preferences_casting.xml, preferences_parental_control.xml, and preferences_android_auto.xml.
+ * preferences_casting.xml, preferences_parental_control.xml, preferences_remote_access.xml,
+ * and preferences_android_auto.xml.
  *
  * Those XML files stay parseable by PreferenceParser for search metadata while this screen owns
  * the active phone rendering path.
@@ -86,7 +103,10 @@ internal fun PreferencesComposeSubpageScreen(
         onRestartAppRequired: () -> Unit,
         onRestartCastingPipeline: () -> Unit,
         onAndroidAutoSettingChanged: () -> Unit,
-        onPlaybackSpeedGlobalChanged: () -> Unit
+        onPlaybackSpeedGlobalChanged: () -> Unit,
+        onRemoteAccessStatusClick: () -> Unit,
+        onRemoteAccessEnabledChanged: (Boolean) -> Unit,
+        onRemoteAccessNetworkBrowserChanged: () -> Unit
 ) {
     VLCTheme {
         Box(
@@ -123,6 +143,15 @@ internal fun PreferencesComposeSubpageScreen(
                                 highlightedKey = highlightedKey,
                                 onAndroidAutoSettingChanged = onAndroidAutoSettingChanged,
                                 onPlaybackSpeedGlobalChanged = onPlaybackSpeedGlobalChanged
+                        )
+                    }
+                    PreferencesRootDestination.RemoteAccess -> item {
+                        RemoteAccessPreferencesContent(
+                                settings = settings,
+                                highlightedKey = highlightedKey,
+                                onStatusClick = onRemoteAccessStatusClick,
+                                onRemoteAccessEnabledChanged = onRemoteAccessEnabledChanged,
+                                onNetworkBrowserChanged = onRemoteAccessNetworkBrowserChanged
                         )
                     }
                     else -> item {
@@ -229,6 +258,91 @@ private fun ParentalControlPreferencesContent(
 }
 
 @Composable
+private fun RemoteAccessPreferencesContent(
+        settings: SharedPreferences,
+        highlightedKey: String?,
+        onStatusClick: () -> Unit,
+        onRemoteAccessEnabledChanged: (Boolean) -> Unit,
+        onNetworkBrowserChanged: () -> Unit
+) {
+    var remoteAccessEnabled by remember {
+        mutableStateOf(settings.getBoolean(KEY_ENABLE_REMOTE_ACCESS, false))
+    }
+    BooleanPreferenceRow(
+            key = KEY_ENABLE_REMOTE_ACCESS,
+            settings = settings,
+            title = stringResource(R.string.enable_remote_access),
+            defaultValue = false,
+            highlighted = highlightedKey == KEY_ENABLE_REMOTE_ACCESS,
+            checked = remoteAccessEnabled,
+            onCheckedStateChange = { remoteAccessEnabled = it },
+            onAfterChange = onRemoteAccessEnabledChanged
+    )
+    NavigationPreferenceRow(
+            key = KEY_REMOTE_ACCESS_STATUS,
+            title = stringResource(R.string.remote_access_status),
+            summary = stringResource(R.string.remote_access_status_summary),
+            highlighted = highlightedKey == KEY_REMOTE_ACCESS_STATUS,
+            enabled = remoteAccessEnabled,
+            onClick = onStatusClick
+    )
+
+    PreferenceCategoryHeader(title = stringResource(R.string.remote_access_content))
+    MultiSelectPreferenceRow(
+            key = KEY_REMOTE_ACCESS_ML_CONTENT,
+            settings = settings,
+            title = stringResource(R.string.remote_access_medialibrary_content),
+            dialogTitle = stringResource(R.string.remote_access_medialibrary_content),
+            entries = stringArrayResource(R.array.remote_access_content_entries).toList(),
+            values = stringArrayResource(R.array.remote_access_content_values).toList(),
+            defaultValues = stringArrayResource(R.array.remote_access_content_values).toSet(),
+            highlighted = highlightedKey == KEY_REMOTE_ACCESS_ML_CONTENT,
+            enabled = remoteAccessEnabled
+    )
+    BooleanPreferenceRow(
+            key = REMOTE_ACCESS_FILE_BROWSER_CONTENT,
+            settings = settings,
+            title = stringResource(R.string.remote_access_file_browser_content),
+            defaultValue = false,
+            highlighted = highlightedKey == REMOTE_ACCESS_FILE_BROWSER_CONTENT,
+            enabled = remoteAccessEnabled
+    )
+    BooleanPreferenceRow(
+            key = REMOTE_ACCESS_NETWORK_BROWSER_CONTENT,
+            settings = settings,
+            title = stringResource(R.string.remote_access_network_browser_content),
+            defaultValue = false,
+            highlighted = highlightedKey == REMOTE_ACCESS_NETWORK_BROWSER_CONTENT,
+            enabled = remoteAccessEnabled,
+            onAfterChange = { onNetworkBrowserChanged() }
+    )
+    BooleanPreferenceRow(
+            key = REMOTE_ACCESS_HISTORY_CONTENT,
+            settings = settings,
+            title = stringResource(R.string.history),
+            defaultValue = false,
+            highlighted = highlightedKey == REMOTE_ACCESS_HISTORY_CONTENT,
+            enabled = remoteAccessEnabled
+    )
+    BooleanPreferenceRow(
+            key = REMOTE_ACCESS_PLAYBACK_CONTROL,
+            settings = settings,
+            title = stringResource(R.string.remote_access_playback_control),
+            defaultValue = true,
+            highlighted = highlightedKey == REMOTE_ACCESS_PLAYBACK_CONTROL,
+            enabled = remoteAccessEnabled
+    )
+    BooleanPreferenceRow(
+            key = REMOTE_ACCESS_LOGS,
+            settings = settings,
+            title = stringResource(R.string.remote_access_logs),
+            defaultValue = false,
+            highlighted = highlightedKey == REMOTE_ACCESS_LOGS,
+            enabled = remoteAccessEnabled
+    )
+}
+
+@Composable
 private fun AndroidAutoPreferencesContent(
         settings: SharedPreferences,
         highlightedKey: String?,
@@ -314,6 +428,129 @@ private fun AndroidAutoPreferencesContent(
             highlighted = highlightedKey == KEY_ANDROID_AUTO_SEEK_BUTTONS,
             onAfterChange = { onAndroidAutoSettingChanged() }
     )
+}
+
+@Composable
+private fun MultiSelectPreferenceRow(
+        key: String,
+        settings: SharedPreferences,
+        title: String,
+        dialogTitle: String,
+        entries: List<String>,
+        values: List<String>,
+        defaultValues: Set<String>,
+        highlighted: Boolean,
+        enabled: Boolean
+) {
+    var selectedValues by remember(key) {
+        mutableStateOf(settings.getStringSet(key, defaultValues)?.toSet() ?: defaultValues)
+    }
+    var pendingValues by remember(key) { mutableStateOf(selectedValues) }
+    var expanded by remember(key) { mutableStateOf(false) }
+    val summary = remoteAccessContentSummary(
+            selectedValues = selectedValues,
+            entries = entries,
+            values = values
+    )
+    PreferenceRowFrame(
+            highlighted = highlighted,
+            enabled = enabled,
+            role = Role.Button,
+            onClick = {
+                pendingValues = selectedValues
+                expanded = true
+            },
+            textContent = {
+                PreferenceText(
+                        title = title,
+                        summary = summary,
+                        enabled = enabled
+                )
+            },
+            trailingContent = {
+                Text(
+                        text = ">",
+                        color = VLCThemeDefaults.colors.fontLight,
+                        style = MaterialTheme.typography.bodyLarge
+                )
+            }
+    )
+    if (expanded) {
+        AlertDialog(
+                onDismissRequest = { expanded = false },
+                title = { Text(dialogTitle) },
+                text = {
+                    Column {
+                        entries.zip(values).forEach { (entry, value) ->
+                            val checked = pendingValues.contains(value)
+                            Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable(role = Role.Checkbox) {
+                                                pendingValues = if (checked) {
+                                                    pendingValues - value
+                                                } else {
+                                                    pendingValues + value
+                                                }
+                                            }
+                                            .padding(vertical = 8.dp)
+                            ) {
+                                Checkbox(
+                                        checked = checked,
+                                        onCheckedChange = { isChecked ->
+                                            pendingValues = if (isChecked) {
+                                                pendingValues + value
+                                            } else {
+                                                pendingValues - value
+                                            }
+                                        }
+                                )
+                                Text(
+                                        text = entry,
+                                        color = VLCThemeDefaults.colors.fontDefault,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        modifier = Modifier.padding(start = 12.dp)
+                                )
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                            onClick = {
+                                selectedValues = pendingValues
+                                settings.edit { putStringSet(key, pendingValues) }
+                                expanded = false
+                            }
+                    ) {
+                        Text(stringResource(android.R.string.ok))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { expanded = false }) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                }
+        )
+    }
+}
+
+@Composable
+private fun remoteAccessContentSummary(
+        selectedValues: Set<String>,
+        entries: List<String>,
+        values: List<String>
+): String {
+    val selectedEntries = values.zip(entries)
+            .filter { (value, _) -> selectedValues.contains(value) }
+            .map { (_, entry) -> entry }
+    val disabledEntries = values.zip(entries)
+            .filter { (value, _) -> !selectedValues.contains(value) }
+            .map { (_, entry) -> entry }
+    val selectedText = if (selectedEntries.isEmpty()) "-" else TextUtils.separatedString(*selectedEntries.toTypedArray())
+    val disabledText = if (disabledEntries.isEmpty()) "-" else TextUtils.separatedString(*disabledEntries.toTypedArray())
+    return stringResource(R.string.remote_access_medialibrary_content_summary, selectedText, disabledText)
 }
 
 @Composable
