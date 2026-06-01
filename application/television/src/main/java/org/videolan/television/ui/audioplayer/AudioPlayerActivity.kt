@@ -37,7 +37,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.SeekBar
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.AppCompatImageView
@@ -89,10 +88,11 @@ import org.videolan.vlc.gui.helpers.PlayerOptionsDelegate
 import org.videolan.vlc.gui.helpers.PlayerOptionsDelegateCallback
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
-import org.videolan.vlc.gui.view.AccessibleSeekBar
+import org.videolan.vlc.gui.view.AudioTimelineSeekBarView
 import org.videolan.vlc.gui.view.BookmarkMarkerContainerView
 import org.videolan.vlc.gui.view.BookmarksPanelView
 import org.videolan.vlc.gui.view.PlayerOptionsPanelView
+import org.videolan.vlc.gui.view.PlayerTimelineSeekBarView
 import org.videolan.vlc.gui.video.VideoPlayerActivity
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.media.PlaylistManager
@@ -119,6 +119,7 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
     private var optionsDelegate: PlayerOptionsDelegate? = null
     lateinit var bookmarkModel: BookmarkModel
     private lateinit var bookmarkListDelegate: BookmarkListDelegate
+    private var timelineDragging = false
     private val playerKeyListenerDelegate: PlayerKeyListenerDelegate by lazy(LazyThreadSafetyMode.NONE) { PlayerKeyListenerDelegate(this@AudioPlayerActivity) }
     var playbackStarted = false
     private var service: PlaybackService? = null
@@ -153,7 +154,7 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
             views.mediaTime.text = progress.timeText
             views.mediaLength.text = progress.lengthText
             views.mediaProgress.max = progress.length.toInt()
-            if (!views.mediaProgress.isPressed) views.mediaProgress.progress = progress.time.toInt()
+            if (!timelineDragging) views.mediaProgress.progress = progress.time.toInt()
         }
         model.dataset.observe(this) { mediaWrappers ->
             if (mediaWrappers != null) {
@@ -166,7 +167,7 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
         PlaybackService.playerSleepTime.observe(this) {
             showChips()
         }
-        views.mediaProgress.setOnSeekBarChangeListener(timelineListener)
+        views.mediaProgress.setOnTimelineSeekChangeListener(timelineListener)
         model.playerState.observe(this) { playerState -> update(playerState) }
         val position = intent.getIntExtra(MEDIA_POSITION, 0)
         if (intent.hasExtra(MEDIA_PLAYLIST))
@@ -229,13 +230,17 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
         service?.removeCallback(this)
     }
 
-    private var timelineListener: SeekBar.OnSeekBarChangeListener = object : SeekBar.OnSeekBarChangeListener {
+    private var timelineListener: PlayerTimelineSeekBarView.Listener = object : PlayerTimelineSeekBarView.Listener {
 
-        override fun onStopTrackingTouch(seekBar: SeekBar) {}
+        override fun onStopTrackingTouch(progress: Int) {
+            timelineDragging = false
+        }
 
-        override fun onStartTrackingTouch(seekBar: SeekBar) {}
+        override fun onStartTrackingTouch() {
+            timelineDragging = true
+        }
 
-        override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
+        override fun onProgressChanged(progress: Int, fromUser: Boolean) {
             if (fromUser) {
                 model.setTime(progress.toLong())
             }
@@ -558,7 +563,7 @@ private data class TvAudioPlayerViews(
     val sleepQuickActionText: TextView,
     val bookmarkMarkerContainer: BookmarkMarkerContainerView,
     val mediaTime: TextView,
-    val mediaProgress: AccessibleSeekBar,
+    val mediaProgress: AudioTimelineSeekBarView,
     val mediaLength: TextView,
     val buttonShuffle: AppCompatImageView,
     val buttonPrevious: AppCompatImageView,
@@ -592,17 +597,12 @@ private fun createTvAudioPlayerViews(context: Context): TvAudioPlayerViews {
         guidePercent = 0.65F
     })
 
-    val mediaProgress = AccessibleSeekBar(context).apply {
+    val mediaProgress = AudioTimelineSeekBarView(context).apply {
         id = R.id.media_progress
         isFocusable = true
         layoutDirection = View.LAYOUT_DIRECTION_LTR
-        maxHeight = 4.dp
-        minHeight = 4.dp
         nextFocusUpId = R.id.playlist
         nextFocusDownId = R.id.button_play
-        progressDrawable = ContextCompat.getDrawable(context, R.drawable.tv_audioprogressbar)
-        thumb = ContextCompat.getDrawable(context, R.drawable.ic_seekbar_thumb_audio_tv)
-        splitTrack = false
         setPadding(16.dp, paddingTop, 16.dp, paddingBottom)
     }
     root.addView(mediaProgress, ConstraintLayout.LayoutParams(0, ConstraintLayout.LayoutParams.WRAP_CONTENT).apply {

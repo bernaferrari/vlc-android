@@ -31,13 +31,15 @@ import android.content.Context
 import android.os.Bundle
 import android.util.AttributeSet
 import android.util.Log
-import android.view.LayoutInflater
+import android.util.TypedValue
+import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
 import androidx.lifecycle.findViewTreeLifecycleOwner
@@ -54,6 +56,7 @@ import org.videolan.resources.util.HeadersIndex
 import org.videolan.tools.dp
 import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.R
+import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.util.LifecycleAwareScheduler
 import org.videolan.vlc.util.LocaleUtil
 import org.videolan.vlc.util.SchedulerCallback
@@ -126,10 +129,29 @@ class FastScroller : LinearLayout, Observer<HeadersIndex>, SchedulerCallback, Ap
         scheduler =  LifecycleAwareScheduler(this)
         orientation = HORIZONTAL
         clipChildren = false
-        val inflater = LayoutInflater.from(context)
-        inflater.inflate(R.layout.fastscroller, this)
-        handle = findViewById(R.id.fastscroller_handle)
-        bubble = findViewById(R.id.fastscroller_bubble)
+        bubble = TextView(context).apply {
+            id = R.id.fastscroller_bubble
+            background = ContextCompat.getDrawable(context, UiTools.getResourceFromAttribute(context, R.attr.fast_scroller_bubble))
+            contentDescription = context.getString(R.string.fastscroller_handle)
+            gravity = Gravity.CENTER
+            setTextColor(ContextCompat.getColor(context, R.color.white))
+            setTextSize(TypedValue.COMPLEX_UNIT_PX, resources.getDimension(R.dimen.fastscroller_handle_text_size))
+            visibility = GONE
+            layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
+        }
+        handle = ImageView(context).apply {
+            id = R.id.fastscroller_handle
+            contentDescription = context.getString(R.string.fastscroller_track)
+            setImageResource(UiTools.getResourceFromAttribute(context, R.attr.fast_scroller_handle))
+            val margin = resources.getDimensionPixelSize(R.dimen.fastscroller_track_padding)
+            layoutParams = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
+                marginStart = margin
+                leftMargin = margin
+                rightMargin = margin
+            }
+        }
+        addView(bubble)
+        addView(handle)
         translationX = hiddenTranslationX
         setPadding(if(LocaleUtil.isRtl()) 0 else 24.dp, 0,0,0)
 
