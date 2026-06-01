@@ -94,6 +94,8 @@ import org.videolan.vlc.compose.components.VLCEmptyState
 import org.videolan.vlc.compose.components.VLCOnboardingWelcome
 import org.videolan.vlc.compose.components.VLCPlayerOptionItem
 import org.videolan.vlc.compose.components.VLCSectionHeader
+import org.videolan.vlc.compose.components.VLCVideoQuickAction
+import org.videolan.vlc.compose.components.VLCVideoQuickActions
 import org.videolan.vlc.compose.theme.VLCTheme
 // =============================================================================
 
@@ -316,6 +318,40 @@ fun ComposeInteropLabContent() {
                 Text("Z", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.audioChipsTextColor)
             }
         )
+        VLCVideoQuickActions(
+            actions = listOf(
+                VLCVideoQuickAction(
+                    id = R.id.orientation_quick_action,
+                    icon = R.drawable.ic_player_lock_landscape,
+                    contentDescription = "Orientation locked"
+                ),
+                VLCVideoQuickAction(
+                    id = R.id.playback_speed_quick_action,
+                    icon = R.drawable.ic_speed_all,
+                    text = "1.25x",
+                    contentDescription = "Playback speed 1.25x"
+                ),
+                VLCVideoQuickAction(
+                    id = R.id.sleep_quick_action,
+                    icon = R.drawable.ic_sleep,
+                    text = "12:55 AM",
+                    contentDescription = "Sleep timer 12:55 AM"
+                ),
+                VLCVideoQuickAction(
+                    id = R.id.spu_delay_quick_action,
+                    icon = R.drawable.ic_subtitles,
+                    text = "+300 ms",
+                    contentDescription = "Subtitle delay plus 300 milliseconds"
+                ),
+                VLCVideoQuickAction(
+                    id = R.id.audio_delay_quick_action,
+                    icon = R.drawable.ic_player_volume,
+                    text = "-200 ms",
+                    contentDescription = "Audio delay minus 200 milliseconds"
+                )
+            ),
+            modifier = Modifier.fillMaxWidth()
+        )
         VLCAudioHeaderTimeLabel(text = "10:42")
         Column {
             VLCAudioTrackInfoText(
@@ -498,7 +534,8 @@ fun ComposeInteropLabContent() {
             "The foldable hinge left/right affordances are Compose-hosted under hinge_go_left and hinge_go_right. " +
             "The cover-mode seek/bookmark HUD row is Compose-hosted under the existing audio_rewind/audio_forward IDs with delay labels driven from Settings.audioJumpDelay. " +
             "The shared bookmarks panel is directly hosted through BookmarksPanelView in audio/video HUD roots, replacing the former stub wrapper plus toolbar, RecyclerView, empty state, bookmark_item.xml rows, and bottom seek/bookmark controls. " +
-            "The audio and video playlist overlays now share AudioPlaylistQueue in VLCComposeView-backed hosts, replacing the former PlaylistAdapter/RecyclerView wiring and the remaining playlist_item.xml bridge, with playlist tips fake rows created programmatically as Compose widgets. " +
+            "The audio and video playlist overlays now share AudioPlaylistQueue in VLCComposeView-backed hosts, replacing the former PlaylistAdapter/RecyclerView wiring and the remaining playlist_item.xml bridge, with the playlist gesture tips overlay now hosted by AudioPlaylistTipsView. " +
+            "The video HUD quick-action strip is Compose-hosted through VideoQuickActionsView while preserving orientation, speed, sleep, subtitle-delay, and audio-delay actions. " +
             "The player gesture/switcher surface stays outside this slice; the speed and sleep quick actions are now Compose.",
             style = MaterialTheme.typography.bodySmall
         )

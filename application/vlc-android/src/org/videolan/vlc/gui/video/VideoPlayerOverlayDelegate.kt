@@ -702,31 +702,40 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
         if (::hudRightBinding.isInitialized){
             hudRightBinding.playerOverlayNavmenu.setOnClickListener(if (enabled) player else null)
             UiTools.setViewOnClickListener(hudRightBinding.videoRenderer, if (enabled) player else null)
-            hudRightBinding.playbackSpeedQuickAction.setOnLongClickListener {
-                player.service?.setRate(1F, true)
-                showControls(true)
-                true
-            }
-            hudRightBinding.sleepQuickAction.setOnLongClickListener {
-                player.service?.setSleepTimer(null)
-                showControls(true)
-                true
-            }
-            hudRightBinding.audioDelayQuickAction.setOnLongClickListener {
-                player.service?.setAudioDelay(0L)
-                showControls(true)
-                true
-            }
-            hudRightBinding.spuDelayQuickAction.setOnLongClickListener {
-                player.service?.setSpuDelay(0L)
-                showControls(true)
-                true
-            }
+            hudRightBinding.quickActionsContainer.setOnActionClickListener(::dispatchQuickActionClick)
+            hudRightBinding.quickActionsContainer.setOnActionLongClickListener(::handleQuickActionLongClick)
             hudRightBinding.quickActionsContainer.setOnTouchListener { _, _ ->
                 showOverlay()
                 false
             }
         }
+    }
+
+    private fun dispatchQuickActionClick(actionId: Int) {
+        player.onClick(View(player).apply { id = actionId })
+    }
+
+    private fun handleQuickActionLongClick(actionId: Int) {
+        val handled = when (actionId) {
+            R.id.playback_speed_quick_action -> {
+                player.service?.setRate(1F, true)
+                true
+            }
+            R.id.sleep_quick_action -> {
+                player.service?.setSleepTimer(null)
+                true
+            }
+            R.id.audio_delay_quick_action -> {
+                player.service?.setAudioDelay(0L)
+                true
+            }
+            R.id.spu_delay_quick_action -> {
+                player.service?.setSpuDelay(0L)
+                true
+            }
+            else -> false
+        }
+        if (handled) showControls(true)
     }
 
     fun updatePausable(pausable: Boolean) {
@@ -773,9 +782,9 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                 } else {
                     R.drawable.ic_player_lock_portrait
                 }
-                hudRightBinding.orientationQuickAction.setVisible()
-                hudRightBinding.orientationQuickAction.chipIcon = ContextCompat.getDrawable(player, drawable)
-            } else hudRightBinding.orientationQuickAction.setGone()
+                hudRightBinding.quickActionsContainer.setActionVisible(R.id.orientation_quick_action, true)
+                hudRightBinding.quickActionsContainer.setActionIcon(R.id.orientation_quick_action, drawable)
+            } else hudRightBinding.quickActionsContainer.setActionVisible(R.id.orientation_quick_action, false)
         }
     }
 
@@ -1027,22 +1036,22 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
             hudRightBinding.playlistToggle.visibility = if (show && player.service?.hasPlaylist() == true) View.VISIBLE else View.GONE
             hudRightBinding.playerScreenshot.visibility = if (!player.isLocked && Settings.getInstance(player).getString(SCREENSHOT_MODE, "0") in arrayOf("1", "3")) View.VISIBLE else View.GONE
             hudRightBinding.playerOverlayNavmenu.visibility = if (player.menuIdx >= 0) View.VISIBLE else View.GONE
-            hudRightBinding.sleepQuickAction.visibility = if (show && PlaybackService.playerSleepTime.value != null) View.VISIBLE else View.GONE
+            hudRightBinding.quickActionsContainer.setActionVisible(R.id.sleep_quick_action, show && PlaybackService.playerSleepTime.value != null)
 
 
-            hudRightBinding.spuDelayQuickAction.visibility = if (show && player.service?.spuDelay != 0L) View.VISIBLE else View.GONE
-            hudRightBinding.audioDelayQuickAction.visibility = if (show && player.service?.audioDelay != 0L) View.VISIBLE else View.GONE
+            hudRightBinding.quickActionsContainer.setActionVisible(R.id.spu_delay_quick_action, show && player.service?.spuDelay != 0L)
+            hudRightBinding.quickActionsContainer.setActionVisible(R.id.audio_delay_quick_action, show && player.service?.audioDelay != 0L)
             hudRightBinding.clock.visibility = if (Settings.showTvUi) View.VISIBLE else View.GONE
 
-            hudRightBinding.playbackSpeedQuickAction.visibility = if (show && player.service?.rate != 1.0F) View.VISIBLE else View.GONE
+            hudRightBinding.quickActionsContainer.setActionVisible(R.id.playback_speed_quick_action, show && player.service?.rate != 1.0F)
             updatePlaybackSpeedChip()
             val format =  DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault())
             PlaybackService.playerSleepTime.value?.let {
-                hudRightBinding.sleepQuickAction.text = format.format(it.time)
-                hudRightBinding.sleepQuickAction.contentDescription = player.getString(R.string.sleep_in) + TalkbackUtil.millisToString(player, System.currentTimeMillis() - it.time.time)
+                hudRightBinding.quickActionsContainer.setActionText(R.id.sleep_quick_action, format.format(it.time))
+                hudRightBinding.quickActionsContainer.setActionContentDescription(R.id.sleep_quick_action, player.getString(R.string.sleep_in) + TalkbackUtil.millisToString(player, System.currentTimeMillis() - it.time.time))
             }
-            hudRightBinding.spuDelayQuickAction.text = "${(player.service?.spuDelay ?: 0L) / 1000L} ms"
-            hudRightBinding.audioDelayQuickAction.text = "${(player.service?.audioDelay ?: 0L) / 1000L} ms"
+            hudRightBinding.quickActionsContainer.setActionText(R.id.spu_delay_quick_action, "${(player.service?.spuDelay ?: 0L) / 1000L} ms")
+            hudRightBinding.quickActionsContainer.setActionText(R.id.audio_delay_quick_action, "${(player.service?.audioDelay ?: 0L) / 1000L} ms")
 
         }
 
@@ -1050,13 +1059,13 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
     fun updatePlaybackSpeedChip() {
         if (::hudRightBinding.isInitialized) {
-            hudRightBinding.playbackSpeedQuickAction.text = player.service?.rate?.formatRateString()
-            hudRightBinding.playbackSpeedQuickAction.contentDescription = player.getString(R.string.playback_speed) + ". " + player.service?.rate?.formatRateString()
-            if (player.service?.rate == 1.0F) hudRightBinding.playbackSpeedQuickAction.setGone()
+            hudRightBinding.quickActionsContainer.setActionText(R.id.playback_speed_quick_action, player.service?.rate?.formatRateString())
+            hudRightBinding.quickActionsContainer.setActionContentDescription(R.id.playback_speed_quick_action, player.getString(R.string.playback_speed) + ". " + player.service?.rate?.formatRateString())
+            if (player.service?.rate == 1.0F) hudRightBinding.quickActionsContainer.setActionVisible(R.id.playback_speed_quick_action, false)
             if (Settings.getInstance(player).getBoolean(KEY_PLAYBACK_SPEED_VIDEO_GLOBAL, false)) {
-                hudRightBinding.playbackSpeedQuickAction.chipIcon = ContextCompat.getDrawable(player, R.drawable.ic_speed_all)
+                hudRightBinding.quickActionsContainer.setActionIcon(R.id.playback_speed_quick_action, R.drawable.ic_speed_all)
             } else {
-                hudRightBinding.playbackSpeedQuickAction.chipIcon = ContextCompat.getDrawable(player, R.drawable.ic_speed)
+                hudRightBinding.quickActionsContainer.setActionIcon(R.id.playback_speed_quick_action, R.drawable.ic_speed)
             }
         }
     }

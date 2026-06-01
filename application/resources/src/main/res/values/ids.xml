@@ -44,6 +44,11 @@
     <item type="id" name="songs" />
     <item type="id" name="sort" />
     <item type="id" name="sort_desc" />
+    <item type="id" name="audio_delay_quick_action" />
+    <item type="id" name="orientation_quick_action" />
+    <item type="id" name="playback_speed_quick_action" />
+    <item type="id" name="sleep_quick_action" />
+    <item type="id" name="spu_delay_quick_action" />
     <item type="id" name="toolbar_icon" />
     <item type="id" name="toolbar_vlc_title" />
     <item type="id" name="tapIndicatorPlaylist" />

@@ -182,7 +182,7 @@ internal fun SecondaryActivity.createSecondaryActivityShell(): View {
     )
 
     root.addView(
-        createAudioPlaylistTipsStub(),
+        createAudioPlaylistTipsHostView(),
         FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
     )
     root.addView(
@@ -276,7 +276,7 @@ private fun Context.createAudioPlayerContainerShell(): FrameLayout {
             FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
         )
         addView(
-            createAudioPlaylistTipsStub(),
+            createAudioPlaylistTipsHostView(),
             FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
         )
         layoutParams = CoordinatorLayout.LayoutParams(CoordinatorLayout.LayoutParams.MATCH_PARENT, CoordinatorLayout.LayoutParams.MATCH_PARENT).apply {
@@ -299,11 +299,6 @@ private fun Context.createShellFab(large: Boolean): FloatingActionButton {
 private fun Context.createScanProgressStub() = ViewStubCompat(this, null).apply {
     id = R.id.scan_viewstub
     layoutResource = R.layout.scan_progress
-}
-
-private fun Context.createAudioPlaylistTipsStub() = ViewStubCompat(this, null).apply {
-    id = R.id.audio_playlist_tips
-    layoutResource = R.layout.audio_playlist_tips
 }
 
 private fun Context.actionBarSize(): Int {

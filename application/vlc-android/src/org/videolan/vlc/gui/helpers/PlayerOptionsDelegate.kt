@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.appcompat.widget.ViewStubCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.window.layout.FoldingFeature
 import kotlinx.coroutines.delay
@@ -22,6 +21,7 @@ import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
 import org.videolan.vlc.gui.AudioPlayerContainerActivity
 import org.videolan.vlc.gui.BaseActivity
+import org.videolan.vlc.gui.audio.AudioPlaylistTipsHostView
 import org.videolan.vlc.gui.dialogs.showAudioControlsSettingsComposeDialog
 import org.videolan.vlc.gui.dialogs.showEqualizerComposeDialog
 import org.videolan.vlc.gui.dialogs.showJumpToTimeComposeDialog
@@ -220,7 +220,7 @@ class PlayerOptionsDelegate(val activity: ComponentActivity, val service: Playba
             ID_SHOW_PLAYLIST_TIPS -> {
                 hide()
                 val audioPlayerContainerActivity = activity as AudioPlayerContainerActivity
-                audioPlayerContainerActivity.findViewById<ViewStubCompat>(R.id.audio_playlist_tips)?.let {
+                audioPlayerContainerActivity.findViewById<AudioPlaylistTipsHostView>(R.id.audio_playlist_tips)?.let {
                     audioPlayerContainerActivity.playlistTipsDelegate.init(it)
                 }
             }

@@ -38,7 +38,6 @@ import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.Toolbar
-import androidx.appcompat.widget.ViewStubCompat
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.graphics.Insets
 import androidx.core.net.toUri
@@ -84,6 +83,7 @@ import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
 import org.videolan.vlc.VlcMigrationHelper
 import org.videolan.vlc.gui.audio.AudioPlayer
+import org.videolan.vlc.gui.audio.AudioPlaylistTipsHostView
 import org.videolan.vlc.gui.audio.AudioPlaylistTipsDelegate
 import org.videolan.vlc.gui.audio.AudioTipsDelegate
 import org.videolan.vlc.gui.dialogs.createResumePlaybackDialogView
@@ -582,7 +582,6 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
      * @param stubId the stub of the tip view
      * @param settingKey the setting key to check if the view must be displayed or not.
      */
-    @SuppressLint("RestrictedApi")
     fun showTipViewIfNeeded(stubId: Int, settingKey: String) {
         if (BuildConfig.DEBUG || PlaybackService.hasRenderer()) return
         if (!settings.getBoolean(settingKey, false) && !Settings.showTvUi) {
@@ -596,9 +595,9 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
                     }
                 }
                 R.id.audio_playlist_tips -> {
-                    val vsc = findViewById<ViewStubCompat>(stubId)
-                    if (vsc != null && playlistTipsDelegate.currentTip == null && !shownTips.contains(stubId)) {
-                        playlistTipsDelegate.init(vsc)
+                    val tipsHost = findViewById<AudioPlaylistTipsHostView>(stubId)
+                    if (tipsHost != null && playlistTipsDelegate.currentTip == null && !shownTips.contains(stubId)) {
+                        playlistTipsDelegate.init(tipsHost)
                         shown = true
                     }
                 }
@@ -613,14 +612,6 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
 
     fun onClickNextTips(@Suppress("UNUSED_PARAMETER") v: View?) {
         tipsDelegate.next()
-    }
-
-    fun onClickDismissPlaylistTips(@Suppress("UNUSED_PARAMETER") v: View?) {
-        playlistTipsDelegate.close()
-    }
-
-    fun onClickNextPlaylistTips(@Suppress("UNUSED_PARAMETER") v: View?) {
-        playlistTipsDelegate.next()
     }
 
     /**

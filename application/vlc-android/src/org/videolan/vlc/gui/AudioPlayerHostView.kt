@@ -26,6 +26,7 @@ import android.content.Context
 import android.view.View
 import android.widget.FrameLayout
 import org.videolan.vlc.R
+import org.videolan.vlc.gui.audio.AudioPlaylistTipsHostView
 import org.videolan.vlc.gui.view.AudioPlayerTipsHostView
 
 internal fun Context.createAudioPlayerHostView() = FrameLayout(this).apply {
@@ -40,3 +41,5 @@ internal fun Context.createAudioPlayerHostView() = FrameLayout(this).apply {
 }
 
 internal fun Context.createAudioPlayerTipsHostView() = AudioPlayerTipsHostView(this)
+
+internal fun Context.createAudioPlaylistTipsHostView() = AudioPlaylistTipsHostView(this)
