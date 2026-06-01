@@ -33,8 +33,6 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import android.widget.ProgressBar
-import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.Toolbar
@@ -46,7 +44,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
@@ -96,6 +93,7 @@ import org.videolan.vlc.gui.helpers.PlayerOptionsDelegateCallback
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.isTablet
 import org.videolan.vlc.gui.view.AudioPlayerTipsHostView
+import org.videolan.vlc.gui.view.ScanProgressView
 import org.videolan.vlc.media.PlaylistManager
 import org.videolan.vlc.media.ResumeStatus
 import org.videolan.vlc.media.WaitConfirmation
@@ -130,9 +128,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
     lateinit var playerBehavior: PlayerBehavior<*>
     protected lateinit var fragmentContainer: View
     protected var originalBottomPadding: Int = 0
-    private var scanProgressLayout: View? = null
-    private var scanProgressText: TextView? = null
-    private var scanProgressBar: ProgressBar? = null
+    private var scanProgressLayout: ScanProgressView? = null
     private lateinit var resumeCard: Snackbar
     private var preventRescan = false
     private var showAudioPlayerWhenResumed = false
@@ -702,14 +698,11 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
 
     private fun showProgressBar(discovery: String) {
         if (!Medialibrary.getInstance().isWorking) return
-        val vsc = findViewById<View>(R.id.scan_viewstub)
-        if (vsc != null) {
-            vsc.visibility = View.VISIBLE
-            scanProgressLayout = findViewById(R.id.scan_progress_layout)
-            scanProgressText = findViewById(R.id.scan_progress_text)
-            scanProgressBar = findViewById(R.id.scan_progress_bar)
-        } else scanProgressLayout?.visibility = View.VISIBLE
-        vsc?.let {
+        val progressView = scanProgressLayout ?: findViewById<ScanProgressView>(R.id.scan_progress_layout)?.also {
+            scanProgressLayout = it
+        } ?: return
+        progressView.visibility = View.VISIBLE
+        progressView.let {
             val lp = it.layoutParams as CoordinatorLayout.LayoutParams
             if (this is MainActivity) {
                 lp.anchorId = if (isTablet()) R.id.fragment_placeholder else R.id.navigation
@@ -718,7 +711,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
             }
             it.layoutParams = lp
         }
-        scanProgressText?.text = discovery
+        progressView.showDiscoveryText(discovery)
     }
 
     fun closeMiniPlayer() {
@@ -749,19 +742,11 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
                 return@observe
             }
             updateProgressVisibility(true, scanProgress.progressText)
-            scanProgressText?.text = scanProgress.progressText
-            scanProgressBar?.progress = scanProgress.parsing.toInt()
-            if (scanProgress.inDiscovery && scanProgressBar?.isIndeterminate == false) {
-                scanProgressBar?.isVisible = false
-                scanProgressBar?.isIndeterminate = true
-                scanProgressBar?.isVisible = true
-            }
-
-            if (!scanProgress.inDiscovery && scanProgressBar?.isIndeterminate == true) {
-                scanProgressBar?.isVisible = false
-                scanProgressBar?.isIndeterminate = false
-                scanProgressBar?.isVisible = true
-            }
+            scanProgressLayout?.updateProgress(
+                text = scanProgress.progressText,
+                progress = scanProgress.parsing.toInt(),
+                indeterminate = scanProgress.inDiscovery
+            )
         }
         MediaParsingService.discoveryError.observe(this) {
             UiTools.snacker(this, getString(R.string.discovery_failed, it.entryPoint))

@@ -34,7 +34,6 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.content.res.AppCompatResources
-import androidx.appcompat.widget.ViewStubCompat
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -52,6 +51,7 @@ import org.videolan.vlc.gui.helpers.BottomNavigationBehavior
 import org.videolan.vlc.gui.helpers.FloatingActionButtonBehavior
 import org.videolan.vlc.gui.helpers.PlayerBehavior
 import org.videolan.vlc.gui.helpers.UiTools
+import org.videolan.vlc.gui.view.ScanProgressView
 
 internal fun MainActivity.createMainActivityShell(): View {
     val root = CoordinatorLayout(this).apply {
@@ -89,7 +89,7 @@ internal fun MainActivity.createMainActivityShell(): View {
     )
 
     root.addView(
-        createScanProgressStub(),
+        createScanProgressView(),
         CoordinatorLayout.LayoutParams(CoordinatorLayout.LayoutParams.MATCH_PARENT, CoordinatorLayout.LayoutParams.WRAP_CONTENT).apply {
             anchorId = R.id.navigation
             anchorGravity = Gravity.TOP
@@ -160,7 +160,7 @@ internal fun SecondaryActivity.createSecondaryActivityShell(): View {
     )
 
     coordinator.addView(
-        createScanProgressStub(),
+        createScanProgressView(),
         CoordinatorLayout.LayoutParams(CoordinatorLayout.LayoutParams.MATCH_PARENT, CoordinatorLayout.LayoutParams.WRAP_CONTENT).apply {
             gravity = Gravity.BOTTOM
         }
@@ -296,9 +296,8 @@ private fun Context.createShellFab(large: Boolean): FloatingActionButton {
     }
 }
 
-private fun Context.createScanProgressStub() = ViewStubCompat(this, null).apply {
-    id = R.id.scan_viewstub
-    layoutResource = R.layout.scan_progress
+private fun Context.createScanProgressView() = ScanProgressView(this).apply {
+    id = R.id.scan_progress_layout
 }
 
 private fun Context.actionBarSize(): Int {

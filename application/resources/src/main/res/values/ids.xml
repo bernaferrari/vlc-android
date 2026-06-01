@@ -39,7 +39,7 @@
     <item type="id" name="ml_menu_search" />
     <item type="id" name="navigation" />
     <item type="id" name="navigation_rail" />
-    <item type="id" name="scan_viewstub" />
+    <item type="id" name="scan_progress_layout" />
     <item type="id" name="sliding_tabs" />
     <item type="id" name="songs" />
     <item type="id" name="sort" />

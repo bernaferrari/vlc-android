@@ -70,7 +70,6 @@
     <attr name="bookmark_background" format="color" />
     <attr name="bottom_navigation_focus" format="color" />
     <attr name="primary_focus" format="color" />
-    <attr name="scan_background" format="reference" />
     <attr name="otp_code_background" format="reference" />
     <attr name="fast_scroller_bubble" format="reference" />
     <attr name="fast_scroller_handle" format="reference" />
