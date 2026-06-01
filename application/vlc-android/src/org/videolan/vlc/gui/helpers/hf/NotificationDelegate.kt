@@ -24,69 +24,52 @@
 
 package org.videolan.vlc.gui.helpers.hf
 
-import android.annotation.TargetApi
 import android.content.pm.PackageManager
 import android.os.Build
-import android.os.Bundle
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import videolan.org.commontools.LiveEvent
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
+import kotlin.coroutines.resume
 
-@TargetApi(Build.VERSION_CODES.LOLLIPOP)
-class NotificationDelegate : BaseHeadlessFragment() {
+private const val POST_NOTIFICATIONS = "android.permission.POST_NOTIFICATIONS"
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        if (savedInstanceState == null) {
-            requestPermission()
-        }
-    }
-
-    fun requestPermission() {
-        val requestPermissionLauncher =
-                registerForActivityResult(ActivityResultContracts.RequestPermission()
-                ) { isGranted: Boolean ->
-                    model.deferredGrant.complete(isGranted)
-                    exit()
-                }
-        when {
-            ContextCompat.checkSelfPermission(requireActivity(), "android.permission.POST_NOTIFICATIONS") == PackageManager.PERMISSION_GRANTED -> {
-                // You can use the API that requires the permission.
-            }
-            shouldShowRequestPermissionRationale("android.permission.POST_NOTIFICATIONS") -> {
-                requestPermissionLauncher.launch("android.permission.POST_NOTIFICATIONS")
-            }
-            else -> {
-                requestPermissionLauncher.launch("android.permission.POST_NOTIFICATIONS")
-            }
-        }
-    }
+class NotificationDelegate private constructor() {
 
     companion object {
         const val TAG = "VLC/NotificationDelegate"
-        private val notificationAccessGranted = LiveEvent<Boolean>()
+        private var notificationAccessGranted = false
 
-
-
-        @OptIn(ExperimentalCoroutinesApi::class)
-        suspend fun FragmentActivity.getNotificationPermission() : Boolean {
-            if (isFinishing) return false
-            val model : PermissionViewmodel by viewModels()
-            if (model.isCompleted && notificationAccessGranted.value == true) return model.deferredGrant.getCompleted()
-            if (model.permissionPending) {
-                val fragment = supportFragmentManager.findFragmentByTag(TAG) as? NotificationDelegate
-                fragment?.requestPermission() ?: return false
-            } else {
-                model.setupDeferred()
-                val fragment = NotificationDelegate()
-                supportFragmentManager.beginTransaction().add(fragment, TAG).commitAllowingStateLoss()
+        suspend fun FragmentActivity.getNotificationPermission() : Boolean = withContext(Dispatchers.Main.immediate) {
+            if (isFinishing) return@withContext false
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return@withContext true
+            if (notificationAccessGranted || ContextCompat.checkSelfPermission(this@getNotificationPermission, POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                notificationAccessGranted = true
+                return@withContext true
             }
-            return model.deferredGrant.await()
+            suspendCancellableCoroutine { continuation ->
+                val resultKey = "$TAG:${System.nanoTime()}"
+                var requestPermissionLauncher: ActivityResultLauncher<String>? = null
+                fun unregister() {
+                    requestPermissionLauncher?.unregister()
+                    requestPermissionLauncher = null
+                }
+                requestPermissionLauncher = activityResultRegistry.register(resultKey, ActivityResultContracts.RequestPermission()) { isGranted ->
+                    notificationAccessGranted = isGranted
+                    if (continuation.isActive) continuation.resume(isGranted)
+                    unregister()
+                }
+                continuation.invokeOnCancellation { unregister() }
+                try {
+                    requestPermissionLauncher?.launch(POST_NOTIFICATIONS)
+                } catch (_: RuntimeException) {
+                    unregister()
+                    if (continuation.isActive) continuation.resume(false)
+                }
+            }
         }
     }
 }
-
