@@ -29,9 +29,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.Toolbar
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.core.os.bundleOf
 import androidx.core.view.ViewCompat
@@ -45,6 +47,7 @@ import kotlinx.coroutines.withContext
 import org.videolan.libvlc.util.AndroidUtil
 import org.videolan.medialibrary.interfaces.Medialibrary
 import org.videolan.resources.ACTIVITY_RESULT_PREFERENCES
+import org.videolan.resources.AndroidDevices
 import org.videolan.resources.REMOTE_ACCESS_ONBOARDING
 import org.videolan.resources.VLCInstance
 import org.videolan.resources.util.parcelable
@@ -52,13 +55,16 @@ import org.videolan.resources.util.restartRemoteAccess
 import org.videolan.resources.util.startRemoteAccess
 import org.videolan.resources.util.stopRemoteAccess
 import org.videolan.tools.AUDIO_RESUME_PLAYBACK
+import org.videolan.tools.KEY_APP_THEME
 import org.videolan.tools.KEY_AUDIO_LAST_PLAYLIST
+import org.videolan.tools.KEY_BLACK_THEME
 import org.videolan.tools.KEY_CURRENT_AUDIO
 import org.videolan.tools.KEY_CURRENT_AUDIO_RESUME_ARTIST
 import org.videolan.tools.KEY_CURRENT_AUDIO_RESUME_THUMB
 import org.videolan.tools.KEY_CURRENT_AUDIO_RESUME_TITLE
 import org.videolan.tools.KEY_CURRENT_MEDIA
 import org.videolan.tools.KEY_CURRENT_MEDIA_RESUME
+import org.videolan.tools.KEY_DAYNIGHT
 import org.videolan.tools.KEY_MEDIA_LAST_PLAYLIST
 import org.videolan.tools.KEY_MEDIA_LAST_PLAYLIST_RESUME
 import org.videolan.tools.KEY_RESTRICT_SETTINGS
@@ -68,6 +74,7 @@ import org.videolan.tools.PREF_SHOW_VIDEO_SETTINGS_DISCLAIMER
 import org.videolan.tools.RESULT_RESTART
 import org.videolan.tools.RESULT_RESTART_APP
 import org.videolan.tools.RESULT_UPDATE_ARTISTS
+import org.videolan.tools.RESULT_UPDATE_SEEN_MEDIA
 import org.videolan.tools.Settings
 import org.videolan.tools.Settings.isPinCodeSet
 import org.videolan.tools.VIDEO_RESUME_PLAYBACK
@@ -85,6 +92,7 @@ import org.videolan.vlc.gui.browser.KEY_PICKER_TYPE
 import org.videolan.vlc.gui.dialogs.showAutoInfoComposeDialog
 import org.videolan.vlc.gui.dialogs.showAudioControlsSettingsComposeDialog
 import org.videolan.vlc.gui.dialogs.showPermissionListComposeDialog
+import org.videolan.vlc.gui.dialogs.showSleepTimerComposeDialog
 import org.videolan.vlc.gui.dialogs.showVideoControlsSettingsComposeDialog
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.restartMediaPlayer
@@ -273,7 +281,7 @@ class PreferencesActivity : BaseActivity() {
 
     private fun openRootDestination(destination: PreferencesRootDestination) {
         when (destination) {
-            PreferencesRootDestination.Ui -> openPreferenceFragment(PreferencesUi())
+            PreferencesRootDestination.Ui -> showPreferenceSubpage(PreferencesRootDestination.Ui)
             PreferencesRootDestination.Video -> showPreferenceSubpage(PreferencesRootDestination.Video)
             PreferencesRootDestination.Subtitles -> openPreferenceFragment(PreferencesSubtitles())
             PreferencesRootDestination.Audio -> showPreferenceSubpage(PreferencesRootDestination.Audio)
@@ -301,7 +309,7 @@ class PreferencesActivity : BaseActivity() {
                 showPreferencesRoot(endPoint.key)
                 showAudioControlsSettingsComposeDialog()
             }
-            R.xml.preferences_ui -> openPreferenceFragment(PreferencesUi().withEndpoint(endPoint))
+            R.xml.preferences_ui -> showPreferenceSubpage(PreferencesRootDestination.Ui, endPoint.key)
             R.xml.preferences_video -> showPreferenceSubpage(PreferencesRootDestination.Video, endPoint.key)
             R.xml.preferences_subtitles -> openPreferenceFragment(PreferencesSubtitles().withEndpoint(endPoint))
             R.xml.preferences_audio -> showPreferenceSubpage(PreferencesRootDestination.Audio, endPoint.key)
@@ -324,6 +332,7 @@ class PreferencesActivity : BaseActivity() {
         activeComposeDestination = destination
         activeComposeHighlight = highlightedKey
         supportActionBar?.title = getString(destination.titleRes())
+        if (destination == PreferencesRootDestination.Ui) ensureUiThemePreferenceDefaults(Settings.getInstance(this))
         if (destination == PreferencesRootDestination.Video) showVideoSettingsDisclaimerIfNeeded()
         if (destination == PreferencesRootDestination.RemoteAccess) showRemoteAccessOnboardingIfNeeded()
         supportFragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
@@ -355,7 +364,11 @@ class PreferencesActivity : BaseActivity() {
                             onPopupForceLegacyChanged = ::onPopupForceLegacyChanged,
                             onHeadsetDetectionChanged = ::detectHeadset,
                             onAudioReplayGainChanged = ::restartMediaPipeline,
-                            onSoundFontClick = ::openSoundFontPicker
+                            onSoundFontClick = ::openSoundFontPicker,
+                            onRestartRequired = ::setRestart,
+                            onRestartDialogRequired = ::showRestartDialog,
+                            onDefaultSleepTimerClick = ::openDefaultSleepTimer,
+                            onSeenMediaChanged = ::updateSeenMedia
                         )
                     }
                 }
@@ -467,6 +480,33 @@ class PreferencesActivity : BaseActivity() {
     private fun onPopupForceLegacyChanged(forceLegacy: Boolean) {
         if (forceLegacy && !Permissions.canDrawOverlays(this)) Permissions.checkDrawOverlaysPermission(this)
         if (!forceLegacy && !Permissions.isPiPAllowed(this)) Permissions.checkPiPPermission(this)
+    }
+
+    private fun ensureUiThemePreferenceDefaults(settings: android.content.SharedPreferences) {
+        if (settings.contains(KEY_APP_THEME)) return
+        var theme = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+        if (settings.getBoolean(KEY_DAYNIGHT, false) && !AndroidDevices.canUseSystemNightMode()) {
+            theme = AppCompatDelegate.MODE_NIGHT_AUTO
+        } else if (settings.contains(KEY_BLACK_THEME)) {
+            theme = if (settings.getBoolean(KEY_BLACK_THEME, false)) {
+                AppCompatDelegate.MODE_NIGHT_YES
+            } else {
+                AppCompatDelegate.MODE_NIGHT_NO
+            }
+        }
+        settings.edit { putString(KEY_APP_THEME, theme.toString()) }
+    }
+
+    private fun showRestartDialog() {
+        UiTools.restartDialog(this)
+    }
+
+    private fun openDefaultSleepTimer(onTimerChanged: () -> Unit) {
+        showSleepTimerComposeDialog(forDefault = true, onDismiss = onTimerChanged)
+    }
+
+    private fun updateSeenMedia() {
+        setResult(RESULT_UPDATE_SEEN_MEDIA)
     }
 
     private fun openSoundFontPicker() {

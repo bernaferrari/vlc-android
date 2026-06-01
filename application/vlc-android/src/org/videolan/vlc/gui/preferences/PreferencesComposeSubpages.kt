@@ -22,6 +22,7 @@
 
 package org.videolan.vlc.gui.preferences
 
+import android.content.Context
 import android.content.SharedPreferences
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -57,7 +58,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
+import org.videolan.medialibrary.Tools
+import org.videolan.resources.AndroidDevices
 import org.videolan.tools.AUDIO_DUCKING
+import org.videolan.tools.KEY_APP_THEME
 import org.videolan.tools.KEY_AUDIO_CONFIRM_RESUME
 import org.videolan.tools.KEY_AUDIO_DIGITAL_OUTPUT
 import org.videolan.tools.KEY_AUDIO_PREFERRED_LANGUAGE
@@ -66,6 +70,7 @@ import org.videolan.tools.KEY_AUDIO_REPLAY_GAIN_ENABLE
 import org.videolan.tools.KEY_AUDIO_REPLAY_GAIN_MODE
 import org.videolan.tools.KEY_AUDIO_REPLAY_GAIN_PEAK_PROTECTION
 import org.videolan.tools.KEY_AUDIO_REPLAY_GAIN_PREAMP
+import org.videolan.tools.KEY_AUDIO_RESUME_CARD
 import org.videolan.tools.KEY_AUDIO_TASK_REMOVED
 import org.videolan.tools.KEY_ANDROID_AUTO_QUEUE_INFO_POS_VAL
 import org.videolan.tools.KEY_ALWAYS_FAST_SEEK
@@ -78,12 +83,21 @@ import org.videolan.tools.KEY_ENABLE_HEADSET_DETECTION
 import org.videolan.tools.KEY_ENABLE_PLAY_ON_HEADSET_INSERTION
 import org.videolan.tools.KEY_ENABLE_REMOTE_ACCESS
 import org.videolan.tools.KEY_IGNORE_HEADSET_MEDIA_BUTTON_PRESSES
+import org.videolan.tools.KEY_INCLUDE_MISSING
+import org.videolan.tools.KEY_INCOGNITO
+import org.videolan.tools.KEY_MEDIA_SEEN
 import org.videolan.tools.KEY_PLAYBACK_SPEED_AUDIO_GLOBAL
+import org.videolan.tools.KEY_PERSISTENT_INCOGNITO
 import org.videolan.tools.KEY_PREFERRED_RESOLUTION
 import org.videolan.tools.KEY_REMOTE_ACCESS_ML_CONTENT
 import org.videolan.tools.KEY_RESTRICT_SETTINGS
 import org.videolan.tools.KEY_SAFE_MODE
+import org.videolan.tools.KEY_SET_LOCALE
+import org.videolan.tools.KEY_SHOW_HEADERS
 import org.videolan.tools.KEY_VIDEO_MATCH_FRAME_RATE
+import org.videolan.tools.LIST_TITLE_ELLIPSIZE
+import org.videolan.tools.LOCKSCREEN_COVER
+import org.videolan.tools.PREF_TV_UI
 import org.videolan.tools.POPUP_FORCE_LEGACY
 import org.videolan.tools.REMOTE_ACCESS_FILE_BROWSER_CONTENT
 import org.videolan.tools.REMOTE_ACCESS_HISTORY_CONTENT
@@ -94,6 +108,14 @@ import org.videolan.tools.RESUME_PLAYBACK
 import org.videolan.tools.RESTORE_BACKGROUND_VIDEO
 import org.videolan.tools.LocaleUtils
 import org.videolan.tools.LocaleUtils.getLocales
+import org.videolan.tools.PLAYLIST_MODE_AUDIO
+import org.videolan.tools.PLAYLIST_MODE_VIDEO
+import org.videolan.tools.SHOW_SEEK_IN_COMPACT_NOTIFICATION
+import org.videolan.tools.SHOW_VIDEO_THUMBNAILS
+import org.videolan.tools.SLEEP_TIMER_DEFAULT_INTERVAL
+import org.videolan.tools.SLEEP_TIMER_DEFAULT_RESET_INTERACTION
+import org.videolan.tools.SLEEP_TIMER_DEFAULT_WAIT
+import org.videolan.tools.Settings
 import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.theme.VLCTheme
@@ -112,10 +134,11 @@ private const val KEY_ANDROID_AUTO_TITLE_SCALE = "android_auto_title_scale_val"
 private const val KEY_ANDROID_AUTO_SUBTITLE_SCALE = "android_auto_subtitle_scale_val"
 private const val KEY_ANDROID_AUTO_SPEED_BUTTONS = "enable_android_auto_speed_buttons"
 private const val KEY_ANDROID_AUTO_SEEK_BUTTONS = "enable_android_auto_seek_buttons"
+private const val KEY_DEFAULT_SLEEP_TIMER = "default_sleep_timer"
 
 /**
  * Compose replacement for the small phone preference XML screens:
- * preferences_video.xml, preferences_audio.xml, preferences_casting.xml,
+ * preferences_ui.xml, preferences_video.xml, preferences_audio.xml, preferences_casting.xml,
  * preferences_parental_control.xml, preferences_remote_access.xml, and preferences_android_auto.xml.
  *
  * Those XML files stay parseable by PreferenceParser for search metadata while this screen owns
@@ -140,7 +163,11 @@ internal fun PreferencesComposeSubpageScreen(
         onPopupForceLegacyChanged: (Boolean) -> Unit,
         onHeadsetDetectionChanged: (Boolean) -> Unit,
         onAudioReplayGainChanged: () -> Unit,
-        onSoundFontClick: () -> Unit
+        onSoundFontClick: () -> Unit,
+        onRestartRequired: () -> Unit,
+        onRestartDialogRequired: () -> Unit,
+        onDefaultSleepTimerClick: (() -> Unit) -> Unit,
+        onSeenMediaChanged: () -> Unit
 ) {
     VLCTheme {
         Box(
@@ -154,6 +181,17 @@ internal fun PreferencesComposeSubpageScreen(
                     verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 when (destination) {
+                    PreferencesRootDestination.Ui -> item {
+                        UiPreferencesContent(
+                                settings = settings,
+                                highlightedKey = highlightedKey,
+                                onRestartAppRequired = onRestartAppRequired,
+                                onRestartRequired = onRestartRequired,
+                                onRestartDialogRequired = onRestartDialogRequired,
+                                onDefaultSleepTimerClick = onDefaultSleepTimerClick,
+                                onSeenMediaChanged = onSeenMediaChanged
+                        )
+                    }
                     PreferencesRootDestination.Video -> item {
                         VideoPreferencesContent(
                                 settings = settings,
@@ -215,6 +253,224 @@ internal fun PreferencesComposeSubpageScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun UiPreferencesContent(
+        settings: SharedPreferences,
+        highlightedKey: String?,
+        onRestartAppRequired: () -> Unit,
+        onRestartRequired: () -> Unit,
+        onRestartDialogRequired: () -> Unit,
+        onDefaultSleepTimerClick: (() -> Unit) -> Unit,
+        onSeenMediaChanged: () -> Unit
+) {
+    val context = LocalContext.current
+    val isVisible = { key: String -> PreferenceVisibilityManager.isPreferenceVisible(key, settings, false) }
+    val localePair = remember(context) {
+        LocaleUtils.getLocalesUsedInProject(
+                BuildConfig.TRANSLATION_ARRAY,
+                context.getString(R.string.device_default)
+        )
+    }
+    val themeEntries = if (AndroidDevices.canUseSystemNightMode()) {
+        stringArrayResource(R.array.daynight_mode_entries).toList()
+    } else {
+        stringArrayResource(R.array.daynight_mode_legacy_entries).toList()
+    }
+    val themeValues = if (AndroidDevices.canUseSystemNightMode()) {
+        stringArrayResource(R.array.daynight_mode_values).toList()
+    } else {
+        stringArrayResource(R.array.daynight_mode_legacy_values).toList()
+    }
+    var sleepTimerSummary by remember {
+        mutableStateOf(defaultSleepTimerSummary(context, settings))
+    }
+    var incognitoMode by remember {
+        mutableStateOf(settings.getBoolean(KEY_INCOGNITO, false))
+    }
+
+    if (isVisible(KEY_APP_THEME)) {
+        ListPreferenceRow(
+                key = KEY_APP_THEME,
+                settings = settings,
+                title = stringResource(R.string.daynight_title),
+                defaultValue = "-1",
+                entries = themeEntries,
+                values = themeValues,
+                highlighted = highlightedKey == KEY_APP_THEME,
+                onValueChanged = { onRestartDialogRequired() }
+        )
+    }
+    BooleanPreferenceRow(
+            key = PREF_TV_UI,
+            settings = settings,
+            title = stringResource(R.string.tv_ui_title),
+            summary = stringResource(R.string.tv_ui_summary),
+            defaultValue = false,
+            highlighted = highlightedKey == PREF_TV_UI,
+            onAfterChange = { checked ->
+                Settings.tvUI = checked
+                onRestartAppRequired()
+            }
+    )
+    ListPreferenceRow(
+            key = KEY_SET_LOCALE,
+            settings = settings,
+            title = stringResource(R.string.set_locale),
+            defaultValue = "",
+            entries = localePair.localeEntries.toList(),
+            values = localePair.localeEntryValues.toList(),
+            highlighted = highlightedKey == KEY_SET_LOCALE,
+            summary = "",
+            onValueChanged = {
+                onRestartRequired()
+                onRestartDialogRequired()
+            }
+    )
+    if (isVisible(LIST_TITLE_ELLIPSIZE)) {
+        ListPreferenceRow(
+                key = LIST_TITLE_ELLIPSIZE,
+                settings = settings,
+                title = stringResource(R.string.list_title_ellipsize),
+                defaultValue = "0",
+                entries = stringArrayResource(R.array.list_title_ellipsize_list).toList(),
+                values = stringArrayResource(R.array.list_title_ellipsize_values).toList(),
+                highlighted = highlightedKey == LIST_TITLE_ELLIPSIZE,
+                onValueChanged = { value ->
+                    Settings.listTitleEllipsize = value.toIntOrNull() ?: 0
+                    onRestartRequired()
+                }
+        )
+    }
+    BooleanPreferenceRow(
+            key = KEY_SHOW_HEADERS,
+            settings = settings,
+            title = stringResource(R.string.show_headers),
+            summary = stringResource(R.string.show_headers_summary),
+            defaultValue = true,
+            highlighted = highlightedKey == KEY_SHOW_HEADERS,
+            onAfterChange = { checked ->
+                Settings.showHeaders = checked
+                onRestartRequired()
+            }
+    )
+    BooleanPreferenceRow(
+            key = KEY_INCLUDE_MISSING,
+            settings = settings,
+            title = stringResource(R.string.browser_show_missing_media),
+            summary = stringResource(R.string.browser_show_missing_media_summary),
+            defaultValue = true,
+            highlighted = highlightedKey == KEY_INCLUDE_MISSING,
+            onAfterChange = { checked ->
+                Settings.includeMissing = checked
+                onRestartRequired()
+            }
+    )
+    NavigationPreferenceRow(
+            key = KEY_DEFAULT_SLEEP_TIMER,
+            title = stringResource(R.string.sleep_title),
+            summary = sleepTimerSummary,
+            highlighted = highlightedKey == KEY_DEFAULT_SLEEP_TIMER,
+            onClick = {
+                onDefaultSleepTimerClick {
+                    sleepTimerSummary = defaultSleepTimerSummary(context, settings)
+                }
+            }
+    )
+    BooleanPreferenceRow(
+            key = KEY_INCOGNITO,
+            settings = settings,
+            title = stringResource(R.string.incognito_mode),
+            defaultValue = false,
+            highlighted = highlightedKey == KEY_INCOGNITO,
+            checked = incognitoMode,
+            onCheckedStateChange = { incognitoMode = it }
+    )
+    BooleanPreferenceRow(
+            key = KEY_PERSISTENT_INCOGNITO,
+            settings = settings,
+            title = stringResource(R.string.persistent_incognito_mode),
+            summary = stringResource(R.string.persistent_incognito_mode_summary),
+            defaultValue = true,
+            highlighted = highlightedKey == KEY_PERSISTENT_INCOGNITO,
+            enabled = incognitoMode
+    )
+
+    PreferenceCategoryHeader(title = stringResource(R.string.video))
+    BooleanPreferenceRow(
+            key = KEY_MEDIA_SEEN,
+            settings = settings,
+            title = stringResource(R.string.media_seen),
+            summary = stringResource(R.string.media_seen_summary),
+            defaultValue = true,
+            highlighted = highlightedKey == KEY_MEDIA_SEEN,
+            onAfterChange = { onSeenMediaChanged() }
+    )
+    if (isVisible(PLAYLIST_MODE_VIDEO)) {
+        BooleanPreferenceRow(
+                key = PLAYLIST_MODE_VIDEO,
+                settings = settings,
+                title = stringResource(R.string.force_play_all_title),
+                summary = stringResource(R.string.force_play_all_summary),
+                defaultValue = false,
+                highlighted = highlightedKey == PLAYLIST_MODE_VIDEO
+        )
+    }
+    BooleanPreferenceRow(
+            key = SHOW_VIDEO_THUMBNAILS,
+            settings = settings,
+            title = stringResource(R.string.show_video_thumbnails),
+            summary = stringResource(R.string.show_video_thumbnails_summary),
+            defaultValue = true,
+            highlighted = highlightedKey == SHOW_VIDEO_THUMBNAILS,
+            onAfterChange = { checked ->
+                Settings.showVideoThumbs = checked
+                onRestartRequired()
+            }
+    )
+
+    PreferenceCategoryHeader(title = stringResource(R.string.audio))
+    if (isVisible(KEY_AUDIO_RESUME_CARD)) {
+        BooleanPreferenceRow(
+                key = KEY_AUDIO_RESUME_CARD,
+                settings = settings,
+                title = stringResource(R.string.audio_resume_card_title),
+                summary = stringResource(R.string.audio_resume_card_summary),
+                defaultValue = true,
+                highlighted = highlightedKey == KEY_AUDIO_RESUME_CARD
+        )
+    }
+    if (isVisible(PLAYLIST_MODE_AUDIO)) {
+        BooleanPreferenceRow(
+                key = PLAYLIST_MODE_AUDIO,
+                settings = settings,
+                title = stringResource(R.string.force_play_all_audio_title),
+                summary = stringResource(R.string.force_play_all_audio_summary),
+                defaultValue = false,
+                highlighted = highlightedKey == PLAYLIST_MODE_AUDIO
+        )
+    }
+    if (isVisible(LOCKSCREEN_COVER)) {
+        BooleanPreferenceRow(
+                key = LOCKSCREEN_COVER,
+                settings = settings,
+                title = stringResource(R.string.lockscreen_cover_title),
+                summary = stringResource(R.string.lockscreen_cover_summary),
+                defaultValue = true,
+                highlighted = highlightedKey == LOCKSCREEN_COVER
+        )
+    }
+    if (isVisible(SHOW_SEEK_IN_COMPACT_NOTIFICATION)) {
+        BooleanPreferenceRow(
+                key = SHOW_SEEK_IN_COMPACT_NOTIFICATION,
+                settings = settings,
+                title = stringResource(R.string.show_seek_in_compact_notif_title),
+                summary = stringResource(R.string.show_seek_in_compact_notif_summary),
+                defaultValue = false,
+                highlighted = highlightedKey == SHOW_SEEK_IN_COMPACT_NOTIFICATION
+        )
     }
 }
 
@@ -873,6 +1129,19 @@ private fun remoteAccessContentSummary(
 }
 
 private const val KEY_SOUNDFONT = "soundfont"
+
+private fun defaultSleepTimerSummary(context: Context, settings: SharedPreferences): String {
+    val interval = settings.getLong(SLEEP_TIMER_DEFAULT_INTERVAL, -1L)
+    if (interval == -1L) return context.getString(R.string.disabled)
+    val wait = settings.getBoolean(SLEEP_TIMER_DEFAULT_WAIT, false)
+    val reset = settings.getBoolean(SLEEP_TIMER_DEFAULT_RESET_INTERACTION, false)
+    return context.getString(
+            R.string.default_sleep_timer_summary,
+            Tools.millisToString(interval),
+            if (wait) "true" else "false",
+            if (reset) "true" else "false"
+    )
+}
 
 @Composable
 private fun StaticPreferenceRow(
