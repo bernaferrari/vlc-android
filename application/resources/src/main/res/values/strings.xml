@@ -1226,6 +1226,8 @@
     <string name="fold_optimized">Optimized for your folding screen</string>
     <string name="fold_optimize">Optimize for folding screens</string>
     <string name="foldable">Foldable screen</string>
+    <string name="audio_hinge_go_left">Move audio controls to the left screen</string>
+    <string name="audio_hinge_go_right">Move audio controls to the right screen</string>
     <string name="undo">Undo</string>
     <string name="add_server_favorite">Add a server favorite</string>
     <string name="widget_theme">Widget theme</string>

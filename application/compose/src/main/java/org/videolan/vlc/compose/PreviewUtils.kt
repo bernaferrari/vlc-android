@@ -303,6 +303,27 @@ private fun PlayerChromeTokensDemo() {
             }
         }
 
+        Spacer(Modifier.height(8.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            VLCAudioHeaderTransportButton(
+                contentDescription = "Move audio controls to the left screen",
+                size = 40.dp
+            ) {
+                IconMock("L", c.playerIconColor)
+            }
+            Spacer(Modifier.width(24.dp))
+            VLCAudioHeaderTransportButton(
+                contentDescription = "Move audio controls to the right screen",
+                size = 40.dp
+            ) {
+                IconMock("R", c.playerIconColor)
+            }
+        }
+
         Spacer(Modifier.height(12.dp))
         Row(
             verticalAlignment = Alignment.CenterVertically,

@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.theme.VLCTheme
 
 /**
- * Compose equivalent of the audio-player transport ImageViews:
+ * Compose equivalent of the audio-player transport and foldable-control ImageViews:
  *   - application/vlc-android/res/layout/audio_player.xml @id/shuffle
  *   - application/vlc-android/res/layout/audio_player.xml @id/previous
  *   - application/vlc-android/res/layout/audio_player.xml @id/play_pause
@@ -29,6 +29,10 @@ import org.videolan.vlc.compose.theme.VLCTheme
  *   - application/vlc-android/res/layout/audio_player.xml @id/header_repeat
  *   - application/vlc-android/res/layout-land/audio_player.xml @id/previous_chapter
  *   - application/vlc-android/res/layout-land/audio_player.xml @id/next_chapter
+ *   - application/vlc-android/res/layout/audio_player.xml @id/hinge_go_left
+ *   - application/vlc-android/res/layout/audio_player.xml @id/hinge_go_right
+ *   - application/vlc-android/res/layout-land/audio_player.xml @id/hinge_go_left
+ *   - application/vlc-android/res/layout-land/audio_player.xml @id/hinge_go_right
  *
  * The host owns drawable resources, playback state, and click callbacks. This
  * leaf owns the stable touch target and semantics while ConstraintLayout keeps

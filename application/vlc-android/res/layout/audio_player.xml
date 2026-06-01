@@ -578,36 +578,26 @@
                 android:orientation="vertical"
                 app:layout_constraintGuide_percent="0.5" />
 
-        <ImageView
+        <org.videolan.vlc.compose.interop.VLCComposeView
                 android:id="@+id/hinge_go_left"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
                 android:layout_marginEnd="24dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true"
                 android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="@+id/play_pause"
                 app:layout_constraintEnd_toStartOf="@+id/centerGuideline"
                 app:layout_constraintTop_toTopOf="@+id/play_pause"
-                app:srcCompat="@drawable/ic_arrow_left"
                 tools:visibility="visible" />
 
-        <ImageView
+        <org.videolan.vlc.compose.interop.VLCComposeView
                 android:id="@+id/hinge_go_right"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical|right"
                 android:layout_marginStart="24dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true"
                 android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="@+id/play_pause"
                 app:layout_constraintStart_toStartOf="@+id/centerGuideline"
                 app:layout_constraintTop_toTopOf="@+id/play_pause"
-                app:srcCompat="@drawable/ic_arrow_right"
                 tools:visibility="visible" />
 
         <FrameLayout

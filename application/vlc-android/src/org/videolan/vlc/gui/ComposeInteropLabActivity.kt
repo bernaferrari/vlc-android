@@ -366,6 +366,14 @@ fun ComposeInteropLabContent() {
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            VLCAudioHeaderTransportButton(contentDescription = "Move audio controls to the left screen", size = 40.dp) {
+                Text("L", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
+            }
+            VLCAudioHeaderTransportButton(contentDescription = "Move audio controls to the right screen", size = 40.dp) {
+                Text("R", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
+            }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             VLCAudioSeekHudButton(contentDescription = "Previous bookmark") {
                 Text("B", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
             }
@@ -389,6 +397,7 @@ fun ComposeInteropLabContent() {
             "The tablet header transport strip is Compose-hosted under the existing header_shuffle/header_previous/header_large_play_pause/header_next/header_repeat IDs. " +
             "The full-player bottom shuffle/previous/play_pause/next/repeat transport controls now use the same Compose leaf while preserving previous/next long seek. " +
             "The landscape chapter chevrons are Compose-hosted under previous_chapter and next_chapter. " +
+            "The foldable hinge left/right affordances are Compose-hosted under hinge_go_left and hinge_go_right. " +
             "The cover-mode seek/bookmark HUD row is Compose-hosted under the existing audio_rewind/audio_forward IDs with delay labels driven from Settings.audioJumpDelay. " +
             "The player gesture/switcher surface stays outside this slice; the speed and sleep quick actions are now Compose.",
             style = MaterialTheme.typography.bodySmall

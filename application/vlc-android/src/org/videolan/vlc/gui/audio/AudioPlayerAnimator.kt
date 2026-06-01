@@ -28,7 +28,6 @@ import android.content.res.Configuration
 import android.net.Uri
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
-import android.widget.ImageView
 import androidx.annotation.DrawableRes
 import androidx.annotation.MainThread
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -212,8 +211,8 @@ internal class AudioPlayerAnimator : IAudioPlayerAnimator, LifecycleObserver {
             arrayOf(showPlaylistConstraint, hidePlaylistConstraint).forEach {
                 it.connect(binding.shuffle.id, ConstraintSet.START, if (!onRight) ConstraintSet.PARENT_ID else guideline.id, ConstraintSet.START)
                 it.connect(binding.repeat.id, ConstraintSet.END, if (onRight) ConstraintSet.PARENT_ID else guideline.id, ConstraintSet.END)
-                binding.hingeGoLeft.let { button: ImageView -> it.setVisibility(button.id, if (onRight) View.VISIBLE else View.GONE) }
-                binding.hingeGoRight.let { button: ImageView -> it.setVisibility(button.id, if (!onRight) View.VISIBLE else View.GONE) }
+                binding.hingeGoLeft.let { button -> it.setVisibility(button.id, if (onRight) View.VISIBLE else View.GONE) }
+                binding.hingeGoRight.let { button -> it.setVisibility(button.id, if (!onRight) View.VISIBLE else View.GONE) }
             }
         }
         startConstraintAnimation(showCover)

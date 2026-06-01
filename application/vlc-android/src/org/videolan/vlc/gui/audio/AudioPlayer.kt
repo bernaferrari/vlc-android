@@ -380,20 +380,12 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         setupAudioPlayerTransportControls()
         setupAudioSeekHudControls()
         setupAudioChapterControls()
+        setupAudioHingeControls()
         setupAudioQueueProgressPill()
         setupPlaybackChips()
 
         binding.songTitle?.setOnClickListener { coverMediaSwitcherListener.onTextClicked() }
         binding.songSubtitle?.setOnClickListener { coverMediaSwitcherListener.onTextClicked() }
-
-        binding.hingeGoLeft.setOnClickListener {
-            Settings.getInstance(requireActivity()).putSingle(AUDIO_HINGE_ON_RIGHT, false)
-            manageHinge()
-        }
-        binding.hingeGoRight.setOnClickListener {
-            Settings.getInstance(requireActivity()).putSingle(AUDIO_HINGE_ON_RIGHT, true)
-            manageHinge()
-        }
 
         setBottomMargin()
         requireActivity().supportFragmentManager.setFragmentResultListener(CONFIRM_BOOKMARK_RENAME_DIALOG_RESULT, viewLifecycleOwner) { requestKey, bundle ->
@@ -700,6 +692,37 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
                     onClick = { coverMediaSwitcherListener.onChapterSwitching(true) }
                 ) {
                     AudioPlayerTransportIcon(R.drawable.ic_chevron_right, size = 24.composeDp)
+                }
+            }
+        }
+    }
+
+    private fun setupAudioHingeControls() {
+        binding.hingeGoLeft.setContent {
+            VLCTheme {
+                VLCAudioHeaderTransportButton(
+                    contentDescription = getString(R.string.audio_hinge_go_left),
+                    size = 40.composeDp,
+                    onClick = {
+                        Settings.getInstance(requireActivity()).putSingle(AUDIO_HINGE_ON_RIGHT, false)
+                        manageHinge()
+                    }
+                ) {
+                    AudioPlayerTransportIcon(R.drawable.ic_arrow_left, size = 24.composeDp)
+                }
+            }
+        }
+        binding.hingeGoRight.setContent {
+            VLCTheme {
+                VLCAudioHeaderTransportButton(
+                    contentDescription = getString(R.string.audio_hinge_go_right),
+                    size = 40.composeDp,
+                    onClick = {
+                        Settings.getInstance(requireActivity()).putSingle(AUDIO_HINGE_ON_RIGHT, true)
+                        manageHinge()
+                    }
+                ) {
+                    AudioPlayerTransportIcon(R.drawable.ic_arrow_right, size = 24.composeDp)
                 }
             }
         }
