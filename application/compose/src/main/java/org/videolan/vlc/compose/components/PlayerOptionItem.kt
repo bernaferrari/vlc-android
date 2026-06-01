@@ -1,6 +1,7 @@
 package org.videolan.vlc.compose.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,6 +13,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -23,23 +27,33 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
  * Compose equivalent of the playback options row from:
  *   - application/vlc-android/res/layout/player_option_item.xml
  *
- * The app-side host supplies the icon drawable because playback option icons
- * live in :application:vlc-android resources. The surrounding RecyclerView and
- * BrowseFrameLayout keep existing focus, TV, and panel behavior during the
- * migration.
+ * The app-side panel host supplies the icon drawable because playback option
+ * icons live in :application:vlc-android resources.
  */
 @Composable
 fun VLCPlayerOptionItem(
     title: String,
     modifier: Modifier = Modifier,
+    contentDescription: String = title,
+    onClick: (() -> Unit)? = null,
     iconContent: @Composable () -> Unit
 ) {
     VLCTheme {
+        val rowModifier = modifier
+            .width(224.dp)
+            .then(
+                if (onClick != null) {
+                    Modifier.clickable(role = Role.Button, onClick = onClick)
+                } else {
+                    Modifier
+                }
+            )
+            .semantics { this.contentDescription = contentDescription }
+            .padding(8.dp)
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = modifier
-                .width(224.dp)
-                .padding(8.dp)
+            modifier = rowModifier
         ) {
             Box(
                 modifier = Modifier.size(32.dp),

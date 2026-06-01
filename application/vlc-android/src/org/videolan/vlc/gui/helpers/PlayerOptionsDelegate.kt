@@ -6,31 +6,22 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.view.accessibility.AccessibilityEvent
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.widget.ViewStubCompat
 import androidx.fragment.app.FragmentActivity
-import androidx.leanback.widget.BrowseFrameLayout
-import androidx.leanback.widget.BrowseFrameLayout.OnFocusSearchListener
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import androidx.window.layout.FoldingFeature
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.videolan.resources.AndroidDevices
 import org.videolan.resources.VLCOptions
-import org.videolan.tools.AppScope
 import org.videolan.tools.KEY_AOUT
 import org.videolan.tools.Settings
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
 import org.videolan.vlc.gui.AudioPlayerContainerActivity
 import org.videolan.vlc.gui.BaseActivity
-import org.videolan.vlc.gui.DiffUtilAdapter
 import org.videolan.vlc.gui.dialogs.showAudioControlsSettingsComposeDialog
 import org.videolan.vlc.gui.dialogs.showEqualizerComposeDialog
 import org.videolan.vlc.gui.dialogs.showJumpToTimeComposeDialog
@@ -41,12 +32,11 @@ import org.videolan.vlc.gui.dialogs.showVideoControlsSettingsComposeDialog
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.hf.PinCodeDelegate
 import org.videolan.vlc.gui.helpers.hf.checkPIN
-import org.videolan.vlc.gui.view.PlayerOptionItemView
+import org.videolan.vlc.gui.view.PlayerOptionsPanelView
 import org.videolan.vlc.gui.video.VideoPlayerActivity
 import org.videolan.vlc.media.PlayerController
 import org.videolan.vlc.util.TextUtils
 import org.videolan.vlc.util.getScreenHeight
-import org.videolan.vlc.util.isTalkbackIsEnabled
 import org.videolan.vlc.util.share
 
 private const val ACTION_AUDIO_DELAY = 2
@@ -80,8 +70,7 @@ private const val ID_SHARE = 23L
 class PlayerOptionsDelegate(val activity: FragmentActivity, val service: PlaybackService, private val showABReapeat:Boolean = true)  {
 
     private lateinit var bookmarkClickedListener: () -> Unit
-    private lateinit var recyclerview: RecyclerView
-    private lateinit var rootView: FrameLayout
+    private lateinit var rootView: PlayerOptionsPanelView
     var flags: Long = 0L
     private val toast by lazy(LazyThreadSafetyMode.NONE) { Toast.makeText(activity, "", Toast.LENGTH_SHORT) }
 
@@ -90,12 +79,9 @@ class PlayerOptionsDelegate(val activity: FragmentActivity, val service: Playbac
     private val video = activity is VideoPlayerActivity
     private val res = activity.resources
     private val settings = Settings.getInstance(activity)
-    private lateinit var ptOptionView: PlayerOptionItemView
-    private lateinit var repeatOptionView: PlayerOptionItemView
-    private lateinit var shuffleOptionView: PlayerOptionItemView
 
     fun setup() {
-        if (!this::recyclerview.isInitialized || PlayerController.playbackState == PlaybackStateCompat.STATE_STOPPED) return
+        if (!this::rootView.isInitialized || PlayerController.playbackState == PlaybackStateCompat.STATE_STOPPED) return
         val options = mutableListOf<PlayerOption>()
         if (video) options.add(PlayerOption(ID_LOCK_PLAYER, R.drawable.ic_lock_player, res.getString(R.string.lock)))
         options.add(PlayerOption(ID_SLEEP, R.drawable.ic_sleep, res.getString(R.string.sleep_title)))
@@ -139,23 +125,16 @@ class PlayerOptionsDelegate(val activity: FragmentActivity, val service: Playbac
                 options.add(PlayerOption(ID_SHOW_PLAYLIST_TIPS, R.drawable.ic_playlisttips, res.getString(R.string.playlist_tips)))
             }
         }
-        (recyclerview.adapter as OptionsAdapter).update(options)
+        rootView.setOptions(options)
+        if (options.any { it.id == ID_REPEAT }) updateRepeatOption()
+        if (options.any { it.id == ID_SHUFFLE }) updateShuffleOption()
     }
 
     fun show() {
         activity.findViewById<ViewStubCompat>(R.id.player_options_stub)?.let {
-            rootView = it.inflate() as FrameLayout
-            recyclerview = rootView.findViewById(R.id.options_list)
-            val browseFrameLayout =  rootView.findViewById<BrowseFrameLayout>(R.id.options_background)
-            browseFrameLayout.onFocusSearchListener = OnFocusSearchListener { focused, _ ->
-                if (recyclerview.hasFocus()) focused // keep focus on recyclerview! DO NOT return recyclerview, but focused, which is a child of the recyclerview
-                else null // someone else will find the next focus
-            }
-            if (recyclerview.layoutManager == null) recyclerview.layoutManager = LinearLayoutManager(activity, RecyclerView.VERTICAL, false)
-            recyclerview.adapter = OptionsAdapter()
-            recyclerview.itemAnimator = null
-
-            rootView.setOnClickListener { hide() }
+            rootView = it.inflate() as PlayerOptionsPanelView
+            rootView.setOnOptionClickListener(::onClick)
+            rootView.setOnDismissClickListener { hide() }
         }
         val windowInfoLayout = if (activity is VideoPlayerActivity) activity.windowLayoutInfo else if (activity is BaseActivity) activity.windowLayoutInfo else null
         val foldingFeature = windowInfoLayout?.displayFeatures?.firstOrNull() as? FoldingFeature
@@ -173,15 +152,10 @@ class PlayerOptionsDelegate(val activity: FragmentActivity, val service: Playbac
         }
         setup()
         rootView.visibility = View.VISIBLE
-        if (Settings.showTvUi) AppScope.launch {
-            withContext(Dispatchers.IO){ delay(100L) }
-            val position = (recyclerview.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
-            (recyclerview.layoutManager as LinearLayoutManager).findViewByPosition(position)?.requestFocus()
-        } else if (activity.isTalkbackIsEnabled()) {
-            AppScope.launch {
-                withContext(Dispatchers.IO){ delay(100L) }
-                val linearLayoutManager = recyclerview.layoutManager as LinearLayoutManager
-                linearLayoutManager.findViewByPosition(linearLayoutManager.findFirstVisibleItemPosition())?.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED)
+        if (Settings.showTvUi) {
+            activity.lifecycleScope.launch {
+                delay(100L)
+                rootView.requestInitialFocus()
             }
         }
     }
@@ -347,61 +321,58 @@ class PlayerOptionsDelegate(val activity: FragmentActivity, val service: Playbac
     private fun setRepeatMode() {
         when (service.repeatType) {
             PlaybackStateCompat.REPEAT_MODE_NONE -> {
-                repeatOptionView.setIconResource(R.drawable.ic_repeat_one)
                 service.repeatType = PlaybackStateCompat.REPEAT_MODE_ONE
-                repeatOptionView.contentDescription = repeatOptionView.context.getString(R.string.repeat_single)
+                updateRepeatOption()
             }
             PlaybackStateCompat.REPEAT_MODE_ONE -> if (service.hasPlaylist()) {
-                repeatOptionView.setIconResource(R.drawable.ic_repeat_all)
                 service.repeatType = PlaybackStateCompat.REPEAT_MODE_ALL
-                repeatOptionView.contentDescription = repeatOptionView.context.getString(R.string.repeat_all)
+                updateRepeatOption()
             } else {
-                repeatOptionView.setIconResource(R.drawable.ic_repeat)
                 service.repeatType = PlaybackStateCompat.REPEAT_MODE_NONE
-                repeatOptionView.contentDescription = repeatOptionView.context.getString(R.string.repeat_none)
+                updateRepeatOption()
             }
             PlaybackStateCompat.REPEAT_MODE_ALL -> {
-                repeatOptionView.setIconResource(R.drawable.ic_repeat)
                 service.repeatType = PlaybackStateCompat.REPEAT_MODE_NONE
-                repeatOptionView.contentDescription = repeatOptionView.context.getString(R.string.repeat_none)
+                updateRepeatOption()
             }
         }
     }
 
     private fun setShuffle() {
-        shuffleOptionView.setIconResource(if (service.isShuffling) R.drawable.ic_shuffle_on_48dp else R.drawable.ic_player_shuffle)
-        shuffleOptionView.contentDescription = shuffleOptionView.context.getString(if (service.isShuffling) R.string.shuffle_on else R.string.shuffle)
+        updateShuffleOption()
     }
 
-    private fun initShuffle(view: PlayerOptionItemView) {
-        shuffleOptionView = view
-        AppScope.launch(Dispatchers.Main) {
-            shuffleOptionView.setIconResource(if (service.isShuffling) R.drawable.ic_shuffle_on_48dp else R.drawable.ic_player_shuffle)
-            shuffleOptionView.contentDescription = shuffleOptionView.context.getString(if (service.isShuffling) R.string.shuffle_on else R.string.shuffle)
-        }
+    private fun updateShuffleOption() {
+        rootView.setOptionIcon(
+            ID_SHUFFLE,
+            if (service.isShuffling) R.drawable.ic_shuffle_on_48dp else R.drawable.ic_player_shuffle,
+            rootView.context.getString(if (service.isShuffling) R.string.shuffle_on else R.string.shuffle)
+        )
     }
 
-    private fun initRepeat(view: PlayerOptionItemView) {
-        repeatOptionView = view
-        AppScope.launch(Dispatchers.Main) {
-            repeatOptionView.setIconResource(when (service.repeatType) {
+    private fun updateRepeatOption() {
+        rootView.setOptionIcon(
+            ID_REPEAT,
+            when (service.repeatType) {
                 PlaybackStateCompat.REPEAT_MODE_ONE -> R.drawable.ic_repeat_one
                 PlaybackStateCompat.REPEAT_MODE_ALL -> R.drawable.ic_repeat_all
                 else -> R.drawable.ic_repeat
-            })
-            repeatOptionView.contentDescription = repeatOptionView.context.getString(when (service.repeatType) {
+            },
+            rootView.context.getString(when (service.repeatType) {
                 PlaybackStateCompat.REPEAT_MODE_ONE -> R.string.repeat_single
                 PlaybackStateCompat.REPEAT_MODE_ALL -> R.string.repeat_all
                 else -> R.string.repeat_none
             })
-        }
+        )
     }
 
     private fun togglePassthrough() {
         val enabled = !VLCOptions.isAudioDigitalOutputEnabled(settings)
         if (service.setAudioDigitalOutputEnabled(enabled)) {
-            ptOptionView.setIconResource(if (enabled) R.drawable.ic_passthrough_on
-            else UiTools.getResourceFromAttribute(activity, R.attr.ic_passthrough))
+            rootView.setOptionIcon(
+                ID_PASSTHROUGH,
+                if (enabled) R.drawable.ic_passthrough_on else UiTools.getResourceFromAttribute(activity, R.attr.ic_passthrough)
+            )
             VLCOptions.setAudioDigitalOutputEnabled(settings, enabled)
             toast.setText(res.getString(if (enabled) R.string.audio_digital_output_enabled else R.string.audio_digital_output_disabled))
         } else
@@ -410,40 +381,10 @@ class PlayerOptionsDelegate(val activity: FragmentActivity, val service: Playbac
     }
 
     fun isShowing() = rootView.visibility == View.VISIBLE
-
-    private inner class OptionsAdapter : DiffUtilAdapter<PlayerOption, OptionsAdapter.ViewHolder>() {
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val optionView = PlayerOptionItemView(parent.context).apply {
-                layoutParams = RecyclerView.LayoutParams(
-                    parent.context.resources.getDimensionPixelSize(R.dimen.player_option_width),
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-            }
-            return ViewHolder(optionView)
-        }
-
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            val option = dataset[position]
-            holder.optionView.setOption(option.title, option.icon)
-            when (option.id) {
-                ID_PASSTHROUGH -> ptOptionView = holder.optionView
-                ID_REPEAT -> initRepeat(holder.optionView)
-                ID_SHUFFLE -> initShuffle(holder.optionView)
-            }
-        }
-
-        inner class ViewHolder(val optionView: PlayerOptionItemView) : RecyclerView.ViewHolder(optionView) {
-
-            init {
-                itemView.setOnClickListener { onClick(dataset[layoutPosition]) }
-            }
-        }
-    }
 }
 
 interface PlayerOptionsDelegateCallback {
     fun onResumeToVideoClick()
 }
 
-data class PlayerOption(val id: Long, val icon: Int, val title: String)
+data class PlayerOption(val id: Long, val icon: Int, val title: String, val contentDescription: String = title)
