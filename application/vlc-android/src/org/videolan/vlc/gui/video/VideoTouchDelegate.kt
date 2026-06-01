@@ -1,9 +1,5 @@
 package org.videolan.vlc.gui.video
 
-import android.animation.Animator
-import android.animation.AnimatorSet
-import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
 import android.content.res.Configuration
 import android.media.AudioManager
 import android.os.Handler
@@ -11,34 +7,21 @@ import android.os.Looper
 import android.provider.Settings
 import android.util.DisplayMetrics
 import android.util.Log
-import android.util.TypedValue
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
-import android.view.View
 import android.view.ViewConfiguration
-import android.widget.FrameLayout
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
-import androidx.appcompat.widget.ViewStubCompat
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.view.ScaleGestureDetectorCompat
-import com.google.android.material.circularreveal.CircularRevealCompat
-import com.google.android.material.circularreveal.CircularRevealFrameLayout
 import org.videolan.libvlc.MediaPlayer
 import org.videolan.medialibrary.Tools
 import org.videolan.resources.AndroidDevices
 import org.videolan.resources.AndroidDevices.isTv
 import org.videolan.tools.dp
 import org.videolan.tools.readableString
-import org.videolan.tools.setGone
-import org.videolan.tools.setVisible
 import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.R
-import org.videolan.vlc.gui.view.HalfCircleView
+import org.videolan.vlc.gui.view.VideoSeekOverlayView
 import kotlin.math.absoluteValue
 import kotlin.math.pow
 import kotlin.math.roundToInt
@@ -97,21 +80,7 @@ class VideoTouchDelegate(private val player: VideoPlayerActivity,
     //Seek
     private var nbTimesTaped = 0
     private var lastSeekWasForward = true
-    private var seekAnimRunning = false
-    private var animatorSet: AnimatorSet = AnimatorSet()
-    private var fastPlayAnimatorSet: AnimatorSet = AnimatorSet()
-    private val rightContainer: CircularRevealFrameLayout by lazy { player.findViewById(R.id.rightContainer) }
-    private val leftContainer: CircularRevealFrameLayout by lazy { player.findViewById(R.id.leftContainer) }
-    private val rightContainerBackground: HalfCircleView by lazy { player.findViewById(R.id.rightContainerBackground) }
-    private val leftContainerBackground: HalfCircleView by lazy { player.findViewById(R.id.leftContainerBackground) }
-    private val seekRightText: TextView by lazy { player.findViewById(R.id.seekRightText) }
-    private val seekLeftText: TextView by lazy { player.findViewById(R.id.seekLeftText) }
-    private val seekRewindFirst: ImageView by lazy { player.findViewById(R.id.seekRewindFirst) }
-    private val seekForwardFirst: ImageView by lazy { player.findViewById(R.id.seekForwardFirst) }
-    private val seekForwardSecond: ImageView by lazy { player.findViewById(R.id.seekForwardSecond) }
-    private val seekRewindSecond: ImageView by lazy { player.findViewById(R.id.seekRewindSecond) }
-    private val seekContainer: ConstraintLayout by lazy { player.findViewById(R.id.seekContainer) }
-    private val seekBackground: FrameLayout by lazy { player.findViewById(R.id.seek_background) }
+    private val seekOverlay: VideoSeekOverlayView by lazy { player.findViewById(R.id.seekContainer) }
     private val gestureSafetyMargin = 24.dp.toFloat()
 
     companion object {
@@ -536,9 +505,7 @@ class VideoTouchDelegate(private val player: VideoPlayerActivity,
             val sb = StringBuilder()
             val seekForward = delta >= 0
 
-            initSeekOverlay()
             if (lastSeekWasForward != seekForward) {
-                animatorSet.cancel()
                 hideSeekOverlay(true)
             }
 
@@ -554,8 +521,7 @@ class VideoTouchDelegate(private val player: VideoPlayerActivity,
             sb.append("(").append(Tools.millisToString(service.getTime()))
                 .append(')')
 
-            val textView = showSeek(seekForward)
-            textView.text = sb.toString()
+            showSeek(seekForward, sb.toString())
         }
     }
 
@@ -563,158 +529,27 @@ class VideoTouchDelegate(private val player: VideoPlayerActivity,
      * Show the fast play overlay
      */
     private fun showFastPlay() {
-        initSeekOverlay()
-        val container:LinearLayout = player.findViewById(R.id.fastPlayContainer)
-        val title: TextView = player.findViewById(R.id.fastPlayTitle)
-        title.text = player.getString(R.string.fastplay_title, org.videolan.tools.Settings.fastplaySpeed.readableString())
-        container.setVisible()
-        container.animate().alpha(1F)
-        val firstImageAnim = ObjectAnimator.ofFloat(player.findViewById(R.id.fastPlayForwardFirst), "alpha", 1f, 0f, 0f)
-        firstImageAnim.duration = 750
-        firstImageAnim.repeatCount = ValueAnimator.INFINITE
-
-        val secondImageAnim = ObjectAnimator.ofFloat(player.findViewById(R.id.fastPlayForwardSecond), "alpha", 0F, 1f, 0f)
-        secondImageAnim.duration = 750
-        secondImageAnim.repeatCount = ValueAnimator.INFINITE
-
-
-        fastPlayAnimatorSet = AnimatorSet()
-        fastPlayAnimatorSet.playTogether(firstImageAnim, secondImageAnim)
-        fastPlayAnimatorSet.start()
+        seekOverlay.showFastPlay(player.getString(R.string.fastplay_title, org.videolan.tools.Settings.fastplaySpeed.readableString()))
     }
 
     /**
      * Hide the fast play overlay
      */
     private fun hideFastplay() {
-        val container:LinearLayout = player.findViewById(R.id.fastPlayContainer)
-        container.animate().alpha(0F).withEndAction {
-            container.setGone()
-        }
-        fastPlayAnimatorSet.cancel()
+        seekOverlay.hideFastPlay()
     }
-    private fun showSeek(seekForward: Boolean): TextView {
-        initSeekOverlay()
-        val container = if (seekForward) rightContainer else leftContainer
-        val containerBackground = if (seekForward) rightContainerBackground else leftContainerBackground
-        val textView = if (seekForward) seekRightText else seekLeftText
-        val imageFirst = if (seekForward) seekForwardFirst else seekRewindFirst
-        val imageSecond = if (seekForward) seekForwardSecond else seekRewindSecond
 
-        container.post {
-
-            //On TV, seek text and animation should be centered in parent
-            if (isTv) {
-                val seekTVConstraintSet = ConstraintSet()
-                seekTVConstraintSet.clone(seekContainer)
-
-                seekTVConstraintSet.connect(R.id.rightContainerBackground, ConstraintSet.START, R.id.seekRightContainer, ConstraintSet.START)
-                seekTVConstraintSet.connect(R.id.rightContainerBackground, ConstraintSet.TOP, R.id.seekRightContainer, ConstraintSet.TOP)
-                seekTVConstraintSet.connect(R.id.rightContainerBackground, ConstraintSet.BOTTOM, R.id.seekRightContainer, ConstraintSet.BOTTOM)
-                seekTVConstraintSet.setMargin(R.id.seekRightText, ConstraintSet.END, player.resources.getDimensionPixelSize(R.dimen.tv_overscan_horizontal))
-
-                seekTVConstraintSet.connect(R.id.leftContainerBackground, ConstraintSet.END, R.id.seekLeftContainer, ConstraintSet.END)
-                seekTVConstraintSet.connect(R.id.leftContainerBackground, ConstraintSet.TOP, R.id.seekLeftContainer, ConstraintSet.TOP)
-                seekTVConstraintSet.connect(R.id.leftContainerBackground, ConstraintSet.BOTTOM, R.id.seekLeftContainer, ConstraintSet.BOTTOM)
-                seekTVConstraintSet.setMargin(R.id.seekLeftText, ConstraintSet.START, player.resources.getDimensionPixelSize(R.dimen.tv_overscan_horizontal))
-                seekForwardFirst.setImageResource(R.drawable.ic_half_seek_forward_tv)
-                seekForwardSecond.setImageResource(R.drawable.ic_half_seek_forward_tv)
-                seekRewindFirst.setImageResource(R.drawable.ic_half_seek_rewind_tv)
-                seekRewindSecond.setImageResource(R.drawable.ic_half_seek_rewind_tv)
-
-                seekRightText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 28f)
-                seekLeftText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 28f)
-                seekTVConstraintSet.applyTo(seekContainer)
-            }
-
-            val backgroundAnim = ObjectAnimator.ofFloat(seekBackground, "alpha", 1f)
-            backgroundAnim.duration = 200
-
-            val firstImageAnim = ObjectAnimator.ofFloat(imageFirst, "alpha", 1f, 0f)
-            firstImageAnim.duration = 500
-
-            val secondImageAnim = ObjectAnimator.ofFloat(imageSecond, "alpha", 0F, 1f, 0f)
-            secondImageAnim.duration = 750
-
-            //the center is offset + the radius is 2 * the width to reveal an arc instead of half a circle
-            val cx = if (seekForward) container.width * 2 else -container.width
-            val cy = container.height / 2
-            animatorSet = AnimatorSet()
-            val backgroundColorAnimator = CircularRevealCompat.createCircularReveal(container, cx.toFloat(), cy.toFloat(), 0F, container.width.toFloat() * 2)
-            backgroundColorAnimator.duration = 750
-
-            val containerBackgroundAnim = ObjectAnimator.ofFloat(containerBackground, "alpha", 0f, 1f)
-            containerBackgroundAnim.duration = 300
-
-            val textAnim = ObjectAnimator.ofFloat(textView, "alpha", 0f, 1f)
-            textAnim.duration = 300
-
-            val anims: ArrayList<Animator> = arrayListOf(firstImageAnim, secondImageAnim)
-            if (!isTv) {
-                anims.add(backgroundColorAnimator)
-            }
-            if (!seekAnimRunning) {
-                anims.add(containerBackgroundAnim)
-            }
-            if (!seekAnimRunning) {
-                anims.add(textAnim)
-            }
-
-            seekAnimRunning = true
-
-            seekRightText.animate().cancel()
-            seekLeftText.animate().cancel()
-            rightContainerBackground.animate().cancel()
-            leftContainerBackground.animate().cancel()
-
-            animatorSet.playTogether(anims)
-
-            val mainAnimOut = ObjectAnimator.ofFloat(seekBackground, "alpha", 0f)
-            backgroundAnim.duration = 200
-
-            val seekAnimatorSet = AnimatorSet()
-            seekAnimatorSet.playSequentially(animatorSet, mainAnimOut)
-
-
-            player.handler.removeMessages(VideoPlayerActivity.HIDE_SEEK)
-            player.handler.sendEmptyMessageDelayed(VideoPlayerActivity.HIDE_SEEK, SEEK_TIMEOUT)
-
-            if (!isTv) {
-                container.visibility = View.VISIBLE
-            }
-            seekAnimatorSet.start()
-        }
-        return textView
+    private fun showSeek(seekForward: Boolean, text: String) {
+        seekOverlay.showSeek(seekForward, text, isTv)
+        player.handler.removeMessages(VideoPlayerActivity.HIDE_SEEK)
+        player.handler.sendEmptyMessageDelayed(VideoPlayerActivity.HIDE_SEEK, SEEK_TIMEOUT)
     }
 
     fun hideSeekOverlay(immediate: Boolean = false) {
         if (BuildConfig.DEBUG) Log.d(this::class.java.simpleName, "hideSeekOverlay $immediate")
-        seekAnimRunning = false
-        rightContainer.visibility = View.INVISIBLE
-        leftContainer.visibility = View.INVISIBLE
-        if (immediate) {
-            seekRightText.animate().cancel()
-            seekLeftText.animate().cancel()
-            rightContainerBackground.animate().cancel()
-            leftContainerBackground.animate().cancel()
-            seekRightText.alpha = 0f
-            seekLeftText.alpha = 0f
-            rightContainerBackground.alpha = 0f
-            leftContainerBackground.alpha = 0f
-        } else {
-            seekRightText.animate().alpha(0f).withEndAction { seekRightText.text = "" }
-            seekLeftText.animate().alpha(0f).withEndAction { seekLeftText.text = "" }
-            rightContainerBackground.animate().alpha(0f)
-            leftContainerBackground.animate().alpha(0f)
-        }
+        seekOverlay.hideSeekOverlay(immediate)
         nbTimesTaped = 0
-        seekForwardFirst.alpha = 0f
-        seekForwardSecond.alpha = 0f
-        seekRewindFirst.alpha = 0f
-        seekRewindSecond.alpha = 0f
     }
-
-    private fun initSeekOverlay() = player.findViewById<ViewStubCompat>(R.id.player_seek_stub)?.setVisible()
 
 }
 

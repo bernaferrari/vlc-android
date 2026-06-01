@@ -73,13 +73,14 @@
                 android:visibility="invisible"
                 tools:visibility="visible" />
 
-        <androidx.appcompat.widget.ViewStubCompat
-                android:id="@+id/player_seek_stub"
+        <org.videolan.vlc.gui.view.VideoSeekOverlayView
+                android:id="@+id/seekContainer"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
                 android:fitsSystemWindows="false"
-                android:layout="@layout/player_overlay_seek" />
+                android:visibility="invisible"
+                tools:visibility="visible" />
 
         <androidx.appcompat.widget.ViewStubCompat
                 android:id="@+id/player_hud_right_stub"

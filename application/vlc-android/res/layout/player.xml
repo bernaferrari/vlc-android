@@ -21,12 +21,13 @@
             android:fitsSystemWindows="false" />
 
 
-    <androidx.appcompat.widget.ViewStubCompat
-            android:id="@+id/player_seek_stub"
+    <org.videolan.vlc.gui.view.VideoSeekOverlayView
+            android:id="@+id/seekContainer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:fitsSystemWindows="false"
-            android:layout="@layout/player_overlay_seek" />
+            android:visibility="invisible"
+            tools:visibility="visible" />
 
     <org.videolan.vlc.gui.view.VideoVerticalProgressOverlayView
             android:id="@+id/player_overlay_brightness"

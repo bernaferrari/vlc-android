@@ -107,8 +107,4 @@
         <attr name="button_icon" format="reference" />
     </declare-styleable>
 
-    <declare-styleable name="HalfCircleView">
-        <attr name="is_left" format="boolean"/>
-    </declare-styleable>
-
 </resources>
