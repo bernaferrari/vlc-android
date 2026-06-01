@@ -41,6 +41,7 @@ import org.videolan.vlc.compose.components.VLCAudioSeekDelayLabel
 import org.videolan.vlc.compose.components.VLCAudioSeekHudButton
 import org.videolan.vlc.compose.components.VLCAudioTrackInfoText
 import org.videolan.vlc.compose.components.VLCAudioTrackInfoTextStyle
+import org.videolan.vlc.compose.components.VLCAudioTimelineTimeLabel
 import org.videolan.vlc.compose.components.VLCOnboardingWelcome
 import org.videolan.vlc.compose.components.VLCSectionHeader
 import org.videolan.vlc.compose.theme.VLCTheme
@@ -271,6 +272,17 @@ private fun PlayerChromeTokensDemo() {
                 text = "Bitrate: 22.4 KB/s - Codec: Vorbis audio - Sample rate 8000 Hz",
                 style = VLCAudioTrackInfoTextStyle.Detail
             )
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            VLCAudioTimelineTimeLabel(text = "3:42")
+            VLCAudioTimelineTimeLabel(text = "-12:08")
         }
 
         Spacer(Modifier.height(16.dp))

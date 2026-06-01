@@ -439,21 +439,12 @@
                 app:layout_constraintTop_toTopOf="@+id/audio_forward_10"
                 tools:text="88" />
 
-        <TextView
+        <org.videolan.vlc.compose.interop.VLCComposeView
                 android:id="@+id/time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center|start"
                 android:layout_marginStart="@dimen/default_margin"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
                 android:elevation="4dp"
-                android:focusable="true"
-                android:importantForAccessibility="no"
-                android:onClick="@{fragment::onTimeLabelClick}"
-                android:text="@string/time_0"
-                android:textColor="?attr/font_default"
-                android:textSize="12sp"
                 app:layout_constraintBottom_toBottomOf="@+id/length"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/length" />
@@ -487,20 +478,12 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent" />
 
-        <TextView
+        <org.videolan.vlc.compose.interop.VLCComposeView
                 android:id="@+id/length"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center|end"
                 android:layout_marginEnd="@dimen/default_margin"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/length"
                 android:elevation="4dp"
-                android:importantForAccessibility="no"
-                android:onClick="@{fragment::onTimeLabelClick}"
-                android:text="@string/time_0"
-                android:textColor="?attr/font_default"
-                android:textSize="12sp"
                 app:layout_constraintBottom_toTopOf="@+id/timeline"
                 app:layout_constraintRight_toRightOf="parent" />
 

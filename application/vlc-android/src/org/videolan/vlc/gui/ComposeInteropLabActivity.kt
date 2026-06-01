@@ -70,6 +70,7 @@ import org.videolan.vlc.compose.components.VLCAudioSeekDelayLabel
 import org.videolan.vlc.compose.components.VLCAudioSeekHudButton
 import org.videolan.vlc.compose.components.VLCAudioTrackInfoText
 import org.videolan.vlc.compose.components.VLCAudioTrackInfoTextStyle
+import org.videolan.vlc.compose.components.VLCAudioTimelineTimeLabel
 import org.videolan.vlc.compose.components.VLCOnboardingWelcome
 import org.videolan.vlc.compose.components.VLCSectionHeader
 import org.videolan.vlc.compose.interop.VLCComposeView
@@ -337,6 +338,10 @@ fun ComposeInteropLabContent() {
                 style = VLCAudioTrackInfoTextStyle.Detail
             )
         }
+        Row(horizontalArrangement = Arrangement.spacedBy(72.dp)) {
+            VLCAudioTimelineTimeLabel(text = "3:42")
+            VLCAudioTimelineTimeLabel(text = "-12:08")
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             VLCAudioHeaderActionButton(contentDescription = "Search") {
                 Text("S", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.audioMenuIcon)
@@ -416,6 +421,7 @@ fun ComposeInteropLabContent() {
         Text(
             "Hosted in the real AudioPlayer fragment by replacing the playback_chips ChipGroup with VLCComposeView. " +
             "The collapsed header time label is also Compose-hosted under the existing header_time ID. " +
+            "The full-player elapsed/length timeline labels are Compose-hosted under time and length. " +
             "The landscape title/subtitle/track-detail text stack is Compose-hosted under song_title/song_subtitle/song_track_info. " +
             "The search, playlist switch, and overflow actions are Compose-hosted under their existing IDs. " +
             "The AB-repeat reset/stop header actions are also Compose-hosted under ab_repeat_reset and ab_repeat_stop while the service helper still controls their visibility. " +

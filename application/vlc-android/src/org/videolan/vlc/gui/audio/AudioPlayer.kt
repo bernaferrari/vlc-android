@@ -117,6 +117,7 @@ import org.videolan.vlc.compose.components.VLCAudioSeekDelayLabel
 import org.videolan.vlc.compose.components.VLCAudioSeekHudButton
 import org.videolan.vlc.compose.components.VLCAudioTrackInfoText
 import org.videolan.vlc.compose.components.VLCAudioTrackInfoTextStyle
+import org.videolan.vlc.compose.components.VLCAudioTimelineTimeLabel
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.databinding.AudioPlayerBinding
@@ -269,6 +270,8 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
     private var audioTrackTitleText by mutableStateOf("")
     private var audioTrackSubtitleText by mutableStateOf("")
     private var audioTrackDetailText by mutableStateOf("")
+    private var audioTimelineTimeText by mutableStateOf("")
+    private var audioTimelineLengthText by mutableStateOf("")
 
     private var showRemainingTime = false
     private var previewingSeek = false
@@ -389,7 +392,10 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
 
         audioPlayProgressMode = Settings.getInstance(requireActivity()).getBoolean(AUDIO_PLAY_PROGRESS_MODE, false)
         audioHeaderTimeText = getString(R.string.time_0)
+        audioTimelineTimeText = getString(R.string.time_0)
+        audioTimelineLengthText = getString(R.string.time_0)
         setupAudioHeaderTime()
+        setupAudioTimelineTimeLabels()
         setupAudioHeaderActions()
         setupAudioHeaderPlayPause()
         setupAudioHeaderTransportControls()
@@ -437,6 +443,25 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
             VLCTheme {
                 VLCAudioHeaderTimeLabel(
                     text = audioHeaderTimeText,
+                    onClick = { toggleRemainingTimeMode() }
+                )
+            }
+        }
+    }
+
+    private fun setupAudioTimelineTimeLabels() {
+        binding.time.setContent {
+            VLCTheme {
+                VLCAudioTimelineTimeLabel(
+                    text = audioTimelineTimeText,
+                    onClick = { toggleRemainingTimeMode() }
+                )
+            }
+        }
+        binding.length.setContent {
+            VLCTheme {
+                VLCAudioTimelineTimeLabel(
+                    text = audioTimelineLengthText,
                     onClick = { toggleRemainingTimeMode() }
                 )
             }
@@ -1088,14 +1113,14 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
      */
     private fun updateProgress(progress: PlaybackProgress) {
         if (playlistModel.currentMediaPosition == -1) return
-        binding.length.text = if (showRemainingTime) Tools.millisToString(progress.time - progress.length) else progress.lengthText
+        audioTimelineLengthText = if (showRemainingTime) Tools.millisToString(progress.time - progress.length) else progress.lengthText
         binding.timeline.max = progress.length.toInt()
         binding.progressBar.max = progress.length.toInt()
 
         if (!previewingSeek) {
             val displayTime = progress.timeText
             audioHeaderTimeText = if (showRemainingTime) Tools.millisToString(progress.time - progress.length) else displayTime
-            binding.time.text = displayTime
+            audioTimelineTimeText = displayTime
             if (!isDragging) binding.timeline.progress = progress.time.toInt()
             binding.progressBar.progress = progress.time.toInt()
         }
@@ -1403,7 +1428,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
                     else if (possibleSeek <= 4000) possibleSeek = 0
                 }
 
-                binding.time.text = Tools.millisToString(possibleSeek.toLong())
+                audioTimelineTimeText = Tools.millisToString(possibleSeek.toLong())
                 binding.timeline.progress = possibleSeek
                 binding.progressBar.progress = possibleSeek
                 handler.postDelayed(this, 50)
@@ -1470,8 +1495,9 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
             if (fromUser) {
                 playlistModel.setTime(progress.toLong(), true)
-                binding.time.text = Tools.millisToString(progress.toLong())
-                audioHeaderTimeText = Tools.millisToString(progress.toLong())
+                val displayTime = Tools.millisToString(progress.toLong())
+                audioTimelineTimeText = displayTime
+                audioHeaderTimeText = displayTime
                 binding.timeline.forceAccessibilityUpdate()
             }
         }
