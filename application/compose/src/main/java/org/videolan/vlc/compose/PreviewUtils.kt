@@ -24,9 +24,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import org.videolan.vlc.compose.components.VLCDropdownItem
+import org.videolan.vlc.compose.components.VLCAbRepeatChipIcon
 import org.videolan.vlc.compose.components.VLCDebugLogLine
 import org.videolan.vlc.compose.components.VLCDialogConfirmDelete
+import org.videolan.vlc.compose.components.VLCDropdownItem
 import org.videolan.vlc.compose.components.VLCInfoItem
 import org.videolan.vlc.compose.components.VLCAudioAbRepeatMarker
 import org.videolan.vlc.compose.components.VLCAudioHeaderActionButton
@@ -292,6 +293,14 @@ private fun PlayerChromeTokensDemo() {
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxWidth()
         ) {
+            VLCAbRepeatChipIcon {
+                Text(
+                    text = "AB",
+                    color = c.playerIconColor,
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
+            Spacer(Modifier.width(24.dp))
             VLCAudioAbRepeatMarker {
                 Box(
                     Modifier

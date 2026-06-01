@@ -32,16 +32,16 @@
         tools:visibility="visible"
         tools:showIn="@layout/player_hud">
 
-    <ImageView
+    <org.videolan.vlc.gui.view.AbRepeatChipIconView
             android:id="@+id/imageView9"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:importantForAccessibility="no"
             android:layout_marginStart="8dp"
             vlc:layout_constraintBottom_toBottomOf="parent"
             vlc:layout_constraintEnd_toStartOf="@+id/ab_repeat_add_marker"
             vlc:layout_constraintStart_toStartOf="parent"
-            vlc:layout_constraintTop_toTopOf="parent"
-            vlc:srcCompat="@drawable/ic_abrepeat_chips" />
+            vlc:layout_constraintTop_toTopOf="parent" />
 
     <Button
             android:id="@+id/ab_repeat_add_marker"

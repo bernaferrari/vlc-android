@@ -109,6 +109,7 @@ fun MyFullScreen() {
   - `VLCAudioHeaderPlayPauseButton` (Wave 2 collapsed audio-player mini play/pause control from audio_player.xml)
   - `VLCAudioHeaderTransportButton` (Wave 2 audio-player header + full-player transport + landscape chapter + foldable hinge controls from audio_player.xml)
   - `VLCAudioSeekHudButton` / `VLCAudioSeekDelayLabel` (Wave 2 audio-player cover-mode seek/bookmark HUD controls from audio_player.xml)
+  - `VLCAbRepeatChipIcon` (Wave 2 shared A-B repeat add-marker chip icon from ab_repeat_controls.xml)
   - `VLCAudioAbRepeatMarker` (Wave 2 audio-player A-B repeat timeline markers from audio_player.xml)
   - `VLCAudioTrackInfoText` (Wave 2 landscape audio-player title/subtitle/detail text from audio_player.xml)
   - `VLCAudioTimelineTimeLabel` (Wave 2 audio-player elapsed/length labels from audio_player.xml)
@@ -169,6 +170,7 @@ The **Compose Interop Lab** (`ComposeInteropLabActivity` + `compose_interop_lab.
   - Dialog content host (ConfirmDeleteDialog - keep shell/swap content pattern): `application/vlc-android/src/org/videolan/vlc/gui/dialogs/ConfirmDeleteDialog.kt` (compose-2l4.1.5 / bd compose-j0e)
   - Onboarding first-run host (high-visibility welcome flow): `application/vlc-android/src/org/videolan/vlc/gui/onboarding/OnboardingWelcomeFragment.kt` (compose-2l4.1.6 / bd compose-mdj) — real logo slot + land variant noted, layouts 100% preserved
   - Audio player chrome hosts: `application/vlc-android/src/org/videolan/vlc/gui/audio/AudioPlayer.kt` + `audio_player.xml` / `layout-land/audio_player.xml` (`VLCAudioPlayerChips`, `VLCAudioQueueProgressPill`, `VLCAudioHeaderTimeLabel`, `VLCAudioHeaderActionButton`, `VLCAudioHeaderPlayPauseButton`, `VLCAudioHeaderTransportButton`, `VLCAudioSeekHudButton`, `VLCAudioSeekDelayLabel`, `VLCAudioAbRepeatMarker`, `VLCAudioTrackInfoText`, `VLCAudioTimelineTimeLabel`; compose-q9r.3 / compose-68e; includes foldable hinge affordances, A-B repeat markers, landscape track info text, and full-player timeline labels)
+  - Shared playback A-B repeat include: `application/vlc-android/res/layout/ab_repeat_controls.xml` + `application/vlc-android/src/org/videolan/vlc/gui/view/AbRepeatChipIconView.kt` (`VLCAbRepeatChipIcon`; compose-68e; used by AudioPlayer and VideoPlayerOverlayDelegate through the shared include)
   - Crown jewel cross-cutting Lab (this milestone): `application/vlc-android/src/org/videolan/vlc/gui/ComposeInteropLabActivity.kt` + `compose_interop_lab.xml`
   - All leaves + interop + theme: `application/compose/src/main/java/org/videolan/vlc/compose/{components,interop,theme}/*`
   - Richer mocks derived from the Lab: `application/compose/src/main/java/org/videolan/vlc/compose/PreviewUtils.kt`
@@ -200,6 +202,7 @@ ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:comp
 - Part of the "preview + gate enforcement" acceptance criteria for Wave 1.
 
 **Current gate evidence**:
+- 2026-06-01: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:compose:build :application:vlc-android:compileDebugKotlin --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 21s` after replacing the shared A-B repeat add-marker chip icon in `ab_repeat_controls.xml` with `VLCAbRepeatChipIcon` via `AbRepeatChipIconView`.
 - 2026-06-01: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:compose:build :application:vlc-android:compileDebugKotlin --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 22s` after replacing the audio-player elapsed/length timeline labels with `VLCAudioTimelineTimeLabel`.
 - 2026-06-01: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:compose:build :application:vlc-android:compileDebugKotlin --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 20s` after replacing the landscape audio-player track info title/subtitle/detail text with `VLCAudioTrackInfoText`.
 - 2026-06-01: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:compose:build :application:vlc-android:compileDebugKotlin --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 20s` after replacing the audio-player A-B repeat timeline markers with `VLCAudioAbRepeatMarker`.
