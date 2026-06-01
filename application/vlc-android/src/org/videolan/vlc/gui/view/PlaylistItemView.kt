@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -21,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -41,7 +43,6 @@ import kotlin.math.roundToInt
 data class PlaylistItemState(
     val media: MediaWrapper? = null,
     val subtitle: String = "",
-    val contentDescription: String = "",
     val showTrackNumbers: Boolean = false,
     val showReorderButtons: Boolean = false,
     val showDeleteButton: Boolean = false,
@@ -52,9 +53,9 @@ data class PlaylistItemState(
 )
 
 /**
- * Compose-backed replacement for playlist_item.xml. RecyclerView remains the
- * temporary host so existing swipe and drag behavior keeps working while the
- * visible row UI no longer uses DataBinding XML.
+ * Compose-backed replacement for playlist_item.xml. RecyclerView remains a
+ * temporary host for the video overlay while the audio player queue has moved
+ * to a full Compose LazyColumn.
  */
 class PlaylistItemView @JvmOverloads constructor(
     context: Context,
@@ -89,7 +90,6 @@ class PlaylistItemView @JvmOverloads constructor(
         state = PlaylistItemState(
             media = media,
             subtitle = subtitle,
-            contentDescription = media.contentDescription(),
             showTrackNumbers = showTrackNumbers,
             showReorderButtons = showReorderButtons,
             showDeleteButton = showDeleteButton,
@@ -139,107 +139,127 @@ class PlaylistItemView @JvmOverloads constructor(
     @Composable
     override fun WidgetContent() {
         val item = state.media ?: return
-        VLCAudioPlaylistItem(
-            title = item.title,
+        AudioPlaylistMediaItem(
+            media = item,
             subtitle = state.subtitle,
-            contentDescription = state.contentDescription,
-            trackNumberText = item.trackNumberText(),
-            showTrackNumber = state.showTrackNumbers,
+            showTrackNumbers = state.showTrackNumbers,
             showReorderButtons = state.showReorderButtons,
             showDeleteButton = state.showDeleteButton,
             stopAfterThis = state.stopAfterThis,
             current = state.current,
-            video = item.type == MediaWrapper.TYPE_VIDEO,
-            marqueeTitle = Settings.listTitleEllipsize == 4,
+            playing = state.playing,
             masked = state.masked,
             tipsOverlayColor = tipsOverlayColor,
             onClick = onRowClick,
             onMoveUpClick = onMoveUpClick,
             onMoveDownClick = onMoveDownClick,
             onDeleteClick = onDeleteClick,
-            onMoreClick = onMoreClick,
-            coverContent = { MediaCover(item) },
-            playingContent = { PlayingIndicator(state.playing) },
-            stopAfterContent = {
-                Icon(
-                    painter = painterResource(R.drawable.ic_stop_after_this),
-                    contentDescription = null,
-                    tint = VLCThemeDefaults.colors.playerIconColor
-                )
-            },
-            moveUpContent = {
-                Icon(
-                    painter = painterResource(R.drawable.ic_playlist_moveup),
-                    contentDescription = null,
-                    tint = VLCThemeDefaults.colors.playerIconColor
-                )
-            },
-            moveDownContent = {
-                Icon(
-                    painter = painterResource(R.drawable.ic_playlist_movedown),
-                    contentDescription = null,
-                    tint = VLCThemeDefaults.colors.playerIconColor
-                )
-            },
-            deleteContent = {
-                Icon(
-                    painter = painterResource(R.drawable.ic_playlist_delete),
-                    contentDescription = null,
-                    tint = VLCThemeDefaults.colors.playerIconColor
-                )
-            },
-            moreContent = {
-                Icon(
-                    painter = painterResource(R.drawable.ic_more),
-                    contentDescription = null,
-                    tint = VLCThemeDefaults.colors.playerIconColor
-                )
-            }
+            onMoreClick = onMoreClick
         )
-    }
-
-    @Composable
-    private fun MediaCover(media: MediaWrapper) {
-        AndroidView(
-            factory = { viewContext ->
-                ImageView(viewContext).apply {
-                    scaleType = ImageView.ScaleType.CENTER_CROP
-                }
-            },
-            update = { image ->
-                image.scaleType = ImageView.ScaleType.CENTER_CROP
-                image.setImageDrawable(media.defaultCover())
-                loadImage(image, media, card = true)
-            },
-            modifier = Modifier.fillMaxSize()
-        )
-    }
-
-    @Composable
-    private fun PlayingIndicator(playing: Boolean) {
-        RowVisualizer(playing = playing)
-    }
-
-    private fun MediaWrapper.defaultCover() = if (type == MediaWrapper.TYPE_VIDEO) {
-        UiTools.getDefaultVideoDrawable(context)
-    } else {
-        BitmapDrawable(context.resources, getBitmapFromDrawable(context, R.drawable.ic_song_background))
-    }
-
-    private fun MediaWrapper.contentDescription() = when (type) {
-        MediaWrapper.TYPE_VIDEO -> TalkbackUtil.getVideo(context, this)
-        MediaWrapper.TYPE_AUDIO -> TalkbackUtil.getAudioTrack(context, this)
-        MediaWrapper.TYPE_STREAM -> TalkbackUtil.getStream(context, this)
-        MediaWrapper.TYPE_DIR, MediaWrapper.TYPE_SUBTITLE, MediaWrapper.TYPE_PLAYLIST -> TalkbackUtil.getDir(context, this, false)
-        MediaWrapper.TYPE_ALL -> TalkbackUtil.getAll(this)
-        else -> title
     }
 
     private fun actionButtonSizePx() = (48 * resources.displayMetrics.density).roundToInt()
 }
 
 @Composable
-private fun RowVisualizer(playing: Boolean) {
+fun AudioPlaylistMediaItem(
+    media: MediaWrapper,
+    subtitle: String,
+    showTrackNumbers: Boolean,
+    showReorderButtons: Boolean,
+    showDeleteButton: Boolean,
+    stopAfterThis: Boolean,
+    current: Boolean,
+    playing: Boolean,
+    modifier: Modifier = Modifier,
+    masked: Boolean = false,
+    tipsOverlayColor: Color = Color.Transparent,
+    onClick: () -> Unit = {},
+    onMoveUpClick: () -> Unit = {},
+    onMoveDownClick: () -> Unit = {},
+    onDeleteClick: () -> Unit = {},
+    onMoreClick: () -> Unit = {}
+) {
+    val context = LocalContext.current
+    VLCAudioPlaylistItem(
+        title = media.title,
+        subtitle = subtitle,
+        contentDescription = media.contentDescription(context),
+        trackNumberText = media.trackNumberText(),
+        showTrackNumber = showTrackNumbers,
+        showReorderButtons = showReorderButtons,
+        showDeleteButton = showDeleteButton,
+        stopAfterThis = stopAfterThis,
+        current = current,
+        video = media.type == MediaWrapper.TYPE_VIDEO,
+        marqueeTitle = Settings.listTitleEllipsize == 4,
+        masked = masked,
+        tipsOverlayColor = tipsOverlayColor,
+        onClick = onClick,
+        onMoveUpClick = onMoveUpClick,
+        onMoveDownClick = onMoveDownClick,
+        onDeleteClick = onDeleteClick,
+        onMoreClick = onMoreClick,
+        modifier = modifier,
+        coverContent = { AudioPlaylistMediaCover(media) },
+        playingContent = { AudioPlaylistPlayingIndicator(playing) },
+        stopAfterContent = {
+            Icon(
+                painter = painterResource(R.drawable.ic_stop_after_this),
+                contentDescription = null,
+                tint = VLCThemeDefaults.colors.playerIconColor
+            )
+        },
+        moveUpContent = {
+            Icon(
+                painter = painterResource(R.drawable.ic_playlist_moveup),
+                contentDescription = null,
+                tint = VLCThemeDefaults.colors.playerIconColor
+            )
+        },
+        moveDownContent = {
+            Icon(
+                painter = painterResource(R.drawable.ic_playlist_movedown),
+                contentDescription = null,
+                tint = VLCThemeDefaults.colors.playerIconColor
+            )
+        },
+        deleteContent = {
+            Icon(
+                painter = painterResource(R.drawable.ic_playlist_delete),
+                contentDescription = null,
+                tint = VLCThemeDefaults.colors.playerIconColor
+            )
+        },
+        moreContent = {
+            Icon(
+                painter = painterResource(R.drawable.ic_more),
+                contentDescription = null,
+                tint = VLCThemeDefaults.colors.playerIconColor
+            )
+        }
+    )
+}
+
+@Composable
+private fun AudioPlaylistMediaCover(media: MediaWrapper) {
+    AndroidView(
+        factory = { viewContext ->
+            ImageView(viewContext).apply {
+                scaleType = ImageView.ScaleType.CENTER_CROP
+            }
+        },
+        update = { image ->
+            image.scaleType = ImageView.ScaleType.CENTER_CROP
+            image.setImageDrawable(media.defaultCover(image.context))
+            loadImage(image, media, card = true)
+        },
+        modifier = Modifier.fillMaxSize()
+    )
+}
+
+@Composable
+private fun AudioPlaylistPlayingIndicator(playing: Boolean) {
     val heights = if (playing) listOf(22.dp, 30.dp, 18.dp) else listOf(4.dp, 4.dp, 4.dp)
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -248,7 +268,7 @@ private fun RowVisualizer(playing: Boolean) {
             .width(32.dp)
             .height(32.dp)
     ) {
-        androidx.compose.foundation.layout.Row(
+        Row(
             horizontalArrangement = Arrangement.spacedBy(3.dp),
             verticalAlignment = Alignment.Bottom,
             modifier = Modifier.fillMaxHeight()
@@ -263,6 +283,21 @@ private fun RowVisualizer(playing: Boolean) {
             }
         }
     }
+}
+
+private fun MediaWrapper.defaultCover(context: Context) = if (type == MediaWrapper.TYPE_VIDEO) {
+    UiTools.getDefaultVideoDrawable(context)
+} else {
+    BitmapDrawable(context.resources, getBitmapFromDrawable(context, R.drawable.ic_song_background))
+}
+
+private fun MediaWrapper.contentDescription(context: Context) = when (type) {
+    MediaWrapper.TYPE_VIDEO -> TalkbackUtil.getVideo(context, this)
+    MediaWrapper.TYPE_AUDIO -> TalkbackUtil.getAudioTrack(context, this)
+    MediaWrapper.TYPE_STREAM -> TalkbackUtil.getStream(context, this)
+    MediaWrapper.TYPE_DIR, MediaWrapper.TYPE_SUBTITLE, MediaWrapper.TYPE_PLAYLIST -> TalkbackUtil.getDir(context, this, false)
+    MediaWrapper.TYPE_ALL -> TalkbackUtil.getAll(this)
+    else -> title
 }
 
 private fun Context.resolveComposeColor(attr: Int): Color {

@@ -53,8 +53,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.window.layout.FoldingFeature
 import androidx.window.layout.WindowInfoTracker
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -134,7 +132,6 @@ import org.videolan.vlc.gui.dialogs.showSleepTimerComposeDialog
 import org.videolan.vlc.gui.helpers.AudioUtil.setRingtone
 import org.videolan.vlc.gui.helpers.BookmarkListDelegate
 import org.videolan.vlc.gui.helpers.PlayerOptionsDelegate
-import org.videolan.vlc.gui.helpers.SwipeDragItemTouchHelperCallback
 import org.videolan.vlc.gui.helpers.TalkbackUtil
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
@@ -248,16 +245,24 @@ private fun AudioPlayerAbRepeatMarkerIcon() {
     )
 }
 
-class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, IAudioPlayerAnimator by AudioPlayerAnimator() {
+class AudioPlayer : Fragment(), IAudioPlayerAnimator by AudioPlayerAnimator() {
 
     private lateinit var binding: AudioPlayerBinding
-    private lateinit var playlistAdapter: PlaylistAdapter
     private lateinit var settings: SharedPreferences
     private val handler by lazy(LazyThreadSafetyMode.NONE) { Handler(Looper.getMainLooper()) }
     lateinit var playlistModel: PlaylistModel
     lateinit var bookmarkModel: BookmarkModel
     private lateinit var optionsDelegate: PlayerOptionsDelegate
     lateinit var bookmarkListDelegate: BookmarkListDelegate
+    private var playlistItems by mutableStateOf<List<MediaWrapper>>(emptyList())
+    private var playlistCurrentIndex by mutableStateOf(-1)
+    private var playlistPlaying by mutableStateOf(false)
+    private var playlistShowTrackNumbers by mutableStateOf(false)
+    private var playlistShowReorderButtons by mutableStateOf(true)
+    private var playlistFiltering by mutableStateOf(false)
+    private var playlistStopAfter by mutableStateOf(-1)
+    private var playlistScrollSerial = 0
+    private var playlistScrollRequest by mutableStateOf<AudioPlaylistScrollRequest?>(null)
     private var audioPlayerChipsState by mutableStateOf(VLCAudioPlayerChipsState())
     private var audioQueueProgressPillState by mutableStateOf(VLCAudioQueueProgressPillState())
     private var audioHeaderTimeText by mutableStateOf("")
@@ -282,7 +287,6 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, IAudioPlayerAnimator by
     private var lastEndsAt = -1L
     private var isDragging = false
     private var currentChapters: Pair<MediaWrapper,  List<MediaPlayer.Chapter>?>? = null
-    private lateinit var callback: SwipeDragItemTouchHelperCallback
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -290,22 +294,17 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, IAudioPlayerAnimator by
             playerState = it.getInt("player_state")
             showRemainingTime = it.getBoolean("show_remaining_time")
         }
-        playlistAdapter = PlaylistAdapter(this)
         settings = Settings.getInstance(requireContext())
         playlistModel = PlaylistModel.get(this)
         playlistModel.progress.observe(this@AudioPlayer) { it?.let { updateProgress(it) } }
         playlistModel.speed.observe(this@AudioPlayer) { showChips() }
         playlistModel.filteringState.observe(this@AudioPlayer) {
-            callback.longPressDragEnable = !it
-            if (isTablet() || AndroidDevices.isTv) {
-                playlistAdapter.showReorderButtons = !it
-                playlistAdapter.notifyDataSetChanged()
-            }
+            playlistFiltering = it
+            playlistShowReorderButtons = !it
         }
-        playlistAdapter.setModel(playlistModel)
         playlistModel.dataset.asFlow().conflate().onEach {
             doUpdate()
-            playlistAdapter.update(it)
+            updateAudioPlaylistItems(it)
             delay(50L)
         }.launchWhenStarted(lifecycleScope)
         bookmarkModel = BookmarkModel.get(requireActivity())
@@ -341,25 +340,20 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, IAudioPlayerAnimator by
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.songsList.layoutManager = LinearLayoutManager(view.context)
-        binding.songsList.adapter = playlistAdapter
         binding.audioMediaSwitcher.setAudioMediaSwitcherListener(headerMediaSwitcherListener)
         binding.coverMediaSwitcher.setAudioMediaSwitcherListener(coverMediaSwitcherListener)
         binding.playlistSearchText.onQueryChanged = ::onSearchQueryChanged
+        setupAudioPlaylistQueue()
         binding.header.setOnClickListener {
             val activity = activity as AudioPlayerContainerActivity
             activity.slideUpOrDownAudioPlayer()
         }
-        callback = SwipeDragItemTouchHelperCallback(playlistAdapter, true)
-        val touchHelper = ItemTouchHelper(callback)
-        touchHelper.attachToRecyclerView(binding.songsList)
 
         binding.fragment = this
 
         binding.next.setOnTouchListener(LongSeekListener(true))
         binding.previous.setOnTouchListener(LongSeekListener(false))
 
-        registerForContextMenu(binding.songsList)
         userVisibleHint = true
         binding.timeline.setOnTimelineSeekChangeListener(timelineListener)
 
@@ -379,10 +373,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, IAudioPlayerAnimator by
             refreshAbRepeatStep()
         }
         Settings.audioShowTrackNumbers.observe(viewLifecycleOwner) { showTrackNumbers ->
-            playlistAdapter.showTrackNumbers = showTrackNumbers
-            (binding.songsList.layoutManager as? LinearLayoutManager)?.let {
-                playlistAdapter.notifyItemRangeChanged(it.findFirstVisibleItemPosition(), it.findLastCompletelyVisibleItemPosition())
-            }
+            playlistShowTrackNumbers = showTrackNumbers
         }
 
         binding.abRepeatContainer.setOnClickListener {
@@ -425,7 +416,6 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, IAudioPlayerAnimator by
 
     override fun onDestroy() {
         Settings.removeAudioControlsChangeListener()
-        if (::binding.isInitialized) binding.songsList.adapter = null
         currentChapters = null
         super.onDestroy()
     }
@@ -438,6 +428,80 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, IAudioPlayerAnimator by
     }
 
     fun isTablet() = requireActivity().isTablet()
+
+    private fun setupAudioPlaylistQueue() {
+        val showInlineActions = isTablet() || AndroidDevices.isTv
+        binding.songsList.setContent {
+            VLCTheme {
+                AudioPlaylistQueue(
+                    items = playlistItems,
+                    currentIndex = playlistCurrentIndex,
+                    playing = playlistPlaying,
+                    showTrackNumbers = playlistShowTrackNumbers,
+                    showReorderButtons = playlistShowReorderButtons,
+                    showInlineActions = showInlineActions,
+                    stopAfter = playlistStopAfter,
+                    scrollRequest = playlistScrollRequest,
+                    onScrollRequestConsumed = { playlistScrollRequest = null },
+                    onPlayItem = ::playPlaylistItem,
+                    onShowContext = ::showPlaylistContext,
+                    onDismissItem = ::removePlaylistItem,
+                    onMoveItem = ::movePlaylistItem
+                )
+            }
+        }
+    }
+
+    private fun updateAudioPlaylistItems(items: List<MediaWrapper>) {
+        playlistItems = items.toList()
+        playlistPlaying = playlistModel.playing
+        playlistStopAfter = playlistModel.service?.playlistManager?.stopAfter ?: -1
+        requestPlaylistSelection(playlistModel.selection)
+    }
+
+    private fun requestPlaylistSelection(position: Int) {
+        playlistCurrentIndex = position
+        if (position < 0) return
+        if (playlistModel.lastActionWasEdit) {
+            playlistModel.lastActionWasEdit = false
+            return
+        }
+        requestPlaylistScroll(position)
+    }
+
+    private fun requestPlaylistScroll(position: Int) {
+        if (position !in playlistItems.indices) return
+        playlistScrollRequest = AudioPlaylistScrollRequest(position, ++playlistScrollSerial)
+    }
+
+    private fun playPlaylistItem(position: Int, item: MediaWrapper) {
+        clearSearch()
+        playlistModel.play(playlistModel.getPlaylistPosition(position, item))
+    }
+
+    private fun removePlaylistItem(position: Int, item: MediaWrapper) {
+        if (position !in playlistItems.indices) return
+        val message = String.format(getString(R.string.remove_playlist_item), item.title)
+        val originalPosition = playlistModel.getOriginalPosition(position)
+        UiTools.snackerWithCancel(requireActivity(), message, overAudioPlayer = true, action = {}) {
+            playlistModel.insertMedia(originalPosition, item)
+        }
+        playlistModel.remove(position)
+    }
+
+    private fun movePlaylistItem(from: Int, to: Int) {
+        if (playlistFiltering || from !in playlistItems.indices || to !in playlistItems.indices) return
+        val nextItems = playlistItems.toMutableList()
+        val movedItem = nextItems.removeAt(from)
+        nextItems.add(to, movedItem)
+        playlistItems = nextItems
+        playlistCurrentIndex = when (playlistCurrentIndex) {
+            from -> to
+            to -> from
+            else -> playlistCurrentIndex
+        }
+        playlistModel.move(from, if (to > from) to + 1 else to)
+    }
 
     private fun setupAudioHeaderDecorations() {
         binding.headerBackground.setContent {
@@ -981,46 +1045,40 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, IAudioPlayerAnimator by
 
     private val ctxReceiver: CtxActionReceiver = object : CtxActionReceiver {
         override fun onCtxAction(position: Int, option: ContextOption) {
-            if (position in 0 until playlistAdapter.itemCount) when (option) {
-                CTX_SET_RINGTONE -> activity?.setRingtone(playlistAdapter.getItem(position))
+            val media = playlistItems.getOrNull(position) ?: return
+            when (option) {
+                CTX_SET_RINGTONE -> activity?.setRingtone(media)
                 CTX_ADD_TO_PLAYLIST -> {
-                    val mw = playlistAdapter.getItem(position)
-                    requireActivity().addToPlaylist(listOf(mw))
+                    requireActivity().addToPlaylist(listOf(media))
                 }
-                CTX_REMOVE_FROM_PLAYLIST -> view?.let {
-                    val mw = playlistAdapter.getItem(position)
-                    val message = String.format(getString(R.string.remove_playlist_item), mw.title)
-                    UiTools.snackerWithCancel(requireActivity(), message, true, { })  {
-                        playlistModel.insertMedia(position, mw)
-                    }
-                    playlistModel.remove(position)
+                CTX_REMOVE_FROM_PLAYLIST -> {
+                    removePlaylistItem(position, media)
                 }
                 CTX_STOP_AFTER_THIS -> {
                     val pos = if (playlistModel.service?.playlistManager?.stopAfter != position) position else -1
                     playlistModel.stopAfter(pos)
-                    playlistAdapter.stopAfter = pos
+                    playlistStopAfter = pos
                 }
-                CTX_INFORMATION -> showInfoDialog(playlistAdapter.getItem(position))
-                CTX_GO_TO_FOLDER -> showParentFolder(playlistAdapter.getItem(position))
+                CTX_INFORMATION -> showInfoDialog(media)
+                CTX_GO_TO_FOLDER -> showParentFolder(media)
                 CTX_GO_TO_ALBUM -> {
                     val i = Intent(requireActivity(), HeaderMediaListActivity::class.java)
-                    i.putExtra(TAG_ITEM, playlistAdapter.getItem(position).album)
+                    i.putExtra(TAG_ITEM, media.album)
                     startActivity(i)
                 }
                 CTX_GO_TO_ARTIST -> lifecycleScope.launch(Dispatchers.IO) {
-                    val artist = playlistAdapter.getItem(position).artist
                     val i = Intent(requireActivity(), SecondaryActivity::class.java)
                     i.putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.ALBUMS_SONGS)
-                    i.putExtra(TAG_ITEM, artist)
+                    i.putExtra(TAG_ITEM, media.artist)
                     i.putExtra(ARTIST_FROM_ALBUM, true)
                     i.flags = i.flags or Intent.FLAG_ACTIVITY_NO_HISTORY
                     startActivity(i)
                 }
                 CTX_FAV_ADD, CTX_FAV_REMOVE -> lifecycleScope.launch {
-                    playlistAdapter.getItem(position).isFavorite = option == CTX_FAV_ADD
-                    playlistAdapter.notifyItemChanged(position)
+                    media.isFavorite = option == CTX_FAV_ADD
+                    playlistItems = playlistItems.toList()
                 }
-                CTX_SHARE -> lifecycleScope.launch { (requireActivity() as AppCompatActivity).share(playlistAdapter.getItem(position)) }
+                CTX_SHARE -> lifecycleScope.launch { (requireActivity() as AppCompatActivity).share(media) }
                 else -> {}
             }
         }
@@ -1032,20 +1090,18 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, IAudioPlayerAnimator by
         startActivity(i)
     }
 
-    override fun onPopupMenu(view: View, position: Int, item: MediaWrapper?) {
+    private fun showPlaylistContext(position: Int, item: MediaWrapper) {
         val activity = activity
-        if (activity === null || position >= playlistAdapter.itemCount) return
+        if (activity === null || position !in playlistItems.indices) return
         val flags = FlagSet(ContextOption::class.java).apply {
             addAll(CTX_GO_TO_FOLDER, CTX_INFORMATION, CTX_REMOVE_FROM_PLAYLIST, CTX_STOP_AFTER_THIS)
-            if (item?.uri?.scheme != "content") addAll(CTX_ADD_TO_PLAYLIST, CTX_SET_RINGTONE, CTX_SHARE)
-            if (item?.album != null) add(CTX_GO_TO_ALBUM)
-            if (item?.artist != null) add(CTX_GO_TO_ARTIST)
-            if (item?.isFavorite == true) add(CTX_FAV_REMOVE) else add(CTX_FAV_ADD)
+            if (item.uri?.scheme != "content") addAll(CTX_ADD_TO_PLAYLIST, CTX_SET_RINGTONE, CTX_SHARE)
+            if (item.album != null) add(CTX_GO_TO_ALBUM)
+            if (item.artist != null) add(CTX_GO_TO_ARTIST)
+            if (item.isFavorite) add(CTX_FAV_REMOVE) else add(CTX_FAV_ADD)
         }
         showContext(activity, ctxReceiver, position, item, flags)
     }
-
-    override fun getLifeCycle() = this.lifecycle
 
     private suspend fun doUpdate() {
         if (isVisible && playlistModel.switchToVideo()) return
@@ -1110,7 +1166,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, IAudioPlayerAnimator by
 
         updateAudioPlayPause(playing, text)
 
-        playlistAdapter.setCurrentlyPlaying(playing)
+        playlistPlaying = playing
     }
 
     private var wasShuffling = false
@@ -1248,19 +1304,6 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, IAudioPlayerAnimator by
     }
 
     private fun shouldHidePlayProgress() = abRepeatControlsActive || areBookmarksVisible() || playlistModel.medias?.size ?: 0 < 2
-
-    override fun onSelectionSet(position: Int) {
-        if (playlistModel.lastActionWasEdit) {
-            playlistModel.lastActionWasEdit = false
-            return
-        }
-        binding.songsList.scrollToPosition(position)
-    }
-
-    override fun playItem(position: Int, item: MediaWrapper) {
-        clearSearch()
-        playlistModel.play(playlistModel.getPlaylistPosition(position, item))
-    }
 
     fun onTimeLabelClick(@Suppress("UNUSED_PARAMETER") view: View) {
         toggleRemainingTimeMode()
@@ -1511,7 +1554,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, IAudioPlayerAnimator by
             BottomSheetBehavior.STATE_EXPANDED -> {
                 onSlide(1f)
                 showPlaylistTips()
-                playlistAdapter.currentIndex = playlistModel.currentMediaPosition
+                requestPlaylistSelection(playlistModel.currentMediaPosition)
             }
         }
     }
