@@ -25,7 +25,6 @@
 package org.videolan.television.viewmodel
 
 import android.content.Context
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -79,5 +78,3 @@ class MediaScrapingBrowserViewModel(context: Context, val category: Long) : Sort
         }
     }
 }
-
-fun Fragment.getMoviepediaBrowserModel(category: Long) = ViewModelProvider(requireActivity(), MediaScrapingBrowserViewModel.Factory(requireContext(), category))[MediaScrapingBrowserViewModel::class.java]

@@ -21,6 +21,7 @@
 package org.videolan.television.ui.browser
 
 import android.annotation.TargetApi
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
@@ -79,6 +80,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.leanback.app.BackgroundManager
 import androidx.lifecycle.ViewModelProvider
@@ -88,6 +90,10 @@ import org.videolan.medialibrary.MLServiceLocator
 import org.videolan.medialibrary.interfaces.Medialibrary
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.medialibrary.media.MediaLibraryItem
+import org.videolan.moviepedia.database.models.MediaMetadataType
+import org.videolan.moviepedia.database.models.MediaMetadataWithImages
+import org.videolan.moviepedia.database.models.subtitle
+import org.videolan.moviepedia.provider.MediaScrapingProvider
 import org.videolan.resources.CATEGORY
 import org.videolan.resources.CATEGORY_ALBUMS
 import org.videolan.resources.CATEGORY_ARTISTS
@@ -105,15 +111,19 @@ import org.videolan.resources.HEADER_TV_SHOW
 import org.videolan.resources.HEADER_VIDEO
 import org.videolan.resources.ITEM
 import org.videolan.resources.KEY_URI
+import org.videolan.resources.util.getFromMl
 import org.videolan.resources.util.parcelable
 import org.videolan.television.databinding.TvVerticalGridBinding
 import org.videolan.television.ui.MainTvActivity
+import org.videolan.television.ui.MediaScrapingTvshowDetailsActivity
 import org.videolan.television.ui.TvUtil
+import org.videolan.television.ui.TV_SHOW_ID
 import org.videolan.television.ui.browser.interfaces.BrowserActivityInterface
 import org.videolan.television.ui.browser.interfaces.DetailsFragment
 import org.videolan.television.ui.clearBackground
 import org.videolan.television.ui.updateBackground
 import org.videolan.television.viewmodel.MediaBrowserViewModel
+import org.videolan.television.viewmodel.MediaScrapingBrowserViewModel
 import org.videolan.tools.PLAYLIST_MODE_AUDIO
 import org.videolan.tools.PLAYLIST_MODE_VIDEO
 import org.videolan.tools.Settings
@@ -121,6 +131,7 @@ import org.videolan.tools.putSingle
 import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.gui.helpers.downloadIcon
 import org.videolan.vlc.gui.helpers.getTvIconRes
 import org.videolan.vlc.gui.helpers.loadImage
 import org.videolan.vlc.interfaces.BrowserFragmentInterface
@@ -141,11 +152,16 @@ class VerticalGridActivity : BaseTvActivity(), BrowserActivityInterface {
     private var binding: TvVerticalGridBinding? = null
 
     private var mediaModel: MediaBrowserViewModel? = null
+    private var moviepediaModel: MediaScrapingBrowserViewModel? = null
     private var backgroundManager: BackgroundManager? = null
     private var selectedMediaItem: MediaLibraryItem? = null
+    private var selectedMoviepediaItem: MediaMetadataWithImages? = null
     private var mediaItems by mutableStateOf<List<MediaLibraryItem>>(emptyList())
     private var mediaLoading by mutableStateOf(true)
     private var mediaInGrid by mutableStateOf(true)
+    private var moviepediaItems by mutableStateOf<List<MediaMetadataWithImages>>(emptyList())
+    private var moviepediaLoading by mutableStateOf(true)
+    private var moviepediaInGrid by mutableStateOf(true)
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -153,6 +169,8 @@ class VerticalGridActivity : BaseTvActivity(), BrowserActivityInterface {
         val mediaRoute = mediaRoute(type)
         if (mediaRoute != null) {
             setupMediaBrowser(mediaRoute.first, mediaRoute.second)
+        } else if (type == HEADER_MOVIES || type == HEADER_TV_SHOW) {
+            setupMoviepediaBrowser(type)
         } else {
             setupFragmentBrowser(savedInstanceState, type)
         }
@@ -223,6 +241,50 @@ class VerticalGridActivity : BaseTvActivity(), BrowserActivityInterface {
         )
     }
 
+    private fun setupMoviepediaBrowser(category: Long) {
+        val displayPrefId = moviepediaDisplayPrefId(category)
+        moviepediaInGrid = Settings.getInstance(this).getBoolean(displayPrefId, true)
+        backgroundManager = BackgroundManager.getInstance(this).apply { attach(window) }
+        val model = ViewModelProvider(this, MediaScrapingBrowserViewModel.Factory(this, category))[MediaScrapingBrowserViewModel::class.java]
+        moviepediaModel = model
+        model.nbColumns = moviepediaColumnCount()
+
+        val provider = model.provider as MediaScrapingProvider
+        provider.pagedList.observe(this) { pagedList ->
+            moviepediaItems = pagedList?.filterNotNull().orEmpty()
+            moviepediaLoading = false
+        }
+        provider.loading.observe(this) { loading ->
+            moviepediaLoading = loading == true
+        }
+        setContentView(
+            ComposeView(this).apply {
+                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+                setContent {
+                    VLCTheme(darkTheme = true) {
+                        TvMoviepediaBrowserScreen(
+                            title = moviepediaTitle(category),
+                            items = moviepediaItems,
+                            loading = moviepediaLoading,
+                            empty = !moviepediaLoading && moviepediaItems.isEmpty(),
+                            inGrid = moviepediaInGrid,
+                            columns = moviepediaColumnCount(),
+                            sortActions = mediaSortActions(model),
+                            onBack = ::finish,
+                            onToggleDisplay = {
+                                moviepediaInGrid = !moviepediaInGrid
+                                Settings.getInstance(this@VerticalGridActivity).putSingle(displayPrefId, moviepediaInGrid)
+                            },
+                            onSort = model::sort,
+                            onItemFocused = ::onMoviepediaItemFocused,
+                            onItemClicked = ::openMoviepediaItem
+                        )
+                    }
+                }
+            }
+        )
+    }
+
     private fun setupFragmentBrowser(savedInstanceState: Bundle?, type: Long) {
         binding = TvVerticalGridBinding.inflate(LayoutInflater.from(this))
         setContentView(binding!!.root)
@@ -236,7 +298,6 @@ class VerticalGridActivity : BaseTvActivity(), BrowserActivityInterface {
                 if (item != null && intent.hasExtra(FAVORITE_TITLE)) item.title = intent.getStringExtra(FAVORITE_TITLE)
                 FileBrowserTvFragment.newInstance(TYPE_NETWORK, item, item === null)
             }
-            HEADER_MOVIES, HEADER_TV_SHOW -> MediaScrapingBrowserTvFragment.newInstance(type)
             HEADER_DIRECTORIES -> FileBrowserTvFragment.newInstance(TYPE_FILE, intent.data?.let { MLServiceLocator.getAbstractMediaWrapper(it) }, true)
             else -> {
                 finish()
@@ -251,7 +312,7 @@ class VerticalGridActivity : BaseTvActivity(), BrowserActivityInterface {
     }
 
     override fun refresh() {
-        mediaModel?.refresh() ?: fragment?.refresh()
+        mediaModel?.refresh() ?: moviepediaModel?.refresh() ?: fragment?.refresh()
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
@@ -260,6 +321,15 @@ class VerticalGridActivity : BaseTvActivity(), BrowserActivityInterface {
             if (keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE || keyCode == KeyEvent.KEYCODE_BUTTON_Y || keyCode == KeyEvent.KEYCODE_Y) {
                 (selectedMediaItem as? MediaWrapper)?.let {
                     TvUtil.showMediaDetail(this, it)
+                    return true
+                }
+            }
+            return super.onKeyDown(keyCode, event)
+        }
+        if (moviepediaModel != null) {
+            if (keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE || keyCode == KeyEvent.KEYCODE_BUTTON_Y || keyCode == KeyEvent.KEYCODE_Y) {
+                selectedMoviepediaItem?.let {
+                    openMoviepediaItem(it)
                     return true
                 }
             }
@@ -301,6 +371,11 @@ class VerticalGridActivity : BaseTvActivity(), BrowserActivityInterface {
         backgroundManager?.let { lifecycleScope.updateBackground(this, it, item) }
     }
 
+    private fun onMoviepediaItemFocused(item: MediaMetadataWithImages) {
+        selectedMoviepediaItem = item
+        backgroundManager?.let { lifecycleScope.updateBackground(this, it, item) }
+    }
+
     @Suppress("UNCHECKED_CAST")
     private fun onMediaItemClicked(item: MediaLibraryItem) {
         val model = mediaModel ?: return
@@ -331,6 +406,32 @@ class VerticalGridActivity : BaseTvActivity(), BrowserActivityInterface {
 
     private fun mediaDisplayPrefId(category: Long) = "display_tv_media_$category"
 
+    private fun moviepediaTitle(category: Long) = when (category) {
+        HEADER_TV_SHOW -> getString(VlcR.string.header_tvshows)
+        HEADER_MOVIES -> getString(VlcR.string.header_movies)
+        else -> getString(VlcR.string.video)
+    }
+
+    private fun moviepediaColumnCount() = resources.getInteger(TvR.integer.tv_songs_col_count)
+
+    private fun moviepediaDisplayPrefId(category: Long) = "display_tv_moviepedia_$category"
+
+    private fun openMoviepediaItem(item: MediaMetadataWithImages) {
+        when (item.metadata.type) {
+            MediaMetadataType.TV_SHOW -> {
+                val intent = Intent(this, MediaScrapingTvshowDetailsActivity::class.java)
+                intent.putExtra(TV_SHOW_ID, item.metadata.moviepediaId)
+                startActivity(intent)
+            }
+            else -> item.metadata.mlId?.let {
+                lifecycleScope.launch {
+                    val media = getFromMl { getMedia(it) }
+                    TvUtil.showMediaDetail(this@VerticalGridActivity, media)
+                }
+            }
+        }
+    }
+
     private fun mediaSortActions(model: SortableModel) = buildList {
         if (model.canSortByName()) add(MediaSortAction(getString(VlcR.string.sortby_name), Medialibrary.SORT_ALPHA))
         if (model.canSortByFileNameName()) add(MediaSortAction(getString(VlcR.string.sortby_filename), Medialibrary.SORT_FILENAME))
@@ -354,6 +455,272 @@ class VerticalGridActivity : BaseTvActivity(), BrowserActivityInterface {
     companion object {
         private const val TAG = "VerticalGridActivity"
     }
+}
+
+@Composable
+private fun TvMoviepediaBrowserScreen(
+    title: String,
+    items: List<MediaMetadataWithImages>,
+    loading: Boolean,
+    empty: Boolean,
+    inGrid: Boolean,
+    columns: Int,
+    sortActions: List<MediaSortAction>,
+    onBack: () -> Unit,
+    onToggleDisplay: () -> Unit,
+    onSort: (Int) -> Unit,
+    onItemFocused: (MediaMetadataWithImages) -> Unit,
+    onItemClicked: (MediaMetadataWithImages) -> Unit
+) {
+    val firstFocusRequester = remember { FocusRequester() }
+    var firstFocusRequested by remember { mutableStateOf(false) }
+
+    LaunchedEffect(items.firstOrNull()?.metadata?.moviepediaId) {
+        if (!firstFocusRequested && items.isNotEmpty()) {
+            firstFocusRequester.requestFocus()
+            firstFocusRequested = true
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        Color(0xF2011422),
+                        Color(0xE6011422),
+                        Color(0xF2011422)
+                    )
+                )
+            )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(start = 56.dp, top = 32.dp, end = 48.dp, bottom = 40.dp)
+        ) {
+            TvMediaBrowserHeader(
+                title = title,
+                inGrid = inGrid,
+                sortActions = sortActions,
+                onBack = onBack,
+                onToggleDisplay = onToggleDisplay,
+                onSort = onSort
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            if (empty) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    Text(
+                        text = androidx.compose.ui.res.stringResource(VlcR.string.empty_directory),
+                        color = Color.White.copy(alpha = 0.75f),
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                }
+            } else if (inGrid) {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(columns.coerceAtLeast(1)),
+                    contentPadding = PaddingValues(bottom = 48.dp),
+                    horizontalArrangement = Arrangement.spacedBy(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    itemsIndexed(items, key = { index, item -> "${index}-${item.metadata.moviepediaId}-${item.metadata.title}" }) { index, item ->
+                        TvMoviepediaGridCard(
+                            item = item,
+                            firstFocusRequester = firstFocusRequester.takeIf { index == 0 },
+                            onFocused = onItemFocused,
+                            onClick = { onItemClicked(item) }
+                        )
+                    }
+                }
+            } else {
+                LazyColumn(
+                    contentPadding = PaddingValues(bottom = 48.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    itemsIndexed(items, key = { index, item -> "${index}-${item.metadata.moviepediaId}-${item.metadata.title}" }) { index, item ->
+                        TvMoviepediaListRow(
+                            item = item,
+                            firstFocusRequester = firstFocusRequester.takeIf { index == 0 },
+                            onFocused = onItemFocused,
+                            onClick = { onItemClicked(item) }
+                        )
+                    }
+                }
+            }
+        }
+        if (loading) {
+            CircularProgressIndicator(
+                color = VLCThemeDefaults.colors.primary,
+                trackColor = Color.White.copy(alpha = 0.18f),
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(44.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun TvMoviepediaGridCard(
+    item: MediaMetadataWithImages,
+    firstFocusRequester: FocusRequester?,
+    onFocused: (MediaMetadataWithImages) -> Unit,
+    onClick: () -> Unit
+) {
+    TvMoviepediaItemSurface(
+        item = item,
+        width = 132.dp,
+        imageHeight = 190.dp,
+        firstFocusRequester = firstFocusRequester,
+        onFocused = onFocused,
+        onClick = onClick
+    )
+}
+
+@Composable
+private fun TvMoviepediaListRow(
+    item: MediaMetadataWithImages,
+    firstFocusRequester: FocusRequester?,
+    onFocused: (MediaMetadataWithImages) -> Unit,
+    onClick: () -> Unit
+) {
+    var focused by remember { mutableStateOf(false) }
+    val shape = RoundedCornerShape(4.dp)
+    val background = if (focused) Color(0xFF34434E) else Color(0xFF1A2C38)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .then(firstFocusRequester?.let { Modifier.focusRequester(it) } ?: Modifier)
+            .fillMaxWidth()
+            .height(104.dp)
+            .clip(shape)
+            .background(background)
+            .border(
+                BorderStroke(if (focused) 3.dp else 1.dp, if (focused) VLCThemeDefaults.colors.primary else Color.White.copy(alpha = 0.08f)),
+                shape
+            )
+            .onFocusChanged {
+                focused = it.isFocused
+                if (it.isFocused) onFocused(item)
+            }
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp)
+    ) {
+        TvMoviepediaImage(item = item, modifier = Modifier.size(width = 64.dp, height = 88.dp))
+        Spacer(modifier = Modifier.width(16.dp))
+        Column(verticalArrangement = Arrangement.Center, modifier = Modifier.weight(1f)) {
+            Text(
+                text = item.metadata.title,
+                color = Color.White,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = item.subtitle(),
+                color = Color.White.copy(alpha = 0.7f),
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        item.media?.let { media ->
+            generateResolutionClass(media.width, media.height)?.let {
+                Text(
+                    text = it,
+                    color = Color.White.copy(alpha = 0.72f),
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TvMoviepediaItemSurface(
+    item: MediaMetadataWithImages,
+    width: Dp,
+    imageHeight: Dp,
+    firstFocusRequester: FocusRequester?,
+    onFocused: (MediaMetadataWithImages) -> Unit,
+    onClick: () -> Unit
+) {
+    var focused by remember { mutableStateOf(false) }
+    val shape = RoundedCornerShape(4.dp)
+    val background = if (focused) Color(0xFF34434E) else Color(0xFF1A2C38)
+    Column(
+        modifier = Modifier
+            .then(firstFocusRequester?.let { Modifier.focusRequester(it) } ?: Modifier)
+            .width(width)
+            .height(imageHeight + 74.dp)
+            .clip(shape)
+            .background(background)
+            .border(
+                BorderStroke(if (focused) 3.dp else 1.dp, if (focused) VLCThemeDefaults.colors.primary else Color.White.copy(alpha = 0.08f)),
+                shape
+            )
+            .onFocusChanged {
+                focused = it.isFocused
+                if (it.isFocused) onFocused(item)
+            }
+            .clickable(onClick = onClick)
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(imageHeight)
+                .background(Color.Black.copy(alpha = 0.24f))
+        ) {
+            TvMoviepediaImage(item = item, modifier = Modifier.fillMaxSize())
+        }
+        Column(
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 10.dp, vertical = 6.dp)
+        ) {
+            Text(
+                text = item.metadata.title,
+                color = Color.White,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = item.subtitle(),
+                color = Color.White.copy(alpha = 0.7f),
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
+private fun TvMoviepediaImage(item: MediaMetadataWithImages, modifier: Modifier) {
+    AndroidView(
+        factory = { context ->
+            ImageView(context).apply {
+                adjustViewBounds = true
+                scaleType = ImageView.ScaleType.CENTER_CROP
+            }
+        },
+        modifier = modifier,
+        update = { imageView ->
+            imageView.scaleType = ImageView.ScaleType.CENTER_CROP
+            imageView.setImageResource(if (item.metadata.type == MediaMetadataType.TV_SHOW) VlcR.drawable.ic_browser_tvshow_big else VlcR.drawable.ic_browser_movie_big)
+            imageView.contentDescription = item.metadata.title
+            downloadIcon(imageView, item.metadata.currentPoster.toUri())
+        }
+    )
 }
 
 @Composable
