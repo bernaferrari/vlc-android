@@ -38,8 +38,8 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
  * - application/vlc-android/res/layout/otp_code.xml
  *
  * This is intentionally a full-screen Compose surface rather than an interop leaf:
- * it lets OTPCodeActivity retire the former FragmentContainerView host
- * as part of the full Compose / no-fragment migration tracked in bd compose-bwf.
+ * it lets OTPCodeActivity use a direct Compose host as part of the full Compose
+ * migration tracked in bd compose-bwf.
  */
 @Composable
 fun VLCOTPCodeScreen(

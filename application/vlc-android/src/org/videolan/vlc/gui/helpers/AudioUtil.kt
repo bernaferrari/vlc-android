@@ -28,9 +28,9 @@ import android.provider.MediaStore
 import android.util.Log
 import android.webkit.MimeTypeMap
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.annotation.WorkerThread
 import androidx.core.content.contentValuesOf
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -51,7 +51,7 @@ import java.io.FileInputStream
 object AudioUtil {
     const val TAG = "VLC/AudioUtil"
 
-    fun FragmentActivity.setRingtone(song: MediaWrapper) {
+    fun ComponentActivity.setRingtone(song: MediaWrapper) {
         if (AndroidUtil.isOOrLater && !Permissions.canWriteStorage(this)) {
             Permissions.askWriteStoragePermission(this, false, Runnable { setRingtone(song) })
             return

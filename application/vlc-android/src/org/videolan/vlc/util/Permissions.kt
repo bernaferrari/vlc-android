@@ -40,7 +40,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import org.videolan.libvlc.util.AndroidUtil
@@ -271,7 +270,7 @@ object Permissions {
      * @param activity the activity to check with
      * @return true if the permission dialog has been opened
      */
-    fun checkDrawOverlaysPermission(activity: FragmentActivity): Boolean {
+    fun checkDrawOverlaysPermission(activity: ComponentActivity): Boolean {
         if (AndroidUtil.isMarshMallowOrLater && !canDrawOverlays(activity)) {
             showSettingsPermissionDialog(activity, PERMISSION_SYSTEM_DRAW_OVRLAYS)
             return true
@@ -279,17 +278,17 @@ object Permissions {
         return false
     }
 
-    fun checkPiPPermission(activity: FragmentActivity) {
+    fun checkPiPPermission(activity: ComponentActivity) {
         if (!isPiPAllowed(activity)) {
             showSettingsPermissionDialog(activity, PERMISSION_PIP)
         }
     }
 
-    fun checkWriteSettingsPermission(activity: FragmentActivity, mode: Int) {
+    fun checkWriteSettingsPermission(activity: ComponentActivity, mode: Int) {
         if (!canWriteSettings(activity)) showSettingsPermissionDialog(activity, mode)
     }
 
-    private fun showSettingsPermissionDialog(activity: FragmentActivity, mode: Int) {
+    private fun showSettingsPermissionDialog(activity: ComponentActivity, mode: Int) {
         if (activity.isFinishing || sAlertDialog != null && sAlertDialog!!.isShowing) return
         sAlertDialog = createSettingsDialogCompat(activity, mode)
     }

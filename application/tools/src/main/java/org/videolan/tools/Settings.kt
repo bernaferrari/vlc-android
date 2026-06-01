@@ -108,7 +108,7 @@ object Settings : SingletonHolder<SharedPreferences, Context>({ init(it.applicat
         //Remote access
         KEYSTORE_PASSWORD_IV, KEY_COOKIE_ENCRYPT_KEY, KEY_COOKIE_SIGN_KEY, KEYSTORE_PASSWORD, ENCRYPTED_KEY_NAME,
         //Others
-        KEY_NAVIGATOR_SCREEN_UNSTABLE, KEY_FRAGMENT_ID, KEY_DEBLOCKING, KEY_LAST_SESSION_CRASHED, KEY_METERED_CONNECTION, KEY_MEDIALIBRARY_SCAN
+        KEY_NAVIGATOR_SCREEN_UNSTABLE, KEY_NAVIGATION_ID, KEY_DEBLOCKING, KEY_LAST_SESSION_CRASHED, KEY_METERED_CONNECTION, KEY_MEDIALIBRARY_SCAN
 
     )
 
@@ -419,7 +419,7 @@ const val KEY_ANDROID_AUTO_SUBTITLE_SCALE_VAL = "android_auto_subtitle_scale_val
 
 //To exclude
 const val KEY_NAVIGATOR_SCREEN_UNSTABLE = "navigator_screen_unstable"
-const val KEY_FRAGMENT_ID = "fragment_id"
+const val KEY_NAVIGATION_ID = "fragment_id"
 
 
 class DeviceInfo(context: Context) {

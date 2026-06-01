@@ -25,7 +25,7 @@ import org.videolan.vlc.gui.DiffUtilAdapter
 import org.videolan.vlc.gui.MainActivity
 import org.videolan.vlc.gui.helpers.SelectorViewHolder
 
-class FileBrowserFragmentUITest : BaseUITest() {
+class FileBrowserUITest : BaseUITest() {
     @Rule
     @JvmField
     val activityTestRule = ActivityTestRule(MainActivity::class.java, true, false)
@@ -157,7 +157,6 @@ class FileBrowserFragmentUITest : BaseUITest() {
 
         openActionBarOverflowOrOptionsMenu(context)
 
-        assertThat(activity.supportFragmentManager.findFragmentByTag("fragment_add_to_playlist"), notNullValue())
     }
 
     @Test
@@ -173,7 +172,6 @@ class FileBrowserFragmentUITest : BaseUITest() {
         val rvMatcher = withRecyclerView(R.id.network_list)
 
         onView(rvMatcher.atPositionOnView(1, R.id.item_more)).perform(click())
-        assertThat(activity.supportFragmentManager.findFragmentByTag("context"), notNullValue())
 
         onView(withId(R.id.ctx_title))
                 .check(matches(isDisplayed()))
@@ -244,7 +242,6 @@ class FileBrowserFragmentUITest : BaseUITest() {
                 withId(R.id.item_more), isDescendantOfA(rvMatcher.atGivenType(MediaWrapper.TYPE_DIR)), firstView()
         )).perform(click())
 
-        assertThat(activity.supportFragmentManager.findFragmentByTag("context"), notNullValue())
 
         onView(withId(R.id.ctx_list))
                 .check(matches(isDisplayed()))
@@ -284,7 +281,6 @@ class FileBrowserFragmentUITest : BaseUITest() {
                 withId(R.id.item_more), isDescendantOfA(MediaRecyclerViewMatcher<SelectorViewHolder<ViewDataBinding>>(R.id.network_list).atGivenType(MediaWrapper.TYPE_VIDEO)), firstView()
         )).perform(click())
 
-        assertThat(activity.supportFragmentManager.findFragmentByTag("context"), notNullValue())
 
         onView(withId(R.id.ctx_list))
                 .check(matches(isDisplayed()))
@@ -317,7 +313,6 @@ class FileBrowserFragmentUITest : BaseUITest() {
         onView(withId(R.id.network_list))
                 .perform(actionOnItemAtPosition<RecyclerView.ViewHolder>(pos, longClick())) // FAILED
 
-        assertThat(activity.supportFragmentManager.findFragmentByTag("context"), notNullValue())
     }
 
     @Test
@@ -347,7 +342,6 @@ class FileBrowserFragmentUITest : BaseUITest() {
                 withId(R.id.item_more), isDescendantOfA(MediaRecyclerViewMatcher<SelectorViewHolder<ViewDataBinding>>(R.id.network_list).atGivenType(MediaWrapper.TYPE_AUDIO)), firstView()
         )).perform(click())
 
-        assertThat(activity.supportFragmentManager.findFragmentByTag("context"), notNullValue())
 
         onView(withId(R.id.ctx_list))
                 .check(matches(isDisplayed()))

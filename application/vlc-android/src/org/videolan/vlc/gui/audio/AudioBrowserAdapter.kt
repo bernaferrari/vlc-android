@@ -58,7 +58,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.MotionEventCompat
 import androidx.databinding.ViewDataBinding
-import androidx.fragment.app.Fragment
 import androidx.paging.PagedList
 import androidx.paging.PagedListAdapter
 import androidx.recyclerview.widget.DiffUtil
@@ -154,7 +153,6 @@ open class AudioBrowserAdapter @JvmOverloads constructor(
     init {
         val ctx = when (eventsHandler) {
             is Context -> eventsHandler
-            is Fragment -> eventsHandler.requireContext()
             else -> AppContextProvider.appContext
         }
         listImageWidth = ctx.resources.getDimension(R.dimen.audio_browser_item_size).toInt()

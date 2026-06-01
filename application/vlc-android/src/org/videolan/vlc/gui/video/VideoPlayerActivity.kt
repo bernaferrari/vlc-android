@@ -87,7 +87,6 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.databinding.BindingAdapter
-import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
@@ -710,9 +709,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         startActivity(Intent(DialogActivity.KEY_DIALOG, null, this, DialogActivity::class.java))
     }
 
-    override fun dialogCanceled(dialog: Dialog?) {
-        (dialog?.context as? DialogFragment)?.dismiss()
-    }
+    override fun dialogCanceled(dialog: Dialog?) = Unit
 
     override fun afterTextChanged(s: Editable?) {
     }
@@ -827,8 +824,6 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     fun switchToPopup() {
         if (isBenchmark) return
         optionsDelegate?.hide()
-        //look for dialogs and close them
-        supportFragmentManager.fragments.forEach { (it as? DialogFragment)?.dismiss() }
         val mw = service?.currentMediaWrapper
         if (mw == null || !AndroidDevices.pipAllowed || !isStarted()) return
 

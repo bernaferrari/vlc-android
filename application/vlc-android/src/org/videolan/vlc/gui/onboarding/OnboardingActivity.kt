@@ -24,7 +24,7 @@ import org.videolan.resources.KEY_ANIMATED
 import org.videolan.resources.PREF_FIRST_RUN
 import org.videolan.resources.util.startMedialibrary
 import org.videolan.tools.KEY_APP_THEME
-import org.videolan.tools.KEY_FRAGMENT_ID
+import org.videolan.tools.KEY_NAVIGATION_ID
 import org.videolan.tools.KEY_MEDIALIBRARY_SCAN
 import org.videolan.tools.ML_SCAN_OFF
 import org.videolan.tools.ML_SCAN_ON
@@ -108,7 +108,7 @@ class OnboardingActivity : AppCompatActivity() {
             putInt(PREF_FIRST_RUN, BuildConfig.VLC_VERSION_CODE)
             putBoolean(ONBOARDING_DONE_KEY, true)
             putInt(KEY_MEDIALIBRARY_SCAN, if (viewModel.scanStorages) ML_SCAN_ON else ML_SCAN_OFF)
-            putInt(KEY_FRAGMENT_ID, if (viewModel.scanStorages) R.id.nav_video else R.id.nav_directories)
+            putInt(KEY_NAVIGATION_ID, if (viewModel.scanStorages) R.id.nav_video else R.id.nav_directories)
             putString(KEY_APP_THEME, viewModel.theme.toString())
         }
         if (!viewModel.scanStorages) MediaParsingService.preselectedStorages.clear()

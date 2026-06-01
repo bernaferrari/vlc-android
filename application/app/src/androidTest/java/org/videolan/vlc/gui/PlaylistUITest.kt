@@ -38,7 +38,7 @@ import org.videolan.vlc.util.TestCoroutineContextProvider
 import org.videolan.vlc.withCount
 import org.videolan.vlc.withRecyclerView
 
-class PlaylistFragmentUITest: BaseUITest() {
+class PlaylistUITest: BaseUITest() {
     @Rule
     @JvmField
     val activityTestRule = ActivityTestRule(MainActivity::class.java, true, false)
@@ -140,8 +140,6 @@ class PlaylistFragmentUITest: BaseUITest() {
         val rvMatcher = withRecyclerView(R.id.audio_list)
         onView(rvMatcher.atPositionOnView(0, R.id.item_more))
                 .perform(click())
-
-        assertThat(activity.supportFragmentManager.findFragmentByTag("context"), notNullValue())
 
         onView(withId(R.id.ctx_list))
                 .check(matches(isDisplayed()))

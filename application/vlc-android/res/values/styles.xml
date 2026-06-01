@@ -705,7 +705,6 @@
         <item name="switchPreferenceCompatStyle">@style/VLCSwitchPreferenceStyle</item>
         <item name="dialogPreferenceStyle">@style/VLCDialogPreferenceStyle</item>
         <item name="checkBoxPreferenceStyle">@style/VLCCheckBoxPreferenceStyle</item>
-        <item name="preferenceFragmentCompatStyle">@style/PreferenceFragment.Material</item>
         <item name="preferenceCategoryStyle">@style/VLCPreferenceCategoryStyle</item>
         <item name="preferenceScreenStyle">@style/VLCPreferenceScreenStyle</item>
     </style>
@@ -718,7 +717,6 @@
         <item name="switchPreferenceCompatStyle">@style/VLCSwitchPreferenceStyle</item>
         <item name="dialogPreferenceStyle">@style/VLCDialogPreferenceStyle</item>
         <item name="checkBoxPreferenceStyle">@style/VLCCheckBoxPreferenceStyle</item>
-        <item name="preferenceFragmentCompatStyle">@style/PreferenceFragment.Material</item>
         <item name="preferenceCategoryStyle">@style/VLCPreferenceCategoryStyle</item>
         <item name="preferenceScreenStyle">@style/VLCPreferenceScreenStyle</item>
     </style>
@@ -736,10 +734,6 @@
     </style>
 
     <style name="VLCCheckBoxPreferenceStyle" parent="Preference.CheckBoxPreference.Material">
-        <item name="iconSpaceReserved">false</item>
-    </style>
-
-    <style name="VLCPreferenceFragmentStyle" parent="PreferenceFragment.Material">
         <item name="iconSpaceReserved">false</item>
     </style>
 

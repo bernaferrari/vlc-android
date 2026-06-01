@@ -27,12 +27,12 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.WorkerThread
 import androidx.appcompat.app.AlertDialog
 import androidx.documentfile.provider.DocumentFile
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
@@ -52,7 +52,7 @@ object OtgAccess {
 }
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-fun FragmentActivity.requestOtgRoot() {
+fun ComponentActivity.requestOtgRoot() {
     lifecycleScope.launch(Dispatchers.Main.immediate) {
         val resultKey = "$TAG:${System.nanoTime()}"
         var launcher: ActivityResultLauncher<Intent>? = null

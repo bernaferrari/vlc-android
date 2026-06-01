@@ -135,7 +135,7 @@ data class VLCEqualizerSettingsStrings(
  * EqualizerSettingsActivity keeps ownership of Room-backed presets,
  * import/export file flows, snackbars, and playback updates. This screen owns
  * the toolbar, preset list, overwrite form, and Activity-hosted equalizer editor
- * so the settings screen no longer opens a Fragment for its main controls.
+ * so the settings screen opens its main controls directly from Compose.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -299,7 +299,7 @@ fun VLCEqualizerSettingsScreen(
  *
  * The app module owns the BottomSheetDialog host and EqualizerViewModel wiring;
  * this content owns the player-facing equalizer controls without requiring a
- * Fragment or legacy XML binding.
+ * legacy XML binding.
  */
 @Composable
 fun VLCEqualizerEditorDialogContent(

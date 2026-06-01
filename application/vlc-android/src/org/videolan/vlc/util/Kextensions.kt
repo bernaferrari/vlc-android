@@ -27,9 +27,6 @@ import androidx.core.text.PrecomputedTextCompat
 import androidx.core.text.toSpannable
 import androidx.core.widget.TextViewCompat
 import androidx.databinding.BindingAdapter
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
@@ -38,7 +35,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
-import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -48,7 +44,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.videolan.libvlc.util.AndroidUtil
-import org.videolan.medialibrary.MLServiceLocator
 import org.videolan.medialibrary.Tools
 import org.videolan.medialibrary.interfaces.Medialibrary
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
@@ -61,11 +56,7 @@ import org.videolan.resources.AndroidDevices
 import org.videolan.resources.util.getFromMl
 import org.videolan.tools.AppScope
 import org.videolan.tools.isStarted
-import org.videolan.tools.retrieveParent
 import org.videolan.vlc.R
-import org.videolan.vlc.gui.SecondaryActivity
-import org.videolan.vlc.gui.browser.KEY_JUMP_TO
-import org.videolan.vlc.gui.browser.KEY_MEDIA
 import java.io.File
 import java.lang.ref.WeakReference
 import java.net.URI
@@ -96,7 +87,7 @@ fun String.validateLocation(): Boolean {
     return true
 }
 
-inline fun <reified T : ViewModel> FragmentActivity.getModel() = ViewModelProvider(this)[T::class.java]
+inline fun <reified T : ViewModel> ComponentActivity.getModel() = ViewModelProvider(this)[T::class.java]
 
 fun ComponentActivity.share(file: File) {
     val intentShareFile = Intent(Intent.ACTION_SEND)
@@ -137,7 +128,7 @@ suspend fun AppCompatActivity.share(media: MediaWrapper) {
         } else Snackbar.make(findViewById(android.R.id.content), R.string.invalid_file, Snackbar.LENGTH_LONG).show()
 }
 
-fun FragmentActivity.share(medias: List<MediaWrapper>) = lifecycleScope.launch {
+fun ComponentActivity.share(medias: List<MediaWrapper>) = lifecycleScope.launch {
     val intentShareFile = Intent(Intent.ACTION_SEND_MULTIPLE)
     val uris = arrayListOf<Uri>()
     val title = if (medias.size == 1) medias[0].title else resources.getQuantityString(R.plurals.media_quantity, medias.size, medias.size)
@@ -513,27 +504,6 @@ fun List<MediaLibraryItem>.determineMaxNbOfDigits(): Int {
                 ?: 0, numberOfPrepending)
     }
     return numberOfPrepending
-}
-
-fun Fragment.showParentFolder(media: MediaWrapper) {
-    val parent = MLServiceLocator.getAbstractMediaWrapper(media.uri.retrieveParent()).apply {
-        type = MediaWrapper.TYPE_DIR
-    }
-    val intent = Intent(requireActivity().applicationContext, SecondaryActivity::class.java)
-    intent.putExtra(KEY_MEDIA, parent)
-    intent.putExtra(KEY_JUMP_TO, media)
-    intent.putExtra("fragment", SecondaryActivity.FILE_BROWSER)
-    startActivity(intent)
-}
-
-/**
- * Finds the [ViewPager2] current fragment
- * @param fragmentManager: The used [FragmentManager]
- *
- * @return the current fragment if found
- */
-fun ViewPager2.findCurrentFragment(fragmentManager: FragmentManager): Fragment? {
-    return fragmentManager.findFragmentByTag("f$currentItem")
 }
 
 /**

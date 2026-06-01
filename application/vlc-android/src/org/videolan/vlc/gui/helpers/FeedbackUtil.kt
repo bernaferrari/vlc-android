@@ -29,9 +29,9 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.core.content.FileProvider
 import androidx.core.text.HtmlCompat
-import androidx.fragment.app.FragmentActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.videolan.medialibrary.interfaces.Medialibrary
@@ -59,7 +59,7 @@ object FeedbackUtil {
      * @param logcatZipPath Path to the logcat zip file
      * @return true if the email was sent, false otherwise
      */
-    suspend fun sendEmail(activity: FragmentActivity, supportType: SupportType, includeMedialibrary: Boolean, message: String, subject: String, feedbackType: Int, logcatZipPath: String? = null): Boolean {
+    suspend fun sendEmail(activity: ComponentActivity, supportType: SupportType, includeMedialibrary: Boolean, message: String, subject: String, feedbackType: Int, logcatZipPath: String? = null): Boolean {
         val emailIntent = withContext(Dispatchers.IO) {
 
             val emailIntent = Intent(Intent.ACTION_SEND_MULTIPLE)

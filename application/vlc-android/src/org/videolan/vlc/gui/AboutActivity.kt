@@ -32,9 +32,7 @@ import org.videolan.vlc.compose.components.VLCAboutVersionInfo
 import org.videolan.vlc.util.openLinkIfPossible
 import java.security.MessageDigest
 
-/**
- * Full Compose About screen. Replaces the former AboutFragment/about.xml path.
- */
+/** Full Compose About screen. */
 open class AboutActivity : BaseActivity() {
 
     private var licenseText by mutableStateOf("")

@@ -357,7 +357,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
         }
         if (bottomIsHiddden) bottomBehavior?.setCollapsed() else hideStatusIfNeeded(playerBehavior.state)
         playerBehavior.peekHeight = resources.getDimensionPixelSize(R.dimen.player_peek_height)
-        updateFragmentMargins()
+        updateContentMargins()
         playerBehavior.setPeekHeightListener {
             applyMarginToProgressBar(playerBehavior.peekHeight)
         }
@@ -385,7 +385,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
                 hideStatusIfNeeded(newState)
                 audioPlayer.onStateChanged(newState)
                 if (newState == STATE_COLLAPSED || newState == STATE_HIDDEN) removeTipViewIfDisplayed()
-                updateFragmentMargins(newState)
+                updateContentMargins(newState)
                 applyMarginToProgressBar(playerBehavior.peekHeight)
                 setContentBottomPadding()
                 if (isTalkbackIsEnabled()) {
@@ -477,7 +477,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
         }
     }
 
-    fun updateFragmentMargins(state: Int = STATE_COLLAPSED) {
+    fun updateContentMargins(state: Int = STATE_COLLAPSED) {
         playerShown = state != STATE_HIDDEN
         setContentBottomPadding()
     }

@@ -32,9 +32,9 @@ import android.net.Uri
 import android.os.Parcelable
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.annotation.XmlRes
 import androidx.core.content.edit
-import androidx.fragment.app.FragmentActivity
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.Dispatchers
@@ -533,7 +533,7 @@ object PreferenceParser {
         }
         withContext(Dispatchers.Main) {
             if (success)
-                if (activity is FragmentActivity && !Settings.tvUI)
+                if (activity is ComponentActivity && !Settings.tvUI)
                     UiTools.snackerConfirm(activity, activity.getString(R.string.export_settings_success), confirmMessage = R.string.share, overAudioPlayer = false) {
                         activity.share(dst)
                     }

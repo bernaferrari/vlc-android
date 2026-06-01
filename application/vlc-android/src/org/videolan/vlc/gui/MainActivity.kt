@@ -249,7 +249,7 @@ class MainActivity : ContentActivity(),
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.putInt(EXTRA_TARGET, currentFragmentId)
+        outState.putInt(EXTRA_TARGET, currentDestinationId)
         super.onSaveInstanceState(outState)
     }
 
@@ -323,9 +323,9 @@ class MainActivity : ContentActivity(),
                     finish()
                     startActivity(intent)
                 }
-                RESULT_UPDATE_SEEN_MEDIA -> if (currentFragmentId == R.id.nav_video) refreshCurrentScreen()
+                RESULT_UPDATE_SEEN_MEDIA -> if (currentDestinationId == R.id.nav_video) refreshCurrentScreen()
                 RESULT_UPDATE_ARTISTS -> {
-                    if (currentFragmentId == R.id.nav_audio) refreshCurrentScreen()
+                    if (currentDestinationId == R.id.nav_audio) refreshCurrentScreen()
                 }
             }
         } else if (requestCode == ACTIVITY_RESULT_OPEN && resultCode == RESULT_OK) {

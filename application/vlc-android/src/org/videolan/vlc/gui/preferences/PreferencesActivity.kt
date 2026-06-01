@@ -34,6 +34,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
@@ -44,7 +45,6 @@ import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.core.text.isDigitsOnly
 import androidx.core.view.ViewCompat
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.appbar.AppBarLayout
 import kotlinx.coroutines.Dispatchers
@@ -923,7 +923,7 @@ open class PreferencesActivity : BaseActivity() {
          * @param prefKey The preference key to redirect to
          * @throws NoSuchElementException if the key is not found
          */
-        suspend fun launchWithPref(activity: FragmentActivity, prefKey:String) {
+        suspend fun launchWithPref(activity: ComponentActivity, prefKey:String) {
             val pref = withContext(Dispatchers.IO) {
                 PreferenceParser.parsePreferences(activity, true)
             }.first { it.key == prefKey }

@@ -75,8 +75,6 @@ import androidx.core.os.bundleOf
 import androidx.core.view.MenuItemCompat
 import androidx.core.view.WindowCompat
 import androidx.databinding.BindingAdapter
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -394,8 +392,8 @@ object UiTools {
         return Snackbar.make(view, message, Snackbar.LENGTH_INDEFINITE)
     }
 
-        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    fun snackerMissing(activity: FragmentActivity) {
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    fun snackerMissing(activity: ComponentActivity) {
         val view = getSnackAnchorView(activity) ?: return
         val snack = Snackbar.make(view, activity.getString(R.string.missing_media_snack), Snackbar.LENGTH_LONG)
                 .setAction(R.string.ok) {
@@ -561,11 +559,9 @@ object UiTools {
 
     fun ComponentActivity.showDonations() {
         if (!isStarted()) return
-//        val videoTracksDialog = VLCBillingDialog()
-//        videoTracksDialog.show(supportFragmentManager, "fragment_donations")
     }
 
-    fun FragmentActivity.showMediaInfo(mediaWrapper: MediaWrapper) {
+    fun ComponentActivity.showMediaInfo(mediaWrapper: MediaWrapper) {
         val i = Intent(this, InfoActivity::class.java)
         i.putExtra(TAG_ITEM, mediaWrapper)
         startActivity(i)
@@ -784,8 +780,6 @@ object UiTools {
             )
             when (leanbackCaller) {
                 is Activity -> leanbackCaller.startActivityForResult(intent, leanbackResultCode)
-                is Fragment -> leanbackCaller.startActivityForResult(intent, leanbackResultCode)
-                is android.app.Fragment -> leanbackCaller.startActivityForResult(intent, leanbackResultCode)
                 else -> throw IllegalStateException("Invalid caller")
             }
 

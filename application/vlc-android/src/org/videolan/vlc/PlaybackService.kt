@@ -55,6 +55,7 @@ import android.text.style.StyleSpan
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.annotation.MainThread
 import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
@@ -64,7 +65,6 @@ import androidx.core.app.ServiceCompat
 import androidx.core.content.edit
 import androidx.core.content.getSystemService
 import androidx.core.os.bundleOf
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
@@ -815,7 +815,7 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
                 (AppContextProvider.currentActivity as? AudioPlayerContainerActivity)?.let {activity ->
                     UiTools.snackerConfirm(activity, getString(R.string.metered_connection_stopped), overAudioPlayer = activity.isAudioPlayerExpanded, confirmMessage = R.string.preferences) {
                         lifecycleScope.launch {
-                            PreferencesActivity.launchWithPref(activity as FragmentActivity, KEY_METERED_CONNECTION)
+                            PreferencesActivity.launchWithPref(activity, KEY_METERED_CONNECTION)
                         }
                     }
                 } ?: run {
@@ -825,7 +825,7 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
                 AppContextProvider.currentActivity?.let {activity ->
                     UiTools.snackerConfirm(activity, getString(R.string.metered_connection_warning), overAudioPlayer = activity is AudioPlayerContainerActivity && activity.isAudioPlayerExpanded, confirmMessage = R.string.preferences) {
                         lifecycleScope.launch {
-                            PreferencesActivity.launchWithPref(activity as FragmentActivity, KEY_METERED_CONNECTION)
+                            if (activity is ComponentActivity) PreferencesActivity.launchWithPref(activity, KEY_METERED_CONNECTION)
                         }
                     }
                 } ?: run {

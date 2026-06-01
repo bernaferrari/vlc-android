@@ -19,7 +19,6 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
-import androidx.fragment.app.Fragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -162,5 +161,3 @@ private fun saveExtWritePermission(context: Context, storage: String, treeUri: U
     contentResolver.takePersistableUriPermission(treeUri, Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
     return true
 }
-
-suspend fun Fragment.getExtWritePermission(uri: Uri) = activity?.getExtWritePermission(uri) == true

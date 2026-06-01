@@ -63,7 +63,7 @@ import org.videolan.resources.util.startMedialibrary
 import org.videolan.tools.AppScope
 import org.videolan.tools.BETA_WELCOME
 import org.videolan.tools.KEY_CURRENT_SETTINGS_VERSION
-import org.videolan.tools.KEY_FRAGMENT_ID
+import org.videolan.tools.KEY_NAVIGATION_ID
 import org.videolan.tools.KEY_NAVIGATOR_SCREEN_UNSTABLE
 import org.videolan.tools.KEY_TV_ONBOARDING_DONE
 import org.videolan.tools.PREF_SHOW_VIDEO_SETTINGS_DISCLAIMER
@@ -141,7 +141,7 @@ class StartActivity : ComponentActivity() {
             if (!BuildConfig.DEBUG) {
                 Log.w(TAG, "Reverting to the default screen")
                 preferences.edit(true) {
-                    remove(KEY_FRAGMENT_ID)
+                    remove(KEY_NAVIGATION_ID)
                     remove(KEY_NAVIGATOR_SCREEN_UNSTABLE)
                 }
             }

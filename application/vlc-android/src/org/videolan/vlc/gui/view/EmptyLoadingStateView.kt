@@ -40,9 +40,9 @@ import android.widget.TextView
 import android.widget.ViewFlipper
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
+import androidx.activity.ComponentActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.net.toUri
-import androidx.fragment.app.FragmentActivity
 import androidx.transition.TransitionManager
 import org.videolan.resources.ACTIVITY_RESULT_PREFERENCES
 import org.videolan.tools.dp
@@ -171,7 +171,7 @@ class EmptyLoadingStateView : FrameLayout {
                     ), Permissions.FINE_STORAGE_PERMISSION_REQUEST_CODE
                 )
 
-                else -> (context as? FragmentActivity)?.askStoragePermission(false, null)
+                else -> (context as? ComponentActivity)?.askStoragePermission(false, null)
 
             }
         }

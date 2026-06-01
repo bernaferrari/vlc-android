@@ -22,9 +22,8 @@ package org.videolan.vlc.viewmodels
 
 import android.app.Activity
 import android.support.v4.media.session.PlaybackStateCompat
+import androidx.activity.ComponentActivity
 import androidx.annotation.MainThread
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -320,8 +319,7 @@ class PlaylistModel : ViewModel(), PlaybackService.Callback by EmptyPBSCallback 
     }
 
     companion object {
-        fun get(fragment: Fragment) = ViewModelProvider(fragment.requireActivity())[PlaylistModel::class.java]
-        fun get(activity: FragmentActivity) = ViewModelProvider(activity)[PlaylistModel::class.java]
+        fun get(activity: ComponentActivity) = ViewModelProvider(activity)[PlaylistModel::class.java]
     }
 }
 

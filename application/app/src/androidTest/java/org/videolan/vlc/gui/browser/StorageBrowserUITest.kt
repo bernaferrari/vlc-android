@@ -23,7 +23,7 @@ import org.videolan.vlc.gui.SecondaryActivity
 import org.videolan.vlc.*
 import org.videolan.vlc.gui.helpers.ThreeStatesCheckbox
 
-class StorageBrowserFragmentUITest : BaseUITest() {
+class StorageBrowserUITest : BaseUITest() {
     @Rule
     @JvmField
     val activityTestRule = ActivityTestRule(SecondaryActivity::class.java, true, false)

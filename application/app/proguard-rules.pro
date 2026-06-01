@@ -29,12 +29,6 @@
 -keep public class * extends android.app.Activity {
     public <methods>;
 }
--keep public class * extends android.app.Fragment {
-    public <methods>;
-}
--keep public class * extends androidx.fragment.app.Fragment {
-    public <methods>;
-}
 -keep public class * extends android.app.Application
 -keep public class * extends android.app.Service
 -keep public class * extends android.content.BroadcastReceiver

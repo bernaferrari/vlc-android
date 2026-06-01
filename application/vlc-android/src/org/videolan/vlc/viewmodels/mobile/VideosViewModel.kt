@@ -21,7 +21,7 @@
 package org.videolan.vlc.viewmodels.mobile
 
 import android.content.Context
-import androidx.fragment.app.FragmentActivity
+import androidx.activity.ComponentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -109,7 +109,7 @@ class VideosViewModel(context: Context, type: VideoGroupingType, val folder: Fol
         MediaUtils.openList(context, list, 0)
     }
 
-    internal fun addItemToPlaylist(activity: FragmentActivity, position: Int) = viewModelScope.launch {
+    internal fun addItemToPlaylist(activity: ComponentActivity, position: Int) = viewModelScope.launch {
         val item = provider.pagedList.value?.get(position) ?: return@launch
         withContext(Dispatchers.IO) {
             when (item) {
@@ -125,7 +125,7 @@ class VideosViewModel(context: Context, type: VideoGroupingType, val folder: Fol
         MediaUtils.appendMedia(context, list)
     }
 
-    internal fun playVideo(context: FragmentActivity?, mw: MediaWrapper, position: Int, fromStart: Boolean = false, forceAll:Boolean = false, forceAudio: Boolean = false) {
+    internal fun playVideo(context: ComponentActivity?, mw: MediaWrapper, position: Int, fromStart: Boolean = false, forceAll:Boolean = false, forceAudio: Boolean = false) {
         if (context === null) return
         if (!mw.isPresent) {
             UiTools.snackerMissing(context)
@@ -150,7 +150,7 @@ class VideosViewModel(context: Context, type: VideoGroupingType, val folder: Fol
         }
     }
 
-    internal fun playAll(activity: FragmentActivity?, position: Int = 0) {
+    internal fun playAll(activity: ComponentActivity?, position: Int = 0) {
         if (activity?.isStarted() == true) when (groupingType) {
             VideoGroupingType.NONE -> MediaUtils.playAll(activity, provider as VideosProvider, position, false)
             VideoGroupingType.FOLDER -> MediaUtils.playAllTracks(activity, (provider as FoldersProvider), position, false)
@@ -158,7 +158,7 @@ class VideosViewModel(context: Context, type: VideoGroupingType, val folder: Fol
         }
     }
 
-    internal fun playAudio(activity: FragmentActivity?, media: MediaWrapper) {
+    internal fun playAudio(activity: ComponentActivity?, media: MediaWrapper) {
         if (activity == null) return
         media.addFlags(MediaWrapper.MEDIA_FORCE_AUDIO)
         PlaylistManager.playingAsAudio = true

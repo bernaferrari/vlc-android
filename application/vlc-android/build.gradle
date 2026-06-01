@@ -184,7 +184,6 @@ dependencies {
 
     // AppCompat
     api "androidx.activity:activity-ktx:$rootProject.ext.androidxActivityVersion"
-    api "androidx.fragment:fragment-ktx:$rootProject.ext.androidxFragmentVersion"
     api "androidx.recyclerview:recyclerview:$rootProject.ext.androidxRecyclerviewVersion"
     api "com.google.android.material:material:$rootProject.ext.androidxMaterialVersion"
     api "androidx.annotation:annotation:$rootProject.ext.androidxAnnotationVersion"

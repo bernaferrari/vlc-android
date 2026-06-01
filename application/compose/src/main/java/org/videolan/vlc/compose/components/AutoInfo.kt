@@ -24,7 +24,7 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
  *
  * The app module owns the BottomSheetDialog host and localized string formatting.
  * This content renders the Android Auto help sections without requiring a
- * Fragment or DataBinding layout.
+ * DataBinding layout.
  */
 @Composable
 fun VLCAutoInfoDialogContent(

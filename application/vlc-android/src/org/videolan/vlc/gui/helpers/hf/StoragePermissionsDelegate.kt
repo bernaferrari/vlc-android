@@ -33,7 +33,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -205,6 +204,5 @@ class StoragePermissionsDelegate private constructor() {
             else withContext(Dispatchers.IO) { FileUtils.canWrite(uri) }
         } else getExtWritePermission(uri)
 
-        suspend fun Fragment.getWritePermission(uri: Uri) = activity?.getWritePermission(uri) == true
     }
 }

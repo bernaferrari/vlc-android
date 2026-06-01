@@ -45,8 +45,8 @@ data class VLCWhatsNewItem(
  * - application/vlc-android/res/layout/dialog_whats_new.xml
  *
  * The app module owns the BottomSheetDialog host and settings/navigation side
- * effects. This content renders the release notes without requiring a Fragment
- * or DataBinding layout.
+ * effects. This content renders the release notes without requiring a DataBinding
+ * layout.
  */
 @Composable
 fun VLCWhatsNewDialogContent(

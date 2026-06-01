@@ -37,9 +37,7 @@ private const val WHATS_NEW_IMPORT_EXPORT = "import_export"
 private const val WHATS_NEW_ANDROID_AUTO = "android_auto"
 private const val WHATS_NEW_VERSION = "3.7"
 
-/**
- * Compose-hosted replacement for the former WhatsNewDialog Fragment.
- */
+/** Compose-hosted What's New dialog. */
 fun AppCompatActivity.showWhatsNewComposeDialog() {
     WhatsNewComposeDialog(this).show()
 }

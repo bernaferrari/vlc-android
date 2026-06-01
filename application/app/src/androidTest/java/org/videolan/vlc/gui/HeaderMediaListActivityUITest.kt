@@ -16,12 +16,12 @@ import org.hamcrest.Matchers.equalTo
 import org.junit.Rule
 import org.junit.Test
 import org.videolan.medialibrary.interfaces.Medialibrary
+import org.videolan.resources.TAG_ITEM
 import org.videolan.vlc.BaseUITest
 import org.videolan.vlc.R
 import org.videolan.vlc.databinding.AudioBrowserItemBinding
 import org.videolan.vlc.findFirstPosition
 import org.videolan.vlc.gui.audio.AudioBrowserAdapter
-import org.videolan.vlc.gui.audio.AudioBrowserFragment
 import org.videolan.vlc.sizeOfAtLeast
 import org.videolan.vlc.withMediaItem
 import org.videolan.vlc.withRecyclerView
@@ -43,7 +43,7 @@ class HeaderMediaListActivityUITest: BaseUITest() {
         pl.append(ml.getPagedAudio(Medialibrary.SORT_DEFAULT, false, true, false, 5, 0).map { it.id })
 
         val intent = Intent().apply {
-            putExtra(AudioBrowserFragment.TAG_ITEM, pl)
+            putExtra(TAG_ITEM, pl)
         }
         activityTestRule.launchActivity(intent)
         activity = activityTestRule.activity

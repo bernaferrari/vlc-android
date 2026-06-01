@@ -119,7 +119,7 @@ const val PLAY_EXTRA_START_TIME = "position"
 const val PLAY_EXTRA_OPENED_POSITION = "opened_position"
 const val PLAY_DISABLE_HARDWARE = "disable_hardware"
 
-// MRLPanelFragment
+// MRL panel
 const val KEY_MRL = "mrl"
 
 // Info Activity

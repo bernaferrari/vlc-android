@@ -30,7 +30,7 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
 /**
  * DialogActivity owns the external storage intent handling and timeout. This
  * content renders the prompt and exposes the Browse / Scan / Cancel actions
- * without a DialogFragment or data binding.
+ * without legacy dialog XML or data binding.
  */
 @Composable
 fun VLCExternalDeviceDialogContent(

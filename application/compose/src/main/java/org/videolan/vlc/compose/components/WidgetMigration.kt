@@ -30,7 +30,7 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
  *
  * The app module owns the BottomSheetDialog host and supplies the widget preview
  * drawable. This content mirrors the informational prompt without requiring a
- * Fragment or DataBinding layout.
+ * DataBinding layout.
  */
 @Composable
 fun VLCWidgetMigrationDialogContent(

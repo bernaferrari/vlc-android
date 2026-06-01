@@ -21,7 +21,7 @@ import org.videolan.tools.KEY_VIDEO_APP_SWITCH
 import org.videolan.tools.PLAYBACK_HISTORY
 import org.videolan.tools.SCREEN_ORIENTATION
 
-class PreferencesFragmentUITest: BasePreferenceUITest() {
+class PreferencesUITest: BasePreferenceUITest() {
     @get:Rule
     val intentsTestRule = IntentsTestRule(PreferencesActivity::class.java)
 
