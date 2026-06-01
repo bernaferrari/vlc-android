@@ -21,10 +21,8 @@
 package org.videolan.vlc.gui.video
 
 import android.content.res.Resources
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import org.videolan.libvlc.interfaces.IMedia
 import org.videolan.tools.readableSize
@@ -45,7 +43,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.ComposeView
 import org.videolan.vlc.compose.components.VLCInfoItem
-import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 // =============================================================================
@@ -54,7 +51,7 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
 // ==================== WAVE 1 HOST MIGRATION: MediaInfoAdapter + Info surfaces ====================
 // Host file: MediaInfoAdapter.kt   (task: compose-2l4.1.3 / bd: compose-l94)
 // Composable used: VLCInfoItem (leaf from InfoItem.kt with leadingContent slot)
-// Target layout originally: info_item.xml (still present on disk, 100% untouched)
+// Target layout originally: info_item.xml (deleted after active Compose migration)
 //
 // THIS IS THE MEDIA INFO / TRACK DETAILS HOST MIGRATION (exemplary Wave 1 slice).
 //
@@ -65,7 +62,7 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
 //
 // MISSION: Integrate VLCInfoItem into the legacy MediaInfoAdapter (which powers
 // the track list inside InfoActivity for video/audio/subtitle tracks shown in the
-// media info screen). The adapter inflates info_item.xml rows (RecyclerView) and
+// media info screen). The legacy adapter inflated info_item.xml rows and
 // populates title + subtitle (text) based on IMedia.Track data. Icon (ImageView)
 // in the XML was never wired in code (inert), so we map track.type -> unicode
 // symbol for the leadingContent slot (text symbols only; drawables stay out of
@@ -96,9 +93,7 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
 //   (commented) immediately above the new lines for instant rollback.
 //
 // WHY THIS IS SAFE (Permanent Exceptions boundary respected):
-//   - Purely additive: original info_item.xml untouched on disk forever.
-//   - Old rendering path (inflate + two findViewById + setText) remains in source
-//     as big commented block inside onCreateViewHolder + ViewHolder + onBind.
+//   - The active rendering path is now ComposeView + VLCInfoItem only.
 //   - No behavior change whatsoever to InfoActivity, track parsing, appendCommon/
 //     appendAudio/appendVideo helpers, setTracks, or the visible info screen.
 //   - VLCInfoItem is a leaf: pure presentational (Row + Texts + optional slot),
@@ -112,8 +107,7 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
 //     This keeps compose module free of drawable references (policy).
 //   - Rollback is one-file (this adapter): remove the 7 new imports, delete the
 //     new onCreate/onBind bodies (uncomment the three OLD blocks), revert the
-//     ViewHolder to only the two findViewById lines. Zero other files touched.
-//     Info screen and all media info flows continue exactly as 2026-05 pre-Wave1.
+//     ViewHolder to classic TextViews and restore a layout resource.
 //   - RecyclerView + ComposeView rows is a standard, well-understood bridge pattern
 //     (cheaper than full LazyColumn migration for this info surface). For very large
 //     track lists one would eventually move the whole InfoActivity to Compose screen.
@@ -151,7 +145,7 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
 //   - Interop helper: application/compose/src/main/java/org/videolan/vlc/compose/interop/VLCCompose.kt
 //   - Theme: application/compose/src/main/java/org/videolan/vlc/compose/theme/VLCTheme.kt + VLCThemeDefaults
 //   - Previews (including new media info mocks added in this task): application/compose/src/main/java/org/videolan/vlc/compose/PreviewUtils.kt
-//   - Original XML (never touched): application/vlc-android/res/layout/info_item.xml
+//   - Former XML: application/vlc-android/res/layout/info_item.xml
 //   - Primary host surface: application/vlc-android/src/org/videolan/vlc/gui/InfoActivity.kt
 //     (DataBinding + RecyclerView setup + mediaTracks observer - comments added here too)
 //   - This adapter: .../gui/video/MediaInfoAdapter.kt
@@ -172,22 +166,10 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
 // =========================================================================
 
 class MediaInfoAdapter : RecyclerView.Adapter<MediaInfoAdapter.ViewHolder>() {
-    private lateinit var inflater: LayoutInflater
     private var dataset: List<IMedia.Track>? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        if (!::inflater.isInitialized)
-            inflater = LayoutInflater.from(parent.context)
-
-        // -----------------------------------------------------------------
-        // OLD RENDERING PATH (LayoutInflater + info_item.xml + classic ViewHolder)
-        // 100% PRESERVED for instant rollback / A/B testing / emergency.
-        // To revert: uncomment the next 3 lines and remove the ComposeView path below.
-        // The XML (info_item.xml) + all its attributes remain on disk forever.
-        // -----------------------------------------------------------------
-        // return ViewHolder(inflater.inflate(R.layout.info_item, parent, false))
-
-        // NEW WAVE 1 PATH (compose-2l4.1.3): RecyclerView row backed by ComposeView
+        // RecyclerView row backed by ComposeView
         // hosting VLCInfoItem, adapted for RecyclerView.ViewHolder.
         // layoutParams ensure it behaves like a normal list row.
         // The ViewHolder below simply wraps it; all binding happens via setContent.
@@ -220,14 +202,7 @@ class MediaInfoAdapter : RecyclerView.Adapter<MediaInfoAdapter.ViewHolder>() {
             else -> title = res.getString(R.string.track_unknown)
         }
 
-        // -----------------------------------------------------------------
-        // OLD BINDING (findViewById on inflated XML views) - PRESERVED IN COMMENTS
-        // holder.title.text = title
-        // holder.text.text = textBuilder.toString()
-        // (The ViewHolder's findViewById lines are also commented in the class below.)
-        // -----------------------------------------------------------------
-
-        // NEW WAVE 1 BINDING (compose-2l4.1.3): feed the exact same computed title +
+        // Feed the exact same computed title +
         // subtitle strings into VLCInfoItem. Icon logic (absent in original adapter
         // code) is mapped to leadingContent slot using unicode symbols + the
         // fontAudioLight token color (exact match to Lab + PreviewUtils usage).
@@ -286,17 +261,7 @@ class MediaInfoAdapter : RecyclerView.Adapter<MediaInfoAdapter.ViewHolder>() {
     }
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        // -----------------------------------------------------------------
-        // OLD VIEWHOLDER BINDINGS (for info_item.xml) - PRESERVED FOR ROLLBACK
-        // When reverting the onCreateViewHolder + onBindViewHolder changes above,
-        // also restore these two lines (and the class will again receive an
-        // inflated info_item root).
-        // -----------------------------------------------------------------
-        // val title: TextView = itemView.findViewById(R.id.title)
-        // val text: TextView = itemView.findViewById(R.id.subtitle)
-
-        // NEW (compose-2l4.1.3): itemView is a ComposeView; no classic view lookups.
+        // itemView is a ComposeView; no classic view lookups.
         // All content is supplied via setContent { VLCInfoItem(...) } in onBind.
-        // The original two TextViews live only inside the (untouched) info_item.xml.
     }
 }
