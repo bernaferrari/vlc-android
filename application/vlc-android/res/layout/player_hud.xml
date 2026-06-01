@@ -257,7 +257,7 @@
                 vlc:layout_constraintStart_toStartOf="parent"
                 vlc:mediamax="@{(int)progress.length}" />
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <org.videolan.vlc.gui.view.BookmarkMarkerContainerView
                 android:id="@+id/bookmark_marker_container"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"

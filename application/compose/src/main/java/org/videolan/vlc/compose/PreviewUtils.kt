@@ -31,6 +31,7 @@ import org.videolan.vlc.compose.components.VLCDialogConfirmDelete
 import org.videolan.vlc.compose.components.VLCDropdownItem
 import org.videolan.vlc.compose.components.VLCInfoItem
 import org.videolan.vlc.compose.components.VLCAudioAbRepeatMarker
+import org.videolan.vlc.compose.components.VLCBookmarkMarkers
 import org.videolan.vlc.compose.components.VLCAudioHeaderActionButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderBackground
 import org.videolan.vlc.compose.components.VLCAudioHeaderDivider
@@ -338,6 +339,10 @@ private fun PlayerChromeTokensDemo() {
             max = 720_000,
             contentDescription = "3 minutes 42 seconds out of 12 minutes",
             onUserProgressChange = {},
+            modifier = Modifier.fillMaxWidth()
+        )
+        VLCBookmarkMarkers(
+            markerFractions = listOf(0.08f, 0.28f, 0.62f, 0.88f),
             modifier = Modifier.fillMaxWidth()
         )
 

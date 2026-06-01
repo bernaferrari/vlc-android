@@ -31,7 +31,6 @@ import android.widget.TextView
 import androidx.appcompat.widget.ViewStubCompat
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.lifecycleScope
@@ -45,6 +44,7 @@ import org.videolan.tools.setVisible
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
 import org.videolan.vlc.gui.dialogs.showRenameComposeDialog
+import org.videolan.vlc.gui.view.BookmarkMarkerContainerView
 import org.videolan.vlc.util.LocaleUtil
 import org.videolan.vlc.viewmodels.BookmarkModel
 
@@ -58,7 +58,7 @@ class BookmarkListDelegate(val activity: FragmentActivity, val service: Playback
     private lateinit var bookmarkRewindText: TextView
     private lateinit var bookmarkForwardText: TextView
     lateinit var addBookmarkButton: ImageView
-    lateinit var markerContainer: ConstraintLayout
+    lateinit var markerContainer: BookmarkMarkerContainerView
     private lateinit var adapter: BookmarkAdapter
     lateinit var bookmarkList: RecyclerView
     lateinit var rootView: ConstraintLayout
@@ -111,7 +111,7 @@ class BookmarkListDelegate(val activity: FragmentActivity, val service: Playback
 
             bookmarkModel.dataset.observe(activity) { bookmarkList ->
                 adapter.update(bookmarkList)
-                showBookmarks(markerContainer, service, activity, bookmarkList)
+                showBookmarks(markerContainer, service, bookmarkList)
 
 
 
@@ -191,33 +191,13 @@ class BookmarkListDelegate(val activity: FragmentActivity, val service: Playback
         }
     }
     companion object {
-        fun showBookmarks(markerContainer:ConstraintLayout, service: PlaybackService, activity: FragmentActivity, bookmarkList: List<Bookmark>) {
-            markerContainer.removeAllViews()
-
-            //show bookmark markers
-            service.currentMediaWrapper?.length?.let { mediaLength ->
-                if (mediaLength < 1) return@let
-                val constraintSet = ConstraintSet()
-                constraintSet.clone(markerContainer)
-                bookmarkList.forEach { bookmark ->
-                    val imageView = ImageView(activity)
-                    imageView.scaleType = ImageView.ScaleType.FIT_CENTER
-                    imageView.id = View.generateViewId()
-
-                    val guidelineId = View.generateViewId()
-                    constraintSet.create(guidelineId, ConstraintSet.VERTICAL_GUIDELINE)
-                    constraintSet.setGuidelinePercent(guidelineId, bookmark.time.toFloat() / mediaLength.toFloat())
-                    constraintSet.connect(imageView.id, ConstraintSet.START, guidelineId, ConstraintSet.START, 0)
-                    constraintSet.connect(imageView.id, ConstraintSet.END, guidelineId, ConstraintSet.END, 0)
-                    constraintSet.constrainWidth(imageView.id, ConstraintSet.WRAP_CONTENT)
-                    constraintSet.constrainHeight(imageView.id, ConstraintSet.WRAP_CONTENT)
-                    constraintSet.connect(imageView.id, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM)
-                    constraintSet.connect(imageView.id, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP)
-                    imageView.setImageDrawable(ContextCompat.getDrawable(activity, R.drawable.ic_bookmark_marker))
-                    markerContainer.addView(imageView)
-                }
-                constraintSet.applyTo(markerContainer)
+        fun showBookmarks(markerContainer: BookmarkMarkerContainerView, service: PlaybackService, bookmarkList: List<Bookmark>) {
+            val mediaLength = service.currentMediaWrapper?.length
+            if (mediaLength == null || mediaLength < 1) {
+                markerContainer.clearMarkers()
+                return
             }
+            markerContainer.setMarkerFractions(bookmarkList.map { it.time.toFloat() / mediaLength.toFloat() })
         }
     }
 }

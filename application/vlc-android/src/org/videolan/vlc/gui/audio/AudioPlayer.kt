@@ -1046,9 +1046,9 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, IAudioPlayerAnimator by
             if (settings.getBoolean(KEY_AUDIO_SHOW_BOOKMARK_MARKERS, true))
                 bookmarkModel.service?.let { service ->
                     binding.bookmarkMarkerContainer.setVisible()
-                    BookmarkListDelegate.showBookmarks(binding.bookmarkMarkerContainer, service, requireActivity(), bookmarkModel.dataset.getList())
+                    BookmarkListDelegate.showBookmarks(binding.bookmarkMarkerContainer, service, bookmarkModel.dataset.getList())
                 }
-            else binding.bookmarkMarkerContainer.removeAllViews()
+            else binding.bookmarkMarkerContainer.clearMarkers()
             if (isShowingCover()) {
                 binding.audioForward10.setVisible()
                 binding.audioRewind10.setVisible()
