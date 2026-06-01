@@ -36,7 +36,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.widget.Button
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import androidx.annotation.DrawableRes
@@ -144,6 +143,7 @@ import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.UiTools.isTablet
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
 import org.videolan.vlc.gui.video.VideoPlayerActivity
+import org.videolan.vlc.gui.view.AbRepeatAddMarkerButtonView
 import org.videolan.vlc.gui.view.AudioMediaSwitcher
 import org.videolan.vlc.gui.view.AudioMediaSwitcher.AudioMediaSwitcherListener
 import org.videolan.vlc.manageAbRepeatStep
@@ -277,7 +277,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
     private var previewingSeek = false
     private var playerState = 0
 
-    lateinit var abRepeatAddMarker: Button
+    lateinit var abRepeatAddMarker: AbRepeatAddMarkerButtonView
     private var audioPlayProgressMode:Boolean = false
     private var lastEndsAt = -1L
     private var isDragging = false
@@ -364,20 +364,20 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         binding.timeline.setOnSeekBarChangeListener(timelineListener)
 
         onSlide(0f)
-        abRepeatAddMarker = binding.abRepeatContainer.findViewById<Button>(R.id.ab_repeat_add_marker)
+        abRepeatAddMarker = binding.abRepeatContainer.findViewById<AbRepeatAddMarkerButtonView>(R.id.ab_repeat_add_marker)
         playlistModel.service?.playlistManager?.abRepeat?.observe(viewLifecycleOwner) { abvalues ->
             binding.abRepeatA = if (abvalues.start == -1L) -1F else abvalues.start / playlistModel.service!!.playlistManager.player.getLength().toFloat()
             binding.abRepeatB = if (abvalues.stop == -1L) -1F else abvalues.stop / playlistModel.service!!.playlistManager.player.getLength().toFloat()
             binding.abRepeatMarkerA.visibility = if (abvalues.start == -1L) View.GONE else View.VISIBLE
             binding.abRepeatMarkerB.visibility = if (abvalues.stop == -1L) View.GONE else View.VISIBLE
-            playlistModel.service?.manageAbRepeatStep(binding.abRepeatReset, binding.abRepeatStop, binding.abRepeatContainer, abRepeatAddMarker)
+            refreshAbRepeatStep()
         }
         playlistModel.service?.playlistManager?.abRepeatOn?.observe(viewLifecycleOwner) {
             binding.abRepeatMarkerGuidelineContainer.visibility = if (it) View.VISIBLE else View.GONE
             abRepeatAddMarker.visibility = if (it) View.VISIBLE else View.GONE
             binding.audioPlayProgress.visibility = if (!shouldHidePlayProgress()) View.VISIBLE else View.GONE
 
-            playlistModel.service?.manageAbRepeatStep(binding.abRepeatReset, binding.abRepeatStop, binding.abRepeatContainer, abRepeatAddMarker)
+            refreshAbRepeatStep()
         }
         Settings.audioShowTrackNumbers.observe(viewLifecycleOwner) { showTrackNumbers ->
             playlistAdapter.showTrackNumbers = showTrackNumbers
@@ -1586,9 +1586,11 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         }
     }
 
-    fun retrieveAbRepeatAddMarker():Button? {
-        if (!::abRepeatAddMarker.isInitialized) return null
-        return abRepeatAddMarker
+    fun refreshAbRepeatStep() {
+        if (!::abRepeatAddMarker.isInitialized) return
+        playlistModel.service?.manageAbRepeatStep(binding.abRepeatReset, binding.abRepeatStop, binding.abRepeatContainer) { markerText ->
+            abRepeatAddMarker.setMarkerText(markerText)
+        }
     }
 
     fun update() {

@@ -50,7 +50,6 @@ import org.videolan.vlc.databinding.AudioPlayerBinding
 import org.videolan.vlc.gui.AudioPlayerContainerActivity
 import org.videolan.vlc.gui.helpers.AudioUtil
 import org.videolan.vlc.gui.helpers.UiTools
-import org.videolan.vlc.manageAbRepeatStep
 import org.videolan.vlc.util.getScreenWidth
 import kotlin.math.max
 import kotlin.math.min
@@ -114,7 +113,7 @@ internal class AudioPlayerAnimator : IAudioPlayerAnimator, LifecycleObserver {
             }
             startConstraintAnimation(value)
 
-            audioPlayer.retrieveAbRepeatAddMarker()?.let { audioPlayer.playlistModel.service?.manageAbRepeatStep(binding.abRepeatReset, binding.abRepeatStop, binding.abRepeatContainer, it) }
+            audioPlayer.refreshAbRepeatStep()
 
             field = value
 

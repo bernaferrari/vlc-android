@@ -2100,6 +2100,12 @@ private object UpdateMeta : CbAction()
 private object UpdateState : CbAction()
 
 fun PlaybackService.manageAbRepeatStep(abRepeatReset: View, abRepeatStop: View, abRepeatContainer: View, abRepeatAddMarker: TextView) {
+    manageAbRepeatStep(abRepeatReset, abRepeatStop, abRepeatContainer) { markerText ->
+        abRepeatAddMarker.text = markerText
+    }
+}
+
+fun PlaybackService.manageAbRepeatStep(abRepeatReset: View, abRepeatStop: View, abRepeatContainer: View, onAddMarkerTextChanged: (String) -> Unit) {
     when {
         playlistManager.abRepeatOn.value != true -> {
             abRepeatReset.visibility = View.GONE
@@ -2113,16 +2119,15 @@ fun PlaybackService.manageAbRepeatStep(abRepeatReset: View, abRepeatStop: View, 
         }
         playlistManager.abRepeat.value?.start == -1L && playlistManager.abRepeat.value?.stop == -1L -> {
             abRepeatContainer.visibility = View.VISIBLE
-            abRepeatAddMarker.text = getString(R.string.abrepeat_add_first_marker)
+            onAddMarkerTextChanged(getString(R.string.abrepeat_add_first_marker))
             abRepeatReset.visibility = View.GONE
             abRepeatStop.visibility = View.GONE
         }
         playlistManager.abRepeat.value?.start == -1L || playlistManager.abRepeat.value?.stop == -1L -> {
-            abRepeatAddMarker.text = getString(R.string.abrepeat_add_second_marker)
+            onAddMarkerTextChanged(getString(R.string.abrepeat_add_second_marker))
             abRepeatContainer.visibility = View.VISIBLE
             abRepeatReset.visibility = View.GONE
             abRepeatStop.visibility = View.GONE
         }
     }
 }
-

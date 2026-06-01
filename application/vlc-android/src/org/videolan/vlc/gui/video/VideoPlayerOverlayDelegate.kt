@@ -37,7 +37,6 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.animation.AnimationUtils
-import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
@@ -100,6 +99,7 @@ import org.videolan.vlc.gui.helpers.TalkbackUtil
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.showVideoTrack
 import org.videolan.vlc.gui.helpers.hf.checkPIN
+import org.videolan.vlc.gui.view.AbRepeatAddMarkerButtonView
 import org.videolan.vlc.gui.view.PlayerProgress
 import org.videolan.vlc.isVLC4
 import org.videolan.vlc.manageAbRepeatStep
@@ -142,7 +142,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
     private val hudBackground: View? by lazy { player.findViewById(R.id.hud_background) }
     private val hudRightBackground: View? by lazy { player.findViewById(R.id.hud_right_background) }
 
-    private lateinit var abRepeatAddMarker: Button
+    private lateinit var abRepeatAddMarker: AbRepeatAddMarkerButtonView
 
     var seekButtons: Boolean = false
     var hasPlaylist: Boolean = false
@@ -549,6 +549,13 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
         })
     }
 
+    private fun refreshAbRepeatStep(service: PlaybackService) {
+        if (!::abRepeatAddMarker.isInitialized) return
+        service.manageAbRepeatStep(hudBinding.abRepeatReset, hudBinding.abRepeatStop, hudBinding.abRepeatContainer) { markerText ->
+            abRepeatAddMarker.setMarkerText(markerText)
+        }
+    }
+
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     private fun initOverlay() {
         player.service?.let { service ->
@@ -579,7 +586,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                     hudBinding.abRepeatB = if (abvalues.stop == -1L) -1F else abvalues.stop / service.playlistManager.player.getLength().toFloat()
                     hudBinding.abRepeatMarkerA.visibility = if (abvalues.start == -1L) View.GONE else View.VISIBLE
                     hudBinding.abRepeatMarkerB.visibility = if (abvalues.stop == -1L) View.GONE else View.VISIBLE
-                    service.manageAbRepeatStep(hudBinding.abRepeatReset, hudBinding.abRepeatStop, hudBinding.abRepeatContainer, abRepeatAddMarker)
+                    refreshAbRepeatStep(service)
                     if (player.settings.getBoolean(VIDEO_TRANSITION_SHOW, true)) showOverlayTimeout(if (abvalues.start == -1L || abvalues.stop == -1L) VideoPlayerActivity.OVERLAY_INFINITE else Settings.videoHudDelay * 1000)
                 }
                 service.playlistManager.abRepeatOn.observe(player) {
@@ -592,7 +599,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                     }
                     if (it) showOverlayTimeout(VideoPlayerActivity.OVERLAY_INFINITE)
 
-                    service.manageAbRepeatStep(hudBinding.abRepeatReset, hudBinding.abRepeatStop, hudBinding.abRepeatContainer, abRepeatAddMarker)
+                    refreshAbRepeatStep(service)
                 }
                 service.playlistManager.delayValue.observe(player) {
                     player.delayDelegate.delayChanged(it, service)
