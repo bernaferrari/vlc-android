@@ -37,6 +37,7 @@ import org.videolan.vlc.compose.components.VLCAudioHeaderDivider
 import org.videolan.vlc.compose.components.VLCAudioHeaderPlayPauseButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderTimeLabel
 import org.videolan.vlc.compose.components.VLCAudioHeaderTransportButton
+import org.videolan.vlc.compose.components.VLCAudioMiniProgressBar
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
 import org.videolan.vlc.compose.components.VLCAudioPlayerChips
@@ -424,12 +425,11 @@ private fun PlayerChromeTokensDemo() {
         )
 
         Spacer(Modifier.height(12.dp))
-        // Progress using audio seek etc (color approx)
-        Box(
+        VLCAudioMiniProgressBar(
+            progressFraction = 0.42f,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(4.dp)
-                .background(c.primary.copy(alpha = 0.3f))
         )
     }
 }
