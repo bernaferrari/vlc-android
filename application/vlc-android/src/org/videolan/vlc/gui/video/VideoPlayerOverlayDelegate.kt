@@ -99,7 +99,7 @@ import org.videolan.vlc.gui.helpers.TalkbackUtil
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.showVideoTrack
 import org.videolan.vlc.gui.helpers.hf.checkPIN
-import org.videolan.vlc.gui.view.AbRepeatAddMarkerButtonView
+import org.videolan.vlc.gui.view.AbRepeatControlsView
 import org.videolan.vlc.gui.view.PlayerProgress
 import org.videolan.vlc.isVLC4
 import org.videolan.vlc.manageAbRepeatStep
@@ -142,7 +142,6 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
     private val hudBackground: View? by lazy { player.findViewById(R.id.hud_background) }
     private val hudRightBackground: View? by lazy { player.findViewById(R.id.hud_right_background) }
 
-    private lateinit var abRepeatAddMarker: AbRepeatAddMarkerButtonView
 
     var seekButtons: Boolean = false
     var hasPlaylist: Boolean = false
@@ -550,9 +549,8 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
     }
 
     private fun refreshAbRepeatStep(service: PlaybackService) {
-        if (!::abRepeatAddMarker.isInitialized) return
         service.manageAbRepeatStep(hudBinding.abRepeatReset, hudBinding.abRepeatStop, hudBinding.abRepeatContainer) { markerText ->
-            abRepeatAddMarker.setMarkerText(markerText)
+            (hudBinding.abRepeatContainer as AbRepeatControlsView).setMarkerText(markerText)
         }
     }
 
@@ -575,7 +573,6 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                 hudBinding = DataBindingUtil.bind(player.findViewById(R.id.progress_overlay)) ?: return
                 hudBinding.player = player
                 hudBinding.progress = service.playlistManager.player.progress
-                abRepeatAddMarker = hudBinding.abRepeatContainer.findViewById(R.id.ab_repeat_add_marker)
                 service.playlistManager.abRepeat.observe(player) { abvalues ->
                     if (abvalues.start != -1L && abvalues.stop != -1L && player.settings.getBoolean(KEY_ALWAYS_FAST_SEEK, false)) {
                         hudBinding.fastSeekWarning.setVisible()
@@ -590,12 +587,11 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                     if (player.settings.getBoolean(VIDEO_TRANSITION_SHOW, true)) showOverlayTimeout(if (abvalues.start == -1L || abvalues.stop == -1L) VideoPlayerActivity.OVERLAY_INFINITE else Settings.videoHudDelay * 1000)
                 }
                 service.playlistManager.abRepeatOn.observe(player) {
-                    abRepeatAddMarker.visibility = if (it) View.VISIBLE else View.GONE
                     hudBinding.abRepeatMarkerGuidelineContainer.visibility = if (it) View.VISIBLE else View.GONE
                     if (it) showOverlay(true)
                     if (it) {
-                        hudBinding.playerOverlayLength.nextFocusUpId = R.id.ab_repeat_add_marker
-                        hudBinding.playerOverlayTime.nextFocusUpId = R.id.ab_repeat_add_marker
+                        hudBinding.playerOverlayLength.nextFocusUpId = R.id.ab_repeat_container
+                        hudBinding.playerOverlayTime.nextFocusUpId = R.id.ab_repeat_container
                     }
                     if (it) showOverlayTimeout(VideoPlayerActivity.OVERLAY_INFINITE)
 
@@ -681,7 +677,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
             hudBinding.fastSeekWarning.setOnClickListener {
                UiTools.snacker(player, R.string.ab_repeat_fastseek_warning, false)
             }
-            abRepeatAddMarker.setOnClickListener(player)
+            hudBinding.abRepeatContainer.setOnClickListener(player)
             hudBinding.orientationToggle.setOnClickListener(if (enabled) player else null)
             hudBinding.orientationToggle.setOnLongClickListener(if (enabled) player else null)
             hudBinding.swipeToUnlock.setOnStartTouchingListener { showOverlayTimeout(VideoPlayerActivity.OVERLAY_INFINITE) }

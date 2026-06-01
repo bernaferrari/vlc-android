@@ -53,8 +53,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import org.videolan.vlc.compose.components.VLCAbRepeatAddMarkerButton
-import org.videolan.vlc.compose.components.VLCAbRepeatChipIcon
+import org.videolan.vlc.compose.components.VLCAbRepeatControls
 import org.videolan.vlc.compose.components.VLCDebugLogLine
 import org.videolan.vlc.compose.components.VLCDialogConfirmDelete
 import org.videolan.vlc.compose.components.VLCDropdownItem
@@ -415,10 +414,9 @@ fun ComposeInteropLabContent() {
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-            VLCAbRepeatChipIcon {
+            VLCAbRepeatControls(markerText = "Set start point") {
                 Text("AB", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
             }
-            VLCAbRepeatAddMarkerButton(text = "Set start point", onClick = {})
             VLCAudioAbRepeatMarker {
                 Text("A", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
             }
@@ -490,7 +488,7 @@ fun ComposeInteropLabContent() {
             "The A-B repeat timeline markers are Compose-hosted under ab_repeat_marker_a and ab_repeat_marker_b while the guidelines still control their positions. " +
             "The bookmark timeline markers are Compose-drawn under bookmark_marker_container in audio and video HUD hosts, with BookmarkListDelegate now pushing normalized media positions instead of dynamic ImageViews. " +
             "The restore-video hint is Compose-hosted under resume_video_hint instead of using a transient Material Snackbar from AudioPlayer.onResume. " +
-            "The shared A-B repeat add-marker chip icon and add-marker button are Compose-rendered through AbRepeatChipIconView and AbRepeatAddMarkerButtonView inside ab_repeat_controls.xml for both audio and video HUD hosts. " +
+            "The shared A-B repeat add-marker chip root is Compose-rendered through AbRepeatControlsView inside ab_repeat_controls.xml for both audio and video HUD hosts. " +
             "The mini play/pause button is Compose-hosted under header_play_pause with the long-press stop action preserved. " +
             "The tablet header transport strip is Compose-hosted under the existing header_shuffle/header_previous/header_large_play_pause/header_next/header_repeat IDs. " +
             "The full-player bottom shuffle/previous/play_pause/next/repeat transport controls now use the same Compose leaf while preserving previous/next long seek. " +

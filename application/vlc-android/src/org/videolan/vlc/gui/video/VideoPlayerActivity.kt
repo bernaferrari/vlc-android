@@ -1992,7 +1992,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                 jump(forward = false, long = false)
                 overlayDelegate.showOverlay()
             }
-            R.id.ab_repeat_add_marker -> service?.playlistManager?.setABRepeatValue(
+            R.id.ab_repeat_container -> service?.playlistManager?.setABRepeatValue(
                 service?.playlistManager?.getCurrentMedia(), overlayDelegate.hudBinding.playerOverlaySeekbar.progress.toLong())
             R.id.ab_repeat_reset -> service?.playlistManager?.resetABRepeatValues(service?.playlistManager?.getCurrentMedia())
             R.id.ab_repeat_stop -> {

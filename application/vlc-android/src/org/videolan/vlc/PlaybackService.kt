@@ -54,7 +54,6 @@ import android.text.style.RelativeSizeSpan
 import android.text.style.StyleSpan
 import android.util.Log
 import android.view.View
-import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.MainThread
 import androidx.annotation.RequiresApi
@@ -2098,12 +2097,6 @@ private object ShowNotification : CbAction()
 private class HideNotification(val remove: Boolean) : CbAction()
 private object UpdateMeta : CbAction()
 private object UpdateState : CbAction()
-
-fun PlaybackService.manageAbRepeatStep(abRepeatReset: View, abRepeatStop: View, abRepeatContainer: View, abRepeatAddMarker: TextView) {
-    manageAbRepeatStep(abRepeatReset, abRepeatStop, abRepeatContainer) { markerText ->
-        abRepeatAddMarker.text = markerText
-    }
-}
 
 fun PlaybackService.manageAbRepeatStep(abRepeatReset: View, abRepeatStop: View, abRepeatContainer: View, onAddMarkerTextChanged: (String) -> Unit) {
     when {

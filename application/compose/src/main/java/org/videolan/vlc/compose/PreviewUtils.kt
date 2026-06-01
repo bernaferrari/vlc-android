@@ -24,8 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import org.videolan.vlc.compose.components.VLCAbRepeatAddMarkerButton
-import org.videolan.vlc.compose.components.VLCAbRepeatChipIcon
+import org.videolan.vlc.compose.components.VLCAbRepeatControls
 import org.videolan.vlc.compose.components.VLCDebugLogLine
 import org.videolan.vlc.compose.components.VLCDialogConfirmDelete
 import org.videolan.vlc.compose.components.VLCDropdownItem
@@ -355,15 +354,9 @@ private fun PlayerChromeTokensDemo() {
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxWidth()
         ) {
-            VLCAbRepeatChipIcon {
-                Text(
-                    text = "AB",
-                    color = c.playerIconColor,
-                    style = MaterialTheme.typography.labelSmall
-                )
+            VLCAbRepeatControls(markerText = "Set start point") {
+                Text("AB", color = c.playerIconColor, style = MaterialTheme.typography.labelSmall)
             }
-            Spacer(Modifier.width(8.dp))
-            VLCAbRepeatAddMarkerButton(text = "Set start point", onClick = {})
             Spacer(Modifier.width(16.dp))
             VLCAudioAbRepeatMarker {
                 Box(

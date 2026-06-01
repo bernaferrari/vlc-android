@@ -14,11 +14,11 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
 /**
  * Compose equivalent of the decorative A-B repeat chip icon from:
- *   - application/vlc-android/res/layout/ab_repeat_controls.xml @id/imageView9
+ *   - application/vlc-android/res/layout/ab_repeat_controls.xml
  *
- * The shared include is used by the audio player and video HUD. The app module
- * supplies the real drawable through a small XML-friendly widget because
- * :application:compose stays resource-isolated.
+ * The shared include is used by the audio player and video HUD. The app-side
+ * root view supplies the real drawable because :application:compose stays
+ * resource-isolated.
  */
 @Composable
 fun VLCAbRepeatChipIcon(
