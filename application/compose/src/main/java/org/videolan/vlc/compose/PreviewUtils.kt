@@ -30,6 +30,7 @@ import org.videolan.vlc.compose.components.VLCDialogConfirmDelete
 import org.videolan.vlc.compose.components.VLCDropdownItem
 import org.videolan.vlc.compose.components.VLCInfoItem
 import org.videolan.vlc.compose.components.VLCAudioAbRepeatMarker
+import org.videolan.vlc.compose.components.VLCBookmarkRow
 import org.videolan.vlc.compose.components.VLCBookmarkMarkers
 import org.videolan.vlc.compose.components.VLCAudioHeaderActionButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderBackground
@@ -346,6 +347,14 @@ private fun PlayerChromeTokensDemo() {
             markerFractions = listOf(0.08f, 0.28f, 0.62f, 0.88f),
             modifier = Modifier.fillMaxWidth()
         )
+        VLCBookmarkRow(
+            title = "Opening scene",
+            timeText = "12:38",
+            timeContentDescription = "12 minutes 38 seconds",
+            moreContentDescription = "More Actions"
+        ) {
+            Text("...", color = c.fontDefault)
+        }
         VLCAudioResumeVideoHint(message = "Long tap the cover to restore the video")
 
         Spacer(Modifier.height(16.dp))

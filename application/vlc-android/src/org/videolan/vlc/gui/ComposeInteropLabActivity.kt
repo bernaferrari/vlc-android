@@ -59,6 +59,7 @@ import org.videolan.vlc.compose.components.VLCDialogConfirmDelete
 import org.videolan.vlc.compose.components.VLCDropdownItem
 import org.videolan.vlc.compose.components.VLCInfoItem
 import org.videolan.vlc.compose.components.VLCAudioAbRepeatMarker
+import org.videolan.vlc.compose.components.VLCBookmarkRow
 import org.videolan.vlc.compose.components.VLCBookmarkMarkers
 import org.videolan.vlc.compose.components.VLCAudioHeaderActionButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderBackground
@@ -393,6 +394,14 @@ fun ComposeInteropLabContent() {
             markerFractions = listOf(0.08f, 0.28f, 0.62f, 0.88f),
             modifier = Modifier.fillMaxWidth()
         )
+        VLCBookmarkRow(
+            title = "Opening scene",
+            timeText = "12:38",
+            timeContentDescription = "12 minutes 38 seconds",
+            moreContentDescription = "More Actions"
+        ) {
+            Text("...", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.fontDefault)
+        }
         VLCAudioResumeVideoHint(message = "Long tap the cover to restore the video")
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             VLCAudioHeaderActionButton(contentDescription = "Search") {
@@ -505,6 +514,7 @@ fun ComposeInteropLabContent() {
             "The landscape chapter chevrons are Compose-hosted under previous_chapter and next_chapter. " +
             "The foldable hinge left/right affordances are Compose-hosted under hinge_go_left and hinge_go_right. " +
             "The cover-mode seek/bookmark HUD row is Compose-hosted under the existing audio_rewind/audio_forward IDs with delay labels driven from Settings.audioJumpDelay. " +
+            "The shared bookmarks panel is Compose-rendered through BookmarksPanelView in bookmarks.xml, replacing the toolbar, RecyclerView, empty state, bookmark_item.xml rows, and bottom seek/bookmark controls while keeping the audio/video ViewStub hosts stable. " +
             "The player gesture/switcher surface stays outside this slice; the speed and sleep quick actions are now Compose.",
             style = MaterialTheme.typography.bodySmall
         )

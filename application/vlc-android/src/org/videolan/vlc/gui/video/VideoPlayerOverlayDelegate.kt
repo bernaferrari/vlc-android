@@ -472,7 +472,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                         player.handler.sendMessageDelayed(player.handler.obtainMessage(VideoPlayerActivity.FADE_OUT), overlayTimeout.toLong())
                     hudBinding.playerOverlayPlay.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED)
                     if (isBookmarkShown())try {
-                        if (player.isTalkbackIsEnabled()) bookmarkListDelegate?.addBookmarkButton?.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED)
+                        if (player.isTalkbackIsEnabled()) bookmarkListDelegate?.sendAddBookmarkAccessibilityEvent()
                     } catch (e: Exception) {
                     }
                 }

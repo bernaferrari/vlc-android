@@ -25,18 +25,12 @@
 package org.videolan.vlc.gui.helpers
 
 import android.view.View
-import android.widget.ImageView
-import android.widget.PopupMenu
-import android.widget.TextView
 import androidx.appcompat.widget.ViewStubCompat
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
+import org.videolan.medialibrary.Tools
 import org.videolan.medialibrary.interfaces.media.Bookmark
 import org.videolan.tools.Settings
 import org.videolan.tools.setGone
@@ -45,151 +39,114 @@ import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
 import org.videolan.vlc.gui.dialogs.showRenameComposeDialog
 import org.videolan.vlc.gui.view.BookmarkMarkerContainerView
+import org.videolan.vlc.gui.view.BookmarkPanelItem
+import org.videolan.vlc.gui.view.BookmarksPanelView
 import org.videolan.vlc.util.LocaleUtil
 import org.videolan.vlc.viewmodels.BookmarkModel
 
-class BookmarkListDelegate(val activity: FragmentActivity, val service: PlaybackService, private val bookmarkModel: BookmarkModel, val forVideo:Boolean) :
-        LifecycleObserver, BookmarkAdapter.IBookmarkManager {
+class BookmarkListDelegate(
+    val activity: FragmentActivity,
+    val service: PlaybackService,
+    private val bookmarkModel: BookmarkModel,
+    val forVideo: Boolean
+) : LifecycleObserver {
 
-    private lateinit var nextBookmarkButton: ImageView
-    private lateinit var previousBookmarkButton: ImageView
-    private lateinit var bookmarkRewind10: ImageView
-    private lateinit var bookmarkForward10: ImageView
-    private lateinit var bookmarkRewindText: TextView
-    private lateinit var bookmarkForwardText: TextView
-    lateinit var addBookmarkButton: ImageView
     lateinit var markerContainer: BookmarkMarkerContainerView
-    private lateinit var adapter: BookmarkAdapter
-    lateinit var bookmarkList: RecyclerView
-    lateinit var rootView: ConstraintLayout
-    private lateinit var emptyView: View
+    private lateinit var rootView: BookmarksPanelView
     lateinit var visibilityListener: () -> Unit
     lateinit var seekListener: (Boolean, Boolean) -> Unit
     val visible: Boolean
-        get() = rootView.visibility != View.GONE
+        get() = ::rootView.isInitialized && rootView.visibility != View.GONE
 
     fun show() {
         activity.findViewById<ViewStubCompat>(R.id.bookmarks_stub)?.let {
-            rootView = it.inflate() as ConstraintLayout
-            bookmarkList = rootView.findViewById(R.id.bookmark_list)
-            rootView.findViewById<ImageView>(R.id.close).setOnClickListener { hide() }
-            addBookmarkButton = rootView.findViewById(R.id.add_bookmark)
-            nextBookmarkButton = rootView.findViewById(R.id.next_bookmark)
-            previousBookmarkButton = rootView.findViewById(R.id.previous_bookmark)
-            bookmarkRewind10 = rootView.findViewById(R.id.bookmark_rewind_10)
-            bookmarkForward10 = rootView.findViewById(R.id.bookmark_forward_10)
-            previousBookmarkButton = rootView.findViewById(R.id.previous_bookmark)
-            bookmarkRewindText = rootView.findViewById(R.id.bookmark_rewind_text)
-            bookmarkForwardText = rootView.findViewById(R.id.bookmark_forward_text)
-            addBookmarkButton.setOnClickListener {
-                bookmarkModel.addBookmark(activity)
-                addBookmarkButton.announceForAccessibility(activity.getString(R.string.bookmark_added))
-            }
-            rootView.findViewById<View>(R.id.top_bar).setOnTouchListener { v, _ ->
-                v.parent.requestDisallowInterceptTouchEvent(true)
-                true
-            }
-            emptyView = rootView.findViewById(R.id.empty_view)
-            service.lifecycle.addObserver(this)
-            activity.lifecycle.addObserver(this)
-            if (bookmarkList.layoutManager == null) bookmarkList.layoutManager = LinearLayoutManager(activity, RecyclerView.VERTICAL, false)
-            adapter = BookmarkAdapter(this)
-            bookmarkList.adapter = adapter
-            bookmarkList.itemAnimator = null
-            previousBookmarkButton.setOnClickListener {
-                val bookmark = if (LocaleUtil.isRtl())bookmarkModel.findNext() else bookmarkModel.findPrevious()
-                bookmark?.let {
-                    service.setTime(it.time)
-                }
-            }
-            nextBookmarkButton.setOnClickListener {
-                val bookmark = if (LocaleUtil.isRtl())bookmarkModel.findPrevious() else bookmarkModel.findNext()
-                bookmark?.let {
-                    service.setTime(it.time)
-                }
-            }
-
-            bookmarkModel.dataset.observe(activity) { bookmarkList ->
-                adapter.update(bookmarkList)
-                showBookmarks(markerContainer, service, bookmarkList)
-
-
-
-                if (bookmarkList.isNotEmpty()) emptyView.setGone() else emptyView.setVisible()
-            }
+            rootView = it.inflate() as BookmarksPanelView
+            setupRootView()
+            observeBookmarks()
             bookmarkModel.refresh()
         }
+        if (!::rootView.isInitialized) return
         bookmarkModel.refresh()
         rootView.setVisible()
         markerContainer.setVisible()
         visibilityListener.invoke()
-        bookmarkRewind10.contentDescription = activity.getString(R.string.talkback_action_rewind, Settings.audioJumpDelay.toString())
-        bookmarkForward10.contentDescription = activity.getString(R.string.talkback_action_forward, Settings.audioJumpDelay.toString())
+        updateJumpDelay()
+    }
+
+    private fun setupRootView() {
+        service.lifecycle.addObserver(this)
+        activity.lifecycle.addObserver(this)
+
+        rootView.setOnCloseClickListener { hide() }
+        rootView.setOnAddBookmarkClickListener {
+            bookmarkModel.addBookmark(activity)
+            rootView.announceBookmarkAdded(activity.getString(R.string.bookmark_added))
+        }
+        rootView.setOnPreviousBookmarkClickListener {
+            val bookmark = if (LocaleUtil.isRtl()) bookmarkModel.findNext() else bookmarkModel.findPrevious()
+            bookmark?.let { service.setTime(it.time) }
+        }
+        rootView.setOnNextBookmarkClickListener {
+            val bookmark = if (LocaleUtil.isRtl()) bookmarkModel.findPrevious() else bookmarkModel.findNext()
+            bookmark?.let { service.setTime(it.time) }
+        }
+        rootView.setOnRewindClickListener { seekListener.invoke(false, false) }
+        rootView.setOnForwardClickListener { seekListener.invoke(true, false) }
+        rootView.setOnRewindLongClickListener { seekListener.invoke(false, true) }
+        rootView.setOnForwardLongClickListener { seekListener.invoke(true, true) }
+        rootView.setOnBookmarkClickListener { service.setTime(it.time) }
+        rootView.setOnBookmarkRenameClickListener { activity.showRenameComposeDialog(it) }
+        rootView.setOnBookmarkDeleteClickListener { bookmarkModel.delete(it) }
+    }
+
+    private fun observeBookmarks() {
+        bookmarkModel.dataset.observe(activity) { bookmarkList ->
+            rootView.setBookmarks(bookmarkList.toPanelItems())
+            showBookmarks(markerContainer, service, bookmarkList)
+        }
+    }
+
+    private fun updateJumpDelay() {
         val jumpDelay = if (forVideo) Settings.videoJumpDelay else Settings.audioJumpDelay
-        bookmarkRewindText.text = "$jumpDelay"
-        bookmarkForwardText.text = "$jumpDelay"
-
-        bookmarkRewind10.setOnClickListener {
-            seekListener.invoke(false, false)
-        }
-        bookmarkForward10.setOnClickListener {
-            seekListener.invoke(true, false)
-        }
-
-        bookmarkRewind10.setOnLongClickListener {
-            seekListener.invoke(false, true)
-            true
-        }
-        bookmarkForward10.setOnLongClickListener {
-            seekListener.invoke(true, true)
-            true
-        }
+        rootView.setJumpDelay(
+            jumpDelay = jumpDelay,
+            rewindDescription = activity.getString(R.string.talkback_action_rewind, jumpDelay.toString()),
+            forwardDescription = activity.getString(R.string.talkback_action_forward, jumpDelay.toString())
+        )
     }
 
     fun hide() {
-        rootView.setGone()
-        markerContainer.setGone()
-        visibilityListener.invoke()
-    }
-
-    override fun onPopupMenu(view: View, position: Int, bookmark: Bookmark?) {
-        if (bookmark == null) return
-        val menu = PopupMenu(view.context, view)
-        menu.inflate(R.menu.bookmark_options)
-        menu.setOnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.bookmark_rename -> {
-                    activity.showRenameComposeDialog(bookmark)
-                    true
-                }
-                R.id.bookmark_delete -> {
-                    bookmarkModel.delete(bookmark)
-                    true
-                }
-                else -> false
-            }
-        }
-        menu.show()
-    }
-
-    override fun onBookmarkClick(position: Int, bookmark: Bookmark) {
-        service.setTime(bookmark.time)
+        if (::rootView.isInitialized) rootView.setGone()
+        if (::markerContainer.isInitialized) markerContainer.setGone()
+        if (::visibilityListener.isInitialized) visibilityListener.invoke()
     }
 
     fun setProgressHeight(y: Float) {
-        val constraintSet = ConstraintSet()
-        constraintSet.clone(rootView)
-        constraintSet.setGuidelineBegin(R.id.progressbar_guideline, y.toInt())
-        constraintSet.applyTo(rootView)
+        if (::rootView.isInitialized) rootView.setProgressTop(y)
     }
 
-    fun renameBookmark(media:Bookmark, name:String) {
+    fun sendAddBookmarkAccessibilityEvent() {
+        if (::rootView.isInitialized) rootView.sendAddBookmarkAccessibilityEvent()
+    }
+
+    fun renameBookmark(media: Bookmark, name: String) {
         activity.lifecycleScope.launch {
             val bookmarks = bookmarkModel.rename(media, name)
-            adapter.update(bookmarks)
+            rootView.setBookmarks(bookmarks.toPanelItems())
             bookmarkModel.refresh()
         }
     }
+
+    private fun List<Bookmark>.toPanelItems() = map { bookmark ->
+        BookmarkPanelItem(
+            bookmark = bookmark,
+            id = bookmark.id,
+            title = bookmark.title,
+            timeText = Tools.millisToString(bookmark.time),
+            timeContentDescription = TalkbackUtil.millisToString(activity, bookmark.time)
+        )
+    }
+
     companion object {
         fun showBookmarks(markerContainer: BookmarkMarkerContainerView, service: PlaybackService, bookmarkList: List<Bookmark>) {
             val mediaLength = service.currentMediaWrapper?.length
