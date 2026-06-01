@@ -26,38 +26,63 @@ package org.videolan.vlc.gui.view
 
 import android.animation.ValueAnimator
 import android.content.Context
-import android.graphics.BlurMaskFilter
-import android.text.SpannableString
-import android.text.Spanned
-import android.text.style.MaskFilterSpan
 import android.util.AttributeSet
 import android.util.LayoutDirection
 import android.view.KeyEvent
-import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.animation.AccelerateInterpolator
-import android.widget.ImageView
-import android.widget.TextView
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.Guideline
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.videolan.resources.AndroidDevices
-import org.videolan.tools.dp
 import org.videolan.tools.setGone
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
+import java.util.Locale
+import kotlin.math.roundToInt
 
-class SwipeToUnlockView : ConstraintLayout {
+class SwipeToUnlockView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : VLCAbstractComposeWidget(context, attrs, defStyleAttr) {
 
-    private lateinit var currentText: String
-    private var extremum: Int = 0
-    private lateinit var swipeIcon: ImageView
-    private lateinit var guideline: Guideline
-    private lateinit var swipeText: TextView
+    private val extremum: Int = (28 * resources.displayMetrics.density).toInt()
 
     private var unlocking: Boolean = false
-    private lateinit var onStartTouching: () -> Unit
-    private lateinit var onStopTouching: () -> Unit
-    private lateinit var onUnlock: () -> Unit
+    private var onStartTouching: () -> Unit = {}
+    private var onStopTouching: () -> Unit = {}
+    private var onUnlock: () -> Unit = {}
     private lateinit var keyAnimation: ValueAnimator
+    private var currentText by mutableStateOf("")
+    private var swipeCenterPx by mutableFloatStateOf(extremum.toFloat())
+
     var isDPADAllowed = true
     set(value) {
         field = value
@@ -66,13 +91,7 @@ class SwipeToUnlockView : ConstraintLayout {
 
     private val tvAcceptedKeys = arrayOf(KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER)
 
-    constructor(context: Context) : super(context)
-
-    constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
-        initialize()
-    }
-
-    constructor(context: Context, attrs: AttributeSet, defStyle: Int) : super(context, attrs, defStyle) {
+    init {
         initialize()
     }
 
@@ -91,7 +110,7 @@ class SwipeToUnlockView : ConstraintLayout {
     override fun setVisibility(visibility: Int) {
         if (visibility == VISIBLE) {
             unlocking = false
-            if (extremum != 0) playStep(extremum)
+            playStep(extremum)
             requestFocus()
         }
         super.setVisibility(visibility)
@@ -135,21 +154,10 @@ class SwipeToUnlockView : ConstraintLayout {
 
         animation.addUpdateListener { animator -> playStep(animator.animatedValue as Int) }
         animation.start()
-        swipeText.alpha = 1f
     }
 
     private fun playStep(currentX: Int) {
-        guideline.setGuidelineBegin(currentX)
-        val progress = (currentX.toFloat() - extremum) / (width - extremum)
-        swipeText.alpha = 1F - progress
-
-        val string = SpannableString(currentText)
-        if (progress > 0) {
-            val blurMask = BlurMaskFilter(progress * 10, BlurMaskFilter.Blur.NORMAL)
-            string.setSpan(MaskFilterSpan(blurMask), 0, string.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        }
-
-        swipeText.text = string
+        swipeCenterPx = currentX.toFloat()
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
@@ -190,23 +198,82 @@ class SwipeToUnlockView : ConstraintLayout {
         unlocking = true
         onUnlock.invoke()
         setGone()
-        guideline.setGuidelineBegin(extremum)
+        playStep(extremum)
     }
 
     private fun initialize() {
-        LayoutInflater.from(context).inflate(R.layout.swipe_to_unlock, this, true)
-        guideline = findViewById(R.id.swipe_guideline)
-        swipeIcon = findViewById(R.id.swipe_icon)
-        swipeText = findViewById(R.id.swipe_text)
-
-        swipeIcon.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ -> extremum = (v.width / 2) + 4.dp }
         isFocusable = true
-
         updateText()
     }
 
     private fun updateText() {
         currentText = if (!isDPADAllowed || !AndroidDevices.isTv) context.getString(R.string.swipe_unlock) else context.getString(R.string.swipe_unlock_no_touch)
-        swipeText.text = currentText
+    }
+
+    override fun onDetachedFromWindow() {
+        if (::keyAnimation.isInitialized) keyAnimation.cancel()
+        super.onDetachedFromWindow()
+    }
+
+    @Composable
+    override fun WidgetContent() {
+        SwipeUnlockContent(
+            text = currentText,
+            swipeCenterPx = swipeCenterPx,
+            extremumPx = extremum.toFloat()
+        )
+    }
+}
+
+@Composable
+private fun SwipeUnlockContent(
+    text: String,
+    swipeCenterPx: Float,
+    extremumPx: Float
+) {
+    val density = LocalDensity.current
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        BoxWithConstraints(
+            modifier = Modifier
+                .width(252.dp)
+                .height(56.dp)
+                .background(colorResource(R.color.playerbackground), RoundedCornerShape(60.dp)),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            val widthPx = with(density) { maxWidth.toPx() }
+            val travelPx = (widthPx - extremumPx * 2F).coerceAtLeast(1F)
+            val progress = ((swipeCenterPx - extremumPx) / travelPx).coerceIn(0F, 1F)
+            val iconSizePx = with(density) { 48.dp.toPx() }
+
+            Text(
+                text = text.uppercase(Locale.getDefault()),
+                color = Color.White,
+                fontSize = 14.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .padding(start = 76.dp, end = 24.dp)
+                    .alpha(1F - progress)
+                    .align(Alignment.Center)
+            )
+
+            Icon(
+                painter = painterResource(R.drawable.ic_swipe_unlock),
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier
+                    .offset {
+                        IntOffset(
+                            x = (swipeCenterPx - iconSizePx / 2F).roundToInt(),
+                            y = 0
+                        )
+                    }
+                    .size(48.dp)
+            )
+        }
     }
 }
