@@ -24,10 +24,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.util.AttributeSet
 import android.view.LayoutInflater
-import android.view.View
-import android.widget.ImageView
-import android.widget.TextView
-import org.videolan.vlc.R
+import android.view.ViewGroup
 
 class HeaderMediaSwitcher(context: Context, attrs: AttributeSet) : AudioMediaSwitcher(context, attrs) {
 
@@ -40,24 +37,9 @@ class HeaderMediaSwitcher(context: Context, attrs: AttributeSet) : AudioMediaSwi
         trackInfo: String?,
         hasChapters: Boolean
     ) {
-        val v = inflater.inflate(R.layout.audio_media_switcher_item, this, false)
-
-        val coverView = v.findViewById<View>(R.id.cover) as ImageView
-        val titleView = v.findViewById<View>(R.id.title) as TextView
-        val artistView = v.findViewById<View>(R.id.artist) as TextView
-
-        if (cover != null) {
-            coverView.visibility = VISIBLE
-            coverView.setImageBitmap(cover)
-        }
-
-        titleView.text = title
-        titleView.isSelected = true
-        val hasArtist = !artist.isNullOrEmpty()
-        artistView.text = artist
-        artistView.isSelected = hasArtist
-        artistView.visibility = if (hasArtist) VISIBLE else GONE
-
-        addView(v)
+        addView(HeaderMediaSwitcherItemView(context).apply {
+            layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            bind(title, artist, cover)
+        })
     }
 }
