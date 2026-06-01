@@ -25,7 +25,10 @@ package org.videolan.vlc.gui.preferences
 
 import android.os.Bundle
 import android.view.View
+import android.widget.NumberPicker
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.preference.DialogPreference
 import androidx.preference.MultiSelectListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
@@ -33,10 +36,8 @@ import androidx.preference.PreferenceGroup
 import org.videolan.resources.util.parcelable
 import org.videolan.tools.Settings
 import org.videolan.vlc.R
-import org.videolan.vlc.gui.preferences.hack.MultiSelectListPreferenceDialogFragmentCompat
 import org.videolan.vlc.gui.preferences.search.PreferenceItem
 import org.videolan.vlc.gui.view.NumberPickerPreference
-import org.videolan.vlc.gui.view.NumberPickerPreferenceDialog
 
 abstract class BasePreferenceFragment : PreferenceFragmentCompat() {
 
@@ -69,32 +70,74 @@ abstract class BasePreferenceFragment : PreferenceFragmentCompat() {
     }
 
     override fun onDisplayPreferenceDialog(preference: Preference) {
-        if (preference is MultiSelectListPreference) {
-            val dialogFragment = MultiSelectListPreferenceDialogFragmentCompat.newInstance(preference.key)
-            dialogFragment.setTargetFragment(this, 0)
-            dialogFragment.show(parentFragmentManager, DIALOG_FRAGMENT_TAG)
-            return
+        when (preference) {
+            is MultiSelectListPreference -> showMultiSelectListPreferenceDialog(preference)
+            is NumberPickerPreference -> showNumberPickerPreferenceDialog(preference)
+            else -> super.onDisplayPreferenceDialog(preference)
         }
-        if (preference is NumberPickerPreference) {
-            val dialog = NumberPickerPreferenceDialog.newInstance(preference.key)
-            dialog.setTargetFragment(this, 0)
-            dialog.show(parentFragmentManager, DIALOG_FRAGMENT_TAG)
-            return
-        }
-        super.onDisplayPreferenceDialog(preference)
     }
 
+    private fun showMultiSelectListPreferenceDialog(preference: MultiSelectListPreference) {
+        val entries = preference.entries
+        val entryValues = preference.entryValues
+        if (entries == null || entryValues == null) {
+            throw IllegalStateException("MultiSelectListPreference requires an entries array and an entryValues array.")
+        }
+
+        val originalValues = preference.values.toSet()
+        val newValues = originalValues.toMutableSet()
+        val checkedItems = BooleanArray(entryValues.size) { index ->
+            originalValues.contains(entryValues[index].toString())
+        }
+
+        AlertDialog.Builder(requireContext())
+            .applyPreferenceDialogMetadata(preference)
+            .setMultiChoiceItems(entries, checkedItems) { _, which, isChecked ->
+                val value = entryValues[which].toString()
+                if (isChecked) newValues.add(value) else newValues.remove(value)
+            }
+            .setPositiveButton(preference.positiveButtonText ?: getText(android.R.string.ok)) { _, _ ->
+                if (newValues != originalValues && preference.callChangeListener(newValues)) {
+                    preference.values = newValues
+                }
+            }
+            .setNegativeButton(preference.negativeButtonText ?: getText(android.R.string.cancel), null)
+            .show()
+    }
+
+    private fun showNumberPickerPreferenceDialog(preference: NumberPickerPreference) {
+        val container = layoutInflater.inflate(R.layout.pref_number_picker, null)
+        val numberPicker = container.findViewById<NumberPicker>(R.id.number_picker).apply {
+            minValue = NumberPickerPreference.MIN_VALUE
+            maxValue = NumberPickerPreference.MAX_VALUE
+            value = preference.getPersistedInt()
+        }
+
+        AlertDialog.Builder(requireContext())
+            .applyPreferenceDialogMetadata(preference)
+            .setView(container)
+            .setPositiveButton(preference.positiveButtonText ?: getText(android.R.string.ok)) { _, _ ->
+                numberPicker.clearFocus()
+                val newValue = numberPicker.value
+                if (preference.callChangeListener(newValue)) {
+                    preference.doPersistInt(newValue)
+                }
+            }
+            .setNegativeButton(preference.negativeButtonText ?: getText(android.R.string.cancel), null)
+            .show()
+    }
+
+    private fun AlertDialog.Builder.applyPreferenceDialogMetadata(preference: DialogPreference): AlertDialog.Builder {
+        setTitle(preference.dialogTitle ?: preference.title)
+        preference.dialogIcon?.let { setIcon(it) }
+        return this
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         arguments?.parcelable<PreferenceItem>(EXTRA_PREF_END_POINT)?.let { endPoint ->
             selectPreference(endPoint.key)
         }
-    }
-
-    companion object {
-
-        private const val DIALOG_FRAGMENT_TAG = "android.support.v7.preference.PreferenceFragment.DIALOG"
     }
 
     private fun selectPreference(key: String) {
