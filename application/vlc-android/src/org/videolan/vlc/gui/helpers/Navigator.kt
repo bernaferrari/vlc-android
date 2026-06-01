@@ -41,16 +41,12 @@ import com.google.android.material.navigation.NavigationBarView
 import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.resources.EXTRA_FOR_ESPRESSO
 import org.videolan.resources.EXTRA_TARGET
-import org.videolan.resources.ID_AUDIO
-import org.videolan.resources.ID_DIRECTORIES
-import org.videolan.resources.ID_VIDEO
 import org.videolan.resources.util.parcelableList
 import org.videolan.tools.KEY_FRAGMENT_ID
 import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.R
-import org.videolan.vlc.gui.BaseFragment
 import org.videolan.vlc.gui.MainActivity
 import org.videolan.vlc.gui.MoreScreenController
 import org.videolan.vlc.gui.PlaylistScreenController
@@ -102,12 +98,6 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
         navigationView.forEach { it.setOnItemSelectedListener(null) }
     }
 
-    private fun getNewFragment(id: Int): Fragment {
-        return when (id) {
-            else -> error("Unsupported main fragment id $id")
-        }
-    }
-
     private fun showScreen(id: Int) {
         when (id) {
             R.id.nav_audio -> showAudioScreen()
@@ -117,24 +107,6 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
             R.id.nav_video -> showVideoScreen()
             else -> showVideoScreen()
         }
-    }
-
-    private fun showFragment(id: Int) {
-        val tag = getTag(id)
-        val fragment = getNewFragment(id)
-        showFragment(fragment, id, tag)
-    }
-
-    private fun showFragment(fragment: Fragment, id: Int, tag: String = getTag(id)) {
-        val fm = activity.supportFragmentManager
-        clearComposeScreenIfNeeded()
-        val ft = fm.beginTransaction()
-        ft.replace(R.id.fragment_placeholder, fragment, tag)
-        if (BuildConfig.DEBUG) ft.commit()
-        else ft.commitAllowingStateLoss()
-        updateCheckedItem(id)
-        currentFragment = fragment
-        currentFragmentId = id
     }
 
     private fun clearCurrentFragmentNow() {
@@ -302,12 +274,6 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
         return screenWidth - activity.resources.getDimension(R.dimen.navigation_margin).toInt()
     }
 
-    private fun getTag(id: Int) = when (id) {
-        R.id.nav_audio -> ID_AUDIO
-        R.id.nav_directories -> ID_DIRECTORIES
-        else -> ID_VIDEO
-    }
-
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         val id = item.itemId
         val current = currentFragment
@@ -317,7 +283,6 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
         if (current == null && !currentIdIsComposeScreen()) {
             return false
         }
-        if (current is BaseFragment && current.actionMode != null) current.stopActionMode()
 
         if (currentFragmentId == id) { /* Already selected */
             return false
