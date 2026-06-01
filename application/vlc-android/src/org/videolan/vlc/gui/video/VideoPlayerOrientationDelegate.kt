@@ -25,36 +25,20 @@
 package org.videolan.vlc.gui.video
 
 import android.content.pm.ActivityInfo
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import android.widget.CheckBox
-import android.widget.FrameLayout
 import androidx.annotation.StringRes
-import androidx.appcompat.widget.ViewStubCompat
 import androidx.core.content.edit
-import androidx.core.widget.NestedScrollView
-import androidx.leanback.widget.BrowseFrameLayout
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import org.videolan.tools.SHOW_ORIENTATION_BUTTON
 import org.videolan.tools.Settings
 import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.R
-import org.videolan.vlc.databinding.VideoScaleItemBinding
-import org.videolan.vlc.gui.helpers.MARQUEE_ACTION
-import org.videolan.vlc.gui.helpers.enableMarqueeEffect
-import org.videolan.vlc.util.LifecycleAwareScheduler
+import org.videolan.vlc.gui.view.VideoOrientationOverlayView
 
 class VideoPlayerOrientationDelegate(private val player: VideoPlayerActivity) {
     private val overlayDelegate: VideoPlayerOverlayDelegate
         get() = player.overlayDelegate
-    private lateinit var orientationMainView: View
-    private lateinit var scrollView: NestedScrollView
-    private lateinit var orientationList: RecyclerView
-    private lateinit var orientationAdapter: OrientationAdapter
-    private lateinit var showOrientationButton: CheckBox
+    private lateinit var orientationMainView: VideoOrientationOverlayView
 
     /**
      * Check if the orientation overlay is currently shown
@@ -66,41 +50,24 @@ class VideoPlayerOrientationDelegate(private val player: VideoPlayerActivity) {
      * Show the orientation overlay. Inflate it if it's not yet
      */
     private fun showOrientationOverlay() {
-        player.findViewById<ViewStubCompat?>(R.id.player_orientation_stub)?.let {
-            it.setVisible()
-        }
-        player.findViewById<FrameLayout>(R.id.orientation_background)?.let {
+        player.findViewById<VideoOrientationOverlayView>(R.id.player_orientation_stub)?.let {
             orientationMainView = it
-            val browseFrameLayout = orientationMainView.findViewById<BrowseFrameLayout>(R.id.orientation_background)
-            browseFrameLayout.onFocusSearchListener = BrowseFrameLayout.OnFocusSearchListener { focused, _ ->
-                if (orientationList.hasFocus()) focused // keep focus on recyclerview! DO NOT return recyclerview, but focused, which is a child of the recyclerview
-                else null // someone else will find the next focus
-            }
-            orientationList = orientationMainView.findViewById(R.id.orientation_list)
-            scrollView = orientationMainView.findViewById(R.id.orientation_scrollview)
-            showOrientationButton = orientationMainView.findViewById(R.id.show_button)
-
-            orientationMainView.findViewById<View>(R.id.close).setOnClickListener {
-                hideOrientationOverlay()
-            }
-
             val settings = Settings.getInstance(player)
-
-            showOrientationButton.isChecked = settings.getBoolean(SHOW_ORIENTATION_BUTTON, true)
-            showOrientationButton.setOnCheckedChangeListener { _, isChecked ->
-                settings.edit { putBoolean(SHOW_ORIENTATION_BUTTON, isChecked) }
-                player.overlayDelegate.updateOrientationIcon()
-            }
-
-            orientationList.layoutManager = LinearLayoutManager(player)
-            orientationAdapter = OrientationAdapter(if (player.orientationMode.locked) player.orientationMode.orientation else -1)
-            orientationAdapter.setOnSizeSelectedListener { orientation ->
-                player.setOrientation(orientation.value)
-                hideOrientationOverlay()
-            }
-            orientationList.adapter = orientationAdapter
-            orientationMainView.setOnClickListener { hideOrientationOverlay() }
-
+            orientationMainView.bind(
+                selected = OrientationMode.findByValue(if (player.orientationMode.locked) player.orientationMode.orientation else -1),
+                showButton = settings.getBoolean(SHOW_ORIENTATION_BUTTON, true),
+                onDismiss = ::hideOrientationOverlay,
+                onShowButtonChange = { isChecked ->
+                    settings.edit { putBoolean(SHOW_ORIENTATION_BUTTON, isChecked) }
+                    player.overlayDelegate.updateOrientationIcon()
+                    orientationMainView.updateShowOrientationButton(isChecked)
+                },
+                onOrientationSelected = { orientation ->
+                    player.setOrientation(orientation.value)
+                    hideOrientationOverlay()
+                }
+            )
+            orientationMainView.setVisible()
         }
     }
 
@@ -123,66 +90,6 @@ class VideoPlayerOrientationDelegate(private val player: VideoPlayerActivity) {
         return true
     }
 
-}
-
-/**
- * Adapter showing the different available aspect ratios
- */
-class OrientationAdapter(currentOrientation:Int) : RecyclerView.Adapter<OrientationAdapter.ViewHolder>() {
-
-
-    var selectedSize = OrientationMode.findByValue(currentOrientation).ordinal
-        set(value) {
-            notifyItemChanged(field)
-            field = value
-            notifyItemChanged(field)
-        }
-    lateinit var sizeSelectedListener: (OrientationMode) -> Unit
-    private var scheduler: LifecycleAwareScheduler? = null
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val inflater = LayoutInflater.from(parent.context)
-        val binding = VideoScaleItemBinding.inflate(inflater, parent, false)
-        return ViewHolder(binding)
-    }
-
-    fun setOnSizeSelectedListener(listener: (OrientationMode) -> Unit) {
-        sizeSelectedListener = listener
-    }
-
-    override fun getItemCount() = OrientationMode.entries.size
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(OrientationMode.entries[position], position == selectedSize)
-    }
-
-    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
-        super.onAttachedToRecyclerView(recyclerView)
-        if (Settings.listTitleEllipsize == 4) scheduler = enableMarqueeEffect(recyclerView)
-    }
-
-    override fun onViewRecycled(holder: ViewHolder) {
-        scheduler?.cancelAction(MARQUEE_ACTION)
-        super.onViewRecycled(holder)
-    }
-
-
-    inner class ViewHolder(val binding: VideoScaleItemBinding) : RecyclerView.ViewHolder(binding.root) {
-
-        init {
-
-            itemView.setOnClickListener {
-                selectedSize = layoutPosition
-                sizeSelectedListener.invoke(OrientationMode.entries[layoutPosition])
-            }
-        }
-
-        fun bind(orientationMode: OrientationMode, selected: Boolean) {
-            binding.scaleName =binding.root.context.getString(orientationMode.title)
-            binding.selected = selected
-            binding.executePendingBindings()
-        }
-    }
 }
 
 enum class OrientationMode(@StringRes val title: Int, val value: Int) {
