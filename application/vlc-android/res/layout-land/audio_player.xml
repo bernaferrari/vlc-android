@@ -464,49 +464,32 @@
                     app:layout_constraintTop_toBottomOf="@+id/song_subtitle"
                     tools:text="Bitrate: 22.4 KB/s - Codec: Vorbis audio - Sample rate 8000 Hz" />
 
-            <ImageView
+            <org.videolan.vlc.compose.interop.VLCComposeView
                     android:id="@+id/audio_rewind_bookmark"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="?attr/actionBarItemBackground"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:longClickable="true"
-                    android:onClick="@{fragment::onPreviousBookmark}"
-                    android:padding="8dp"
                     app:layout_constraintBottom_toBottomOf="@+id/audio_rewind_10"
                     app:layout_constraintEnd_toStartOf="@+id/audio_rewind_10"
                     app:layout_constraintHorizontal_chainStyle="packed"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="@+id/audio_rewind_10"
-                    app:srcCompat="@drawable/ic_player_bookmark_previous"
                     tools:visibility="visible" />
 
-            <ImageView
+            <org.videolan.vlc.compose.interop.VLCComposeView
                     android:id="@+id/audio_rewind_10"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="?attr/actionBarItemBackground"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:onClick="@{fragment::onJumpBack}"
-                    android:padding="8dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/audio_forward_10"
                     app:layout_constraintHorizontal_chainStyle="packed"
                     app:layout_constraintStart_toEndOf="@+id/audio_rewind_bookmark"
                     app:layout_constraintTop_toBottomOf="@id/song_track_info"
-                    app:srcCompat="@drawable/ic_player_rewind_10"
                     tools:visibility="visible" />
 
-            <TextView
+            <org.videolan.vlc.compose.interop.VLCComposeView
                     android:id="@+id/audio_rewind_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:importantForAccessibility="no"
-                    android:textColor="?attr/player_icon_color"
-                    android:textSize="8dp"
-                    android:textStyle="bold"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     app:layout_constraintBottom_toBottomOf="@+id/audio_rewind_10"
                     app:layout_constraintEnd_toEndOf="@+id/audio_rewind_10"
                     app:layout_constraintStart_toStartOf="@+id/audio_rewind_10"
@@ -514,53 +497,36 @@
                     tools:text="88"
                     tools:visibility="visible" />
 
-            <ImageView
+            <org.videolan.vlc.compose.interop.VLCComposeView
                     android:id="@+id/audio_forward_10"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="?attr/actionBarItemBackground"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:onClick="@{fragment::onJumpForward}"
-                    android:padding="8dp"
                     app:layout_constraintBottom_toBottomOf="@+id/audio_rewind_10"
                     app:layout_constraintEnd_toStartOf="@+id/audio_forward_bookmark"
                     app:layout_constraintHorizontal_bias="0.5"
                     app:layout_constraintStart_toEndOf="@+id/audio_rewind_10"
                     app:layout_constraintTop_toTopOf="@+id/audio_rewind_10"
-                    app:srcCompat="@drawable/ic_player_forward_10"
                     tools:visibility="visible" />
 
-            <TextView
+            <org.videolan.vlc.compose.interop.VLCComposeView
                     android:id="@+id/audio_forward_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:importantForAccessibility="no"
-                    android:textColor="?attr/player_icon_color"
-                    android:textSize="8dp"
-                    android:textStyle="bold"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     app:layout_constraintBottom_toBottomOf="@+id/audio_forward_10"
                     app:layout_constraintEnd_toEndOf="@+id/audio_forward_10"
                     app:layout_constraintStart_toStartOf="@+id/audio_forward_10"
                     app:layout_constraintTop_toTopOf="@+id/audio_forward_10"
                     tools:text="88" />
 
-            <ImageView
+            <org.videolan.vlc.compose.interop.VLCComposeView
                     android:id="@+id/audio_forward_bookmark"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="?attr/actionBarItemBackground"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:longClickable="true"
-                    android:onClick="@{fragment::onNextBookmark}"
-                    android:padding="8dp"
                     app:layout_constraintBottom_toBottomOf="@+id/audio_rewind_10"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHorizontal_bias="0.5"
                     app:layout_constraintStart_toEndOf="@+id/audio_forward_10"
                     app:layout_constraintTop_toTopOf="@+id/audio_rewind_10"
-                    app:srcCompat="@drawable/ic_player_bookmark_next"
                     tools:visibility="visible" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>

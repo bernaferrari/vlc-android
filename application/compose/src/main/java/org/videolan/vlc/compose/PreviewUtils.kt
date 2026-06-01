@@ -36,6 +36,8 @@ import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
 import org.videolan.vlc.compose.components.VLCAudioPlayerChips
 import org.videolan.vlc.compose.components.VLCAudioPlayerChipsState
+import org.videolan.vlc.compose.components.VLCAudioSeekDelayLabel
+import org.videolan.vlc.compose.components.VLCAudioSeekHudButton
 import org.videolan.vlc.compose.components.VLCOnboardingWelcome
 import org.videolan.vlc.compose.components.VLCSectionHeader
 import org.videolan.vlc.compose.theme.VLCTheme
@@ -278,6 +280,27 @@ private fun PlayerChromeTokensDemo() {
                     .size(32.dp)
                     .background(c.subtleSelection, RoundedCornerShape(4.dp))
             )
+        }
+
+        Spacer(Modifier.height(12.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            VLCAudioSeekHudButton(contentDescription = "Previous bookmark") {
+                IconMock("B", c.playerIconColor)
+            }
+            VLCAudioSeekHudButton(contentDescription = "Rewind 10 seconds") {
+                IconMock("<", c.playerIconColor)
+            }
+            VLCAudioSeekDelayLabel(text = "10")
+            VLCAudioSeekHudButton(contentDescription = "Forward 10 seconds") {
+                IconMock(">", c.playerIconColor)
+            }
+            VLCAudioSeekHudButton(contentDescription = "Next bookmark") {
+                IconMock("B", c.playerIconColor)
+            }
         }
 
         Spacer(Modifier.height(12.dp))

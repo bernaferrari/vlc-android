@@ -112,6 +112,8 @@ import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
 import org.videolan.vlc.compose.components.VLCAudioPlayerChips
 import org.videolan.vlc.compose.components.VLCAudioPlayerChipsState
+import org.videolan.vlc.compose.components.VLCAudioSeekDelayLabel
+import org.videolan.vlc.compose.components.VLCAudioSeekHudButton
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.databinding.AudioPlayerBinding
@@ -186,6 +188,12 @@ private data class AudioTransportState(
         val contentDescription: String = ""
 )
 
+private data class AudioSeekHudState(
+        val delayText: String = "",
+        val rewindContentDescription: String = "",
+        val forwardContentDescription: String = ""
+)
+
 @Composable
 private fun AudioPlayerChipIcon(@DrawableRes drawable: Int) {
     Icon(
@@ -244,6 +252,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
     private var audioPlayPauseState by mutableStateOf(AudioPlayPauseState())
     private var audioShuffleState by mutableStateOf(AudioTransportState(R.drawable.ic_shuffle_audio))
     private var audioRepeatState by mutableStateOf(AudioTransportState(R.drawable.ic_repeat_audio))
+    private var audioSeekHudState by mutableStateOf(AudioSeekHudState())
 
     private var showRemainingTime = false
     private var previewingSeek = false
@@ -376,6 +385,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         setupAudioHeaderPlayPause()
         setupAudioHeaderTransportControls()
         setupAudioPlayerTransportControls()
+        setupAudioSeekHudControls()
         setupAudioQueueProgressPill()
         setupPlaybackChips()
 
@@ -596,6 +606,73 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
                 }
             }
         }
+    }
+
+    private fun setupAudioSeekHudControls() {
+        binding.audioRewindBookmark.setContent {
+            VLCTheme {
+                VLCAudioSeekHudButton(
+                    contentDescription = getString(R.string.previous_bookmark),
+                    onClick = { onPreviousBookmark(binding.audioRewindBookmark) }
+                ) {
+                    AudioPlayerTransportIcon(R.drawable.ic_player_bookmark_previous)
+                }
+            }
+        }
+        binding.audioRewind10.setContent {
+            VLCTheme {
+                val state = audioSeekHudState
+                VLCAudioSeekHudButton(
+                    contentDescription = state.rewindContentDescription,
+                    onClick = { onJumpBack(binding.audioRewind10) },
+                    onLongClick = { onJumpBackLong(binding.audioRewind10) }
+                ) {
+                    AudioPlayerTransportIcon(R.drawable.ic_player_rewind_10)
+                }
+            }
+        }
+        binding.audioRewindText.setContent {
+            VLCTheme {
+                VLCAudioSeekDelayLabel(text = audioSeekHudState.delayText)
+            }
+        }
+        binding.audioForward10.setContent {
+            VLCTheme {
+                val state = audioSeekHudState
+                VLCAudioSeekHudButton(
+                    contentDescription = state.forwardContentDescription,
+                    onClick = { onJumpForward(binding.audioForward10) },
+                    onLongClick = { onJumpForwardLong(binding.audioForward10) }
+                ) {
+                    AudioPlayerTransportIcon(R.drawable.ic_player_forward_10)
+                }
+            }
+        }
+        binding.audioForwardText.setContent {
+            VLCTheme {
+                VLCAudioSeekDelayLabel(text = audioSeekHudState.delayText)
+            }
+        }
+        binding.audioForwardBookmark.setContent {
+            VLCTheme {
+                VLCAudioSeekHudButton(
+                    contentDescription = getString(R.string.next_bookmark),
+                    onClick = { onNextBookmark(binding.audioForwardBookmark) }
+                ) {
+                    AudioPlayerTransportIcon(R.drawable.ic_player_bookmark_next)
+                }
+            }
+        }
+        updateAudioSeekHudState()
+    }
+
+    private fun updateAudioSeekHudState() {
+        val delayText = Settings.audioJumpDelay.toString()
+        audioSeekHudState = AudioSeekHudState(
+                delayText = delayText,
+                rewindContentDescription = getString(R.string.talkback_action_rewind, delayText),
+                forwardContentDescription = getString(R.string.talkback_action_forward, delayText)
+        )
     }
 
     private fun updateAudioPlayPause(playing: Boolean, contentDescription: String) {
@@ -831,10 +908,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         binding.songTrackInfo?.visibility = if (Settings.showAudioTrackInfo) View.VISIBLE else View.GONE
         binding.songTrackInfo?.isSelected = true
 
-        binding.audioRewindText.text = "${Settings.audioJumpDelay}"
-        binding.audioForwardText.text = "${Settings.audioJumpDelay}"
-        binding.audioForward10.contentDescription = getString(R.string.talkback_action_forward, Settings.audioJumpDelay.toString())
-        binding.audioRewind10.contentDescription = getString(R.string.talkback_action_rewind, Settings.audioJumpDelay.toString())
+        updateAudioSeekHudState()
         updateBackground()
 
     }

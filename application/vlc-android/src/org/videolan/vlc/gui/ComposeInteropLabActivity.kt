@@ -65,6 +65,8 @@ import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
 import org.videolan.vlc.compose.components.VLCAudioPlayerChips
 import org.videolan.vlc.compose.components.VLCAudioPlayerChipsState
+import org.videolan.vlc.compose.components.VLCAudioSeekDelayLabel
+import org.videolan.vlc.compose.components.VLCAudioSeekHudButton
 import org.videolan.vlc.compose.components.VLCOnboardingWelcome
 import org.videolan.vlc.compose.components.VLCSectionHeader
 import org.videolan.vlc.compose.interop.VLCComposeView
@@ -349,6 +351,21 @@ fun ComposeInteropLabContent() {
                 Text("R", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
             }
         }
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            VLCAudioSeekHudButton(contentDescription = "Previous bookmark") {
+                Text("B", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
+            }
+            VLCAudioSeekHudButton(contentDescription = "Rewind 10 seconds") {
+                Text("<", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
+            }
+            VLCAudioSeekDelayLabel(text = "10")
+            VLCAudioSeekHudButton(contentDescription = "Forward 10 seconds") {
+                Text(">", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
+            }
+            VLCAudioSeekHudButton(contentDescription = "Next bookmark") {
+                Text("B", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
+            }
+        }
         Text(
             "Hosted in the real AudioPlayer fragment by replacing the playback_chips ChipGroup with VLCComposeView. " +
             "The collapsed header time label is also Compose-hosted under the existing header_time ID. " +
@@ -356,6 +373,7 @@ fun ComposeInteropLabContent() {
             "The mini play/pause button is Compose-hosted under header_play_pause with the long-press stop action preserved. " +
             "The tablet header transport strip is Compose-hosted under the existing header_shuffle/header_previous/header_large_play_pause/header_next/header_repeat IDs. " +
             "The full-player bottom shuffle/previous/play_pause/next/repeat transport controls now use the same Compose leaf while preserving previous/next long seek. " +
+            "The cover-mode seek/bookmark HUD row is Compose-hosted under the existing audio_rewind/audio_forward IDs with delay labels driven from Settings.audioJumpDelay. " +
             "The player gesture/switcher surface stays outside this slice; the speed and sleep quick actions are now Compose.",
             style = MaterialTheme.typography.bodySmall
         )
