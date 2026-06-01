@@ -2,9 +2,20 @@ package org.videolan.vlc.gui.browser
 
 import android.content.Context
 import android.net.Uri
-import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.TextView
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.net.toFile
 import androidx.core.net.toUri
 import androidx.recyclerview.widget.RecyclerView
@@ -12,6 +23,8 @@ import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.resources.AndroidDevices
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.theme.VLCTheme
+import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.viewmodels.browser.IPathOperationDelegate
 import org.videolan.vlc.viewmodels.browser.PathOperationDelegate
 
@@ -31,7 +44,12 @@ class PathAdapter(val browser: PathAdapterListener, val media: MediaWrapper) : R
     private val segments = prepareSegments(media.uri)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.browser_path_item, parent, false) as TextView)
+        return ViewHolder(
+            ComposeView(parent.context).apply {
+                layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+            }
+        )
     }
 
     override fun getItemCount() = segments.size
@@ -47,29 +65,52 @@ class PathAdapter(val browser: PathAdapterListener, val media: MediaWrapper) : R
             }
             else -> segmentUri.lastPathSegment
         }
-        holder.root.text = text
-        text?.let {
+        val contentDescription = text?.let {
             val isFile = try {
                 segments[position].toUri().toFile().isFile
             } catch (e: Exception) {
                 false
             }
-            holder.root.contentDescription =  holder.root.context.getString(if (isFile) R.string.talkback_file else R.string.talkback_folder, holder.root.text)
+            holder.root.context.getString(if (isFile) R.string.talkback_file else R.string.talkback_folder, it)
+        }
+        holder.bind(
+            text = text.orEmpty(),
+            contentDescription = contentDescription,
+            isLastSegment = position == segments.size - 1,
+            onClick = { browser.backTo(if (position == 0) "root" else segments[position]) }
+        )
+    }
+
+    inner class ViewHolder(val root: ComposeView) : RecyclerView.ViewHolder(root) {
+        fun bind(text: String, contentDescription: String?, isLastSegment: Boolean, onClick: () -> Unit) {
+            root.setContent {
+                PathSegmentRow(
+                    text = text,
+                    contentDescription = contentDescription,
+                    enabled = !isLastSegment,
+                    onClick = onClick
+                )
+            }
         }
     }
 
-    inner class ViewHolder(val root: TextView) : RecyclerView.ViewHolder(root) {
-        init {
-            root.setOnClickListener {
-                absoluteAdapterPosition.let {
-                    if (it == segments.size - 1) return@setOnClickListener
-                    browser.backTo(
-                            when (it) {
-                                0 -> "root"
-                                else -> segments[it]
-                            })
-                }
+    @Composable
+    private fun PathSegmentRow(text: String, contentDescription: String?, enabled: Boolean, onClick: () -> Unit) {
+        VLCTheme {
+            val semanticModifier = if (contentDescription != null) {
+                Modifier.semantics { this.contentDescription = contentDescription }
+            } else {
+                Modifier
             }
+            Text(
+                text = text,
+                color = VLCThemeDefaults.colors.fontLight,
+                style = MaterialTheme.typography.bodySmall.copy(fontSize = 14.sp),
+                modifier = semanticModifier
+                    .clickable(enabled = enabled, onClick = onClick)
+                    .focusable()
+                    .padding(top = 3.dp, bottom = 4.dp)
+            )
         }
     }
     /**
