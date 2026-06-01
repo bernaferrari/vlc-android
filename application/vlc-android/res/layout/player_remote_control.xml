@@ -188,10 +188,11 @@
         </com.google.android.material.textfield.TextInputLayout>
 
 
-        <androidx.recyclerview.widget.RecyclerView
+        <org.videolan.vlc.compose.interop.VLCComposeView
                 android:id="@+id/video_playlist"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
+                android:clipToPadding="false"
                 android:focusable="true"
                 android:nextFocusUp="@+id/playlist_search_edittext"
                 android:descendantFocusability="afterDescendants"
