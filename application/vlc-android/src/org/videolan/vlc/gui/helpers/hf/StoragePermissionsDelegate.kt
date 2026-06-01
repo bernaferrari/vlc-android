@@ -24,20 +24,20 @@
 package org.videolan.vlc.gui.helpers.hf
 
 import android.Manifest
-import android.annotation.TargetApi
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
-import android.os.Bundle
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
-import androidx.core.os.bundleOf
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.videolan.libvlc.util.AndroidUtil
 import org.videolan.resources.AndroidDevices
@@ -58,124 +58,26 @@ import org.videolan.vlc.util.FileUtils
 import org.videolan.vlc.util.Permissions
 import org.videolan.vlc.util.Permissions.canReadStorage
 import videolan.org.commontools.LiveEvent
+import kotlin.coroutines.resume
 
-
-private const val WRITE_ACCESS = "write"
-private const val WITH_DIALOG = "with_dialog"
-private const val ONLY_MEDIA = "only_media"
-@TargetApi(Build.VERSION_CODES.LOLLIPOP)
-class StoragePermissionsDelegate : BaseHeadlessFragment() {
-
-    private var timeAsked: Long = -1L
-    private var askedPermission: Int = -1
-    private var firstRun: Boolean = false
-    private var upgrade: Boolean = false
-    private var write: Boolean = false
-    private var withDialog: Boolean = true
-    private var askOnlyRead: Boolean = true
+class StoragePermissionsDelegate private constructor() {
 
     interface CustomActionController {
         fun onStorageAccessGranted()
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val intent = activity?.intent
-        if (intent !== null && intent.getBooleanExtra(EXTRA_UPGRADE, false)) {
-            upgrade = true
-            firstRun = intent.getBooleanExtra(EXTRA_FIRST_RUN, false)
-        }
-        write = arguments?.getBoolean(WRITE_ACCESS) == true
-        withDialog = arguments?.getBoolean(WITH_DIALOG) != false
-        askOnlyRead = arguments?.getBoolean(ONLY_MEDIA) == true
-        if (AndroidUtil.isMarshMallowOrLater && (!canReadStorage(requireContext()) ||  !Permissions.hasAllAccess(requireContext()))) {
-            if (shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE) && !model.permissionRationaleShown) {
-                Permissions.showStoragePermissionDialog(requireActivity(), false)
-                model.permissionRationaleShown = true
-            }
-            else
-                requestStorageAccess(false)
-        } else if (write) {
-            if (shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE) && !model.permissionRationaleShown) {
-                Permissions.showStoragePermissionDialog(requireActivity(), false)
-                model.permissionRationaleShown = true
-            }
-            else
-                requestStorageAccess(true)
-        }
-    }
-
-    private val activityResultLauncher =
-        registerForActivityResult(
-            ActivityResultContracts.RequestPermission()){ isGranted ->
-            //Answered really quick (not human) -> forwarding to app settings
-            if (activity == null) return@registerForActivityResult
-            val delay = System.currentTimeMillis() - timeAsked
-            if (delay < 300) {
-                Permissions.showAppSettingsPage(requireActivity())
-                return@registerForActivityResult
-            }
-            when (askedPermission) {
-                Permissions.PERMISSION_STORAGE_TAG, Permissions.MANAGE_EXTERNAL_STORAGE -> {
-                    // If request is cancelled, the result arrays are empty.
-                    if(activity == null) return@registerForActivityResult
-                    if (isGranted || isExternalStorageManager()) {
-                        storageAccessGranted.value = true
-                        model.complete(true)
-                        exit()
-                        return@registerForActivityResult
-                    }
-                    storageAccessGranted.value = false
-                    if (model.permissionPending) model.deferredGrant.complete(false)
-                    exit()
-                }
-                Permissions.PERMISSION_WRITE_STORAGE_TAG -> {
-                    model.deferredGrant.complete(isGranted)
-                    exit()
-                }
-            }
-        }
-
-    private fun requestStorageAccess(write: Boolean) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !askOnlyRead) {
-            val uri = Uri.fromParts(SCHEME_PACKAGE, requireContext().packageName, null)
-            val intent = Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri)
-            if (intent.isCallable(requireActivity())) {
-                //StartActivity doesn't have the right theme for the dialog. Fallback to no dialog
-                if (withDialog && requireActivity() !is StartActivity)
-                    requireActivity().showPermissionListComposeDialog()
-                else
-                    askAllAccessPermission(intent)
-                return
-            }
-        }
-        val code = if (write) Manifest.permission.WRITE_EXTERNAL_STORAGE else Manifest.permission.READ_EXTERNAL_STORAGE
-        askedPermission = if (write) Permissions.PERMISSION_WRITE_STORAGE_TAG else Permissions.PERMISSION_STORAGE_TAG
-        timeAsked = System.currentTimeMillis()
-        activityResultLauncher.launch(code)
-    }
-
-    private fun askAllAccessPermission(intent: Intent) {
-        val code = android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION
-        askedPermission = Permissions.MANAGE_EXTERNAL_STORAGE
-        activityResultLauncher.launch(code)
-        startActivity(intent)
-    }
-
     companion object {
-
         const val TAG = "VLC/StorageHF"
         val storageAccessGranted = LiveEvent<Boolean>()
+        private var permissionRationaleShown = false
 
-        fun FragmentActivity.askStoragePermission( write: Boolean, cb: Runnable?) {
+        fun FragmentActivity.askStoragePermission(write: Boolean, cb: Runnable?) {
             val intent = intent
             val upgrade = intent?.getBooleanExtra(EXTRA_UPGRADE, false) == true
             val firstRun = upgrade && intent.getBooleanExtra(EXTRA_FIRST_RUN, false)
             val settings = Settings.getInstance(this)
             lifecycleScope.launch {
                 val granted = getStoragePermission(write)
-                val model : PermissionViewmodel by viewModels()
-                if (model.permissionPending) model.deferredGrant.complete(granted)
                 val onboardingDone = withContext(Dispatchers.IO) {
                     if (AndroidDevices.isTv)
                         settings.getBoolean(KEY_TV_ONBOARDING_DONE, false)
@@ -188,23 +90,109 @@ class StoragePermissionsDelegate : BaseHeadlessFragment() {
             }
         }
 
-        @OptIn(ExperimentalCoroutinesApi::class)
-        suspend fun FragmentActivity.getStoragePermission(write: Boolean = false, withDialog:Boolean = true, onlyMedia:Boolean = false) : Boolean {
-            if (isFinishing) return false
-            Settings.getInstance(this).putSingle(INITIAL_PERMISSION_ASKED, true)
-            val model : PermissionViewmodel by viewModels()
-            if (model.isCompleted && storageAccessGranted.value == true) return model.deferredGrant.getCompleted()
-            if (model.permissionPending) {
-                val fragment = supportFragmentManager.findFragmentByTag(TAG) as? StoragePermissionsDelegate
-                fragment?.requestStorageAccess(write) ?: return false
-            } else {
-                model.setupDeferred()
-                val fragment = StoragePermissionsDelegate().apply {
-                    arguments = bundleOf(WRITE_ACCESS to write, WITH_DIALOG to withDialog, ONLY_MEDIA to onlyMedia)
-                }
-                supportFragmentManager.beginTransaction().add(fragment, TAG).commitAllowingStateLoss()
+        suspend fun FragmentActivity.getStoragePermission(write: Boolean = false, withDialog:Boolean = true, onlyMedia:Boolean = false) : Boolean = withContext(Dispatchers.Main.immediate) {
+            if (isFinishing) return@withContext false
+            Settings.getInstance(this@getStoragePermission).putSingle(INITIAL_PERMISSION_ASKED, true)
+            when {
+                !AndroidUtil.isMarshMallowOrLater -> true
+                shouldRequestReadOrAllAccess(onlyMedia) -> requestStorageAccess(write = false, withDialog = withDialog, onlyMedia = onlyMedia)
+                write && !Permissions.canWriteStorage(this@getStoragePermission) -> requestStorageAccess(write = true, withDialog = withDialog, onlyMedia = onlyMedia)
+                else -> true
             }
-            return model.deferredGrant.await()
+        }
+
+        private fun FragmentActivity.shouldRequestReadOrAllAccess(onlyMedia: Boolean) = if (onlyMedia) {
+            !canReadStorage(this)
+        } else {
+            !canReadStorage(this) || !Permissions.hasAllAccess(this)
+        }
+
+        private suspend fun FragmentActivity.requestStorageAccess(write: Boolean, withDialog: Boolean, onlyMedia: Boolean) : Boolean {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !onlyMedia && !write) {
+                val uri = Uri.fromParts(SCHEME_PACKAGE, packageName, null)
+                val intent = Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri)
+                if (intent.isCallable(this)) {
+                    if (withDialog && this !is StartActivity) {
+                        showPermissionListComposeDialog()
+                        return false
+                    }
+                    return requestAllFilesAccess(intent)
+                }
+            }
+
+            val permission = if (write) Manifest.permission.WRITE_EXTERNAL_STORAGE else Manifest.permission.READ_EXTERNAL_STORAGE
+            if (ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED) {
+                if (!write) storageAccessGranted.value = true
+                return true
+            }
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, permission) && !permissionRationaleShown) {
+                Permissions.showStoragePermissionDialog(this, false)
+                permissionRationaleShown = true
+                return false
+            }
+            return requestRuntimeStoragePermission(permission, write)
+        }
+
+        private suspend fun FragmentActivity.requestRuntimeStoragePermission(permission: String, write: Boolean) : Boolean = suspendCancellableCoroutine { continuation ->
+            val resultKey = "$TAG:${System.nanoTime()}"
+            var requestPermissionLauncher: ActivityResultLauncher<String>? = null
+
+            fun unregister() {
+                requestPermissionLauncher?.unregister()
+                requestPermissionLauncher = null
+            }
+
+            requestPermissionLauncher = activityResultRegistry.register(resultKey, ActivityResultContracts.RequestPermission()) { isGranted ->
+                val delay = System.currentTimeMillis() - Permissions.timeAsked
+                if (delay < 300) {
+                    Permissions.showAppSettingsPage(this)
+                    if (continuation.isActive) continuation.resume(false)
+                    unregister()
+                    return@register
+                }
+                val granted = if (write) {
+                    isGranted
+                } else {
+                    isGranted || isExternalStorageManager()
+                }
+                if (!write) storageAccessGranted.value = granted
+                if (continuation.isActive) continuation.resume(granted)
+                unregister()
+            }
+
+            continuation.invokeOnCancellation { unregister() }
+            try {
+                Permissions.timeAsked = System.currentTimeMillis()
+                requestPermissionLauncher?.launch(permission)
+            } catch (_: RuntimeException) {
+                unregister()
+                if (continuation.isActive) continuation.resume(false)
+            }
+        }
+
+        private suspend fun FragmentActivity.requestAllFilesAccess(intent: Intent) : Boolean = suspendCancellableCoroutine { continuation ->
+            val resultKey = "$TAG:all:${System.nanoTime()}"
+            var settingsLauncher: ActivityResultLauncher<Intent>? = null
+
+            fun unregister() {
+                settingsLauncher?.unregister()
+                settingsLauncher = null
+            }
+
+            settingsLauncher = activityResultRegistry.register(resultKey, ActivityResultContracts.StartActivityForResult()) {
+                val granted = Permissions.hasAllAccess(this)
+                storageAccessGranted.value = granted
+                if (continuation.isActive) continuation.resume(granted)
+                unregister()
+            }
+
+            continuation.invokeOnCancellation { unregister() }
+            try {
+                settingsLauncher?.launch(intent)
+            } catch (_: RuntimeException) {
+                unregister()
+                if (continuation.isActive) continuation.resume(false)
+            }
         }
 
         private fun getAction(activity: FragmentActivity, firstRun: Boolean, upgrade: Boolean) = Runnable {
