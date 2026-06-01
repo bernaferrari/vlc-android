@@ -22,10 +22,7 @@ import org.videolan.tools.isValidUrl
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.theme.VLCTheme
-import org.videolan.vlc.gui.dialogs.CONFIRM_RENAME_DIALOG_RESULT
 import org.videolan.vlc.gui.dialogs.CtxActionReceiver
-import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_MEDIA
-import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_NEW_NAME
 import org.videolan.vlc.gui.dialogs.SavePlaylistDialog
 import org.videolan.vlc.gui.dialogs.showContext
 import org.videolan.vlc.gui.dialogs.showRenameComposeDialog
@@ -112,11 +109,6 @@ class TVActivity : BaseTvActivity() {
 
         model.dataset.observe(this) { itemsState.value = it.orEmpty() }
         model.loading.observe(this) { loadingState.value = it == true }
-        supportFragmentManager.setFragmentResultListener(CONFIRM_RENAME_DIALOG_RESULT, this) { _, bundle ->
-            val media = bundle.getParcelable<MediaWrapper>(RENAME_DIALOG_MEDIA) ?: return@setFragmentResultListener
-            val name = bundle.getString(RENAME_DIALOG_NEW_NAME) ?: return@setFragmentResultListener
-            model.rename(media, name)
-        }
         PlaybackService.lastError.observe(this) {
             if (it != null && streamsModel != null) {
                 searchTextState.value = it
@@ -174,7 +166,9 @@ class TVActivity : BaseTvActivity() {
         val model = streamsModel ?: return
         val media = model.dataset.get(position)
         when (option) {
-            CTX_RENAME -> showRenameComposeDialog(media)
+            CTX_RENAME -> showRenameComposeDialog(media) { renamedMedia, name ->
+                model.rename(renamedMedia as MediaWrapper, name)
+            }
             CTX_APPEND -> MediaUtils.appendMedia(this, media)
             CTX_ADD_TO_PLAYLIST -> addToPlaylist(media.tracks, SavePlaylistDialog.KEY_NEW_TRACKS)
             CTX_COPY -> {

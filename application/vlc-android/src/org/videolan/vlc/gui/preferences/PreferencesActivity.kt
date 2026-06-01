@@ -140,7 +140,7 @@ private const val RESULT_VALUE_CLEAR_HISTORY = 1
 private const val RESULT_VALUE_CLEAR_MEDIA_DATABASE = 2
 private const val RESULT_VALUE_CLEAR_APP_DATA = 3
 
-class PreferencesActivity : BaseActivity() {
+open class PreferencesActivity : BaseActivity() {
 
     private val searchRequestCode = 167
     private var mAppBarLayout: AppBarLayout? = null
@@ -195,7 +195,9 @@ class PreferencesActivity : BaseActivity() {
             if (!navigateUp()) finish()
         }
         if (savedInstanceState == null) {
-            intent.parcelable<PreferenceItem>(EXTRA_PREF_END_POINT)?.let(::routePreferenceEndpoint) ?: showPreferencesRoot()
+            intent.parcelable<PreferenceItem>(EXTRA_PREF_END_POINT)?.let(::routePreferenceEndpoint)
+                ?: intent.getStringExtra(EXTRA_PREF_END_POINT)?.let(::routeLegacyPreferenceEndpoint)
+                ?: showPreferencesRoot()
         } else {
             val restoredDestination = savedInstanceState.getString(EXTRA_COMPOSE_PREF_DESTINATION)?.let { destinationName ->
                 runCatching { PreferencesRootDestination.valueOf(destinationName) }.getOrNull()
@@ -371,6 +373,14 @@ class PreferencesActivity : BaseActivity() {
             R.xml.preferences_remote_access -> showPreferenceSubpage(PreferencesRootDestination.RemoteAccess, endPoint.key)
             R.xml.preferences_android_auto -> showPreferenceSubpage(PreferencesRootDestination.AndroidAuto, endPoint.key)
             else -> showPreferencesRoot(endPoint.key)
+        }
+    }
+
+    private fun routeLegacyPreferenceEndpoint(endPoint: String) {
+        when (endPoint) {
+            "remote_access_category" -> showPreferenceSubpage(PreferencesRootDestination.RemoteAccess, endPoint)
+            "enable_remote_access" -> showPreferenceSubpage(PreferencesRootDestination.RemoteAccess, endPoint)
+            else -> showPreferencesRoot(endPoint)
         }
     }
 

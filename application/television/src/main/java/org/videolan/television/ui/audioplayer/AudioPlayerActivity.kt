@@ -49,11 +49,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.videolan.libvlc.MediaPlayer
 import org.videolan.libvlc.interfaces.IMedia
-import org.videolan.medialibrary.interfaces.media.Bookmark
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
-import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.resources.AndroidDevices
-import org.videolan.resources.util.parcelable
 import org.videolan.resources.util.parcelableList
 import org.videolan.television.R
 import org.videolan.television.databinding.TvAudioPlayerBinding
@@ -64,9 +61,6 @@ import org.videolan.tools.formatRateString
 import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.PlaybackService
-import org.videolan.vlc.gui.dialogs.CONFIRM_BOOKMARK_RENAME_DIALOG_RESULT
-import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_MEDIA
-import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_NEW_NAME
 import org.videolan.vlc.gui.dialogs.showEqualizerComposeDialog
 import org.videolan.vlc.gui.dialogs.showPlaybackSpeedComposeDialog
 import org.videolan.vlc.gui.dialogs.showSleepTimerComposeDialog
@@ -169,11 +163,6 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
                 finish()
             }
         })
-        supportFragmentManager.setFragmentResultListener(CONFIRM_BOOKMARK_RENAME_DIALOG_RESULT, this) { requestKey, bundle ->
-            val media = bundle.parcelable<MediaLibraryItem>(RENAME_DIALOG_MEDIA) ?: return@setFragmentResultListener
-            val name = bundle.getString(RENAME_DIALOG_NEW_NAME) ?: return@setFragmentResultListener
-            bookmarkListDelegate.renameBookmark(media as Bookmark, name)
-        }
         PlaybackService.serviceFlow.onEach { onServiceChanged(it) }.launchIn(MainScope())
         PlaylistManager.showAudioPlayer.observe(this) { showPlayer ->
             if (!showPlayer && playbackStarted) finish()
@@ -383,7 +372,7 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
             if (!this::bookmarkListDelegate.isInitialized) {
                 bookmarkListDelegate = BookmarkListDelegate(this, it, bookmarkModel, false)
                 bookmarkListDelegate.visibilityListener = {
-                    if (bookmarkListDelegate.visible) bookmarkListDelegate.rootView.requestFocus()
+                    if (bookmarkListDelegate.visible) bookmarkListDelegate.requestFocus()
                     binding.playlist.descendantFocusability = if (bookmarkListDelegate.visible) ViewGroup.FOCUS_BLOCK_DESCENDANTS else ViewGroup.FOCUS_AFTER_DESCENDANTS
                     binding.playlist.isFocusable = !bookmarkListDelegate.visible
                     binding.sleepQuickAction.isFocusable = !bookmarkListDelegate.visible

@@ -10,6 +10,7 @@ import android.view.View
 import androidx.core.net.toUri
 import androidx.core.os.bundleOf
 import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -47,9 +48,9 @@ import org.videolan.vlc.util.isSchemeSupported
 import org.videolan.vlc.util.onAnyChange
 import org.videolan.vlc.viewmodels.browser.BrowserModel
 import org.videolan.vlc.viewmodels.browser.IPathOperationDelegate
+import org.videolan.vlc.viewmodels.browser.NetworkModel
 import org.videolan.vlc.viewmodels.browser.TYPE_FILE
 import org.videolan.vlc.viewmodels.browser.TYPE_NETWORK
-import org.videolan.vlc.viewmodels.browser.getBrowserModel
 
 private const val TAG = "FileBrowserTvFragment"
 
@@ -115,7 +116,11 @@ class FileBrowserTvFragment : BaseBrowserTvFragment<MediaLibraryItem>(), PathAda
         isRootLevel = arguments?.getBoolean("rootLevel") == true
         (currentItem as? MediaWrapper)?.run { mrl = location }
         val category = arguments?.getLong(CATEGORY, TYPE_FILE) ?: TYPE_FILE
-        viewModel = getBrowserModel(category = category, url = mrl)
+        viewModel = if (category == TYPE_NETWORK) {
+            ViewModelProvider(requireActivity(), NetworkModel.Factory(requireContext(), mrl))[NetworkModel::class.java]
+        } else {
+            ViewModelProvider(requireActivity(), BrowserModel.Factory(requireContext(), mrl, category))[BrowserModel::class.java]
+        }
 
         viewModel.currentItem = currentItem
         browserFavRepository = BrowserFavRepository.getInstance(requireContext())

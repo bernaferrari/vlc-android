@@ -133,6 +133,10 @@ class BookmarkListDelegate(
         if (::rootView.isInitialized) rootView.sendAddBookmarkAccessibilityEvent()
     }
 
+    fun requestFocus() {
+        if (::rootView.isInitialized) rootView.requestFocus()
+    }
+
     fun renameBookmark(media: Bookmark, name: String) {
         activity.lifecycleScope.launch {
             val bookmarks = bookmarkModel.rename(media, name)
