@@ -39,6 +39,8 @@ import org.videolan.vlc.compose.components.VLCAudioPlayerChips
 import org.videolan.vlc.compose.components.VLCAudioPlayerChipsState
 import org.videolan.vlc.compose.components.VLCAudioSeekDelayLabel
 import org.videolan.vlc.compose.components.VLCAudioSeekHudButton
+import org.videolan.vlc.compose.components.VLCAudioTrackInfoText
+import org.videolan.vlc.compose.components.VLCAudioTrackInfoTextStyle
 import org.videolan.vlc.compose.components.VLCOnboardingWelcome
 import org.videolan.vlc.compose.components.VLCSectionHeader
 import org.videolan.vlc.compose.theme.VLCTheme
@@ -254,6 +256,22 @@ private fun PlayerChromeTokensDemo() {
             speedIconContent = { Text("S", color = c.audioChipsTextColor) },
             sleepIconContent = { Text("Z", color = c.audioChipsTextColor) }
         )
+
+        Spacer(Modifier.height(16.dp))
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+            VLCAudioTrackInfoText(
+                text = "5th Symphony",
+                style = VLCAudioTrackInfoTextStyle.Title
+            )
+            VLCAudioTrackInfoText(
+                text = "Beethoven - Album",
+                style = VLCAudioTrackInfoTextStyle.Subtitle
+            )
+            VLCAudioTrackInfoText(
+                text = "Bitrate: 22.4 KB/s - Codec: Vorbis audio - Sample rate 8000 Hz",
+                style = VLCAudioTrackInfoTextStyle.Detail
+            )
+        }
 
         Spacer(Modifier.height(16.dp))
 

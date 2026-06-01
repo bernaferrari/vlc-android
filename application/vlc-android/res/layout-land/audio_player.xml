@@ -368,28 +368,19 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="@+id/song_title" />
 
-            <TextView
+            <org.videolan.vlc.compose.interop.VLCComposeView
                     android:id="@+id/song_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
                     android:layout_marginEnd="16dp"
-                    android:ellipsize="marquee"
-                    android:fontFamily="sans-serif-light"
-                    android:importantForAccessibility="no"
-                    android:marqueeRepeatLimit="1"
-                    android:maxLines="1"
-                    android:singleLine="true"
-                    android:textColor="?attr/font_default"
-                    android:textSize="24sp"
                     app:layout_constrainedWidth="true"
                     app:layout_constraintBottom_toTopOf="@+id/song_subtitle"
                     app:layout_constraintEnd_toStartOf="@+id/next_chapter"
                     app:layout_constraintHorizontal_bias="0.5"
                     app:layout_constraintStart_toEndOf="@+id/previous_chapter"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_chainStyle="packed"
-                    tools:text="5th Symphony" />
+                    app:layout_constraintVertical_chainStyle="packed" />
 
             <org.videolan.vlc.compose.interop.VLCComposeView
                     android:id="@+id/next_chapter"
@@ -400,47 +391,32 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="@+id/song_title" />
 
-            <TextView
+            <org.videolan.vlc.compose.interop.VLCComposeView
                     android:id="@+id/song_subtitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="24dp"
                     android:layout_marginTop="8dp"
                     android:layout_marginEnd="24dp"
-                    android:ellipsize="marquee"
-                    android:importantForAccessibility="no"
-                    android:marqueeRepeatLimit="1"
-                    android:maxLines="1"
-                    android:singleLine="true"
-                    android:textColor="?attr/font_audio_light"
-                    android:textSize="14sp"
                     app:layout_constrainedWidth="true"
                     app:layout_constraintBottom_toTopOf="@+id/song_track_info"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/song_title"
-                    app:layout_goneMarginBottom="16dp"
-                    tools:text="Beethoven" />
+                    app:layout_goneMarginBottom="16dp" />
 
-            <TextView
+            <org.videolan.vlc.compose.interop.VLCComposeView
                     android:id="@+id/song_track_info"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="24dp"
                     android:layout_marginEnd="24dp"
                     android:layout_marginBottom="16dp"
-                    android:ellipsize="marquee"
-                    android:importantForAccessibility="no"
-                    android:marqueeRepeatLimit="1"
-                    android:maxLines="1"
-                    android:textColor="?attr/font_audio_light"
-                    android:textSize="12sp"
                     app:layout_constrainedWidth="true"
                     app:layout_constraintBottom_toTopOf="@+id/audio_rewind_10"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/song_subtitle"
-                    tools:text="Bitrate: 22.4 KB/s - Codec: Vorbis audio - Sample rate 8000 Hz" />
+                    app:layout_constraintTop_toBottomOf="@+id/song_subtitle" />
 
             <org.videolan.vlc.compose.interop.VLCComposeView
                     android:id="@+id/audio_rewind_bookmark"

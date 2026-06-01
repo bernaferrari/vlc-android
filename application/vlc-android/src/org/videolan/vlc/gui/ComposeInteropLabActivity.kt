@@ -68,6 +68,8 @@ import org.videolan.vlc.compose.components.VLCAudioPlayerChips
 import org.videolan.vlc.compose.components.VLCAudioPlayerChipsState
 import org.videolan.vlc.compose.components.VLCAudioSeekDelayLabel
 import org.videolan.vlc.compose.components.VLCAudioSeekHudButton
+import org.videolan.vlc.compose.components.VLCAudioTrackInfoText
+import org.videolan.vlc.compose.components.VLCAudioTrackInfoTextStyle
 import org.videolan.vlc.compose.components.VLCOnboardingWelcome
 import org.videolan.vlc.compose.components.VLCSectionHeader
 import org.videolan.vlc.compose.interop.VLCComposeView
@@ -321,6 +323,20 @@ fun ComposeInteropLabContent() {
             }
         )
         VLCAudioHeaderTimeLabel(text = "10:42")
+        Column {
+            VLCAudioTrackInfoText(
+                text = "5th Symphony",
+                style = VLCAudioTrackInfoTextStyle.Title
+            )
+            VLCAudioTrackInfoText(
+                text = "Beethoven - Album",
+                style = VLCAudioTrackInfoTextStyle.Subtitle
+            )
+            VLCAudioTrackInfoText(
+                text = "Bitrate: 22.4 KB/s - Codec: Vorbis audio - Sample rate 8000 Hz",
+                style = VLCAudioTrackInfoTextStyle.Detail
+            )
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             VLCAudioHeaderActionButton(contentDescription = "Search") {
                 Text("S", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.audioMenuIcon)
@@ -400,6 +416,7 @@ fun ComposeInteropLabContent() {
         Text(
             "Hosted in the real AudioPlayer fragment by replacing the playback_chips ChipGroup with VLCComposeView. " +
             "The collapsed header time label is also Compose-hosted under the existing header_time ID. " +
+            "The landscape title/subtitle/track-detail text stack is Compose-hosted under song_title/song_subtitle/song_track_info. " +
             "The search, playlist switch, and overflow actions are Compose-hosted under their existing IDs. " +
             "The AB-repeat reset/stop header actions are also Compose-hosted under ab_repeat_reset and ab_repeat_stop while the service helper still controls their visibility. " +
             "The A-B repeat timeline markers are Compose-hosted under ab_repeat_marker_a and ab_repeat_marker_b while the guidelines still control their positions. " +

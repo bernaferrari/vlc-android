@@ -115,6 +115,8 @@ import org.videolan.vlc.compose.components.VLCAudioPlayerChips
 import org.videolan.vlc.compose.components.VLCAudioPlayerChipsState
 import org.videolan.vlc.compose.components.VLCAudioSeekDelayLabel
 import org.videolan.vlc.compose.components.VLCAudioSeekHudButton
+import org.videolan.vlc.compose.components.VLCAudioTrackInfoText
+import org.videolan.vlc.compose.components.VLCAudioTrackInfoTextStyle
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.databinding.AudioPlayerBinding
@@ -264,6 +266,9 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
     private var audioShuffleState by mutableStateOf(AudioTransportState(R.drawable.ic_shuffle_audio))
     private var audioRepeatState by mutableStateOf(AudioTransportState(R.drawable.ic_repeat_audio))
     private var audioSeekHudState by mutableStateOf(AudioSeekHudState())
+    private var audioTrackTitleText by mutableStateOf("")
+    private var audioTrackSubtitleText by mutableStateOf("")
+    private var audioTrackDetailText by mutableStateOf("")
 
     private var showRemainingTime = false
     private var previewingSeek = false
@@ -393,11 +398,9 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         setupAudioChapterControls()
         setupAudioHingeControls()
         setupAudioAbRepeatMarkers()
+        setupAudioTrackInfoTexts()
         setupAudioQueueProgressPill()
         setupPlaybackChips()
-
-        binding.songTitle?.setOnClickListener { coverMediaSwitcherListener.onTextClicked() }
-        binding.songSubtitle?.setOnClickListener { coverMediaSwitcherListener.onTextClicked() }
 
         setBottomMargin()
         requireActivity().supportFragmentManager.setFragmentResultListener(CONFIRM_BOOKMARK_RENAME_DIALOG_RESULT, viewLifecycleOwner) { requestKey, bundle ->
@@ -757,6 +760,35 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         }
     }
 
+    private fun setupAudioTrackInfoTexts() {
+        binding.songTitle?.setContent {
+            VLCTheme {
+                VLCAudioTrackInfoText(
+                    text = audioTrackTitleText,
+                    style = VLCAudioTrackInfoTextStyle.Title,
+                    onClick = { coverMediaSwitcherListener.onTextClicked() }
+                )
+            }
+        }
+        binding.songSubtitle?.setContent {
+            VLCTheme {
+                VLCAudioTrackInfoText(
+                    text = audioTrackSubtitleText,
+                    style = VLCAudioTrackInfoTextStyle.Subtitle,
+                    onClick = { coverMediaSwitcherListener.onTextClicked() }
+                )
+            }
+        }
+        binding.songTrackInfo?.setContent {
+            VLCTheme {
+                VLCAudioTrackInfoText(
+                    text = audioTrackDetailText,
+                    style = VLCAudioTrackInfoTextStyle.Detail
+                )
+            }
+        }
+    }
+
     private fun updateAudioSeekHudState() {
         val delayText = Settings.audioJumpDelay.toString()
         audioSeekHudState = AudioSeekHudState(
@@ -991,13 +1023,10 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
             binding.audioRewind10.setGone()
         }
 
-        binding.songTitle?.text = if (!chapter.isNullOrEmpty()) chapter else  playlistModel.title
-        binding.songSubtitle?.text = if (!chapter.isNullOrEmpty()) TextUtils.separatedString(playlistModel.title, playlistModel.artist) else TextUtils.separatedString(playlistModel.artist, playlistModel.album)
-        binding.songTitle?.isSelected = true
-        binding.songSubtitle?.isSelected = true
-        binding.songTrackInfo?.text = playlistModel.service?.trackInfo()
+        audioTrackTitleText = if (!chapter.isNullOrEmpty()) chapter else playlistModel.title.orEmpty()
+        audioTrackSubtitleText = if (!chapter.isNullOrEmpty()) TextUtils.separatedString(playlistModel.title, playlistModel.artist) else TextUtils.separatedString(playlistModel.artist, playlistModel.album)
+        audioTrackDetailText = playlistModel.service?.trackInfo().orEmpty()
         binding.songTrackInfo?.visibility = if (Settings.showAudioTrackInfo) View.VISIBLE else View.GONE
-        binding.songTrackInfo?.isSelected = true
 
         updateAudioSeekHudState()
         updateBackground()
