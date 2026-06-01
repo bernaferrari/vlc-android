@@ -18,7 +18,7 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
  * BookmarkListDelegate with dynamic ImageViews and ConstraintSet guidelines:
  *   - application/vlc-android/res/layout/audio_player.xml @id/bookmark_marker_container
  *   - application/vlc-android/res/layout-land/audio_player.xml @id/bookmark_marker_container
- *   - application/vlc-android/res/layout/player_hud.xml @id/bookmark_marker_container
+ *   - application/vlc-android/src/org/videolan/vlc/gui/view/VideoHudOverlayView.kt @id/bookmark_marker_container
  *
  * Marker fractions are normalized against the current media duration by the
  * app-side delegate so this leaf only owns drawing the existing bookmark glyph

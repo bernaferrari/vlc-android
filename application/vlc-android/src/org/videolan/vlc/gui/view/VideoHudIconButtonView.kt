@@ -40,8 +40,8 @@ import androidx.compose.ui.res.painterResource
 import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
 
 /**
- * Compose-backed icon button for video HUD controls that still need stable XML
- * IDs and View-level click/visibility hooks during the player_hud migration.
+ * Compose-backed icon button for video HUD controls that still need stable
+ * IDs and View-level click/visibility hooks during the HUD migration.
  */
 class VideoHudIconButtonView @JvmOverloads constructor(
     context: Context,

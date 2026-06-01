@@ -107,8 +107,7 @@ class AudioTimelineSeekBarView @JvmOverloads constructor(
 ) : PlayerTimelineSeekBarView(context, attrs, defStyleAttr)
 
 /**
- * XML-friendly Compose replacement for player_hud.xml's former
- * AccessibleSeekBar timeline.
+ * View-friendly Compose replacement for the video HUD's former native timeline.
  */
 class VideoTimelineSeekBarView @JvmOverloads constructor(
     context: Context,

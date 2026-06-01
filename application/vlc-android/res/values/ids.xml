@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="stats_container" type="id" />
+    <item name="fast_seek_warning" type="id" />
+    <item name="bookmarks_background" type="id" />
+    <item name="player_overlay_time" type="id" />
+    <item name="player_overlay_length" type="id" />
+    <item name="player_overlay_seekbar" type="id" />
+    <item name="bookmark_marker_container" type="id" />
+    <item name="player_overlay_tracks" type="id" />
+    <item name="orientation_toggle" type="id" />
+    <item name="player_space_left" type="id" />
+    <item name="playlist_previous" type="id" />
+    <item name="player_overlay_rewind" type="id" />
+    <item name="player_overlay_rewind_text" type="id" />
+    <item name="player_overlay_play" type="id" />
+    <item name="player_overlay_forward" type="id" />
+    <item name="player_overlay_forward_text" type="id" />
+    <item name="playlist_next" type="id" />
+    <item name="player_space_right" type="id" />
+    <item name="player_resize" type="id" />
+    <item name="player_overlay_adv_function" type="id" />
+    <item name="swipe_to_unlock" type="id" />
+</resources>

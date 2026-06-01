@@ -52,7 +52,7 @@ import org.videolan.vlc.R
 import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
 
 /**
- * Compose-backed replacement for player_hud.xml's elapsed/length time labels.
+ * Compose-backed replacement for the video HUD elapsed/length time labels.
  * The legacy delegate keeps using the same view IDs for focus, margins, lock
  * state, and bookmark height anchoring while this host owns text rendering.
  */

@@ -35,7 +35,7 @@ import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
 /**
- * Compose-backed replacement for player_hud.xml's tiny seek jump number labels.
+ * Compose-backed replacement for the video HUD's tiny seek jump number labels.
  * VideoPlayerOverlayDelegate still updates the same IDs through the normal
  * ViewBinding text/visibility contract.
  */

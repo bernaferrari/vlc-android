@@ -112,8 +112,8 @@
                 android:visibility="invisible"
                 tools:visibility="visible" />
 
-        <include
-                layout="@layout/player_hud"
+        <org.videolan.vlc.gui.view.VideoHudOverlayView
+                android:id="@+id/progress_overlay"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="bottom" />

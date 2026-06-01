@@ -85,7 +85,7 @@ private data class VideoStatLine(
 )
 
 /**
- * Compose-backed replacement for player_hud.xml's video statistics panel.
+ * Compose-backed replacement for the video HUD statistics panel.
  * The delegate keeps ownership of media/stat sampling and feeds immutable
  * values into this view while the panel owns layout, scrolling, rows, graph,
  * legend, and close affordance rendering.
