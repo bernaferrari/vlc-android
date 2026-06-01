@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item type="id" name="album_cover" />
+    <item type="id" name="background" />
+    <item type="id" name="barrier" />
+    <item type="id" name="button_more" />
+    <item type="id" name="button_next" />
+    <item type="id" name="button_play" />
+    <item type="id" name="button_previous" />
+    <item type="id" name="button_repeat" />
+    <item type="id" name="button_shuffle" />
+    <item type="id" name="guideline8" />
+    <item type="id" name="media_artist" />
+    <item type="id" name="media_length" />
+    <item type="id" name="media_progress" />
+    <item type="id" name="media_time" />
+    <item type="id" name="media_title" />
+    <item type="id" name="playback_speed_quick_action" />
+    <item type="id" name="playback_speed_quick_action_image" />
+    <item type="id" name="playback_speed_quick_action_text" />
+    <item type="id" name="playlist" />
+    <item type="id" name="sleep_quick_action" />
+    <item type="id" name="sleep_quick_action_text" />
+</resources>
