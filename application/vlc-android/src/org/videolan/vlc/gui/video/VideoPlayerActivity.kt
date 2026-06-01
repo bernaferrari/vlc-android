@@ -187,7 +187,6 @@ import org.videolan.vlc.gui.DialogActivity
 import org.videolan.vlc.gui.HeaderMediaListActivity
 import org.videolan.vlc.gui.HeaderMediaListActivity.Companion.ARTIST_FROM_ALBUM
 import org.videolan.vlc.gui.SecondaryActivity
-import org.videolan.vlc.gui.audio.PlaylistAdapter
 import org.videolan.vlc.gui.browser.EXTRA_MRL
 import org.videolan.vlc.gui.dialogs.CONFIRM_BOOKMARK_RENAME_DIALOG_RESULT
 import org.videolan.vlc.gui.dialogs.CtxActionReceiver
@@ -245,7 +244,7 @@ import java.util.Date
 import kotlin.math.roundToInt
 
 
-open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, PlaylistAdapter.IPlayer, OnClickListener, OnLongClickListener, StoragePermissionsDelegate.CustomActionController, TextWatcher, IDialogManager, KeycodeListener {
+open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, OnClickListener, OnLongClickListener, StoragePermissionsDelegate.CustomActionController, TextWatcher, IDialogManager, KeycodeListener {
 
     var hasPhysicalNotch: Boolean = false
     private var subtitlesExtraPath: String? = null
@@ -360,7 +359,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
             return if (VlcMigrationHelper.isLolliPopOrLater) pm.isInteractive else pm.isScreenOn
         }
 
-    val playlistObserver = Observer<List<MediaWrapper>> { mediaWrappers -> if (mediaWrappers != null) overlayDelegate.playlistAdapter.update(mediaWrappers) }
+    val playlistObserver = Observer<List<MediaWrapper>> { mediaWrappers -> if (mediaWrappers != null) overlayDelegate.updatePlaylistItems(mediaWrappers) }
 
     private var addNextTrack = false
 
@@ -780,7 +779,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
             }
             videoUri = uri
             if (isPlaylistVisible) {
-                overlayDelegate.playlistAdapter.currentIndex = currentMediaPosition
+                overlayDelegate.requestPlaylistSelection(currentMediaPosition)
                 overlayDelegate.playlistContainer.setGone()
             }
             if (settings.getBoolean(VIDEO_TRANSITION_SHOW, true)) showTitle()
@@ -1561,7 +1560,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     }
 
     override fun update() {
-        if (service == null || !overlayDelegate.isPlaylistAdapterInitialized()) return
+        if (service == null || !overlayDelegate.isPlaylistQueueInitialized()) return
         playlistModel?.update()
     }
 
@@ -1908,63 +1907,62 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
 
     private val ctxReceiver: CtxActionReceiver = object : CtxActionReceiver {
         override fun onCtxAction(position: Int, option: ContextOption) {
-            if (position in 0 until overlayDelegate.playlistAdapter.itemCount) when (option) {
+            val media = overlayDelegate.getPlaylistItem(position) ?: return
+            when (option) {
                 CTX_ADD_TO_PLAYLIST -> {
-                    val mw = overlayDelegate.playlistAdapter.getItem(position)
-                    addToPlaylist(listOf(mw))
+                    addToPlaylist(listOf(media))
                 }
-                CTX_REMOVE_FROM_PLAYLIST -> service?.run {
-                    remove(position)
+                CTX_REMOVE_FROM_PLAYLIST -> {
+                    removePlaylistItem(position, media)
                 }
                 CTX_STOP_AFTER_THIS -> {
                     val pos = if (playlistModel?.service?.playlistManager?.stopAfter != position) position else -1
                     playlistModel?.stopAfter(pos)
-                    overlayDelegate.playlistAdapter.stopAfter = pos
+                    overlayDelegate.updatePlaylistStopAfter(pos)
                 }
                 CTX_GO_TO_ALBUM -> {
                     val i = Intent(this@VideoPlayerActivity, HeaderMediaListActivity::class.java)
-                    i.putExtra(TAG_ITEM, overlayDelegate.playlistAdapter.getItem(position).album)
+                    i.putExtra(TAG_ITEM, media.album)
                     startActivity(i)
                 }
                 CTX_GO_TO_ARTIST -> lifecycleScope.launch(Dispatchers.IO) {
-                    val artist = overlayDelegate.playlistAdapter.getItem(position).artist
                     val i = Intent(this@VideoPlayerActivity, SecondaryActivity::class.java)
                     i.putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.ALBUMS_SONGS)
-                    i.putExtra(TAG_ITEM, artist)
+                    i.putExtra(TAG_ITEM, media.artist)
                     i.putExtra(ARTIST_FROM_ALBUM, true)
                     i.flags = i.flags or Intent.FLAG_ACTIVITY_NO_HISTORY
                     startActivity(i)
                 }
                 CTX_FAV_ADD, CTX_FAV_REMOVE -> lifecycleScope.launch {
-                    overlayDelegate.playlistAdapter.getItem(position).isFavorite = option == CTX_FAV_ADD
-                    overlayDelegate.playlistAdapter.notifyItemChanged(position)
+                    media.isFavorite = option == CTX_FAV_ADD
+                    overlayDelegate.refreshPlaylistItems()
                 }
-                CTX_SHARE -> lifecycleScope.launch { share(overlayDelegate.playlistAdapter.getItem(position)) }
+                CTX_SHARE -> lifecycleScope.launch { share(media) }
                 else -> {}
             }
         }
     }
 
-    override fun onPopupMenu(view: View, position: Int, item: MediaWrapper?) {
+    fun showPlaylistContext(position: Int, item: MediaWrapper) {
         val flags = FlagSet(ContextOption::class.java).apply {
             addAll(CTX_REMOVE_FROM_PLAYLIST, CTX_STOP_AFTER_THIS)
-            if (item?.uri?.scheme != "content") addAll(CTX_ADD_TO_PLAYLIST,  CTX_SHARE)
-            if (item?.album != null) add(CTX_GO_TO_ALBUM)
-            if (item?.artist != null) add(CTX_GO_TO_ARTIST)
-            if (item?.isFavorite == true) add(CTX_FAV_REMOVE) else add(CTX_FAV_ADD)
+            if (item.uri?.scheme != "content") addAll(CTX_ADD_TO_PLAYLIST, CTX_SHARE)
+            if (item.album != null) add(CTX_GO_TO_ALBUM)
+            if (item.artist != null) add(CTX_GO_TO_ARTIST)
+            if (item.isFavorite) add(CTX_FAV_REMOVE) else add(CTX_FAV_ADD)
         }
         showContext(this, ctxReceiver, position, item, flags)
     }
 
-    override fun getLifeCycle() = this.lifecycle
+    fun removePlaylistItem(position: Int, @Suppress("UNUSED_PARAMETER") item: MediaWrapper) {
+        playlistModel?.remove(position)
+    }
 
-    override fun onSelectionSet(position: Int) = overlayDelegate.playlist.scrollToPosition(position)
-
-    override fun playItem(position: Int, item: MediaWrapper) {
+    fun playPlaylistItem(position: Int, item: MediaWrapper) {
         service?.saveMediaMeta()
         service?.playlistManager?.getMedia(position)
         service?.playlistManager?.getMediaList()?.let {
-            if (it[position] == item)  service?.playIndex(position)
+            if (position in it.indices && it[position] == item)  service?.playIndex(position)
             else {
                 for ((index, media) in it.withIndex()) if (item == media) {
                     service?.playIndex(index)

@@ -43,6 +43,10 @@ import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.ViewStubCompat
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.dp as composeDp
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
@@ -51,9 +55,6 @@ import androidx.core.view.children
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import androidx.window.layout.FoldingFeature
 import com.google.android.material.textfield.TextInputLayout
@@ -88,13 +89,15 @@ import org.videolan.vlc.RendererDelegate
 import org.videolan.vlc.VlcMigrationHelper
 import org.videolan.vlc.databinding.PlayerHudBinding
 import org.videolan.vlc.databinding.PlayerHudRightBinding
-import org.videolan.vlc.gui.audio.PlaylistAdapter
+import org.videolan.vlc.compose.theme.VLCTheme
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.gui.audio.AudioPlaylistQueue
+import org.videolan.vlc.gui.audio.AudioPlaylistScrollRequest
 import org.videolan.vlc.gui.browser.FilePickerActivity
 import org.videolan.vlc.gui.browser.KEY_MEDIA
 import org.videolan.vlc.gui.dialogs.VideoTracksDialog
 import org.videolan.vlc.gui.helpers.BookmarkListDelegate
 import org.videolan.vlc.gui.helpers.OnRepeatListenerKey
-import org.videolan.vlc.gui.helpers.SwipeDragItemTouchHelperCallback
 import org.videolan.vlc.gui.helpers.TalkbackUtil
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.showVideoTrack
@@ -152,16 +155,23 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
     fun isHudBindingInitialized() = ::hudBinding.isInitialized
     fun isHudRightBindingInitialized() = ::hudRightBinding.isInitialized
-    fun isPlaylistAdapterInitialized() = ::playlistAdapter.isInitialized
+    fun isPlaylistQueueInitialized() = playlistQueueInitialized
 
     private var orientationLockedBeforeLock: Boolean = false
     lateinit var closeButton: View
     lateinit var playlistContainer: View
     var hingeArrowRight: ImageView? = null
     var hingeArrowLeft: ImageView? = null
-    lateinit var playlist: RecyclerView
+    lateinit var playlist: VLCComposeView
     lateinit var playlistSearchText: TextInputLayout
-    lateinit var playlistAdapter: PlaylistAdapter
+    private var playlistQueueInitialized = false
+    private var playlistItems by mutableStateOf<List<MediaWrapper>>(emptyList())
+    private var playlistCurrentIndex by mutableStateOf(-1)
+    private var playlistPlaying by mutableStateOf(false)
+    private var playlistFiltering by mutableStateOf(false)
+    private var playlistStopAfter by mutableStateOf(-1)
+    private var playlistScrollSerial = 0
+    private var playlistScrollRequest by mutableStateOf<AudioPlaylistScrollRequest?>(null)
     var foldingFeature: FoldingFeature? = null
         set(value) {
             field = value
@@ -522,9 +532,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                 wasPlaying = service.isPlaying
             }
             hudBinding.playerOverlayPlay.requestFocus()
-            if (::playlistAdapter.isInitialized) {
-                playlistAdapter.setCurrentlyPlaying(service.isPlaying)
-            }
+            playlistPlaying = service.isPlaying
         }
     }
 
@@ -884,16 +892,76 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
         hudRightBinding.playerScreenshot.setOnClickListener(player)
     }
 
+    fun updatePlaylistItems(mediaWrappers: List<MediaWrapper>) {
+        playlistItems = mediaWrappers.toList()
+        playlistPlaying = player.service?.isPlaying == true
+        playlistStopAfter = player.playlistModel?.service?.playlistManager?.stopAfter ?: -1
+        requestPlaylistSelection(player.playlistModel?.selection ?: player.service?.currentMediaPosition ?: -1)
+    }
+
+    fun getPlaylistItem(position: Int) = playlistItems.getOrNull(position)
+
+    fun refreshPlaylistItems() {
+        playlistItems = playlistItems.toList()
+    }
+
+    fun updatePlaylistStopAfter(position: Int) {
+        playlistStopAfter = position
+    }
+
+    fun requestPlaylistSelection(position: Int) {
+        playlistCurrentIndex = position
+        if (position !in playlistItems.indices) return
+        if (player.playlistModel?.lastActionWasEdit == true) {
+            player.playlistModel?.lastActionWasEdit = false
+            return
+        }
+        playlistScrollRequest = AudioPlaylistScrollRequest(position, ++playlistScrollSerial)
+    }
+
+    private fun movePlaylistItem(from: Int, to: Int) {
+        if (playlistFiltering || from !in playlistItems.indices || to !in playlistItems.indices) return
+        val nextItems = playlistItems.toMutableList()
+        val movedItem = nextItems.removeAt(from)
+        nextItems.add(to, movedItem)
+        playlistItems = nextItems
+        playlistCurrentIndex = when (playlistCurrentIndex) {
+            from -> to
+            to -> from
+            else -> playlistCurrentIndex
+        }
+        player.playlistModel?.move(from, if (to > from) to + 1 else to)
+    }
+
     private fun initPlaylistUi() {
-        if (!::playlistAdapter.isInitialized) {
-            playlistAdapter = PlaylistAdapter(player)
-            val layoutManager = LinearLayoutManager(player, RecyclerView.VERTICAL, false)
-            playlist.layoutManager = layoutManager
+        if (!playlistQueueInitialized) {
+            playlist.setContent {
+                VLCTheme {
+                    AudioPlaylistQueue(
+                        items = playlistItems,
+                        currentIndex = playlistCurrentIndex,
+                        playing = playlistPlaying,
+                        showTrackNumbers = false,
+                        showReorderButtons = !playlistFiltering,
+                        showInlineActions = player.isTv || AndroidDevices.isTv,
+                        stopAfter = playlistStopAfter,
+                        scrollRequest = playlistScrollRequest,
+                        onScrollRequestConsumed = { playlistScrollRequest = null },
+                        onPlayItem = player::playPlaylistItem,
+                        onShowContext = player::showPlaylistContext,
+                        onDismissItem = player::removePlaylistItem,
+                        onMoveItem = ::movePlaylistItem,
+                        topPadding = 8.composeDp,
+                        bottomPaddingOverride = 0.composeDp
+                    )
+                }
+            }
+            playlistQueueInitialized = true
         }
         if (player.playlistModel == null) {
             player.playlistModel = ViewModelProvider(player)[PlaylistModel::class.java].apply {
-                playlistAdapter.setModel(this)
                 dataset.observe(player, player.playlistObserver)
+                filteringState.observe(player) { playlistFiltering = it }
             }
         }
         if (player.service?.hasPlaylist() == true) {
@@ -916,9 +984,6 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
             showOverlay()
         }
 
-        val callback = SwipeDragItemTouchHelperCallback(playlistAdapter, true)
-        val touchHelper = ItemTouchHelper(callback)
-        touchHelper.attachToRecyclerView(playlist)
     }
 
     fun togglePlaylist() {
@@ -930,8 +995,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
         }
         hideOverlay(true)
         playlistContainer.setVisible()
-        playlist.adapter = playlistAdapter
-        player.onSelectionSet(playlistAdapter.currentIndex)
+        requestPlaylistSelection(player.playlistModel?.currentMediaPosition ?: playlistCurrentIndex)
         player.update()
         if (player.isTalkbackIsEnabled()) playlistSearchText.editText?.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED)
     }

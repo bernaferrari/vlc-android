@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.vlc.R
@@ -49,11 +50,13 @@ internal fun AudioPlaylistQueue(
     onShowContext: (position: Int, item: MediaWrapper) -> Unit,
     onDismissItem: (position: Int, item: MediaWrapper) -> Unit,
     onMoveItem: (from: Int, to: Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    topPadding: Dp = 0.dp,
+    bottomPaddingOverride: Dp? = null
 ) {
     val listState = rememberLazyListState()
     val configuration = LocalConfiguration.current
-    val bottomPadding = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+    val bottomPadding = bottomPaddingOverride ?: if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
         dimensionResource(R.dimen.listview_bottom_padding)
     } else {
         68.dp
@@ -71,7 +74,7 @@ internal fun AudioPlaylistQueue(
     ) {
         LazyColumn(
             state = listState,
-            contentPadding = PaddingValues(bottom = bottomPadding),
+            contentPadding = PaddingValues(top = topPadding, bottom = bottomPadding),
             modifier = Modifier
                 .widthIn(max = 800.dp)
                 .fillMaxWidth()
