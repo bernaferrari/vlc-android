@@ -218,11 +218,12 @@
             android:layout_height="match_parent"
             android:layout="@layout/player_options" />
 
-    <androidx.appcompat.widget.ViewStubCompat
+    <org.videolan.vlc.gui.view.VideoResizeOverlayView
             android:id="@+id/player_resize_stub"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout="@layout/player_resize" />
+            android:visibility="gone"
+            tools:visibility="visible" />
     <org.videolan.vlc.gui.view.VideoOrientationOverlayView
             android:id="@+id/player_orientation_stub"
             android:layout_width="match_parent"
