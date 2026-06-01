@@ -78,6 +78,7 @@ import org.videolan.vlc.compose.components.VLCAudioSeekDelayLabel
 import org.videolan.vlc.compose.components.VLCAudioSeekHudButton
 import org.videolan.vlc.compose.components.VLCAudioTrackInfoText
 import org.videolan.vlc.compose.components.VLCAudioTrackInfoTextStyle
+import org.videolan.vlc.compose.components.VLCAudioTimelineSlider
 import org.videolan.vlc.compose.components.VLCAudioTimelineTimeLabel
 import org.videolan.vlc.compose.components.VLCOnboardingWelcome
 import org.videolan.vlc.compose.components.VLCSectionHeader
@@ -373,6 +374,13 @@ fun ComposeInteropLabContent() {
             VLCAudioTimelineTimeLabel(text = "3:42")
             VLCAudioTimelineTimeLabel(text = "-12:08")
         }
+        VLCAudioTimelineSlider(
+            progress = 222_000,
+            max = 720_000,
+            contentDescription = "3 minutes 42 seconds out of 12 minutes",
+            onUserProgressChange = {},
+            modifier = Modifier.fillMaxWidth()
+        )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             VLCAudioHeaderActionButton(contentDescription = "Search") {
                 Text("S", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.audioMenuIcon)
@@ -459,6 +467,7 @@ fun ComposeInteropLabContent() {
             "The collapsed mini progress bar is Compose-backed under progressBar while keeping the existing max/progress and slide-height contract. " +
             "The top and bottom audio-player gradient overlays are Compose-backed under top_gradient and bottom_gradient while keeping their layout constraints. " +
             "The playlist search input is Compose-backed under playlist_search_text with a small query/focus bridge replacing TextInputLayout/EditText. " +
+            "The full-player timeline seekbar is Compose-backed under timeline with a max/progress and drag callback bridge replacing AccessibleSeekBar. " +
             "The collapsed header time label is also Compose-hosted under the existing header_time ID. " +
             "The full-player elapsed/length timeline labels are Compose-hosted under time and length. " +
             "The landscape title/subtitle/track-detail text stack is Compose-hosted under song_title/song_subtitle/song_track_info. " +

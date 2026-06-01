@@ -33,8 +33,6 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.SeekBar
-import android.widget.SeekBar.OnSeekBarChangeListener
 import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresPermission
 import androidx.compose.foundation.layout.size
@@ -145,6 +143,7 @@ import org.videolan.vlc.gui.video.VideoPlayerActivity
 import org.videolan.vlc.gui.view.AbRepeatAddMarkerButtonView
 import org.videolan.vlc.gui.view.AudioMediaSwitcher
 import org.videolan.vlc.gui.view.AudioMediaSwitcher.AudioMediaSwitcherListener
+import org.videolan.vlc.gui.view.AudioTimelineSeekBarView
 import org.videolan.vlc.manageAbRepeatStep
 import org.videolan.vlc.media.PlaylistManager
 import org.videolan.vlc.media.PlaylistManager.Companion.hasMedia
@@ -360,7 +359,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, IAudioPlayerAnimator by
 
         registerForContextMenu(binding.songsList)
         userVisibleHint = true
-        binding.timeline.setOnSeekBarChangeListener(timelineListener)
+        binding.timeline.setOnTimelineSeekChangeListener(timelineListener)
 
         onSlide(0f)
         abRepeatAddMarker = binding.abRepeatContainer.findViewById<AbRepeatAddMarkerButtonView>(R.id.ab_repeat_add_marker)
@@ -1484,18 +1483,18 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, IAudioPlayerAnimator by
         }
     }
 
-    private var timelineListener: OnSeekBarChangeListener = object : OnSeekBarChangeListener {
+    private var timelineListener = object : AudioTimelineSeekBarView.Listener {
 
-        override fun onStopTrackingTouch(seekBar: SeekBar) {
-             playlistModel.setTime(seekBar.progress.toLong())
+        override fun onStopTrackingTouch(progress: Int) {
+            playlistModel.setTime(progress.toLong())
             isDragging = false
         }
 
-        override fun onStartTrackingTouch(seekBar: SeekBar) {
+        override fun onStartTrackingTouch() {
             isDragging = true
         }
 
-        override fun onProgressChanged(sb: SeekBar, progress: Int, fromUser: Boolean) {
+        override fun onProgressChanged(progress: Int, fromUser: Boolean) {
             if (fromUser) {
                 playlistModel.setTime(progress.toLong(), true)
                 val displayTime = Tools.millisToString(progress.toLong())

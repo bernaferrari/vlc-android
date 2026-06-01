@@ -153,6 +153,8 @@ data class VLCColorScheme(
     val audioHeaderDivider: Color,
     /** ?attr/audio_player_gradient_top/bottom start color */
     val audioPlayerGradientColor: Color,
+    /** Track/background color for ?attr/audio_seek_bar */
+    val audioSeekTrack: Color,
     /** Approx for ?attr/bottom_navigation_background (drawable in real, color here) */
     val bottomNavigationBackground: Color,
     /** ?attr/audio_chips_color + text (audio_player.xml:396 etc) */
@@ -211,6 +213,7 @@ private val LightVLCColors = VLCColorScheme(
     audioHeaderBackground = White,                // :43
     audioHeaderDivider = Grey400,                 // :44
     audioPlayerGradientColor = WhiteTransparent80, // :105/:106 via gradient_audio_player_* drawables
+    audioSeekTrack = BlackTransparent20,          // :49 audio_seekbar background/secondaryProgress
     bottomNavigationBackground = White,           // approx (real is drawable)
     audioChipsColor = BlackTransparent75,         // :72
     audioChipsTextColor = WhiteTransparent60,     // :73
@@ -259,6 +262,7 @@ private val DarkVLCColors = VLCColorScheme(
     audioHeaderBackground = MiniPlayerDark,       // :237
     audioHeaderDivider = Black,                   // :238
     audioPlayerGradientColor = BlackTransparent80, // :300/:301 via gradient_audio_player_*_dark drawables
+    audioSeekTrack = Color(0x33EEEEEE),           // :243 audio_seekbar_black background/secondaryProgress
     bottomNavigationBackground = DarkBackground,  // approx (real: bottom_navigation_background_dark drawable)
     audioChipsColor = WhiteTransparent90,         // :266
     audioChipsTextColor = BlackTransparent60,     // :267

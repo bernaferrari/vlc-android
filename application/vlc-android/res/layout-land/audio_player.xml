@@ -507,20 +507,15 @@
                 app:layout_constraintBottom_toTopOf="@+id/timeline"
                 app:layout_constraintLeft_toLeftOf="@+id/timeline" />
 
-        <org.videolan.vlc.gui.view.AccessibleSeekBar
+        <org.videolan.vlc.gui.view.AudioTimelineSeekBarView
                 android:id="@+id/timeline"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:elevation="4dp"
                 android:focusable="true"
-                android:maxHeight="1dip"
-                android:minHeight="1dip"
                 android:paddingStart="0dp"
                 android:paddingEnd="0dp"
                 android:layoutDirection="ltr"
-                android:progressDrawable="?attr/audio_seek_bar"
-                android:splitTrack="false"
-                android:thumb="@drawable/ic_seekbar_thumb_audio"
                 app:layout_constraintBottom_toTopOf="@+id/play_pause"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent" />

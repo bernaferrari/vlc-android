@@ -49,6 +49,7 @@ import org.videolan.vlc.compose.components.VLCAudioSeekDelayLabel
 import org.videolan.vlc.compose.components.VLCAudioSeekHudButton
 import org.videolan.vlc.compose.components.VLCAudioTrackInfoText
 import org.videolan.vlc.compose.components.VLCAudioTrackInfoTextStyle
+import org.videolan.vlc.compose.components.VLCAudioTimelineSlider
 import org.videolan.vlc.compose.components.VLCAudioTimelineTimeLabel
 import org.videolan.vlc.compose.components.VLCOnboardingWelcome
 import org.videolan.vlc.compose.components.VLCSectionHeader
@@ -327,6 +328,13 @@ private fun PlayerChromeTokensDemo() {
             VLCAudioTimelineTimeLabel(text = "3:42")
             VLCAudioTimelineTimeLabel(text = "-12:08")
         }
+        VLCAudioTimelineSlider(
+            progress = 222_000,
+            max = 720_000,
+            contentDescription = "3 minutes 42 seconds out of 12 minutes",
+            onUserProgressChange = {},
+            modifier = Modifier.fillMaxWidth()
+        )
 
         Spacer(Modifier.height(16.dp))
 
