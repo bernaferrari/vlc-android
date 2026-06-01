@@ -18,6 +18,8 @@ import org.videolan.vlc.compose.theme.VLCTheme
  *   - playlist_search
  *   - playlist_switch
  *   - adv_function
+ *   - ab_repeat_reset
+ *   - ab_repeat_stop
  *
  * The host supplies icon content so app drawable resources can remain in
  * :application:vlc-android while this leaf owns size, click target, and

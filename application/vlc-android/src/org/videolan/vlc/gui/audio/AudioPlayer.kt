@@ -443,6 +443,26 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
     }
 
     private fun setupAudioHeaderActions() {
+        binding.abRepeatReset.setContent {
+            VLCTheme {
+                VLCAudioHeaderActionButton(
+                    contentDescription = getString(R.string.ab_repeat_reset),
+                    onClick = { onABRepeatResetClick(binding.abRepeatReset) }
+                ) {
+                    AudioPlayerHeaderIcon(R.drawable.ic_abrepeat_reset_marker_audio)
+                }
+            }
+        }
+        binding.abRepeatStop.setContent {
+            VLCTheme {
+                VLCAudioHeaderActionButton(
+                    contentDescription = getString(R.string.ab_repeat_stop),
+                    onClick = { onABRepeatStopClick(binding.abRepeatStop) }
+                ) {
+                    AudioPlayerHeaderIcon(R.drawable.ic_abrepeat_reset_audio)
+                }
+            }
+        }
         binding.playlistSearch.setContent {
             VLCTheme {
                 VLCAudioHeaderActionButton(

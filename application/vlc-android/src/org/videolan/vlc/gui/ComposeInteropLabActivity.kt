@@ -330,6 +330,12 @@ fun ComposeInteropLabContent() {
             VLCAudioHeaderActionButton(contentDescription = "Advanced") {
                 Text("⋮", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.audioMenuIcon)
             }
+            VLCAudioHeaderActionButton(contentDescription = "Reset A-B marker") {
+                Text("A", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.audioMenuIcon)
+            }
+            VLCAudioHeaderActionButton(contentDescription = "Stop A-B repeat") {
+                Text("B", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.audioMenuIcon)
+            }
             VLCAudioHeaderPlayPauseButton(contentDescription = "Pause") {
                 Text("Ⅱ", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
             }
@@ -370,6 +376,7 @@ fun ComposeInteropLabContent() {
             "Hosted in the real AudioPlayer fragment by replacing the playback_chips ChipGroup with VLCComposeView. " +
             "The collapsed header time label is also Compose-hosted under the existing header_time ID. " +
             "The search, playlist switch, and overflow actions are Compose-hosted under their existing IDs. " +
+            "The AB-repeat reset/stop header actions are also Compose-hosted under ab_repeat_reset and ab_repeat_stop while the service helper still controls their visibility. " +
             "The mini play/pause button is Compose-hosted under header_play_pause with the long-press stop action preserved. " +
             "The tablet header transport strip is Compose-hosted under the existing header_shuffle/header_previous/header_large_play_pause/header_next/header_repeat IDs. " +
             "The full-player bottom shuffle/previous/play_pause/next/repeat transport controls now use the same Compose leaf while preserving previous/next long seek. " +

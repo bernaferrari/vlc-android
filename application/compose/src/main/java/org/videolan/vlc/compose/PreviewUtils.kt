@@ -222,6 +222,12 @@ private fun PlayerChromeTokensDemo() {
                     VLCAudioHeaderActionButton(contentDescription = "Advanced") {
                         IconMock("⋮", c.audioMenuIcon)
                     }
+                    VLCAudioHeaderActionButton(contentDescription = "Reset A-B marker") {
+                        IconMock("A", c.audioMenuIcon)
+                    }
+                    VLCAudioHeaderActionButton(contentDescription = "Stop A-B repeat") {
+                        IconMock("B", c.audioMenuIcon)
+                    }
                     VLCAudioHeaderPlayPauseButton(contentDescription = "Pause") {
                         IconMock("Ⅱ", c.playerIconColor)
                     }

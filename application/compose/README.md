@@ -105,7 +105,7 @@ fun MyFullScreen() {
   - `VLCAudioPlayerChips` (Wave 2 playback speed + sleep quick-action chips from audio_player.xml)
   - `VLCAudioQueueProgressPill` (Wave 2 audio queue progress HUD chip from audio_player.xml)
   - `VLCAudioHeaderTimeLabel` (Wave 2 collapsed audio-player header time label from audio_player.xml)
-  - `VLCAudioHeaderActionButton` (Wave 2 collapsed audio-player search/playlist/overflow actions from audio_player.xml)
+  - `VLCAudioHeaderActionButton` (Wave 2 collapsed audio-player search/playlist/overflow + AB-repeat reset/stop actions from audio_player.xml)
   - `VLCAudioHeaderPlayPauseButton` (Wave 2 collapsed audio-player mini play/pause control from audio_player.xml)
   - `VLCAudioHeaderTransportButton` (Wave 2 audio-player header + full-player transport controls from audio_player.xml)
   - `VLCAudioSeekHudButton` / `VLCAudioSeekDelayLabel` (Wave 2 audio-player cover-mode seek/bookmark HUD controls from audio_player.xml)
@@ -197,6 +197,7 @@ ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:comp
 - Part of the "preview + gate enforcement" acceptance criteria for Wave 1.
 
 **Current gate evidence**:
+- 2026-06-01: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:compose:build :application:vlc-android:compileDebugKotlin --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 21s` after replacing the audio-player AB-repeat reset/stop header actions with `VLCAudioHeaderActionButton`.
 - 2026-06-01: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:compose:build :application:vlc-android:compileDebugKotlin --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 21s` after replacing the audio-player cover-mode seek/bookmark HUD buttons and delay labels with `VLCAudioSeekHudButton` / `VLCAudioSeekDelayLabel`.
 - 2026-06-01: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:compose:build :application:vlc-android:compileDebugKotlin --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 20s` after replacing the full-player bottom audio transport controls with `VLCAudioHeaderTransportButton`.
 - 2026-06-01: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:compose:build :application:vlc-android:compileDebugKotlin --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 21s` after replacing the tablet audio-player header transport strip with `VLCAudioHeaderTransportButton`.
