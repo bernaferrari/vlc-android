@@ -41,7 +41,6 @@ import android.widget.SeekBar
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.AppCompatImageView
-import androidx.appcompat.widget.ViewStubCompat
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -92,6 +91,8 @@ import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
 import org.videolan.vlc.gui.view.AccessibleSeekBar
 import org.videolan.vlc.gui.view.BookmarkMarkerContainerView
+import org.videolan.vlc.gui.view.BookmarksPanelView
+import org.videolan.vlc.gui.view.PlayerOptionsPanelView
 import org.videolan.vlc.gui.video.VideoPlayerActivity
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.media.PlaylistManager
@@ -269,6 +270,7 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
         views.buttonPlay.setImageDrawable(drawable)
         if (state.playing != wasPlaying) {
             views.buttonPlay.post { drawable.start() }
+            if (::adapter.isInitialized) adapter.refreshCurrentPlayingState()
         }
 
         wasPlaying = state.playing
@@ -708,11 +710,13 @@ private fun createTvAudioPlayerViews(context: Context): TvAudioPlayerViews {
         bottomMargin = 16.dp
     })
 
-    val bookmarkStub = ViewStubCompat(context, null).apply {
-        id = VlcR.id.bookmarks_stub
-        layoutResource = VlcR.layout.bookmarks
+    val bookmarksPanel = BookmarksPanelView(context).apply {
+        id = VlcR.id.bookmarks_background
+        visibility = View.GONE
+        isFocusable = false
+        setBackgroundColor(context.resolveThemeColor(VlcR.attr.bookmark_background))
     }
-    root.addView(bookmarkStub, ConstraintLayout.LayoutParams(500.dp, 0).apply {
+    root.addView(bookmarksPanel, ConstraintLayout.LayoutParams(500.dp, 0).apply {
         topToTop = ConstraintLayout.LayoutParams.PARENT_ID
         bottomToBottom = R.id.media_progress
         startToStart = ConstraintLayout.LayoutParams.PARENT_ID
@@ -827,11 +831,14 @@ private fun createTvAudioPlayerViews(context: Context): TvAudioPlayerViews {
         endToEnd = R.id.media_progress
     })
 
-    val playerOptionsStub = ViewStubCompat(context, null).apply {
-        id = VlcR.id.player_options_stub
-        layoutResource = VlcR.layout.player_options
+    val playerOptionsPanel = PlayerOptionsPanelView(context).apply {
+        id = VlcR.id.options_background
+        visibility = View.GONE
+        isClickable = true
+        isFocusable = false
+        elevation = 16.dp.toFloat()
     }
-    root.addView(playerOptionsStub, matchConstraints().apply {
+    root.addView(playerOptionsPanel, matchConstraints().apply {
         topToTop = ConstraintLayout.LayoutParams.PARENT_ID
         bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
         startToStart = ConstraintLayout.LayoutParams.PARENT_ID
@@ -889,6 +896,12 @@ private fun chipText(context: Context) = TextView(context).apply {
 private fun playerText(context: Context, sp: Float) = TextView(context).apply {
     setTextColor(Color.WHITE)
     setTextSize(TypedValue.COMPLEX_UNIT_SP, sp)
+}
+
+private fun Context.resolveThemeColor(attr: Int): Int {
+    val typedValue = TypedValue()
+    theme.resolveAttribute(attr, typedValue, true)
+    return if (typedValue.resourceId != 0) ContextCompat.getColor(this, typedValue.resourceId) else typedValue.data
 }
 
 private fun controlButton(context: Context, viewId: Int, labelRes: Int) = AppCompatImageView(context).apply {
