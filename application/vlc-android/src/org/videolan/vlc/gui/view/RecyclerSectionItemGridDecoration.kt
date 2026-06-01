@@ -3,42 +3,19 @@ package org.videolan.vlc.gui.view
 import android.annotation.SuppressLint
 import android.graphics.Canvas
 import android.graphics.Rect
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import org.videolan.resources.util.HeaderProvider
 import org.videolan.tools.Settings
-import org.videolan.vlc.R
-
-// =============================================================================
-// WAVE 1 SECTION HEADER HOST MIGRATION (compose-2l4.1.4 / bd: compose-95d)
-// Host file: RecyclerSectionItemGridDecoration.kt (sibling of phone Decoration)
-// Composable target: VLCSectionHeader (SectionHeader.kt) - phone + isTv support
-// Original XMLs: recycler_section_header.xml (phone) + recycler_section_header_tv.xml (TV)
-//
-// This variant is used for grid/card layouts in audio browser etc. It also
-// handles Settings.showTvUi -> inflates the TV XML (different height/padding).
-//
-// TV file/media browser routes now use Compose directly; this RecyclerView
-// decoration remains for non-TV and legacy RecyclerView hosts.
-//
-// All other comments (interop patterns, state update for titles, rollback,
-// Canvas draw timing considerations, full traceability, Permanent Exceptions,
-// hybrid strategy, session completion) are IDENTICAL to the sibling file
-// RecyclerSectionItemDecoration.kt - read that one for the canonical text.
-// The inflateHeaderView here simply chooses phone vs TV XML; the interop
-// sketch would live in the same place (programmatic ComposeView creation).
-// =============================================================================
+import org.videolan.tools.dp
 
 private const val TAG = "RecyclerSectionItemDecoration"
 
 @SuppressLint("LongLogTag")
 class RecyclerSectionItemGridDecoration(private val headerOffset: Int, private val space: Int, private val sideSpace: Int, private val sticky: Boolean, private val nbColumns: Int, private val provider: HeaderProvider) : RecyclerView.ItemDecoration() {
 
-    private lateinit var headerView: View
-    private lateinit var header: TextView
+    private val headerViews = mutableMapOf<String, SectionHeaderDecorationView>()
     var isList = false
 
     override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State) {
@@ -81,12 +58,6 @@ class RecyclerSectionItemGridDecoration(private val headerOffset: Int, private v
             return
         }
 
-        if (!::headerView.isInitialized) {
-            headerView = inflateHeaderView(parent)
-            header = headerView.findViewById<TextView>(R.id.section_header)!!
-            fixLayoutSize(headerView, parent)
-        }
-
         //draw current header
         //look if previous header has been drawn
         var previousSectionPosition = 0
@@ -98,7 +69,7 @@ class RecyclerSectionItemGridDecoration(private val headerOffset: Int, private v
             previousSectionPosition = sectionPosition
 
             val title = provider.getSectionforPosition(sectionPosition)
-            header.text = title
+            val headerView = getHeaderView(parent, title)
             fixLayoutSize(headerView, parent)
             drawHeader(c, parent.getChildAt(0), headerView)
         }
@@ -113,8 +84,8 @@ class RecyclerSectionItemGridDecoration(private val headerOffset: Int, private v
             }
 
             val title = provider.getSectionforPosition(position)
-            header.text = title
             if (provider.isFirstInSection(position)) {
+                val headerView = getHeaderView(parent, title)
                 fixLayoutSize(headerView, parent)
                 drawHeader(c, child, headerView)
                 drawnPositions.add(i)
@@ -134,22 +105,16 @@ class RecyclerSectionItemGridDecoration(private val headerOffset: Int, private v
         c.restore()
     }
 
-    private fun inflateHeaderView(parent: RecyclerView): View {
-        // =====================================================================
-        // WAVE 1 INTEROP SKETCH (compose-2l4.1.4) - see full docs in sibling
-        // RecyclerSectionItemDecoration.kt (the phone Decoration).
-        //
-        // TV branch (showTvUi) intentionally left on XML for this wave.
-        // Phone branch would become the programmatic VLCComposeView host
-        // exactly as sketched in the other file (state-driven title updates
-        // before each drawHeader + Canvas draw).
-        //
-        // Rollback / safety: identical guarantees. Original two XMLs untouched.
-        // =====================================================================
-        if (Settings.showTvUi) {
-            return LayoutInflater.from(parent.context).inflate(R.layout.recycler_section_header_tv, parent, false)
+    private fun getHeaderView(parent: RecyclerView, title: String): View {
+        val isTv = Settings.showTvUi
+        val height = if (isTv) 48.dp else headerOffset
+        val headerView = headerViews.getOrPut("${isTv}:$title") {
+            SectionHeaderDecorationView(parent.context).apply {
+                bind(title, isTv)
+            }
         }
-        return LayoutInflater.from(parent.context).inflate(R.layout.recycler_section_header, parent, false)
+        headerView.attachToOverlayHost(parent, height)
+        return headerView
     }
 
     /**

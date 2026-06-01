@@ -97,7 +97,7 @@ fun MyFullScreen() {
 - Interop helpers (`VLCComposeView`, `VLCAbstractComposeWidget`).
 - Leaf Composables (Wave 1):
   - `VLCDropdownItem` (original)
-  - `VLCSectionHeader` (recycler_section_header.xml + tv variant)
+  - `VLCSectionHeader` (hosted by `SectionHeaderDecorationView` for recycler section decorations)
   - `VLCInfoItem` (info_item.xml - high reuse in track info)
   - `VLCDebugLogLine` (debug_log_item.xml)
   - `VLCDialogConfirmDelete` (presentational parts of dialog_confirm_delete.xml)

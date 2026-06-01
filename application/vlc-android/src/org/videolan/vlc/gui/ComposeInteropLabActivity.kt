@@ -195,7 +195,7 @@ fun ComposeInteropLabContent() {
         // leaf in real media lists. This Lab already exercises it live. The new
         // AudioBrowserSectionedList*Previews in PreviewUtils.kt were added as part
         // of the same task to keep the "rich mock" requirement fresh.
-        VLCSectionHeader(text = "2. VLCSectionHeader (recycler_section_header*.xml)")
+        VLCSectionHeader(text = "2. VLCSectionHeader (Compose decoration host)")
         VLCSectionHeader(text = "Recently Played")
         VLCSectionHeader(text = "Audio Books & Extremely Long Section Titles That Must Ellipsize Gracefully")
         VLCSectionHeader(text = "TV Variant Simulation", isTv = true)

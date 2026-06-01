@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.sp
  * - Prioritization: freq of ?attr/ in layout resources (font_default 81x, background_default 26x, etc.)
  *   + key files: audio_player.xml (player chrome/HUD), browser_item.xml (media lists),
  *     about.xml, audio_browser.xml, video_*_card.xml, empty states, dialogs,
- *     recycler_section_header*.xml, info_item.xml, dialog_*.xml, onboarding_*.xml.
+ *     section header decorations, info_item.xml, dialog_*.xml, onboarding_*.xml.
  *
  * This enables future leaf migrations (audio browser, player, about, onboarding, lists)
  * to use correct colors without hard-coded values.
@@ -173,9 +173,9 @@ data class VLCColorScheme(
     val emptyTitle: Color,
 
     // --- Additional tokens for Wave 1 leaf Composables (section headers, onboarding) ---
-    /** ?attr/header_background (recycler_section_header.xml + _tv.xml; light=#eaffffff, dark=dark_background; TV often gradient drawable) */
+    /** ?attr/header_background (section header surfaces; light=#eaffffff, dark=dark_background; TV often gradient drawable) */
     val headerBackground: Color,
-    /** ?attr/audio_browser_separator (recycler_section_header.xml:12 textColor; orange accent) */
+    /** ?attr/audio_browser_separator (section header text color; orange accent) */
     val audioBrowserSeparator: Color,
     /** @color/onboarding_grey (onboarding_*.xml tools:background + Theme.VLC.Onboarding.* ; deep blue-grey #011422) */
     val onboardingBackground: Color,

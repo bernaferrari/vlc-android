@@ -9,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.theme.VLCTheme
@@ -16,8 +17,8 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
 /**
  * Compose equivalent of:
- *   - application/vlc-android/res/layout/recycler_section_header.xml
- *   - application/vlc-android/res/layout/recycler_section_header_tv.xml (simplified; TV uses 48dp wrapper + different padding)
+ *   - the former phone recycler section header layout
+ *   - the former TV recycler section header layout
  *
  * High-leverage list header used by RecyclerSectionItemDecoration / GridDecoration
  * across audio browsers, playlists, header media lists, etc.
@@ -40,9 +41,10 @@ fun VLCSectionHeader(
 ) {
     VLCTheme {
         val colors = VLCThemeDefaults.colors
-        val height = if (isTv) 56.dp else 36.dp
-        val startPadding = if (isTv) 24.dp else 20.dp  // tv_overscan approx + phone 20dp
+        val height = if (isTv) 48.dp else 36.dp
+        val startPadding = if (isTv) 48.dp else 20.dp
         val verticalPad = if (isTv) 8.dp else 0.dp
+        val textColor = if (isTv) Color.White else colors.audioBrowserSeparator
 
         Box(
             modifier = modifier
@@ -59,7 +61,7 @@ fun VLCSectionHeader(
         ) {
             Text(
                 text = text,
-                color = colors.audioBrowserSeparator,
+                color = textColor,
                 style = androidx.compose.material3.MaterialTheme.typography.titleMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
