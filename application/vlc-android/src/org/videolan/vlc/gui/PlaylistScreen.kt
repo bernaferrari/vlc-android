@@ -79,17 +79,13 @@ import org.videolan.medialibrary.interfaces.media.Playlist
 import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.resources.MEDIALIBRARY_PAGE_SIZE
 import org.videolan.resources.TAG_ITEM
-import org.videolan.resources.util.parcelable
 import org.videolan.tools.Settings
 import org.videolan.tools.putSingle
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
-import org.videolan.vlc.gui.dialogs.CONFIRM_PLAYLIST_RENAME_DIALOG_RESULT
 import org.videolan.vlc.gui.dialogs.CURRENT_SORT
 import org.videolan.vlc.gui.dialogs.DISPLAY_IN_CARDS
 import org.videolan.vlc.gui.dialogs.ONLY_FAVS
-import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_MEDIA
-import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_NEW_NAME
 import org.videolan.vlc.gui.dialogs.SavePlaylistDialog
 import org.videolan.vlc.gui.dialogs.showConfirmDeleteComposeDialog
 import org.videolan.vlc.gui.dialogs.showContext
@@ -153,11 +149,6 @@ class PlaylistScreenController(private val activity: MainActivity) : DefaultLife
         viewModel.provider.loading.observe(activity) { value ->
             loading = value == true
             activity.refreshing = loading
-        }
-        activity.supportFragmentManager.setFragmentResultListener(CONFIRM_PLAYLIST_RENAME_DIALOG_RESULT, activity) { _, bundle ->
-            val media = bundle.parcelable<MediaLibraryItem>(RENAME_DIALOG_MEDIA) ?: return@setFragmentResultListener
-            val name = bundle.getString(RENAME_DIALOG_NEW_NAME) ?: return@setFragmentResultListener
-            activity.lifecycleScope.launch { viewModel.rename(media, name) }
         }
     }
 
@@ -386,7 +377,12 @@ class PlaylistScreenController(private val activity: MainActivity) : DefaultLife
                 }
             }
             CTX_INFORMATION -> showInfoDialog(playlist)
-            CTX_DELETE -> activity.showConfirmDeleteComposeDialog(arrayListOf(playlist))
+            CTX_DELETE -> activity.showConfirmDeleteComposeDialog(arrayListOf(playlist)) {
+                activity.lifecycleScope.launch {
+                    withContext(Dispatchers.IO) { (playlist as? Playlist)?.delete() }
+                    viewModel.refresh()
+                }
+            }
             CTX_APPEND -> MediaUtils.appendMedia(activity, playlist.tracks)
             CTX_PLAY_NEXT -> MediaUtils.insertNext(activity, playlist.tracks)
             CTX_ADD_TO_PLAYLIST -> activity.addToPlaylist(playlist.tracks, SavePlaylistDialog.KEY_NEW_TRACKS)
@@ -396,7 +392,11 @@ class PlaylistScreenController(private val activity: MainActivity) : DefaultLife
                 viewModel.refresh()
             }
             CTX_RENAME -> {
-                if (playlist is Playlist) activity.showRenameComposeDialog(playlist)
+                if (playlist is Playlist) {
+                    activity.showRenameComposeDialog(playlist) { renamedMedia, name ->
+                        activity.lifecycleScope.launch { viewModel.rename(renamedMedia, name) }
+                    }
+                }
             }
             else -> {}
         }

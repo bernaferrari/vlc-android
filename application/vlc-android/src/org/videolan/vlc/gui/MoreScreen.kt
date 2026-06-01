@@ -80,7 +80,6 @@ import org.videolan.medialibrary.MLServiceLocator
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.resources.ACTIVITY_RESULT_PREFERENCES
 import org.videolan.resources.TAG_ITEM
-import org.videolan.resources.util.parcelable
 import org.videolan.tools.PLAYBACK_HISTORY
 import org.videolan.tools.Settings
 import org.videolan.tools.copy
@@ -89,10 +88,7 @@ import org.videolan.vlc.R
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.browser.KEY_JUMP_TO
 import org.videolan.vlc.gui.browser.KEY_MEDIA
-import org.videolan.vlc.gui.dialogs.CONFIRM_RENAME_DIALOG_RESULT
 import org.videolan.vlc.gui.dialogs.CtxActionReceiver
-import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_MEDIA
-import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_NEW_NAME
 import org.videolan.vlc.gui.dialogs.SavePlaylistDialog
 import org.videolan.vlc.gui.dialogs.showContext
 import org.videolan.vlc.gui.dialogs.showRenameComposeDialog
@@ -154,11 +150,6 @@ class MoreScreenController(private val activity: MainActivity) : CtxActionReceiv
         streamsModel.loading.observe(activity) { loading ->
             streamsLoading = loading == true
             activity.refreshing = historyLoading || streamsLoading
-        }
-        activity.supportFragmentManager.setFragmentResultListener(CONFIRM_RENAME_DIALOG_RESULT, activity) { _, bundle ->
-            val media = bundle.parcelable<MediaWrapper>(RENAME_DIALOG_MEDIA) ?: return@setFragmentResultListener
-            val name = bundle.getString(RENAME_DIALOG_NEW_NAME) ?: return@setFragmentResultListener
-            streamsModel.rename(media, name)
         }
     }
 
@@ -257,7 +248,9 @@ class MoreScreenController(private val activity: MainActivity) : CtxActionReceiv
     override fun onCtxAction(position: Int, option: ContextOption) {
         val media = streams.getOrNull(position) ?: return
         when (option) {
-            CTX_RENAME -> activity.showRenameComposeDialog(media)
+            CTX_RENAME -> activity.showRenameComposeDialog(media) { renamedMedia, name ->
+                streamsModel.rename(renamedMedia as MediaWrapper, name)
+            }
             CTX_APPEND -> MediaUtils.appendMedia(activity, media)
             CTX_ADD_TO_PLAYLIST -> activity.addToPlaylist(media.tracks, SavePlaylistDialog.KEY_NEW_TRACKS)
             CTX_COPY -> {

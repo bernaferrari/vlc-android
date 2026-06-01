@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
 import android.widget.FrameLayout
 import android.widget.ImageView
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,9 +27,6 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.os.bundleOf
-import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.setFragmentResult
 import androidx.lifecycle.lifecycleScope
 import androidx.vectordrawable.graphics.drawable.Animatable2Compat
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
@@ -50,16 +48,10 @@ import org.videolan.vlc.util.isTalkbackIsEnabled
 
 const val CONFIRM_DELETE_DIALOG_RESULT_DEFAULT_VALUE = 0
 const val CONFIRM_DELETE_DIALOG_RESULT_BAN_FOLDER = 1
-const val CONFIRM_DELETE_DIALOG_RESULT = "CONFIRM_DELETE_DIALOG_RESULT"
-const val CONFIRM_DELETE_DIALOG_RESULT_TYPE = "CONFIRM_DELETE_DIALOG_RESULT_TYPE"
-const val CONFIRM_DELETE_DIALOG_MEDIALIST = "CONFIRM_DELETE_DIALOG_MEDIALIST"
-const val CONFIRM_DELETE_DIALOG_TITLE = "CONFIRM_DELETE_DIALOG_TITLE"
-const val CONFIRM_DELETE_DIALOG_DESCRIPTION = "CONFIRM_DELETE_DIALOG_DESCRIPTION"
-const val CONFIRM_DELETE_DIALOG_BUTTON_TEXT = "CONFIRM_DELETE_DIALOG_BUTTON_TEXT"
 
 private var isConfirmDeleteComposeDialogShowing = false
 
-fun FragmentActivity.showConfirmDeleteComposeDialog(
+fun ComponentActivity.showConfirmDeleteComposeDialog(
     medias: ArrayList<MediaLibraryItem> = arrayListOf(),
     title: String = "",
     description: String = "",
@@ -88,7 +80,7 @@ fun FragmentActivity.showConfirmDeleteComposeDialog(
 }
 
 private class ConfirmDeleteComposeDialog(
-    private val activity: FragmentActivity,
+    private val activity: ComponentActivity,
     private val mediaList: ArrayList<MediaLibraryItem>,
     private val title: String,
     private val description: String,
@@ -197,13 +189,6 @@ private class ConfirmDeleteComposeDialog(
 
     private fun confirm() {
         listener?.invoke()
-        activity.supportFragmentManager.setFragmentResult(
-            CONFIRM_DELETE_DIALOG_RESULT,
-            bundleOf(
-                CONFIRM_DELETE_DIALOG_MEDIALIST to mediaList,
-                CONFIRM_DELETE_DIALOG_RESULT_TYPE to resultType
-            )
-        )
         dialog.dismiss()
     }
 

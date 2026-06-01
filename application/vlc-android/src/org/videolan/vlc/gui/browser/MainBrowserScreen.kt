@@ -119,6 +119,7 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.MainActivity
 import org.videolan.vlc.gui.SecondaryActivity
 import org.videolan.vlc.gui.dialogs.CONFIRM_DELETE_DIALOG_RESULT_BAN_FOLDER
+import org.videolan.vlc.gui.dialogs.CONFIRM_DELETE_DIALOG_RESULT_DEFAULT_VALUE
 import org.videolan.vlc.gui.dialogs.CURRENT_SORT
 import org.videolan.vlc.gui.dialogs.CtxActionReceiver
 import org.videolan.vlc.gui.dialogs.DEFAULT_ACTIONS
@@ -1176,7 +1177,7 @@ class SecondaryFileBrowserScreenController(
             CTX_APPEND -> activity.lifecycleScope.launch { MediaUtils.appendMedia(activity, getMediaWithMeta(media)) }
             CTX_PLAY_NEXT -> activity.lifecycleScope.launch { MediaUtils.insertNext(activity, getMediaWithMeta(media)) }
             CTX_DELETE -> removeItems(listOf(media))
-            CTX_RENAME -> activity.showRenameComposeDialog(media, true)
+            CTX_RENAME -> activity.showRenameComposeDialog(media, true, ::onRenameResult)
             CTX_INFORMATION -> activity.showMediaInfo(media)
             CTX_PLAY_AS_AUDIO -> activity.lifecycleScope.launch {
                 media.addFlags(MediaWrapper.MEDIA_FORCE_AUDIO)
@@ -1200,7 +1201,9 @@ class SecondaryFileBrowserScreenController(
                 description = activity.getString(R.string.ban_folder_explanation, activity.getString(R.string.medialibrary_directories)),
                 buttonText = activity.getString(R.string.ban_folder),
                 resultType = CONFIRM_DELETE_DIALOG_RESULT_BAN_FOLDER
-            )
+            ) {
+                onDeleteResult(listOf(media), CONFIRM_DELETE_DIALOG_RESULT_BAN_FOLDER)
+            }
             CTX_ADD_FOLDER_PLAYLIST -> activity.addToPlaylistAsync(media.uri.toString(), false, media.title)
             CTX_ADD_FOLDER_AND_SUB_PLAYLIST -> activity.addToPlaylistAsync(media.uri.toString(), true, media.title)
             ContextOption.CTX_MARK_AS_UNPLAYED -> {
@@ -1353,7 +1356,9 @@ class SecondaryFileBrowserScreenController(
     }
 
     private fun removeItems(items: List<MediaLibraryItem>) {
-        activity.showConfirmDeleteComposeDialog(ArrayList(items))
+        activity.showConfirmDeleteComposeDialog(ArrayList(items)) {
+            onDeleteResult(items, CONFIRM_DELETE_DIALOG_RESULT_DEFAULT_VALUE)
+        }
     }
 
     private fun banFolders(items: List<MediaLibraryItem>) {

@@ -64,7 +64,6 @@ import org.videolan.resources.MEDIALIBRARY_PAGE_SIZE
 import org.videolan.resources.TAG_ITEM
 import org.videolan.resources.UPDATE_REORDER
 import org.videolan.resources.util.parcelable
-import org.videolan.resources.util.parcelableList
 import org.videolan.tools.ALBUMS_SHOW_TRACK_NUMBER
 import org.videolan.tools.Settings
 import org.videolan.tools.copy
@@ -76,14 +75,9 @@ import org.videolan.vlc.R
 import org.videolan.vlc.databinding.HeaderMediaListActivityBinding
 import org.videolan.vlc.gui.audio.AudioAlbumTracksAdapter
 import org.videolan.vlc.gui.audio.AudioBrowserAdapter
-import org.videolan.vlc.gui.dialogs.CONFIRM_DELETE_DIALOG_MEDIALIST
-import org.videolan.vlc.gui.dialogs.CONFIRM_DELETE_DIALOG_RESULT
-import org.videolan.vlc.gui.dialogs.CONFIRM_RENAME_DIALOG_RESULT
 import org.videolan.vlc.gui.dialogs.CURRENT_SORT
 import org.videolan.vlc.gui.dialogs.CtxActionReceiver
 import org.videolan.vlc.gui.dialogs.DEFAULT_ACTIONS
-import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_MEDIA
-import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_NEW_NAME
 import org.videolan.vlc.gui.dialogs.SHOW_TRACK_NUMBER
 import org.videolan.vlc.gui.dialogs.SavePlaylistDialog
 import org.videolan.vlc.gui.dialogs.showContext
@@ -297,31 +291,6 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
         audioBrowserAdapter.areSectionsEnabled = false
         binding.browserFastScroller.attachToCoordinator(binding.appbar, binding.coordinator, null)
         binding.browserFastScroller.setRecyclerView(binding.songs, viewModel.tracksProvider)
-
-        supportFragmentManager.setFragmentResultListener(CONFIRM_DELETE_DIALOG_RESULT, this) { key, bundle ->
-            // Any type can be passed via to the bundle
-            val items: List<MediaWrapper> = bundle.parcelableList(CONFIRM_DELETE_DIALOG_MEDIALIST) ?: listOf()
-            lifecycleScope.launch {
-                for (item in items) {
-                    val deleteAction = kotlinx.coroutines.Runnable {
-                        lifecycleScope.launch {
-                            MediaUtils.deleteItem(this@HeaderMediaListActivity, item) {
-                                UiTools.snacker(this@HeaderMediaListActivity, getString(R.string.msg_delete_failed, it.title))
-                            }
-                            if (isStarted()) viewModel.refresh()
-                        }
-                    }
-                    if (Permissions.checkWritePermission(this@HeaderMediaListActivity, item, deleteAction)) deleteAction.run()
-                }
-            }
-        }
-        supportFragmentManager.setFragmentResultListener(CONFIRM_RENAME_DIALOG_RESULT, this) { key, bundle ->
-            lifecycleScope.launch {
-                val item: MediaWrapper = bundle.parcelable(RENAME_DIALOG_MEDIA) ?: return@launch
-                val name: String = bundle.getString(RENAME_DIALOG_NEW_NAME) ?: return@launch
-                viewModel.rename(item, name)
-            }
-        }
     }
 
     override fun onResume() {
@@ -584,7 +553,9 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
             CTX_SET_RINGTONE -> setRingtone(media)
             CTX_SHARE -> lifecycleScope.launch { share(media) }
             CTX_RENAME -> {
-                showRenameComposeDialog(media)
+                showRenameComposeDialog(media) { renamedMedia, name ->
+                    lifecycleScope.launch { viewModel.rename(renamedMedia as MediaWrapper, name) }
+                }
             }
             CTX_COPY -> {
                 copy(media.title, media.location)
@@ -627,7 +598,25 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
     }
 
     private fun removeItems(items: List<MediaWrapper>) {
-        showConfirmDeleteComposeDialog(ArrayList(items))
+        showConfirmDeleteComposeDialog(ArrayList(items)) {
+            deleteItems(items)
+        }
+    }
+
+    private fun deleteItems(items: List<MediaWrapper>) {
+        lifecycleScope.launch {
+            for (item in items) {
+                val deleteAction = kotlinx.coroutines.Runnable {
+                    lifecycleScope.launch {
+                        MediaUtils.deleteItem(this@HeaderMediaListActivity, item) {
+                            UiTools.snacker(this@HeaderMediaListActivity, getString(R.string.msg_delete_failed, it.title))
+                        }
+                        if (isStarted()) viewModel.refresh()
+                    }
+                }
+                if (Permissions.checkWritePermission(this@HeaderMediaListActivity, item, deleteAction)) deleteAction.run()
+            }
+        }
     }
 
     override fun onClick(v: View) {

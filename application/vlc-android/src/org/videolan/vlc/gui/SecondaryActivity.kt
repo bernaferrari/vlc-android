@@ -62,7 +62,6 @@ import org.videolan.resources.KEY_GROUP
 import org.videolan.resources.TAG_ITEM
 import org.videolan.resources.util.applyOverscanMargin
 import org.videolan.resources.util.parcelable
-import org.videolan.resources.util.parcelableList
 import org.videolan.tools.KEY_AUDIO_LAST_PLAYLIST
 import org.videolan.tools.KEY_INCOGNITO
 import org.videolan.tools.KEY_MEDIA_LAST_PLAYLIST
@@ -83,14 +82,7 @@ import org.videolan.vlc.gui.browser.KEY_IN_MEDIALIB
 import org.videolan.vlc.gui.browser.KEY_JUMP_TO
 import org.videolan.vlc.gui.browser.KEY_MEDIA
 import org.videolan.vlc.gui.browser.SecondaryStorageBrowserScreenController
-import org.videolan.vlc.gui.dialogs.CONFIRM_DELETE_DIALOG_MEDIALIST
-import org.videolan.vlc.gui.dialogs.CONFIRM_DELETE_DIALOG_RESULT
-import org.videolan.vlc.gui.dialogs.CONFIRM_DELETE_DIALOG_RESULT_DEFAULT_VALUE
-import org.videolan.vlc.gui.dialogs.CONFIRM_DELETE_DIALOG_RESULT_TYPE
-import org.videolan.vlc.gui.dialogs.CONFIRM_RENAME_DIALOG_RESULT
 import org.videolan.vlc.gui.dialogs.CtxActionReceiver
-import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_MEDIA
-import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_NEW_NAME
 import org.videolan.vlc.gui.dialogs.SavePlaylistDialog
 import org.videolan.vlc.gui.dialogs.showConfirmDeleteComposeDialog
 import org.videolan.vlc.gui.dialogs.showContext
@@ -297,7 +289,10 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
                         title = getString(R.string.clear_playback_history),
                         description = getString(R.string.clear_history_message),
                         buttonText = getString(R.string.clear_history)
-                    )
+                    ) {
+                        clearHistory()
+                        finish()
+                    }
                     return true
                 }
             }
@@ -370,11 +365,6 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
 
         model.dataset.observe(this) { itemsState.value = it.orEmpty() }
         model.loading.observe(this) { loadingState.value = it == true }
-        supportFragmentManager.setFragmentResultListener(CONFIRM_RENAME_DIALOG_RESULT, this) { _, bundle ->
-            val media = bundle.parcelable<MediaWrapper>(RENAME_DIALOG_MEDIA) ?: return@setFragmentResultListener
-            val name = bundle.getString(RENAME_DIALOG_NEW_NAME) ?: return@setFragmentResultListener
-            model.rename(media, name)
-        }
         PlaybackService.lastError.observe(this) {
             if (it != null && streamsModel != null) {
                 searchTextState.value = it
@@ -433,7 +423,9 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         val model = streamsModel ?: return
         val media = model.dataset.get(position)
         when (option) {
-            CTX_RENAME -> showRenameComposeDialog(media)
+            CTX_RENAME -> showRenameComposeDialog(media) { renamedMedia, name ->
+                model.rename(renamedMedia as MediaWrapper, name)
+            }
             CTX_APPEND -> MediaUtils.appendMedia(this, media)
             CTX_ADD_TO_PLAYLIST -> addToPlaylist(media.tracks, SavePlaylistDialog.KEY_NEW_TRACKS)
             CTX_COPY -> {
@@ -488,10 +480,6 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
             historyActionMode?.invalidate()
         }
         model.loading.observe(this) { loadingState.value = it == true }
-        supportFragmentManager.setFragmentResultListener(CONFIRM_DELETE_DIALOG_RESULT, this) { _, _ ->
-            clearHistory()
-            finish()
-        }
         model.refresh()
     }
 
@@ -583,16 +571,6 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
                 }
             }
             container.addView(this, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-        }
-        supportFragmentManager.setFragmentResultListener(CONFIRM_RENAME_DIALOG_RESULT, this) { _, bundle ->
-            val renamedMedia = bundle.parcelable<MediaLibraryItem>(RENAME_DIALOG_MEDIA) ?: return@setFragmentResultListener
-            val name = bundle.getString(RENAME_DIALOG_NEW_NAME) ?: return@setFragmentResultListener
-            controller.onRenameResult(renamedMedia, name)
-        }
-        supportFragmentManager.setFragmentResultListener(CONFIRM_DELETE_DIALOG_RESULT, this) { _, bundle ->
-            val items = bundle.parcelableList<MediaLibraryItem>(CONFIRM_DELETE_DIALOG_MEDIALIST).orEmpty()
-            val type = bundle.getInt(CONFIRM_DELETE_DIALOG_RESULT_TYPE, CONFIRM_DELETE_DIALOG_RESULT_DEFAULT_VALUE)
-            controller.onDeleteResult(items, type)
         }
         controller.onVisible()
     }

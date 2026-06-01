@@ -95,7 +95,11 @@ class BookmarkListDelegate(
         rootView.setOnRewindLongClickListener { seekListener.invoke(false, true) }
         rootView.setOnForwardLongClickListener { seekListener.invoke(true, true) }
         rootView.setOnBookmarkClickListener { service.setTime(it.time) }
-        rootView.setOnBookmarkRenameClickListener { activity.showRenameComposeDialog(it) }
+        rootView.setOnBookmarkRenameClickListener { bookmark ->
+            activity.showRenameComposeDialog(bookmark) { media, name ->
+                renameBookmark(media as Bookmark, name)
+            }
+        }
         rootView.setOnBookmarkDeleteClickListener { bookmarkModel.delete(it) }
     }
 

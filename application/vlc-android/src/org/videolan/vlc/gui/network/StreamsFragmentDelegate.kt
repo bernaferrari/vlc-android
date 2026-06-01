@@ -115,7 +115,9 @@ class StreamsFragmentDelegate : IStreamsFragmentDelegate, CtxActionReceiver {
     }
 
     private fun renameStream(position: Int) {
-        fragment.requireActivity().showRenameComposeDialog(viewModel.dataset.get(position))
+        fragment.requireActivity().showRenameComposeDialog(viewModel.dataset.get(position)) { media, name ->
+            renameStream(media as MediaWrapper, name)
+        }
     }
 
     override fun renameStream(media: MediaWrapper, name: String) {

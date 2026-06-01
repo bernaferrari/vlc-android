@@ -34,7 +34,6 @@ import android.os.Bundle
 import android.text.InputFilter
 import android.text.InputType
 import android.util.Log
-import android.view.View
 import android.widget.Toast
 import androidx.core.content.edit
 import androidx.core.net.toUri
@@ -85,8 +84,6 @@ import org.videolan.vlc.gui.DebugLogActivity
 import org.videolan.vlc.gui.browser.EXTRA_MRL
 import org.videolan.vlc.gui.browser.FilePickerActivity
 import org.videolan.vlc.gui.browser.KEY_PICKER_TYPE
-import org.videolan.vlc.gui.dialogs.CONFIRM_DELETE_DIALOG_RESULT
-import org.videolan.vlc.gui.dialogs.CONFIRM_DELETE_DIALOG_RESULT_TYPE
 import org.videolan.vlc.gui.dialogs.showConfirmDeleteComposeDialog
 import org.videolan.vlc.gui.dialogs.showUpdateComposeDialog
 import org.videolan.vlc.gui.helpers.MedialibraryUtils
@@ -132,66 +129,63 @@ class PreferencesAdvanced : BasePreferenceFragment(), SharedPreferences.OnShared
         }
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        requireActivity().supportFragmentManager.setFragmentResultListener(CONFIRM_DELETE_DIALOG_RESULT, viewLifecycleOwner) { requestKey, bundle ->
-            val reason = bundle.getInt(CONFIRM_DELETE_DIALOG_RESULT_TYPE)
-            when (reason) {
-                RESULT_VALUE_CLEAR_HISTORY -> {
-                    Medialibrary.getInstance().clearHistory(Medialibrary.HISTORY_TYPE_GLOBAL)
-                    Settings.getInstance(requireActivity()).edit()
-                        .remove(KEY_AUDIO_LAST_PLAYLIST)
-                        .remove(KEY_MEDIA_LAST_PLAYLIST)
-                        .remove(KEY_MEDIA_LAST_PLAYLIST_RESUME)
-                        .remove(KEY_CURRENT_AUDIO)
-                        .remove(KEY_CURRENT_MEDIA)
-                        .remove(KEY_CURRENT_MEDIA_RESUME)
-                        .remove(KEY_CURRENT_AUDIO_RESUME_TITLE)
-                        .remove(KEY_CURRENT_AUDIO_RESUME_ARTIST)
-                        .remove(KEY_CURRENT_AUDIO_RESUME_THUMB)
-                        .apply()
-                }
-                RESULT_VALUE_CLEAR_MEDIA_DATABASE -> {
-                    val medialibrary = Medialibrary.getInstance()
-                    if (medialibrary.isWorking) {
-                        activity?.let {
-                            Toast.makeText(
-                                it,
-                                R.string.settings_ml_block_scan,
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                    } else {
-                        lifecycleScope.launch {
-                            val roots = medialibrary.foldersList
-                            withContext((Dispatchers.IO)) {
-                                medialibrary.clearDatabase(false)
-                                //delete thumbnails
-                                try {
-                                    requireActivity().getExternalFilesDir(null)?.let {
-                                        val files =
-                                            File(it.absolutePath + Medialibrary.MEDIALIB_FOLDER_NAME).listFiles()
-                                        files?.forEach { file ->
-                                            if (file.isFile) FileUtils.deleteFile(file)
-                                        }
+    private fun onConfirmDelete(reason: Int) {
+        when (reason) {
+            RESULT_VALUE_CLEAR_HISTORY -> {
+                Medialibrary.getInstance().clearHistory(Medialibrary.HISTORY_TYPE_GLOBAL)
+                Settings.getInstance(requireActivity()).edit()
+                    .remove(KEY_AUDIO_LAST_PLAYLIST)
+                    .remove(KEY_MEDIA_LAST_PLAYLIST)
+                    .remove(KEY_MEDIA_LAST_PLAYLIST_RESUME)
+                    .remove(KEY_CURRENT_AUDIO)
+                    .remove(KEY_CURRENT_MEDIA)
+                    .remove(KEY_CURRENT_MEDIA_RESUME)
+                    .remove(KEY_CURRENT_AUDIO_RESUME_TITLE)
+                    .remove(KEY_CURRENT_AUDIO_RESUME_ARTIST)
+                    .remove(KEY_CURRENT_AUDIO_RESUME_THUMB)
+                    .apply()
+            }
+            RESULT_VALUE_CLEAR_MEDIA_DATABASE -> {
+                val medialibrary = Medialibrary.getInstance()
+                if (medialibrary.isWorking) {
+                    activity?.let {
+                        Toast.makeText(
+                            it,
+                            R.string.settings_ml_block_scan,
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                } else {
+                    lifecycleScope.launch {
+                        val roots = medialibrary.foldersList
+                        withContext((Dispatchers.IO)) {
+                            medialibrary.clearDatabase(false)
+                            //delete thumbnails
+                            try {
+                                requireActivity().getExternalFilesDir(null)?.let {
+                                    val files =
+                                        File(it.absolutePath + Medialibrary.MEDIALIB_FOLDER_NAME).listFiles()
+                                    files?.forEach { file ->
+                                        if (file.isFile) FileUtils.deleteFile(file)
                                     }
-                                    BitmapCache.clear()
-                                } catch (e: IOException) {
-                                    Log.e(this::class.java.simpleName, e.message, e)
                                 }
+                                BitmapCache.clear()
+                            } catch (e: IOException) {
+                                Log.e(this::class.java.simpleName, e.message, e)
                             }
-                            for (root in roots) {
-                                MedialibraryUtils.addDir(
-                                    root.removePrefix("file://"),
-                                    requireContext()
-                                )
-                            }                        }
+                        }
+                        for (root in roots) {
+                            MedialibraryUtils.addDir(
+                                root.removePrefix("file://"),
+                                requireContext()
+                            )
+                        }
                     }
                 }
-                RESULT_VALUE_CLEAR_APP_DATA -> {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
-                        (requireActivity().getSystemService(ACTIVITY_SERVICE) as ActivityManager).clearApplicationUserData()
-                }
+            }
+            RESULT_VALUE_CLEAR_APP_DATA -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+                    (requireActivity().getSystemService(ACTIVITY_SERVICE) as ActivityManager).clearApplicationUserData()
             }
         }
     }
@@ -248,7 +242,9 @@ class PreferencesAdvanced : BasePreferenceFragment(), SharedPreferences.OnShared
                     description = getString(R.string.clear_history_message),
                     buttonText = getString(R.string.clear_history),
                     resultType = RESULT_VALUE_CLEAR_HISTORY
-                )
+                ) {
+                    onConfirmDelete(RESULT_VALUE_CLEAR_HISTORY)
+                }
                 return true
             }
             "clear_media_db" -> {
@@ -267,7 +263,9 @@ class PreferencesAdvanced : BasePreferenceFragment(), SharedPreferences.OnShared
                         description = getString(R.string.clear_media_db_message),
                         buttonText = getString(R.string.clear),
                         resultType = RESULT_VALUE_CLEAR_MEDIA_DATABASE
-                    )
+                    ) {
+                        onConfirmDelete(RESULT_VALUE_CLEAR_MEDIA_DATABASE)
+                    }
                     return true
                 }
             }
@@ -278,7 +276,9 @@ class PreferencesAdvanced : BasePreferenceFragment(), SharedPreferences.OnShared
                         description = getString(R.string.clear_app_data_message),
                         buttonText = getString(R.string.clear),
                         resultType = RESULT_VALUE_CLEAR_APP_DATA
-                    )
+                    ) {
+                        onConfirmDelete(RESULT_VALUE_CLEAR_APP_DATA)
+                    }
                 } else {
                     val i = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                     i.addCategory(Intent.CATEGORY_DEFAULT)

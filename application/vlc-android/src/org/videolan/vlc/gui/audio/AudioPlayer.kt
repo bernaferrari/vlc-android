@@ -66,13 +66,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.videolan.libvlc.MediaPlayer
 import org.videolan.medialibrary.Tools
-import org.videolan.medialibrary.interfaces.media.Bookmark
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
-import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.resources.AndroidDevices
 import org.videolan.resources.AppContextProvider
 import org.videolan.resources.TAG_ITEM
-import org.videolan.resources.util.parcelable
 import org.videolan.tools.AUDIO_HINGE_ON_RIGHT
 import org.videolan.tools.AUDIO_PLAY_PROGRESS_MODE
 import org.videolan.tools.KEY_AUDIO_PLAYER_SHOW_COVER
@@ -122,10 +119,7 @@ import org.videolan.vlc.gui.HeaderMediaListActivity.Companion.ARTIST_FROM_ALBUM
 import org.videolan.vlc.gui.InfoActivity
 import org.videolan.vlc.gui.MainActivity
 import org.videolan.vlc.gui.SecondaryActivity
-import org.videolan.vlc.gui.dialogs.CONFIRM_BOOKMARK_RENAME_DIALOG_RESULT
 import org.videolan.vlc.gui.dialogs.CtxActionReceiver
-import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_MEDIA
-import org.videolan.vlc.gui.dialogs.RENAME_DIALOG_NEW_NAME
 import org.videolan.vlc.gui.dialogs.showContext
 import org.videolan.vlc.gui.dialogs.showPlaybackSpeedComposeDialog
 import org.videolan.vlc.gui.dialogs.showSleepTimerComposeDialog
@@ -401,11 +395,6 @@ class AudioPlayer : Fragment(), IAudioPlayerAnimator by AudioPlayerAnimator() {
         setupPlaybackChips()
 
         setBottomMargin()
-        requireActivity().supportFragmentManager.setFragmentResultListener(CONFIRM_BOOKMARK_RENAME_DIALOG_RESULT, viewLifecycleOwner) { requestKey, bundle ->
-            val media = bundle.parcelable<MediaLibraryItem>(RENAME_DIALOG_MEDIA) ?: return@setFragmentResultListener
-            val name = bundle.getString(RENAME_DIALOG_NEW_NAME) ?: return@setFragmentResultListener
-            bookmarkListDelegate.renameBookmark(media as Bookmark, name)
-        }
 
         bookmarkModel.dataset.observe(requireActivity()) {
             lifecycleScope.launch {
