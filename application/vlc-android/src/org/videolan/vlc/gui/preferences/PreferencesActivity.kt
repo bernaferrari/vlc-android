@@ -114,6 +114,7 @@ class PreferencesActivity : BaseActivity() {
     private var mAppBarLayout: AppBarLayout? = null
     private var activeComposeDestination: PreferencesRootDestination? = null
     private var activeComposeHighlight: String? = null
+    private var pendingSubtitlesRestart = false
     override val displayTitle = true
     private var pinCodeResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode != RESULT_OK) {
@@ -179,6 +180,7 @@ class PreferencesActivity : BaseActivity() {
     }
 
     override fun onStop() {
+        flushComposeDestinationSideEffects(activeComposeDestination)
         refreshAllWidgets()
         super.onStop()
     }
@@ -236,6 +238,7 @@ class PreferencesActivity : BaseActivity() {
     }
 
     private fun showPreferencesRoot(highlightedKey: String? = null) {
+        flushComposeDestinationSideEffects(activeComposeDestination)
         expandBar()
         activeComposeDestination = null
         activeComposeHighlight = highlightedKey
@@ -283,7 +286,7 @@ class PreferencesActivity : BaseActivity() {
         when (destination) {
             PreferencesRootDestination.Ui -> showPreferenceSubpage(PreferencesRootDestination.Ui)
             PreferencesRootDestination.Video -> showPreferenceSubpage(PreferencesRootDestination.Video)
-            PreferencesRootDestination.Subtitles -> openPreferenceFragment(PreferencesSubtitles())
+            PreferencesRootDestination.Subtitles -> showPreferenceSubpage(PreferencesRootDestination.Subtitles)
             PreferencesRootDestination.Audio -> showPreferenceSubpage(PreferencesRootDestination.Audio)
             PreferencesRootDestination.Casting -> showPreferenceSubpage(PreferencesRootDestination.Casting)
             PreferencesRootDestination.ParentalControl -> {
@@ -311,7 +314,7 @@ class PreferencesActivity : BaseActivity() {
             }
             R.xml.preferences_ui -> showPreferenceSubpage(PreferencesRootDestination.Ui, endPoint.key)
             R.xml.preferences_video -> showPreferenceSubpage(PreferencesRootDestination.Video, endPoint.key)
-            R.xml.preferences_subtitles -> openPreferenceFragment(PreferencesSubtitles().withEndpoint(endPoint))
+            R.xml.preferences_subtitles -> showPreferenceSubpage(PreferencesRootDestination.Subtitles, endPoint.key)
             R.xml.preferences_audio -> showPreferenceSubpage(PreferencesRootDestination.Audio, endPoint.key)
             R.xml.preferences_adv -> openPreferenceFragment(PreferencesAdvanced().withEndpoint(endPoint))
             R.xml.preferences_casting -> showPreferenceSubpage(PreferencesRootDestination.Casting, endPoint.key)
@@ -328,6 +331,7 @@ class PreferencesActivity : BaseActivity() {
     }
 
     private fun showPreferenceSubpage(destination: PreferencesRootDestination, highlightedKey: String? = null) {
+        if (activeComposeDestination != destination) flushComposeDestinationSideEffects(activeComposeDestination)
         expandBar()
         activeComposeDestination = destination
         activeComposeHighlight = highlightedKey
@@ -368,7 +372,8 @@ class PreferencesActivity : BaseActivity() {
                             onRestartRequired = ::setRestart,
                             onRestartDialogRequired = ::showRestartDialog,
                             onDefaultSleepTimerClick = ::openDefaultSleepTimer,
-                            onSeenMediaChanged = ::updateSeenMedia
+                            onSeenMediaChanged = ::updateSeenMedia,
+                            onSubtitleSettingChanged = ::markSubtitlesRestartPending
                         )
                     }
                 }
@@ -378,6 +383,7 @@ class PreferencesActivity : BaseActivity() {
     }
 
     private fun openPreferenceFragment(fragment: BasePreferenceFragment) {
+        flushComposeDestinationSideEffects(activeComposeDestination)
         activeComposeDestination = null
         activeComposeHighlight = null
         invalidateOptionsMenu()
@@ -507,6 +513,17 @@ class PreferencesActivity : BaseActivity() {
 
     private fun updateSeenMedia() {
         setResult(RESULT_UPDATE_SEEN_MEDIA)
+    }
+
+    private fun markSubtitlesRestartPending() {
+        pendingSubtitlesRestart = true
+    }
+
+    private fun flushComposeDestinationSideEffects(destination: PreferencesRootDestination?) {
+        if (destination == PreferencesRootDestination.Subtitles && pendingSubtitlesRestart) {
+            pendingSubtitlesRestart = false
+            restartMediaPipeline()
+        }
     }
 
     private fun openSoundFontPicker() {

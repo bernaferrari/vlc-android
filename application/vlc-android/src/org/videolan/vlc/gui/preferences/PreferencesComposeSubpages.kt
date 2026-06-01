@@ -24,6 +24,7 @@ package org.videolan.vlc.gui.preferences
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.Color as AndroidColor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -34,9 +35,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -52,6 +56,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
@@ -94,6 +99,23 @@ import org.videolan.tools.KEY_RESTRICT_SETTINGS
 import org.videolan.tools.KEY_SAFE_MODE
 import org.videolan.tools.KEY_SET_LOCALE
 import org.videolan.tools.KEY_SHOW_HEADERS
+import org.videolan.tools.KEY_SUBTITLES_AUTOLOAD
+import org.videolan.tools.KEY_SUBTITLES_BACKGROUND
+import org.videolan.tools.KEY_SUBTITLES_BACKGROUND_COLOR
+import org.videolan.tools.KEY_SUBTITLES_BACKGROUND_COLOR_OPACITY
+import org.videolan.tools.KEY_SUBTITLES_BOLD
+import org.videolan.tools.KEY_SUBTITLES_COLOR
+import org.videolan.tools.KEY_SUBTITLES_COLOR_OPACITY
+import org.videolan.tools.KEY_SUBTITLES_OUTLINE
+import org.videolan.tools.KEY_SUBTITLES_OUTLINE_COLOR
+import org.videolan.tools.KEY_SUBTITLES_OUTLINE_COLOR_OPACITY
+import org.videolan.tools.KEY_SUBTITLES_OUTLINE_SIZE
+import org.videolan.tools.KEY_SUBTITLES_SHADOW
+import org.videolan.tools.KEY_SUBTITLES_SHADOW_COLOR
+import org.videolan.tools.KEY_SUBTITLES_SHADOW_COLOR_OPACITY
+import org.videolan.tools.KEY_SUBTITLES_SIZE
+import org.videolan.tools.KEY_SUBTITLE_PREFERRED_LANGUAGE
+import org.videolan.tools.KEY_SUBTITLE_TEXT_ENCODING
 import org.videolan.tools.KEY_VIDEO_MATCH_FRAME_RATE
 import org.videolan.tools.LIST_TITLE_ELLIPSIZE
 import org.videolan.tools.LOCKSCREEN_COVER
@@ -135,11 +157,18 @@ private const val KEY_ANDROID_AUTO_SUBTITLE_SCALE = "android_auto_subtitle_scale
 private const val KEY_ANDROID_AUTO_SPEED_BUTTONS = "enable_android_auto_speed_buttons"
 private const val KEY_ANDROID_AUTO_SEEK_BUTTONS = "enable_android_auto_seek_buttons"
 private const val KEY_DEFAULT_SLEEP_TIMER = "default_sleep_timer"
+private const val KEY_SUBTITLES_PRESETS = "subtitles_presets"
+
+private data class SubpagePreferenceOption(
+        val label: String,
+        val value: String
+)
 
 /**
  * Compose replacement for the small phone preference XML screens:
- * preferences_ui.xml, preferences_video.xml, preferences_audio.xml, preferences_casting.xml,
- * preferences_parental_control.xml, preferences_remote_access.xml, and preferences_android_auto.xml.
+ * preferences_ui.xml, preferences_video.xml, preferences_audio.xml, preferences_subtitles.xml,
+ * preferences_casting.xml, preferences_parental_control.xml, preferences_remote_access.xml,
+ * and preferences_android_auto.xml.
  *
  * Those XML files stay parseable by PreferenceParser for search metadata while this screen owns
  * the active phone rendering path.
@@ -167,7 +196,8 @@ internal fun PreferencesComposeSubpageScreen(
         onRestartRequired: () -> Unit,
         onRestartDialogRequired: () -> Unit,
         onDefaultSleepTimerClick: (() -> Unit) -> Unit,
-        onSeenMediaChanged: () -> Unit
+        onSeenMediaChanged: () -> Unit,
+        onSubtitleSettingChanged: () -> Unit
 ) {
     VLCTheme {
         Box(
@@ -207,6 +237,13 @@ internal fun PreferencesComposeSubpageScreen(
                                 onHeadsetDetectionChanged = onHeadsetDetectionChanged,
                                 onReplayGainChanged = onAudioReplayGainChanged,
                                 onSoundFontClick = onSoundFontClick
+                        )
+                    }
+                    PreferencesRootDestination.Subtitles -> item {
+                        SubtitlePreferencesContent(
+                                settings = settings,
+                                highlightedKey = highlightedKey,
+                                onSubtitleSettingChanged = onSubtitleSettingChanged
                         )
                     }
                     PreferencesRootDestination.Casting -> item {
@@ -743,6 +780,228 @@ private fun AudioPreferencesContent(
 }
 
 @Composable
+private fun SubtitlePreferencesContent(
+        settings: SharedPreferences,
+        highlightedKey: String?,
+        onSubtitleSettingChanged: () -> Unit
+) {
+    val context = LocalContext.current
+    val localePair = remember(context) {
+        LocaleUtils.getLocalesUsedInProject(
+                BuildConfig.TRANSLATION_ARRAY,
+                context.getString(R.string.no_track_preference),
+                context.getLocales()
+        )
+    }
+    var preferredSubtitleLanguage by remember {
+        mutableStateOf(settings.getString(KEY_SUBTITLE_PREFERRED_LANGUAGE, "") ?: "")
+    }
+    var subtitleBackgroundEnabled by remember {
+        mutableStateOf(settings.getBoolean(KEY_SUBTITLES_BACKGROUND, false))
+    }
+    var subtitleShadowEnabled by remember {
+        mutableStateOf(settings.getBoolean(KEY_SUBTITLES_SHADOW, true))
+    }
+    var subtitleOutlineEnabled by remember {
+        mutableStateOf(settings.getBoolean(KEY_SUBTITLES_OUTLINE, true))
+    }
+    var resetVersion by remember { mutableIntStateOf(0) }
+    val preferredSubtitleSummary = if (preferredSubtitleLanguage.isEmpty()) {
+        stringResource(R.string.no_track_preference)
+    } else {
+        stringResource(R.string.track_preference, preferredSubtitleLanguage)
+    }
+
+    EphemeralListPreferenceRow(
+            key = KEY_SUBTITLES_PRESETS,
+            title = stringResource(R.string.subtitles_presets_title),
+            entries = stringArrayResource(R.array.subtitles_presets_entries).toList(),
+            values = stringArrayResource(R.array.subtitles_presets_values).toList(),
+            highlighted = highlightedKey == KEY_SUBTITLES_PRESETS,
+            onValueSelected = { preset ->
+                applySubtitlePreset(
+                        settings = settings,
+                        preset = preset,
+                        onBackgroundChanged = { subtitleBackgroundEnabled = it },
+                        onShadowChanged = { subtitleShadowEnabled = it },
+                        onOutlineChanged = { subtitleOutlineEnabled = it }
+                )
+                resetVersion++
+                onSubtitleSettingChanged()
+            }
+    )
+    BooleanPreferenceRow(
+            key = KEY_SUBTITLES_AUTOLOAD,
+            settings = settings,
+            title = stringResource(R.string.subtitles_autoload_title),
+            defaultValue = true,
+            highlighted = highlightedKey == KEY_SUBTITLES_AUTOLOAD
+    )
+    ListPreferenceRow(
+            key = KEY_SUBTITLE_TEXT_ENCODING,
+            settings = settings,
+            title = stringResource(R.string.subtitle_text_encoding),
+            defaultValue = "",
+            entries = stringArrayResource(R.array.subtitles_encoding_list).toList(),
+            values = stringArrayResource(R.array.subtitles_encoding_values).toList(),
+            highlighted = highlightedKey == KEY_SUBTITLE_TEXT_ENCODING,
+            stateVersion = resetVersion,
+            onValueChanged = { onSubtitleSettingChanged() }
+    )
+    ListPreferenceRow(
+            key = KEY_SUBTITLE_PREFERRED_LANGUAGE,
+            settings = settings,
+            title = stringResource(R.string.subtitle_preferred_language),
+            defaultValue = "",
+            entries = localePair.localeEntries.toList(),
+            values = localePair.localeEntryValues.toList(),
+            highlighted = highlightedKey == KEY_SUBTITLE_PREFERRED_LANGUAGE,
+            summary = preferredSubtitleSummary,
+            stateVersion = resetVersion,
+            onValueChanged = { preferredSubtitleLanguage = it }
+    )
+
+    PreferenceCategoryHeader(title = stringResource(R.string.subtitles_font_style))
+    ListPreferenceRow(
+            key = KEY_SUBTITLES_SIZE,
+            settings = settings,
+            title = stringResource(R.string.subtitles_size_title),
+            defaultValue = "16",
+            entries = stringArrayResource(R.array.subtitles_size_entries).toList(),
+            values = stringArrayResource(R.array.subtitles_size_values).toList(),
+            highlighted = highlightedKey == KEY_SUBTITLES_SIZE,
+            stateVersion = resetVersion,
+            onValueChanged = { onSubtitleSettingChanged() }
+    )
+    BooleanPreferenceRow(
+            key = KEY_SUBTITLES_BOLD,
+            settings = settings,
+            title = stringResource(R.string.subtitles_bold_title),
+            defaultValue = false,
+            highlighted = highlightedKey == KEY_SUBTITLES_BOLD,
+            onAfterChange = { onSubtitleSettingChanged() }
+    )
+    ColorPreferenceRow(
+            key = KEY_SUBTITLES_COLOR,
+            settings = settings,
+            title = stringResource(R.string.subtitles_color),
+            defaultValue = AndroidColor.WHITE,
+            highlighted = highlightedKey == KEY_SUBTITLES_COLOR,
+            stateVersion = resetVersion,
+            onValueChanged = onSubtitleSettingChanged
+    )
+    IntSliderPreferenceRow(
+            key = KEY_SUBTITLES_COLOR_OPACITY,
+            settings = settings,
+            title = stringResource(R.string.subtitles_opacity),
+            defaultValue = 255,
+            valueRange = 50f..255f,
+            highlighted = highlightedKey == KEY_SUBTITLES_COLOR_OPACITY,
+            stateVersion = resetVersion,
+            onValueChanged = onSubtitleSettingChanged
+    )
+
+    PreferenceCategoryHeader(title = stringResource(R.string.subtitles_background_title))
+    BooleanPreferenceRow(
+            key = KEY_SUBTITLES_BACKGROUND,
+            settings = settings,
+            title = stringResource(R.string.subtitles_background_title),
+            defaultValue = false,
+            highlighted = highlightedKey == KEY_SUBTITLES_BACKGROUND,
+            checked = subtitleBackgroundEnabled,
+            onCheckedStateChange = { subtitleBackgroundEnabled = it },
+            onAfterChange = { onSubtitleSettingChanged() }
+    )
+    if (subtitleBackgroundEnabled) {
+        ColorPreferenceRow(
+                key = KEY_SUBTITLES_BACKGROUND_COLOR,
+                settings = settings,
+                title = stringResource(R.string.subtitles_color),
+                defaultValue = AndroidColor.BLACK,
+                highlighted = highlightedKey == KEY_SUBTITLES_BACKGROUND_COLOR,
+                stateVersion = resetVersion,
+                onValueChanged = onSubtitleSettingChanged
+        )
+        IntSliderPreferenceRow(
+                key = KEY_SUBTITLES_BACKGROUND_COLOR_OPACITY,
+                settings = settings,
+                title = stringResource(R.string.subtitles_opacity),
+                defaultValue = 255,
+                valueRange = 0f..255f,
+                highlighted = highlightedKey == KEY_SUBTITLES_BACKGROUND_COLOR_OPACITY,
+                stateVersion = resetVersion,
+                onValueChanged = onSubtitleSettingChanged
+        )
+    }
+
+    PreferenceCategoryHeader(title = stringResource(R.string.subtitles_shadow_title))
+    BooleanPreferenceRow(
+            key = KEY_SUBTITLES_SHADOW,
+            settings = settings,
+            title = stringResource(R.string.subtitles_shadow_title),
+            defaultValue = true,
+            highlighted = highlightedKey == KEY_SUBTITLES_SHADOW,
+            checked = subtitleShadowEnabled,
+            onCheckedStateChange = { subtitleShadowEnabled = it },
+            onAfterChange = { onSubtitleSettingChanged() }
+    )
+    if (subtitleShadowEnabled) {
+        ColorPreferenceRow(
+                key = KEY_SUBTITLES_SHADOW_COLOR,
+                settings = settings,
+                title = stringResource(R.string.subtitles_color),
+                defaultValue = AndroidColor.BLACK,
+                highlighted = highlightedKey == KEY_SUBTITLES_SHADOW_COLOR,
+                stateVersion = resetVersion,
+                onValueChanged = onSubtitleSettingChanged
+        )
+        IntSliderPreferenceRow(
+                key = KEY_SUBTITLES_SHADOW_COLOR_OPACITY,
+                settings = settings,
+                title = stringResource(R.string.subtitles_opacity),
+                defaultValue = 128,
+                valueRange = 0f..255f,
+                highlighted = highlightedKey == KEY_SUBTITLES_SHADOW_COLOR_OPACITY,
+                stateVersion = resetVersion,
+                onValueChanged = onSubtitleSettingChanged
+        )
+    }
+
+    PreferenceCategoryHeader(title = stringResource(R.string.subtitles_outline_title))
+    BooleanPreferenceRow(
+            key = KEY_SUBTITLES_OUTLINE,
+            settings = settings,
+            title = stringResource(R.string.subtitles_outline_title),
+            defaultValue = true,
+            highlighted = highlightedKey == KEY_SUBTITLES_OUTLINE,
+            checked = subtitleOutlineEnabled,
+            onCheckedStateChange = { subtitleOutlineEnabled = it },
+            onAfterChange = { onSubtitleSettingChanged() }
+    )
+    if (subtitleOutlineEnabled) {
+        ColorPreferenceRow(
+                key = KEY_SUBTITLES_OUTLINE_COLOR,
+                settings = settings,
+                title = stringResource(R.string.subtitles_color),
+                defaultValue = AndroidColor.BLACK,
+                highlighted = highlightedKey == KEY_SUBTITLES_OUTLINE_COLOR,
+                stateVersion = resetVersion,
+                onValueChanged = onSubtitleSettingChanged
+        )
+        IntSliderPreferenceRow(
+                key = KEY_SUBTITLES_OUTLINE_COLOR_OPACITY,
+                settings = settings,
+                title = stringResource(R.string.subtitles_opacity),
+                defaultValue = 255,
+                valueRange = 0f..255f,
+                highlighted = highlightedKey == KEY_SUBTITLES_OUTLINE_COLOR_OPACITY,
+                stateVersion = resetVersion,
+                onValueChanged = onSubtitleSettingChanged
+        )
+    }
+}
+
+@Composable
 private fun CastingPreferencesContent(
         settings: SharedPreferences,
         highlightedKey: String?,
@@ -1141,6 +1400,251 @@ private fun defaultSleepTimerSummary(context: Context, settings: SharedPreferenc
             if (wait) "true" else "false",
             if (reset) "true" else "false"
     )
+}
+
+private fun applySubtitlePreset(
+        settings: SharedPreferences,
+        preset: String,
+        onBackgroundChanged: (Boolean) -> Unit,
+        onShadowChanged: (Boolean) -> Unit,
+        onOutlineChanged: (Boolean) -> Unit
+) {
+    var size = "16"
+    var color = AndroidColor.WHITE
+    var background = false
+    var backgroundOpacity = 255
+    var shadow = true
+    var outline = true
+
+    when (preset) {
+        "1" -> size = "13"
+        "2" -> {
+            size = "10"
+            background = true
+            backgroundOpacity = 255
+            shadow = false
+            outline = false
+        }
+        "3" -> {
+            background = true
+            backgroundOpacity = 128
+            shadow = false
+        }
+        "4" -> color = AndroidColor.YELLOW
+        "5" -> {
+            color = AndroidColor.YELLOW
+            background = true
+            backgroundOpacity = 128
+            shadow = false
+        }
+    }
+
+    settings.edit {
+        putString(KEY_SUBTITLES_SIZE, size)
+        putBoolean(KEY_SUBTITLES_BOLD, false)
+        putInt(KEY_SUBTITLES_COLOR, color)
+        putInt(KEY_SUBTITLES_COLOR_OPACITY, 255)
+        putBoolean(KEY_SUBTITLES_BACKGROUND, background)
+        putInt(KEY_SUBTITLES_BACKGROUND_COLOR, AndroidColor.BLACK)
+        putInt(KEY_SUBTITLES_BACKGROUND_COLOR_OPACITY, backgroundOpacity)
+        putBoolean(KEY_SUBTITLES_SHADOW, shadow)
+        putInt(KEY_SUBTITLES_SHADOW_COLOR, AndroidColor.BLACK)
+        putInt(KEY_SUBTITLES_SHADOW_COLOR_OPACITY, 128)
+        putBoolean(KEY_SUBTITLES_OUTLINE, outline)
+        putString(KEY_SUBTITLES_OUTLINE_SIZE, "4")
+        putInt(KEY_SUBTITLES_OUTLINE_COLOR, AndroidColor.BLACK)
+        putInt(KEY_SUBTITLES_OUTLINE_COLOR_OPACITY, 255)
+    }
+    onBackgroundChanged(background)
+    onShadowChanged(shadow)
+    onOutlineChanged(outline)
+}
+
+@Composable
+private fun EphemeralListPreferenceRow(
+        key: String,
+        title: String,
+        entries: List<String>,
+        values: List<String>,
+        highlighted: Boolean,
+        onValueSelected: (String) -> Unit
+) {
+    val options = entries.zip(values).map { SubpagePreferenceOption(label = it.first, value = it.second) }
+    var expanded by remember(key) { mutableStateOf(false) }
+    PreferenceRowFrame(
+            highlighted = highlighted,
+            role = Role.Button,
+            onClick = { expanded = true },
+            textContent = {
+                PreferenceText(
+                        title = title,
+                        summary = null,
+                        enabled = true
+                )
+            },
+            trailingContent = {
+                Box {
+                    Text(
+                            text = ">",
+                            color = VLCThemeDefaults.colors.fontLight,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.clickable { expanded = true }
+                    )
+                    DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                    ) {
+                        options.forEach { option ->
+                            DropdownMenuItem(
+                                    text = { Text(option.label) },
+                                    onClick = {
+                                        expanded = false
+                                        onValueSelected(option.value)
+                                    }
+                            )
+                        }
+                    }
+                }
+            }
+    )
+}
+
+@Composable
+private fun ColorPreferenceRow(
+        key: String,
+        settings: SharedPreferences,
+        title: String,
+        defaultValue: Int,
+        highlighted: Boolean,
+        stateVersion: Int,
+        onValueChanged: () -> Unit
+) {
+    var colorValue by remember(key, stateVersion) {
+        mutableIntStateOf(settings.getInt(key, defaultValue))
+    }
+    var dialogValue by remember(key, stateVersion) { mutableStateOf(colorToHex(colorValue)) }
+    var expanded by remember(key) { mutableStateOf(false) }
+    val parsedDialogColor = parseColorOrNull(dialogValue)
+    PreferenceRowFrame(
+            highlighted = highlighted,
+            role = Role.Button,
+            onClick = {
+                dialogValue = colorToHex(colorValue)
+                expanded = true
+            },
+            textContent = {
+                PreferenceText(
+                        title = title,
+                        summary = colorToHex(colorValue),
+                        enabled = true
+                )
+            },
+            trailingContent = {
+                Box(
+                        modifier = Modifier
+                                .size(28.dp)
+                                .background(Color(colorValue))
+                )
+            }
+    )
+    if (expanded) {
+        AlertDialog(
+                onDismissRequest = { expanded = false },
+                title = { Text(title) },
+                text = {
+                    Column {
+                        OutlinedTextField(
+                                value = dialogValue,
+                                onValueChange = { dialogValue = it.take(9) },
+                                singleLine = true,
+                                isError = parsedDialogColor == null,
+                                modifier = Modifier.fillMaxWidth()
+                        )
+                        Text(
+                                text = colorToHex(colorValue),
+                                color = VLCThemeDefaults.colors.fontLight,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                            enabled = parsedDialogColor != null,
+                            onClick = {
+                                val newColor = parsedDialogColor ?: return@TextButton
+                                colorValue = newColor
+                                settings.edit { putInt(key, newColor) }
+                                expanded = false
+                                onValueChanged()
+                            }
+                    ) {
+                        Text(stringResource(android.R.string.ok))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { expanded = false }) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                }
+        )
+    }
+}
+
+@Composable
+private fun IntSliderPreferenceRow(
+        key: String,
+        settings: SharedPreferences,
+        title: String,
+        defaultValue: Int,
+        valueRange: ClosedFloatingPointRange<Float>,
+        highlighted: Boolean,
+        stateVersion: Int,
+        onValueChanged: () -> Unit
+) {
+    var value by remember(key, stateVersion) {
+        mutableFloatStateOf(settings.getInt(key, defaultValue)
+                .coerceIn(valueRange.start.roundToInt(), valueRange.endInclusive.roundToInt())
+                .toFloat())
+    }
+    Column(
+            modifier = Modifier
+                    .fillMaxWidth()
+                    .background(if (highlighted) VLCThemeDefaults.colors.subtleSelection else VLCThemeDefaults.colors.backgroundDefault)
+                    .padding(top = 10.dp)
+    ) {
+        Box(modifier = Modifier.padding(horizontal = 8.dp)) {
+            PreferenceText(
+                    title = title,
+                    summary = value.roundToInt().toString(),
+                    enabled = true
+            )
+        }
+        Slider(
+                value = value,
+                onValueChange = { newValue ->
+                    value = newValue.roundToInt()
+                            .coerceIn(valueRange.start.roundToInt(), valueRange.endInclusive.roundToInt())
+                            .toFloat()
+                    settings.edit { putInt(key, value.roundToInt()) }
+                    onValueChanged()
+                },
+                valueRange = valueRange,
+                modifier = Modifier.padding(horizontal = 8.dp)
+        )
+        HorizontalDivider(
+                color = VLCThemeDefaults.colors.defaultDivider,
+                modifier = Modifier.padding(top = 4.dp)
+        )
+    }
+}
+
+private fun colorToHex(color: Int): String = "#%06X".format(0xFFFFFF and color)
+
+private fun parseColorOrNull(value: String): Int? {
+    return runCatching {
+        AndroidColor.parseColor(value.trim().let { if (it.startsWith("#")) it else "#$it" })
+    }.getOrNull()
 }
 
 @Composable

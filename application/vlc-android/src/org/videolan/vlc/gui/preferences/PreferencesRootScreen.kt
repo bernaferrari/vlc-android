@@ -543,12 +543,13 @@ internal fun ListPreferenceRow(
         enabled: Boolean = true,
         summary: String? = null,
         @StringRes summaryFormatRes: Int? = null,
+        stateVersion: Int = 0,
         onValueChanged: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     val options = entries.zip(values).map { PreferenceOption(label = it.first, value = it.second) }
     var expanded by remember(key) { mutableStateOf(false) }
-    var selectedValue by remember(key) { mutableStateOf(settings.getString(key, defaultValue) ?: defaultValue) }
+    var selectedValue by remember(key, stateVersion) { mutableStateOf(settings.getString(key, defaultValue) ?: defaultValue) }
     val selectedLabel = options.firstOrNull { it.value == selectedValue }?.label ?: selectedValue
     val resolvedSummary = summaryFormatRes?.let { context.getString(it, selectedLabel) } ?: summary ?: selectedLabel
     PreferenceRowFrame(
