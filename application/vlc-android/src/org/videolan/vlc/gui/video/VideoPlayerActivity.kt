@@ -64,7 +64,6 @@ import android.view.animation.AnimationSet
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.RotateAnimation
 import android.view.inputmethod.BaseInputConnection
-import android.widget.CheckBox
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.SeekBar
@@ -188,6 +187,7 @@ import org.videolan.vlc.gui.browser.EXTRA_MRL
 import org.videolan.vlc.gui.dialogs.CtxActionReceiver
 import org.videolan.vlc.gui.dialogs.PlaybackRemoteControl.shouldInterceptRemote
 import org.videolan.vlc.gui.dialogs.adapters.VlcTrack
+import org.videolan.vlc.gui.dialogs.createResumePlaybackDialogView
 import org.videolan.vlc.gui.dialogs.showEqualizerComposeDialog
 import org.videolan.vlc.gui.dialogs.showContext
 import org.videolan.vlc.gui.dialogs.showPlaybackSpeedComposeDialog
@@ -2374,18 +2374,17 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         }
         service?.pause()
         PlaybackService.waitConfirmation.postValue(confirmation.title)
-        val inflater = this.layoutInflater
-        val dialogView = inflater.inflate(R.layout.dialog_video_resume, null)
-        val resumeAllCheck = dialogView.findViewById<CheckBox>(R.id.video_resume_checkbox)
+        var applyToPlayQueue = false
+        val dialogView = createResumePlaybackDialogView { applyToPlayQueue = it }
         alertDialog = AlertDialog.Builder(this@VideoPlayerActivity)
                 .setTitle(confirmation.title)
                 .setView(dialogView)
                 .setPositiveButton(R.string.resume) { _, _ ->
-                    if (resumeAllCheck.isChecked) service?.playlistManager?.videoResumeStatus = ResumeStatus.ALWAYS
+                    if (applyToPlayQueue) service?.playlistManager?.videoResumeStatus = ResumeStatus.ALWAYS
                     lifecycleScope.launch { service?.playlistManager?.playIndex(confirmation.index, confirmation.flags, forceResume = true) }
                 }
                 .setNegativeButton(R.string.no) { _, _ ->
-                    if (resumeAllCheck.isChecked) service?.playlistManager?.videoResumeStatus = ResumeStatus.NEVER
+                    if (applyToPlayQueue) service?.playlistManager?.videoResumeStatus = ResumeStatus.NEVER
                     lifecycleScope.launch { service?.playlistManager?.playIndex(confirmation.index, confirmation.flags, forceRestart = true) }
                 }
                 .setOnDismissListener {

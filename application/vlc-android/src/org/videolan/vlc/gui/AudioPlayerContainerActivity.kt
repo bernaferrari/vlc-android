@@ -32,7 +32,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CheckBox
 import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -87,6 +86,7 @@ import org.videolan.vlc.VlcMigrationHelper
 import org.videolan.vlc.gui.audio.AudioPlayer
 import org.videolan.vlc.gui.audio.AudioPlaylistTipsDelegate
 import org.videolan.vlc.gui.audio.AudioTipsDelegate
+import org.videolan.vlc.gui.dialogs.createResumePlaybackDialogView
 import org.videolan.vlc.gui.dialogs.showEqualizerComposeDialog
 import org.videolan.vlc.gui.helpers.BottomNavigationBehavior
 import org.videolan.vlc.gui.helpers.KeycodeListener
@@ -310,19 +310,18 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
     private fun showConfirmResumeDialog(confirmation: WaitConfirmation) {
         PlaybackService.instance?.pause()
         PlaybackService.waitConfirmation.postValue(confirmation.title)
-        val inflater = this.layoutInflater
-        val dialogView = inflater.inflate(R.layout.dialog_video_resume, null)
-        val resumeAllCheck = dialogView.findViewById<CheckBox>(R.id.video_resume_checkbox)
+        var applyToPlayQueue = false
+        val dialogView = createResumePlaybackDialogView { applyToPlayQueue = it }
         AlertDialog.Builder(this)
             .setTitle(confirmation.title)
             .setView(dialogView)
             .setCancelable(true)
             .setPositiveButton(R.string.resume) { _, _ ->
-                if (resumeAllCheck.isChecked) PlaybackService.instance?.playlistManager?.audioResumeStatus = ResumeStatus.ALWAYS
+                if (applyToPlayQueue) PlaybackService.instance?.playlistManager?.audioResumeStatus = ResumeStatus.ALWAYS
                 lifecycleScope.launch { PlaybackService.instance?.playlistManager?.playIndex(confirmation.index, confirmation.flags, forceResume = true) }
             }
             .setNegativeButton(R.string.no) { _, _ ->
-                if (resumeAllCheck.isChecked) PlaybackService.instance?.playlistManager?.audioResumeStatus = ResumeStatus.NEVER
+                if (applyToPlayQueue) PlaybackService.instance?.playlistManager?.audioResumeStatus = ResumeStatus.NEVER
                 lifecycleScope.launch { PlaybackService.instance?.playlistManager?.playIndex(confirmation.index, confirmation.flags, forceRestart = true) }
             }
             .setOnDismissListener {
