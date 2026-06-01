@@ -577,10 +577,10 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                 service.playlistManager.videoStatsOn.observe(player) {
                     if (it) showOverlay(true) else hideOverlay(false)
                     player.statsDelegate.container = hudBinding.statsContainer
-                    player.statsDelegate.initPlotView(hudBinding)
+                    player.statsDelegate.initStatsView(hudBinding)
                     if (it) player.statsDelegate.start() else player.statsDelegate.stop()
                 }
-                hudBinding.statsClose.setOnClickListener { service.playlistManager.videoStatsOn.postValue(false) }
+                hudBinding.statsContainer.setOnCloseClickListener { service.playlistManager.videoStatsOn.postValue(false) }
 
                 hudBinding.lifecycleOwner = player
                 updateOrientationIcon()
