@@ -25,8 +25,8 @@
 package org.videolan.vlc.gui.helpers
 
 import android.view.View
+import androidx.activity.ComponentActivity
 import androidx.appcompat.widget.ViewStubCompat
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
@@ -45,7 +45,7 @@ import org.videolan.vlc.util.LocaleUtil
 import org.videolan.vlc.viewmodels.BookmarkModel
 
 class BookmarkListDelegate(
-    val activity: FragmentActivity,
+    val activity: ComponentActivity,
     val service: PlaybackService,
     private val bookmarkModel: BookmarkModel,
     val forVideo: Boolean

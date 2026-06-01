@@ -154,6 +154,14 @@ private data class HomeRow(
     val poster: Boolean = false
 )
 
+private data class GenericCardItem(
+    val id: Long,
+    val title: String,
+    val content: String,
+    val icon: Int,
+    val color: Int
+)
+
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 class MainTvActivity : BaseTvActivity(), StoragePermissionsDelegate.CustomActionController, SchedulerCallback, PlaybackService.Callback {
 

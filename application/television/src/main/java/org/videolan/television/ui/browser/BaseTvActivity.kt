@@ -31,7 +31,7 @@ import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
-import androidx.fragment.app.FragmentActivity
+import androidx.activity.ComponentActivity
 import com.google.android.material.snackbar.Snackbar
 import org.videolan.libvlc.Dialog
 import org.videolan.medialibrary.interfaces.Medialibrary
@@ -55,7 +55,7 @@ const val REQUEST_CODE_NO_CONNECTION = 100
 const val REQUEST_CODE_RESTART_APP = 101
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-abstract class BaseTvActivity : FragmentActivity(), IDialogManager {
+abstract class BaseTvActivity : ComponentActivity(), IDialogManager {
 
     private lateinit var mediaLibrary: Medialibrary
     private lateinit var settings: SharedPreferences

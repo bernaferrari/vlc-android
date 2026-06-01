@@ -25,6 +25,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
 import android.widget.FrameLayout
+import androidx.activity.ComponentActivity
 import androidx.annotation.DrawableRes
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.compose.foundation.Image
@@ -67,7 +68,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.fragment.app.FragmentActivity
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
@@ -131,7 +131,7 @@ const val CTX_FLAGS_KEY = "CTX_FLAGS_KEY"
 const val CTX_MEDIA_KEY = "CTX_MEDIA_KEY"
 
 private class ContextSheetComposeDialog(
-    private val activity: FragmentActivity,
+    private val activity: ComponentActivity,
     private val receiver: CtxActionReceiver,
     private val position: Int,
     private val title: String,
@@ -374,7 +374,7 @@ private fun contextCoverIcon(media: MediaLibraryItem): Int {
     }
 }
 
-private fun populateMenuItems(activity: FragmentActivity, flags: FlagSet<ContextOption>) = mutableListOf<CtxMenuItem>().apply {
+private fun populateMenuItems(activity: ComponentActivity, flags: FlagSet<ContextOption>) = mutableListOf<CtxMenuItem>().apply {
 
     if (flags.contains(CTX_PLAY)) add(Simple(CTX_PLAY, activity.getString(R.string.play), R.drawable.ic_play))
     if (flags.contains(CTX_QUICK_PLAY)) add(Simple(CTX_QUICK_PLAY, activity.getString(R.string.quick_play), R.drawable.ic_play))
@@ -435,7 +435,7 @@ interface CtxActionReceiver {
  * @param media the media used to display the title
  * @param flags the flags describing the actions to be displayed
  */
-fun showContext(activity: FragmentActivity, receiver: CtxActionReceiver, position: Int, media: MediaLibraryItem?, flags: FlagSet<ContextOption>) {
+fun showContext(activity: ComponentActivity, receiver: CtxActionReceiver, position: Int, media: MediaLibraryItem?, flags: FlagSet<ContextOption>) {
     if (!activity.isStarted()) return
     ContextSheetComposeDialog(
         activity = activity,

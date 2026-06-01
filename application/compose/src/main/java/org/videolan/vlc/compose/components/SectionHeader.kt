@@ -29,8 +29,8 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
  * Typical usage in adapters / decorations (later migration):
  *   VLCSectionHeader(text = sectionName)
  *
- * The TV variant in television module (song_header_item.xml) is DataBinding-heavy
- * and intentionally out of scope for this simple leaf (different interaction model).
+ * The TV file/media browser routes now use Compose directly; this component remains
+ * the shared section-header leaf for hosts that still draw RecyclerView decorations.
  */
 @Composable
 fun VLCSectionHeader(

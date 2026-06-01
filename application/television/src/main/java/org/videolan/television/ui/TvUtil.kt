@@ -20,7 +20,6 @@
  */
 package org.videolan.television.ui
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -31,10 +30,7 @@ import android.os.Build
 import android.provider.MediaStore.Video.VideoColumns.CATEGORY
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.FragmentActivity
 import androidx.leanback.app.BackgroundManager
-import androidx.leanback.widget.DiffCallback
-import androidx.leanback.widget.ListRow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
@@ -51,10 +47,6 @@ import org.videolan.resources.HEADER_DIRECTORIES
 import org.videolan.resources.HEADER_NETWORK
 import org.videolan.resources.HEADER_SERVER
 import org.videolan.resources.HEADER_STREAM
-import org.videolan.resources.UPDATE_DESCRIPTION
-import org.videolan.resources.UPDATE_SEEN
-import org.videolan.resources.UPDATE_THUMB
-import org.videolan.resources.UPDATE_TIME
 import org.videolan.television.ui.audioplayer.AudioPlayerActivity
 import org.videolan.television.ui.browser.TVActivity
 import org.videolan.television.ui.browser.VerticalGridActivity
@@ -78,44 +70,6 @@ import org.videolan.vlc.viewmodels.browser.BrowserModel
 object TvUtil {
 
     private const val TAG = "VLC/TvUtil"
-
-    var diffCallback: DiffCallback<MediaLibraryItem> = object : DiffCallback<MediaLibraryItem>() {
-        override fun areItemsTheSame(oldItem: MediaLibraryItem, newItem: MediaLibraryItem): Boolean {
-            return oldItem.equals(newItem) && oldItem.title == newItem.title
-        }
-
-        @SuppressLint("DiffUtilEquals")
-        override fun areContentsTheSame(oldItem: MediaLibraryItem, newItem: MediaLibraryItem): Boolean {
-            if (oldItem.itemType == MediaLibraryItem.TYPE_DUMMY) return oldItem.description == newItem.description && oldItem.id == newItem.id
-            val oldMedia = oldItem as? MediaWrapper
-                    ?: return true
-            val newMedia = newItem as? MediaWrapper
-                    ?: return true
-            return oldMedia === newMedia || (oldMedia.time == newMedia.time
-                    && oldMedia.artworkMrl == newMedia.artworkMrl
-                    && oldMedia.seen == newMedia.seen)
-        }
-
-        override fun getChangePayload(oldItem: MediaLibraryItem, newItem: MediaLibraryItem): Any {
-            if (oldItem.itemType == MediaLibraryItem.TYPE_DUMMY) return UPDATE_DESCRIPTION
-            val oldMedia = oldItem as MediaWrapper
-            val newMedia = newItem as MediaWrapper
-            if (oldMedia.time != newMedia.time) return UPDATE_TIME
-            return if (oldMedia.artworkMrl != newMedia.artworkMrl) UPDATE_THUMB
-            else UPDATE_SEEN
-        }
-    }
-
-    var metadataDiffCallback = object : DiffCallback<MediaMetadataWithImages>() {
-        override fun areItemsTheSame(oldItem: MediaMetadataWithImages, newItem: MediaMetadataWithImages) = oldItem.metadata.moviepediaId == newItem.metadata.moviepediaId
-
-        override fun areContentsTheSame(oldItem: MediaMetadataWithImages, newItem: MediaMetadataWithImages) = oldItem.metadata.moviepediaId == newItem.metadata.moviepediaId && oldItem.metadata.title == newItem.metadata.title && oldItem.metadata.currentPoster == newItem.metadata.currentPoster
-    }
-
-    val listDiffCallback: DiffCallback<ListRow> = object : DiffCallback<ListRow>() {
-        override fun areItemsTheSame(oldItem: ListRow, newItem: ListRow) = oldItem.contentDescription == newItem.contentDescription
-        override fun areContentsTheSame(oldItem: ListRow, newItem: ListRow) = true
-    }
 
     fun getOverscanHorizontal(context: Context) = context.resources.getDimensionPixelSize(R.dimen.tv_overscan_horizontal)
     fun getOverscanVertical(context: Context) = context.resources.getDimensionPixelSize(R.dimen.tv_overscan_vertical)
@@ -144,7 +98,7 @@ object TvUtil {
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun openMedia(activity: FragmentActivity, item: Any?) {
+    fun openMedia(activity: Activity, item: Any?) {
         when (item) {
             is MediaWrapper -> when (item.type) {
                 MediaWrapper.TYPE_DIR -> {
@@ -175,7 +129,7 @@ object TvUtil {
         }
     }
 
-    fun openMedia(activity: FragmentActivity, item: Any?, model: BrowserModel) {
+    fun openMedia(activity: Activity, item: Any?, model: BrowserModel) {
         when (item) {
             is MediaWrapper -> when (item.type) {
                 MediaWrapper.TYPE_AUDIO -> {
@@ -220,7 +174,7 @@ object TvUtil {
     }
 
     @Suppress("UNCHECKED_CAST")
-    suspend fun openMediaFromPaged(activity: FragmentActivity, item: Any?, provider: MedialibraryProvider<out MediaLibraryItem>) {
+    suspend fun openMediaFromPaged(activity: Activity, item: Any?, provider: MedialibraryProvider<out MediaLibraryItem>) {
         when (item) {
             is MediaWrapper -> when (item.type) {
                 MediaWrapper.TYPE_AUDIO -> {

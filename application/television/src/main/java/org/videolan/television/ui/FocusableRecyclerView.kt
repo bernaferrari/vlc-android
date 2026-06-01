@@ -54,7 +54,7 @@ class FocusableRecyclerView : RecyclerView {
 
     override fun setAdapter(adapter: Adapter<*>?) {
 
-        if (adapter is TvItemAdapter) {
+        if (adapter is TvFocusableAdapter) {
             adapter.setOnFocusChangeListener(focusListener)
         }
 

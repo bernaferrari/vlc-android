@@ -72,7 +72,6 @@ import org.videolan.resources.HEADER_STREAM
 import org.videolan.resources.HEADER_TV_SHOW
 import org.videolan.resources.HEADER_VIDEO
 import org.videolan.resources.util.getFromMl
-import org.videolan.television.ui.FAVORITE_FLAG
 import org.videolan.television.ui.MainTvActivity
 import org.videolan.television.ui.NowPlayingDelegate
 import org.videolan.television.ui.audioplayer.AudioPlayerActivity
@@ -96,6 +95,7 @@ import org.videolan.vlc.util.Permissions
 import org.videolan.vlc.util.convertFavorites
 import org.videolan.vlc.util.scanAllowed
 
+private const val FAVORITE_FLAG = 1000
 private const val NUM_ITEMS_PREVIEW = 5
 private const val TAG = "MainTvModel"
 

@@ -22,12 +22,11 @@ package org.videolan.television.ui.browser
 
 import android.annotation.TargetApi
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.KeyEvent
-import android.view.LayoutInflater
-import android.view.View
 import android.widget.ImageView
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -81,11 +80,14 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
-import androidx.fragment.app.Fragment
 import androidx.leanback.app.BackgroundManager
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.videolan.libvlc.Dialog
 import org.videolan.medialibrary.MLServiceLocator
 import org.videolan.medialibrary.interfaces.Medialibrary
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
@@ -113,13 +115,10 @@ import org.videolan.resources.ITEM
 import org.videolan.resources.KEY_URI
 import org.videolan.resources.util.getFromMl
 import org.videolan.resources.util.parcelable
-import org.videolan.television.databinding.TvVerticalGridBinding
 import org.videolan.television.ui.MainTvActivity
 import org.videolan.television.ui.MediaScrapingTvshowDetailsActivity
 import org.videolan.television.ui.TvUtil
 import org.videolan.television.ui.TV_SHOW_ID
-import org.videolan.television.ui.browser.interfaces.BrowserActivityInterface
-import org.videolan.television.ui.browser.interfaces.DetailsFragment
 import org.videolan.television.ui.clearBackground
 import org.videolan.television.ui.updateBackground
 import org.videolan.television.viewmodel.MediaBrowserViewModel
@@ -128,40 +127,52 @@ import org.videolan.tools.PLAYLIST_MODE_AUDIO
 import org.videolan.tools.PLAYLIST_MODE_VIDEO
 import org.videolan.tools.Settings
 import org.videolan.tools.putSingle
-import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.helpers.downloadIcon
 import org.videolan.vlc.gui.helpers.getTvIconRes
 import org.videolan.vlc.gui.helpers.loadImage
-import org.videolan.vlc.interfaces.BrowserFragmentInterface
 import org.videolan.vlc.providers.medialibrary.MedialibraryProvider
+import org.videolan.vlc.repository.BrowserFavRepository
+import org.videolan.vlc.util.FileUtils
 import org.videolan.vlc.util.generateResolutionClass
 import org.videolan.vlc.viewmodels.SortableModel
+import org.videolan.vlc.viewmodels.browser.BrowserModel
+import org.videolan.vlc.viewmodels.browser.NetworkModel
 import org.videolan.vlc.viewmodels.browser.TYPE_FILE
 import org.videolan.vlc.viewmodels.browser.TYPE_NETWORK
 import org.videolan.television.R as TvR
 import org.videolan.vlc.R as VlcR
 
 private data class MediaSortAction(val label: String, val sort: Int)
+private data class FileBrowserEntry(val category: Long, val item: MediaLibraryItem?, val rootLevel: Boolean)
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
-class VerticalGridActivity : BaseTvActivity(), BrowserActivityInterface {
-
-    private var fragment: BrowserFragmentInterface? = null
-    private var binding: TvVerticalGridBinding? = null
+class VerticalGridActivity : BaseTvActivity() {
 
     private var mediaModel: MediaBrowserViewModel? = null
     private var moviepediaModel: MediaScrapingBrowserViewModel? = null
+    private var fileModel: BrowserModel? = null
     private var backgroundManager: BackgroundManager? = null
     private var selectedMediaItem: MediaLibraryItem? = null
     private var selectedMoviepediaItem: MediaMetadataWithImages? = null
+    private var selectedFileItem: MediaLibraryItem? = null
     private var mediaItems by mutableStateOf<List<MediaLibraryItem>>(emptyList())
     private var mediaLoading by mutableStateOf(true)
     private var mediaInGrid by mutableStateOf(true)
     private var moviepediaItems by mutableStateOf<List<MediaMetadataWithImages>>(emptyList())
     private var moviepediaLoading by mutableStateOf(true)
     private var moviepediaInGrid by mutableStateOf(true)
+    private var fileItems by mutableStateOf<List<MediaLibraryItem>>(emptyList())
+    private var fileLoading by mutableStateOf(true)
+    private var fileInGrid by mutableStateOf(true)
+    private var fileTitle by mutableStateOf("")
+    private var fileSubtitle by mutableStateOf<String?>(null)
+    private var fileFavoriteVisible by mutableStateOf(false)
+    private var fileFavorite by mutableStateOf(false)
+    private var fileEntry: FileBrowserEntry? = null
+    private val fileBackStack = mutableListOf<FileBrowserEntry>()
+    private val browserFavRepository by lazy(LazyThreadSafetyMode.NONE) { BrowserFavRepository.getInstance(this) }
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -172,13 +183,38 @@ class VerticalGridActivity : BaseTvActivity(), BrowserActivityInterface {
         } else if (type == HEADER_MOVIES || type == HEADER_TV_SHOW) {
             setupMoviepediaBrowser(type)
         } else {
-            setupFragmentBrowser(savedInstanceState, type)
+            val fileRoute = fileRoute(type)
+            if (fileRoute != null) {
+                setupFileBrowser(savedInstanceState, fileRoute)
+            } else {
+                finish()
+            }
         }
     }
 
     override fun onStart() {
         super.onStart()
         backgroundManager?.let { clearBackground(this, it) }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        fileEntry?.let { entry ->
+            outState.putLong(CATEGORY, entry.category)
+            outState.putBoolean(FILE_BROWSER_ROOT_LEVEL, entry.rootLevel)
+            (entry.item as? Parcelable)?.let { outState.putParcelable(ITEM, it) }
+        }
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun dialogCanceled(dialog: Dialog?) {
+        when (dialog) {
+            is Dialog.ErrorMessage -> {
+                Snackbar.make(window.decorView, "${dialog.title}: ${dialog.text}", Snackbar.LENGTH_LONG).show()
+                if (fileModel != null) goBackFromFileBrowser()
+            }
+            is Dialog.LoginDialog -> if (fileModel != null) goBackFromFileBrowser()
+            else -> super.dialogCanceled(dialog)
+        }
     }
 
     private fun mediaRoute(type: Long): Pair<Long, MediaLibraryItem?>? = when (type) {
@@ -194,6 +230,18 @@ class VerticalGridActivity : BaseTvActivity(), BrowserActivityInterface {
                 else -> null
             }
         }
+        else -> null
+    }
+
+    private fun fileRoute(type: Long): FileBrowserEntry? = when (type) {
+        HEADER_NETWORK -> {
+            var uri = intent.data
+            if (uri == null) uri = intent.parcelable(KEY_URI)
+            val item = uri?.let { MLServiceLocator.getAbstractMediaWrapper(it) }
+            if (item != null && intent.hasExtra(FAVORITE_TITLE)) item.title = intent.getStringExtra(FAVORITE_TITLE)
+            FileBrowserEntry(TYPE_NETWORK, item, item == null)
+        }
+        HEADER_DIRECTORIES -> FileBrowserEntry(TYPE_FILE, intent.data?.let { MLServiceLocator.getAbstractMediaWrapper(it) }, true)
         else -> null
     }
 
@@ -285,34 +333,53 @@ class VerticalGridActivity : BaseTvActivity(), BrowserActivityInterface {
         )
     }
 
-    private fun setupFragmentBrowser(savedInstanceState: Bundle?, type: Long) {
-        binding = TvVerticalGridBinding.inflate(LayoutInflater.from(this))
-        setContentView(binding!!.root)
-        if (savedInstanceState != null) return
-
-        fragment = when (type) {
-            HEADER_NETWORK -> {
-                var uri = intent.data
-                if (uri == null) uri = intent.parcelable(KEY_URI)
-                val item = if (uri == null) null else MLServiceLocator.getAbstractMediaWrapper(uri)
-                if (item != null && intent.hasExtra(FAVORITE_TITLE)) item.title = intent.getStringExtra(FAVORITE_TITLE)
-                FileBrowserTvFragment.newInstance(TYPE_NETWORK, item, item === null)
+    private fun setupFileBrowser(savedInstanceState: Bundle?, initialEntry: FileBrowserEntry) {
+        val restoredEntry = savedInstanceState?.let {
+            FileBrowserEntry(
+                it.getLong(CATEGORY, initialEntry.category),
+                it.parcelable<Parcelable>(ITEM) as? MediaLibraryItem ?: initialEntry.item,
+                it.getBoolean(FILE_BROWSER_ROOT_LEVEL, initialEntry.rootLevel)
+            )
+        } ?: initialEntry
+        val displayPrefId = fileDisplayPrefId(restoredEntry.category)
+        fileInGrid = Settings.getInstance(this).getBoolean(displayPrefId, true)
+        backgroundManager = BackgroundManager.getInstance(this).apply { attach(window) }
+        setContentView(
+            ComposeView(this).apply {
+                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+                setContent {
+                    VLCTheme(darkTheme = true) {
+                        TvMediaBrowserScreen(
+                            title = fileTitle,
+                            subtitle = fileSubtitle,
+                            items = fileItems,
+                            loading = fileLoading,
+                            empty = !fileLoading && fileItems.isEmpty(),
+                            emptyText = fileEmptyText(),
+                            inGrid = fileInGrid,
+                            columns = fileColumnCount(),
+                            sortActions = fileModel?.let { mediaSortActions(it) }.orEmpty(),
+                            favoriteVisible = fileFavoriteVisible,
+                            favorite = fileFavorite,
+                            onBack = ::goBackFromFileBrowser,
+                            onToggleDisplay = {
+                                fileInGrid = !fileInGrid
+                                Settings.getInstance(this@VerticalGridActivity).putSingle(displayPrefId, fileInGrid)
+                            },
+                            onSort = { sort -> fileModel?.sort(sort) },
+                            onFavorite = ::toggleFileFavorite,
+                            onItemFocused = ::onFileItemFocused,
+                            onItemClicked = ::onFileItemClicked
+                        )
+                    }
+                }
             }
-            HEADER_DIRECTORIES -> FileBrowserTvFragment.newInstance(TYPE_FILE, intent.data?.let { MLServiceLocator.getAbstractMediaWrapper(it) }, true)
-            else -> {
-                finish()
-                return
-            }
-        }
-
-        if (fragment == null && BuildConfig.BETA) android.util.Log.i(TAG, "Fragment not initialized: $type")
-        supportFragmentManager.beginTransaction()
-            .add(TvR.id.tv_fragment_placeholder, fragment as Fragment)
-            .commit()
+        )
+        showFileBrowser(restoredEntry, addToBackStack = false)
     }
 
     override fun refresh() {
-        mediaModel?.refresh() ?: moviepediaModel?.refresh() ?: fragment?.refresh()
+        mediaModel?.refresh() ?: moviepediaModel?.refresh() ?: fileModel?.refresh()
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
@@ -335,35 +402,24 @@ class VerticalGridActivity : BaseTvActivity(), BrowserActivityInterface {
             }
             return super.onKeyDown(keyCode, event)
         }
-
-        val fragment = fragment
-        if (fragment != null) {
-            if (fragment is DetailsFragment && (keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE || keyCode == KeyEvent.KEYCODE_BUTTON_Y || keyCode == KeyEvent.KEYCODE_Y)) {
-                fragment.showDetails()
+        if (fileModel != null) {
+            if (keyCode == KeyEvent.KEYCODE_BOOKMARK) {
+                toggleFileFavorite()
                 return true
             }
-            try {
-                if ((supportFragmentManager.fragments[0] as? OnKeyPressedListener)?.onKeyPressed(keyCode) == true) {
+            if (keyCode == KeyEvent.KEYCODE_BACK && fileBackStack.isNotEmpty()) {
+                goBackFromFileBrowser()
+                return true
+            }
+            if (keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE || keyCode == KeyEvent.KEYCODE_BUTTON_Y || keyCode == KeyEvent.KEYCODE_Y) {
+                (selectedFileItem as? MediaWrapper)?.takeIf { it.type != MediaWrapper.TYPE_DIR }?.let {
+                    TvUtil.showMediaDetail(this, it)
                     return true
                 }
-            } catch (e: IndexOutOfBoundsException) {
             }
+            return super.onKeyDown(keyCode, event)
         }
         return super.onKeyDown(keyCode, event)
-    }
-
-    override fun showProgress(show: Boolean) {
-        lifecycleScope.launch {
-            val binding = binding ?: return@launch
-            binding.tvFragmentEmpty.visibility = View.GONE
-            binding.tvFragmentProgress.visibility = if (show) View.VISIBLE else View.GONE
-        }
-    }
-
-    override fun updateEmptyView(empty: Boolean) {
-        lifecycleScope.launch {
-            binding?.tvFragmentEmpty?.visibility = if (empty) View.VISIBLE else View.GONE
-        }
     }
 
     private fun onMediaItemFocused(item: MediaLibraryItem) {
@@ -373,6 +429,11 @@ class VerticalGridActivity : BaseTvActivity(), BrowserActivityInterface {
 
     private fun onMoviepediaItemFocused(item: MediaMetadataWithImages) {
         selectedMoviepediaItem = item
+        backgroundManager?.let { lifecycleScope.updateBackground(this, it, item) }
+    }
+
+    private fun onFileItemFocused(item: MediaLibraryItem) {
+        selectedFileItem = item
         backgroundManager?.let { lifecycleScope.updateBackground(this, it, item) }
     }
 
@@ -387,6 +448,100 @@ class VerticalGridActivity : BaseTvActivity(), BrowserActivityInterface {
             } else {
                 TvUtil.openMediaFromPaged(this@VerticalGridActivity, item, model.provider as MedialibraryProvider<out MediaLibraryItem>)
             }
+        }
+    }
+
+    private fun onFileItemClicked(item: MediaLibraryItem) {
+        val media = item as? MediaWrapper ?: return
+        val model = fileModel ?: return
+        media.removeFlags(MediaWrapper.MEDIA_FORCE_AUDIO)
+        if (media.type == MediaWrapper.TYPE_DIR) {
+            model.saveList(media)
+            val currentEntry = fileEntry ?: return
+            showFileBrowser(FileBrowserEntry(currentEntry.category, media, rootLevel = false), addToBackStack = true)
+        } else {
+            TvUtil.openMedia(this, item, model)
+        }
+    }
+
+    private fun showFileBrowser(entry: FileBrowserEntry, addToBackStack: Boolean) {
+        val previousModel = fileModel
+        if (addToBackStack) fileEntry?.let { fileBackStack.add(it) }
+        fileEntry = entry
+        fileTitle = fileBrowserTitle(entry)
+        fileSubtitle = fileBrowserSubtitle(entry)
+        fileLoading = true
+        fileItems = emptyList()
+        selectedFileItem = null
+        updateFileFavoriteState(entry.item)
+
+        val url = (entry.item as? MediaWrapper)?.location
+        val model = if (entry.category == TYPE_NETWORK) {
+            ViewModelProvider(this, NetworkModel.Factory(this, url))["tv-file-network-${url ?: "root"}", NetworkModel::class.java]
+        } else {
+            ViewModelProvider(this, BrowserModel.Factory(this, url, entry.category))["tv-file-${entry.category}-${url ?: "root"}", BrowserModel::class.java]
+        }
+        previousModel?.let {
+            it.dataset.removeObservers(this)
+            it.loading.removeObservers(this)
+            it.getDescriptionUpdate().removeObservers(this)
+            it.provider.liveHeaders.removeObservers(this)
+        }
+        fileModel = model
+        model.currentItem = entry.item
+        model.nbColumns = fileColumnCount()
+        model.dataset.observe(this) { items ->
+            fileItems = items?.toList().orEmpty()
+            fileLoading = false
+        }
+        model.loading.observe(this) { loading ->
+            fileLoading = loading == true
+        }
+        model.getDescriptionUpdate().observe(this) {
+            fileItems = model.dataset.value?.toList().orEmpty()
+        }
+        model.provider.liveHeaders.observe(this) {
+            fileItems = model.dataset.value?.toList().orEmpty()
+        }
+        if (entry.item == null) {
+            model.browseRoot()
+        } else if (entry.category == TYPE_NETWORK || model.dataset.value.isNullOrEmpty()) {
+            model.refresh()
+        }
+    }
+
+    private fun goBackFromFileBrowser() {
+        val previous = fileBackStack.removeLastOrNull()
+        if (previous == null) {
+            finish()
+        } else {
+            showFileBrowser(previous, addToBackStack = false)
+        }
+    }
+
+    private fun updateFileFavoriteState(item: MediaLibraryItem?) {
+        val media = item as? MediaWrapper
+        fileFavoriteVisible = media != null
+        fileFavorite = false
+        if (media == null) return
+        lifecycleScope.launch {
+            fileFavorite = withContext(Dispatchers.IO) { browserFavRepository.browserFavExists(media.uri) }
+        }
+    }
+
+    private fun toggleFileFavorite() {
+        val media = fileEntry?.item as? MediaWrapper ?: return
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                if (browserFavRepository.browserFavExists(media.uri)) {
+                    browserFavRepository.deleteBrowserFav(media.uri)
+                } else if (media.uri.scheme == "file") {
+                    browserFavRepository.addLocalFavItem(media.uri, media.title, media.artworkURL)
+                } else {
+                    browserFavRepository.addNetworkFavItem(media.uri, media.title, media.artworkURL)
+                }
+            }
+            updateFileFavoriteState(media)
         }
     }
 
@@ -405,6 +560,30 @@ class VerticalGridActivity : BaseTvActivity(), BrowserActivityInterface {
     }
 
     private fun mediaDisplayPrefId(category: Long) = "display_tv_media_$category"
+
+    private fun fileBrowserTitle(entry: FileBrowserEntry): String {
+        val media = entry.item as? MediaWrapper
+        if (media != null) {
+            return media.title.takeIf { !it.isNullOrBlank() }
+                ?: FileUtils.getFileNameFromPath(media.location).takeIf { it.isNotBlank() }
+                ?: getString(if (entry.category == TYPE_NETWORK) VlcR.string.network_browsing else VlcR.string.directories)
+        }
+        return getString(if (entry.category == TYPE_NETWORK) VlcR.string.network_browsing else VlcR.string.directories)
+    }
+
+    private fun fileBrowserSubtitle(entry: FileBrowserEntry): String? {
+        val location = (entry.item as? MediaWrapper)?.location?.takeIf { it.isNotBlank() } ?: return null
+        return Uri.decode(location).replace("://".toRegex(), " ").replace("/".toRegex(), " > ")
+    }
+
+    private fun fileEmptyText() = when (fileEntry?.category) {
+        TYPE_NETWORK -> getString(VlcR.string.network_empty)
+        else -> getString(VlcR.string.empty_directory)
+    }
+
+    private fun fileColumnCount() = resources.getInteger(TvR.integer.tv_songs_col_count)
+
+    private fun fileDisplayPrefId(category: Long) = "display_tv_file_$category"
 
     private fun moviepediaTitle(category: Long) = when (category) {
         HEADER_TV_SHOW -> getString(VlcR.string.header_tvshows)
@@ -443,17 +622,8 @@ class VerticalGridActivity : BaseTvActivity(), BrowserActivityInterface {
         if (model.canSortByAlbum()) add(MediaSortAction(getString(VlcR.string.sortby_album_name), Medialibrary.SORT_ALBUM))
     }
 
-    interface OnKeyPressedListener {
-        /**
-         * a key has been pressed
-         * @param keyCode the pressed key
-         * @return true if the event has been intercepted
-         */
-        fun onKeyPressed(keyCode: Int): Boolean
-    }
-
     companion object {
-        private const val TAG = "VerticalGridActivity"
+        private const val FILE_BROWSER_ROOT_LEVEL = "rootLevel"
     }
 }
 
@@ -726,15 +896,20 @@ private fun TvMoviepediaImage(item: MediaMetadataWithImages, modifier: Modifier)
 @Composable
 private fun TvMediaBrowserScreen(
     title: String,
+    subtitle: String? = null,
     items: List<MediaLibraryItem>,
     loading: Boolean,
     empty: Boolean,
+    emptyText: String? = null,
     inGrid: Boolean,
     columns: Int,
     sortActions: List<MediaSortAction>,
+    favoriteVisible: Boolean = false,
+    favorite: Boolean = false,
     onBack: () -> Unit,
     onToggleDisplay: () -> Unit,
     onSort: (Int) -> Unit,
+    onFavorite: () -> Unit = {},
     onItemFocused: (MediaLibraryItem) -> Unit,
     onItemClicked: (MediaLibraryItem) -> Unit
 ) {
@@ -768,11 +943,15 @@ private fun TvMediaBrowserScreen(
         ) {
             TvMediaBrowserHeader(
                 title = title,
+                subtitle = subtitle,
                 inGrid = inGrid,
                 sortActions = sortActions,
+                favoriteVisible = favoriteVisible,
+                favorite = favorite,
                 onBack = onBack,
                 onToggleDisplay = onToggleDisplay,
-                onSort = onSort
+                onSort = onSort,
+                onFavorite = onFavorite
             )
             Spacer(modifier = Modifier.height(24.dp))
             if (empty) {
@@ -781,7 +960,7 @@ private fun TvMediaBrowserScreen(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     Text(
-                        text = androidx.compose.ui.res.stringResource(VlcR.string.empty_directory),
+                        text = emptyText ?: androidx.compose.ui.res.stringResource(VlcR.string.empty_directory),
                         color = Color.White.copy(alpha = 0.75f),
                         style = MaterialTheme.typography.titleLarge
                     )
@@ -835,11 +1014,15 @@ private fun TvMediaBrowserScreen(
 @Composable
 private fun TvMediaBrowserHeader(
     title: String,
+    subtitle: String? = null,
     inGrid: Boolean,
     sortActions: List<MediaSortAction>,
+    favoriteVisible: Boolean = false,
+    favorite: Boolean = false,
     onBack: () -> Unit,
     onToggleDisplay: () -> Unit,
-    onSort: (Int) -> Unit
+    onSort: (Int) -> Unit,
+    onFavorite: () -> Unit = {}
 ) {
     var sortExpanded by remember { mutableStateOf(false) }
     Row(
@@ -855,15 +1038,35 @@ private fun TvMediaBrowserHeader(
             )
         }
         Spacer(modifier = Modifier.width(12.dp))
-        Text(
-            text = title,
-            color = Color.White,
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f)
-        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                color = Color.White,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            subtitle?.takeIf { it.isNotBlank() }?.let {
+                Text(
+                    text = it,
+                    color = Color.White.copy(alpha = 0.68f),
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+        if (favoriteVisible) {
+            IconButton(onClick = onFavorite) {
+                Icon(
+                    painter = painterResource(if (favorite) VlcR.drawable.ic_tv_browser_favorite else VlcR.drawable.ic_tv_browser_favorite_outline),
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+        }
         Box {
             IconButton(onClick = { sortExpanded = true }) {
                 Icon(

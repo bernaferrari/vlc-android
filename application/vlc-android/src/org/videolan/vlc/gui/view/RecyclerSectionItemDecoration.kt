@@ -120,11 +120,10 @@ import kotlin.math.max
 //   - Parent epic: compose-cb5 (Leaf Migration Wave 1)
 //   - Cross-cutting: compose-2l4.1.8 / bd compose-iju (notes, Permanent Exceptions, gate policy)
 //   - Interop Lab: ComposeInteropLabActivity.kt + compose_interop_lab.xml (exercises VLCSectionHeader live)
-//   - TV note: song_header_item.xml + BaseBrowserTvFragment (intentionally out of scope for this wave;
-//     GridDecoration handles showTvUi + different height; TV uses DataBinding-heavy surfaces that are
-//     part of Permanent Exceptions 20% for now).
+//   - TV note: file/media browser routes now use Compose directly; GridDecoration still handles
+//     showTvUi + different height for remaining RecyclerView hosts.
 //   - Permanent Exceptions (definitive): native player surfaces, MediaLibrary JNI, certain complex
-//     TV overlays, WebView remnants, low-level rendering pipelines, full DataBinding TV fragments.
+//     TV overlays, WebView remnants, and low-level rendering pipelines.
 //     Section headers on phone lists are *not* exceptions - prime migration candidates.
 //
 // Rollback matrix (copy-paste for any future agent):

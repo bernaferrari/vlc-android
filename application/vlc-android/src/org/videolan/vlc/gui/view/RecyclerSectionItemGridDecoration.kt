@@ -21,12 +21,8 @@ import org.videolan.vlc.R
 // This variant is used for grid/card layouts in audio browser etc. It also
 // handles Settings.showTvUi -> inflates the TV XML (different height/padding).
 //
-// TV DECORATION PATH DEFERRED FOR THIS WAVE (per task spec):
-//   - TV uses song_header_item.xml + DataBinding in television module (BaseBrowserTvFragment).
-//   - Those surfaces are closer to Permanent Exceptions for now (complex focus,
-//     leanback, overscan). We document the isTv path here but do not touch TV
-//     inflation or create TV interop wrappers in Wave 1 slice.
-//   - Phone path (non-TV) is the priority for visible impact (audio tabs).
+// TV file/media browser routes now use Compose directly; this RecyclerView
+// decoration remains for non-TV and legacy RecyclerView hosts.
 //
 // All other comments (interop patterns, state update for titles, rollback,
 // Canvas draw timing considerations, full traceability, Permanent Exceptions,

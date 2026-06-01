@@ -520,7 +520,7 @@ object UiTools {
      * @param mediaLibraryItem: the [MediaLibraryItem] to create a shortcut to
      */
     @RequiresApi(Build.VERSION_CODES.M)
-    suspend fun FragmentActivity.createShortcut(mediaLibraryItem: MediaLibraryItem) {
+    suspend fun ComponentActivity.createShortcut(mediaLibraryItem: MediaLibraryItem) {
         if (!isStarted()) return
 
         val context = this
@@ -559,7 +559,7 @@ object UiTools {
         showVideoTracksComposeDialog(menuListener, trackSelectionListener)
     }
 
-    fun FragmentActivity.showDonations() {
+    fun ComponentActivity.showDonations() {
         if (!isStarted()) return
 //        val videoTracksDialog = VLCBillingDialog()
 //        videoTracksDialog.show(supportFragmentManager, "fragment_donations")

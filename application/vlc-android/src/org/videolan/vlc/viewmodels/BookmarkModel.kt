@@ -25,7 +25,7 @@
 package org.videolan.vlc.viewmodels
 
 import android.content.Context
-import androidx.fragment.app.FragmentActivity
+import androidx.activity.ComponentActivity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -85,7 +85,7 @@ class BookmarkModel : ViewModel(), PlaybackService.Callback {
     }
 
     companion object {
-        fun get(activity: FragmentActivity) =
+        fun get(activity: ComponentActivity) =
             ViewModelProvider(activity)[BookmarkModel::class.java]
     }
 
