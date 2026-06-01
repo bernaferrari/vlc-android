@@ -54,6 +54,7 @@ import org.videolan.vlc.compose.components.VLCAudioTrackInfoTextStyle
 import org.videolan.vlc.compose.components.VLCAudioTimelineSlider
 import org.videolan.vlc.compose.components.VLCAudioTimelineTimeLabel
 import org.videolan.vlc.compose.components.VLCOnboardingWelcome
+import org.videolan.vlc.compose.components.VLCPlayerOptionItem
 import org.videolan.vlc.compose.components.VLCSectionHeader
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
@@ -372,6 +373,17 @@ private fun PlayerChromeTokensDemo() {
                         .size(12.dp)
                         .background(c.playerIconColor)
                 )
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        Column {
+            VLCPlayerOptionItem(title = "Playback speed") {
+                Text("1x", color = c.playerIconColor, style = MaterialTheme.typography.labelMedium)
+            }
+            VLCPlayerOptionItem(title = "Repeat") {
+                Text("R", color = c.playerIconColor, style = MaterialTheme.typography.labelMedium)
             }
         }
 

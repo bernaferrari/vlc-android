@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.support.v4.media.session.PlaybackStateCompat
 import android.view.Gravity
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
@@ -29,7 +28,6 @@ import org.videolan.tools.KEY_AOUT
 import org.videolan.tools.Settings
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
-import org.videolan.vlc.databinding.PlayerOptionItemBinding
 import org.videolan.vlc.gui.AudioPlayerContainerActivity
 import org.videolan.vlc.gui.BaseActivity
 import org.videolan.vlc.gui.DiffUtilAdapter
@@ -43,6 +41,7 @@ import org.videolan.vlc.gui.dialogs.showVideoControlsSettingsComposeDialog
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.hf.PinCodeDelegate
 import org.videolan.vlc.gui.helpers.hf.checkPIN
+import org.videolan.vlc.gui.view.PlayerOptionItemView
 import org.videolan.vlc.gui.video.VideoPlayerActivity
 import org.videolan.vlc.media.PlayerController
 import org.videolan.vlc.util.TextUtils
@@ -91,11 +90,9 @@ class PlayerOptionsDelegate(val activity: FragmentActivity, val service: Playbac
     private val video = activity is VideoPlayerActivity
     private val res = activity.resources
     private val settings = Settings.getInstance(activity)
-    private lateinit var abrBinding: PlayerOptionItemBinding
-    private lateinit var ptBinding: PlayerOptionItemBinding
-    private lateinit var repeatBinding: PlayerOptionItemBinding
-    private lateinit var shuffleBinding: PlayerOptionItemBinding
-    private lateinit var sleepBinding: PlayerOptionItemBinding
+    private lateinit var ptOptionView: PlayerOptionItemView
+    private lateinit var repeatOptionView: PlayerOptionItemView
+    private lateinit var shuffleOptionView: PlayerOptionItemView
 
     fun setup() {
         if (!this::recyclerview.isInitialized || PlayerController.playbackState == PlaybackStateCompat.STATE_STOPPED) return
@@ -350,49 +347,49 @@ class PlayerOptionsDelegate(val activity: FragmentActivity, val service: Playbac
     private fun setRepeatMode() {
         when (service.repeatType) {
             PlaybackStateCompat.REPEAT_MODE_NONE -> {
-                repeatBinding.optionIcon.setImageResource(R.drawable.ic_repeat_one)
+                repeatOptionView.setIconResource(R.drawable.ic_repeat_one)
                 service.repeatType = PlaybackStateCompat.REPEAT_MODE_ONE
-                repeatBinding.root.contentDescription = repeatBinding.root.context.getString(R.string.repeat_single)
+                repeatOptionView.contentDescription = repeatOptionView.context.getString(R.string.repeat_single)
             }
             PlaybackStateCompat.REPEAT_MODE_ONE -> if (service.hasPlaylist()) {
-                repeatBinding.optionIcon.setImageResource(R.drawable.ic_repeat_all)
+                repeatOptionView.setIconResource(R.drawable.ic_repeat_all)
                 service.repeatType = PlaybackStateCompat.REPEAT_MODE_ALL
-                repeatBinding.root.contentDescription = repeatBinding.root.context.getString(R.string.repeat_all)
+                repeatOptionView.contentDescription = repeatOptionView.context.getString(R.string.repeat_all)
             } else {
-                repeatBinding.optionIcon.setImageResource(R.drawable.ic_repeat)
+                repeatOptionView.setIconResource(R.drawable.ic_repeat)
                 service.repeatType = PlaybackStateCompat.REPEAT_MODE_NONE
-                repeatBinding.root.contentDescription = repeatBinding.root.context.getString(R.string.repeat_none)
+                repeatOptionView.contentDescription = repeatOptionView.context.getString(R.string.repeat_none)
             }
             PlaybackStateCompat.REPEAT_MODE_ALL -> {
-                repeatBinding.optionIcon.setImageResource(R.drawable.ic_repeat)
+                repeatOptionView.setIconResource(R.drawable.ic_repeat)
                 service.repeatType = PlaybackStateCompat.REPEAT_MODE_NONE
-                repeatBinding.root.contentDescription = repeatBinding.root.context.getString(R.string.repeat_none)
+                repeatOptionView.contentDescription = repeatOptionView.context.getString(R.string.repeat_none)
             }
         }
     }
 
     private fun setShuffle() {
-        shuffleBinding.optionIcon.setImageResource(if (service.isShuffling) R.drawable.ic_shuffle_on_48dp else R.drawable.ic_player_shuffle)
-        shuffleBinding.root.contentDescription = shuffleBinding.root.context.getString(if (service.isShuffling) R.string.shuffle_on else R.string.shuffle)
+        shuffleOptionView.setIconResource(if (service.isShuffling) R.drawable.ic_shuffle_on_48dp else R.drawable.ic_player_shuffle)
+        shuffleOptionView.contentDescription = shuffleOptionView.context.getString(if (service.isShuffling) R.string.shuffle_on else R.string.shuffle)
     }
 
-    private fun initShuffle(binding: PlayerOptionItemBinding) {
-        shuffleBinding = binding
+    private fun initShuffle(view: PlayerOptionItemView) {
+        shuffleOptionView = view
         AppScope.launch(Dispatchers.Main) {
-            shuffleBinding.optionIcon.setImageResource(if (service.isShuffling) R.drawable.ic_shuffle_on_48dp else R.drawable.ic_player_shuffle)
-            shuffleBinding.root.contentDescription = shuffleBinding.root.context.getString(if (service.isShuffling) R.string.shuffle_on else R.string.shuffle)
+            shuffleOptionView.setIconResource(if (service.isShuffling) R.drawable.ic_shuffle_on_48dp else R.drawable.ic_player_shuffle)
+            shuffleOptionView.contentDescription = shuffleOptionView.context.getString(if (service.isShuffling) R.string.shuffle_on else R.string.shuffle)
         }
     }
 
-    private fun initRepeat(binding: PlayerOptionItemBinding) {
-        repeatBinding = binding
+    private fun initRepeat(view: PlayerOptionItemView) {
+        repeatOptionView = view
         AppScope.launch(Dispatchers.Main) {
-            repeatBinding.optionIcon.setImageResource(when (service.repeatType) {
+            repeatOptionView.setIconResource(when (service.repeatType) {
                 PlaybackStateCompat.REPEAT_MODE_ONE -> R.drawable.ic_repeat_one
                 PlaybackStateCompat.REPEAT_MODE_ALL -> R.drawable.ic_repeat_all
                 else -> R.drawable.ic_repeat
             })
-            repeatBinding.root.contentDescription = repeatBinding.root.context.getString(when (service.repeatType) {
+            repeatOptionView.contentDescription = repeatOptionView.context.getString(when (service.repeatType) {
                 PlaybackStateCompat.REPEAT_MODE_ONE -> R.string.repeat_single
                 PlaybackStateCompat.REPEAT_MODE_ALL -> R.string.repeat_all
                 else -> R.string.repeat_none
@@ -403,7 +400,7 @@ class PlayerOptionsDelegate(val activity: FragmentActivity, val service: Playbac
     private fun togglePassthrough() {
         val enabled = !VLCOptions.isAudioDigitalOutputEnabled(settings)
         if (service.setAudioDigitalOutputEnabled(enabled)) {
-            ptBinding.optionIcon.setImageResource(if (enabled) R.drawable.ic_passthrough_on
+            ptOptionView.setIconResource(if (enabled) R.drawable.ic_passthrough_on
             else UiTools.getResourceFromAttribute(activity, R.attr.ic_passthrough))
             VLCOptions.setAudioDigitalOutputEnabled(settings, enabled)
             toast.setText(res.getString(if (enabled) R.string.audio_digital_output_enabled else R.string.audio_digital_output_disabled))
@@ -416,27 +413,27 @@ class PlayerOptionsDelegate(val activity: FragmentActivity, val service: Playbac
 
     private inner class OptionsAdapter : DiffUtilAdapter<PlayerOption, OptionsAdapter.ViewHolder>() {
 
-        private lateinit var layountInflater: LayoutInflater
-
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            if (!this::layountInflater.isInitialized) layountInflater = LayoutInflater.from(parent.context)
-            return ViewHolder(PlayerOptionItemBinding.inflate(layountInflater, parent, false))
+            val optionView = PlayerOptionItemView(parent.context).apply {
+                layoutParams = RecyclerView.LayoutParams(
+                    parent.context.resources.getDimensionPixelSize(R.dimen.player_option_width),
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+            }
+            return ViewHolder(optionView)
         }
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             val option = dataset[position]
-            holder.binding.option = option
+            holder.optionView.setOption(option.title, option.icon)
             when (option.id) {
-                ID_ABREPEAT -> abrBinding = holder.binding
-                ID_PASSTHROUGH -> ptBinding = holder.binding
-                ID_REPEAT -> initRepeat(holder.binding)
-                ID_SHUFFLE -> initShuffle(holder.binding)
-                ID_SLEEP -> sleepBinding = holder.binding
+                ID_PASSTHROUGH -> ptOptionView = holder.optionView
+                ID_REPEAT -> initRepeat(holder.optionView)
+                ID_SHUFFLE -> initShuffle(holder.optionView)
             }
-            holder.binding.optionIcon.setImageResource(option.icon)
         }
 
-        inner class ViewHolder(val binding: PlayerOptionItemBinding) : RecyclerView.ViewHolder(binding.root) {
+        inner class ViewHolder(val optionView: PlayerOptionItemView) : RecyclerView.ViewHolder(optionView) {
 
             init {
                 itemView.setOnClickListener { onClick(dataset[layoutPosition]) }

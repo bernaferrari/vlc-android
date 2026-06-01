@@ -83,6 +83,7 @@ import org.videolan.vlc.compose.components.VLCAudioTrackInfoTextStyle
 import org.videolan.vlc.compose.components.VLCAudioTimelineSlider
 import org.videolan.vlc.compose.components.VLCAudioTimelineTimeLabel
 import org.videolan.vlc.compose.components.VLCOnboardingWelcome
+import org.videolan.vlc.compose.components.VLCPlayerOptionItem
 import org.videolan.vlc.compose.components.VLCSectionHeader
 import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.compose.theme.VLCTheme
@@ -424,6 +425,14 @@ fun ComposeInteropLabContent() {
                 Text("B", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
             }
         }
+        Column {
+            VLCPlayerOptionItem(title = "Playback speed") {
+                Text("1x", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
+            }
+            VLCPlayerOptionItem(title = "Repeat") {
+                Text("R", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
+            }
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             VLCAudioHeaderTransportButton(contentDescription = "Shuffle") {
                 Text("S", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
@@ -489,6 +498,7 @@ fun ComposeInteropLabContent() {
             "The bookmark timeline markers are Compose-drawn under bookmark_marker_container in audio and video HUD hosts, with BookmarkListDelegate now pushing normalized media positions instead of dynamic ImageViews. " +
             "The restore-video hint is Compose-hosted under resume_video_hint instead of using a transient Material Snackbar from AudioPlayer.onResume. " +
             "The shared A-B repeat add-marker chip root is Compose-rendered through AbRepeatControlsView inside ab_repeat_controls.xml for both audio and video HUD hosts. " +
+            "The shared player option rows are Compose-rendered through PlayerOptionItemView in PlayerOptionsDelegate, replacing player_option_item.xml while the panel RecyclerView keeps focus/navigation behavior. " +
             "The mini play/pause button is Compose-hosted under header_play_pause with the long-press stop action preserved. " +
             "The tablet header transport strip is Compose-hosted under the existing header_shuffle/header_previous/header_large_play_pause/header_next/header_repeat IDs. " +
             "The full-player bottom shuffle/previous/play_pause/next/repeat transport controls now use the same Compose leaf while preserving previous/next long seek. " +
