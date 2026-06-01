@@ -32,7 +32,6 @@ import android.view.ViewGroup
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.content.edit
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.google.android.material.appbar.AppBarLayout
@@ -45,7 +44,6 @@ import org.videolan.resources.util.parcelableList
 import org.videolan.tools.KEY_FRAGMENT_ID
 import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
-import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.R
 import org.videolan.vlc.gui.MainActivity
 import org.videolan.vlc.gui.MoreScreenController
@@ -63,7 +61,6 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
 
     private val defaultFragmentId = R.id.nav_video
     override var currentFragmentId: Int = 0
-    private var currentFragment: Fragment? = null
     private lateinit var activity: MainActivity
     private lateinit var settings: SharedPreferences
     override lateinit var navigationView: List<NavigationBarView>
@@ -81,16 +78,13 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
         this@Navigator.settings = settings
         forExpresso = intent.parcelableList(EXTRA_FOR_ESPRESSO)
         currentFragmentId = intent.getIntExtra(EXTRA_TARGET, 0)
-        if (state?.containsKey(KEY_CURRENT_FRAGMENT) == true) {
-            currentFragment = supportFragmentManager.getFragment(state, KEY_CURRENT_FRAGMENT)
-        }
         lifecycle.addObserver(this@Navigator)
         navigationView = listOf(findViewById(R.id.navigation), findViewById(R.id.navigation_rail))
         appbarLayout = findViewById(R.id.appbar)
     }
 
     override fun onStart(owner: LifecycleOwner) {
-        if (currentFragment === null && !currentIdIsExtension()) showScreen(if (currentFragmentId != 0) currentFragmentId else settings.getInt(KEY_FRAGMENT_ID, defaultFragmentId))
+        if (!currentIdIsExtension()) showScreen(if (currentFragmentId != 0) currentFragmentId else settings.getInt(KEY_FRAGMENT_ID, defaultFragmentId))
         navigationView.forEach { it.setOnItemSelectedListener(this) }
     }
 
@@ -109,17 +103,8 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
         }
     }
 
-    private fun clearCurrentFragmentNow() {
-        currentFragment?.let { fragment ->
-            val ft = activity.supportFragmentManager.beginTransaction().remove(fragment)
-            if (BuildConfig.DEBUG) ft.commitNow()
-            else ft.commitNowAllowingStateLoss()
-        }
-    }
-
     private fun showMoreScreen() {
         clearComposeScreenIfNeeded()
-        clearCurrentFragmentNow()
 
         val controller = moreController ?: MoreScreenController(activity).also { moreController = it }
         val container = activity.findViewById<ViewGroup>(R.id.fragment_placeholder)
@@ -138,13 +123,11 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
         controller.onVisible()
         updateCheckedItem(R.id.nav_more)
         activity.invalidateOptionsMenu()
-        currentFragment = null
         currentFragmentId = R.id.nav_more
     }
 
     private fun showMainBrowserScreen() {
         clearComposeScreenIfNeeded()
-        clearCurrentFragmentNow()
 
         val controller = mainBrowserController ?: MainBrowserScreenController(activity, forExpresso).also { mainBrowserController = it }
         val container = activity.findViewById<ViewGroup>(R.id.fragment_placeholder)
@@ -163,13 +146,11 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
         controller.onVisible()
         updateCheckedItem(R.id.nav_directories)
         activity.invalidateOptionsMenu()
-        currentFragment = null
         currentFragmentId = R.id.nav_directories
     }
 
     private fun showPlaylistScreen() {
         clearComposeScreenIfNeeded()
-        clearCurrentFragmentNow()
 
         val controller = playlistController ?: PlaylistScreenController(activity).also { playlistController = it }
         val container = activity.findViewById<ViewGroup>(R.id.fragment_placeholder)
@@ -188,13 +169,11 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
         controller.onVisible()
         updateCheckedItem(R.id.nav_playlists)
         activity.invalidateOptionsMenu()
-        currentFragment = null
         currentFragmentId = R.id.nav_playlists
     }
 
     private fun showVideoScreen() {
         clearComposeScreenIfNeeded()
-        clearCurrentFragmentNow()
 
         val controller = videoController ?: VideoScreenController(activity).also { videoController = it }
         val container = activity.findViewById<ViewGroup>(R.id.fragment_placeholder)
@@ -212,14 +191,12 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
         )
         controller.onVisible()
         updateCheckedItem(R.id.nav_video)
-        currentFragment = null
         currentFragmentId = R.id.nav_video
         activity.invalidateOptionsMenu()
     }
 
     private fun showAudioScreen() {
         clearComposeScreenIfNeeded()
-        clearCurrentFragmentNow()
 
         val controller = audioController ?: AudioScreenController(activity).also { audioController = it }
         val container = activity.findViewById<ViewGroup>(R.id.fragment_placeholder)
@@ -237,7 +214,6 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
         )
         controller.onVisible()
         updateCheckedItem(R.id.nav_audio)
-        currentFragment = null
         currentFragmentId = R.id.nav_audio
         activity.invalidateOptionsMenu()
     }
@@ -276,13 +252,8 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         val id = item.itemId
-        val current = currentFragment
 
         appbarLayout.setExpanded(true, true)
-
-        if (current == null && !currentIdIsComposeScreen()) {
-            return false
-        }
 
         if (currentFragmentId == id) { /* Already selected */
             return false
@@ -369,5 +340,3 @@ interface INavigator {
     fun prepareCurrentScreenOptions(menu: Menu)
     fun onCurrentScreenOptionsItemSelected(item: MenuItem): Boolean
 }
-
-private const val KEY_CURRENT_FRAGMENT = "current_fragment"

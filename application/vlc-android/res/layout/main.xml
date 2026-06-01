@@ -25,7 +25,7 @@
             android:nextFocusDown="@+id/ml_menu_search"
             android:nextFocusForward="@+id/ml_menu_search" />
 
-    <androidx.fragment.app.FragmentContainerView
+    <FrameLayout
             android:id="@+id/fragment_placeholder"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -84,6 +84,5 @@
             android:layout_height="match_parent"
             android:layout_width="match_parent" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
-
 
 

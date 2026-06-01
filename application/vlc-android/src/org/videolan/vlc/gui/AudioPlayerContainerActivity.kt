@@ -50,7 +50,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
@@ -96,7 +95,6 @@ import org.videolan.vlc.gui.helpers.PlayerKeyListenerDelegate
 import org.videolan.vlc.gui.helpers.PlayerOptionsDelegateCallback
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.isTablet
-import org.videolan.vlc.interfaces.IRefreshable
 import org.videolan.vlc.media.PlaylistManager
 import org.videolan.vlc.media.ResumeStatus
 import org.videolan.vlc.media.WaitConfirmation
@@ -145,9 +143,6 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
     private val playerKeyListenerDelegate: PlayerKeyListenerDelegate by lazy(LazyThreadSafetyMode.NONE) { PlayerKeyListenerDelegate(this@AudioPlayerContainerActivity) }
     val shownTips = ArrayList<Int>()
     private var currentConfirmationDialog: AlertDialog? = null
-
-    protected val currentFragment: Fragment?
-        get() = supportFragmentManager.findFragmentById(R.id.fragment_placeholder)
 
     val menu: Menu
         get() = toolbar.menu
@@ -232,23 +227,16 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
         onBackPressedCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (slideDownAudioPlayer()) return
-                if (supportFragmentManager.backStackEntryCount == 0)
-                    finish()
-                else {
-                    supportFragmentManager.popBackStack()
-                }
+                finish()
             }
         }
 
-        supportFragmentManager.addOnBackStackChangedListener {
-            manageBackstate()
-        }
         onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
         manageBackstate()
     }
 
     private fun manageBackstate() {
-        onBackPressedCallback.isEnabled = supportFragmentManager.backStackEntryCount > 0 || isAudioPlayerExpanded
+        onBackPressedCallback.isEnabled = isAudioPlayerExpanded
     }
 
     /**
@@ -586,13 +574,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
     }
 
     fun updateLib() {
-        if (preventRescan) {
-            preventRescan = false
-            return
-        }
-        val fm = supportFragmentManager
-        val current = fm.findFragmentById(R.id.fragment_placeholder)
-        if (current is IRefreshable) (current as IRefreshable).refresh()
+        if (preventRescan) preventRescan = false
     }
 
     /**

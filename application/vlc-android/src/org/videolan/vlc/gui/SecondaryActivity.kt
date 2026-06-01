@@ -159,7 +159,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
 
         if (isOnboarding) WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
 
-        val fph = findViewById<View>(R.id.fragment_placeholder)
+        val fph = findViewById<ViewGroup>(R.id.fragment_placeholder)
         val params = fph.layoutParams as CoordinatorLayout.LayoutParams
 
         if (AndroidDevices.isTv) {
@@ -171,24 +171,22 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
 
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
-        if (supportFragmentManager.findFragmentById(R.id.fragment_placeholder) == null) {
-            val fragmentId = intent.getStringExtra(KEY_FRAGMENT)
-            if (fragmentId == STREAMS) {
-                setupStreamsContent(fph as ViewGroup)
-            } else if (fragmentId == HISTORY) {
-                setupHistoryContent(fph as ViewGroup)
-            } else if (fragmentId == VIDEO_GROUP_LIST) {
-                setupVideoGroupContent(fph as ViewGroup)
-            } else if (fragmentId == ALBUMS_SONGS) {
-                setupAudioAlbumsSongsContent(fph as ViewGroup)
-            } else if (fragmentId == STORAGE_BROWSER || fragmentId == STORAGE_BROWSER_ONBOARDING) {
-                setupStorageBrowserContent(fph as ViewGroup, fragmentId == STORAGE_BROWSER_ONBOARDING)
-            } else if (fragmentId == FILE_BROWSER) {
-                setupFileBrowserContent(fph as ViewGroup)
-            } else {
-                finish()
-                return
-            }
+        val fragmentId = intent.getStringExtra(KEY_FRAGMENT)
+        if (fragmentId == STREAMS) {
+            setupStreamsContent(fph)
+        } else if (fragmentId == HISTORY) {
+            setupHistoryContent(fph)
+        } else if (fragmentId == VIDEO_GROUP_LIST) {
+            setupVideoGroupContent(fph)
+        } else if (fragmentId == ALBUMS_SONGS) {
+            setupAudioAlbumsSongsContent(fph)
+        } else if (fragmentId == STORAGE_BROWSER || fragmentId == STORAGE_BROWSER_ONBOARDING) {
+            setupStorageBrowserContent(fph, fragmentId == STORAGE_BROWSER_ONBOARDING)
+        } else if (fragmentId == FILE_BROWSER) {
+            setupFileBrowserContent(fph)
+        } else {
+            finish()
+            return
         }
         dialogsDelegate.observeDialogs(this, this)
         if (intent.getBooleanExtra(KEY_ANIMATED, false)) supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_close_up)

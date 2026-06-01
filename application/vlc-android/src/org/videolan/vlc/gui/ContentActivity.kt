@@ -38,14 +38,10 @@ import org.videolan.vlc.R
 import org.videolan.vlc.RendererDelegate
 import org.videolan.vlc.gui.dialogs.showRenderersComposeDialog
 import org.videolan.vlc.gui.helpers.UiTools
-import org.videolan.vlc.interfaces.Filterable
 
 open class ContentActivity : AudioPlayerContainerActivity(), SearchView.OnQueryTextListener, MenuItem.OnActionExpandListener {
 
-    private lateinit var searchView: SearchView
-    private lateinit var searchItem: MenuItem
     private var showRenderers = !AndroidDevices.isChromeBook && !RendererDelegate.renderers.value.isNullOrEmpty()
-    private val searchHiddenMenuItem = ArrayList<MenuItem>()
     open fun hideRenderers() = false
 
 
@@ -71,33 +67,10 @@ open class ContentActivity : AudioPlayerContainerActivity(), SearchView.OnQueryT
         UiTools.setOnDragListener(this)
     }
 
-    override fun onPause() {
-        super.onPause()
-        if (::searchItem.isInitialized) searchItem.collapseActionView()
-    }
-
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        val current = currentFragment
         super.onCreateOptionsMenu(menu)
         menuInflater.inflate(R.menu.activity_option, menu)
-        if (current is Filterable) {
-            val filterable = current as Filterable?
-            searchItem = menu.findItem(R.id.ml_menu_filter)
-            searchView = searchItem.actionView as SearchView
-            searchView.queryHint = getString(R.string.search_in_list_hint)
-            searchView.setOnQueryTextListener(this)
-            val query = filterable?.getFilterQuery()
-            if (!query.isNullOrEmpty()) {
-                searchView.post {
-                    searchItem.expandActionView()
-                    searchView.clearFocus()
-                    UiTools.setKeyboardVisibility(searchView, false)
-                    searchView.setQuery(query, false)
-                }
-            }
-            searchItem.setOnActionExpandListener(this)
-        } else
-            menu.findItem(R.id.ml_menu_filter).isVisible = false
+        menu.findItem(R.id.ml_menu_filter).isVisible = false
         menu.findItem(R.id.ml_menu_renderers).isVisible = !hideRenderers() && showRenderers && Settings.getInstance(this).getBoolean(KEY_ENABLE_CASTING, true)
         menu.findItem(R.id.ml_menu_renderers).setIcon(if (!PlaybackService.hasRenderer()) R.drawable.ic_renderer else R.drawable.ic_renderer_on)
         return true
@@ -127,17 +100,7 @@ open class ContentActivity : AudioPlayerContainerActivity(), SearchView.OnQueryT
         }
     }
 
-    override fun onQueryTextChange(filterQueryString: String): Boolean {
-        val current = currentFragment
-        if (current is Filterable) {
-            if (filterQueryString.isEmpty())
-                (current as Filterable).restoreList()
-            else
-                (current as Filterable).filter(filterQueryString)
-            return true
-        }
-        return false
-    }
+    override fun onQueryTextChange(@Suppress("UNUSED_PARAMETER") filterQueryString: String) = false
 
     override fun onMenuItemActionExpand(item: MenuItem): Boolean {
         setSearchVisibility(true)
@@ -150,41 +113,15 @@ open class ContentActivity : AudioPlayerContainerActivity(), SearchView.OnQueryT
         return true
     }
 
-    override fun onQueryTextSubmit(query: String) = false
+    override fun onQueryTextSubmit(@Suppress("UNUSED_PARAMETER") query: String) = false
 
     private fun openSearchActivity() {
         setSearchVisibility(false)
         startActivity(Intent(Intent.ACTION_SEARCH, null, this, SearchActivity::class.java)
-                .putExtra(SearchManager.QUERY, searchView.query.toString()))
+                .putExtra(SearchManager.QUERY, ""))
     }
 
-    private fun setSearchVisibility(visible: Boolean) {
-        val current = currentFragment
-        if (current is Filterable) {
-            (current as Filterable).setSearchVisibility(visible)
-            makeRoomForSearch(visible)
-        }
-    }
-
-    // Hide options menu items to make room for filter EditText
-    private fun makeRoomForSearch(hide: Boolean) {
-        val menu = toolbar.menu
-        if (!hide) {
-            searchHiddenMenuItem.forEach {
-                it.isVisible = true
-            }
-            searchHiddenMenuItem.clear()
-            invalidateOptionsMenu()
-        } else {
-            for (i in 0 until menu.size()) {
-                val menuItem = menu.getItem(i)
-                if (menuItem.isVisible) {
-                    menuItem.isVisible = false
-                    searchHiddenMenuItem.add(menuItem)
-                }
-            }
-        }
-    }
+    private fun setSearchVisibility(@Suppress("UNUSED_PARAMETER") visible: Boolean) = Unit
 
     fun onClick(v: View) {
         if (v.id == R.id.searchButton) openSearchActivity()
@@ -201,16 +138,12 @@ open class ContentActivity : AudioPlayerContainerActivity(), SearchView.OnQueryT
     fun isSearchViewVisible() =
         toolbar.menu?.findItem(R.id.ml_menu_filter)?.isActionViewExpanded == true
 
-    fun getCurrentQuery() = searchView.query.toString()
+    fun getCurrentQuery() = ""
 
-    fun setCurrentQuery(query:String) {
-        searchView.setQuery(query, false)
-    }
+    fun setCurrentQuery(@Suppress("UNUSED_PARAMETER") query:String) = Unit
 
 
-    private fun restoreCurrentList() {
-        (currentFragment as? Filterable)?.restoreList()
-    }
+    private fun restoreCurrentList() = Unit
 
     companion object {
         const val TAG = "VLC/ContentActivity"

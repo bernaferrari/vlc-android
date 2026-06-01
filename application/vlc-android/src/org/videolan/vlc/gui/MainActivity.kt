@@ -35,7 +35,6 @@ import androidx.activity.addCallback
 import androidx.appcompat.view.ActionMode
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -75,8 +74,6 @@ import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.isTablet
 import org.videolan.vlc.gui.preferences.PreferencesActivity
 import org.videolan.vlc.gui.preferences.search.PreferenceParser
-import org.videolan.vlc.interfaces.Filterable
-import org.videolan.vlc.interfaces.IRefreshable
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.reloadLibrary
 import org.videolan.vlc.util.AutoUpdate
@@ -252,8 +249,6 @@ class MainActivity : ContentActivity(),
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        val current = currentFragment
-        if (current != null) supportFragmentManager.putFragment(outState, "current_fragment", current)
         outState.putInt(EXTRA_TARGET, currentFragmentId)
         super.onSaveInstanceState(outState)
     }
@@ -310,23 +305,10 @@ class MainActivity : ContentActivity(),
 
     }
 
-    override fun onMenuItemActionExpand(item: MenuItem): Boolean {
-        return if (currentFragment is Filterable) {
-            (currentFragment as Filterable).allowedToExpand()
-        } else false
-    }
-
     fun forceRefresh() {
-        forceRefresh(currentFragment)
-    }
-
-    private fun forceRefresh(current: Fragment?) {
         if (refreshCurrentScreen()) return
         if (!mediaLibrary.isWorking) {
-            if (current != null && current is IRefreshable)
-                (current as IRefreshable).refresh()
-            else
-                reloadLibrary()
+            reloadLibrary()
         }
     }
 
@@ -350,7 +332,7 @@ class MainActivity : ContentActivity(),
             MediaUtils.openUri(this, data!!.data)
         } else if (requestCode == ACTIVITY_RESULT_SECONDARY) {
             if (resultCode == RESULT_RESCAN) {
-                forceRefresh(currentFragment)
+                forceRefresh()
             } else {
                 scanNeeded = false
             }
@@ -360,7 +342,10 @@ class MainActivity : ContentActivity(),
     // Note. onKeyDown will not occur while moving within a list
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         if (keyCode == KeyEvent.KEYCODE_SEARCH) {
-            toolbar.menu.findItem(R.id.ml_menu_filter).expandActionView()
+            val filterItem = toolbar.menu.findItem(R.id.ml_menu_filter)
+            if (filterItem?.isVisible == true) filterItem.expandActionView()
+            else startActivity(Intent(Intent.ACTION_SEARCH, null, this, SearchActivity::class.java))
+            return true
         }
         return super.onKeyDown(keyCode, event)
     }
