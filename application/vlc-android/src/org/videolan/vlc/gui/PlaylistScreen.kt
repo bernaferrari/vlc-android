@@ -26,12 +26,8 @@ import android.content.Intent
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.view.ActionMode
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -44,10 +40,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -57,11 +51,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -82,6 +74,8 @@ import org.videolan.resources.TAG_ITEM
 import org.videolan.tools.Settings
 import org.videolan.tools.putSingle
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.components.VLCBrowserItemCard
+import org.videolan.vlc.compose.components.VLCBrowserItemRow
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.dialogs.CURRENT_SORT
 import org.videolan.vlc.gui.dialogs.DISPLAY_IN_CARDS
@@ -527,7 +521,6 @@ private fun PlaylistCardGrid(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun PlaylistRow(
     item: MediaLibraryItem,
@@ -538,35 +531,34 @@ private fun PlaylistRow(
     onMainActionClick: () -> Unit
 ) {
     val colors = VLCThemeDefaults.colors
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(if (selected) colors.subtleSelection else colors.backgroundDefault)
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
-            .padding(start = 16.dp, end = 4.dp, top = 10.dp, bottom = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        PlaylistIcon()
-        Spacer(modifier = Modifier.width(16.dp))
-        PlaylistTexts(item = item, modifier = Modifier.weight(1f))
-        IconButton(onClick = onMainActionClick) {
+    VLCBrowserItemRow(
+        title = item.title.orEmpty(),
+        subtitle = stringResource(R.plurals.track_quantity, item.tracksCount, item.tracksCount),
+        selected = selected,
+        onClick = onClick,
+        onLongClick = onLongClick,
+        artworkContent = {
+            PlaylistIconContent(size = 28.dp)
+        },
+        primaryActionContent = {
             Icon(
                 painter = painterResource(R.drawable.ic_play),
                 contentDescription = stringResource(R.string.play),
                 tint = colors.primary
             )
-        }
-        IconButton(onClick = onMoreClick) {
+        },
+        onPrimaryActionClick = onMainActionClick,
+        moreActionContent = {
             Icon(
                 painter = painterResource(R.drawable.ic_more),
                 contentDescription = stringResource(R.string.more),
                 tint = colors.listSubtitle
             )
-        }
-    }
+        },
+        onMoreClick = onMoreClick
+    )
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun PlaylistCard(
     item: MediaLibraryItem,
@@ -578,76 +570,43 @@ private fun PlaylistCard(
     onMainActionClick: () -> Unit
 ) {
     val colors = VLCThemeDefaults.colors
-    Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(6.dp))
-            .background(if (selected) colors.subtleSelection else colors.backgroundDefaultDarker)
-            .border(1.dp, colors.listSubtitle.copy(alpha = 0.18f), RoundedCornerShape(6.dp))
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            PlaylistIcon(large = true)
-            Spacer(modifier = Modifier.weight(1f))
-            IconButton(onClick = onMainActionClick, modifier = Modifier.size(36.dp)) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_play),
-                    contentDescription = stringResource(R.string.play),
-                    tint = colors.primary
-                )
-            }
-            IconButton(onClick = onMoreClick, modifier = Modifier.size(36.dp)) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_more),
-                    contentDescription = stringResource(R.string.more),
-                    tint = colors.listSubtitle
-                )
-            }
-        }
-        PlaylistTexts(item = item)
-    }
+    VLCBrowserItemCard(
+        title = item.title.orEmpty(),
+        subtitle = stringResource(R.plurals.track_quantity, item.tracksCount, item.tracksCount),
+        selected = selected,
+        modifier = modifier,
+        onClick = onClick,
+        onLongClick = onLongClick,
+        artworkContent = {
+            PlaylistIconContent(size = 32.dp)
+        },
+        primaryActionContent = {
+            Icon(
+                painter = painterResource(R.drawable.ic_play),
+                contentDescription = stringResource(R.string.play),
+                tint = colors.primary
+            )
+        },
+        onPrimaryActionClick = onMainActionClick,
+        moreActionContent = {
+            Icon(
+                painter = painterResource(R.drawable.ic_more),
+                contentDescription = stringResource(R.string.more),
+                tint = colors.listSubtitle
+            )
+        },
+        onMoreClick = onMoreClick
+    )
 }
 
 @Composable
-private fun PlaylistTexts(item: MediaLibraryItem, modifier: Modifier = Modifier) {
-    val colors = VLCThemeDefaults.colors
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(
-            text = item.title.orEmpty(),
-            color = colors.listTitle,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Medium,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
-        Text(
-            text = stringResource(R.plurals.track_quantity, item.tracksCount, item.tracksCount),
-            color = colors.listSubtitle,
-            style = MaterialTheme.typography.bodySmall,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-    }
-}
-
-@Composable
-private fun PlaylistIcon(large: Boolean = false) {
-    val colors = VLCThemeDefaults.colors
-    Box(
-        modifier = Modifier
-            .size(if (large) 48.dp else 40.dp)
-            .clip(RoundedCornerShape(4.dp))
-            .background(colors.backgroundDefault),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            painter = painterResource(R.drawable.ic_playlist),
-            contentDescription = null,
-            modifier = Modifier.size(if (large) 32.dp else 28.dp),
-            tint = colors.primary
-        )
-    }
+private fun PlaylistIconContent(size: Dp) {
+    Icon(
+        painter = painterResource(R.drawable.ic_playlist),
+        contentDescription = null,
+        modifier = Modifier.size(size),
+        tint = VLCThemeDefaults.colors.primary
+    )
 }
 
 @Composable

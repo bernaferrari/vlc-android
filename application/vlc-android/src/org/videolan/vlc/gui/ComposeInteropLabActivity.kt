@@ -84,6 +84,8 @@ import org.videolan.vlc.compose.components.VLCAudioTrackInfoText
 import org.videolan.vlc.compose.components.VLCAudioTrackInfoTextStyle
 import org.videolan.vlc.compose.components.VLCAudioTimelineSlider
 import org.videolan.vlc.compose.components.VLCAudioTimelineTimeLabel
+import org.videolan.vlc.compose.components.VLCBrowserItemCard
+import org.videolan.vlc.compose.components.VLCBrowserItemRow
 import org.videolan.vlc.compose.components.VLCOnboardingWelcome
 import org.videolan.vlc.compose.components.VLCPlayerOptionItem
 import org.videolan.vlc.compose.components.VLCSectionHeader
@@ -317,6 +319,47 @@ fun ComposeInteropLabContent() {
         VLCSectionHeader(text = "TV Variant Simulation", isTv = true)
         Text(
             "Token: headerBackground + audioBrowserSeparator. High reuse across audio browser, playlists, media lists. Decoration interop path documented in RecyclerSectionItemDecoration.kt.",
+            style = MaterialTheme.typography.bodySmall
+        )
+
+        // -----------------------------------------------------------------
+        // WAVE 2. VLCBrowserItemRow/Card (browser_item + card variants)
+        // -----------------------------------------------------------------
+        VLCSectionHeader(text = "Wave 2. VLCBrowserItemRow/Card (browser_item.xml variants)")
+        VLCBrowserItemRow(
+            title = "Big Buck Bunny",
+            subtitle = "Video - 1920x1080 - 9:56",
+            artworkContent = { Text("V", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.primary) },
+            primaryActionContent = { Text("P", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.primary) },
+            moreActionContent = { Text("M", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.listSubtitle) }
+        )
+        VLCBrowserItemRow(
+            title = "Selected playlist from the shared browser row leaf",
+            subtitle = "42 tracks",
+            selected = true,
+            artworkContent = { Text("L", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.primary) },
+            primaryActionContent = { Text("P", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.primary) },
+            moreActionContent = { Text("M", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.listSubtitle) }
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            VLCBrowserItemCard(
+                title = "Camera",
+                subtitle = "/storage/emulated/0/DCIM",
+                artworkContent = { Text("F", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.primary) },
+                moreActionContent = { Text("M", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.listSubtitle) },
+                modifier = Modifier.weight(1f)
+            )
+            VLCBrowserItemCard(
+                title = "Network share",
+                subtitle = "smb://media.local",
+                selected = true,
+                artworkContent = { Text("N", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.primary) },
+                moreActionContent = { Text("M", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.listSubtitle) },
+                modifier = Modifier.weight(1f)
+            )
+        }
+        Text(
+            "This shared leaf is now hosted by playlist and video Compose screens, replacing duplicated private row/card code while preserving app-side icons through slots.",
             style = MaterialTheme.typography.bodySmall
         )
 

@@ -55,6 +55,8 @@ import org.videolan.vlc.compose.components.VLCAudioTrackInfoText
 import org.videolan.vlc.compose.components.VLCAudioTrackInfoTextStyle
 import org.videolan.vlc.compose.components.VLCAudioTimelineSlider
 import org.videolan.vlc.compose.components.VLCAudioTimelineTimeLabel
+import org.videolan.vlc.compose.components.VLCBrowserItemCard
+import org.videolan.vlc.compose.components.VLCBrowserItemRow
 import org.videolan.vlc.compose.components.VLCOnboardingWelcome
 import org.videolan.vlc.compose.components.VLCPlayerOptionItem
 import org.videolan.vlc.compose.components.VLCSectionHeader
@@ -177,6 +179,96 @@ private fun MediaListTokensDemo() {
         Text("Song Title Here", color = c.fontDefault, style = MaterialTheme.typography.bodyLarge)
         Text("2:34", color = c.fontLight, style = MaterialTheme.typography.labelMedium)
     }
+}
+
+@Preview(
+    name = "Browser Item Rows - Light",
+    showBackground = true,
+    backgroundColor = 0xFFFFFFFF,
+    widthDp = 420,
+    heightDp = 320
+)
+@Composable
+fun BrowserItemRowsLightPreview() {
+    VLCTheme(darkTheme = false) {
+        BrowserItemRowsDemo()
+    }
+}
+
+@Preview(
+    name = "Browser Item Rows - Dark",
+    showBackground = true,
+    backgroundColor = 0xFF131313,
+    widthDp = 420,
+    heightDp = 320
+)
+@Composable
+fun BrowserItemRowsDarkPreview() {
+    VLCTheme(darkTheme = true) {
+        BrowserItemRowsDemo()
+    }
+}
+
+@Composable
+private fun BrowserItemRowsDemo() {
+    val colors = VLCThemeDefaults.colors
+    Column(
+        modifier = Modifier
+            .background(colors.backgroundDefault)
+            .padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        VLCBrowserItemRow(
+            title = "Big Buck Bunny",
+            subtitle = "Video - 1920x1080 - 9:56",
+            artworkContent = { BrowserItemPreviewBadge("V") },
+            primaryActionContent = { BrowserItemPreviewAction("P") },
+            moreActionContent = { BrowserItemPreviewAction("M") }
+        )
+        VLCBrowserItemRow(
+            title = "Selected playlist",
+            subtitle = "42 tracks",
+            selected = true,
+            artworkContent = { BrowserItemPreviewBadge("L") },
+            primaryActionContent = { BrowserItemPreviewAction("P") },
+            moreActionContent = { BrowserItemPreviewAction("M") }
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            VLCBrowserItemCard(
+                title = "Camera",
+                subtitle = "/storage/emulated/0/DCIM",
+                artworkContent = { BrowserItemPreviewBadge("F") },
+                moreActionContent = { BrowserItemPreviewAction("M") },
+                modifier = Modifier.weight(1f)
+            )
+            VLCBrowserItemCard(
+                title = "Network share",
+                subtitle = "smb://media.local",
+                selected = true,
+                artworkContent = { BrowserItemPreviewBadge("N") },
+                moreActionContent = { BrowserItemPreviewAction("M") },
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun BrowserItemPreviewBadge(text: String) {
+    Text(
+        text = text,
+        color = VLCThemeDefaults.colors.primary,
+        style = MaterialTheme.typography.titleMedium
+    )
+}
+
+@Composable
+private fun BrowserItemPreviewAction(text: String) {
+    Text(
+        text = text,
+        color = VLCThemeDefaults.colors.primary,
+        style = MaterialTheme.typography.labelLarge
+    )
 }
 
 @Preview(
