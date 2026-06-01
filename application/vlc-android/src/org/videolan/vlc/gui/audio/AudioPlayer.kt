@@ -105,6 +105,7 @@ import org.videolan.tools.setVisible
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.components.VLCAudioHeaderActionButton
+import org.videolan.vlc.compose.components.VLCAudioHeaderPlayPauseButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderTimeLabel
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
@@ -174,6 +175,11 @@ private data class AudioPlaylistSwitchState(
         val usePrimaryTint: Boolean = true
 )
 
+private data class AudioHeaderPlayPauseState(
+        @DrawableRes val icon: Int = R.drawable.ic_play_player,
+        val contentDescription: String = ""
+)
+
 @Composable
 private fun AudioPlayerChipIcon(@DrawableRes drawable: Int) {
     Icon(
@@ -195,6 +201,16 @@ private fun AudioPlayerHeaderIcon(@DrawableRes drawable: Int, usePrimaryTint: Bo
     )
 }
 
+@Composable
+private fun AudioPlayerPlayPauseIcon(@DrawableRes drawable: Int) {
+    Icon(
+            painter = painterResource(drawable),
+            contentDescription = null,
+            tint = VLCThemeDefaults.colors.playerIconColor,
+            modifier = Modifier.size(38.composeDp)
+    )
+}
+
 class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlayerAnimator by AudioPlayerAnimator() {
 
     private lateinit var binding: AudioPlayerBinding
@@ -209,6 +225,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
     private var audioQueueProgressPillState by mutableStateOf(VLCAudioQueueProgressPillState())
     private var audioHeaderTimeText by mutableStateOf("")
     private var audioPlaylistSwitchState by mutableStateOf(AudioPlaylistSwitchState())
+    private var audioHeaderPlayPauseState by mutableStateOf(AudioHeaderPlayPauseState())
 
     private var showRemainingTime = false
     private var previewingSeek = false
@@ -217,8 +234,6 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
     private lateinit var playToPause: AnimatedVectorDrawableCompat
     private lateinit var pauseToPlayHeader: AnimatedVectorDrawableCompat
     private lateinit var playToPauseHeader: AnimatedVectorDrawableCompat
-    private lateinit var pauseToPlaySmall: AnimatedVectorDrawableCompat
-    private lateinit var playToPauseSmall: AnimatedVectorDrawableCompat
 
     lateinit var abRepeatAddMarker: Button
     private var audioPlayProgressMode:Boolean = false
@@ -319,8 +334,6 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         pauseToPlay = AnimatedVectorDrawableCompat.create(requireActivity(), R.drawable.anim_pause_play_video)!!
         playToPauseHeader = AnimatedVectorDrawableCompat.create(requireActivity(), R.drawable.anim_play_pause_video)!!
         pauseToPlayHeader = AnimatedVectorDrawableCompat.create(requireActivity(), R.drawable.anim_pause_play_video)!!
-        playToPauseSmall = AnimatedVectorDrawableCompat.create(requireActivity(), R.drawable.anim_play_pause_video)!!
-        pauseToPlaySmall = AnimatedVectorDrawableCompat.create(requireActivity(), R.drawable.anim_pause_play_video)!!
         onSlide(0f)
         abRepeatAddMarker = binding.abRepeatContainer.findViewById<Button>(R.id.ab_repeat_add_marker)
         playlistModel.service?.playlistManager?.abRepeat?.observe(viewLifecycleOwner) { abvalues ->
@@ -352,6 +365,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         audioHeaderTimeText = getString(R.string.time_0)
         setupAudioHeaderTime()
         setupAudioHeaderActions()
+        setupAudioHeaderPlayPause()
         setupAudioQueueProgressPill()
         setupPlaybackChips()
 
@@ -441,6 +455,28 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
             }
         }
         updatePlaylistSwitchChrome(isShowingCover())
+    }
+
+    private fun setupAudioHeaderPlayPause() {
+        binding.headerPlayPause.setContent {
+            VLCTheme {
+                val state = audioHeaderPlayPauseState
+                VLCAudioHeaderPlayPauseButton(
+                    contentDescription = state.contentDescription,
+                    onClick = { onPlayPauseClick(binding.headerPlayPause) },
+                    onLongClick = { onStopClick(binding.headerPlayPause) }
+                ) {
+                    AudioPlayerPlayPauseIcon(state.icon)
+                }
+            }
+        }
+    }
+
+    private fun updateAudioHeaderPlayPause(playing: Boolean, contentDescription: String) {
+        audioHeaderPlayPauseState = AudioHeaderPlayPauseState(
+                icon = if (playing) R.drawable.ic_pause_player else R.drawable.ic_play_player,
+                contentDescription = contentDescription
+        )
     }
 
     fun updatePlaylistSwitchChrome(showCover: Boolean, announce: Boolean = false) {
@@ -685,20 +721,17 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         val text = ctx.getString(if (playing) R.string.pause else R.string.play)
 
         val drawable = if (playing) playToPause else pauseToPlay
-        val drawableSmall = if (playing) playToPauseSmall else pauseToPlaySmall
         val drawableHeaderLarge = if (playing) playToPauseHeader else pauseToPlayHeader
         binding.playPause.setImageDrawable(drawable)
         binding.headerLargePlayPause.setImageDrawable(drawableHeaderLarge)
-        binding.headerPlayPause.setImageDrawable(drawableSmall)
+        updateAudioHeaderPlayPause(playing, text)
         if (playing != wasPlaying) {
             drawable.start()
-            drawableSmall.start()
             drawableHeaderLarge.start()
         }
 
         playlistAdapter.setCurrentlyPlaying(playing)
         binding.playPause.contentDescription = text
-        binding.headerPlayPause.contentDescription = text
         wasPlaying = playing
     }
 

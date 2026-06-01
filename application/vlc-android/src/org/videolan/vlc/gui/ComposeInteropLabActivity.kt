@@ -58,6 +58,7 @@ import org.videolan.vlc.compose.components.VLCDialogConfirmDelete
 import org.videolan.vlc.compose.components.VLCDropdownItem
 import org.videolan.vlc.compose.components.VLCInfoItem
 import org.videolan.vlc.compose.components.VLCAudioHeaderActionButton
+import org.videolan.vlc.compose.components.VLCAudioHeaderPlayPauseButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderTimeLabel
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
@@ -326,11 +327,15 @@ fun ComposeInteropLabContent() {
             VLCAudioHeaderActionButton(contentDescription = "Advanced") {
                 Text("⋮", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.audioMenuIcon)
             }
+            VLCAudioHeaderPlayPauseButton(contentDescription = "Pause") {
+                Text("Ⅱ", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
+            }
         }
         Text(
             "Hosted in the real AudioPlayer fragment by replacing the playback_chips ChipGroup with VLCComposeView. " +
             "The collapsed header time label is also Compose-hosted under the existing header_time ID. " +
             "The search, playlist switch, and overflow actions are Compose-hosted under their existing IDs. " +
+            "The mini play/pause button is Compose-hosted under header_play_pause with the long-press stop action preserved. " +
             "The player gesture/switcher surface stays outside this slice; the speed and sleep quick actions are now Compose.",
             style = MaterialTheme.typography.bodySmall
         )

@@ -345,16 +345,11 @@
                     app:layout_constraintEnd_toStartOf="@+id/header_play_pause"
                     app:layout_constraintTop_toTopOf="parent" />
 
-            <ImageView
+            <org.videolan.vlc.compose.interop.VLCComposeView
                     android:id="@+id/header_play_pause"
                     android:layout_width="38dp"
                     android:layout_height="38dp"
                     android:layout_marginEnd="@dimen/default_margin"
-                    android:contentDescription="@string/play"
-                    android:focusable="true"
-                    android:onClick="@{fragment::onPlayPauseClick}"
-                    android:onLongClick="@{fragment::onStopClick}"
-                    android:scaleType="fitXY"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />

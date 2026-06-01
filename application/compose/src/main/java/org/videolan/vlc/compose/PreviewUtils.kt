@@ -29,6 +29,7 @@ import org.videolan.vlc.compose.components.VLCDebugLogLine
 import org.videolan.vlc.compose.components.VLCDialogConfirmDelete
 import org.videolan.vlc.compose.components.VLCInfoItem
 import org.videolan.vlc.compose.components.VLCAudioHeaderActionButton
+import org.videolan.vlc.compose.components.VLCAudioHeaderPlayPauseButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderTimeLabel
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
@@ -217,6 +218,9 @@ private fun PlayerChromeTokensDemo() {
                     }
                     VLCAudioHeaderActionButton(contentDescription = "Advanced") {
                         IconMock("⋮", c.audioMenuIcon)
+                    }
+                    VLCAudioHeaderPlayPauseButton(contentDescription = "Pause") {
+                        IconMock("Ⅱ", c.playerIconColor)
                     }
                 }
             }
