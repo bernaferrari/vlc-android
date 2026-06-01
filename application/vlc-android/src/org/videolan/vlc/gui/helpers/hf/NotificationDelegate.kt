@@ -26,10 +26,10 @@ package org.videolan.vlc.gui.helpers.hf
 
 import android.content.pm.PackageManager
 import android.os.Build
+import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.FragmentActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -43,7 +43,7 @@ class NotificationDelegate private constructor() {
         const val TAG = "VLC/NotificationDelegate"
         private var notificationAccessGranted = false
 
-        suspend fun FragmentActivity.getNotificationPermission() : Boolean = withContext(Dispatchers.Main.immediate) {
+        suspend fun ComponentActivity.getNotificationPermission() : Boolean = withContext(Dispatchers.Main.immediate) {
             if (isFinishing) return@withContext false
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return@withContext true
             if (notificationAccessGranted || ContextCompat.checkSelfPermission(this@getNotificationPermission, POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {

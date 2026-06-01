@@ -4,6 +4,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
 import android.widget.FrameLayout
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.ui.Modifier
@@ -13,7 +14,6 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -30,11 +30,11 @@ import org.videolan.vlc.util.isTalkbackIsEnabled
 /**
  * Compose-hosted notification permission bottom sheet.
  */
-private fun FragmentActivity.showNotificationPermissionComposeDialog() {
+private fun ComponentActivity.showNotificationPermissionComposeDialog() {
     NotificationPermissionComposeDialog(this).show()
 }
 
-private class NotificationPermissionComposeDialog(private val activity: FragmentActivity) {
+private class NotificationPermissionComposeDialog(private val activity: ComponentActivity) {
     private val dialog = if (Settings.showTvUi) {
         BottomSheetDialog(activity, R.style.Theme_VLC_Black_BottomSheet)
     } else {
@@ -103,7 +103,7 @@ private class NotificationPermissionComposeDialog(private val activity: Fragment
 }
 
 object NotificationPermissionManager {
-    fun launchIfNeeded(activity: FragmentActivity): Boolean {
+    fun launchIfNeeded(activity: ComponentActivity): Boolean {
         if (!Permissions.canSendNotifications(activity) && !Settings.getInstance(activity).getBoolean(NOTIFICATION_PERMISSION_ASKED, false)) {
             activity.showNotificationPermissionComposeDialog()
             return true

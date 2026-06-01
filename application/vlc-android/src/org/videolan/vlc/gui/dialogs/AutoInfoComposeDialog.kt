@@ -4,9 +4,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
 import android.widget.FrameLayout
+import androidx.activity.ComponentActivity
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.fragment.app.FragmentActivity
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import org.videolan.resources.AndroidDevices
@@ -18,11 +18,11 @@ import org.videolan.vlc.util.isTalkbackIsEnabled
 /**
  * Compose-hosted Android Auto info bottom sheet.
  */
-fun FragmentActivity.showAutoInfoComposeDialog() {
+fun ComponentActivity.showAutoInfoComposeDialog() {
     AutoInfoComposeDialog(this).show()
 }
 
-private class AutoInfoComposeDialog(private val activity: FragmentActivity) {
+private class AutoInfoComposeDialog(private val activity: ComponentActivity) {
     private val dialog = if (Settings.showTvUi) {
         BottomSheetDialog(activity, R.style.Theme_VLC_Black_BottomSheet)
     } else {

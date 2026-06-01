@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
 import android.widget.FrameLayout
 import androidx.annotation.AttrRes
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,7 +18,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
-import androidx.fragment.app.FragmentActivity
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import org.videolan.resources.AndroidDevices
@@ -30,11 +30,11 @@ import org.videolan.vlc.util.isTalkbackIsEnabled
 /**
  * Compose-hosted widget explanation bottom sheet.
  */
-fun FragmentActivity.showWidgetExplanationComposeDialog() {
+fun ComponentActivity.showWidgetExplanationComposeDialog() {
     WidgetExplanationComposeDialog(this).show()
 }
 
-private class WidgetExplanationComposeDialog(private val activity: FragmentActivity) {
+private class WidgetExplanationComposeDialog(private val activity: ComponentActivity) {
     private val dialog = if (Settings.showTvUi) {
         BottomSheetDialog(activity, R.style.Theme_VLC_Black_BottomSheet)
     } else {
