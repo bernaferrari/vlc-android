@@ -57,6 +57,7 @@ import org.videolan.vlc.compose.components.VLCDebugLogLine
 import org.videolan.vlc.compose.components.VLCDialogConfirmDelete
 import org.videolan.vlc.compose.components.VLCDropdownItem
 import org.videolan.vlc.compose.components.VLCInfoItem
+import org.videolan.vlc.compose.components.VLCAudioHeaderTimeLabel
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
 import org.videolan.vlc.compose.components.VLCAudioPlayerChips
@@ -313,8 +314,10 @@ fun ComposeInteropLabContent() {
                 Text("Z", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.audioChipsTextColor)
             }
         )
+        VLCAudioHeaderTimeLabel(text = "10:42")
         Text(
             "Hosted in the real AudioPlayer fragment by replacing the playback_chips ChipGroup with VLCComposeView. " +
+            "The collapsed header time label is also Compose-hosted under the existing header_time ID. " +
             "The player gesture/switcher surface stays outside this slice; the speed and sleep quick actions are now Compose.",
             style = MaterialTheme.typography.bodySmall
         )

@@ -351,17 +351,12 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:srcCompat="@drawable/ic_overflow_audio" />
 
-            <TextView
+            <org.videolan.vlc.compose.interop.VLCComposeView
                     android:id="@+id/header_time"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="@dimen/default_margin"
                     android:layout_marginRight="@dimen/default_margin"
-                    android:clickable="true"
-                    android:onClick="@{fragment::onTimeLabelClick}"
-                    android:text="@string/time_0"
-                    android:textColor="?attr/font_default"
-                    android:textSize="14sp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/header_play_pause"
                     app:layout_constraintTop_toTopOf="parent" />

@@ -104,6 +104,7 @@ import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.components.VLCAudioHeaderTimeLabel
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
 import org.videolan.vlc.compose.components.VLCAudioPlayerChips
@@ -188,6 +189,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
     lateinit var bookmarkListDelegate: BookmarkListDelegate
     private var audioPlayerChipsState by mutableStateOf(VLCAudioPlayerChipsState())
     private var audioQueueProgressPillState by mutableStateOf(VLCAudioQueueProgressPillState())
+    private var audioHeaderTimeText by mutableStateOf("")
 
     private var showRemainingTime = false
     private var previewingSeek = false
@@ -328,6 +330,8 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         }
 
         audioPlayProgressMode = Settings.getInstance(requireActivity()).getBoolean(AUDIO_PLAY_PROGRESS_MODE, false)
+        audioHeaderTimeText = getString(R.string.time_0)
+        setupAudioHeaderTime()
         setupAudioQueueProgressPill()
         setupPlaybackChips()
 
@@ -373,6 +377,17 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
 
     fun isTablet() = requireActivity().isTablet()
 
+    private fun setupAudioHeaderTime() {
+        binding.headerTime.setContent {
+            VLCTheme {
+                VLCAudioHeaderTimeLabel(
+                    text = audioHeaderTimeText,
+                    onClick = { toggleRemainingTimeMode() }
+                )
+            }
+        }
+    }
+
     private fun setupAudioQueueProgressPill() {
         binding.audioPlayProgress.setContent {
             VLCTheme {
@@ -388,6 +403,13 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         val activity = activity ?: return
         audioPlayProgressMode = !audioPlayProgressMode
         Settings.getInstance(activity).putSingle(AUDIO_PLAY_PROGRESS_MODE, audioPlayProgressMode)
+        playlistModel.progress.value?.let { updateProgress(it) }
+    }
+
+    private fun toggleRemainingTimeMode() {
+        val context = context ?: return
+        showRemainingTime = !showRemainingTime
+        Settings.getInstance(context).edit().putBoolean(SHOW_REMAINING_TIME, showRemainingTime).apply()
         playlistModel.progress.value?.let { updateProgress(it) }
     }
 
@@ -671,7 +693,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
 
         if (!previewingSeek) {
             val displayTime = progress.timeText
-            binding.headerTime.text = if (showRemainingTime) Tools.millisToString(progress.time - progress.length) else displayTime
+            audioHeaderTimeText = if (showRemainingTime) Tools.millisToString(progress.time - progress.length) else displayTime
             binding.time.text = displayTime
             if (!isDragging) binding.timeline.progress = progress.time.toInt()
             binding.progressBar.progress = progress.time.toInt()
@@ -770,9 +792,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
     }
 
     fun onTimeLabelClick(@Suppress("UNUSED_PARAMETER") view: View) {
-        showRemainingTime = !showRemainingTime
-        Settings.getInstance(requireContext()).edit().putBoolean(SHOW_REMAINING_TIME, showRemainingTime).apply()
-        playlistModel.progress.value?.let { updateProgress(it) }
+        toggleRemainingTimeMode()
     }
 
     fun onJumpBack(@Suppress("UNUSED_PARAMETER") view: View) {
@@ -1050,7 +1070,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
             if (fromUser) {
                 playlistModel.setTime(progress.toLong(), true)
                 binding.time.text = Tools.millisToString(progress.toLong())
-                binding.headerTime.text = Tools.millisToString(progress.toLong())
+                audioHeaderTimeText = Tools.millisToString(progress.toLong())
                 binding.timeline.forceAccessibilityUpdate()
             }
         }

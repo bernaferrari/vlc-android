@@ -28,6 +28,7 @@ import org.videolan.vlc.compose.components.VLCDropdownItem
 import org.videolan.vlc.compose.components.VLCDebugLogLine
 import org.videolan.vlc.compose.components.VLCDialogConfirmDelete
 import org.videolan.vlc.compose.components.VLCInfoItem
+import org.videolan.vlc.compose.components.VLCAudioHeaderTimeLabel
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
 import org.videolan.vlc.compose.components.VLCAudioPlayerChips
@@ -199,7 +200,14 @@ private fun PlayerChromeTokensDemo() {
                 .background(c.audioHeaderBackground)
                 .padding(8.dp)
         ) {
-            Text("Now Playing - Audio Title", color = c.fontDefault)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Now Playing - Audio Title", color = c.fontDefault)
+                VLCAudioHeaderTimeLabel(text = "10:42")
+            }
         }
         Box(
             modifier = Modifier
