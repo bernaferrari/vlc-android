@@ -25,7 +25,11 @@
 <resources>
     <item type="id" name="appbar" />
     <item type="id" name="ariane" />
+    <item type="id" name="audio_player" />
+    <item type="id" name="audio_player_container" />
+    <item type="id" name="audio_player_stub" />
     <item type="id" name="audio_player_tips" />
+    <item type="id" name="audio_playlist_tips" />
     <item type="id" name="browser_fast_scroller" />
     <item type="id" name="fab" />
     <item type="id" name="fab_large" />

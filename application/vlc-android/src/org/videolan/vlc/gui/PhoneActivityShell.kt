@@ -272,10 +272,7 @@ private fun Context.createAudioPlayerContainerShell(): FrameLayout {
         elevation = resources.getDimension(R.dimen.audio_player_elevation)
         visibility = View.GONE
         addView(
-            ViewStubCompat(context, null).apply {
-                id = R.id.audio_player_stub
-                layoutResource = R.layout.audioplayer
-            },
+            createAudioPlayerHostView(),
             FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
         )
         addView(

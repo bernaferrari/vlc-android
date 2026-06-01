@@ -277,10 +277,7 @@ class InfoActivity : AudioPlayerContainerActivity(), PathAdapterListener,
         elevation = resources.getDimension(R.dimen.audio_player_elevation)
         visibility = View.GONE
         addView(
-            ViewStubCompat(context, null).apply {
-                id = R.id.audio_player_stub
-                layoutResource = R.layout.audioplayer
-            },
+            context.createAudioPlayerHostView(),
             FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
         )
         addView(
