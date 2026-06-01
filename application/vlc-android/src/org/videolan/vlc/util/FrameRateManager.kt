@@ -8,9 +8,9 @@ import android.view.Surface
 import android.view.SurfaceView
 import android.view.Window
 import android.view.WindowManager
+import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
 import androidx.core.content.getSystemService
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -24,7 +24,7 @@ import java.math.RoundingMode
 private const val TAG = "VLC/FrameRateMatch"
 private const val SHORT_VIDEO_LENGTH = 300000
 
-class FrameRateManager(val activity: FragmentActivity, val service: PlaybackService) {
+class FrameRateManager(val activity: ComponentActivity, val service: PlaybackService) {
 
 
     // listen for display change and resume play
