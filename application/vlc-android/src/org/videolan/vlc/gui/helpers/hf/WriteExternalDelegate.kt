@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.DocumentsContract
+import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -19,7 +20,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -37,7 +37,7 @@ class WriteExternalDelegate private constructor() {
     companion object {
         internal const val TAG = "VLC/WriteExternal"
 
-        fun askForExtWrite(activity: FragmentActivity, uri: Uri, cb: Runnable? = null) {
+        fun askForExtWrite(activity: ComponentActivity, uri: Uri, cb: Runnable? = null) {
             AppScope.launch {
                 if (activity.getExtWritePermission(uri)) cb?.run()
             }
@@ -53,13 +53,13 @@ class WriteExternalDelegate private constructor() {
     }
 }
 
-suspend fun FragmentActivity.getExtWritePermission(uri: Uri) : Boolean = withContext(Dispatchers.Main.immediate) {
+suspend fun ComponentActivity.getExtWritePermission(uri: Uri) : Boolean = withContext(Dispatchers.Main.immediate) {
     if (!WriteExternalDelegate.needsWritePermission(uri)) return@withContext true
     val storage = FileUtils.getMediaStorage(uri) ?: return@withContext false
     requestExtWritePermission(storage)
 }
 
-private suspend fun FragmentActivity.requestExtWritePermission(storage: String) : Boolean = suspendCancellableCoroutine { continuation ->
+private suspend fun ComponentActivity.requestExtWritePermission(storage: String) : Boolean = suspendCancellableCoroutine { continuation ->
     val resultKey = "${WriteExternalDelegate.TAG}:${System.nanoTime()}"
     var launcher: ActivityResultLauncher<Intent>? = null
     var activeDialog: AlertDialog? = null
@@ -117,7 +117,7 @@ private suspend fun FragmentActivity.requestExtWritePermission(storage: String) 
     showMainDialog()
 }
 
-private fun FragmentActivity.showSdWriteHelpDialog(onDismiss: () -> Unit) {
+private fun ComponentActivity.showSdWriteHelpDialog(onDismiss: () -> Unit) {
     AlertDialog.Builder(this)
         .setView(createSdWriteHelpView())
         .setOnDismissListener { onDismiss() }
@@ -125,7 +125,7 @@ private fun FragmentActivity.showSdWriteHelpDialog(onDismiss: () -> Unit) {
         .show()
 }
 
-private fun FragmentActivity.createSdWriteHelpView() = ComposeView(this).apply {
+private fun ComponentActivity.createSdWriteHelpView() = ComposeView(this).apply {
     setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
     setContent {
         Image(
@@ -140,7 +140,7 @@ private fun FragmentActivity.createSdWriteHelpView() = ComposeView(this).apply {
     }
 }
 
-private fun FragmentActivity.handleExtWriteResult(storage: String, resultCode: Int, data: Intent?) : Boolean {
+private fun ComponentActivity.handleExtWriteResult(storage: String, resultCode: Int, data: Intent?) : Boolean {
     if (resultCode != Activity.RESULT_OK) return false
     val treeUri = data?.data ?: return false
     return saveExtWritePermission(this, storage, treeUri)

@@ -26,8 +26,8 @@ package org.videolan.vlc.viewmodels
 
 import android.content.Context
 import android.net.Uri
+import androidx.activity.ComponentActivity
 import androidx.core.content.edit
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -271,7 +271,7 @@ class EqualizerViewModel(context: Context, private val equalizerRepository: Equa
      * @param context the context
      * @param equalizer the equalizer to export
      */
-    fun export(context: FragmentActivity, equalizer: EqualizerWithBands) = viewModelScope.launch(Dispatchers.IO) {
+    fun export(context: ComponentActivity, equalizer: EqualizerWithBands) = viewModelScope.launch(Dispatchers.IO) {
         val characterFilter = Regex("[^\\p{L}\\p{M}\\p{N}\\p{P}\\p{Z}\\p{Cf}\\p{Cs}\\s]")
         val fileName: String? = equalizer.equalizerEntry.name
             .replace(characterFilter, "")
@@ -291,7 +291,7 @@ class EqualizerViewModel(context: Context, private val equalizerRepository: Equa
         }
     }
 
-    fun exportAll(context: FragmentActivity) = viewModelScope.launch(Dispatchers.IO) {
+    fun exportAll(context: ComponentActivity) = viewModelScope.launch(Dispatchers.IO) {
         EqualizerUtil.exportAllEqualizers(context)
         UiTools.snacker(context, context.getString(R.string.equalizer_exported, EXPORT_EQUALIZERS_FILE))
     }

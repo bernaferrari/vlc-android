@@ -34,7 +34,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -201,7 +200,7 @@ class StoragePermissionsDelegate private constructor() {
             else activity.startMedialibrary(firstRun, upgrade, true)
         }
 
-        suspend fun FragmentActivity.getWritePermission(uri: Uri) = if (uri.path?.startsWith(AndroidDevices.EXTERNAL_PUBLIC_DIRECTORY) == true) {
+        suspend fun ComponentActivity.getWritePermission(uri: Uri) = if (uri.path?.startsWith(AndroidDevices.EXTERNAL_PUBLIC_DIRECTORY) == true) {
             if (AndroidUtil.isOOrLater && !Permissions.canWriteStorage()) getStoragePermission(true)
             else withContext(Dispatchers.IO) { FileUtils.canWrite(uri) }
         } else getExtWritePermission(uri)

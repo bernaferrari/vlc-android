@@ -7,9 +7,9 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
@@ -67,7 +67,7 @@ object VLCDownloadManager: BroadcastReceiver(), DefaultLifecycleObserver {
         AppContextProvider.appContext.applicationContext.unregisterReceiver(this)
     }
 
-    suspend fun download(context: FragmentActivity, subtitleItem: SubtitleItem, useOpenSubtitlesHeader: Boolean = false) {
+    suspend fun download(context: ComponentActivity, subtitleItem: SubtitleItem, useOpenSubtitlesHeader: Boolean = false) {
         val request = DownloadManager.Request(subtitleItem.zipDownloadLink.toUri())
         request.setDescription(subtitleItem.movieReleaseName)
         request.setTitle(context.resources.getString(R.string.download_subtitle_title))
@@ -83,7 +83,7 @@ object VLCDownloadManager: BroadcastReceiver(), DefaultLifecycleObserver {
         }
     }
 
-    private suspend fun downloadSuccessful(id:Long, subtitleItem: SubtitleItem, localUri: String, context: FragmentActivity) {
+    private suspend fun downloadSuccessful(id:Long, subtitleItem: SubtitleItem, localUri: String, context: ComponentActivity) {
         val extractDirectory = getFinalDirectory(context, subtitleItem) ?: return
         // Some filenames from opensubtitles.org had characters not authorized for an Android Uri
         // This sanitizes the filename so it can be used as dest in copyFile
@@ -123,7 +123,7 @@ object VLCDownloadManager: BroadcastReceiver(), DefaultLifecycleObserver {
         }
     }
 
-    private suspend fun getFinalDirectory(context: FragmentActivity, subtitleItem: SubtitleItem) : String? {
+    private suspend fun getFinalDirectory(context: ComponentActivity, subtitleItem: SubtitleItem) : String? {
         if (!this::defaultSubsDirectory.isInitialized) defaultSubsDirectory = "${context.applicationContext.getExternalFilesDir(null)!!.absolutePath}/subtitles"
         if (subtitleItem.mediaUri.scheme != "file") return defaultSubsDirectory
         val folder = subtitleItem.mediaUri.path.getParentFolder() ?: return context.getExternalFilesDir("subs")?.absolutePath
