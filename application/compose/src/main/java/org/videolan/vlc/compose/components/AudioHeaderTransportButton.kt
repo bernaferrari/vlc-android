@@ -16,7 +16,12 @@ import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.theme.VLCTheme
 
 /**
- * Compose equivalent of the tablet audio-player header transport ImageViews:
+ * Compose equivalent of the audio-player transport ImageViews:
+ *   - application/vlc-android/res/layout/audio_player.xml @id/shuffle
+ *   - application/vlc-android/res/layout/audio_player.xml @id/previous
+ *   - application/vlc-android/res/layout/audio_player.xml @id/play_pause
+ *   - application/vlc-android/res/layout/audio_player.xml @id/next
+ *   - application/vlc-android/res/layout/audio_player.xml @id/repeat
  *   - application/vlc-android/res/layout/audio_player.xml @id/header_shuffle
  *   - application/vlc-android/res/layout/audio_player.xml @id/header_previous
  *   - application/vlc-android/res/layout/audio_player.xml @id/header_large_play_pause
@@ -25,7 +30,8 @@ import org.videolan.vlc.compose.theme.VLCTheme
  *
  * The host owns drawable resources, playback state, and click callbacks. This
  * leaf owns the stable touch target and semantics while ConstraintLayout keeps
- * the existing IDs for tablet header animations.
+ * the existing IDs for tablet header animations, hinge constraints, and
+ * previous/next long-seek listeners.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

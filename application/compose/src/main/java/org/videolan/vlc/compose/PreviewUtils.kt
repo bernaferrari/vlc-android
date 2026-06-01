@@ -248,7 +248,7 @@ private fun PlayerChromeTokensDemo() {
 
         Spacer(Modifier.height(16.dp))
 
-        // Player icons + controls using player_icon_color
+        // Header/full-player transport controls using player_icon_color
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly,

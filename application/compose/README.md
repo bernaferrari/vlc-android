@@ -107,7 +107,7 @@ fun MyFullScreen() {
   - `VLCAudioHeaderTimeLabel` (Wave 2 collapsed audio-player header time label from audio_player.xml)
   - `VLCAudioHeaderActionButton` (Wave 2 collapsed audio-player search/playlist/overflow actions from audio_player.xml)
   - `VLCAudioHeaderPlayPauseButton` (Wave 2 collapsed audio-player mini play/pause control from audio_player.xml)
-  - `VLCAudioHeaderTransportButton` (Wave 2 tablet audio-player header transport controls from audio_player.xml)
+  - `VLCAudioHeaderTransportButton` (Wave 2 audio-player header + full-player transport controls from audio_player.xml)
 - Full Compose Activity screens:
   - `VLCOTPCodeScreen` hosted by `OTPCodeActivity` (former OTP Fragment/layout removed)
   - `VLCBetaWelcomeScreen` hosted by `BetaWelcomeActivity` (former DataBinding XML layout removed)
@@ -196,6 +196,7 @@ ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:comp
 - Part of the "preview + gate enforcement" acceptance criteria for Wave 1.
 
 **Current gate evidence**:
+- 2026-06-01: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:compose:build :application:vlc-android:compileDebugKotlin --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 20s` after replacing the full-player bottom audio transport controls with `VLCAudioHeaderTransportButton`.
 - 2026-06-01: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:compose:build :application:vlc-android:compileDebugKotlin --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 21s` after replacing the tablet audio-player header transport strip with `VLCAudioHeaderTransportButton`.
 - 2026-06-01: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:compose:build :application:vlc-android:compileDebugKotlin --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 21s` after replacing the collapsed audio-player mini play/pause button with `VLCAudioHeaderPlayPauseButton`.
 - 2026-06-01: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:compose:build :application:vlc-android:compileDebugKotlin --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 23s` after replacing the collapsed audio-player search, playlist switch, and overflow action icons with `VLCAudioHeaderActionButton`.

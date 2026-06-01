@@ -61,7 +61,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import androidx.window.layout.FoldingFeature
 import androidx.window.layout.WindowInfoTracker
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -177,12 +176,12 @@ private data class AudioPlaylistSwitchState(
         val usePrimaryTint: Boolean = true
 )
 
-private data class AudioHeaderPlayPauseState(
+private data class AudioPlayPauseState(
         @DrawableRes val icon: Int = R.drawable.ic_play_player,
         val contentDescription: String = ""
 )
 
-private data class AudioHeaderTransportState(
+private data class AudioTransportState(
         @DrawableRes val icon: Int,
         val contentDescription: String = ""
 )
@@ -242,15 +241,13 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
     private var audioQueueProgressPillState by mutableStateOf(VLCAudioQueueProgressPillState())
     private var audioHeaderTimeText by mutableStateOf("")
     private var audioPlaylistSwitchState by mutableStateOf(AudioPlaylistSwitchState())
-    private var audioHeaderPlayPauseState by mutableStateOf(AudioHeaderPlayPauseState())
-    private var audioHeaderShuffleState by mutableStateOf(AudioHeaderTransportState(R.drawable.ic_shuffle_audio))
-    private var audioHeaderRepeatState by mutableStateOf(AudioHeaderTransportState(R.drawable.ic_repeat_audio))
+    private var audioPlayPauseState by mutableStateOf(AudioPlayPauseState())
+    private var audioShuffleState by mutableStateOf(AudioTransportState(R.drawable.ic_shuffle_audio))
+    private var audioRepeatState by mutableStateOf(AudioTransportState(R.drawable.ic_repeat_audio))
 
     private var showRemainingTime = false
     private var previewingSeek = false
     private var playerState = 0
-    private lateinit var pauseToPlay: AnimatedVectorDrawableCompat
-    private lateinit var playToPause: AnimatedVectorDrawableCompat
 
     lateinit var abRepeatAddMarker: Button
     private var audioPlayProgressMode:Boolean = false
@@ -263,7 +260,6 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         super.onCreate(savedInstanceState)
         savedInstanceState?.let {
             playerState = it.getInt("player_state")
-            wasPlaying = it.getBoolean("was_playing")
             showRemainingTime = it.getBoolean("show_remaining_time")
         }
         playlistAdapter = PlaylistAdapter(this)
@@ -346,9 +342,6 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         userVisibleHint = true
         binding.timeline.setOnSeekBarChangeListener(timelineListener)
 
-        //For resizing purpose, we have to cache this twice even if it's from the same resource
-        playToPause = AnimatedVectorDrawableCompat.create(requireActivity(), R.drawable.anim_play_pause_video)!!
-        pauseToPlay = AnimatedVectorDrawableCompat.create(requireActivity(), R.drawable.anim_pause_play_video)!!
         onSlide(0f)
         abRepeatAddMarker = binding.abRepeatContainer.findViewById<Button>(R.id.ab_repeat_add_marker)
         playlistModel.service?.playlistManager?.abRepeat?.observe(viewLifecycleOwner) { abvalues ->
@@ -382,6 +375,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         setupAudioHeaderActions()
         setupAudioHeaderPlayPause()
         setupAudioHeaderTransportControls()
+        setupAudioPlayerTransportControls()
         setupAudioQueueProgressPill()
         setupPlaybackChips()
 
@@ -476,7 +470,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
     private fun setupAudioHeaderPlayPause() {
         binding.headerPlayPause.setContent {
             VLCTheme {
-                val state = audioHeaderPlayPauseState
+                val state = audioPlayPauseState
                 VLCAudioHeaderPlayPauseButton(
                     contentDescription = state.contentDescription,
                     onClick = { onPlayPauseClick(binding.headerPlayPause) },
@@ -491,7 +485,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
     private fun setupAudioHeaderTransportControls() {
         binding.headerShuffle.setContent {
             VLCTheme {
-                val state = audioHeaderShuffleState
+                val state = audioShuffleState
                 VLCAudioHeaderTransportButton(
                     contentDescription = state.contentDescription,
                     onClick = { onShuffleClick(binding.headerShuffle) }
@@ -512,7 +506,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         }
         binding.headerLargePlayPause.setContent {
             VLCTheme {
-                val state = audioHeaderPlayPauseState
+                val state = audioPlayPauseState
                 VLCAudioHeaderTransportButton(
                     contentDescription = state.contentDescription,
                     size = 56.composeDp,
@@ -535,7 +529,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         }
         binding.headerRepeat.setContent {
             VLCTheme {
-                val state = audioHeaderRepeatState
+                val state = audioRepeatState
                 VLCAudioHeaderTransportButton(
                     contentDescription = state.contentDescription,
                     onClick = { onRepeatClick(binding.headerRepeat) }
@@ -546,8 +540,66 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         }
     }
 
-    private fun updateAudioHeaderPlayPause(playing: Boolean, contentDescription: String) {
-        audioHeaderPlayPauseState = AudioHeaderPlayPauseState(
+    private fun setupAudioPlayerTransportControls() {
+        binding.shuffle.setContent {
+            VLCTheme {
+                val state = audioShuffleState
+                VLCAudioHeaderTransportButton(
+                    contentDescription = state.contentDescription,
+                    onClick = { onShuffleClick(binding.shuffle) }
+                ) {
+                    AudioPlayerTransportIcon(state.icon)
+                }
+            }
+        }
+        binding.previous.setContent {
+            VLCTheme {
+                VLCAudioHeaderTransportButton(
+                    contentDescription = getString(R.string.previous),
+                    onClick = { onPreviousClick(binding.previous) }
+                ) {
+                    AudioPlayerTransportIcon(R.drawable.ic_previous)
+                }
+            }
+        }
+        binding.playPause.setContent {
+            VLCTheme {
+                val state = audioPlayPauseState
+                VLCAudioHeaderTransportButton(
+                    contentDescription = state.contentDescription,
+                    size = 56.composeDp,
+                    onClick = { onPlayPauseClick(binding.playPause) },
+                    onLongClick = { onStopClick(binding.playPause) }
+                ) {
+                    AudioPlayerPlayPauseIcon(state.icon, size = 48.composeDp)
+                }
+            }
+        }
+        binding.next.setContent {
+            VLCTheme {
+                VLCAudioHeaderTransportButton(
+                    contentDescription = getString(R.string.next),
+                    onClick = { onNextClick(binding.next) }
+                ) {
+                    AudioPlayerTransportIcon(R.drawable.ic_next)
+                }
+            }
+        }
+        binding.repeat.setContent {
+            VLCTheme {
+                val state = audioRepeatState
+                VLCAudioHeaderTransportButton(
+                    contentDescription = state.contentDescription,
+                    onClick = { onRepeatClick(binding.repeat) }
+                ) {
+                    AudioPlayerTransportIcon(state.icon)
+                }
+            }
+        }
+    }
+
+    private fun updateAudioPlayPause(playing: Boolean, contentDescription: String) {
+        audioPlayPauseState = AudioPlayPauseState(
                 icon = if (playing) R.drawable.ic_pause_player else R.drawable.ic_play_player,
                 contentDescription = contentDescription
         )
@@ -654,7 +706,6 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putInt("player_state", playerState)
-        outState.putBoolean("was_playing", wasPlaying)
         outState.putBoolean("show_remaining_time", showRemainingTime)
     }
 
@@ -788,22 +839,14 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
 
     }
 
-    private var wasPlaying = true
     private fun updatePlayPause() {
         val ctx = context ?: return
         val playing = playlistModel.playing
         val text = ctx.getString(if (playing) R.string.pause else R.string.play)
 
-        val drawable = if (playing) playToPause else pauseToPlay
-        binding.playPause.setImageDrawable(drawable)
-        updateAudioHeaderPlayPause(playing, text)
-        if (playing != wasPlaying) {
-            drawable.start()
-        }
+        updateAudioPlayPause(playing, text)
 
         playlistAdapter.setCurrentlyPlaying(playing)
-        binding.playPause.contentDescription = text
-        wasPlaying = playing
     }
 
     private var wasShuffling = false
@@ -813,10 +856,8 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         val shuffling = playlistModel.shuffling
         val icon = if (shuffling) R.drawable.ic_shuffle_on else R.drawable.ic_shuffle_audio
         val text = ctx.getString(if (shuffling) R.string.shuffle_on else R.string.shuffle)
-        if (wasShuffling == shuffling && audioHeaderShuffleState.contentDescription == text) return
-        binding.shuffle.setImageResource(icon)
-        binding.shuffle.contentDescription = text
-        audioHeaderShuffleState = AudioHeaderTransportState(icon, text)
+        if (wasShuffling == shuffling && audioShuffleState.contentDescription == text) return
+        audioShuffleState = AudioTransportState(icon, text)
         wasShuffling = shuffling
     }
 
@@ -840,10 +881,8 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
                 text = ctx.getString(R.string.repeat_none)
             }
         }
-        if (previousRepeatType == repeatType && audioHeaderRepeatState.contentDescription == text) return
-        binding.repeat.setImageResource(icon)
-        binding.repeat.contentDescription = text
-        audioHeaderRepeatState = AudioHeaderTransportState(icon, text)
+        if (previousRepeatType == repeatType && audioRepeatState.contentDescription == text) return
+        audioRepeatState = AudioTransportState(icon, text)
         previousRepeatType = repeatType
     }
 

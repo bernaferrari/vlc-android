@@ -646,96 +646,66 @@
                 app:layout_constraintBottom_toTopOf="@+id/timeline"
                 app:layout_constraintRight_toRightOf="@+id/timeline" />
 
-        <ImageView
+        <org.videolan.vlc.compose.interop.VLCComposeView
                 android:id="@+id/shuffle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
-                android:background="?attr/actionBarItemBackground"
-                android:contentDescription="@string/shuffle_title"
                 android:visibility="@{can_shuffle ? View.VISIBLE : View.INVISIBLE}"
                 android:elevation="4dp"
-                android:focusable="true"
-                android:onClick="@{fragment::onShuffleClick}"
-                android:padding="8dp"
                 app:layout_constraintBottom_toBottomOf="@+id/play_pause"
                 app:layout_constraintRight_toLeftOf="@+id/previous"
                 app:layout_constraintHorizontal_chainStyle="packed"
                 app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/play_pause"
-                app:srcCompat="@drawable/ic_shuffle_audio" />
+                app:layout_constraintTop_toTopOf="@+id/play_pause" />
 
-        <ImageView
+        <org.videolan.vlc.compose.interop.VLCComposeView
                 android:id="@+id/previous"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
-                android:background="?attr/actionBarItemBackground"
-                android:contentDescription="@string/previous"
                 android:elevation="4dp"
-                android:focusable="true"
-                android:onClick="@{fragment::onPreviousClick}"
-                android:padding="8dp"
                 app:layout_constraintBottom_toBottomOf="@+id/play_pause"
                 app:layout_constraintRight_toLeftOf="@+id/play_pause"
                 app:layout_constraintLeft_toRightOf="@+id/shuffle"
-                app:layout_constraintTop_toTopOf="@+id/play_pause"
-                app:srcCompat="@drawable/ic_previous" />
+                app:layout_constraintTop_toTopOf="@+id/play_pause" />
 
-        <androidx.appcompat.widget.AppCompatImageView
+        <org.videolan.vlc.compose.interop.VLCComposeView
                 android:id="@+id/play_pause"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
-                android:contentDescription="@string/play"
                 android:elevation="4dp"
-                android:onClick="@{fragment::onPlayPauseClick}"
-                android:onLongClick="@{fragment::onStopClick}"
-                android:padding="4dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintRight_toLeftOf="@+id/next"
                 app:layout_constraintLeft_toRightOf="@+id/previous" />
 
-        <ImageView
+        <org.videolan.vlc.compose.interop.VLCComposeView
                 android:id="@+id/next"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
-                android:background="?attr/actionBarItemBackground"
-                android:contentDescription="@string/next"
                 android:elevation="4dp"
-                android:focusable="true"
-                android:onClick="@{fragment::onNextClick}"
-                android:padding="8dp"
-                android:scaleType="fitXY"
                 app:layout_constraintBottom_toBottomOf="@+id/play_pause"
                 app:layout_constraintRight_toLeftOf="@+id/repeat"
                 app:layout_constraintLeft_toRightOf="@+id/play_pause"
-                app:layout_constraintTop_toTopOf="@+id/play_pause"
-                app:srcCompat="@drawable/ic_next" />
+                app:layout_constraintTop_toTopOf="@+id/play_pause" />
 
-        <ImageView
+        <org.videolan.vlc.compose.interop.VLCComposeView
                 android:id="@+id/repeat"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
-                android:background="?attr/actionBarItemBackground"
-                android:contentDescription="@string/repeat_title"
                 android:elevation="4dp"
-                android:padding="8dp"
-                android:focusable="true"
-                android:onClick="@{fragment::onRepeatClick}"
-                android:scaleType="fitXY"
                 app:layout_constraintBottom_toBottomOf="@+id/play_pause"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintLeft_toRightOf="@+id/next"
-                app:layout_constraintTop_toTopOf="@+id/play_pause"
-                app:srcCompat="@drawable/ic_repeat_audio" />
+                app:layout_constraintTop_toTopOf="@+id/play_pause" />
 
         <androidx.constraintlayout.widget.Guideline
                 android:id="@+id/centerGuideline"
