@@ -51,7 +51,6 @@ import androidx.core.view.children
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import androidx.window.layout.FoldingFeature
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.Dispatchers
@@ -129,11 +128,6 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
 
     private var overlayTimeout = 0
-    private var wasPlaying = true
-
-    lateinit var playToPause: AnimatedVectorDrawableCompat
-    lateinit var pauseToPlay: AnimatedVectorDrawableCompat
-
     private val hudBackground: View? by lazy { player.findViewById(R.id.hud_background) }
     private val hudRightBackground: View? by lazy { player.findViewById(R.id.hud_right_background) }
 
@@ -472,7 +466,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
                 if (!player.displayManager.isPrimary)
                     overlayBackground.setVisible()
-                updateOverlayPausePlay(true)
+                updateOverlayPausePlay()
                 player.handler.removeMessages(VideoPlayerActivity.FADE_OUT)
             } else {
                 player.handler.removeMessages(VideoPlayerActivity.FADE_OUT)
@@ -491,24 +485,17 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
         PlaybackService.playerSleepTime.value = sleepTime
     }
 
-    fun updateOverlayPausePlay(skipAnim: Boolean = false) {
+    fun updateOverlayPausePlay() {
         if (!::hudBinding.isInitialized) return
         player.service?.let { service ->
             if (service.isPausable) {
 
-                if (skipAnim) {
-                    hudBinding.playerOverlayPlay.setImageResource(if (service.isPlaying)
-                        R.drawable.ic_pause_player
-                    else
-                        R.drawable.ic_play_player)
-                } else {
-                    val drawable = if (service.isPlaying) playToPause else pauseToPlay
-                    hudBinding.playerOverlayPlay.setImageDrawable(drawable)
-                    if (service.isPlaying != wasPlaying) drawable.start()
-                }
+                hudBinding.playerOverlayPlay.setImageResource(if (service.isPlaying)
+                    R.drawable.ic_pause_player
+                else
+                    R.drawable.ic_play_player)
                 hudBinding.playerOverlayPlay.contentDescription = player.getString(if (service.isPlaying) R.string.pause else R.string.play)
 
-                wasPlaying = service.isPlaying
             }
             hudBinding.playerOverlayPlay.requestFocus()
             playlistPlaying = service.isPlaying
@@ -612,7 +599,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
 
                 resetHudLayout()
-                updateOverlayPausePlay(true)
+                updateOverlayPausePlay()
                 updateSeekable(service.isSeekable)
                 updatePausable(service.isPausable)
                 player.updateNavStatus()

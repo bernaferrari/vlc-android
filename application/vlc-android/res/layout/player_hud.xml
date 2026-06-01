@@ -367,7 +367,7 @@
                     vlc:layout_constraintTop_toTopOf="@+id/player_overlay_rewind"
                     tools:text="88" />
 
-            <ImageView
+            <org.videolan.vlc.gui.view.VideoHudIconButtonView
                     android:id="@+id/player_overlay_play"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -376,12 +376,11 @@
                     android:contentDescription="@string/play"
                     android:focusable="true"
                     android:onClick="@{(v) -> player.doPlayPause()}"
-                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_pause_player"
                     tools:visibility="visible"
                     vlc:layout_constraintBottom_toBottomOf="parent"
                     vlc:layout_constraintEnd_toStartOf="@+id/player_overlay_forward"
-                    vlc:layout_constraintStart_toEndOf="@+id/player_overlay_rewind"
-                    vlc:srcCompat="@drawable/ic_pause_player" />
+                    vlc:layout_constraintStart_toEndOf="@+id/player_overlay_rewind" />
 
             <org.videolan.vlc.gui.view.VideoHudIconButtonView
                     android:id="@+id/player_overlay_forward"
