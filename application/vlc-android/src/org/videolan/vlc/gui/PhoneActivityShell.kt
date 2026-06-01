@@ -131,7 +131,7 @@ internal fun MainActivity.createMainActivityShell(): View {
         }
     )
 
-    root.addView(createAudioPlayerTipsStub())
+    root.addView(createAudioPlayerTipsHostView())
 
     return root
 }
@@ -186,7 +186,7 @@ internal fun SecondaryActivity.createSecondaryActivityShell(): View {
         FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
     )
     root.addView(
-        createAudioPlayerTipsStub(),
+        createAudioPlayerTipsHostView(),
         FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
     )
 
@@ -304,11 +304,6 @@ private fun Context.createScanProgressStub() = ViewStubCompat(this, null).apply 
 private fun Context.createAudioPlaylistTipsStub() = ViewStubCompat(this, null).apply {
     id = R.id.audio_playlist_tips
     layoutResource = R.layout.audio_playlist_tips
-}
-
-private fun Context.createAudioPlayerTipsStub() = ViewStubCompat(this, null).apply {
-    id = R.id.audio_player_tips
-    layoutResource = R.layout.audio_player_tips
 }
 
 private fun Context.actionBarSize(): Int {

@@ -29,6 +29,7 @@
     <item type="id" name="audio_player_container" />
     <item type="id" name="audio_player_stub" />
     <item type="id" name="audio_player_tips" />
+    <item type="id" name="audioPlayerTips" />
     <item type="id" name="audio_playlist_tips" />
     <item type="id" name="browser_fast_scroller" />
     <item type="id" name="fab" />
@@ -45,4 +46,6 @@
     <item type="id" name="sort_desc" />
     <item type="id" name="toolbar_icon" />
     <item type="id" name="toolbar_vlc_title" />
+    <item type="id" name="tapIndicatorPlaylist" />
+    <item type="id" name="tapIndicatorStop" />
 </resources>

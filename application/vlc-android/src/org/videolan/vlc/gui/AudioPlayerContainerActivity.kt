@@ -95,6 +95,7 @@ import org.videolan.vlc.gui.helpers.PlayerKeyListenerDelegate
 import org.videolan.vlc.gui.helpers.PlayerOptionsDelegateCallback
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.isTablet
+import org.videolan.vlc.gui.view.AudioPlayerTipsHostView
 import org.videolan.vlc.media.PlaylistManager
 import org.videolan.vlc.media.ResumeStatus
 import org.videolan.vlc.media.WaitConfirmation
@@ -584,13 +585,25 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
     @SuppressLint("RestrictedApi")
     fun showTipViewIfNeeded(stubId: Int, settingKey: String) {
         if (BuildConfig.DEBUG || PlaybackService.hasRenderer()) return
-        val vsc = findViewById<ViewStubCompat>(stubId)
-        if (vsc != null && !settings.getBoolean(settingKey, false) && !Settings.showTvUi) {
+        if (!settings.getBoolean(settingKey, false) && !Settings.showTvUi) {
+            var shown = false
             when (stubId) {
-                R.id.audio_player_tips -> if (tipsDelegate.currentTip == null && !shownTips.contains(stubId)) tipsDelegate.init(vsc)
-                R.id.audio_playlist_tips -> if (playlistTipsDelegate.currentTip == null && !shownTips.contains(stubId)) playlistTipsDelegate.init(vsc)
+                R.id.audio_player_tips -> {
+                    val tipsHost = findViewById<AudioPlayerTipsHostView>(stubId)
+                    if (tipsHost != null && tipsDelegate.currentTip == null && !shownTips.contains(stubId)) {
+                        tipsDelegate.init(tipsHost)
+                        shown = true
+                    }
+                }
+                R.id.audio_playlist_tips -> {
+                    val vsc = findViewById<ViewStubCompat>(stubId)
+                    if (vsc != null && playlistTipsDelegate.currentTip == null && !shownTips.contains(stubId)) {
+                        playlistTipsDelegate.init(vsc)
+                        shown = true
+                    }
+                }
             }
-            if (::audioPlayer.isInitialized) audioPlayer.playlistModel.service?.pause()
+            if (shown && ::audioPlayer.isInitialized) audioPlayer.playlistModel.service?.pause()
         }
     }
 
@@ -614,6 +627,11 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
      * Remove the current tip view if there is one displayed.
      */
     fun removeTipViewIfDisplayed() {
+        findViewById<AudioPlayerTipsHostView>(R.id.audio_player_tips)?.let {
+            it.tipsView.hideTips()
+            it.visibility = View.GONE
+            return
+        }
         findViewById<View>(R.id.audio_player_tips)?.let { (it.parent as ViewGroup).removeView(it) }
     }
 

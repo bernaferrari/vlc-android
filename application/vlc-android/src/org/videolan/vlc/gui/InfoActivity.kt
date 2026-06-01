@@ -238,10 +238,7 @@ class InfoActivity : AudioPlayerContainerActivity(), PathAdapterListener,
 
         root.addView(createInfoAudioPlayerContainer())
         root.addView(
-            ViewStubCompat(this, null).apply {
-                id = R.id.audio_player_tips
-                layoutResource = R.layout.audio_player_tips
-            },
+            createAudioPlayerTipsHostView(),
             CoordinatorLayout.LayoutParams(CoordinatorLayout.LayoutParams.MATCH_PARENT, CoordinatorLayout.LayoutParams.MATCH_PARENT)
         )
         return root

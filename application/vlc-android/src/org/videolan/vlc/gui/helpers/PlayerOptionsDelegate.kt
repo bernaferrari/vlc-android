@@ -32,6 +32,7 @@ import org.videolan.vlc.gui.dialogs.showVideoControlsSettingsComposeDialog
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.hf.PinCodeDelegate
 import org.videolan.vlc.gui.helpers.hf.checkPIN
+import org.videolan.vlc.gui.view.AudioPlayerTipsHostView
 import org.videolan.vlc.gui.view.PlayerOptionsPanelView
 import org.videolan.vlc.gui.video.VideoPlayerActivity
 import org.videolan.vlc.media.PlayerController
@@ -212,7 +213,7 @@ class PlayerOptionsDelegate(val activity: ComponentActivity, val service: Playba
             ID_SHOW_AUDIO_TIPS -> {
                 hide()
                 val audioPlayerContainerActivity = activity as AudioPlayerContainerActivity
-                audioPlayerContainerActivity.findViewById<ViewStubCompat>(R.id.audio_player_tips)?.let {
+                audioPlayerContainerActivity.findViewById<AudioPlayerTipsHostView>(R.id.audio_player_tips)?.let {
                     audioPlayerContainerActivity.tipsDelegate.init(it)
                 }
             }
