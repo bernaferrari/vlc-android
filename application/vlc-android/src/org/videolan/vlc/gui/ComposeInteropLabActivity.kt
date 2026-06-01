@@ -89,6 +89,7 @@ import org.videolan.vlc.compose.components.VLCAudioTimelineSlider
 import org.videolan.vlc.compose.components.VLCAudioTimelineTimeLabel
 import org.videolan.vlc.compose.components.VLCBrowserItemCard
 import org.videolan.vlc.compose.components.VLCBrowserItemRow
+import org.videolan.vlc.compose.components.VLCEmptyState
 import org.videolan.vlc.compose.components.VLCOnboardingWelcome
 import org.videolan.vlc.compose.components.VLCPlayerOptionItem
 import org.videolan.vlc.compose.components.VLCSectionHeader
@@ -238,6 +239,34 @@ fun ComposeInteropLabContent() {
         }
         Text(
             "This shared leaf is now hosted by playlist and video Compose screens, replacing duplicated private row/card code while preserving app-side icons through slots.",
+            style = MaterialTheme.typography.bodySmall
+        )
+
+        // -----------------------------------------------------------------
+        // WAVE 2. VLCEmptyState (shared loading/empty states)
+        // -----------------------------------------------------------------
+        VLCSectionHeader(text = "Wave 2. VLCEmptyState (empty/loading surfaces)")
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            VLCEmptyState(
+                loading = true,
+                text = "Loading",
+                modifier = Modifier
+                    .weight(1f)
+                    .height(132.dp),
+                compact = true
+            )
+            VLCEmptyState(
+                loading = false,
+                text = "No media found",
+                icon = painterResource(R.drawable.ic_empty),
+                modifier = Modifier
+                    .weight(1f)
+                    .height(132.dp),
+                compact = true
+            )
+        }
+        Text(
+            "Hosted by the phone audio, video, browser, and playlist Compose screens. The unused legacy XML wrapper has been removed.",
             style = MaterialTheme.typography.bodySmall
         )
 

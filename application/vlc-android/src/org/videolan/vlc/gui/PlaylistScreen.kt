@@ -40,16 +40,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -76,6 +73,7 @@ import org.videolan.tools.putSingle
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.components.VLCBrowserItemCard
 import org.videolan.vlc.compose.components.VLCBrowserItemRow
+import org.videolan.vlc.compose.components.VLCEmptyState
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.dialogs.CURRENT_SORT
 import org.videolan.vlc.gui.dialogs.DISPLAY_IN_CARDS
@@ -430,8 +428,8 @@ private fun PlaylistScreenContent(
         color = colors.backgroundDefault
     ) {
         when {
-            loading && playlists.isEmpty() -> PlaylistEmptyState(loading = true, text = stringResource(R.string.loading))
-            playlists.isEmpty() -> PlaylistEmptyState(
+            loading && playlists.isEmpty() -> VLCEmptyState(loading = true, text = stringResource(R.string.loading))
+            playlists.isEmpty() -> VLCEmptyState(
                 loading = false,
                 text = filterQuery?.let { stringResource(R.string.empty_search, it) }
                     ?: if (onlyFavorites) stringResource(R.string.nofav) else stringResource(R.string.noplaylist)
@@ -607,24 +605,4 @@ private fun PlaylistIconContent(size: Dp) {
         modifier = Modifier.size(size),
         tint = VLCThemeDefaults.colors.primary
     )
-}
-
-@Composable
-private fun PlaylistEmptyState(loading: Boolean, text: String) {
-    val colors = VLCThemeDefaults.colors
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        if (loading) CircularProgressIndicator(color = colors.primary)
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = text,
-            color = colors.listSubtitle,
-            style = MaterialTheme.typography.bodyMedium
-        )
-    }
 }

@@ -28,6 +28,7 @@ import org.videolan.vlc.compose.components.VLCAbRepeatControls
 import org.videolan.vlc.compose.components.VLCDebugLogLine
 import org.videolan.vlc.compose.components.VLCDialogConfirmDelete
 import org.videolan.vlc.compose.components.VLCDropdownItem
+import org.videolan.vlc.compose.components.VLCEmptyState
 import org.videolan.vlc.compose.components.VLCInfoItem
 import org.videolan.vlc.compose.components.VLCAudioAbRepeatMarker
 import org.videolan.vlc.compose.components.VLCBookmarkRow
@@ -269,6 +270,62 @@ private fun BrowserItemPreviewAction(text: String) {
         color = VLCThemeDefaults.colors.primary,
         style = MaterialTheme.typography.labelLarge
     )
+}
+
+@Preview(
+    name = "Shared Empty States - Light",
+    showBackground = true,
+    backgroundColor = 0xFFFFFFFF,
+    widthDp = 420,
+    heightDp = 260
+)
+@Composable
+fun SharedEmptyStatesLightPreview() {
+    VLCTheme(darkTheme = false) {
+        SharedEmptyStatesDemo()
+    }
+}
+
+@Preview(
+    name = "Shared Empty States - Dark",
+    showBackground = true,
+    backgroundColor = 0xFF131313,
+    widthDp = 420,
+    heightDp = 260
+)
+@Composable
+fun SharedEmptyStatesDarkPreview() {
+    VLCTheme(darkTheme = true) {
+        SharedEmptyStatesDemo()
+    }
+}
+
+@Composable
+private fun SharedEmptyStatesDemo() {
+    Row(
+        modifier = Modifier
+            .background(VLCThemeDefaults.colors.backgroundDefault)
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        VLCEmptyState(
+            loading = true,
+            text = "Loading",
+            modifier = Modifier
+                .weight(1f)
+                .height(180.dp),
+            compact = true
+        )
+        VLCEmptyState(
+            loading = false,
+            text = "No media found",
+            modifier = Modifier
+                .weight(1f)
+                .height(180.dp),
+            compact = true,
+            actionText = "Browse"
+        )
+    }
 }
 
 @Preview(

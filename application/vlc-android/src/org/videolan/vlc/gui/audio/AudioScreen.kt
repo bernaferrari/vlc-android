@@ -46,7 +46,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -100,6 +99,7 @@ import org.videolan.tools.Settings
 import org.videolan.tools.putSingle
 import org.videolan.tools.retrieveParent
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.components.VLCEmptyState
 import org.videolan.vlc.compose.components.VLCRenameDialogContent
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
@@ -1010,8 +1010,8 @@ private fun AudioGridOrList(
     val colors = VLCThemeDefaults.colors
     Surface(modifier = Modifier.fillMaxSize(), color = colors.backgroundDefault) {
         when {
-            loading && items.isEmpty() -> AudioEmptyState(loading = true, text = stringResource(R.string.loading))
-            items.isEmpty() -> AudioEmptyState(loading = false, text = emptyText)
+            loading && items.isEmpty() -> VLCEmptyState(loading = true, text = stringResource(R.string.loading))
+            items.isEmpty() -> VLCEmptyState(loading = false, text = emptyText)
             displayInCards -> LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(8.dp)
@@ -1152,22 +1152,6 @@ private fun AudioIcon(item: MediaLibraryItem, large: Boolean = false) {
             modifier = Modifier.size(if (large) 32.dp else 28.dp),
             tint = colors.primary
         )
-    }
-}
-
-@Composable
-private fun AudioEmptyState(loading: Boolean, text: String) {
-    val colors = VLCThemeDefaults.colors
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        if (loading) CircularProgressIndicator(color = colors.primary)
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(text = text, color = colors.listSubtitle, style = MaterialTheme.typography.bodyMedium)
     }
 }
 

@@ -39,9 +39,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -50,7 +48,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -96,6 +93,7 @@ import org.videolan.tools.putSingle
 import org.videolan.tools.retrieveParent
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.components.VLCEmptyState
 import org.videolan.vlc.compose.components.VLCRenameDialogContent
 import org.videolan.vlc.compose.components.VLCBrowserItemCard
 import org.videolan.vlc.compose.components.VLCBrowserItemRow
@@ -1282,8 +1280,8 @@ private fun MediaGridOrList(
     val colors = VLCThemeDefaults.colors
     Surface(modifier = Modifier.fillMaxSize(), color = colors.backgroundDefault) {
         when {
-            loading && items.isEmpty() -> VideoEmptyState(loading = true, text = stringResource(R.string.loading))
-            items.isEmpty() -> VideoEmptyState(loading = false, text = emptyText)
+            loading && items.isEmpty() -> VLCEmptyState(loading = true, text = stringResource(R.string.loading))
+            items.isEmpty() -> VLCEmptyState(loading = false, text = emptyText)
             displayInCards -> LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(8.dp)
@@ -1397,22 +1395,6 @@ private fun MediaIconContent(icon: Int, size: Dp) {
         modifier = Modifier.size(size),
         tint = VLCThemeDefaults.colors.primary
     )
-}
-
-@Composable
-private fun VideoEmptyState(loading: Boolean, text: String) {
-    val colors = VLCThemeDefaults.colors
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        if (loading) CircularProgressIndicator(color = colors.primary)
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(text = text, color = colors.listSubtitle, style = MaterialTheme.typography.bodyMedium)
-    }
 }
 
 @Composable

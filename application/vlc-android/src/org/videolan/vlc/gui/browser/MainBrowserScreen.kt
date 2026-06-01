@@ -50,7 +50,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -116,6 +115,7 @@ import org.videolan.vlc.MediaParsingService
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.components.VLCBrowserItemCard
 import org.videolan.vlc.compose.components.VLCBrowserItemRow
+import org.videolan.vlc.compose.components.VLCEmptyState
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.MainActivity
 import org.videolan.vlc.gui.SecondaryActivity
@@ -1554,10 +1554,20 @@ private fun StorageRootScreenContent(
                 }
                 when {
                     section.loading && section.items.isEmpty() -> item(key = "${section.title}-loading") {
-                        BrowserEmptyState(loading = true, text = stringResource(R.string.loading))
+                        VLCEmptyState(
+                            loading = true,
+                            text = stringResource(R.string.loading),
+                            modifier = Modifier.fillMaxWidth(),
+                            compact = true
+                        )
                     }
                     section.items.isEmpty() -> item(key = "${section.title}-empty") {
-                        BrowserEmptyState(loading = false, text = section.emptyText)
+                        VLCEmptyState(
+                            loading = false,
+                            text = section.emptyText,
+                            modifier = Modifier.fillMaxWidth(),
+                            compact = true
+                        )
                     }
                     else -> items(section.items, key = { "${section.title}-${it.stableBrowserKey()}" }) { item ->
                         val position = section.items.indexOf(item)
@@ -1667,10 +1677,20 @@ private fun StorageFolderScreenContent(
         ) {
             when {
                 loading && items.isEmpty() -> item(key = "storage-loading") {
-                    BrowserEmptyState(loading = true, text = stringResource(R.string.loading))
+                    VLCEmptyState(
+                        loading = true,
+                        text = stringResource(R.string.loading),
+                        modifier = Modifier.fillMaxWidth(),
+                        compact = true
+                    )
                 }
                 items.isEmpty() -> item(key = "storage-empty") {
-                    BrowserEmptyState(loading = false, text = stringResource(R.string.nomedia))
+                    VLCEmptyState(
+                        loading = false,
+                        text = stringResource(R.string.nomedia),
+                        modifier = Modifier.fillMaxWidth(),
+                        compact = true
+                    )
                 }
                 else -> items(items, key = { it.stableBrowserKey() }) { item ->
                     StorageRootRow(
@@ -1773,11 +1793,21 @@ private fun MainBrowserScreenContent(
                 }
                 if (section.loading && section.items.isEmpty()) {
                     item(key = "${section.title}-loading") {
-                        BrowserEmptyState(loading = true, text = stringResource(R.string.loading))
+                        VLCEmptyState(
+                            loading = true,
+                            text = stringResource(R.string.loading),
+                            modifier = Modifier.fillMaxWidth(),
+                            compact = true
+                        )
                     }
                 } else if (section.items.isEmpty()) {
                     item(key = "${section.title}-empty") {
-                        BrowserEmptyState(loading = false, text = section.emptyText)
+                        VLCEmptyState(
+                            loading = false,
+                            text = section.emptyText,
+                            modifier = Modifier.fillMaxWidth(),
+                            compact = true
+                        )
                     }
                 } else if (displayInList) {
                     items(section.items, key = { "${section.title}-${it.stableBrowserKey()}" }) { item ->
@@ -1854,10 +1884,20 @@ private fun NestedBrowserScreenContent(
         ) {
             when {
                 loading && items.isEmpty() -> item(key = "nested-loading") {
-                    BrowserEmptyState(loading = true, text = stringResource(R.string.loading))
+                    VLCEmptyState(
+                        loading = true,
+                        text = stringResource(R.string.loading),
+                        modifier = Modifier.fillMaxWidth(),
+                        compact = true
+                    )
                 }
                 items.isEmpty() -> item(key = "nested-empty") {
-                    BrowserEmptyState(loading = false, text = emptyText)
+                    VLCEmptyState(
+                        loading = false,
+                        text = emptyText,
+                        modifier = Modifier.fillMaxWidth(),
+                        compact = true
+                    )
                 }
                 !displayInCards -> items(items, key = { it.stableBrowserKey() }) { item ->
                     val position = items.indexOf(item)
@@ -1903,25 +1943,6 @@ private fun networkEmptyText(enabled: Boolean, connected: Boolean, lanAllowed: B
         !connected -> stringResource(R.string.network_connection_needed)
         lanAllowed -> stringResource(R.string.network_shares_discovery)
         else -> stringResource(R.string.network_connection_needed)
-    }
-}
-
-@Composable
-private fun BrowserEmptyState(loading: Boolean, text: String) {
-    val colors = VLCThemeDefaults.colors
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        if (loading) CircularProgressIndicator(color = colors.primary)
-        Text(
-            text = text,
-            color = colors.listSubtitle,
-            style = MaterialTheme.typography.bodyMedium
-        )
     }
 }
 
