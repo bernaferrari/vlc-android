@@ -24,8 +24,7 @@ package org.videolan.television.viewmodel
 
 import android.app.Application
 import android.content.Intent
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
+import androidx.activity.ComponentActivity
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
@@ -310,7 +309,7 @@ class MainTvModel(app: Application) : AndroidViewModel(app), Medialibrary.OnMedi
         nowPlayingDelegate.onClear()
     }
 
-    fun open(activity: FragmentActivity, item: Any?) {
+    fun open(activity: ComponentActivity, item: Any?) {
         when (item) {
             is MediaWrapper -> when (item.type) {
                 MediaWrapper.TYPE_DIR -> {
@@ -360,10 +359,6 @@ class MainTvModel(app: Application) : AndroidViewModel(app), Medialibrary.OnMedi
             }
             is MediaLibraryItem -> org.videolan.television.ui.TvUtil.openAudioCategory(activity, item)
         }
-    }
-
-    companion object {
-        fun Fragment.getMainTvModel() = ViewModelProvider(requireActivity(), Factory(requireActivity().application))[MainTvModel::class.java]
     }
 
     class Factory(private val app: Application) : ViewModelProvider.NewInstanceFactory() {
