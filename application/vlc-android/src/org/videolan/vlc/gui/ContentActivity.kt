@@ -36,7 +36,6 @@ import org.videolan.tools.Settings
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
 import org.videolan.vlc.RendererDelegate
-import org.videolan.vlc.gui.browser.MLStorageBrowserFragment
 import org.videolan.vlc.gui.dialogs.showRenderersComposeDialog
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.interfaces.Filterable
@@ -99,7 +98,7 @@ open class ContentActivity : AudioPlayerContainerActivity(), SearchView.OnQueryT
             searchItem.setOnActionExpandListener(this)
         } else
             menu.findItem(R.id.ml_menu_filter).isVisible = false
-        menu.findItem(R.id.ml_menu_renderers).isVisible = current !is MLStorageBrowserFragment && !hideRenderers() && showRenderers && Settings.getInstance(this).getBoolean(KEY_ENABLE_CASTING, true)
+        menu.findItem(R.id.ml_menu_renderers).isVisible = !hideRenderers() && showRenderers && Settings.getInstance(this).getBoolean(KEY_ENABLE_CASTING, true)
         menu.findItem(R.id.ml_menu_renderers).setIcon(if (!PlaybackService.hasRenderer()) R.drawable.ic_renderer else R.drawable.ic_renderer_on)
         return true
     }

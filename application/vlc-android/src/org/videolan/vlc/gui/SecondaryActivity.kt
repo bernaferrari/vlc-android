@@ -80,10 +80,12 @@ import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.gui.audio.SecondaryAudioScreenController
 import org.videolan.vlc.gui.browser.FileBrowserFragment
+import org.videolan.vlc.gui.browser.KEY_IN_MEDIALIB
 import org.videolan.vlc.gui.browser.KEY_JUMP_TO
 import org.videolan.vlc.gui.browser.KEY_MEDIA
-import org.videolan.vlc.gui.browser.MLStorageBrowserFragment
 import org.videolan.vlc.gui.browser.NetworkBrowserFragment
+import org.videolan.vlc.gui.browser.SecondaryStorageBrowserScreenController
+import org.videolan.vlc.gui.browser.StorageBrowserFragment
 import org.videolan.vlc.gui.dialogs.CONFIRM_DELETE_DIALOG_RESULT
 import org.videolan.vlc.gui.dialogs.CONFIRM_RENAME_DIALOG_RESULT
 import org.videolan.vlc.gui.dialogs.CtxActionReceiver
@@ -132,6 +134,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
     private var historyCleanMenuItem: MenuItem? = null
     private var videoGroupController: SecondaryVideoScreenController? = null
     private var audioAlbumsSongsController: SecondaryAudioScreenController? = null
+    private var storageBrowserController: SecondaryStorageBrowserScreenController? = null
     override val displayTitle = true
     private val dialogsDelegate = DialogDelegate()
     val isOnboarding:Boolean
@@ -187,6 +190,8 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
                 setupVideoGroupContent(fph as ViewGroup)
             } else if (fragmentId == ALBUMS_SONGS) {
                 setupAudioAlbumsSongsContent(fph as ViewGroup)
+            } else if (fragmentId == STORAGE_BROWSER || fragmentId == STORAGE_BROWSER_ONBOARDING) {
+                setupStorageBrowserContent(fph as ViewGroup, fragmentId == STORAGE_BROWSER_ONBOARDING)
             } else {
                 fragmentId?.let { fetchSecondaryFragment(it) }
                 if (fragment == null) {
@@ -208,6 +213,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         historyModel?.refresh()
         videoGroupController?.onVisible()
         audioAlbumsSongsController?.onVisible()
+        storageBrowserController?.onVisible()
         when (intent.getStringExtra(KEY_FRAGMENT)) {
             STREAMS -> supportActionBar?.setTitle(R.string.streams)
             HISTORY -> supportActionBar?.setTitle(R.string.history)
@@ -217,6 +223,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
     override fun onStop() {
         videoGroupController?.onHidden()
         audioAlbumsSongsController?.onHidden()
+        storageBrowserController?.onHidden()
         super.onStop()
     }
 
@@ -265,6 +272,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         }
         videoGroupController?.prepareOptionsMenu(menu)
         audioAlbumsSongsController?.prepareOptionsMenu(menu)
+        storageBrowserController?.prepareOptionsMenu(menu)
         return result
     }
 
@@ -274,6 +282,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         updateHistoryCleanMenuVisibility(menu?.findItem(R.id.ml_menu_clean))
         menu?.let { videoGroupController?.prepareOptionsMenu(it) }
         menu?.let { audioAlbumsSongsController?.prepareOptionsMenu(it) }
+        menu?.let { storageBrowserController?.prepareOptionsMenu(it) }
         return super.onPrepareOptionsMenu(menu)
     }
 
@@ -296,6 +305,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
                     if (!ml.isWorking) reloadLibrary()
                     videoGroupController?.refresh()
                     audioAlbumsSongsController?.refresh()
+                    storageBrowserController?.refresh()
                 }
                 return true
             }
@@ -308,10 +318,12 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         }
         if (videoGroupController?.onOptionsItemSelected(item) == true) return true
         if (audioAlbumsSongsController?.onOptionsItemSelected(item) == true) return true
+        if (storageBrowserController?.onOptionsItemSelected(item) == true) return true
         return super.onOptionsItemSelected(item)
     }
 
-    override fun hideRenderers() = intent.getStringExtra(KEY_FRAGMENT) == STORAGE_BROWSER_ONBOARDING
+    override fun hideRenderers() = intent.getStringExtra(KEY_FRAGMENT) == STORAGE_BROWSER ||
+            intent.getStringExtra(KEY_FRAGMENT) == STORAGE_BROWSER_ONBOARDING
 
     private fun setupStreamsContent(container: ViewGroup) {
         val model = ViewModelProvider(this, StreamsModel.Factory(this))[StreamsModel::class.java]
@@ -523,6 +535,26 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         controller.onVisible()
     }
 
+    private fun setupStorageBrowserContent(container: ViewGroup, onboarding: Boolean) {
+        setResult(RESULT_RESTART)
+        val controller = storageBrowserController ?: SecondaryStorageBrowserScreenController(
+            activity = this,
+            onboarding = onboarding
+        ).also { storageBrowserController = it }
+
+        container.removeAllViews()
+        ComposeView(this).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+            setContent {
+                VLCTheme {
+                    controller.Content()
+                }
+            }
+            container.addView(this, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        }
+        controller.onVisible()
+    }
+
     private fun setupHistoryFilterMenu(menu: Menu) {
         val item = menu.findItem(R.id.ml_menu_filter) ?: return
         val model = historyModel ?: return
@@ -678,14 +710,16 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
                 throw IllegalArgumentException("Video group routes are hosted by Compose.")
             }
             STORAGE_BROWSER, STORAGE_BROWSER_ONBOARDING -> {
-                fragment = MLStorageBrowserFragment.newInstance(id == STORAGE_BROWSER_ONBOARDING)
-                setResult(RESULT_RESTART)
+                throw IllegalArgumentException("Storage root routes are hosted by Compose.")
             }
             FILE_BROWSER -> {
                 (intent.parcelable(KEY_MEDIA) as? MediaWrapper)?.let { media ->
-                    fragment = if (media.uri.scheme.isSchemeNetwork()) NetworkBrowserFragment()
+                    fragment = if (intent.hasExtra(KEY_IN_MEDIALIB)) StorageBrowserFragment()
+                    else if (media.uri.scheme.isSchemeNetwork()) NetworkBrowserFragment()
                     else FileBrowserFragment()
-                    fragment?.apply { arguments = bundleOf(KEY_MEDIA to media, KEY_JUMP_TO to intent.parcelable(KEY_JUMP_TO)) }
+                    val args = bundleOf(KEY_MEDIA to media, KEY_JUMP_TO to intent.parcelable(KEY_JUMP_TO))
+                    if (intent.hasExtra(KEY_IN_MEDIALIB)) args.putBoolean(KEY_IN_MEDIALIB, intent.getBooleanExtra(KEY_IN_MEDIALIB, false))
+                    fragment?.apply { arguments = args }
                 }
             }
             else -> throw IllegalArgumentException("Wrong fragment id.")

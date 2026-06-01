@@ -23,9 +23,14 @@
 package org.videolan.vlc.gui.browser
 
 import android.content.Intent
+import android.content.DialogInterface
+import android.net.Uri
+import android.text.InputType
 import android.view.Menu
 import android.view.MenuItem
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.view.ActionMode
+import androidx.appcompat.widget.AppCompatEditText
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -51,6 +56,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TriStateCheckbox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -62,6 +68,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.dp
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.edit
@@ -75,16 +82,25 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.videolan.medialibrary.interfaces.Medialibrary
 import org.videolan.medialibrary.MLServiceLocator
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.medialibrary.media.MediaWrapperImpl
 import org.videolan.medialibrary.media.Storage
 import org.videolan.tools.KEY_BROWSE_NETWORK
+import org.videolan.tools.KEY_MEDIALIBRARY_SCAN
 import org.videolan.tools.KEY_NAVIGATOR_SCREEN_UNSTABLE
+import org.videolan.tools.ML_SCAN_ON
 import org.videolan.tools.NetworkMonitor
 import org.videolan.tools.Settings
+import org.videolan.tools.containsPath
 import org.videolan.tools.putSingle
+import org.videolan.tools.removeFileScheme
+import org.videolan.tools.sanitizePath
+import org.videolan.tools.stripTrailingSlash
+import org.videolan.resources.util.canReadStorage
+import org.videolan.vlc.MediaParsingService
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.MainActivity
@@ -93,17 +109,21 @@ import org.videolan.vlc.gui.dialogs.CtxActionReceiver
 import org.videolan.vlc.gui.dialogs.showContext
 import org.videolan.vlc.gui.dialogs.showNetworkServerComposeDialog
 import org.videolan.vlc.gui.helpers.FloatingActionButtonBehavior
+import org.videolan.vlc.gui.helpers.MedialibraryUtils
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylistAsync
 import org.videolan.vlc.gui.helpers.UiTools.showMediaInfo
+import org.videolan.vlc.gui.helpers.UiTools.snacker
 import org.videolan.vlc.gui.helpers.hf.OTG_SCHEME
 import org.videolan.vlc.gui.helpers.hf.OtgAccess
 import org.videolan.vlc.gui.helpers.hf.requestOtgRoot
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.repository.BrowserFavRepository
+import org.videolan.vlc.repository.DirectoryRepository
 import org.videolan.vlc.util.ContextOption
 import org.videolan.vlc.util.ContextOption.CTX_ADD_FOLDER_AND_SUB_PLAYLIST
 import org.videolan.vlc.util.ContextOption.CTX_ADD_FOLDER_PLAYLIST
+import org.videolan.vlc.util.ContextOption.CTX_CUSTOM_REMOVE
 import org.videolan.vlc.util.ContextOption.CTX_FAV_ADD
 import org.videolan.vlc.util.ContextOption.CTX_FAV_EDIT
 import org.videolan.vlc.util.ContextOption.CTX_FAV_REMOVE
@@ -115,6 +135,8 @@ import org.videolan.vlc.viewmodels.browser.BrowserFavoritesModel
 import org.videolan.vlc.viewmodels.browser.BrowserModel
 import org.videolan.vlc.viewmodels.browser.NetworkModel
 import org.videolan.vlc.viewmodels.browser.TYPE_FILE
+import org.videolan.vlc.viewmodels.browser.TYPE_STORAGE
+import java.io.File
 
 class MainBrowserScreenController(
     private val activity: MainActivity,
@@ -432,6 +454,429 @@ class MainBrowserScreenController(
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             @Suppress("UNCHECKED_CAST")
             return BrowserFavoritesModel(activity.applicationContext) as T
+        }
+    }
+}
+
+class SecondaryStorageBrowserScreenController(
+    private val activity: SecondaryActivity,
+    private val onboarding: Boolean
+) : CtxActionReceiver, DefaultLifecycleObserver {
+
+    private val settings = Settings.getInstance(activity)
+    private val networkMonitor = NetworkMonitor.getInstance(activity)
+    private val localViewModel = ViewModelProvider(
+        activity,
+        BrowserModel.Factory(activity, url = null, type = TYPE_STORAGE)
+    )["secondary-storage-local", BrowserModel::class.java]
+    private val networkViewModel = ViewModelProvider(
+        activity,
+        NetworkModel.Factory(activity, url = null)
+    )["secondary-storage-network", NetworkModel::class.java]
+    private val directoryRepository = DirectoryRepository.getInstance(activity)
+
+    private var localItems by mutableStateOf<List<MediaLibraryItem>>(emptyList())
+    private var networkItems by mutableStateOf<List<MediaLibraryItem>>(emptyList())
+    private var localLoading by mutableStateOf(false)
+    private var networkLoading by mutableStateOf(false)
+    private var mediaDirectories by mutableStateOf<List<String>>(emptyList())
+    private var customDirectories by mutableStateOf<List<String>>(emptyList())
+    private var bannedFolders by mutableStateOf<List<String>>(emptyList())
+    private var contextItems: List<MediaLibraryItem> = emptyList()
+    private var loaded = false
+    private var visible = false
+    private var addDirectoryDialog: AlertDialog? = null
+
+    private val rootsCallback = object : org.videolan.medialibrary.interfaces.RootsEventsCb {
+        override fun onRootBanned(entryPoint: String, success: Boolean) = refreshStorageState()
+        override fun onRootUnbanned(entryPoint: String, success: Boolean) = refreshStorageState()
+        override fun onRootAdded(entryPoint: String, success: Boolean) = refreshStorageState()
+        override fun onRootRemoved(entrypoint: String, success: Boolean) = refreshStorageState()
+        override fun onDiscoveryStarted() {}
+        override fun onDiscoveryProgress(entryPoint: String) {}
+        override fun onDiscoveryCompleted() = refreshStorageState()
+        override fun onDiscoveryFailed(entryPoint: String) {}
+    }
+
+    init {
+        activity.lifecycle.addObserver(this)
+        localViewModel.dataset.observe(activity) { localItems = it?.toList().orEmpty() }
+        localViewModel.loading.observe(activity) { loading ->
+            localLoading = loading == true
+            updateRefreshing()
+        }
+        localViewModel.getDescriptionUpdate().observe(activity) {
+            localItems = localViewModel.dataset.value?.toList().orEmpty()
+        }
+        networkViewModel.dataset.observe(activity) { items ->
+            networkItems = items.orEmpty().filterIsInstance<MediaWrapper>().filter { it.uri?.scheme == "smb" }
+        }
+        networkViewModel.loading.observe(activity) { loading ->
+            networkLoading = loading == true
+            updateRefreshing()
+        }
+    }
+
+    override fun onDestroy(owner: LifecycleOwner) {
+        addDirectoryDialog?.dismiss()
+        activity.lifecycle.removeObserver(this)
+    }
+
+    fun onVisible() {
+        if (visible) return
+        visible = true
+        activity.supportActionBar?.setTitle(if (onboarding) R.string.medialibrary_directories else R.string.directories_summary)
+        activity.setTabLayoutVisibility(false)
+        hideFloatingActionButtons()
+        Medialibrary.getInstance().addRootsEventsCb(rootsCallback)
+        if (!loaded) {
+            loaded = true
+            refresh()
+        } else {
+            refreshStorageState()
+        }
+        activity.invalidateOptionsMenu()
+    }
+
+    fun onHidden() {
+        if (!visible) return
+        visible = false
+        Medialibrary.getInstance().removeRootsEventsCb(rootsCallback)
+        addDirectoryDialog?.dismiss()
+    }
+
+    fun refresh() {
+        localViewModel.browseRoot()
+        networkViewModel.browseRoot()
+        refreshStorageState()
+        updateRefreshing()
+    }
+
+    fun prepareOptionsMenu(menu: Menu) {
+        menu.findItem(R.id.ml_menu_custom_dir)?.isVisible = !onboarding
+        menu.findItem(R.id.ml_menu_refresh)?.isVisible = false
+        menu.findItem(R.id.ml_menu_add_playlist)?.isVisible = false
+        menu.findItem(R.id.ml_menu_display_options)?.isVisible = false
+        menu.findItem(R.id.ml_menu_filter)?.isVisible = false
+        menu.findItem(R.id.play_all)?.isVisible = false
+        menu.findItem(R.id.shuffle_all)?.isVisible = false
+    }
+
+    fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId != R.id.ml_menu_custom_dir) return false
+        showAddDirectoryDialog()
+        return true
+    }
+
+    @Composable
+    fun Content() {
+        StorageRootScreenContent(
+            localItems = localItems,
+            networkItems = networkItems,
+            localLoading = localLoading,
+            networkLoading = networkLoading,
+            networkConnected = networkMonitor.connected,
+            lanAllowed = networkMonitor.lanAllowed,
+            storageState = ::storageState,
+            isCustomDirectory = ::isCustomDirectory,
+            onItemClicked = ::openStorage,
+            onCheckedChange = ::onCheckedChange,
+            onMoreClicked = ::onMoreClicked
+        )
+    }
+
+    private fun showAddDirectoryDialog() {
+        val input = AppCompatEditText(activity).apply {
+            inputType = InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+        }
+        addDirectoryDialog = AlertDialog.Builder(activity)
+            .setTitle(R.string.add_custom_path)
+            .setMessage(R.string.add_custom_path_description)
+            .setView(input)
+            .setNegativeButton(R.string.cancel) { _, _ -> }
+            .setPositiveButton(R.string.ok, DialogInterface.OnClickListener { _, _ ->
+                val path = input.text.toString().trim { it <= ' ' }
+                val file = File(path)
+                if (!file.exists() || !file.isDirectory) {
+                    snacker(activity, activity.getString(R.string.directorynotfound, path))
+                    return@OnClickListener
+                }
+                activity.lifecycleScope.launch {
+                    withContext(Dispatchers.IO) { localViewModel.addCustomDirectory(file.canonicalPath).join() }
+                    localViewModel.browseRoot()
+                    refreshStorageState()
+                }
+            })
+            .show()
+    }
+
+    private fun openStorage(item: MediaLibraryItem) {
+        val media = item.asStorageMediaWrapper() ?: return
+        activity.startActivity(Intent(activity.applicationContext, SecondaryActivity::class.java).apply {
+            putExtra(KEY_MEDIA, media)
+            putExtra(KEY_IN_MEDIALIB, storageState(item) == ToggleableState.On)
+            putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.FILE_BROWSER)
+        })
+    }
+
+    private fun onCheckedChange(item: MediaLibraryItem, checked: Boolean) {
+        val mrl = item.storageMrl() ?: return
+        if (checked && mrl.contains("file://") && !canReadStorage(activity)) {
+            Permissions.showStoragePermissionDialog(activity, false)
+            return
+        }
+        if (onboarding) {
+            val path = mrl.sanitizePath()
+            MediaParsingService.preselectedStorages.removeAll { it.startsWith(path) }
+            if (checked) MediaParsingService.preselectedStorages.add(path)
+            refreshStorageState()
+            return
+        }
+        if (checked) {
+            MedialibraryUtils.addDir(mrl, activity.applicationContext)
+            if (settings.getInt(KEY_MEDIALIBRARY_SCAN, -1) != ML_SCAN_ON) settings.putSingle(KEY_MEDIALIBRARY_SCAN, ML_SCAN_ON)
+        } else {
+            MedialibraryUtils.removeDir(mrl)
+        }
+        refreshStorageState()
+    }
+
+    private fun onMoreClicked(sectionItems: List<MediaLibraryItem>, position: Int, item: MediaLibraryItem) {
+        if (!isCustomDirectory(item)) return
+        contextItems = sectionItems
+        showContext(activity, this, position, item, FlagSet(ContextOption::class.java).apply { add(CTX_CUSTOM_REMOVE) })
+    }
+
+    override fun onCtxAction(position: Int, option: ContextOption) {
+        if (option != CTX_CUSTOM_REMOVE) return
+        val item = contextItems.getOrNull(position) ?: return
+        val path = item.storagePath()?.stripTrailingSlash() ?: return
+        localViewModel.deleteCustomDirectory(path)
+        localViewModel.remove(item)
+        refreshStorageState()
+        activity.updateLib()
+    }
+
+    private fun refreshStorageState() {
+        activity.lifecycleScope.launch {
+            val folders = withContext(Dispatchers.IO) {
+                if (!Medialibrary.getInstance().isInitiated) {
+                    MediaParsingService.preselectedStorages.toList()
+                } else {
+                    Medialibrary.getInstance().foldersList.toList()
+                }
+            }
+            val custom = withContext(Dispatchers.IO) {
+                directoryRepository.getCustomDirectories().map { it.path.stripTrailingSlash() }
+            }
+            val banned = withContext(Dispatchers.IO) {
+                Medialibrary.getInstance().bannedFolders().toList()
+            }
+            mediaDirectories = folders.map { Uri.decode(it.removeFileScheme()) }
+            customDirectories = custom
+            bannedFolders = banned
+        }
+    }
+
+    private fun storageState(item: MediaLibraryItem): ToggleableState {
+        val storagePath = item.storagePath() ?: return ToggleableState.Off
+        val mrl = item.storageMrl() ?: return ToggleableState.Off
+        if (MedialibraryUtils.isBanned(mrl, bannedFolders)) return ToggleableState.Off
+        if (mediaDirectories.containsPath(storagePath)) return ToggleableState.On
+        if (mediaDirectories.any { it.sanitizePath().startsWith(storagePath.sanitizePath()) }) return ToggleableState.Indeterminate
+        return ToggleableState.Off
+    }
+
+    private fun isCustomDirectory(item: MediaLibraryItem): Boolean {
+        return item.storagePath()?.stripTrailingSlash()?.let { customDirectories.contains(it) } == true
+    }
+
+    private fun updateRefreshing() {
+        if (visible) activity.invalidateOptionsMenu()
+    }
+
+    private fun hideFloatingActionButtons() {
+        listOf(R.id.fab, R.id.fab_large).forEach { id ->
+            val fab = activity.findViewById<FloatingActionButton?>(id) ?: return@forEach
+            ((fab.layoutParams as? CoordinatorLayout.LayoutParams)?.behavior as? FloatingActionButtonBehavior)?.shouldNeverShow = true
+            fab.hide()
+        }
+    }
+
+    private fun MediaLibraryItem.asStorageMediaWrapper(): MediaWrapper? {
+        return when (this) {
+            is Storage -> MLServiceLocator.getAbstractMediaWrapper(uri)
+            is MediaWrapper -> MLServiceLocator.getAbstractMediaWrapper(uri)
+            else -> null
+        }?.apply { type = MediaWrapper.TYPE_DIR }
+    }
+
+    private fun MediaLibraryItem.storageMrl(): String? {
+        return when (this) {
+            is Storage -> uri.toString()
+            is MediaWrapper -> uri.toString()
+            else -> null
+        }
+    }
+
+    private fun MediaLibraryItem.storagePath(): String? {
+        val uri = when (this) {
+            is Storage -> uri
+            is MediaWrapper -> uri
+            else -> return null
+        }
+        val raw = if (uri.scheme == "file") uri.path.orEmpty() else Uri.decode(uri.toString())
+        return if (raw.endsWith("/")) raw else "$raw/"
+    }
+}
+
+private data class StorageRootSection(
+    val title: String,
+    val items: List<MediaLibraryItem>,
+    val loading: Boolean,
+    val emptyText: String,
+    val visibleWhenEmpty: Boolean = true
+)
+
+@Composable
+private fun StorageRootScreenContent(
+    localItems: List<MediaLibraryItem>,
+    networkItems: List<MediaLibraryItem>,
+    localLoading: Boolean,
+    networkLoading: Boolean,
+    networkConnected: Boolean,
+    lanAllowed: Boolean,
+    storageState: (MediaLibraryItem) -> ToggleableState,
+    isCustomDirectory: (MediaLibraryItem) -> Boolean,
+    onItemClicked: (MediaLibraryItem) -> Unit,
+    onCheckedChange: (MediaLibraryItem, Boolean) -> Unit,
+    onMoreClicked: (List<MediaLibraryItem>, Int, MediaLibraryItem) -> Unit
+) {
+    val colors = VLCThemeDefaults.colors
+    val sections = listOf(
+        StorageRootSection(
+            title = stringResource(R.string.browser_storages),
+            items = localItems,
+            loading = localLoading,
+            emptyText = stringResource(R.string.nomedia)
+        ),
+        StorageRootSection(
+            title = stringResource(R.string.network_browsing),
+            items = networkItems,
+            loading = networkLoading || (networkConnected && lanAllowed && networkItems.isEmpty()),
+            emptyText = networkEmptyText(enabled = true, connected = networkConnected, lanAllowed = lanAllowed)
+        )
+    ).filter { it.visibleWhenEmpty || it.items.isNotEmpty() || it.loading }
+
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = colors.backgroundDefault
+    ) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(colors.backgroundDefault),
+            contentPadding = PaddingValues(vertical = 8.dp)
+        ) {
+            sections.forEach { section ->
+                item(key = "${section.title}-header") {
+                    Text(
+                        text = section.title,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(colors.headerBackground)
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        color = colors.listTitle,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+                when {
+                    section.loading && section.items.isEmpty() -> item(key = "${section.title}-loading") {
+                        BrowserEmptyState(loading = true, text = stringResource(R.string.loading))
+                    }
+                    section.items.isEmpty() -> item(key = "${section.title}-empty") {
+                        BrowserEmptyState(loading = false, text = section.emptyText)
+                    }
+                    else -> items(section.items, key = { "${section.title}-${it.stableBrowserKey()}" }) { item ->
+                        val position = section.items.indexOf(item)
+                        StorageRootRow(
+                            item = item,
+                            state = storageState(item),
+                            customDirectory = isCustomDirectory(item),
+                            onClick = { onItemClicked(item) },
+                            onCheckedChange = { onCheckedChange(item, it) },
+                            onMoreClick = { onMoreClicked(section.items, position, item) }
+                        )
+                    }
+                }
+                item(key = "${section.title}-spacer") {
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun StorageRootRow(
+    item: MediaLibraryItem,
+    state: ToggleableState,
+    customDirectory: Boolean,
+    onClick: () -> Unit,
+    onCheckedChange: (Boolean) -> Unit,
+    onMoreClick: () -> Unit
+) {
+    val colors = VLCThemeDefaults.colors
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(colors.backgroundDefault)
+            .padding(start = 8.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        TriStateCheckbox(
+            state = state,
+            onClick = { onCheckedChange(state != ToggleableState.On) }
+        )
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .combinedClickable(onClick = onClick, onLongClick = onClick)
+                .padding(start = 4.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            BrowserItemIcon(item)
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = item.title.orEmpty(),
+                    color = colors.listTitle,
+                    style = MaterialTheme.typography.bodyLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                item.subtitleText()?.takeIf { it.isNotBlank() }?.let {
+                    Text(
+                        text = it,
+                        color = colors.listSubtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        }
+        IconButton(onClick = onMoreClick, enabled = customDirectory) {
+            Icon(
+                painter = painterResource(R.drawable.ic_more),
+                contentDescription = stringResource(R.string.more),
+                tint = if (customDirectory) colors.listSubtitle else colors.listSubtitle.copy(alpha = 0f)
+            )
         }
     }
 }

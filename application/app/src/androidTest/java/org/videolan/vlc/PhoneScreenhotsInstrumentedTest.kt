@@ -50,7 +50,6 @@ import org.videolan.resources.EXTRA_TARGET
 import org.videolan.tools.KEY_AUDIO_RESUME_CARD
 import org.videolan.tools.Settings
 import org.videolan.vlc.gui.MainActivity
-import org.videolan.vlc.gui.view.TitleListView
 import org.videolan.vlc.util.DpadHelper.pressStop
 import org.videolan.vlc.util.ScreenshotUtil
 import org.videolan.vlc.util.UiUtils.waitId
@@ -142,7 +141,7 @@ class PhoneScreenhotsInstrumentedTest : BaseUITest() {
     fun testTakeScreenshotBrowser() {
         onView(AllOf.allOf(withId(R.id.nav_directories), withEffectiveVisibility(Visibility.VISIBLE)))
                  .perform(click())
-        waitUntilLoaded { activity.findViewById<TitleListView>(R.id.network_browser_entry).findViewById(R.id.list) }
+        waitUntilLoaded { activity.findViewById<android.view.View>(R.id.fragment_placeholder) }
 
         ScreenshotUtil.takeScreenshot(5,"browser")
      }
