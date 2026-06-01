@@ -25,100 +25,108 @@
 package org.videolan.television.ui
 
 import android.content.Intent
-import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Rect
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.annotation.ColorInt
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
-import androidx.databinding.DataBindingUtil
-import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import org.videolan.resources.UPDATE_PAYLOAD
+import androidx.activity.ComponentActivity
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color as ComposeColor
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.videolan.resources.util.applyOverscanMargin
 import org.videolan.television.R
-import org.videolan.television.databinding.ActivityColorPickerBinding
-import org.videolan.television.databinding.ColorPickerItemBinding
-import org.videolan.tools.dp
-import org.videolan.vlc.gui.DiffUtilAdapter
+import org.videolan.vlc.compose.theme.VLCTheme
+import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.R as VlcR
 import kotlin.math.absoluteValue
 
 const val COLOR_PICKER_SELECTED_COLOR = "color_picker_selected_color"
 const val COLOR_PICKER_TITLE = "color_picker_title"
 
-class ColorPickerActivity : AppCompatActivity() {
-    internal lateinit var binding: ActivityColorPickerBinding
+class ColorPickerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_color_picker)
-        binding = DataBindingUtil.setContentView(this, R.layout.activity_color_picker)
         applyOverscanMargin(this)
 
-        binding.colorPickerTitle.text = intent.extras?.getString(COLOR_PICKER_TITLE)
-                ?: getString(R.string.subtitles_color)
+        val title = intent.extras?.getString(COLOR_PICKER_TITLE) ?: getString(R.string.subtitles_color)
         val previousColor = intent.extras?.getInt(COLOR_PICKER_SELECTED_COLOR) ?: Color.BLACK
-        binding.oldColor.color = previousColor
-        binding.newColor.color = previousColor
-
-
         val colorsAndSelection = generateColorsAndSelection(previousColor)
         val closestColorIndex = colorsAndSelection.first
         val colors = colorsAndSelection.second
 
-
-        //find closest color variant
         val closestVariantIndex = findClosestVariant(colors, closestColorIndex, previousColor)
 
-        val grid = findViewById<RecyclerView>(R.id.color_grid)
-        grid.layoutManager = GridLayoutManager(this, 20)
-        grid.addItemDecoration(object : RecyclerView.ItemDecoration() {
-            val paint by lazy {
-                Paint().apply {
-                    isAntiAlias = true
-                    color = ContextCompat.getColor(this@ColorPickerActivity, R.color.grey800)
+        setContentView(
+            ComposeView(this).apply {
+                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+                setContent {
+                    VLCTheme(darkTheme = true) {
+                        TvColorPickerScreen(
+                            title = title,
+                            previousColor = previousColor,
+                            colors = colors,
+                            initialSelectedIndex = closestColorIndex,
+                            initialSelectedVariantIndex = closestVariantIndex,
+                            onCancel = ::finish,
+                            onConfirm = { selectedColor ->
+                                setResult(
+                                    RESULT_OK,
+                                    Intent(Intent.ACTION_PICK).apply {
+                                        putExtra(COLOR_PICKER_SELECTED_COLOR, selectedColor)
+                                    }
+                                )
+                                finish()
+                            }
+                        )
+                    }
                 }
             }
-
-            override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State) {
-                super.getItemOffsets(outRect, view, parent, state)
-                val position: Int = parent.getChildAdapterPosition(view)
-                outRect.left = 4.dp
-                outRect.right = 4.dp
-                // add a bigger margin before the color variants
-                outRect.top = if (position > colors.size - 1) 32.dp else 4.dp
-                outRect.bottom = 4.dp
-            }
-
-            override fun onDrawOver(c: Canvas, parent: RecyclerView, state: RecyclerView.State) {
-                super.onDrawOver(c, parent, state)
-
-                //add a separator before the color variants
-                val firstChild = parent.getChildAt(colors.size)
-                val lastChild = parent.getChildAt(parent.adapter!!.itemCount - 1)
-                c.drawLine(firstChild.left.toFloat(), firstChild.top.toFloat() - 16.dp, lastChild.right.toFloat(), firstChild.top.toFloat() - 16.dp, paint)
-
-            }
-        })
-
-
-        val colorAdapter = ColorAdapter(colors, closestColorIndex, closestVariantIndex) {
-            binding.newColor.color = it
-        }
-        grid.adapter = colorAdapter
-
-        binding.colorPickerButtonOk.setOnClickListener {
-            setResult(RESULT_OK, Intent(Intent.ACTION_PICK).apply { putExtra(COLOR_PICKER_SELECTED_COLOR, colorAdapter.getSelectedColor()) })
-            finish()
-        }
-
-        binding.colorPickerButtonCancel.setOnClickListener { finish() }
-
-
+        )
     }
 
     /**
@@ -204,127 +212,216 @@ class ColorPickerActivity : AppCompatActivity() {
         return (hsv1[0] - hsv2[0]).absoluteValue + (hsv1[1] - hsv2[1]).absoluteValue + (hsv1[2] - hsv2[2]).absoluteValue
     }
 
-    /**
-     * Get a variant color from [color]'s hue depending on a position
-     * It will make the saturation and value vary depending on the position:
-     * [0-9] -> ascending saturation
-     * [10-19] -> descending value
-     *
-     * @param color the color with a pure hue
-     * @param position the index of the variant to generate
-     * @return a
-     */
-    @ColorInt
-    fun getVariantColor(color: Int, position: Int): Int {
+}
 
-        if (color == Color.GRAY) {
-            val value = 1F - (0.05F * position)
-            return Color.HSVToColor(floatArrayOf(0F, 0F, value))
-        }
-        val hsv = FloatArray(3)
-        Color.colorToHSV(color, hsv)
-        if (position <= 9)
-            hsv[1] = 0.1F * position
-        else
-            hsv[2] = 1F - (0.1F * (position - 9))
-        return Color.HSVToColor(hsv)
+@Composable
+private fun TvColorPickerScreen(
+    title: String,
+    @ColorInt previousColor: Int,
+    colors: List<Int>,
+    initialSelectedIndex: Int,
+    initialSelectedVariantIndex: Int,
+    onCancel: () -> Unit,
+    onConfirm: (Int) -> Unit
+) {
+    var selectedIndex by rememberSaveable { mutableIntStateOf(initialSelectedIndex) }
+    var selectedVariantIndex by rememberSaveable { mutableIntStateOf(initialSelectedVariantIndex) }
+    var previewColor by rememberSaveable {
+        mutableIntStateOf(getVariantColor(colors[initialSelectedIndex], initialSelectedVariantIndex))
     }
+    val focusRequester = remember { FocusRequester() }
+    LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
-
-    /**
-     * Color adapter used to display the color list
-     *
-     * @property colors the list of colors
-     * @property selectedIndex the main color selected index (between 0 and 99)
-     * @property selectedVariantIndex the selected color variant index (between 0 and 19)
-     */
-    inner class ColorAdapter(private val colors: List<Int>, private var selectedIndex: Int, private var selectedVariantIndex: Int, private val colorSelectionListener: (Int) -> Unit) : DiffUtilAdapter<Int, ColorPickerViewHolder>() {
-
-
-        // tracks the focus restoration upon item changes
-        private var waitingForFocusRestore = false
-        private var currentFocusPosition: Int = -1
-
-        override fun onBindViewHolder(holder: ColorPickerViewHolder, position: Int) {
-            val adapterPosition = holder.absoluteAdapterPosition
-            val color = if (adapterPosition in colors.indices) colors[adapterPosition] else getVariantColor(colors[selectedIndex], adapterPosition - colors.size)
-            holder.binding.colorPicker.color = color
-
-            val selected = if (adapterPosition in colors.indices) selectedIndex == adapterPosition else adapterPosition - colors.size == selectedVariantIndex
-            holder.binding.colorPicker.currentlySelected = selected
-            holder.binding.colorPicker.setOnFocusChangeListener { _, hasFocus ->
-                if (!waitingForFocusRestore && hasFocus) currentFocusPosition = adapterPosition
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(VLCThemeDefaults.colors.backgroundDefault)
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 24.dp, vertical = 16.dp)
+    ) {
+        Text(
+            text = title,
+            color = VLCThemeDefaults.colors.fontDefault,
+            style = MaterialTheme.typography.titleLarge.copy(fontSize = 22.sp)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        ColorGrid(
+            colors = colors,
+            selectedIndex = selectedIndex,
+            selectedVariantIndex = selectedVariantIndex,
+            focusRequester = focusRequester,
+            onColorSelected = { index ->
+                selectedIndex = index
+                selectedVariantIndex = 9
+                previewColor = getVariantColor(colors[index], selectedVariantIndex)
+            },
+            onVariantSelected = { variant ->
+                selectedVariantIndex = variant
+                previewColor = getVariantColor(colors[selectedIndex], variant)
             }
-            if (adapterPosition == currentFocusPosition) {
-                holder.binding.colorPicker.requestFocus()
-                waitingForFocusRestore = false
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        ColorPreviewRow(
+            previousColor = previousColor,
+            newColor = previewColor
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.End),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            OutlinedButton(onClick = onCancel) {
+                Text(text = stringResource(R.string.cancel))
             }
-        }
-
-        /**
-         * Get the currently selected color
-         *
-         * @return the currently selected color
-         */
-        @ColorInt
-        fun getSelectedColor() = getVariantColor(colors[selectedIndex], selectedVariantIndex)
-
-        override fun onBindViewHolder(holder: ColorPickerViewHolder, position: Int, payloads: MutableList<Any>) {
-            if (payloads.isEmpty()) onBindViewHolder(holder, position)
-            else for (payload in payloads) {
-                if (payload == UPDATE_PAYLOAD) {
-                    holder.binding.colorPicker.currentlySelected = selectedIndex == position || position - colors.size == selectedVariantIndex
-                    if (position == currentFocusPosition) holder.binding.colorPicker.requestFocus()
-                }
-
-            }
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ColorPickerViewHolder {
-            return ColorPickerViewHolder(DataBindingUtil.inflate(LayoutInflater.from(parent.context), R.layout.color_picker_item, parent, false) as ColorPickerItemBinding) { position, view ->
-                waitingForFocusRestore = true
-                view.clearFocus()
-                if (position in colors.indices) {
-                    val oldSelection = selectedIndex
-                    selectedIndex = position
-                    selectedVariantIndex = 9
-                    notifyItemChanged(position)
-                    notifyItemChanged(oldSelection)
-                    notifyItemRangeChanged(colors.size, 20)
-                } else {
-                    val oldSelection = selectedVariantIndex
-                    selectedVariantIndex = position - colors.size
-                    notifyItemChanged(position)
-                    notifyItemChanged(colors.size + oldSelection)
-                }
-                colorSelectionListener.invoke(getSelectedColor())
-            }
-
-        }
-
-        override fun getItemCount(): Int {
-            return colors.size + 20
-        }
-
-        override fun createCB(): DiffCallback<Int> = object : DiffCallback<Int>() {
-            override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int) = false
-
-            override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-                return false
-            }
-
-            override fun getChangePayload(oldItemPosition: Int, newItemPosition: Int) = arrayListOf(UPDATE_PAYLOAD)
-        }
-    }
-
-    inner class ColorPickerViewHolder(val binding: ColorPickerItemBinding, private val listener: (Int, View) -> Unit) : RecyclerView.ViewHolder(binding.root) {
-
-        init {
-            binding.colorPicker.setOnClickListener {
-                listener.invoke(layoutPosition, binding.colorPicker)
+            Button(
+                onClick = { onConfirm(getVariantColor(colors[selectedIndex], selectedVariantIndex)) }
+            ) {
+                Text(text = stringResource(R.string.ok))
             }
         }
-
     }
 }
 
+@Composable
+private fun ColorGrid(
+    colors: List<Int>,
+    selectedIndex: Int,
+    selectedVariantIndex: Int,
+    focusRequester: FocusRequester,
+    onColorSelected: (Int) -> Unit,
+    onVariantSelected: (Int) -> Unit
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(20),
+        userScrollEnabled = false,
+        contentPadding = PaddingValues(vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(196.dp)
+    ) {
+        itemsIndexed(colors) { index, color ->
+            ColorSwatch(
+                color = color,
+                selected = index == selectedIndex,
+                modifier = if (index == selectedIndex) Modifier.focusRequester(focusRequester) else Modifier,
+                onClick = { onColorSelected(index) }
+            )
+        }
+    }
+    HorizontalDivider(
+        color = colorResource(R.color.grey800),
+        modifier = Modifier.padding(vertical = 12.dp)
+    )
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(20),
+        userScrollEnabled = false,
+        contentPadding = PaddingValues(vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(44.dp)
+    ) {
+        items(20) { index ->
+            ColorSwatch(
+                color = getVariantColor(colors[selectedIndex], index),
+                selected = index == selectedVariantIndex,
+                onClick = { onVariantSelected(index) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun ColorPreviewRow(
+    @ColorInt previousColor: Int,
+    @ColorInt newColor: Int
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = stringResource(R.string.previous_color),
+            color = VLCThemeDefaults.colors.fontDefault
+        )
+        ColorSwatch(
+            color = previousColor,
+            selected = false,
+            size = 48
+        )
+        ColorSwatch(
+            color = newColor,
+            selected = false,
+            size = 48
+        )
+        Text(
+            text = stringResource(R.string.new_color),
+            color = VLCThemeDefaults.colors.fontDefault
+        )
+    }
+}
+
+@Composable
+private fun ColorSwatch(
+    @ColorInt color: Int,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    size: Int = 32,
+    onClick: (() -> Unit)? = null
+) {
+    var focused by remember { mutableStateOf(false) }
+    val clickableModifier = if (onClick != null) {
+        Modifier
+            .clickable(onClick = onClick)
+            .focusable()
+    } else {
+        Modifier
+    }
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .size(size.dp)
+            .onFocusChanged { focused = it.isFocused }
+            .then(clickableModifier)
+            .border(
+                width = if (focused) 3.dp else 1.dp,
+                color = if (focused) VLCThemeDefaults.colors.primary else colorResource(R.color.grey500),
+                shape = CircleShape
+            )
+            .padding(3.dp)
+            .clip(CircleShape)
+            .background(ComposeColor(color))
+    ) {
+        if (selected) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size((size - 10).coerceAtLeast(18).dp)
+                    .clip(CircleShape)
+                    .background(ComposeColor.Black.copy(alpha = 0.5f))
+            ) {
+                Image(
+                    painter = painterResource(VlcR.drawable.ic_check),
+                    contentDescription = null,
+                    modifier = Modifier.size((size - 16).coerceAtLeast(14).dp)
+                )
+            }
+        }
+    }
+}
+
+@ColorInt
+private fun getVariantColor(@ColorInt color: Int, position: Int): Int {
+    if (color == Color.GRAY) {
+        val value = 1F - (0.05F * position)
+        return Color.HSVToColor(floatArrayOf(0F, 0F, value))
+    }
+    val hsv = FloatArray(3)
+    Color.colorToHSV(color, hsv)
+    if (position <= 9) hsv[1] = 0.1F * position
+    else hsv[2] = 1F - (0.1F * (position - 9))
+    return Color.HSVToColor(hsv)
+}
