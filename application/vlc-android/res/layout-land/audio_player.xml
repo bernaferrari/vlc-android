@@ -218,9 +218,8 @@
                     app:layout_constraintEnd_toStartOf="@id/barrier"
                     app:layout_constraintTop_toTopOf="parent" />
 
-            <com.google.android.material.textfield.TextInputLayout
+            <org.videolan.vlc.gui.view.AudioPlaylistSearchFieldView
                     android:id="@+id/playlist_search_text"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
                     android:layout_width="0dp"
                     android:layout_height="0dp"
                     android:layout_marginStart="8dp"
@@ -232,15 +231,7 @@
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="@+id/header_play_pause"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent">
-
-                <EditText
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="@string/search_hint"
-                        android:imeOptions="actionSearch"
-                        android:inputType="textFilter" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    app:layout_constraintTop_toTopOf="parent" />
 
             <org.videolan.vlc.compose.interop.VLCComposeView
                     android:id="@+id/ab_repeat_reset"

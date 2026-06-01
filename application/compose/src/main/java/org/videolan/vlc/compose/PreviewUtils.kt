@@ -40,6 +40,7 @@ import org.videolan.vlc.compose.components.VLCAudioHeaderTransportButton
 import org.videolan.vlc.compose.components.VLCAudioMiniProgressBar
 import org.videolan.vlc.compose.components.VLCAudioPlayerGradient
 import org.videolan.vlc.compose.components.VLCAudioPlayerGradientEdge
+import org.videolan.vlc.compose.components.VLCAudioPlaylistSearchField
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
 import org.videolan.vlc.compose.components.VLCAudioPlayerChips
@@ -274,6 +275,18 @@ private fun PlayerChromeTokensDemo() {
                     .height(48.dp)
             )
         }
+
+        Spacer(Modifier.height(16.dp))
+
+        VLCAudioPlaylistSearchField(
+            query = "bach",
+            hint = "Search media",
+            focusRequest = 0,
+            onQueryChange = {},
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp)
+        )
 
         Spacer(Modifier.height(16.dp))
 

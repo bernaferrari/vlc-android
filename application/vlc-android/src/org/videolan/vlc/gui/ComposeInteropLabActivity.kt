@@ -69,6 +69,7 @@ import org.videolan.vlc.compose.components.VLCAudioHeaderTransportButton
 import org.videolan.vlc.compose.components.VLCAudioMiniProgressBar
 import org.videolan.vlc.compose.components.VLCAudioPlayerGradient
 import org.videolan.vlc.compose.components.VLCAudioPlayerGradientEdge
+import org.videolan.vlc.compose.components.VLCAudioPlaylistSearchField
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
 import org.videolan.vlc.compose.components.VLCAudioPlayerChips
@@ -333,6 +334,13 @@ fun ComposeInteropLabContent() {
                 modifier = Modifier.fillMaxWidth().height(48.dp)
             )
         }
+        VLCAudioPlaylistSearchField(
+            query = "bach",
+            hint = "Search media",
+            focusRequest = 0,
+            onQueryChange = {},
+            modifier = Modifier.fillMaxWidth().height(60.dp)
+        )
         VLCAudioPlayerChips(
             state = VLCAudioPlayerChipsState(
                 speedText = "1.25x",
@@ -450,6 +458,7 @@ fun ComposeInteropLabContent() {
             "The collapsed header background and divider are Compose-hosted under the existing header_background and header_divider IDs so slide alpha transitions stay intact. " +
             "The collapsed mini progress bar is Compose-backed under progressBar while keeping the existing max/progress and slide-height contract. " +
             "The top and bottom audio-player gradient overlays are Compose-backed under top_gradient and bottom_gradient while keeping their layout constraints. " +
+            "The playlist search input is Compose-backed under playlist_search_text with a small query/focus bridge replacing TextInputLayout/EditText. " +
             "The collapsed header time label is also Compose-hosted under the existing header_time ID. " +
             "The full-player elapsed/length timeline labels are Compose-hosted under time and length. " +
             "The landscape title/subtitle/track-detail text stack is Compose-hosted under song_title/song_subtitle/song_track_info. " +

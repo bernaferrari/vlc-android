@@ -28,14 +28,11 @@ import android.os.Handler
 import android.os.Looper
 import android.os.Vibrator
 import android.support.v4.media.session.PlaybackStateCompat
-import android.text.Editable
-import android.text.TextWatcher
 import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import androidx.annotation.DrawableRes
@@ -251,7 +248,7 @@ private fun AudioPlayerAbRepeatMarkerIcon() {
     )
 }
 
-class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlayerAnimator by AudioPlayerAnimator() {
+class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, IAudioPlayerAnimator by AudioPlayerAnimator() {
 
     private lateinit var binding: AudioPlayerBinding
     private lateinit var playlistAdapter: PlaylistAdapter
@@ -347,7 +344,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         binding.songsList.adapter = playlistAdapter
         binding.audioMediaSwitcher.setAudioMediaSwitcherListener(headerMediaSwitcherListener)
         binding.coverMediaSwitcher.setAudioMediaSwitcherListener(coverMediaSwitcherListener)
-        binding.playlistSearchText.editText?.addTextChangedListener(this)
+        binding.playlistSearchText.onQueryChanged = ::onSearchQueryChanged
         binding.header.setOnClickListener {
             val activity = activity as AudioPlayerContainerActivity
             activity.slideUpOrDownAudioPlayer()
@@ -1359,12 +1356,10 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         bookmarkListDelegate.setProgressHeight(binding.time.y)
     }
 
-    fun onSearchClick(v: View) {
+    fun onSearchClick(@Suppress("UNUSED_PARAMETER") v: View) {
         if (isShowingCover()) onPlaylistSwitchClick(binding.playlistSwitch)
         manageSearchVisibilities(true)
-        binding.playlistSearchText.editText?.requestFocus()
-        val imm = v.context.applicationContext.getSystemService<InputMethodManager>()!!
-        imm.showSoftInput(binding.playlistSearchText.editText, InputMethodManager.SHOW_IMPLICIT)
+        binding.playlistSearchText.requestSearchFocus()
         handler.postDelayed(hideSearchRunnable, SEARCH_TIMEOUT_MILLIS)
     }
 
@@ -1376,8 +1371,6 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
     fun onABRepeatResetClick(@Suppress("UNUSED_PARAMETER") v: View) {
         playlistModel.service?.playlistManager?.resetABRepeatValues(playlistModel.service?.playlistManager?.getCurrentMedia())
     }
-
-    override fun beforeTextChanged(charSequence: CharSequence, start: Int, before: Int, count: Int) {}
 
     fun backPressed(): Boolean {
         if (this::optionsDelegate.isInitialized && optionsDelegate.isShowing()) {
@@ -1400,28 +1393,22 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
 
     private fun hideSearchField(): Boolean {
         if (binding.playlistSearchText.visibility != View.VISIBLE) return false
-        binding.playlistSearchText.editText?.apply {
-            removeTextChangedListener(this@AudioPlayer)
-            setText("")
-            addTextChangedListener(this@AudioPlayer)
-        }
+        binding.playlistSearchText.clearSearchText()
         UiTools.setKeyboardVisibility(binding.playlistSearchText, false)
         manageSearchVisibilities(false)
         return true
     }
 
-    override fun onTextChanged(charSequence: CharSequence, start: Int, before: Int, count: Int) {
-        val length = charSequence.length
+    private fun onSearchQueryChanged(query: String) {
+        val length = query.length
         if (length > 0) {
-            playlistModel.filter(charSequence)
+            playlistModel.filter(query)
             handler.removeCallbacks(hideSearchRunnable)
         } else {
             playlistModel.filter(null)
             hideSearchField()
         }
     }
-
-    override fun afterTextChanged(editable: Editable) {}
 
     private inner class LongSeekListener(var forward: Boolean) : View.OnTouchListener {
         var length = -1L
