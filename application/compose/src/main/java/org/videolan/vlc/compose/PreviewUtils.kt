@@ -28,6 +28,8 @@ import org.videolan.vlc.compose.components.VLCDropdownItem
 import org.videolan.vlc.compose.components.VLCDebugLogLine
 import org.videolan.vlc.compose.components.VLCDialogConfirmDelete
 import org.videolan.vlc.compose.components.VLCInfoItem
+import org.videolan.vlc.compose.components.VLCAudioPlayerChips
+import org.videolan.vlc.compose.components.VLCAudioPlayerChipsState
 import org.videolan.vlc.compose.components.VLCOnboardingWelcome
 import org.videolan.vlc.compose.components.VLCSectionHeader
 import org.videolan.vlc.compose.theme.VLCTheme
@@ -206,11 +208,16 @@ private fun PlayerChromeTokensDemo() {
 
         Spacer(Modifier.height(16.dp))
 
-        // Chips row using audio_chips_* tokens (from audio_player.xml)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            ChipMock("Speed 1.0x", c.audioChipsColor, c.audioChipsTextColor)
-            ChipMock("Audio", c.audioChipsColor, c.audioChipsTextColor)
-        }
+        // Real Wave 2 chips leaf using audio_chips_* tokens (from audio_player.xml)
+        VLCAudioPlayerChips(
+            state = VLCAudioPlayerChipsState(
+                speedText = "1.25x",
+                sleepText = "12:55 AM",
+                speedUsesGlobalRate = true
+            ),
+            speedIconContent = { Text("S", color = c.audioChipsTextColor) },
+            sleepIconContent = { Text("Z", color = c.audioChipsTextColor) }
+        )
 
         Spacer(Modifier.height(16.dp))
 

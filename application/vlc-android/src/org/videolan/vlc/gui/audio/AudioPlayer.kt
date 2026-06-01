@@ -39,10 +39,19 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
+import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresPermission
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp as composeDp
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
@@ -95,6 +104,10 @@ import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.components.VLCAudioPlayerChips
+import org.videolan.vlc.compose.components.VLCAudioPlayerChipsState
+import org.videolan.vlc.compose.theme.VLCTheme
+import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.databinding.AudioPlayerBinding
 import org.videolan.vlc.gui.AudioPlayerContainerActivity
 import org.videolan.vlc.gui.HeaderMediaListActivity
@@ -151,6 +164,16 @@ import kotlin.math.absoluteValue
 private const val TAG = "VLC/AudioPlayer"
 private const val SEARCH_TIMEOUT_MILLIS = 10000L
 
+@Composable
+private fun AudioPlayerChipIcon(@DrawableRes drawable: Int) {
+    Icon(
+            painter = painterResource(drawable),
+            contentDescription = null,
+            tint = VLCThemeDefaults.colors.audioChipsTextColor,
+            modifier = Modifier.size(18.composeDp)
+    )
+}
+
 class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlayerAnimator by AudioPlayerAnimator() {
 
     private lateinit var binding: AudioPlayerBinding
@@ -161,6 +184,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
     lateinit var bookmarkModel: BookmarkModel
     private lateinit var optionsDelegate: PlayerOptionsDelegate
     lateinit var bookmarkListDelegate: BookmarkListDelegate
+    private var audioPlayerChipsState by mutableStateOf(VLCAudioPlayerChipsState())
 
     private var showRemainingTime = false
     private var previewingSeek = false
@@ -306,22 +330,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
             Settings.getInstance(requireActivity()).putSingle(AUDIO_PLAY_PROGRESS_MODE, audioPlayProgressMode)
             playlistModel.progress.value?.let { updateProgress(it) }
         }
-        binding.playbackSpeedQuickAction.setOnClickListener {
-            requireActivity().showPlaybackSpeedComposeDialog()
-        }
-        binding.playbackSpeedQuickAction.setOnLongClickListener {
-            playlistModel.service?.setRate(1F, true)
-            showChips()
-            true
-        }
-        binding.sleepQuickAction.setOnClickListener {
-            requireActivity().showSleepTimerComposeDialog()
-        }
-        binding.sleepQuickAction.setOnLongClickListener {
-            playlistModel.service?.setSleepTimer(null)
-            showChips()
-            true
-        }
+        setupPlaybackChips()
 
         binding.songTitle?.setOnClickListener { coverMediaSwitcherListener.onTextClicked() }
         binding.songSubtitle?.setOnClickListener { coverMediaSwitcherListener.onTextClicked() }
@@ -365,26 +374,49 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
 
     fun isTablet() = requireActivity().isTablet()
 
+    private fun setupPlaybackChips() {
+        binding.playbackChips.setContent {
+            VLCTheme {
+                val state = audioPlayerChipsState
+                VLCAudioPlayerChips(
+                    state = state,
+                    speedIconContent = {
+                        AudioPlayerChipIcon(if (state.speedUsesGlobalRate) R.drawable.ic_speed_all else R.drawable.ic_speed)
+                    },
+                    sleepIconContent = { AudioPlayerChipIcon(R.drawable.ic_sleep) },
+                    onSpeedClick = { activity?.showPlaybackSpeedComposeDialog() },
+                    onSpeedLongClick = {
+                        playlistModel.service?.setRate(1F, true)
+                        showChips()
+                    },
+                    onSleepClick = { activity?.showSleepTimerComposeDialog() },
+                    onSleepLongClick = {
+                        playlistModel.service?.setSleepTimer(null)
+                        showChips()
+                    }
+                )
+            }
+        }
+    }
+
     fun showChips() {
-        if (playlistModel.speed.value == 1.0F && PlaybackService.playerSleepTime.value == null) {
+        val context = context ?: return
+        val speedText = playlistModel.speed.value
+                ?.takeUnless { it == 1.0F }
+                ?.formatRateString()
+        val sleepText = PlaybackService.playerSleepTime.value
+                ?.let { DateFormat.getTimeFormat(context).format(it.time) }
+        val newState = VLCAudioPlayerChipsState(
+                speedText = speedText,
+                sleepText = sleepText,
+                speedUsesGlobalRate = settings.getBoolean(KEY_PLAYBACK_SPEED_AUDIO_GLOBAL, false)
+        )
+        audioPlayerChipsState = newState
+
+        if (!newState.hasVisibleChips) {
             binding.playbackChips.setGone()
         } else {
             binding.playbackChips.setVisible()
-            binding.playbackSpeedQuickAction.setGone()
-            binding.sleepQuickAction.setGone()
-            playlistModel.speed.value?.let {
-                if (it != 1.0F) binding.playbackSpeedQuickAction.setVisible()
-                binding.playbackSpeedQuickAction.text = it.formatRateString()
-            }
-            if (settings.getBoolean(KEY_PLAYBACK_SPEED_AUDIO_GLOBAL, false)) {
-                binding.playbackSpeedQuickAction.chipIcon = ContextCompat.getDrawable(requireActivity(), R.drawable.ic_speed_all)
-            } else {
-                binding.playbackSpeedQuickAction.chipIcon = ContextCompat.getDrawable(requireActivity(), R.drawable.ic_speed)
-            }
-            PlaybackService.playerSleepTime.value?.let {
-                binding.sleepQuickAction.setVisible()
-                binding.sleepQuickAction.text = DateFormat.getTimeFormat(requireContext()).format(it.time)
-            }
         }
     }
 

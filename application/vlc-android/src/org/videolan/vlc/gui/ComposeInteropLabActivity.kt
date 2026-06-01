@@ -57,6 +57,8 @@ import org.videolan.vlc.compose.components.VLCDebugLogLine
 import org.videolan.vlc.compose.components.VLCDialogConfirmDelete
 import org.videolan.vlc.compose.components.VLCDropdownItem
 import org.videolan.vlc.compose.components.VLCInfoItem
+import org.videolan.vlc.compose.components.VLCAudioPlayerChips
+import org.videolan.vlc.compose.components.VLCAudioPlayerChipsState
 import org.videolan.vlc.compose.components.VLCOnboardingWelcome
 import org.videolan.vlc.compose.components.VLCSectionHeader
 import org.videolan.vlc.compose.interop.VLCComposeView
@@ -289,6 +291,29 @@ fun ComposeInteropLabContent() {
         VLCSectionHeader(text = "TV Variant Simulation", isTv = true)
         Text(
             "Token: headerBackground + audioBrowserSeparator. High reuse across audio browser, playlists, media lists. Decoration interop path documented in RecyclerSectionItemDecoration.kt.",
+            style = MaterialTheme.typography.bodySmall
+        )
+
+        // -----------------------------------------------------------------
+        // WAVE 2. VLCAudioPlayerChips (audio_player.xml quick actions)
+        // -----------------------------------------------------------------
+        VLCSectionHeader(text = "Wave 2. VLCAudioPlayerChips (audio_player.xml)")
+        VLCAudioPlayerChips(
+            state = VLCAudioPlayerChipsState(
+                speedText = "1.25x",
+                sleepText = "12:55 AM",
+                speedUsesGlobalRate = true
+            ),
+            speedIconContent = {
+                Text("S", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.audioChipsTextColor)
+            },
+            sleepIconContent = {
+                Text("Z", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.audioChipsTextColor)
+            }
+        )
+        Text(
+            "Hosted in the real AudioPlayer fragment by replacing the playback_chips ChipGroup with VLCComposeView. " +
+            "The player gesture/switcher surface stays outside this slice; the speed and sleep quick actions are now Compose.",
             style = MaterialTheme.typography.bodySmall
         )
 

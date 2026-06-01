@@ -245,43 +245,15 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-            <com.google.android.material.chip.ChipGroup
+            <org.videolan.vlc.compose.interop.VLCComposeView
                     android:id="@+id/playback_chips"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
                     android:clipToPadding="false"
-                    android:paddingLeft="16dp"
-                    android:paddingRight="16dp"
-                    app:chipSpacing="16dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@id/barrier"
-                    app:layout_constraintTop_toTopOf="parent">
-
-                <com.google.android.material.chip.Chip
-                        android:id="@+id/playback_speed_quick_action"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:onClick="onClick"
-                        android:textColor="?attr/audio_chips_text_color"
-                        app:chipBackgroundColor="?attr/audio_chips_color"
-                        app:chipIcon="@drawable/ic_speed"
-                        app:chipIconTint="?attr/audio_chips_text_color"
-                        app:iconStartPadding="8dp"
-                        tools:text="1.25x" />
-
-                <com.google.android.material.chip.Chip
-                        android:id="@+id/sleep_quick_action"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:onClick="onClick"
-                        android:textColor="?attr/audio_chips_text_color"
-                        app:chipBackgroundColor="?attr/audio_chips_color"
-                        app:chipIcon="@drawable/ic_sleep"
-                        app:chipIconTint="?attr/audio_chips_text_color"
-                        app:iconStartPadding="8dp"
-                        tools:text="12h55AM" />
-            </com.google.android.material.chip.ChipGroup>
+                    app:layout_constraintTop_toTopOf="parent" />
 
             <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/playlist_search_text"

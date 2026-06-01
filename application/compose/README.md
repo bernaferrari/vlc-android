@@ -102,6 +102,7 @@ fun MyFullScreen() {
   - `VLCDebugLogLine` (debug_log_item.xml)
   - `VLCDialogConfirmDelete` (presentational parts of dialog_confirm_delete.xml)
   - `VLCOnboardingWelcome` (static parts of onboarding_welcome.xml)
+  - `VLCAudioPlayerChips` (Wave 2 playback speed + sleep quick-action chips from audio_player.xml)
 - Full Compose Activity screens:
   - `VLCOTPCodeScreen` hosted by `OTPCodeActivity` (former OTP Fragment/layout removed)
   - `VLCBetaWelcomeScreen` hosted by `BetaWelcomeActivity` (former DataBinding XML layout removed)
@@ -158,6 +159,7 @@ The **Compose Interop Lab** (`ComposeInteropLabActivity` + `compose_interop_lab.
   - Section header hosts + decorations (compose-2l4.1.4 / bd compose-95d)
   - Dialog content host (ConfirmDeleteDialog - keep shell/swap content pattern): `application/vlc-android/src/org/videolan/vlc/gui/dialogs/ConfirmDeleteDialog.kt` (compose-2l4.1.5 / bd compose-j0e)
   - Onboarding first-run host (high-visibility welcome flow): `application/vlc-android/src/org/videolan/vlc/gui/onboarding/OnboardingWelcomeFragment.kt` (compose-2l4.1.6 / bd compose-mdj) — real logo slot + land variant noted, layouts 100% preserved
+  - Audio player quick-action host: `application/vlc-android/src/org/videolan/vlc/gui/audio/AudioPlayer.kt` + `audio_player.xml` / `layout-land/audio_player.xml` (compose-q9r.3)
   - Crown jewel cross-cutting Lab (this milestone): `application/vlc-android/src/org/videolan/vlc/gui/ComposeInteropLabActivity.kt` + `compose_interop_lab.xml`
   - All leaves + interop + theme: `application/compose/src/main/java/org/videolan/vlc/compose/{components,interop,theme}/*`
   - Richer mocks derived from the Lab: `application/compose/src/main/java/org/videolan/vlc/compose/PreviewUtils.kt`
@@ -189,6 +191,7 @@ ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:comp
 - Part of the "preview + gate enforcement" acceptance criteria for Wave 1.
 
 **Current gate evidence**:
+- 2026-06-01: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:compose:build :application:vlc-android:compileDebugKotlin --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 10s` after replacing the audio-player quick-action ChipGroup with `VLCAudioPlayerChips`.
 - 2026-05-31: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:vlc-android:compileDebugKotlin --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 1m 24s` after the worktree was made tolerant of absent local `libvlcjni/libvlc` by falling back to the published `org.videolan.android:libvlc-all` artifact.
 - 2026-05-31: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:compose:build --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 1m 37s`.
 - All current Wave 0/1 hosts (NetworkServerDialog, DebugLogActivity, MediaInfoAdapter/InfoActivity, ComposeInteropLabActivity, OnboardingWelcomeFragment, OTPCodeActivity) participate in the app Kotlin gate.
