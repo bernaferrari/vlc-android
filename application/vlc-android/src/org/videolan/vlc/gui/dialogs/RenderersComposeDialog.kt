@@ -4,6 +4,7 @@ import android.app.Dialog
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.mutableStateOf
@@ -13,7 +14,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
@@ -28,7 +28,7 @@ import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
 
 private var isRenderersComposeDialogShowing = false
 
-fun FragmentActivity.showRenderersComposeDialog() {
+fun ComponentActivity.showRenderersComposeDialog() {
     if (isRenderersComposeDialogShowing) return
     isRenderersComposeDialogShowing = true
     lifecycleScope.launch {
@@ -44,7 +44,7 @@ fun FragmentActivity.showRenderersComposeDialog() {
 }
 
 private class RenderersComposeDialog(
-    private val activity: FragmentActivity,
+    private val activity: ComponentActivity,
     private val onDismissed: () -> Unit
 ) {
     private val dialog = Dialog(activity)

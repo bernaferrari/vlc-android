@@ -24,6 +24,7 @@
 
 package org.videolan.vlc.gui.dialogs
 
+import androidx.activity.ComponentActivity
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -59,7 +60,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.FragmentActivity
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
 import org.videolan.vlc.VlcMigrationHelper
@@ -80,7 +80,7 @@ object VideoTracksDialog {
     }
 }
 
-fun FragmentActivity.showVideoTracksComposeDialog(
+fun ComponentActivity.showVideoTracksComposeDialog(
     menuListener: (VideoTracksDialog.VideoTrackOption) -> Unit,
     trackSelectionListener: (String, VideoTracksDialog.TrackType) -> Unit
 ) {
@@ -92,7 +92,7 @@ fun FragmentActivity.showVideoTracksComposeDialog(
 }
 
 private class VideoTracksComposeDialog(
-    activity: FragmentActivity,
+    activity: ComponentActivity,
     private val menuListener: (VideoTracksDialog.VideoTrackOption) -> Unit,
     private val trackSelectionListener: (String, VideoTracksDialog.TrackType) -> Unit
 ) : PlaybackComposeBottomSheetDialog(activity = activity, allowRemote = true) {

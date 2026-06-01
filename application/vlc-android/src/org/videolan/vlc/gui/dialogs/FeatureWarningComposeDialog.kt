@@ -4,6 +4,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
 import android.widget.FrameLayout
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.ui.Modifier
@@ -12,7 +13,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.FragmentActivity
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import org.videolan.resources.AndroidDevices
@@ -25,7 +25,7 @@ import org.videolan.vlc.util.isTalkbackIsEnabled
 /**
  * Compose-hosted optional feature warning bottom sheet.
  */
-fun FragmentActivity.showFeatureFlagWarningComposeDialog(
+fun ComponentActivity.showFeatureFlagWarningComposeDialog(
     featureFlag: FeatureFlag,
     onAccepted: () -> Unit
 ) {
@@ -42,7 +42,7 @@ fun FragmentActivity.showFeatureFlagWarningComposeDialog(
 /**
  * Compose-hosted touch-only warning bottom sheet.
  */
-fun FragmentActivity.showFeatureTouchOnlyWarningComposeDialog(onAccepted: () -> Unit) {
+fun ComponentActivity.showFeatureTouchOnlyWarningComposeDialog(onAccepted: () -> Unit) {
     FeatureWarningComposeDialog(
         activity = this,
         title = getString(R.string.touch_only),
@@ -54,7 +54,7 @@ fun FragmentActivity.showFeatureTouchOnlyWarningComposeDialog(onAccepted: () -> 
 }
 
 private class FeatureWarningComposeDialog(
-    private val activity: FragmentActivity,
+    private val activity: ComponentActivity,
     private val title: String,
     private val genericWarning: String,
     private val detailWarning: String?,

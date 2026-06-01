@@ -29,6 +29,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
 import android.widget.FrameLayout
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -69,8 +70,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.os.bundleOf
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -97,20 +96,18 @@ import org.videolan.vlc.viewmodels.mobile.VideoGroupingType
 import org.videolan.vlc.viewmodels.mobile.VideosViewModel
 import java.util.LinkedList
 
-const val CONFIRM_ADD_TO_GROUP_RESULT = "CONFIRM_ADD_TO_GROUP_RESULT"
-
 object AddToGroupDialog {
     const val TAG = "VLC/AddToGroupDialog"
 
-    const val KEY_TRACKS = "ADD_TO_GROUP_TRACKS"
     const val FORBID_NEW_GROUP = "FORBID_NEW_GROUP"
 }
 
 private var isAddToGroupComposeDialogShowing = false
 
-fun FragmentActivity.showAddToGroupComposeDialog(
+fun ComponentActivity.showAddToGroupComposeDialog(
     tracks: List<MediaWrapper>,
-    forbidNewGroup: Boolean
+    forbidNewGroup: Boolean,
+    onNewGroupRequested: (Array<MediaWrapper>) -> Unit = {}
 ) {
     if (isAddToGroupComposeDialogShowing) return
     isAddToGroupComposeDialogShowing = true
@@ -123,15 +120,17 @@ fun FragmentActivity.showAddToGroupComposeDialog(
             activity = this@showAddToGroupComposeDialog,
             tracks = tracks.toTypedArray(),
             forbidNewGroup = forbidNewGroup,
+            onNewGroupRequested = onNewGroupRequested,
             onDismissed = { isAddToGroupComposeDialogShowing = false }
         ).show()
     }
 }
 
 private class AddToGroupComposeDialog(
-    private val activity: FragmentActivity,
+    private val activity: ComponentActivity,
     private val tracks: Array<MediaWrapper>,
     private val forbidNewGroup: Boolean,
+    private val onNewGroupRequested: (Array<MediaWrapper>) -> Unit,
     private val onDismissed: () -> Unit
 ) {
     private val medialibrary = Medialibrary.getInstance()
@@ -199,10 +198,7 @@ private class AddToGroupComposeDialog(
     private fun onItemSelected(item: MediaLibraryItem) {
         when (item) {
             is DummyItem -> {
-                activity.supportFragmentManager.setFragmentResult(
-                    CONFIRM_ADD_TO_GROUP_RESULT,
-                    bundleOf(AddToGroupDialog.KEY_TRACKS to tracks)
-                )
+                onNewGroupRequested(tracks)
                 dialog.dismiss()
             }
             is VideoGroup -> addToGroup(item)

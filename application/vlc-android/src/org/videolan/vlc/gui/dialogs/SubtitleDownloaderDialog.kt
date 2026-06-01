@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
 import android.widget.FrameLayout
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -64,7 +65,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.databinding.Observable
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -90,7 +90,7 @@ import org.videolan.vlc.util.openLinkIfPossible
 import org.videolan.vlc.viewmodels.SubtitlesModel
 import java.util.Locale
 
-fun FragmentActivity.showSubtitleDownloaderComposeDialog(mediaUri: Uri, mediaTitle: String) {
+fun ComponentActivity.showSubtitleDownloaderComposeDialog(mediaUri: Uri, mediaTitle: String) {
     SubtitleDownloaderComposeDialog(
         activity = this,
         mediaUri = mediaUri,
@@ -99,7 +99,7 @@ fun FragmentActivity.showSubtitleDownloaderComposeDialog(mediaUri: Uri, mediaTit
 }
 
 private class SubtitleDownloaderComposeDialog(
-    private val activity: FragmentActivity,
+    private val activity: ComponentActivity,
     private val mediaUri: Uri,
     private val mediaTitle: String
 ) {

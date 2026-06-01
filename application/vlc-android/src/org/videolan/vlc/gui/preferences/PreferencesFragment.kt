@@ -56,8 +56,6 @@ import org.videolan.vlc.gui.EqualizerSettingsActivity
 import org.videolan.vlc.gui.PinCodeActivity
 import org.videolan.vlc.gui.PinCodeReason
 import org.videolan.vlc.gui.SecondaryActivity
-import org.videolan.vlc.gui.dialogs.CONFIRM_PREFERENCE_CHANGE_DIALOG_RESULT
-import org.videolan.vlc.gui.dialogs.PREFERENCE_KEY
 import org.videolan.vlc.gui.dialogs.showConfirmPreferenceChangeComposeDialog
 import org.videolan.vlc.gui.dialogs.showPermissionListComposeDialog
 import org.videolan.vlc.gui.helpers.UiTools
@@ -123,26 +121,6 @@ class PreferencesFragment : BasePreferenceFragment(), SharedPreferences.OnShared
             }
             arguments = null
         }
-        requireActivity().supportFragmentManager.setFragmentResultListener(CONFIRM_PREFERENCE_CHANGE_DIALOG_RESULT, viewLifecycleOwner) { requestKey, bundle ->
-            when (bundle.getString(PREFERENCE_KEY, "")) {
-                AUDIO_RESUME_PLAYBACK -> {
-                    Settings.getInstance(requireActivity()).edit()
-                        .remove(KEY_AUDIO_LAST_PLAYLIST)
-                        .remove(KEY_MEDIA_LAST_PLAYLIST_RESUME)
-                        .remove(KEY_CURRENT_AUDIO_RESUME_TITLE)
-                        .remove(KEY_CURRENT_AUDIO_RESUME_ARTIST)
-                        .remove(KEY_CURRENT_AUDIO_RESUME_THUMB)
-                        .remove(KEY_CURRENT_AUDIO)
-                        .remove(KEY_CURRENT_MEDIA)
-                        .remove(KEY_CURRENT_MEDIA_RESUME)
-                        .apply()
-                    val activity = activity
-                    activity?.setResult(RESULT_RESTART)
-                    audioResumePref.isChecked = false
-                }
-                PLAYBACK_HISTORY -> findPreference<CheckBoxPreference>(PLAYBACK_HISTORY)?.isChecked = false
-            }
-        }
     }
 
     override fun onPreferenceTreeClick(preference: Preference): Boolean {
@@ -186,7 +164,8 @@ class PreferencesFragment : BasePreferenceFragment(), SharedPreferences.OnShared
                     activity?.showConfirmPreferenceChangeComposeDialog(
                         PLAYBACK_HISTORY,
                         getString(R.string.playback_history_title),
-                        getString(R.string.playback_history_warning)
+                        getString(R.string.playback_history_warning),
+                        ::onPreferenceChangeConfirmed
                     )
                     preference.isChecked = true
                 }
@@ -197,7 +176,8 @@ class PreferencesFragment : BasePreferenceFragment(), SharedPreferences.OnShared
                     activity?.showConfirmPreferenceChangeComposeDialog(
                         AUDIO_RESUME_PLAYBACK,
                         getString(R.string.audio_resume_playback_title),
-                        getString(R.string.audio_resume_playback_warning)
+                        getString(R.string.audio_resume_playback_warning),
+                        ::onPreferenceChangeConfirmed
                     )
                     audioResumePref.isChecked = true
                 }
@@ -217,6 +197,26 @@ class PreferencesFragment : BasePreferenceFragment(), SharedPreferences.OnShared
             else -> return super.onPreferenceTreeClick(preference)
         }
         return true
+    }
+
+    private fun onPreferenceChangeConfirmed(preferenceKey: String) {
+        when (preferenceKey) {
+            AUDIO_RESUME_PLAYBACK -> {
+                Settings.getInstance(requireActivity()).edit()
+                    .remove(KEY_AUDIO_LAST_PLAYLIST)
+                    .remove(KEY_MEDIA_LAST_PLAYLIST_RESUME)
+                    .remove(KEY_CURRENT_AUDIO_RESUME_TITLE)
+                    .remove(KEY_CURRENT_AUDIO_RESUME_ARTIST)
+                    .remove(KEY_CURRENT_AUDIO_RESUME_THUMB)
+                    .remove(KEY_CURRENT_AUDIO)
+                    .remove(KEY_CURRENT_MEDIA)
+                    .remove(KEY_CURRENT_MEDIA_RESUME)
+                    .apply()
+                activity?.setResult(RESULT_RESTART)
+                audioResumePref.isChecked = false
+            }
+            PLAYBACK_HISTORY -> findPreference<CheckBoxPreference>(PLAYBACK_HISTORY)?.isChecked = false
+        }
     }
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {

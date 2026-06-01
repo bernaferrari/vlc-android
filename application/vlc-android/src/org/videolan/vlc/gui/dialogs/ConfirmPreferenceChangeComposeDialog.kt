@@ -1,10 +1,10 @@
 package org.videolan.vlc.gui.dialogs
 
-import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
 import android.widget.FrameLayout
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.ui.Modifier
@@ -13,9 +13,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.core.os.bundleOf
-import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.setFragmentResult
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import org.videolan.resources.AndroidDevices
@@ -24,27 +21,24 @@ import org.videolan.vlc.R
 import org.videolan.vlc.compose.components.VLCPreferenceChangeWarningDialogContent
 import org.videolan.vlc.util.isTalkbackIsEnabled
 
-const val CONFIRM_PREFERENCE_CHANGE_DIALOG_RESULT = "confirm_preference_change_dialog_result"
-const val PREFERENCE_KEY = "preference_key"
-
 /**
  * Compose-hosted preference change warning bottom sheet.
  */
-fun FragmentActivity.showConfirmPreferenceChangeComposeDialog(
+fun ComponentActivity.showConfirmPreferenceChangeComposeDialog(
     preferenceKey: String,
     title: String,
     warning: String,
-    onAccepted: (() -> Unit)? = null
+    onAccepted: (String) -> Unit
 ) {
     ConfirmPreferenceChangeComposeDialog(this, preferenceKey, title, warning, onAccepted).show()
 }
 
 private class ConfirmPreferenceChangeComposeDialog(
-    private val activity: FragmentActivity,
+    private val activity: ComponentActivity,
     private val preferenceKey: String,
     private val title: String,
     private val warning: String,
-    private val onAccepted: (() -> Unit)?
+    private val onAccepted: (String) -> Unit
 ) {
     private val dialog = if (Settings.showTvUi) {
         BottomSheetDialog(activity, R.style.Theme_VLC_Black_BottomSheet)
@@ -85,9 +79,7 @@ private class ConfirmPreferenceChangeComposeDialog(
     }
 
     private fun confirm() {
-        onAccepted?.invoke()
-        val bundle: Bundle = bundleOf(PREFERENCE_KEY to preferenceKey)
-        activity.supportFragmentManager.setFragmentResult(CONFIRM_PREFERENCE_CHANGE_DIALOG_RESULT, bundle)
+        onAccepted(preferenceKey)
         dialog.dismiss()
     }
 

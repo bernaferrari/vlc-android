@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
 import android.widget.FrameLayout
+import androidx.activity.ComponentActivity
 import androidx.annotation.StringRes
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
@@ -41,7 +42,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -71,7 +71,7 @@ object NetworkServerDialog {
 
 private var isNetworkServerComposeDialogShowing = false
 
-fun FragmentActivity.showNetworkServerComposeDialog(
+fun ComponentActivity.showNetworkServerComposeDialog(
     server: MediaWrapper? = null,
     finishOnDismiss: Boolean = false
 ) {
@@ -93,7 +93,7 @@ fun FragmentActivity.showNetworkServerComposeDialog(
 }
 
 private class NetworkServerComposeDialog(
-    private val activity: FragmentActivity,
+    private val activity: ComponentActivity,
     server: MediaWrapper?,
     private val finishOnDismiss: Boolean,
     private val onDismissed: () -> Unit
@@ -462,6 +462,6 @@ private fun getPortForProtocol(protocol: String): String {
     }
 }
 
-private fun FragmentActivity.finishNetworkServerDialogActivityIfNeeded(finishOnDismiss: Boolean) {
+private fun ComponentActivity.finishNetworkServerDialogActivityIfNeeded(finishOnDismiss: Boolean) {
     if (finishOnDismiss && this is DialogActivity && !isFinishing) finish()
 }

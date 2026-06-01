@@ -444,7 +444,7 @@ object UiTools {
      * @param item the menu item that was clicked
      * @return true if the change has been applied, false otherwise
      */
-    fun updateIncognitoMode(activity: FragmentActivity, item: MenuItem): Boolean {
+    fun updateIncognitoMode(activity: ComponentActivity, item: MenuItem): Boolean {
         if (activity.showPinIfNeeded()) return false
         val settings = Settings.getInstance(activity)
         settings.putSingle(KEY_INCOGNITO, !settings.getBoolean(KEY_INCOGNITO, false))
@@ -510,7 +510,7 @@ object UiTools {
         return false
     }
 
-    fun FragmentActivity.addToGroup(tracks: List<MediaWrapper>, forbidNewGroup:Boolean) {
+    fun ComponentActivity.addToGroup(tracks: List<MediaWrapper>, forbidNewGroup:Boolean) {
         if (!isStarted()) return
         showAddToGroupComposeDialog(tracks, forbidNewGroup)
     }
@@ -554,7 +554,7 @@ object UiTools {
         }
     }
 
-    fun FragmentActivity.showVideoTrack(menuListener:(VideoTracksDialog.VideoTrackOption) -> Unit, trackSelectionListener:(String, VideoTracksDialog.TrackType) -> Unit) {
+    fun ComponentActivity.showVideoTrack(menuListener:(VideoTracksDialog.VideoTrackOption) -> Unit, trackSelectionListener:(String, VideoTracksDialog.TrackType) -> Unit) {
         if (!isStarted()) return
         showVideoTracksComposeDialog(menuListener, trackSelectionListener)
     }

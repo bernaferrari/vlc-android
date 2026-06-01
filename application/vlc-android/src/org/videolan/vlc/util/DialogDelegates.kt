@@ -1,7 +1,7 @@
 package org.videolan.vlc.util
 
+import androidx.activity.ComponentActivity
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
 import org.videolan.libvlc.Dialog
 import org.videolan.vlc.gui.dialogs.VlcComposeDialogController
@@ -66,7 +66,7 @@ fun Fragment.showVlcDialog(dialog: Dialog) {
 }
 
 @Suppress("INACCESSIBLE_TYPE")
-fun FragmentActivity.showVlcDialog(dialog: Dialog) {
+fun ComponentActivity.showVlcDialog(dialog: Dialog) {
     DialogDelegate.dialogCounter++
     showVlcComposeDialog(dialog)
 }

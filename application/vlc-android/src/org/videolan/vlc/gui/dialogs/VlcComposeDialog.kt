@@ -1,6 +1,7 @@
 package org.videolan.vlc.gui.dialogs
 
 import androidx.appcompat.app.AppCompatDialog
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,7 +28,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.FragmentActivity
 import org.videolan.libvlc.Dialog
 import org.videolan.libvlc.util.AndroidUtil
 import org.videolan.tools.LOGIN_STORE
@@ -43,7 +43,7 @@ internal interface VlcComposeDialogController {
     fun updateProgress() = Unit
 }
 
-fun FragmentActivity.showVlcComposeDialog(vlcDialog: Dialog) {
+fun ComponentActivity.showVlcComposeDialog(vlcDialog: Dialog) {
     when (vlcDialog) {
         is Dialog.LoginDialog -> VlcLoginComposeDialog(this, vlcDialog).show()
         is Dialog.QuestionDialog -> VlcQuestionComposeDialog(this, vlcDialog).show()
@@ -53,7 +53,7 @@ fun FragmentActivity.showVlcComposeDialog(vlcDialog: Dialog) {
 }
 
 private abstract class BaseVlcComposeDialog<T : Dialog>(
-    protected val activity: FragmentActivity,
+    protected val activity: ComponentActivity,
     protected val vlcDialog: T
 ) : VlcComposeDialogController {
     protected val dialog = AppCompatDialog(activity)
@@ -96,7 +96,7 @@ private abstract class BaseVlcComposeDialog<T : Dialog>(
 }
 
 private class VlcLoginComposeDialog(
-    activity: FragmentActivity,
+    activity: ComponentActivity,
     private val loginDialog: Dialog.LoginDialog
 ) : BaseVlcComposeDialog<Dialog.LoginDialog>(activity, loginDialog) {
     private val settings = Settings.getInstance(activity)
@@ -180,7 +180,7 @@ private class VlcLoginComposeDialog(
 }
 
 private class VlcQuestionComposeDialog(
-    activity: FragmentActivity,
+    activity: ComponentActivity,
     private val questionDialog: Dialog.QuestionDialog
 ) : BaseVlcComposeDialog<Dialog.QuestionDialog>(activity, questionDialog) {
     @Composable
@@ -234,7 +234,7 @@ private class VlcQuestionComposeDialog(
 }
 
 private class VlcProgressComposeDialog(
-    activity: FragmentActivity,
+    activity: ComponentActivity,
     private val progressDialog: Dialog.ProgressDialog
 ) : BaseVlcComposeDialog<Dialog.ProgressDialog>(activity, progressDialog) {
     private val progress = mutableStateOf(progressDialog.position)

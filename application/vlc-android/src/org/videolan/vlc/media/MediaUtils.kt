@@ -9,10 +9,10 @@ import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.util.Log
 import androidx.annotation.WorkerThread
+import androidx.activity.ComponentActivity
 import androidx.collection.SimpleArrayMap
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineScope
@@ -76,12 +76,12 @@ private const val TAG = "VLC/MediaUtils"
 private typealias MediaContentResolver = SimpleArrayMap<String, IMediaContentResolver>
 
 object MediaUtils {
-    fun getSubs(activity: FragmentActivity, media: MediaWrapper) {
+    fun getSubs(activity: ComponentActivity, media: MediaWrapper) {
         activity.showSubtitleDownloaderComposeDialog(media.uri, media.title)
     }
 
 
-    fun deleteItem(activity:FragmentActivity, item: MediaLibraryItem, onDeleteFailed:(MediaLibraryItem)->Unit) {
+    fun deleteItem(activity: ComponentActivity, item: MediaLibraryItem, onDeleteFailed:(MediaLibraryItem)->Unit) {
         val deletionAction = when (item) {
             is MediaWrapper, is Album -> Runnable {
                 activity.lifecycleScope.launchWhenStarted {

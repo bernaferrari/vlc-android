@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
 import android.widget.FrameLayout
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.getValue
@@ -19,7 +20,6 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -39,7 +39,7 @@ import java.util.Date
 /**
  * Compose-hosted nightly update bottom sheet.
  */
-fun FragmentActivity.showUpdateComposeDialog(
+fun ComponentActivity.showUpdateComposeDialog(
     updateURL: String,
     updateDate: Date,
     newInstall: Boolean = false
@@ -48,7 +48,7 @@ fun FragmentActivity.showUpdateComposeDialog(
 }
 
 private class UpdateComposeDialog(
-    private val activity: FragmentActivity,
+    private val activity: ComponentActivity,
     private val updateURL: String,
     private val updateDate: Date,
     private val newInstall: Boolean

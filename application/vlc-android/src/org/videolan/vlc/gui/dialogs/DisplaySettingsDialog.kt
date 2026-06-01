@@ -28,6 +28,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
 import android.widget.FrameLayout
+import androidx.activity.ComponentActivity
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
@@ -69,7 +70,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -140,7 +140,7 @@ object DisplaySettingsDialog {
 
 private var isDisplaySettingsComposeDialogShowing = false
 
-fun FragmentActivity.showDisplaySettingsComposeDialog(
+fun ComponentActivity.showDisplaySettingsComposeDialog(
     displayInCards: Boolean?,
     showAllArtists: Boolean? = null,
     onlyFavs: Boolean?,
@@ -181,7 +181,7 @@ fun FragmentActivity.showDisplaySettingsComposeDialog(
 }
 
 private class DisplaySettingsComposeDialog(
-    private val activity: FragmentActivity,
+    private val activity: ComponentActivity,
     displayInCards: Boolean?,
     showAllArtists: Boolean?,
     onlyFavs: Boolean?,
