@@ -16,11 +16,12 @@
             android:layout_height="match_parent"
             android:fitsSystemWindows="false" />
 
-    <androidx.appcompat.widget.ViewStubCompat
+    <org.videolan.vlc.gui.view.VideoTipsHostView
             android:id="@+id/player_overlay_tips"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout="@layout/player_tips" />
+            android:visibility="gone"
+            tools:visibility="visible" />
 
     <FrameLayout
             android:id="@+id/player_overlay_background"
