@@ -35,12 +35,10 @@
             android:keyboardNavigationCluster="true"
             tools:targetApi="o">
 
-        <ImageView
+        <org.videolan.vlc.gui.view.AudioPlayerBackgroundView
                 android:id="@+id/backgroundView"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                android:scaleType="centerCrop"
-                android:src="?attr/background_default_darker"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"

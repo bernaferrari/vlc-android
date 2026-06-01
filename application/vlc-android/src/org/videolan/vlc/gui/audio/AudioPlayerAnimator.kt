@@ -238,7 +238,8 @@ internal class AudioPlayerAnimator : IAudioPlayerAnimator, LifecycleObserver {
                 val cover = withContext(Dispatchers.IO) { AudioUtil.readCoverBitmap(Uri.decode(mw.artworkMrl), width) }
                 if (cover == null) setDefaultBackground()
                 else {
-                    UiTools.blurView(binding.backgroundView, cover, 15F, UiTools.getColorFromAttribute(activity, R.attr.audio_player_background_tint))
+                    val blurredCover = withContext(Dispatchers.IO) { UiTools.blurBitmap(cover, 15F) ?: cover }
+                    binding.backgroundView.setBackgroundBitmap(blurredCover, UiTools.getColorFromAttribute(activity, R.attr.audio_player_background_tint))
                     binding.backgroundView.setVisible()
                 }
             }
@@ -250,6 +251,7 @@ internal class AudioPlayerAnimator : IAudioPlayerAnimator, LifecycleObserver {
 
     @MainThread
     private fun setDefaultBackground() {
+        binding.backgroundView.clearBackgroundBitmap()
         binding.backgroundView.visibility = View.INVISIBLE
     }
 

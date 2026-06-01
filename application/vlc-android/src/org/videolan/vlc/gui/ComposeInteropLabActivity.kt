@@ -67,6 +67,7 @@ import org.videolan.vlc.compose.components.VLCAudioHeaderPlayPauseButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderTimeLabel
 import org.videolan.vlc.compose.components.VLCAudioHeaderTransportButton
 import org.videolan.vlc.compose.components.VLCAudioMiniProgressBar
+import org.videolan.vlc.compose.components.VLCAudioPlayerBackground
 import org.videolan.vlc.compose.components.VLCAudioPlayerGradient
 import org.videolan.vlc.compose.components.VLCAudioPlayerGradientEdge
 import org.videolan.vlc.compose.components.VLCAudioPlaylistSearchField
@@ -319,6 +320,11 @@ fun ComposeInteropLabContent() {
         // WAVE 2. VLCAudioPlayerChips (audio_player.xml quick actions)
         // -----------------------------------------------------------------
         VLCSectionHeader(text = "Wave 2. VLCAudioPlayerChips (audio_player.xml)")
+        VLCAudioPlayerBackground(
+            bitmap = null,
+            overlayColor = androidx.compose.ui.graphics.Color.Transparent,
+            modifier = Modifier.fillMaxWidth().height(24.dp)
+        )
         VLCAudioHeaderBackground(modifier = Modifier.fillMaxWidth().height(40.dp))
         VLCAudioHeaderDivider(modifier = Modifier.fillMaxWidth().height(1.dp))
         VLCAudioMiniProgressBar(
@@ -465,6 +471,7 @@ fun ComposeInteropLabContent() {
             "Hosted in the real AudioPlayer fragment by replacing the playback_chips ChipGroup with VLCComposeView. " +
             "The collapsed header background and divider are Compose-hosted under the existing header_background and header_divider IDs so slide alpha transitions stay intact. " +
             "The collapsed mini progress bar is Compose-backed under progressBar while keeping the existing max/progress and slide-height contract. " +
+            "The blurred cover background is Compose-backed under backgroundView with AudioPlayerAnimator still owning cover loading and blur generation. " +
             "The top and bottom audio-player gradient overlays are Compose-backed under top_gradient and bottom_gradient while keeping their layout constraints. " +
             "The playlist search input is Compose-backed under playlist_search_text with a small query/focus bridge replacing TextInputLayout/EditText. " +
             "The full-player timeline seekbar is Compose-backed under timeline with a max/progress and drag callback bridge replacing AccessibleSeekBar. " +
