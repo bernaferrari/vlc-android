@@ -25,8 +25,10 @@ package org.videolan.vlc.gui.preferences
 import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Color as AndroidColor
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,6 +53,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -61,11 +64,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
 import org.videolan.medialibrary.Tools
 import org.videolan.resources.AndroidDevices
 import org.videolan.tools.AUDIO_DUCKING
+import org.videolan.tools.DAV1D_THREAD_NUMBER
+import org.videolan.tools.KEY_AOUT
 import org.videolan.tools.KEY_APP_THEME
 import org.videolan.tools.KEY_AUDIO_CONFIRM_RESUME
 import org.videolan.tools.KEY_AUDIO_DIGITAL_OUTPUT
@@ -82,23 +88,33 @@ import org.videolan.tools.KEY_ALWAYS_FAST_SEEK
 import org.videolan.tools.KEY_CASTING_AUDIO_ONLY
 import org.videolan.tools.KEY_CASTING_PASSTHROUGH
 import org.videolan.tools.KEY_CASTING_QUALITY
+import org.videolan.tools.KEY_CUSTOM_LIBVLC_OPTIONS
+import org.videolan.tools.KEY_DEBLOCKING
 import org.videolan.tools.KEY_ENABLE_CASTING
 import org.videolan.tools.KEY_ENABLE_CLONE_MODE
+import org.videolan.tools.KEY_ENABLE_FRAME_SKIP
 import org.videolan.tools.KEY_ENABLE_HEADSET_DETECTION
 import org.videolan.tools.KEY_ENABLE_PLAY_ON_HEADSET_INSERTION
+import org.videolan.tools.KEY_ENABLE_TIME_STRETCHING_AUDIO
+import org.videolan.tools.KEY_ENABLE_VERBOSE_MODE
 import org.videolan.tools.KEY_ENABLE_REMOTE_ACCESS
 import org.videolan.tools.KEY_IGNORE_HEADSET_MEDIA_BUTTON_PRESSES
 import org.videolan.tools.KEY_INCLUDE_MISSING
 import org.videolan.tools.KEY_INCOGNITO
 import org.videolan.tools.KEY_MEDIA_SEEN
+import org.videolan.tools.KEY_OPENGL
 import org.videolan.tools.KEY_PLAYBACK_SPEED_AUDIO_GLOBAL
 import org.videolan.tools.KEY_PERSISTENT_INCOGNITO
+import org.videolan.tools.KEY_PREFER_SMBV1
 import org.videolan.tools.KEY_PREFERRED_RESOLUTION
+import org.videolan.tools.KEY_QUICK_PLAY
+import org.videolan.tools.KEY_QUICK_PLAY_DEFAULT
 import org.videolan.tools.KEY_REMOTE_ACCESS_ML_CONTENT
 import org.videolan.tools.KEY_RESTRICT_SETTINGS
 import org.videolan.tools.KEY_SAFE_MODE
 import org.videolan.tools.KEY_SET_LOCALE
 import org.videolan.tools.KEY_SHOW_HEADERS
+import org.videolan.tools.KEY_SHOW_UPDATE
 import org.videolan.tools.KEY_SUBTITLES_AUTOLOAD
 import org.videolan.tools.KEY_SUBTITLES_BACKGROUND
 import org.videolan.tools.KEY_SUBTITLES_BACKGROUND_COLOR
@@ -142,7 +158,10 @@ import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.isVLC4
 import org.videolan.vlc.util.TextUtils
+import org.videolan.vlc.util.FeatureFlag
+import org.videolan.vlc.util.FeatureFlagManager
 import org.videolan.vlc.util.LocaleUtil
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
@@ -158,6 +177,19 @@ private const val KEY_ANDROID_AUTO_SPEED_BUTTONS = "enable_android_auto_speed_bu
 private const val KEY_ANDROID_AUTO_SEEK_BUTTONS = "enable_android_auto_seek_buttons"
 private const val KEY_DEFAULT_SLEEP_TIMER = "default_sleep_timer"
 private const val KEY_SUBTITLES_PRESETS = "subtitles_presets"
+private const val KEY_OPTIONAL_FEATURES = "optional_features"
+private const val KEY_NETWORK_CACHING = "network_caching"
+private const val KEY_HTTP_USER_AGENT = "http_user_agent"
+private const val KEY_QUIT_APP = "quit_app"
+private const val KEY_DUMP_MEDIA_DB = "dump_media_db"
+private const val KEY_DUMP_APP_DB = "dump_app_db"
+private const val KEY_CLEAR_MEDIA_DB = "clear_media_db"
+private const val KEY_CLEAR_APP_DATA = "clear_app_data"
+private const val KEY_CLEAR_HISTORY = "clear_history"
+private const val KEY_EXPORT_SETTINGS = "export_settings"
+private const val KEY_RESTORE_SETTINGS = "restore_settings"
+private const val KEY_DEBUG_LOGS = "debug_logs"
+private const val KEY_NIGHTLY_INSTALL = "nightly_install"
 
 private data class SubpagePreferenceOption(
         val label: String,
@@ -165,10 +197,10 @@ private data class SubpagePreferenceOption(
 )
 
 /**
- * Compose replacement for the small phone preference XML screens:
+ * Compose replacement for the phone preference XML screens:
  * preferences_ui.xml, preferences_video.xml, preferences_audio.xml, preferences_subtitles.xml,
  * preferences_casting.xml, preferences_parental_control.xml, preferences_remote_access.xml,
- * and preferences_android_auto.xml.
+ * preferences_android_auto.xml, preferences_adv.xml, and preferences_optional.xml.
  *
  * Those XML files stay parseable by PreferenceParser for search metadata while this screen owns
  * the active phone rendering path.
@@ -197,7 +229,26 @@ internal fun PreferencesComposeSubpageScreen(
         onRestartDialogRequired: () -> Unit,
         onDefaultSleepTimerClick: (() -> Unit) -> Unit,
         onSeenMediaChanged: () -> Unit,
-        onSubtitleSettingChanged: () -> Unit
+        onSubtitleSettingChanged: () -> Unit,
+        onOptionalFeaturesClick: () -> Unit,
+        onDebugLogsClick: () -> Unit,
+        onInstallNightlyClick: () -> Unit,
+        onClearPlaybackHistoryClick: () -> Unit,
+        onClearMediaDatabaseClick: () -> Unit,
+        onClearAppDataClick: () -> Unit,
+        onQuitAppClick: () -> Unit,
+        onDumpMediaDatabaseClick: () -> Unit,
+        onDumpAppDatabaseClick: () -> Unit,
+        onExportSettingsClick: () -> Unit,
+        onRestoreSettingsClick: () -> Unit,
+        onNetworkCachingChanged: (String) -> String,
+        onAoutChanged: (String) -> Unit,
+        onAdvancedRestartLibVlc: () -> Unit,
+        onCustomLibVlcOptionsChanged: (String) -> Unit,
+        onDav1dThreadNumberChanged: (String) -> String,
+        onPreferSmbV1Changed: () -> Unit,
+        onQuickPlayChanged: (Boolean) -> Unit,
+        onFeatureFlagWarningRequired: (FeatureFlag, () -> Unit) -> Unit
 ) {
     VLCTheme {
         Box(
@@ -280,11 +331,35 @@ internal fun PreferencesComposeSubpageScreen(
                                 onNetworkBrowserChanged = onRemoteAccessNetworkBrowserChanged
                         )
                     }
-                    else -> item {
-                        Text(
-                                text = stringResource(R.string.preferences),
-                                color = VLCThemeDefaults.colors.fontDefault,
-                                style = MaterialTheme.typography.bodyLarge
+                    PreferencesRootDestination.Advanced -> item {
+                        AdvancedPreferencesContent(
+                                settings = settings,
+                                highlightedKey = highlightedKey,
+                                onOptionalFeaturesClick = onOptionalFeaturesClick,
+                                onDebugLogsClick = onDebugLogsClick,
+                                onInstallNightlyClick = onInstallNightlyClick,
+                                onClearPlaybackHistoryClick = onClearPlaybackHistoryClick,
+                                onClearMediaDatabaseClick = onClearMediaDatabaseClick,
+                                onClearAppDataClick = onClearAppDataClick,
+                                onQuitAppClick = onQuitAppClick,
+                                onDumpMediaDatabaseClick = onDumpMediaDatabaseClick,
+                                onDumpAppDatabaseClick = onDumpAppDatabaseClick,
+                                onExportSettingsClick = onExportSettingsClick,
+                                onRestoreSettingsClick = onRestoreSettingsClick,
+                                onNetworkCachingChanged = onNetworkCachingChanged,
+                                onAoutChanged = onAoutChanged,
+                                onAdvancedRestartLibVlc = onAdvancedRestartLibVlc,
+                                onCustomLibVlcOptionsChanged = onCustomLibVlcOptionsChanged,
+                                onDav1dThreadNumberChanged = onDav1dThreadNumberChanged,
+                                onPreferSmbV1Changed = onPreferSmbV1Changed,
+                                onQuickPlayChanged = onQuickPlayChanged
+                        )
+                    }
+                    PreferencesRootDestination.OptionalFeatures -> item {
+                        OptionalFeaturesPreferencesContent(
+                                settings = settings,
+                                highlightedKey = highlightedKey,
+                                onFeatureFlagWarningRequired = onFeatureFlagWarningRequired
                         )
                     }
                 }
@@ -1262,6 +1337,402 @@ private fun AndroidAutoPreferencesContent(
             highlighted = highlightedKey == KEY_ANDROID_AUTO_SEEK_BUTTONS,
             onAfterChange = { onAndroidAutoSettingChanged() }
     )
+}
+
+@Composable
+private fun AdvancedPreferencesContent(
+        settings: SharedPreferences,
+        highlightedKey: String?,
+        onOptionalFeaturesClick: () -> Unit,
+        onDebugLogsClick: () -> Unit,
+        onInstallNightlyClick: () -> Unit,
+        onClearPlaybackHistoryClick: () -> Unit,
+        onClearMediaDatabaseClick: () -> Unit,
+        onClearAppDataClick: () -> Unit,
+        onQuitAppClick: () -> Unit,
+        onDumpMediaDatabaseClick: () -> Unit,
+        onDumpAppDatabaseClick: () -> Unit,
+        onExportSettingsClick: () -> Unit,
+        onRestoreSettingsClick: () -> Unit,
+        onNetworkCachingChanged: (String) -> String,
+        onAoutChanged: (String) -> Unit,
+        onAdvancedRestartLibVlc: () -> Unit,
+        onCustomLibVlcOptionsChanged: (String) -> Unit,
+        onDav1dThreadNumberChanged: (String) -> String,
+        onPreferSmbV1Changed: () -> Unit,
+        onQuickPlayChanged: (Boolean) -> Unit
+) {
+    val isVisible = { key: String -> PreferenceVisibilityManager.isPreferenceVisible(key, settings, false) }
+    var quickPlayEnabled by remember {
+        mutableStateOf(settings.getBoolean(KEY_QUICK_PLAY, false))
+    }
+    var quickPlayDefaultEnabled by remember {
+        mutableStateOf(settings.getBoolean(KEY_QUICK_PLAY_DEFAULT, false))
+    }
+    val useCompleteAout = isVLC4() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+
+    if (isVisible(KEY_OPTIONAL_FEATURES)) {
+        NavigationPreferenceRow(
+                key = KEY_OPTIONAL_FEATURES,
+                title = stringResource(R.string.optional_features),
+                summary = stringResource(R.string.optional_features_summary),
+                highlighted = highlightedKey == KEY_OPTIONAL_FEATURES,
+                onClick = onOptionalFeaturesClick
+        )
+    }
+    EditTextPreferenceRow(
+            key = KEY_NETWORK_CACHING,
+            settings = settings,
+            title = stringResource(R.string.network_caching),
+            summary = stringResource(R.string.network_caching_summary),
+            defaultValue = "0",
+            highlighted = highlightedKey == KEY_NETWORK_CACHING,
+            maxLength = 5,
+            keyboardType = KeyboardType.Number,
+            onCommit = onNetworkCachingChanged
+    )
+    BooleanPreferenceRow(
+            key = KEY_PREFER_SMBV1,
+            settings = settings,
+            title = stringResource(R.string.prefersmbv1),
+            summary = stringResource(R.string.prefersmbv1_summary),
+            defaultValue = true,
+            highlighted = highlightedKey == KEY_PREFER_SMBV1,
+            onAfterChange = { onPreferSmbV1Changed() }
+    )
+    EditTextPreferenceRow(
+            key = KEY_HTTP_USER_AGENT,
+            settings = settings,
+            title = stringResource(R.string.http_user_agent),
+            defaultValue = "",
+            highlighted = highlightedKey == KEY_HTTP_USER_AGENT,
+            singleLine = false,
+            useValueSummary = true
+    )
+    NavigationPreferenceRow(
+            key = KEY_QUIT_APP,
+            title = stringResource(R.string.quit),
+            highlighted = highlightedKey == KEY_QUIT_APP,
+            onClick = onQuitAppClick
+    )
+
+    PreferenceCategoryHeader(title = stringResource(R.string.prefs_app_data))
+    NavigationPreferenceRow(
+            key = KEY_DUMP_MEDIA_DB,
+            title = stringResource(R.string.dump_media_db),
+            summary = stringResource(R.string.dump_media_db_summary),
+            highlighted = highlightedKey == KEY_DUMP_MEDIA_DB,
+            onClick = onDumpMediaDatabaseClick
+    )
+    NavigationPreferenceRow(
+            key = KEY_DUMP_APP_DB,
+            title = stringResource(R.string.dump_app_db),
+            summary = stringResource(R.string.dump_media_db_summary),
+            highlighted = highlightedKey == KEY_DUMP_APP_DB,
+            onClick = onDumpAppDatabaseClick
+    )
+    NavigationPreferenceRow(
+            key = KEY_CLEAR_MEDIA_DB,
+            title = stringResource(R.string.clear_media_db),
+            summary = stringResource(R.string.clear_media_database_summary),
+            highlighted = highlightedKey == KEY_CLEAR_MEDIA_DB,
+            onClick = onClearMediaDatabaseClick
+    )
+    NavigationPreferenceRow(
+            key = KEY_CLEAR_APP_DATA,
+            title = stringResource(R.string.clear_app_data),
+            summary = stringResource(R.string.clear_app_data_summary),
+            highlighted = highlightedKey == KEY_CLEAR_APP_DATA,
+            onClick = onClearAppDataClick
+    )
+    NavigationPreferenceRow(
+            key = KEY_CLEAR_HISTORY,
+            title = stringResource(R.string.clear_playback_history),
+            highlighted = highlightedKey == KEY_CLEAR_HISTORY,
+            onClick = onClearPlaybackHistoryClick
+    )
+    NavigationPreferenceRow(
+            key = KEY_EXPORT_SETTINGS,
+            title = stringResource(R.string.export_settings),
+            summary = stringResource(R.string.export_settings_summary),
+            highlighted = highlightedKey == KEY_EXPORT_SETTINGS,
+            onClick = onExportSettingsClick
+    )
+    NavigationPreferenceRow(
+            key = KEY_RESTORE_SETTINGS,
+            title = stringResource(R.string.restore_settings),
+            summary = stringResource(R.string.restore_settings_summary),
+            highlighted = highlightedKey == KEY_RESTORE_SETTINGS,
+            onClick = onRestoreSettingsClick
+    )
+
+    PreferenceCategoryHeader(title = stringResource(R.string.performance_prefs_category))
+    BooleanPreferenceRow(
+            key = KEY_ENABLE_TIME_STRETCHING_AUDIO,
+            settings = settings,
+            title = stringResource(R.string.enable_time_stretching_audio),
+            summary = stringResource(R.string.enable_time_stretching_audio_summary),
+            defaultValue = LocalContext.current.resources.getBoolean(R.bool.time_stretching_default),
+            highlighted = highlightedKey == KEY_ENABLE_TIME_STRETCHING_AUDIO,
+            onAfterChange = { onAdvancedRestartLibVlc() }
+    )
+    ListPreferenceRow(
+            key = KEY_OPENGL,
+            settings = settings,
+            title = stringResource(R.string.opengl_title),
+            summary = stringResource(R.string.opengl_summary),
+            defaultValue = "-1",
+            entries = stringArrayResource(R.array.opengl_list).toList(),
+            values = stringArrayResource(R.array.opengl_values).toList(),
+            highlighted = highlightedKey == KEY_OPENGL,
+            onValueChanged = { onAdvancedRestartLibVlc() }
+    )
+    if (isVisible(KEY_AOUT)) {
+        ListPreferenceRow(
+                key = KEY_AOUT,
+                settings = settings,
+                title = stringResource(R.string.aout),
+                summary = stringResource(R.string.aout_summary),
+                defaultValue = "0",
+                entries = stringArrayResource(if (useCompleteAout) R.array.aouts_complete else R.array.aouts).toList(),
+                values = stringArrayResource(if (useCompleteAout) R.array.aouts_complete_values else R.array.aouts_values).toList(),
+                highlighted = highlightedKey == KEY_AOUT,
+                onValueChanged = onAoutChanged
+        )
+    }
+    ListPreferenceRow(
+            key = KEY_DEBLOCKING,
+            settings = settings,
+            title = stringResource(R.string.deblocking),
+            summary = stringResource(R.string.deblocking_summary),
+            defaultValue = "-1",
+            entries = stringArrayResource(R.array.deblocking_list).toList(),
+            values = stringArrayResource(R.array.deblocking_values).toList(),
+            highlighted = highlightedKey == KEY_DEBLOCKING,
+            onValueChanged = { onAdvancedRestartLibVlc() }
+    )
+    BooleanPreferenceRow(
+            key = KEY_ENABLE_FRAME_SKIP,
+            settings = settings,
+            title = stringResource(R.string.enable_frame_skip),
+            summary = stringResource(R.string.enable_frame_skip_summary),
+            defaultValue = false,
+            highlighted = highlightedKey == KEY_ENABLE_FRAME_SKIP,
+            onAfterChange = { onAdvancedRestartLibVlc() }
+    )
+    EditTextPreferenceRow(
+            key = DAV1D_THREAD_NUMBER,
+            settings = settings,
+            title = stringResource(R.string.dav1d_thread_number),
+            defaultValue = "",
+            highlighted = highlightedKey == DAV1D_THREAD_NUMBER,
+            keyboardType = KeyboardType.Number,
+            useValueSummary = true,
+            onCommit = onDav1dThreadNumberChanged
+    )
+    BooleanPreferenceRow(
+            key = KEY_QUICK_PLAY,
+            settings = settings,
+            title = stringResource(R.string.browser_quick_play),
+            summary = stringResource(R.string.browser_quick_play_summary),
+            defaultValue = false,
+            highlighted = highlightedKey == KEY_QUICK_PLAY,
+            checked = quickPlayEnabled,
+            onCheckedStateChange = { quickPlayEnabled = it },
+            onAfterChange = { checked ->
+                if (!checked) {
+                    quickPlayDefaultEnabled = false
+                    settings.edit { putBoolean(KEY_QUICK_PLAY_DEFAULT, false) }
+                }
+                onQuickPlayChanged(checked)
+            }
+    )
+    BooleanPreferenceRow(
+            key = KEY_QUICK_PLAY_DEFAULT,
+            settings = settings,
+            title = stringResource(R.string.browser_quick_play_default),
+            summary = stringResource(R.string.browser_quick_play_default_summary),
+            defaultValue = false,
+            highlighted = highlightedKey == KEY_QUICK_PLAY_DEFAULT,
+            enabled = quickPlayEnabled,
+            checked = quickPlayDefaultEnabled,
+            onCheckedStateChange = { quickPlayDefaultEnabled = it }
+    )
+
+    PreferenceCategoryHeader(title = stringResource(R.string.developer_prefs_category))
+    BooleanPreferenceRow(
+            key = KEY_ENABLE_VERBOSE_MODE,
+            settings = settings,
+            title = stringResource(R.string.enable_verbose_mode),
+            summary = stringResource(R.string.enable_verbose_mode_summary),
+            defaultValue = true,
+            highlighted = highlightedKey == KEY_ENABLE_VERBOSE_MODE,
+            onAfterChange = { onAdvancedRestartLibVlc() }
+    )
+    NavigationPreferenceRow(
+            key = KEY_DEBUG_LOGS,
+            title = stringResource(R.string.debug_logs),
+            highlighted = highlightedKey == KEY_DEBUG_LOGS,
+            onClick = onDebugLogsClick
+    )
+    NavigationPreferenceRow(
+            key = KEY_NIGHTLY_INSTALL,
+            title = stringResource(R.string.install_nightly),
+            highlighted = highlightedKey == KEY_NIGHTLY_INSTALL,
+            onClick = onInstallNightlyClick
+    )
+    if (isVisible(KEY_SHOW_UPDATE)) {
+        BooleanPreferenceRow(
+                key = KEY_SHOW_UPDATE,
+                settings = settings,
+                title = stringResource(R.string.update_nightly),
+                summary = stringResource(R.string.update_nightly_summary),
+                defaultValue = false,
+                highlighted = highlightedKey == KEY_SHOW_UPDATE
+        )
+    }
+    EditTextPreferenceRow(
+            key = KEY_CUSTOM_LIBVLC_OPTIONS,
+            settings = settings,
+            title = stringResource(R.string.custom_libvlc_options),
+            defaultValue = "",
+            highlighted = highlightedKey == KEY_CUSTOM_LIBVLC_OPTIONS,
+            singleLine = false,
+            onCommit = { value ->
+                settings.edit { putString(KEY_CUSTOM_LIBVLC_OPTIONS, value) }
+                onCustomLibVlcOptionsChanged(value)
+                value
+            }
+    )
+}
+
+@Composable
+private fun OptionalFeaturesPreferencesContent(
+        settings: SharedPreferences,
+        highlightedKey: String?,
+        onFeatureFlagWarningRequired: (FeatureFlag, () -> Unit) -> Unit
+) {
+    val context = LocalContext.current
+    val featureStates = remember {
+        mutableStateMapOf<FeatureFlag, Boolean>().apply {
+            FeatureFlag.entries.forEach { put(it, FeatureFlagManager.isEnabled(context, it)) }
+        }
+    }
+    if (FeatureFlag.entries.isEmpty()) {
+        StaticPreferenceRow(
+                summary = stringResource(R.string.optional_features_summary),
+                highlighted = highlightedKey == KEY_OPTIONAL_FEATURES
+        )
+        return
+    }
+    FeatureFlag.entries.forEach { featureFlag ->
+        val enabled = featureStates[featureFlag] ?: false
+        val dependencyEnabled = featureFlag.dependsOn?.let { featureStates[it] ?: false } ?: true
+        BooleanPreferenceRow(
+                key = featureFlag.getKey(),
+                settings = settings,
+                title = stringResource(featureFlag.title),
+                defaultValue = false,
+                highlighted = highlightedKey == featureFlag.getKey(),
+                enabled = dependencyEnabled,
+                checked = enabled,
+                onCheckedStateChange = { checked -> featureStates[featureFlag] = checked },
+                onBeforeChange = { checked ->
+                    if (checked && featureFlag.warning != null) {
+                        onFeatureFlagWarningRequired(featureFlag) {
+                            featureStates[featureFlag] = true
+                            FeatureFlagManager.enable(context, featureFlag, true)
+                        }
+                        false
+                    } else {
+                        true
+                    }
+                },
+                onAfterChange = { checked ->
+                    FeatureFlagManager.enable(context, featureFlag, checked)
+                }
+        )
+    }
+}
+
+@Composable
+private fun EditTextPreferenceRow(
+        key: String,
+        settings: SharedPreferences,
+        title: String,
+        defaultValue: String,
+        highlighted: Boolean,
+        summary: String? = null,
+        singleLine: Boolean = true,
+        maxLength: Int? = null,
+        keyboardType: KeyboardType = KeyboardType.Text,
+        useValueSummary: Boolean = false,
+        onCommit: (String) -> String = { value ->
+            settings.edit { putString(key, value) }
+            value
+        }
+) {
+    var value by remember(key) {
+        mutableStateOf(settings.getString(key, defaultValue) ?: defaultValue)
+    }
+    var dialogValue by remember(key) { mutableStateOf(value) }
+    var expanded by remember(key) { mutableStateOf(false) }
+    val resolvedSummary = if (useValueSummary) value.takeIf { it.isNotBlank() } else summary
+    PreferenceRowFrame(
+            highlighted = highlighted,
+            role = Role.Button,
+            onClick = {
+                dialogValue = value
+                expanded = true
+            },
+            textContent = {
+                PreferenceText(
+                        title = title,
+                        summary = resolvedSummary,
+                        enabled = true
+                )
+            },
+            trailingContent = {
+                Text(
+                        text = ">",
+                        color = VLCThemeDefaults.colors.fontLight,
+                        style = MaterialTheme.typography.bodyLarge
+                )
+            }
+    )
+    if (expanded) {
+        AlertDialog(
+                onDismissRequest = { expanded = false },
+                title = { Text(title) },
+                text = {
+                    OutlinedTextField(
+                            value = dialogValue,
+                            onValueChange = { newValue ->
+                                dialogValue = maxLength?.let { newValue.take(it) } ?: newValue
+                            },
+                            singleLine = singleLine,
+                            maxLines = if (singleLine) 1 else 5,
+                            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+                            modifier = Modifier.fillMaxWidth()
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                            onClick = {
+                                value = onCommit(dialogValue)
+                                expanded = false
+                            }
+                    ) {
+                        Text(stringResource(android.R.string.ok))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { expanded = false }) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                }
+        )
+    }
 }
 
 @Composable

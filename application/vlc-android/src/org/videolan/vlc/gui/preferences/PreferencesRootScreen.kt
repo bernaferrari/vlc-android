@@ -415,7 +415,8 @@ internal enum class PreferencesRootDestination {
     ParentalControl,
     RemoteAccess,
     AndroidAuto,
-    Advanced
+    Advanced,
+    OptionalFeatures
 }
 
 private data class PendingWarning(

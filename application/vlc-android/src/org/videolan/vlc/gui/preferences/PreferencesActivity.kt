@@ -21,12 +21,19 @@
 package org.videolan.vlc.gui.preferences
 
 import android.app.Activity
+import android.app.ActivityManager
+import android.content.Context
+import android.content.Context.ACTIVITY_SERVICE
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
@@ -35,10 +42,9 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.content.edit
 import androidx.core.net.toUri
-import androidx.core.os.bundleOf
+import androidx.core.text.isDigitsOnly
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.appbar.AppBarLayout
 import kotlinx.coroutines.Dispatchers
@@ -48,16 +54,23 @@ import org.videolan.libvlc.util.AndroidUtil
 import org.videolan.medialibrary.interfaces.Medialibrary
 import org.videolan.resources.ACTIVITY_RESULT_PREFERENCES
 import org.videolan.resources.AndroidDevices
+import org.videolan.resources.EXPORT_SETTINGS_FILE
 import org.videolan.resources.REMOTE_ACCESS_ONBOARDING
+import org.videolan.resources.ROOM_DATABASE
+import org.videolan.resources.SCHEME_PACKAGE
 import org.videolan.resources.VLCInstance
 import org.videolan.resources.util.parcelable
 import org.videolan.resources.util.restartRemoteAccess
 import org.videolan.resources.util.startRemoteAccess
 import org.videolan.resources.util.stopRemoteAccess
 import org.videolan.tools.AUDIO_RESUME_PLAYBACK
+import org.videolan.tools.BitmapCache
+import org.videolan.tools.DAV1D_THREAD_NUMBER
 import org.videolan.tools.KEY_APP_THEME
+import org.videolan.tools.KEY_AUDIO_DIGITAL_OUTPUT
 import org.videolan.tools.KEY_AUDIO_LAST_PLAYLIST
 import org.videolan.tools.KEY_BLACK_THEME
+import org.videolan.tools.KEY_CUSTOM_LIBVLC_OPTIONS
 import org.videolan.tools.KEY_CURRENT_AUDIO
 import org.videolan.tools.KEY_CURRENT_AUDIO_RESUME_ARTIST
 import org.videolan.tools.KEY_CURRENT_AUDIO_RESUME_THUMB
@@ -67,10 +80,12 @@ import org.videolan.tools.KEY_CURRENT_MEDIA_RESUME
 import org.videolan.tools.KEY_DAYNIGHT
 import org.videolan.tools.KEY_MEDIA_LAST_PLAYLIST
 import org.videolan.tools.KEY_MEDIA_LAST_PLAYLIST_RESUME
+import org.videolan.tools.KEY_NETWORK_CACHING_VALUE
 import org.videolan.tools.KEY_RESTRICT_SETTINGS
 import org.videolan.tools.KEY_VIDEO_APP_SWITCH
 import org.videolan.tools.PLAYBACK_HISTORY
 import org.videolan.tools.PREF_SHOW_VIDEO_SETTINGS_DISCLAIMER
+import org.videolan.tools.POPUP_FORCE_LEGACY
 import org.videolan.tools.RESULT_RESTART
 import org.videolan.tools.RESULT_RESTART_APP
 import org.videolan.tools.RESULT_UPDATE_ARTISTS
@@ -78,35 +93,52 @@ import org.videolan.tools.RESULT_UPDATE_SEEN_MEDIA
 import org.videolan.tools.Settings
 import org.videolan.tools.Settings.isPinCodeSet
 import org.videolan.tools.VIDEO_RESUME_PLAYBACK
+import org.videolan.tools.putSingle
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
+import org.videolan.vlc.StartActivity
 import org.videolan.vlc.gui.BaseActivity
+import org.videolan.vlc.gui.DebugLogActivity
 import org.videolan.vlc.gui.EqualizerSettingsActivity
 import org.videolan.vlc.gui.PinCodeActivity
 import org.videolan.vlc.gui.PinCodeReason
 import org.videolan.vlc.gui.SecondaryActivity
-import org.videolan.vlc.StartActivity
 import org.videolan.vlc.gui.browser.EXTRA_MRL
 import org.videolan.vlc.gui.browser.FilePickerActivity
 import org.videolan.vlc.gui.browser.KEY_PICKER_TYPE
 import org.videolan.vlc.gui.dialogs.showAutoInfoComposeDialog
 import org.videolan.vlc.gui.dialogs.showAudioControlsSettingsComposeDialog
+import org.videolan.vlc.gui.dialogs.showConfirmDeleteComposeDialog
+import org.videolan.vlc.gui.dialogs.showFeatureFlagWarningComposeDialog
 import org.videolan.vlc.gui.dialogs.showPermissionListComposeDialog
 import org.videolan.vlc.gui.dialogs.showSleepTimerComposeDialog
+import org.videolan.vlc.gui.dialogs.showUpdateComposeDialog
 import org.videolan.vlc.gui.dialogs.showVideoControlsSettingsComposeDialog
+import org.videolan.vlc.gui.helpers.MedialibraryUtils
 import org.videolan.vlc.gui.helpers.UiTools
+import org.videolan.vlc.gui.helpers.hf.StoragePermissionsDelegate.Companion.getWritePermission
 import org.videolan.vlc.gui.helpers.restartMediaPlayer
 import org.videolan.vlc.gui.preferences.search.PreferenceItem
 import org.videolan.vlc.gui.preferences.search.PreferenceParser
 import org.videolan.vlc.gui.preferences.search.PreferenceSearchActivity
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.providers.PickerType
+import org.videolan.vlc.util.AutoUpdate
+import org.videolan.vlc.util.FeatureFlag
+import org.videolan.vlc.util.FileUtils
 import org.videolan.vlc.util.Permissions
+import org.videolan.vlc.util.share
 import org.videolan.vlc.widget.utils.refreshAllWidgets
+import java.io.File
+import java.io.IOException
 
 const val EXTRA_PREF_END_POINT = "extra_pref_end_point"
 private const val EXTRA_COMPOSE_PREF_DESTINATION = "extra_compose_pref_destination"
 private const val EXTRA_COMPOSE_PREF_HIGHLIGHT = "extra_compose_pref_highlight"
+private const val KEY_NETWORK_CACHING = "network_caching"
+private const val RESULT_VALUE_CLEAR_HISTORY = 1
+private const val RESULT_VALUE_CLEAR_MEDIA_DATABASE = 2
+private const val RESULT_VALUE_CLEAR_APP_DATA = 3
 
 class PreferencesActivity : BaseActivity() {
 
@@ -115,6 +147,7 @@ class PreferencesActivity : BaseActivity() {
     private var activeComposeDestination: PreferencesRootDestination? = null
     private var activeComposeHighlight: String? = null
     private var pendingSubtitlesRestart = false
+    private var needToRestartOnResume = false
     override val displayTitle = true
     private var pinCodeResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode != RESULT_OK) {
@@ -139,6 +172,11 @@ class PreferencesActivity : BaseActivity() {
             VLCInstance.restart()
         }
         UiTools.restartDialog(this)
+    }
+    private var settingsRestoreResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode != Activity.RESULT_OK) return@registerForActivityResult
+        val settingsMrl = result.data?.getStringExtra(EXTRA_MRL) ?: return@registerForActivityResult
+        restoreSettingsFrom(settingsMrl.toUri())
     }
     override fun getSnackAnchorView(overAudioPlayer:Boolean): View? = findViewById(android.R.id.content)
 
@@ -167,7 +205,7 @@ class PreferencesActivity : BaseActivity() {
                     destination = restoredDestination,
                     highlightedKey = savedInstanceState.getString(EXTRA_COMPOSE_PREF_HIGHLIGHT)
                 )
-            } else if (supportFragmentManager.findFragmentById(R.id.fragment_placeholder) == null) {
+            } else {
                 showPreferencesRoot()
             }
         }
@@ -177,6 +215,17 @@ class PreferencesActivity : BaseActivity() {
         activeComposeDestination?.let { outState.putString(EXTRA_COMPOSE_PREF_DESTINATION, it.name) }
         activeComposeHighlight?.let { outState.putString(EXTRA_COMPOSE_PREF_HIGHLIGHT, it) }
         super.onSaveInstanceState(outState)
+    }
+
+    override fun onResume() {
+        if (needToRestartOnResume) {
+            lifecycleScope.launch {
+                VLCInstance.restart()
+                UiTools.restartDialog(this@PreferencesActivity)
+            }
+            needToRestartOnResume = false
+        }
+        super.onResume()
     }
 
     override fun onStop() {
@@ -230,7 +279,6 @@ class PreferencesActivity : BaseActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == searchRequestCode && resultCode == RESULT_OK) {
             data?.extras?.parcelable<PreferenceItem>(EXTRA_PREF_END_POINT)?.let {
-                supportFragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
                 routePreferenceEndpoint(it)
             }
         }
@@ -298,7 +346,8 @@ class PreferencesActivity : BaseActivity() {
             }
             PreferencesRootDestination.RemoteAccess -> showPreferenceSubpage(PreferencesRootDestination.RemoteAccess)
             PreferencesRootDestination.AndroidAuto -> showPreferenceSubpage(PreferencesRootDestination.AndroidAuto)
-            PreferencesRootDestination.Advanced -> openPreferenceFragment(PreferencesAdvanced())
+            PreferencesRootDestination.Advanced -> showPreferenceSubpage(PreferencesRootDestination.Advanced)
+            PreferencesRootDestination.OptionalFeatures -> showPreferenceSubpage(PreferencesRootDestination.OptionalFeatures)
         }
     }
 
@@ -316,18 +365,13 @@ class PreferencesActivity : BaseActivity() {
             R.xml.preferences_video -> showPreferenceSubpage(PreferencesRootDestination.Video, endPoint.key)
             R.xml.preferences_subtitles -> showPreferenceSubpage(PreferencesRootDestination.Subtitles, endPoint.key)
             R.xml.preferences_audio -> showPreferenceSubpage(PreferencesRootDestination.Audio, endPoint.key)
-            R.xml.preferences_adv -> openPreferenceFragment(PreferencesAdvanced().withEndpoint(endPoint))
+            R.xml.preferences_adv -> showPreferenceSubpage(PreferencesRootDestination.Advanced, endPoint.key)
             R.xml.preferences_casting -> showPreferenceSubpage(PreferencesRootDestination.Casting, endPoint.key)
             R.xml.preferences_parental_control -> showPreferenceSubpage(PreferencesRootDestination.ParentalControl, endPoint.key)
             R.xml.preferences_remote_access -> showPreferenceSubpage(PreferencesRootDestination.RemoteAccess, endPoint.key)
             R.xml.preferences_android_auto -> showPreferenceSubpage(PreferencesRootDestination.AndroidAuto, endPoint.key)
             else -> showPreferencesRoot(endPoint.key)
         }
-    }
-
-    private fun BasePreferenceFragment.withEndpoint(endPoint: PreferenceItem): BasePreferenceFragment {
-        arguments = bundleOf(EXTRA_PREF_END_POINT to endPoint)
-        return this
     }
 
     private fun showPreferenceSubpage(destination: PreferencesRootDestination, highlightedKey: String? = null) {
@@ -339,7 +383,6 @@ class PreferencesActivity : BaseActivity() {
         if (destination == PreferencesRootDestination.Ui) ensureUiThemePreferenceDefaults(Settings.getInstance(this))
         if (destination == PreferencesRootDestination.Video) showVideoSettingsDisclaimerIfNeeded()
         if (destination == PreferencesRootDestination.RemoteAccess) showRemoteAccessOnboardingIfNeeded()
-        supportFragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
         findViewById<ViewGroup>(R.id.fragment_placeholder).apply {
             removeAllViews()
             addView(
@@ -373,7 +416,26 @@ class PreferencesActivity : BaseActivity() {
                             onRestartDialogRequired = ::showRestartDialog,
                             onDefaultSleepTimerClick = ::openDefaultSleepTimer,
                             onSeenMediaChanged = ::updateSeenMedia,
-                            onSubtitleSettingChanged = ::markSubtitlesRestartPending
+                            onSubtitleSettingChanged = ::markSubtitlesRestartPending,
+                            onOptionalFeaturesClick = { showPreferenceSubpage(PreferencesRootDestination.OptionalFeatures) },
+                            onDebugLogsClick = ::openDebugLogs,
+                            onInstallNightlyClick = ::installNightly,
+                            onClearPlaybackHistoryClick = ::confirmClearPlaybackHistory,
+                            onClearMediaDatabaseClick = ::confirmClearMediaDatabase,
+                            onClearAppDataClick = ::confirmClearAppData,
+                            onQuitAppClick = ::quitApp,
+                            onDumpMediaDatabaseClick = ::dumpMediaDatabase,
+                            onDumpAppDatabaseClick = ::dumpAppDatabase,
+                            onExportSettingsClick = ::exportSettings,
+                            onRestoreSettingsClick = ::openSettingsRestorePicker,
+                            onNetworkCachingChanged = ::onNetworkCachingChanged,
+                            onAoutChanged = ::onAoutChanged,
+                            onAdvancedRestartLibVlc = ::restartMediaPipeline,
+                            onCustomLibVlcOptionsChanged = ::onCustomLibVlcOptionsChanged,
+                            onDav1dThreadNumberChanged = ::onDav1dThreadNumberChanged,
+                            onPreferSmbV1Changed = ::onPreferSmbV1Changed,
+                            onQuickPlayChanged = ::onQuickPlayChanged,
+                            onFeatureFlagWarningRequired = ::showFeatureFlagWarning
                         )
                     }
                 }
@@ -382,27 +444,13 @@ class PreferencesActivity : BaseActivity() {
         invalidateOptionsMenu()
     }
 
-    private fun openPreferenceFragment(fragment: BasePreferenceFragment) {
-        flushComposeDestinationSideEffects(activeComposeDestination)
-        activeComposeDestination = null
-        activeComposeHighlight = null
-        invalidateOptionsMenu()
-        findViewById<ViewGroup>(R.id.fragment_placeholder).removeAllViews()
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_placeholder, fragment)
-            .addToBackStack("main")
-            .commit()
-    }
-
     private fun navigateUp(): Boolean {
-        if (activeComposeDestination != null) {
-            showPreferencesRoot()
+        if (activeComposeDestination == PreferencesRootDestination.OptionalFeatures) {
+            showPreferenceSubpage(PreferencesRootDestination.Advanced)
             return true
         }
-        if (supportFragmentManager.popBackStackImmediate()) {
-            if (supportFragmentManager.findFragmentById(R.id.fragment_placeholder) == null) {
-                showPreferencesRoot()
-            }
+        if (activeComposeDestination != null) {
+            showPreferencesRoot()
             return true
         }
         return false
@@ -456,9 +504,13 @@ class PreferencesActivity : BaseActivity() {
 
     private fun restartMediaPipeline() {
         lifecycleScope.launch {
-            VLCInstance.restart()
-            restartMediaPlayer()
+            restartMediaPipelineNow()
         }
+    }
+
+    private suspend fun restartMediaPipelineNow() {
+        VLCInstance.restart()
+        restartMediaPlayer()
     }
 
     private fun updateAndroidAutoState() {
@@ -513,6 +565,263 @@ class PreferencesActivity : BaseActivity() {
 
     private fun updateSeenMedia() {
         setResult(RESULT_UPDATE_SEEN_MEDIA)
+    }
+
+    private fun openDebugLogs() {
+        startActivity(Intent(this, DebugLogActivity::class.java))
+    }
+
+    private fun installNightly() {
+        android.app.AlertDialog.Builder(this)
+            .setTitle(getString(R.string.install_nightly))
+            .setMessage(getString(R.string.install_nightly_alert))
+            .setPositiveButton(R.string.ok) { _, _ ->
+                lifecycleScope.launch {
+                    AutoUpdate.checkUpdate(application, true) { url, date ->
+                        showUpdateComposeDialog(url, date, newInstall = true)
+                    }
+                }
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun confirmClearPlaybackHistory() {
+        showConfirmDeleteComposeDialog(
+            title = getString(R.string.clear_playback_history),
+            description = getString(R.string.clear_history_message),
+            buttonText = getString(R.string.clear_history),
+            resultType = RESULT_VALUE_CLEAR_HISTORY
+        ) {
+            onConfirmAdvancedDelete(RESULT_VALUE_CLEAR_HISTORY)
+        }
+    }
+
+    private fun confirmClearMediaDatabase() {
+        val medialibrary = Medialibrary.getInstance()
+        if (medialibrary.isWorking) {
+            Toast.makeText(this, R.string.settings_ml_block_scan, Toast.LENGTH_LONG).show()
+        } else {
+            showConfirmDeleteComposeDialog(
+                title = getString(R.string.clear_media_db),
+                description = getString(R.string.clear_media_db_message),
+                buttonText = getString(R.string.clear),
+                resultType = RESULT_VALUE_CLEAR_MEDIA_DATABASE
+            ) {
+                onConfirmAdvancedDelete(RESULT_VALUE_CLEAR_MEDIA_DATABASE)
+            }
+        }
+    }
+
+    private fun confirmClearAppData() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            showConfirmDeleteComposeDialog(
+                title = getString(R.string.clear_app_data),
+                description = getString(R.string.clear_app_data_message),
+                buttonText = getString(R.string.clear),
+                resultType = RESULT_VALUE_CLEAR_APP_DATA
+            ) {
+                onConfirmAdvancedDelete(RESULT_VALUE_CLEAR_APP_DATA)
+            }
+        } else {
+            startActivity(Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                addCategory(Intent.CATEGORY_DEFAULT)
+                data = Uri.fromParts(SCHEME_PACKAGE, applicationContext.packageName, null)
+            })
+        }
+    }
+
+    private fun onConfirmAdvancedDelete(reason: Int) {
+        when (reason) {
+            RESULT_VALUE_CLEAR_HISTORY -> {
+                Medialibrary.getInstance().clearHistory(Medialibrary.HISTORY_TYPE_GLOBAL)
+                Settings.getInstance(this).edit()
+                    .remove(KEY_AUDIO_LAST_PLAYLIST)
+                    .remove(KEY_MEDIA_LAST_PLAYLIST)
+                    .remove(KEY_MEDIA_LAST_PLAYLIST_RESUME)
+                    .remove(KEY_CURRENT_AUDIO)
+                    .remove(KEY_CURRENT_MEDIA)
+                    .remove(KEY_CURRENT_MEDIA_RESUME)
+                    .remove(KEY_CURRENT_AUDIO_RESUME_TITLE)
+                    .remove(KEY_CURRENT_AUDIO_RESUME_ARTIST)
+                    .remove(KEY_CURRENT_AUDIO_RESUME_THUMB)
+                    .apply()
+            }
+            RESULT_VALUE_CLEAR_MEDIA_DATABASE -> clearMediaDatabase()
+            RESULT_VALUE_CLEAR_APP_DATA -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    (getSystemService(ACTIVITY_SERVICE) as ActivityManager).clearApplicationUserData()
+                }
+            }
+        }
+    }
+
+    private fun clearMediaDatabase() {
+        val medialibrary = Medialibrary.getInstance()
+        if (medialibrary.isWorking) {
+            Toast.makeText(this, R.string.settings_ml_block_scan, Toast.LENGTH_LONG).show()
+        } else {
+            lifecycleScope.launch {
+                val roots = medialibrary.foldersList
+                withContext(Dispatchers.IO) {
+                    medialibrary.clearDatabase(false)
+                    try {
+                        getExternalFilesDir(null)?.let {
+                            val files = File(it.absolutePath + Medialibrary.MEDIALIB_FOLDER_NAME).listFiles()
+                            files?.forEach { file ->
+                                if (file.isFile) FileUtils.deleteFile(file)
+                            }
+                        }
+                        BitmapCache.clear()
+                    } catch (e: IOException) {
+                        Log.e(this::class.java.simpleName, e.message, e)
+                    }
+                }
+                roots.forEach { root ->
+                    MedialibraryUtils.addDir(root.removePrefix("file://"), this@PreferencesActivity)
+                }
+            }
+        }
+    }
+
+    private fun quitApp() {
+        android.os.Process.killProcess(android.os.Process.myPid())
+    }
+
+    private fun dumpMediaDatabase() {
+        if (Medialibrary.getInstance().isWorking) {
+            UiTools.snacker(this, getString(R.string.settings_ml_block_scan))
+        } else {
+            val dst = File(AndroidDevices.EXTERNAL_PUBLIC_DIRECTORY + Medialibrary.VLC_MEDIA_DB_NAME)
+            lifecycleScope.launch {
+                if (getWritePermission(Uri.fromFile(dst))) {
+                    val copied = withContext(Dispatchers.IO) {
+                        val db = File(getDir("db", Context.MODE_PRIVATE).toString() + Medialibrary.VLC_MEDIA_DB_NAME)
+                        FileUtils.copyFile(db, dst)
+                    }
+                    if (copied) {
+                        UiTools.snackerConfirm(this@PreferencesActivity, getString(R.string.dump_db_succes), confirmMessage = R.string.share, overAudioPlayer = false) {
+                            share(dst)
+                        }
+                    } else {
+                        Toast.makeText(this@PreferencesActivity, getString(R.string.dump_db_failure), Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun dumpAppDatabase() {
+        val dst = File(AndroidDevices.EXTERNAL_PUBLIC_DIRECTORY + ROOM_DATABASE)
+        lifecycleScope.launch {
+            if (getWritePermission(Uri.fromFile(dst))) {
+                val copied = withContext(Dispatchers.IO) {
+                    val db = File(getDir("db", Context.MODE_PRIVATE).parent!! + "/databases")
+                    val files = db.listFiles()?.map { it.path }?.toTypedArray()
+                    if (files == null) false else FileUtils.zip(files, dst.path)
+                }
+                if (copied) {
+                    UiTools.snackerConfirm(this@PreferencesActivity, getString(R.string.dump_db_succes), confirmMessage = R.string.share, overAudioPlayer = false) {
+                        share(dst)
+                    }
+                } else {
+                    Toast.makeText(this@PreferencesActivity, getString(R.string.dump_db_failure), Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    private fun exportSettings() {
+        val dst = File(AndroidDevices.EXTERNAL_PUBLIC_DIRECTORY + EXPORT_SETTINGS_FILE)
+        lifecycleScope.launch(Dispatchers.IO) {
+            if (getWritePermission(Uri.fromFile(dst))) {
+                PreferenceParser.exportPreferences(this@PreferencesActivity, dst)
+            }
+        }
+    }
+
+    private fun openSettingsRestorePicker() {
+        settingsRestoreResult.launch(Intent(this, FilePickerActivity::class.java).apply {
+            putExtra(KEY_PICKER_TYPE, PickerType.SETTINGS.ordinal)
+        })
+    }
+
+    private fun restoreSettingsFrom(file: Uri) {
+        lifecycleScope.launch {
+            try {
+                PreferenceParser.restoreSettings(this@PreferencesActivity, file)
+                var continueRestart = true
+                if (Settings.getInstance(this@PreferencesActivity).getBoolean(POPUP_FORCE_LEGACY, false) && !Permissions.canDrawOverlays(this@PreferencesActivity)) {
+                    continueRestart = !Permissions.checkDrawOverlaysPermission(this@PreferencesActivity)
+                }
+                if (continueRestart) {
+                    VLCInstance.restart()
+                    UiTools.restartDialog(this@PreferencesActivity)
+                } else {
+                    needToRestartOnResume = true
+                }
+            } catch (e: Exception) {
+                Log.e("EqualizerSettings", "restoreSettingsFrom: ${e.message}", e)
+                UiTools.snacker(this@PreferencesActivity, getString(R.string.invalid_settings_file))
+            }
+        }
+    }
+
+    private fun onNetworkCachingChanged(value: String): String {
+        val settings = Settings.getInstance(this)
+        val originalValue = value.toIntOrNull()
+        val newValue = originalValue?.coerceIn(0, 60000) ?: 0
+        settings.edit {
+            putString(KEY_NETWORK_CACHING, newValue.toString())
+            putInt(KEY_NETWORK_CACHING_VALUE, newValue)
+        }
+        if (originalValue == null || originalValue != newValue) {
+            UiTools.snacker(this, R.string.network_caching_popup)
+        }
+        restartMediaPipeline()
+        return newValue.toString()
+    }
+
+    private fun onAoutChanged(value: String) {
+        restartMediaPipeline()
+        if (value == "2") Settings.getInstance(this).putSingle(KEY_AUDIO_DIGITAL_OUTPUT, false)
+    }
+
+    private fun onCustomLibVlcOptionsChanged(@Suppress("UNUSED_PARAMETER") value: String) {
+        lifecycleScope.launch {
+            try {
+                VLCInstance.restart()
+            } catch (e: IllegalStateException) {
+                UiTools.snacker(this@PreferencesActivity, R.string.custom_libvlc_options_invalid)
+                Settings.getInstance(this@PreferencesActivity).putSingle(KEY_CUSTOM_LIBVLC_OPTIONS, "")
+            } finally {
+                restartMediaPlayer()
+            }
+            restartMediaPipelineNow()
+        }
+    }
+
+    private fun onDav1dThreadNumberChanged(value: String): String {
+        if (value.isNotEmpty() && (!value.isDigitsOnly() || value.toInt() < 1)) {
+            UiTools.snacker(this, R.string.dav1d_thread_number_invalid)
+            Settings.getInstance(this).putSingle(DAV1D_THREAD_NUMBER, "")
+            return ""
+        }
+        Settings.getInstance(this).putSingle(DAV1D_THREAD_NUMBER, value)
+        return value
+    }
+
+    private fun onPreferSmbV1Changed() {
+        lifecycleScope.launch { VLCInstance.restart() }
+        UiTools.restartDialog(this)
+    }
+
+    private fun onQuickPlayChanged(@Suppress("UNUSED_PARAMETER") enabled: Boolean) {
+        setResult(RESULT_RESTART)
+    }
+
+    private fun showFeatureFlagWarning(featureFlag: FeatureFlag, onAccepted: () -> Unit) {
+        showFeatureFlagWarningComposeDialog(featureFlag, onAccepted)
     }
 
     private fun markSubtitlesRestartPending() {
@@ -570,6 +879,7 @@ class PreferencesActivity : BaseActivity() {
         PreferencesRootDestination.RemoteAccess -> R.string.remote_access
         PreferencesRootDestination.AndroidAuto -> R.string.android_auto
         PreferencesRootDestination.Advanced -> R.string.advanced_prefs_category
+        PreferencesRootDestination.OptionalFeatures -> R.string.optional_features
     }
 
     fun exitAndRescan() {
