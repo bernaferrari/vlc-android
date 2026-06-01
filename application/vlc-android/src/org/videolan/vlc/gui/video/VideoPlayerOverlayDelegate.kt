@@ -46,7 +46,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp as composeDp
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.core.view.children
 import androidx.databinding.DataBindingUtil
@@ -751,7 +750,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
             } else {
                 R.drawable.ic_player_lock_portrait
             }
-            hudBinding.orientationToggle.setImageDrawable(ContextCompat.getDrawable(player, drawable))
+            hudBinding.orientationToggle.setImageResource(drawable)
         }
         if (::hudRightOverlay.isInitialized) {
             if (!player.isLocked && player.orientationMode.locked && Settings.getInstance(player).getBoolean(SHOW_ORIENTATION_BUTTON, true)) {

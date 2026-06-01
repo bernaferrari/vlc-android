@@ -291,7 +291,7 @@
                     vlc:layout_constraintStart_toStartOf="parent"
                     vlc:layout_constraintTop_toTopOf="@+id/player_overlay_play" />
 
-            <ImageView
+            <org.videolan.vlc.gui.view.VideoHudIconButtonView
                     android:id="@+id/orientation_toggle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -300,13 +300,13 @@
                     android:contentDescription="@string/lock_orientation_description"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:focusable="true"
+                    android:src="@drawable/ic_player_rotate"
                     android:visibility="visible"
                     tools:visibility="visible"
                     vlc:layout_constraintBottom_toBottomOf="@+id/player_overlay_play"
                     vlc:layout_constraintEnd_toStartOf="@+id/player_space_left"
                     vlc:layout_constraintStart_toEndOf="@+id/player_overlay_tracks"
-                    vlc:layout_constraintTop_toTopOf="@+id/player_overlay_play"
-                    vlc:srcCompat="@drawable/ic_player_rotate" />
+                    vlc:layout_constraintTop_toTopOf="@+id/player_overlay_play" />
 
             <Space
                     android:id="@+id/player_space_left"
@@ -354,16 +354,13 @@
                     vlc:layout_constraintStart_toEndOf="@+id/playlist_previous"
                     vlc:layout_constraintTop_toTopOf="@+id/player_overlay_play" />
 
-            <TextView
+            <org.videolan.vlc.gui.view.VideoHudSeekJumpLabelView
                     android:id="@+id/player_overlay_rewind_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="?attr/player_icon_color"
                     android:visibility="gone"
                     android:importantForAccessibility="no"
                     tools:visibility="visible"
-                    android:textSize="8dp"
-                    android:textStyle="bold"
                     vlc:layout_constraintBottom_toBottomOf="@+id/player_overlay_rewind"
                     vlc:layout_constraintEnd_toEndOf="@+id/player_overlay_rewind"
                     vlc:layout_constraintStart_toStartOf="@+id/player_overlay_rewind"
@@ -405,16 +402,13 @@
                     vlc:layout_constraintTop_toTopOf="@+id/player_overlay_play" />
 
 
-            <TextView
+            <org.videolan.vlc.gui.view.VideoHudSeekJumpLabelView
                     android:id="@+id/player_overlay_forward_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="?attr/player_icon_color"
                     android:visibility="gone"
                     tools:visibility="visible"
-                    android:textSize="8dp"
                     android:importantForAccessibility="no"
-                    android:textStyle="bold"
                     vlc:layout_constraintBottom_toBottomOf="@+id/player_overlay_forward"
                     vlc:layout_constraintEnd_toEndOf="@+id/player_overlay_forward"
                     vlc:layout_constraintStart_toStartOf="@+id/player_overlay_forward"
