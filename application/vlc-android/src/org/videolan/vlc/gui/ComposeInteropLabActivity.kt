@@ -20,7 +20,7 @@
 package org.videolan.vlc.gui
 
 import android.os.Bundle
-import androidx.fragment.app.FragmentActivity
+import androidx.activity.ComponentActivity
 import org.videolan.vlc.R
 
 // =============================================================================
@@ -211,7 +211,7 @@ import org.videolan.vlc.compose.theme.VLCTheme
  * now the recommended template for any future "full screen" dev tooling or
  * for production destinations once Compose Navigation lands.
  */
-class ComposeInteropLabActivity : FragmentActivity() {
+class ComposeInteropLabActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
