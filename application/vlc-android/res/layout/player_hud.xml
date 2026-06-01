@@ -131,7 +131,7 @@
                 tools:visibility="visible" />
 
 
-        <ImageView
+        <org.videolan.vlc.gui.view.VideoHudIconButtonView
                 android:id="@+id/ab_repeat_reset"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -140,15 +140,16 @@
                 android:layout_marginTop="4dp"
                 android:layout_marginBottom="8dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/ab_repeat_reset"
                 android:focusable="true"
+                android:src="@drawable/ic_abrepeat_reset_marker_circle"
                 android:visibility="gone"
                 tools:visibility="visible"
                 vlc:layout_constraintBottom_toTopOf="@+id/player_overlay_time"
                 vlc:layout_constraintStart_toStartOf="parent"
-                vlc:layout_constraintVertical_chainStyle="packed"
-                vlc:srcCompat="@drawable/ic_abrepeat_reset_marker_circle" />
+                vlc:layout_constraintVertical_chainStyle="packed" />
 
-        <ImageView
+        <org.videolan.vlc.gui.view.VideoHudIconButtonView
                 android:id="@+id/ab_repeat_stop"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -157,26 +158,28 @@
                 android:layout_marginTop="4dp"
                 android:layout_marginBottom="8dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/ab_repeat_stop"
                 android:focusable="true"
+                android:src="@drawable/ic_abrepeat_reset_circle"
                 android:visibility="gone"
                 tools:visibility="visible"
                 vlc:layout_constraintBottom_toTopOf="@+id/player_overlay_time"
                 vlc:layout_constraintStart_toEndOf="@+id/ab_repeat_reset"
-                vlc:layout_constraintTop_toBottomOf="@+id/player_overlay_title"
-                vlc:srcCompat="@drawable/ic_abrepeat_reset_circle" />
+                vlc:layout_constraintTop_toBottomOf="@+id/player_overlay_title" />
 
-        <ImageView
+        <org.videolan.vlc.gui.view.VideoHudIconButtonView
                 android:id="@+id/fast_seek_warning"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/ab_repeat_fastseek_warning"
+                android:src="@drawable/ic_abrepeat_warning"
                 android:visibility="gone"
                 tools:visibility="visible"
                 vlc:layout_constraintBottom_toBottomOf="@+id/ab_repeat_stop"
                 vlc:layout_constraintStart_toEndOf="@+id/ab_repeat_stop"
-                vlc:layout_constraintTop_toTopOf="@+id/ab_repeat_stop"
-                vlc:srcCompat="@drawable/ic_abrepeat_warning" />
+                vlc:layout_constraintTop_toTopOf="@+id/ab_repeat_stop" />
 
 
         <org.videolan.vlc.gui.view.BookmarksPanelView
