@@ -154,6 +154,9 @@ data class VLCColorScheme(
     /** ?attr/audio_chips_color + text (audio_player.xml:396 etc) */
     val audioChipsColor: Color,
     val audioChipsTextColor: Color,
+    /** ?attr/audio_chip_background + text (audio_player.xml audio queue progress pill) */
+    val audioChipBackground: Color,
+    val audioChipTextColor: Color,
     /** ?attr/subtle_selection */
     val subtleSelection: Color,
     /** ?attr/primary_focus (focus/ripple highlights) */
@@ -205,6 +208,8 @@ private val LightVLCColors = VLCColorScheme(
     bottomNavigationBackground = White,           // approx (real is drawable)
     audioChipsColor = BlackTransparent75,         // :72
     audioChipsTextColor = WhiteTransparent60,     // :73
+    audioChipBackground = BlackTransparent75,     // :102 rounded_corners_audio
+    audioChipTextColor = WhiteTransparent60,      // :103
     subtleSelection = BlackTransparent10,         // :46
     primaryFocus = Orange800Transparent20,        // :79
     emptyBackground = Grey50,                     // :98
@@ -249,6 +254,8 @@ private val DarkVLCColors = VLCColorScheme(
     bottomNavigationBackground = DarkBackground,  // approx (real: bottom_navigation_background_dark drawable)
     audioChipsColor = WhiteTransparent90,         // :266
     audioChipsTextColor = BlackTransparent60,     // :267
+    audioChipBackground = WhiteTransparent75,     // :297 rounded_corners_audio_dark
+    audioChipTextColor = BlackTransparent60,      // :298
     subtleSelection = WhiteTransparent10,         // :240
     primaryFocus = Orange500Transparent20,        // :273
     emptyBackground = Grey900,                    // :293

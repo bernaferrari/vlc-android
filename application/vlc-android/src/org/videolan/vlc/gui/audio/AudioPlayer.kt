@@ -104,6 +104,8 @@ import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
+import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
 import org.videolan.vlc.compose.components.VLCAudioPlayerChips
 import org.videolan.vlc.compose.components.VLCAudioPlayerChipsState
 import org.videolan.vlc.compose.theme.VLCTheme
@@ -185,6 +187,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
     private lateinit var optionsDelegate: PlayerOptionsDelegate
     lateinit var bookmarkListDelegate: BookmarkListDelegate
     private var audioPlayerChipsState by mutableStateOf(VLCAudioPlayerChipsState())
+    private var audioQueueProgressPillState by mutableStateOf(VLCAudioQueueProgressPillState())
 
     private var showRemainingTime = false
     private var previewingSeek = false
@@ -325,11 +328,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         }
 
         audioPlayProgressMode = Settings.getInstance(requireActivity()).getBoolean(AUDIO_PLAY_PROGRESS_MODE, false)
-        binding.audioPlayProgress.setOnClickListener {
-            audioPlayProgressMode = !audioPlayProgressMode
-            Settings.getInstance(requireActivity()).putSingle(AUDIO_PLAY_PROGRESS_MODE, audioPlayProgressMode)
-            playlistModel.progress.value?.let { updateProgress(it) }
-        }
+        setupAudioQueueProgressPill()
         setupPlaybackChips()
 
         binding.songTitle?.setOnClickListener { coverMediaSwitcherListener.onTextClicked() }
@@ -373,6 +372,24 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
     }
 
     fun isTablet() = requireActivity().isTablet()
+
+    private fun setupAudioQueueProgressPill() {
+        binding.audioPlayProgress.setContent {
+            VLCTheme {
+                VLCAudioQueueProgressPill(
+                    state = audioQueueProgressPillState,
+                    onClick = { toggleAudioPlayProgressMode() }
+                )
+            }
+        }
+    }
+
+    private fun toggleAudioPlayProgressMode() {
+        val activity = activity ?: return
+        audioPlayProgressMode = !audioPlayProgressMode
+        Settings.getInstance(activity).putSingle(AUDIO_PLAY_PROGRESS_MODE, audioPlayProgressMode)
+        playlistModel.progress.value?.let { updateProgress(it) }
+    }
 
     private fun setupPlaybackChips() {
         binding.playbackChips.setContent {
@@ -729,7 +746,10 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
                 val finalTextProgress = if (isRtlLocale && !textProgress.hasRtl()) textProgress.markBidi(true) else textProgress
                 Pair("$finalTextTrack  ${TextUtils.SEPARATOR}  $finalTextProgress", "$textTrackDescription. $textDescription")
             }
-            binding.audioPlayProgress.text = text.first
+            audioQueueProgressPillState = VLCAudioQueueProgressPillState(
+                    text = text.first,
+                    contentDescription = text.second
+            )
             binding.audioPlayProgress.contentDescription = text.second
         }
     }

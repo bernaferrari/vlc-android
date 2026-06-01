@@ -410,19 +410,12 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/guideline8" />
 
-        <TextView
+        <org.videolan.vlc.compose.interop.VLCComposeView
                 android:id="@+id/audio_play_progress"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:accessibilityLiveRegion="none"
-                android:background="?attr/audio_chip_background"
                 android:elevation="4dp"
-                android:paddingStart="16dp"
-                android:paddingTop="8dp"
-                android:paddingEnd="16dp"
-                android:paddingBottom="8dp"
-                android:textColor="?attr/audio_chip_text_color"
-                android:textSize="12sp"
                 app:layout_constraintBottom_toTopOf="@+id/time"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent" />

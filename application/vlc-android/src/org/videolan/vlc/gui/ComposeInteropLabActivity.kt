@@ -57,6 +57,8 @@ import org.videolan.vlc.compose.components.VLCDebugLogLine
 import org.videolan.vlc.compose.components.VLCDialogConfirmDelete
 import org.videolan.vlc.compose.components.VLCDropdownItem
 import org.videolan.vlc.compose.components.VLCInfoItem
+import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
+import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
 import org.videolan.vlc.compose.components.VLCAudioPlayerChips
 import org.videolan.vlc.compose.components.VLCAudioPlayerChipsState
 import org.videolan.vlc.compose.components.VLCOnboardingWelcome
@@ -314,6 +316,17 @@ fun ComposeInteropLabContent() {
         Text(
             "Hosted in the real AudioPlayer fragment by replacing the playback_chips ChipGroup with VLCComposeView. " +
             "The player gesture/switcher surface stays outside this slice; the speed and sleep quick actions are now Compose.",
+            style = MaterialTheme.typography.bodySmall
+        )
+        VLCAudioQueueProgressPill(
+            state = VLCAudioQueueProgressPillState(
+                text = "Track 3 / 12  •  10:42 / 48:12",
+                contentDescription = "Track 3 of 12. 10 minutes 42 seconds out of 48 minutes 12 seconds."
+            )
+        )
+        Text(
+            "The queue progress pill is also hosted in AudioPlayer via VLCComposeView under the existing audio_play_progress ID, " +
+            "so snackbar anchoring and ConstraintLayout transitions keep working while the HUD chrome is Compose-rendered.",
             style = MaterialTheme.typography.bodySmall
         )
 
