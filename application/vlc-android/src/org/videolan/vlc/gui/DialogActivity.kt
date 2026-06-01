@@ -26,6 +26,10 @@ package org.videolan.vlc.gui
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.MutableLiveData
@@ -49,7 +53,9 @@ class DialogActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.transparent)
+        setDialogComposeContent {
+            Box(modifier = Modifier.fillMaxSize())
+        }
         val key = intent.action
         if (key.isNullOrEmpty()) {
             finish()
@@ -74,28 +80,32 @@ class DialogActivity : BaseActivity() {
         val intent = intent
         val path = intent.getStringExtra(EXTRA_PATH) ?: return finish()
         val scan = intent.getBooleanExtra(EXTRA_SCAN, false)
-        setContentView(
-            ComposeView(this).apply {
-                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-                setContent {
-                    VLCExternalDeviceDialogContent(
-                        title = getString(R.string.device_dialog_title),
-                        message = getString(R.string.device_dialog_message),
-                        browseText = getString(R.string.browse_folder),
-                        scanText = getString(R.string.medialibrary_scan),
-                        cancelText = getString(R.string.cancel),
-                        showScan = scan,
-                        onBrowse = { browseDevice(path) },
-                        onScan = { scanDevice(path) },
-                        onCancel = ::finish
-                    )
-                }
-            }
-        )
+        setDialogComposeContent {
+            VLCExternalDeviceDialogContent(
+                title = getString(R.string.device_dialog_title),
+                message = getString(R.string.device_dialog_message),
+                browseText = getString(R.string.browse_folder),
+                scanText = getString(R.string.medialibrary_scan),
+                cancelText = getString(R.string.cancel),
+                showScan = scan,
+                onBrowse = { browseDevice(path) },
+                onScan = { scanDevice(path) },
+                onCancel = ::finish
+            )
+        }
         lifecycleScope.launch {
             delay(30_000L)
             if (!isFinishing) finish()
         }
+    }
+
+    private fun setDialogComposeContent(content: @Composable () -> Unit) {
+        setContentView(
+            ComposeView(this).apply {
+                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+                setContent(content)
+            }
+        )
     }
 
     private fun browseDevice(path: String) {
