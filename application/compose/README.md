@@ -184,7 +184,7 @@ The **Compose Interop Lab** (`ComposeInteropLabActivity` + `compose_interop_lab.
   - Primary interop demo host: `application/vlc-android/src/org/videolan/vlc/gui/dialogs/NetworkServerDialog.kt` + `network_server_dialog.xml`
   - First real Wave 1 host (list + adapter): `application/vlc-android/src/org/videolan/vlc/gui/DebugLogActivity.kt` + `debug_log.xml` (also contains the Lab launch button)
   - Decoration + browser hosts: Recycler*Decorations + BaseAudioBrowser/Playlist (compose-2l4.1.4)
-  - Info surfaces host (MediaInfoAdapter + InfoActivity): `application/vlc-android/src/org/videolan/vlc/gui/video/MediaInfoAdapter.kt` + `application/vlc-android/src/org/videolan/vlc/gui/InfoActivity.kt` (compose-2l4.1.3 / bd compose-l94)
+  - Info surfaces host: `application/vlc-android/src/org/videolan/vlc/gui/InfoActivity.kt` (VLCInfoItem track rows inside a full Compose media-info screen; compose-2l4.1.3 / bd compose-l94 plus compose-l12)
   - Section header hosts + decorations (compose-2l4.1.4 / bd compose-95d)
   - Dialog content host (ConfirmDeleteDialog - keep shell/swap content pattern): `application/vlc-android/src/org/videolan/vlc/gui/dialogs/ConfirmDeleteDialog.kt` (compose-2l4.1.5 / bd compose-j0e)
   - Onboarding first-run host (high-visibility welcome flow): Compose onboarding welcome content (compose-2l4.1.6 / bd compose-mdj) — real logo slot + land variant noted, layouts 100% preserved
@@ -206,7 +206,7 @@ The **Compose Interop Lab** (`ComposeInteropLabActivity` + `compose_interop_lab.
 
 **Enforced starting with compose-2l4.1.8**:
 
-> Every interop host (NetworkServerDialog, DebugLogActivity, MediaInfoAdapter/InfoActivity, ComposeInteropLabActivity, OnboardingWelcomeFragment, and all future ones) **must** have documented evidence that it compiles cleanly against the current `:application:compose` leaves.
+> Every interop host (NetworkServerDialog, DebugLogActivity, InfoActivity, ComposeInteropLabActivity, OnboardingWelcomeFragment, and all future ones) **must** have documented evidence that it compiles cleanly against the current `:application:compose` leaves.
 
 **The gate command** (run from the worktree root):
 ```bash
@@ -273,7 +273,7 @@ ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:comp
 - 2026-06-01: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:compose:build :application:vlc-android:compileDebugKotlin --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 10s` after replacing the audio-player quick-action ChipGroup with `VLCAudioPlayerChips`.
 - 2026-05-31: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:vlc-android:compileDebugKotlin --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 1m 24s` after the worktree was made tolerant of absent local `libvlcjni/libvlc` by falling back to the published `org.videolan.android:libvlc-all` artifact.
 - 2026-05-31: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:compose:build --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 1m 37s`.
-- All current Wave 0/1 hosts (NetworkServerDialog, DebugLogActivity, MediaInfoAdapter/InfoActivity, ComposeInteropLabActivity, OnboardingWelcomeFragment, OTPCodeActivity) participate in the app Kotlin gate.
+- All current Wave 0/1 hosts (NetworkServerDialog, DebugLogActivity, InfoActivity, ComposeInteropLabActivity, OnboardingWelcomeFragment, OTPCodeActivity) participate in the app Kotlin gate.
 
 Future agents: re-run the gate after touching any leaf or host, append the SUCCESS tail + timestamp to bd, and update this section.
 

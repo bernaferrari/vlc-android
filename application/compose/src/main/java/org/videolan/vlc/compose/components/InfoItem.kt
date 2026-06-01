@@ -19,8 +19,8 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
 /**
  * Compose equivalent of application/vlc-android/res/layout/info_item.xml
  *
- * Used by MediaInfoAdapter for media track details (audio/video/text tracks in
- * video player info dialog / bottom sheet).
+ * Used by InfoActivity for media track details (audio/video/text tracks in
+ * the media information screen).
  *
  * Structure from XML:
  *   - Horizontal row: leading icon (ImageView) + vertical (bold title + subtitle)

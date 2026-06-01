@@ -919,17 +919,15 @@ fun VLCInfoItemDarkPreview() {
 
 // ============================================================
 // WAVE 1.3 ENHANCEMENT (compose-2l4.1.3 / bd compose-l94)
-// Realistic "Media Info Track List" mocks simulating exactly what
-// MediaInfoAdapter renders for a video file's track list inside
-// InfoActivity (the primary host surface for this leaf).
+// Realistic "Media Info Track List" mocks simulating the track details that
+// InfoActivity renders for a video file inside its full Compose screen.
 // These exercise the leadingContent slot mapping (♪ 📺 📝) +
-// realistic subtitle strings that come from appendCommon/append* helpers.
-// Directly referenced from the new comments in MediaInfoAdapter.kt
-// and the combined mock already present in ComposeInteropLabActivity.
+// realistic subtitle strings that come from the InfoActivity track helpers.
+// Also exercised by the combined mock already present in ComposeInteropLabActivity.
 // ============================================================
 
 @Preview(
-    name = "Media Info Track List Mock (MediaInfoAdapter simulation) - Light",
+    name = "Media Info Track List Mock (InfoActivity) - Light",
     showBackground = true,
     backgroundColor = 0xFFFFFFFF,
     widthDp = 360,
@@ -939,7 +937,7 @@ fun VLCInfoItemDarkPreview() {
 fun MediaInfoTrackListLightPreview() {
     VLCTheme(darkTheme = false) {
         Column(Modifier.padding(4.dp).background(VLCThemeDefaults.colors.backgroundDefault)) {
-            // Simulates the exact rows MediaInfoAdapter produces for a typical movie
+            // Simulates the rows InfoActivity produces for a typical movie.
             VLCInfoItem(
                 title = "Video",
                 subtitle = "1920×1080 • 23.98 fps • Codec: h264 • 8.2 Mbps",
@@ -968,7 +966,7 @@ fun MediaInfoTrackListLightPreview() {
 }
 
 @Preview(
-    name = "Media Info Track List Mock (MediaInfoAdapter simulation) - Dark",
+    name = "Media Info Track List Mock (InfoActivity) - Dark",
     showBackground = true,
     backgroundColor = 0xFF131313,
     widthDp = 360,
@@ -1139,7 +1137,7 @@ fun VLCOnboardingWelcomeDarkPreview() {
 // strengthened with excellent dark onboardingBackground token wrappers + real host
 // context (full Compose first-run flow + Lab real-logo variant).
 // WAVE 1.3 addition (compose-2l4.1.3): MediaInfoTrackList*Previews were added here
-// (and exercised by the Lab's combined mock) as part of the MediaInfoAdapter host migration.
+// (and exercised by the Lab's combined mock) as part of the InfoActivity host migration.
 // They are extracted / inspired directly from the live interactive examples
 // in ComposeInteropLabActivity.kt (the crown jewel dev-only Lab launched
 // from DebugLogActivity). They provide:

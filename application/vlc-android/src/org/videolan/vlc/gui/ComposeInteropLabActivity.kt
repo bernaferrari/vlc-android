@@ -531,7 +531,7 @@ fun ComposeInteropLabContent() {
             subtitle = "Language: eng • Codec: subrip • Forced: no"
         )
         Text(
-            "Slot-based leadingContent for icons. Colors: fontAudioLight + listSubtitle. Primary migration target for MediaInfoAdapter (compose-2l4.1.3 / bd compose-l94). See MediaInfoAdapter.kt for the full RecyclerView + ComposeView Pattern 2 implementation (old info_item.xml path 100% preserved in comments) + InfoActivity.kt host comments.",
+            "Slot-based leadingContent for icons. Colors: fontAudioLight + listSubtitle. InfoActivity now renders its media track details directly in Compose with VLCInfoItem, replacing the old info_item.xml and adapter bridge.",
             style = MaterialTheme.typography.bodySmall
         )
 
