@@ -116,25 +116,27 @@
     </FrameLayout>
 
 
-    <androidx.appcompat.widget.ViewStubCompat
-            android:id="@+id/player_brightness_stub"
+    <org.videolan.vlc.gui.view.VideoVerticalProgressOverlayView
+            android:id="@+id/player_overlay_brightness"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
             android:layout_marginBottom="@dimen/default_margin"
             android:layout_marginRight="@dimen/tv_overscan_horizontal"
-            android:layout="@layout/player_overlay_brightness" />
+            android:visibility="invisible"
+            tools:visibility="visible" />
 
-    <androidx.appcompat.widget.ViewStubCompat
-            android:id="@+id/player_volume_stub"
+    <org.videolan.vlc.gui.view.VideoVerticalProgressOverlayView
+            android:id="@+id/player_overlay_volume"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
             android:layout_marginLeft="@dimen/tv_overscan_horizontal"
             android:layout_centerVertical="true"
             android:layout_marginBottom="@dimen/default_margin"
-            android:layout="@layout/player_overlay_volume" />
+            android:visibility="invisible"
+            tools:visibility="visible" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"

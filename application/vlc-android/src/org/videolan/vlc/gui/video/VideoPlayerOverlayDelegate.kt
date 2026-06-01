@@ -39,7 +39,6 @@ import android.view.accessibility.AccessibilityEvent
 import android.view.animation.AnimationUtils
 import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.ViewStubCompat
@@ -103,8 +102,8 @@ import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.showVideoTrack
 import org.videolan.vlc.gui.helpers.hf.checkPIN
 import org.videolan.vlc.gui.view.AbRepeatControlsView
-import org.videolan.vlc.gui.view.PlayerProgress
 import org.videolan.vlc.gui.view.VideoInfoOverlayView
+import org.videolan.vlc.gui.view.VideoVerticalProgressOverlayView
 import org.videolan.vlc.isVLC4
 import org.videolan.vlc.manageAbRepeatStep
 import org.videolan.vlc.media.MediaUtils
@@ -121,12 +120,8 @@ import java.util.Locale
 
 class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
-    private lateinit var playerOverlayBrightness: ConstraintLayout
-    private lateinit var brightnessValueText: TextView
-    private lateinit var playerBrightnessProgress: PlayerProgress
-    private lateinit var playerOverlayVolume: ConstraintLayout
-    private lateinit var volumeValueText: TextView
-    private lateinit var playerVolumeProgress: PlayerProgress
+    private lateinit var playerOverlayBrightness: VideoVerticalProgressOverlayView
+    private lateinit var playerOverlayVolume: VideoVerticalProgressOverlayView
     var info: View? = null
     var overlayInfo: View? = null
     lateinit var playerUiContainer: ViewGroup
@@ -365,13 +360,8 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
      */
     fun showBrightnessBar(brightness: Int) {
         player.handler.sendEmptyMessage(VideoPlayerActivity.FADE_OUT_VOLUME_INFO)
-        player.findViewById<ViewStubCompat>(R.id.player_brightness_stub)?.setVisible()
         playerOverlayBrightness = player.findViewById(R.id.player_overlay_brightness)
-        brightnessValueText = player.findViewById(R.id.brightness_value_text)
-        playerBrightnessProgress = player.findViewById(R.id.playerBrightnessProgress)
-        playerOverlayBrightness.setVisible()
-        brightnessValueText.text = "$brightness%"
-        playerBrightnessProgress.setValue(brightness)
+        playerOverlayBrightness.showBrightness(brightness)
         playerOverlayBrightness.setVisible()
         player.handler.removeMessages(VideoPlayerActivity.FADE_OUT_BRIGHTNESS_INFO)
         player.handler.sendEmptyMessageDelayed(VideoPlayerActivity.FADE_OUT_BRIGHTNESS_INFO, 1000L)
@@ -384,13 +374,8 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
      */
     fun showVolumeBar(volume: Int) {
         player.handler.sendEmptyMessage(VideoPlayerActivity.FADE_OUT_BRIGHTNESS_INFO)
-        player.findViewById<ViewStubCompat>(R.id.player_volume_stub)?.setVisible()
         playerOverlayVolume = player.findViewById(R.id.player_overlay_volume)
-        volumeValueText = player.findViewById(R.id.volume_value_text)
-        playerVolumeProgress = player.findViewById(R.id.playerVolumeProgress)
-        volumeValueText.text = "$volume%"
-        playerVolumeProgress.isDouble = player.isAudioBoostEnabled
-        playerVolumeProgress.setValue(volume)
+        playerOverlayVolume.showVolume(volume, player.isAudioBoostEnabled)
         playerOverlayVolume.setVisible()
         player.handler.removeMessages(VideoPlayerActivity.FADE_OUT_VOLUME_INFO)
         player.handler.sendEmptyMessageDelayed(VideoPlayerActivity.FADE_OUT_VOLUME_INFO, 1000L)
