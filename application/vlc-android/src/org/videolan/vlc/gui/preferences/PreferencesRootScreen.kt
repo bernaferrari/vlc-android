@@ -428,7 +428,7 @@ private data class PreferenceOption(
 )
 
 @Composable
-private fun PreferenceCategoryHeader(title: String) {
+internal fun PreferenceCategoryHeader(title: String) {
     Text(
             text = title,
             color = VLCThemeDefaults.colors.audioBrowserSeparator,
@@ -441,16 +441,18 @@ private fun PreferenceCategoryHeader(title: String) {
 }
 
 @Composable
-private fun NavigationPreferenceRow(
+internal fun NavigationPreferenceRow(
         key: String,
         title: String,
         summary: String? = null,
         @DrawableRes icon: Int? = null,
         highlighted: Boolean,
+        enabled: Boolean = true,
         onClick: () -> Unit
 ) {
     PreferenceRowFrame(
             highlighted = highlighted,
+            enabled = enabled,
             role = Role.Button,
             onClick = onClick,
             leadingContent = icon?.let {
@@ -467,7 +469,7 @@ private fun NavigationPreferenceRow(
                 PreferenceText(
                         title = title,
                         summary = summary,
-                        enabled = true
+                        enabled = enabled
                 )
             },
             trailingContent = {
@@ -481,13 +483,14 @@ private fun NavigationPreferenceRow(
 }
 
 @Composable
-private fun BooleanPreferenceRow(
+internal fun BooleanPreferenceRow(
         key: String,
         settings: SharedPreferences,
         title: String,
-        summary: String,
+        summary: String? = null,
         defaultValue: Boolean,
         highlighted: Boolean,
+        enabled: Boolean = true,
         checked: Boolean? = null,
         onCheckedStateChange: (Boolean) -> Unit = {},
         onBeforeChange: (Boolean) -> Boolean = { true },
@@ -504,20 +507,22 @@ private fun BooleanPreferenceRow(
     }
     PreferenceRowFrame(
             highlighted = highlighted,
+            enabled = enabled,
             role = Role.Switch,
             onClick = {
-                commitChange(!currentChecked)
+                if (enabled) commitChange(!currentChecked)
             },
             textContent = {
                 PreferenceText(
                         title = title,
                         summary = summary,
-                        enabled = true
+                        enabled = enabled
                 )
             },
             trailingContent = {
                 Switch(
                         checked = currentChecked,
+                        enabled = enabled,
                         onCheckedChange = ::commitChange
                 )
             }
@@ -525,7 +530,7 @@ private fun BooleanPreferenceRow(
 }
 
 @Composable
-private fun ListPreferenceRow(
+internal fun ListPreferenceRow(
         key: String,
         settings: SharedPreferences,
         title: String,
@@ -533,6 +538,7 @@ private fun ListPreferenceRow(
         entries: List<String>,
         values: List<String>,
         highlighted: Boolean,
+        enabled: Boolean = true,
         summary: String? = null,
         onValueChanged: (String) -> Unit = {}
 ) {
@@ -542,18 +548,22 @@ private fun ListPreferenceRow(
     val selectedLabel = options.firstOrNull { it.value == selectedValue }?.label ?: selectedValue
     PreferenceRowFrame(
             highlighted = highlighted,
+            enabled = enabled,
             role = Role.Button,
-            onClick = { expanded = true },
+            onClick = { if (enabled) expanded = true },
             textContent = {
                 PreferenceText(
                         title = title,
                         summary = summary ?: selectedLabel,
-                        enabled = true
+                        enabled = enabled
                 )
             },
             trailingContent = {
                 Box {
-                    TextButton(onClick = { expanded = true }) {
+                    TextButton(
+                            enabled = enabled,
+                            onClick = { expanded = true }
+                    ) {
                         Text(selectedLabel)
                     }
                     DropdownMenu(
@@ -578,8 +588,9 @@ private fun ListPreferenceRow(
 }
 
 @Composable
-private fun PreferenceRowFrame(
+internal fun PreferenceRowFrame(
         highlighted: Boolean,
+        enabled: Boolean = true,
         role: Role,
         onClick: () -> Unit,
         leadingContent: (@Composable () -> Unit)? = null,
@@ -591,7 +602,7 @@ private fun PreferenceRowFrame(
             modifier = Modifier
                     .fillMaxWidth()
                     .background(if (highlighted) colors.subtleSelection else colors.backgroundDefault)
-                    .clickable(role = role, onClick = onClick)
+                    .clickable(enabled = enabled, role = role, onClick = onClick)
                     .padding(top = 10.dp)
     ) {
         Row(
@@ -615,7 +626,7 @@ private fun PreferenceRowFrame(
 }
 
 @Composable
-private fun PreferenceText(
+internal fun PreferenceText(
         title: String,
         summary: String?,
         enabled: Boolean

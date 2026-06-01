@@ -20,6 +20,7 @@
 
 package org.videolan.vlc.gui.preferences
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
@@ -35,12 +36,15 @@ import androidx.core.os.bundleOf
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.appbar.AppBarLayout
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.videolan.libvlc.util.AndroidUtil
 import org.videolan.medialibrary.interfaces.Medialibrary
 import org.videolan.resources.ACTIVITY_RESULT_PREFERENCES
+import org.videolan.resources.VLCInstance
 import org.videolan.resources.util.parcelable
 import org.videolan.tools.AUDIO_RESUME_PLAYBACK
 import org.videolan.tools.KEY_AUDIO_LAST_PLAYLIST
@@ -68,10 +72,12 @@ import org.videolan.vlc.gui.EqualizerSettingsActivity
 import org.videolan.vlc.gui.PinCodeActivity
 import org.videolan.vlc.gui.PinCodeReason
 import org.videolan.vlc.gui.SecondaryActivity
+import org.videolan.vlc.gui.dialogs.showAutoInfoComposeDialog
 import org.videolan.vlc.gui.dialogs.showAudioControlsSettingsComposeDialog
 import org.videolan.vlc.gui.dialogs.showPermissionListComposeDialog
 import org.videolan.vlc.gui.dialogs.showVideoControlsSettingsComposeDialog
 import org.videolan.vlc.gui.helpers.UiTools
+import org.videolan.vlc.gui.helpers.restartMediaPlayer
 import org.videolan.vlc.gui.preferences.search.PreferenceItem
 import org.videolan.vlc.gui.preferences.search.PreferenceParser
 import org.videolan.vlc.gui.preferences.search.PreferenceSearchActivity
@@ -79,10 +85,15 @@ import org.videolan.vlc.util.Permissions
 import org.videolan.vlc.widget.utils.refreshAllWidgets
 
 const val EXTRA_PREF_END_POINT = "extra_pref_end_point"
+private const val EXTRA_COMPOSE_PREF_DESTINATION = "extra_compose_pref_destination"
+private const val EXTRA_COMPOSE_PREF_HIGHLIGHT = "extra_compose_pref_highlight"
+
 class PreferencesActivity : BaseActivity() {
 
     private val searchRequestCode = 167
     private var mAppBarLayout: AppBarLayout? = null
+    private var activeComposeDestination: PreferencesRootDestination? = null
+    private var activeComposeHighlight: String? = null
     override val displayTitle = true
     private var pinCodeResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode != RESULT_OK) {
@@ -91,7 +102,12 @@ class PreferencesActivity : BaseActivity() {
     }
     private var parentalPinCodeResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
-            openPreferenceFragment(PreferencesParentalControl())
+            showPreferenceSubpage(PreferencesRootDestination.ParentalControl)
+        }
+    }
+    private var modifyPinCodeResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            UiTools.snacker(this, R.string.pin_code_modified)
         }
     }
     override fun getSnackAnchorView(overAudioPlayer:Boolean): View? = findViewById(android.R.id.content)
@@ -112,9 +128,25 @@ class PreferencesActivity : BaseActivity() {
         }
         if (savedInstanceState == null) {
             intent.parcelable<PreferenceItem>(EXTRA_PREF_END_POINT)?.let(::routePreferenceEndpoint) ?: showPreferencesRoot()
-        } else if (supportFragmentManager.findFragmentById(R.id.fragment_placeholder) == null) {
-            showPreferencesRoot()
+        } else {
+            val restoredDestination = savedInstanceState.getString(EXTRA_COMPOSE_PREF_DESTINATION)?.let { destinationName ->
+                runCatching { PreferencesRootDestination.valueOf(destinationName) }.getOrNull()
+            }
+            if (restoredDestination != null) {
+                showPreferenceSubpage(
+                    destination = restoredDestination,
+                    highlightedKey = savedInstanceState.getString(EXTRA_COMPOSE_PREF_HIGHLIGHT)
+                )
+            } else if (supportFragmentManager.findFragmentById(R.id.fragment_placeholder) == null) {
+                showPreferencesRoot()
+            }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        activeComposeDestination?.let { outState.putString(EXTRA_COMPOSE_PREF_DESTINATION, it.name) }
+        activeComposeHighlight?.let { outState.putString(EXTRA_COMPOSE_PREF_HIGHLIGHT, it) }
+        super.onSaveInstanceState(outState)
     }
 
     override fun onStop() {
@@ -131,6 +163,11 @@ class PreferencesActivity : BaseActivity() {
         return true
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        menu?.findItem(R.id.menu_android_auto_info)?.isVisible = activeComposeDestination == PreferencesRootDestination.AndroidAuto
+        return super.onPrepareOptionsMenu(menu)
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {
@@ -140,6 +177,12 @@ class PreferencesActivity : BaseActivity() {
             }
             R.id.menu_pref_search -> {
                 startActivityForResult(Intent(this, PreferenceSearchActivity::class.java), searchRequestCode)
+            }
+            R.id.menu_android_auto_info -> {
+                if (activeComposeDestination == PreferencesRootDestination.AndroidAuto) {
+                    showAutoInfoComposeDialog()
+                    return true
+                }
             }
         }
         return super.onOptionsItemSelected(item)
@@ -158,6 +201,8 @@ class PreferencesActivity : BaseActivity() {
 
     private fun showPreferencesRoot(highlightedKey: String? = null) {
         expandBar()
+        activeComposeDestination = null
+        activeComposeHighlight = highlightedKey
         supportActionBar?.title = getString(R.string.preferences)
         findViewById<ViewGroup>(R.id.fragment_placeholder).apply {
             removeAllViews()
@@ -184,6 +229,7 @@ class PreferencesActivity : BaseActivity() {
                 }
             )
         }
+        invalidateOptionsMenu()
     }
 
     private fun openDirectories() {
@@ -203,16 +249,16 @@ class PreferencesActivity : BaseActivity() {
             PreferencesRootDestination.Video -> openPreferenceFragment(PreferencesVideo())
             PreferencesRootDestination.Subtitles -> openPreferenceFragment(PreferencesSubtitles())
             PreferencesRootDestination.Audio -> openPreferenceFragment(PreferencesAudio())
-            PreferencesRootDestination.Casting -> openPreferenceFragment(PreferencesCasting())
+            PreferencesRootDestination.Casting -> showPreferenceSubpage(PreferencesRootDestination.Casting)
             PreferencesRootDestination.ParentalControl -> {
                 if (isPinCodeSet()) {
-                    openPreferenceFragment(PreferencesParentalControl())
+                    showPreferenceSubpage(PreferencesRootDestination.ParentalControl)
                 } else {
                     parentalPinCodeResult.launch(PinCodeActivity.getIntent(this, PinCodeReason.FIRST_CREATION))
                 }
             }
             PreferencesRootDestination.RemoteAccess -> openPreferenceFragment(PreferencesRemoteAccess())
-            PreferencesRootDestination.AndroidAuto -> openPreferenceFragment(PreferencesAndroidAuto())
+            PreferencesRootDestination.AndroidAuto -> showPreferenceSubpage(PreferencesRootDestination.AndroidAuto)
             PreferencesRootDestination.Advanced -> openPreferenceFragment(PreferencesAdvanced())
         }
     }
@@ -232,10 +278,10 @@ class PreferencesActivity : BaseActivity() {
             R.xml.preferences_subtitles -> openPreferenceFragment(PreferencesSubtitles().withEndpoint(endPoint))
             R.xml.preferences_audio -> openPreferenceFragment(PreferencesAudio().withEndpoint(endPoint))
             R.xml.preferences_adv -> openPreferenceFragment(PreferencesAdvanced().withEndpoint(endPoint))
-            R.xml.preferences_casting -> openPreferenceFragment(PreferencesCasting().withEndpoint(endPoint))
-            R.xml.preferences_parental_control -> openPreferenceFragment(PreferencesParentalControl().withEndpoint(endPoint))
+            R.xml.preferences_casting -> showPreferenceSubpage(PreferencesRootDestination.Casting, endPoint.key)
+            R.xml.preferences_parental_control -> showPreferenceSubpage(PreferencesRootDestination.ParentalControl, endPoint.key)
             R.xml.preferences_remote_access -> openPreferenceFragment(PreferencesRemoteAccess().withEndpoint(endPoint))
-            R.xml.preferences_android_auto -> openPreferenceFragment(PreferencesAndroidAuto().withEndpoint(endPoint))
+            R.xml.preferences_android_auto -> showPreferenceSubpage(PreferencesRootDestination.AndroidAuto, endPoint.key)
             else -> showPreferencesRoot(endPoint.key)
         }
     }
@@ -245,7 +291,45 @@ class PreferencesActivity : BaseActivity() {
         return this
     }
 
+    private fun showPreferenceSubpage(destination: PreferencesRootDestination, highlightedKey: String? = null) {
+        expandBar()
+        activeComposeDestination = destination
+        activeComposeHighlight = highlightedKey
+        supportActionBar?.title = getString(destination.titleRes())
+        supportFragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+        findViewById<ViewGroup>(R.id.fragment_placeholder).apply {
+            removeAllViews()
+            addView(
+                ComposeView(this@PreferencesActivity).apply {
+                    layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+                    setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+                    setContent {
+                        val settings = Settings.getInstance(this@PreferencesActivity)
+                        PreferencesComposeSubpageScreen(
+                            settings = settings,
+                            destination = destination,
+                            highlightedKey = highlightedKey,
+                            isPinCodeSet = { this@PreferencesActivity.isPinCodeSet() },
+                            onModifyPinCodeClick = {
+                                modifyPinCodeResult.launch(PinCodeActivity.getIntent(this@PreferencesActivity, PinCodeReason.MODIFY))
+                            },
+                            onSafeModeChanged = { Settings.safeMode = it },
+                            onRestartAppRequired = ::setRestartApp,
+                            onRestartCastingPipeline = ::restartCastingPipeline,
+                            onAndroidAutoSettingChanged = ::updateAndroidAutoState,
+                            onPlaybackSpeedGlobalChanged = ::onPlaybackSpeedGlobalChanged
+                        )
+                    }
+                }
+            )
+        }
+        invalidateOptionsMenu()
+    }
+
     private fun openPreferenceFragment(fragment: BasePreferenceFragment) {
+        activeComposeDestination = null
+        activeComposeHighlight = null
+        invalidateOptionsMenu()
         findViewById<ViewGroup>(R.id.fragment_placeholder).removeAllViews()
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_placeholder, fragment)
@@ -254,6 +338,10 @@ class PreferencesActivity : BaseActivity() {
     }
 
     private fun navigateUp(): Boolean {
+        if (activeComposeDestination != null) {
+            showPreferencesRoot()
+            return true
+        }
         if (supportFragmentManager.popBackStackImmediate()) {
             if (supportFragmentManager.findFragmentById(R.id.fragment_placeholder) == null) {
                 showPreferencesRoot()
@@ -303,6 +391,38 @@ class PreferencesActivity : BaseActivity() {
             Permissions.checkDrawOverlaysPermission(this)
         }
         Settings.getInstance(this).edit().putString(KEY_VIDEO_APP_SWITCH, value).apply()
+    }
+
+    private fun restartCastingPipeline() {
+        lifecycleScope.launch {
+            VLCInstance.restart()
+            restartMediaPlayer()
+        }
+    }
+
+    private fun updateAndroidAutoState() {
+        PlaybackService.updateState()
+    }
+
+    private fun onPlaybackSpeedGlobalChanged() {
+        PlaybackService.instance?.let { service ->
+            service.playlistManager.getCurrentMedia()?.let { currentMedia ->
+                service.playlistManager.restoreSpeed(currentMedia)
+            }
+        }
+        PlaybackService.updateState()
+    }
+
+    private fun PreferencesRootDestination.titleRes(): Int = when (this) {
+        PreferencesRootDestination.Ui -> R.string.interface_prefs_screen
+        PreferencesRootDestination.Video -> R.string.video_prefs_category
+        PreferencesRootDestination.Subtitles -> R.string.subtitles_prefs_category
+        PreferencesRootDestination.Audio -> R.string.audio_prefs_category
+        PreferencesRootDestination.Casting -> R.string.casting_category
+        PreferencesRootDestination.ParentalControl -> R.string.parental_control
+        PreferencesRootDestination.RemoteAccess -> R.string.remote_access
+        PreferencesRootDestination.AndroidAuto -> R.string.android_auto
+        PreferencesRootDestination.Advanced -> R.string.advanced_prefs_category
     }
 
     fun exitAndRescan() {
