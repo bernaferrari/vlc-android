@@ -26,7 +26,6 @@ package org.videolan.vlc.gui.helpers
 
 import android.view.View
 import androidx.activity.ComponentActivity
-import androidx.appcompat.widget.ViewStubCompat
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
@@ -59,13 +58,11 @@ class BookmarkListDelegate(
         get() = ::rootView.isInitialized && rootView.visibility != View.GONE
 
     fun show() {
-        activity.findViewById<ViewStubCompat>(R.id.bookmarks_stub)?.let {
-            rootView = it.inflate() as BookmarksPanelView
+        if (!::rootView.isInitialized) {
+            rootView = activity.findViewById<BookmarksPanelView>(R.id.bookmarks_background) ?: return
             setupRootView()
             observeBookmarks()
-            bookmarkModel.refresh()
         }
-        if (!::rootView.isInitialized) return
         bookmarkModel.refresh()
         rootView.setVisible()
         markerContainer.setVisible()

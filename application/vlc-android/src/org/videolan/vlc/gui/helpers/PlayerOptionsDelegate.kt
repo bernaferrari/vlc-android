@@ -132,8 +132,8 @@ class PlayerOptionsDelegate(val activity: ComponentActivity, val service: Playba
     }
 
     fun show() {
-        activity.findViewById<ViewStubCompat>(R.id.player_options_stub)?.let {
-            rootView = it.inflate() as PlayerOptionsPanelView
+        if (!::rootView.isInitialized) {
+            rootView = activity.findViewById<PlayerOptionsPanelView>(R.id.options_background) ?: return
             rootView.setOnOptionClickListener(::onClick)
             rootView.setOnDismissClickListener { hide() }
         }

@@ -367,8 +367,6 @@ class AudioPlayer(
             activity.slideUpOrDownAudioPlayer()
         }
 
-        binding.fragment = this
-
         binding.next.setOnTouchListener(LongSeekListener(true))
         binding.previous.setOnTouchListener(LongSeekListener(false))
 
@@ -1174,7 +1172,7 @@ class AudioPlayer(
     private var wasShuffling = false
     private fun updateShuffleMode() {
         val ctx = context ?: return
-        binding.canShuffle = playlistModel.canShuffle
+        binding.shuffle.visibility = if (playlistModel.canShuffle) View.VISIBLE else View.INVISIBLE
         val shuffling = playlistModel.shuffling
         val icon = if (shuffling) R.drawable.ic_shuffle_on else R.drawable.ic_shuffle_audio
         val text = ctx.getString(if (shuffling) R.string.shuffle_on else R.string.shuffle)

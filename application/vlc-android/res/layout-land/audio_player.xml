@@ -3,19 +3,6 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools">
 
-    <data>
-
-        <import type="android.view.View" />
-
-        <variable
-                name="fragment"
-                type="org.videolan.vlc.gui.audio.AudioPlayer" />
-
-        <variable
-                name="can_shuffle"
-                type="Boolean" />
-    </data>
-
     <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/content_layout"
             android:layout_width="match_parent"
@@ -535,7 +522,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginEnd="16dp"
-                android:visibility="@{can_shuffle ? View.VISIBLE : View.INVISIBLE}"
+                android:visibility="invisible"
                 android:elevation="4dp"
                 app:layout_constraintBottom_toBottomOf="@+id/play_pause"
                 app:layout_constraintRight_toLeftOf="@+id/previous"
@@ -629,22 +616,29 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent">
 
-            <androidx.appcompat.widget.ViewStubCompat
-                    android:id="@+id/player_options_stub"
+            <org.videolan.vlc.gui.view.PlayerOptionsPanelView
+                    android:id="@+id/options_background"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout="@layout/player_options" />
+                    android:clickable="true"
+                    android:elevation="16dp"
+                    android:focusable="false"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
         </FrameLayout>
 
-        <androidx.appcompat.widget.ViewStubCompat
-                android:id="@+id/bookmarks_stub"
+        <org.videolan.vlc.gui.view.BookmarksPanelView
+                android:id="@+id/bookmarks_background"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                android:layout="@layout/bookmarks"
+                android:background="?attr/bookmark_background"
+                android:focusable="false"
+                android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                tools:visibility="visible" />
 
         <org.videolan.vlc.gui.view.BookmarkMarkerContainerView
                 android:id="@+id/bookmark_marker_container"

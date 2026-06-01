@@ -197,10 +197,14 @@
                 app:layout_constraintTop_toBottomOf="@+id/playlist_search_text" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <androidx.appcompat.widget.ViewStubCompat
-            android:id="@+id/player_options_stub"
+    <org.videolan.vlc.gui.view.PlayerOptionsPanelView
+            android:id="@+id/options_background"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout="@layout/player_options" />
+            android:clickable="true"
+            android:elevation="16dp"
+            android:focusable="false"
+            android:visibility="gone"
+            tools:visibility="visible" />
 
 </RelativeLayout>

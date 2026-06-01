@@ -490,14 +490,14 @@ fun ComposeInteropLabContent() {
             "The bookmark timeline markers are Compose-drawn under bookmark_marker_container in audio and video HUD hosts, with BookmarkListDelegate now pushing normalized media positions instead of dynamic ImageViews. " +
             "The restore-video hint is Compose-hosted under resume_video_hint instead of using a transient Material Snackbar from AudioPlayer.onResume. " +
             "The shared A-B repeat add-marker chip root is Compose-rendered through AbRepeatControlsView directly in both audio and video HUD hosts. " +
-            "The shared player options panel is Compose-rendered through PlayerOptionsPanelView in player_options.xml, replacing the former BrowseFrameLayout/RecyclerView shell and player_option_item.xml rows while keeping the ViewStub hosts stable. " +
+            "The shared player options panel is directly hosted through PlayerOptionsPanelView in audio/video player roots, replacing the former stub wrapper plus BrowseFrameLayout/RecyclerView shell and player_option_item.xml rows. " +
             "The mini play/pause button is Compose-hosted under header_play_pause with the long-press stop action preserved. " +
             "The tablet header transport strip is Compose-hosted under the existing header_shuffle/header_previous/header_large_play_pause/header_next/header_repeat IDs. " +
             "The full-player bottom shuffle/previous/play_pause/next/repeat transport controls now use the same Compose leaf while preserving previous/next long seek. " +
             "The landscape chapter chevrons are Compose-hosted under previous_chapter and next_chapter. " +
             "The foldable hinge left/right affordances are Compose-hosted under hinge_go_left and hinge_go_right. " +
             "The cover-mode seek/bookmark HUD row is Compose-hosted under the existing audio_rewind/audio_forward IDs with delay labels driven from Settings.audioJumpDelay. " +
-            "The shared bookmarks panel is Compose-rendered through BookmarksPanelView in bookmarks.xml, replacing the toolbar, RecyclerView, empty state, bookmark_item.xml rows, and bottom seek/bookmark controls while keeping the audio/video ViewStub hosts stable. " +
+            "The shared bookmarks panel is directly hosted through BookmarksPanelView in audio/video HUD roots, replacing the former stub wrapper plus toolbar, RecyclerView, empty state, bookmark_item.xml rows, and bottom seek/bookmark controls. " +
             "The audio and video playlist overlays now share AudioPlaylistQueue in VLCComposeView-backed hosts, replacing the former PlaylistAdapter/RecyclerView wiring and the remaining playlist_item.xml bridge, with playlist tips fake rows created programmatically as Compose widgets. " +
             "The player gesture/switcher surface stays outside this slice; the speed and sleep quick actions are now Compose.",
             style = MaterialTheme.typography.bodySmall

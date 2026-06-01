@@ -33,8 +33,8 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.helpers.PlayerOption
 
 /**
- * Compose replacement for the shared player_options.xml overlay. The existing
- * ViewStub hosts keep their IDs/constraints, while this root owns the former
+ * Direct Compose-backed shared player options overlay. The audio/video hosts
+ * place this view at the former stub bounds while this root owns the former
  * BrowseFrameLayout + RecyclerView option list content.
  */
 class PlayerOptionsPanelView @JvmOverloads constructor(

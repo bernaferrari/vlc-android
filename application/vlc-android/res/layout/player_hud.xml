@@ -179,16 +179,19 @@
                 vlc:srcCompat="@drawable/ic_abrepeat_warning" />
 
 
-        <androidx.appcompat.widget.ViewStubCompat
-                android:id="@+id/bookmarks_stub"
+        <org.videolan.vlc.gui.view.BookmarksPanelView
+                android:id="@+id/bookmarks_background"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                android:layout="@layout/bookmarks"
+                android:background="?attr/bookmark_background"
                 android:fitsSystemWindows="true"
+                android:focusable="false"
+                android:visibility="gone"
                 vlc:layout_constraintBottom_toBottomOf="parent"
                 vlc:layout_constraintEnd_toEndOf="parent"
                 vlc:layout_constraintStart_toStartOf="parent"
-                vlc:layout_constraintTop_toTopOf="parent" />
+                vlc:layout_constraintTop_toTopOf="parent"
+                tools:visibility="visible" />
 
 
         <org.videolan.vlc.gui.view.FocusableTextView
