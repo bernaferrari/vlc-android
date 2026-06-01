@@ -751,7 +751,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         super.onNewIntent(intent)
         setIntent(intent)
         if (playbackStarted) service?.run {
-            if (overlayDelegate.isHudRightBindingInitialized()) {
+            if (overlayDelegate.isHudRightOverlayInitialized()) {
                 overlayDelegate.setTitle(currentMediaWrapper?.title)
                         ?: return@run
             }
@@ -1716,7 +1716,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
             wasPaused = false
         }
         setESTracks()
-        if (overlayDelegate.isHudRightBindingInitialized() && (overlayDelegate.hudRightBinding.playerOverlayTitle.length() == 0 || PlaybackService.hasRenderer()))
+        if (overlayDelegate.isHudRightOverlayInitialized() && (!overlayDelegate.hasHudRightTitleText() || PlaybackService.hasRenderer()))
             overlayDelegate.setTitle(mw.title)
         // Get possible subtitles
         observeDownloadedSubtitles()
@@ -2281,7 +2281,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                 service.loadLastPlaylist(PLAYLIST_TYPE_ALL)
             }
             if (itemTitle != null) title = itemTitle
-            if (overlayDelegate.isHudRightBindingInitialized()) {
+            if (overlayDelegate.isHudRightOverlayInitialized()) {
                 overlayDelegate.setTitle(title)
             }
 
@@ -2500,7 +2500,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                 overlayDelegate.hideOverlay(false)
             } else if (menuIdx != -1) setESTracks()
 
-            if (overlayDelegate.isHudRightBindingInitialized()) overlayDelegate.hudRightBinding.playerOverlayNavmenu.setVisibility(if (menuIdx >= 0) View.VISIBLE else View.GONE)
+            if (overlayDelegate.isHudRightOverlayInitialized()) overlayDelegate.setNavMenuVisible(menuIdx >= 0)
             supportInvalidateOptionsMenu()
         }
     }

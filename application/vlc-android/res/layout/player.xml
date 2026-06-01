@@ -104,12 +104,13 @@
                 android:visibility="invisible"
                 tools:visibility="visible" />
 
-        <androidx.appcompat.widget.ViewStubCompat
-                android:id="@+id/player_hud_right_stub"
+        <org.videolan.vlc.gui.view.VideoHudRightOverlayView
+                android:id="@+id/hud_right_overlay"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
-                android:layout="@layout/player_hud_right" />
+                android:visibility="invisible"
+                tools:visibility="visible" />
 
         <androidx.appcompat.widget.ViewStubCompat
                 android:id="@+id/player_hud_stub"
