@@ -32,6 +32,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.Toolbar
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.core.net.toUri
 import androidx.core.os.bundleOf
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.FragmentActivity
@@ -78,6 +79,9 @@ import org.videolan.vlc.gui.PinCodeActivity
 import org.videolan.vlc.gui.PinCodeReason
 import org.videolan.vlc.gui.SecondaryActivity
 import org.videolan.vlc.StartActivity
+import org.videolan.vlc.gui.browser.EXTRA_MRL
+import org.videolan.vlc.gui.browser.FilePickerActivity
+import org.videolan.vlc.gui.browser.KEY_PICKER_TYPE
 import org.videolan.vlc.gui.dialogs.showAutoInfoComposeDialog
 import org.videolan.vlc.gui.dialogs.showAudioControlsSettingsComposeDialog
 import org.videolan.vlc.gui.dialogs.showPermissionListComposeDialog
@@ -87,6 +91,8 @@ import org.videolan.vlc.gui.helpers.restartMediaPlayer
 import org.videolan.vlc.gui.preferences.search.PreferenceItem
 import org.videolan.vlc.gui.preferences.search.PreferenceParser
 import org.videolan.vlc.gui.preferences.search.PreferenceSearchActivity
+import org.videolan.vlc.media.MediaUtils
+import org.videolan.vlc.providers.PickerType
 import org.videolan.vlc.util.Permissions
 import org.videolan.vlc.widget.utils.refreshAllWidgets
 
@@ -115,6 +121,15 @@ class PreferencesActivity : BaseActivity() {
         if (result.resultCode == Activity.RESULT_OK) {
             UiTools.snacker(this, R.string.pin_code_modified)
         }
+    }
+    private var soundFontResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode != Activity.RESULT_OK) return@registerForActivityResult
+        val soundFontMrl = result.data?.getStringExtra(EXTRA_MRL) ?: return@registerForActivityResult
+        lifecycleScope.launch {
+            MediaUtils.useAsSoundFont(this@PreferencesActivity, soundFontMrl.toUri())
+            VLCInstance.restart()
+        }
+        UiTools.restartDialog(this)
     }
     override fun getSnackAnchorView(overAudioPlayer:Boolean): View? = findViewById(android.R.id.content)
 
@@ -261,7 +276,7 @@ class PreferencesActivity : BaseActivity() {
             PreferencesRootDestination.Ui -> openPreferenceFragment(PreferencesUi())
             PreferencesRootDestination.Video -> showPreferenceSubpage(PreferencesRootDestination.Video)
             PreferencesRootDestination.Subtitles -> openPreferenceFragment(PreferencesSubtitles())
-            PreferencesRootDestination.Audio -> openPreferenceFragment(PreferencesAudio())
+            PreferencesRootDestination.Audio -> showPreferenceSubpage(PreferencesRootDestination.Audio)
             PreferencesRootDestination.Casting -> showPreferenceSubpage(PreferencesRootDestination.Casting)
             PreferencesRootDestination.ParentalControl -> {
                 if (isPinCodeSet()) {
@@ -289,7 +304,7 @@ class PreferencesActivity : BaseActivity() {
             R.xml.preferences_ui -> openPreferenceFragment(PreferencesUi().withEndpoint(endPoint))
             R.xml.preferences_video -> showPreferenceSubpage(PreferencesRootDestination.Video, endPoint.key)
             R.xml.preferences_subtitles -> openPreferenceFragment(PreferencesSubtitles().withEndpoint(endPoint))
-            R.xml.preferences_audio -> openPreferenceFragment(PreferencesAudio().withEndpoint(endPoint))
+            R.xml.preferences_audio -> showPreferenceSubpage(PreferencesRootDestination.Audio, endPoint.key)
             R.xml.preferences_adv -> openPreferenceFragment(PreferencesAdvanced().withEndpoint(endPoint))
             R.xml.preferences_casting -> showPreferenceSubpage(PreferencesRootDestination.Casting, endPoint.key)
             R.xml.preferences_parental_control -> showPreferenceSubpage(PreferencesRootDestination.ParentalControl, endPoint.key)
@@ -337,7 +352,10 @@ class PreferencesActivity : BaseActivity() {
                             onRemoteAccessEnabledChanged = ::onRemoteAccessEnabledChanged,
                             onRemoteAccessNetworkBrowserChanged = ::restartRemoteAccessServer,
                             onPreferredResolutionChanged = ::restartMediaPipeline,
-                            onPopupForceLegacyChanged = ::onPopupForceLegacyChanged
+                            onPopupForceLegacyChanged = ::onPopupForceLegacyChanged,
+                            onHeadsetDetectionChanged = ::detectHeadset,
+                            onAudioReplayGainChanged = ::restartMediaPipeline,
+                            onSoundFontClick = ::openSoundFontPicker
                         )
                     }
                 }
@@ -449,6 +467,12 @@ class PreferencesActivity : BaseActivity() {
     private fun onPopupForceLegacyChanged(forceLegacy: Boolean) {
         if (forceLegacy && !Permissions.canDrawOverlays(this)) Permissions.checkDrawOverlaysPermission(this)
         if (!forceLegacy && !Permissions.isPiPAllowed(this)) Permissions.checkPiPPermission(this)
+    }
+
+    private fun openSoundFontPicker() {
+        soundFontResult.launch(Intent(this, FilePickerActivity::class.java).apply {
+            putExtra(KEY_PICKER_TYPE, PickerType.SOUNDFONT.ordinal)
+        })
     }
 
     private fun showRemoteAccessOnboardingIfNeeded() {

@@ -38,6 +38,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -50,11 +51,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
+import org.videolan.tools.AUDIO_DUCKING
+import org.videolan.tools.KEY_AUDIO_CONFIRM_RESUME
+import org.videolan.tools.KEY_AUDIO_DIGITAL_OUTPUT
+import org.videolan.tools.KEY_AUDIO_PREFERRED_LANGUAGE
+import org.videolan.tools.KEY_AUDIO_REPLAY_GAIN_DEFAULT
+import org.videolan.tools.KEY_AUDIO_REPLAY_GAIN_ENABLE
+import org.videolan.tools.KEY_AUDIO_REPLAY_GAIN_MODE
+import org.videolan.tools.KEY_AUDIO_REPLAY_GAIN_PEAK_PROTECTION
+import org.videolan.tools.KEY_AUDIO_REPLAY_GAIN_PREAMP
+import org.videolan.tools.KEY_AUDIO_TASK_REMOVED
 import org.videolan.tools.KEY_ANDROID_AUTO_QUEUE_INFO_POS_VAL
 import org.videolan.tools.KEY_ALWAYS_FAST_SEEK
 import org.videolan.tools.KEY_CASTING_AUDIO_ONLY
@@ -62,7 +74,10 @@ import org.videolan.tools.KEY_CASTING_PASSTHROUGH
 import org.videolan.tools.KEY_CASTING_QUALITY
 import org.videolan.tools.KEY_ENABLE_CASTING
 import org.videolan.tools.KEY_ENABLE_CLONE_MODE
+import org.videolan.tools.KEY_ENABLE_HEADSET_DETECTION
+import org.videolan.tools.KEY_ENABLE_PLAY_ON_HEADSET_INSERTION
 import org.videolan.tools.KEY_ENABLE_REMOTE_ACCESS
+import org.videolan.tools.KEY_IGNORE_HEADSET_MEDIA_BUTTON_PRESSES
 import org.videolan.tools.KEY_PLAYBACK_SPEED_AUDIO_GLOBAL
 import org.videolan.tools.KEY_PREFERRED_RESOLUTION
 import org.videolan.tools.KEY_REMOTE_ACCESS_ML_CONTENT
@@ -75,11 +90,19 @@ import org.videolan.tools.REMOTE_ACCESS_HISTORY_CONTENT
 import org.videolan.tools.REMOTE_ACCESS_LOGS
 import org.videolan.tools.REMOTE_ACCESS_NETWORK_BROWSER_CONTENT
 import org.videolan.tools.REMOTE_ACCESS_PLAYBACK_CONTROL
+import org.videolan.tools.RESUME_PLAYBACK
 import org.videolan.tools.RESTORE_BACKGROUND_VIDEO
+import org.videolan.tools.LocaleUtils
+import org.videolan.tools.LocaleUtils.getLocales
+import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.util.TextUtils
+import org.videolan.vlc.util.LocaleUtil
+import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.util.Locale
 import kotlin.math.roundToInt
 
 private const val KEY_REMOTE_ACCESS_STATUS = "remote_access_status"
@@ -92,8 +115,8 @@ private const val KEY_ANDROID_AUTO_SEEK_BUTTONS = "enable_android_auto_seek_butt
 
 /**
  * Compose replacement for the small phone preference XML screens:
- * preferences_video.xml, preferences_casting.xml, preferences_parental_control.xml,
- * preferences_remote_access.xml, and preferences_android_auto.xml.
+ * preferences_video.xml, preferences_audio.xml, preferences_casting.xml,
+ * preferences_parental_control.xml, preferences_remote_access.xml, and preferences_android_auto.xml.
  *
  * Those XML files stay parseable by PreferenceParser for search metadata while this screen owns
  * the active phone rendering path.
@@ -114,7 +137,10 @@ internal fun PreferencesComposeSubpageScreen(
         onRemoteAccessEnabledChanged: (Boolean) -> Unit,
         onRemoteAccessNetworkBrowserChanged: () -> Unit,
         onPreferredResolutionChanged: () -> Unit,
-        onPopupForceLegacyChanged: (Boolean) -> Unit
+        onPopupForceLegacyChanged: (Boolean) -> Unit,
+        onHeadsetDetectionChanged: (Boolean) -> Unit,
+        onAudioReplayGainChanged: () -> Unit,
+        onSoundFontClick: () -> Unit
 ) {
     VLCTheme {
         Box(
@@ -134,6 +160,15 @@ internal fun PreferencesComposeSubpageScreen(
                                 highlightedKey = highlightedKey,
                                 onPreferredResolutionChanged = onPreferredResolutionChanged,
                                 onPopupForceLegacyChanged = onPopupForceLegacyChanged
+                        )
+                    }
+                    PreferencesRootDestination.Audio -> item {
+                        AudioPreferencesContent(
+                                settings = settings,
+                                highlightedKey = highlightedKey,
+                                onHeadsetDetectionChanged = onHeadsetDetectionChanged,
+                                onReplayGainChanged = onAudioReplayGainChanged,
+                                onSoundFontClick = onSoundFontClick
                         )
                     }
                     PreferencesRootDestination.Casting -> item {
@@ -247,6 +282,207 @@ private fun VideoPreferencesContent(
             summary = stringResource(R.string.enable_clone_mode_summary),
             defaultValue = false,
             highlighted = highlightedKey == KEY_ENABLE_CLONE_MODE
+    )
+}
+
+@Composable
+private fun AudioPreferencesContent(
+        settings: SharedPreferences,
+        highlightedKey: String?,
+        onHeadsetDetectionChanged: (Boolean) -> Unit,
+        onReplayGainChanged: () -> Unit,
+        onSoundFontClick: () -> Unit
+) {
+    val context = LocalContext.current
+    val localePair = remember(context) {
+        LocaleUtils.getLocalesUsedInProject(
+                BuildConfig.TRANSLATION_ARRAY,
+                context.getString(R.string.no_track_preference),
+                context.getLocales()
+        )
+    }
+    var preferredAudioLanguage by remember {
+        mutableStateOf(settings.getString(KEY_AUDIO_PREFERRED_LANGUAGE, "") ?: "")
+    }
+    var audioDigitalOutput by remember {
+        mutableStateOf(settings.getBoolean(KEY_AUDIO_DIGITAL_OUTPUT, false))
+    }
+    var headsetDetectionEnabled by remember {
+        mutableStateOf(settings.getBoolean(KEY_ENABLE_HEADSET_DETECTION, true))
+    }
+    var replayGainEnabled by remember {
+        mutableStateOf(settings.getBoolean(KEY_AUDIO_REPLAY_GAIN_ENABLE, false))
+    }
+    val audioLanguageSummary = if (preferredAudioLanguage.isEmpty()) {
+        stringResource(R.string.no_track_preference)
+    } else {
+        stringResource(R.string.track_preference, LocaleUtil.getLocaleName(preferredAudioLanguage))
+    }
+    val isVisible = { key: String -> PreferenceVisibilityManager.isPreferenceVisible(key, settings, false) }
+
+    if (isVisible(RESUME_PLAYBACK)) {
+        BooleanPreferenceRow(
+                key = RESUME_PLAYBACK,
+                settings = settings,
+                title = stringResource(R.string.resume_playback_title),
+                summary = stringResource(R.string.resume_playback_summary),
+                defaultValue = true,
+                highlighted = highlightedKey == RESUME_PLAYBACK
+        )
+    }
+    if (isVisible(KEY_AUDIO_TASK_REMOVED)) {
+        BooleanPreferenceRow(
+                key = KEY_AUDIO_TASK_REMOVED,
+                settings = settings,
+                title = stringResource(R.string.audio_task_cleared_title),
+                summary = stringResource(R.string.audio_task_cleared_summary),
+                defaultValue = false,
+                highlighted = highlightedKey == KEY_AUDIO_TASK_REMOVED
+        )
+    }
+    if (isVisible(KEY_AUDIO_DIGITAL_OUTPUT)) {
+        BooleanPreferenceRow(
+                key = KEY_AUDIO_DIGITAL_OUTPUT,
+                settings = settings,
+                title = stringResource(R.string.audio_digital_title),
+                summary = stringResource(if (audioDigitalOutput) R.string.audio_digital_output_enabled else R.string.audio_digital_output_disabled),
+                defaultValue = false,
+                highlighted = highlightedKey == KEY_AUDIO_DIGITAL_OUTPUT,
+                checked = audioDigitalOutput,
+                onCheckedStateChange = { audioDigitalOutput = it }
+        )
+    }
+    ListPreferenceRow(
+            key = KEY_AUDIO_PREFERRED_LANGUAGE,
+            settings = settings,
+            title = stringResource(R.string.audio_preferred_language),
+            defaultValue = "",
+            entries = localePair.localeEntries.toList(),
+            values = localePair.localeEntryValues.toList(),
+            highlighted = highlightedKey == KEY_AUDIO_PREFERRED_LANGUAGE,
+            summary = audioLanguageSummary,
+            onValueChanged = { preferredAudioLanguage = it }
+    )
+    ListPreferenceRow(
+            key = KEY_AUDIO_CONFIRM_RESUME,
+            settings = settings,
+            title = stringResource(R.string.confirm_resume_audio_title),
+            defaultValue = "0",
+            entries = stringArrayResource(R.array.ask_confirmation_entries).toList(),
+            values = stringArrayResource(R.array.ask_confirmation_values).toList(),
+            highlighted = highlightedKey == KEY_AUDIO_CONFIRM_RESUME
+    )
+
+    if (isVisible("headset_prefs_category")) {
+        PreferenceCategoryHeader(title = stringResource(R.string.headset_prefs_category))
+        if (isVisible(KEY_ENABLE_HEADSET_DETECTION)) {
+            BooleanPreferenceRow(
+                    key = KEY_ENABLE_HEADSET_DETECTION,
+                    settings = settings,
+                    title = stringResource(R.string.enable_headset_detection),
+                    summary = stringResource(R.string.enable_headset_detection_summary),
+                    defaultValue = true,
+                    highlighted = highlightedKey == KEY_ENABLE_HEADSET_DETECTION,
+                    checked = headsetDetectionEnabled,
+                    onCheckedStateChange = { headsetDetectionEnabled = it },
+                    onAfterChange = onHeadsetDetectionChanged
+            )
+        }
+        if (isVisible(KEY_ENABLE_PLAY_ON_HEADSET_INSERTION)) {
+            BooleanPreferenceRow(
+                    key = KEY_ENABLE_PLAY_ON_HEADSET_INSERTION,
+                    settings = settings,
+                    title = stringResource(R.string.enable_play_on_headset_insertion),
+                    summary = stringResource(R.string.enable_play_on_headset_insertion_summary),
+                    defaultValue = false,
+                    highlighted = highlightedKey == KEY_ENABLE_PLAY_ON_HEADSET_INSERTION,
+                    enabled = headsetDetectionEnabled
+            )
+        }
+        if (isVisible(KEY_IGNORE_HEADSET_MEDIA_BUTTON_PRESSES)) {
+            BooleanPreferenceRow(
+                    key = KEY_IGNORE_HEADSET_MEDIA_BUTTON_PRESSES,
+                    settings = settings,
+                    title = stringResource(R.string.ignore_headset_media_button_presses),
+                    summary = stringResource(R.string.ignore_headset_media_button_presses_summary),
+                    defaultValue = false,
+                    highlighted = highlightedKey == KEY_IGNORE_HEADSET_MEDIA_BUTTON_PRESSES
+            )
+        }
+    }
+
+    PreferenceCategoryHeader(title = stringResource(R.string.replaygain_prefs_category))
+    BooleanPreferenceRow(
+            key = KEY_AUDIO_REPLAY_GAIN_ENABLE,
+            settings = settings,
+            title = stringResource(R.string.replaygain_enable),
+            summary = stringResource(R.string.replaygain_enable_summary),
+            defaultValue = false,
+            highlighted = highlightedKey == KEY_AUDIO_REPLAY_GAIN_ENABLE,
+            checked = replayGainEnabled,
+            onCheckedStateChange = { replayGainEnabled = it },
+            onAfterChange = { onReplayGainChanged() }
+    )
+    ListPreferenceRow(
+            key = KEY_AUDIO_REPLAY_GAIN_MODE,
+            settings = settings,
+            title = stringResource(R.string.replaygain_mode),
+            summary = stringResource(R.string.replaygain_mode_summary),
+            defaultValue = "track",
+            entries = stringArrayResource(R.array.replaygain).toList(),
+            values = stringArrayResource(R.array.replaygain_values).toList(),
+            highlighted = highlightedKey == KEY_AUDIO_REPLAY_GAIN_MODE,
+            enabled = replayGainEnabled,
+            onValueChanged = { onReplayGainChanged() }
+    )
+    ReplayGainNumberPreferenceRow(
+            key = KEY_AUDIO_REPLAY_GAIN_PREAMP,
+            settings = settings,
+            title = stringResource(R.string.replaygain_preamp),
+            summary = stringResource(R.string.replaygain_preamp_summary),
+            defaultValue = "0.0",
+            highlighted = highlightedKey == KEY_AUDIO_REPLAY_GAIN_PREAMP,
+            enabled = replayGainEnabled,
+            onValueChanged = onReplayGainChanged
+    )
+    ReplayGainNumberPreferenceRow(
+            key = KEY_AUDIO_REPLAY_GAIN_DEFAULT,
+            settings = settings,
+            title = stringResource(R.string.replaygain_default),
+            summary = stringResource(R.string.replaygain_default_summary),
+            defaultValue = "-7.0",
+            highlighted = highlightedKey == KEY_AUDIO_REPLAY_GAIN_DEFAULT,
+            enabled = replayGainEnabled,
+            onValueChanged = onReplayGainChanged
+    )
+    BooleanPreferenceRow(
+            key = KEY_AUDIO_REPLAY_GAIN_PEAK_PROTECTION,
+            settings = settings,
+            title = stringResource(R.string.replaygain_peak_protection),
+            summary = stringResource(R.string.replaygain_peak_protection_summary),
+            defaultValue = true,
+            highlighted = highlightedKey == KEY_AUDIO_REPLAY_GAIN_PEAK_PROTECTION,
+            enabled = replayGainEnabled,
+            onAfterChange = { onReplayGainChanged() }
+    )
+
+    PreferenceCategoryHeader(title = stringResource(R.string.advanced_prefs_category))
+    if (isVisible(AUDIO_DUCKING)) {
+        BooleanPreferenceRow(
+                key = AUDIO_DUCKING,
+                settings = settings,
+                title = stringResource(R.string.audio_ducking_title),
+                summary = stringResource(R.string.audio_ducking_summary),
+                defaultValue = true,
+                highlighted = highlightedKey == AUDIO_DUCKING
+        )
+    }
+    NavigationPreferenceRow(
+            key = KEY_SOUNDFONT,
+            title = stringResource(R.string.soundfont),
+            summary = stringResource(R.string.soundfont_summary),
+            highlighted = highlightedKey == KEY_SOUNDFONT,
+            onClick = onSoundFontClick
     )
 }
 
@@ -636,6 +872,8 @@ private fun remoteAccessContentSummary(
     return stringResource(R.string.remote_access_medialibrary_content_summary, selectedText, disabledText)
 }
 
+private const val KEY_SOUNDFONT = "soundfont"
+
 @Composable
 private fun StaticPreferenceRow(
         summary: String,
@@ -658,6 +896,95 @@ private fun StaticPreferenceRow(
                 color = VLCThemeDefaults.colors.defaultDivider,
                 modifier = Modifier.padding(top = 10.dp)
         )
+    }
+}
+
+@Composable
+private fun ReplayGainNumberPreferenceRow(
+        key: String,
+        settings: SharedPreferences,
+        title: String,
+        summary: String,
+        defaultValue: String,
+        highlighted: Boolean,
+        enabled: Boolean,
+        onValueChanged: () -> Unit
+) {
+    var value by remember(key) {
+        mutableStateOf(settings.getString(key, defaultValue) ?: defaultValue)
+    }
+    var dialogValue by remember(key) { mutableStateOf(value) }
+    var expanded by remember(key) { mutableStateOf(false) }
+    PreferenceRowFrame(
+            highlighted = highlighted,
+            enabled = enabled,
+            role = Role.Button,
+            onClick = {
+                if (enabled) {
+                    dialogValue = value
+                    expanded = true
+                }
+            },
+            textContent = {
+                PreferenceText(
+                        title = title,
+                        summary = summary,
+                        enabled = enabled
+                )
+            },
+            trailingContent = {
+                TextButton(
+                        enabled = enabled,
+                        onClick = {
+                            dialogValue = value
+                            expanded = true
+                        }
+                ) {
+                    Text(value)
+                }
+            }
+    )
+    if (expanded) {
+        AlertDialog(
+                onDismissRequest = { expanded = false },
+                title = { Text(title) },
+                text = {
+                    OutlinedTextField(
+                            value = dialogValue,
+                            onValueChange = { newValue ->
+                                if (newValue.length <= 6) dialogValue = newValue
+                            },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                            onClick = {
+                                val formattedValue = formatReplayGainValue(dialogValue, defaultValue)
+                                value = formattedValue
+                                settings.edit { putString(key, formattedValue) }
+                                expanded = false
+                                onValueChanged()
+                            }
+                    ) {
+                        Text(stringResource(android.R.string.ok))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { expanded = false }) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                }
+        )
+    }
+}
+
+private fun formatReplayGainValue(value: String, defaultValue: String): String {
+    return try {
+        DecimalFormat("###0.0###", DecimalFormatSymbols(Locale.ENGLISH)).format(value.toDouble())
+    } catch (_: IllegalArgumentException) {
+        defaultValue
     }
 }
 
