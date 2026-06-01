@@ -12,14 +12,6 @@
                 type="androidx.lifecycle.LiveData&lt;org.videolan.vlc.media.Progress>" />
 
         <variable
-                name="ab_repeat_a"
-                type="Float" />
-
-        <variable
-                name="ab_repeat_b"
-                type="Float" />
-
-        <variable
                 name="player"
                 type="org.videolan.vlc.gui.video.VideoPlayerActivity" />
     </data>
@@ -269,7 +261,7 @@
                 vlc:layout_constraintEnd_toEndOf="@+id/player_overlay_seekbar"
                 vlc:layout_constraintStart_toStartOf="@+id/player_overlay_seekbar" />
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <org.videolan.vlc.gui.view.AbRepeatMarkerContainerView
                 android:id="@+id/ab_repeat_marker_guideline_container"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -277,44 +269,11 @@
                 android:layoutDirection="ltr"
                 android:paddingLeft="8dp"
                 android:paddingRight="8dp"
+                android:visibility="gone"
                 vlc:layout_constraintBottom_toTopOf="@+id/player_overlay_seekbar"
                 vlc:layout_constraintEnd_toEndOf="@+id/player_overlay_seekbar"
-                vlc:layout_constraintStart_toStartOf="@+id/player_overlay_seekbar">
-
-            <androidx.constraintlayout.widget.Guideline
-                    android:id="@+id/ab_repeat_marker_guideline_a"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    vlc:constraintPercent="@{ab_repeat_a}" />
-
-            <androidx.constraintlayout.widget.Guideline
-                    android:id="@+id/ab_repeat_marker_guideline_b"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    vlc:constraintPercent="@{ab_repeat_b}" />
-
-            <ImageView
-                    android:id="@+id/ab_repeat_marker_a"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    vlc:layout_constraintLeft_toLeftOf="@+id/ab_repeat_marker_guideline_a"
-                    vlc:layout_constraintRight_toRightOf="@+id/ab_repeat_marker_guideline_a"
-                    vlc:layout_constraintTop_toTopOf="parent"
-                    vlc:srcCompat="@drawable/ic_abrepeat_marker" />
-
-            <ImageView
-                    android:id="@+id/ab_repeat_marker_b"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    vlc:layout_constraintLeft_toLeftOf="@+id/ab_repeat_marker_guideline_b"
-                    vlc:layout_constraintRight_toRightOf="@+id/ab_repeat_marker_guideline_b"
-                    vlc:layout_constraintTop_toTopOf="parent"
-                    vlc:srcCompat="@drawable/ic_abrepeat_marker" />
-
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                vlc:layout_constraintStart_toStartOf="@+id/player_overlay_seekbar"
+                tools:visibility="visible" />
 
             <ImageView
                     android:id="@+id/player_overlay_tracks"

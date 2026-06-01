@@ -98,7 +98,6 @@ import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
-import org.videolan.vlc.compose.components.VLCAudioAbRepeatMarker
 import org.videolan.vlc.compose.components.VLCAudioHeaderActionButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderBackground
 import org.videolan.vlc.compose.components.VLCAudioHeaderDivider
@@ -232,16 +231,6 @@ private fun AudioPlayerTransportIcon(@DrawableRes drawable: Int, size: Dp = 32.c
             contentDescription = null,
             tint = VLCThemeDefaults.colors.playerIconColor,
             modifier = Modifier.size(size)
-    )
-}
-
-@Composable
-private fun AudioPlayerAbRepeatMarkerIcon() {
-    Icon(
-            painter = painterResource(R.drawable.ic_abrepeat_marker_audio),
-            contentDescription = null,
-            tint = VLCThemeDefaults.colors.playerIconColor,
-            modifier = Modifier.size(24.composeDp)
     )
 }
 
@@ -387,10 +376,11 @@ class AudioPlayer(
 
         onSlide(0f)
         playlistModel.service?.playlistManager?.abRepeat?.observe(viewLifecycleOwner) { abvalues ->
-            binding.abRepeatA = if (abvalues.start == -1L) -1F else abvalues.start / playlistModel.service!!.playlistManager.player.getLength().toFloat()
-            binding.abRepeatB = if (abvalues.stop == -1L) -1F else abvalues.stop / playlistModel.service!!.playlistManager.player.getLength().toFloat()
-            binding.abRepeatMarkerA.visibility = if (abvalues.start == -1L) View.GONE else View.VISIBLE
-            binding.abRepeatMarkerB.visibility = if (abvalues.stop == -1L) View.GONE else View.VISIBLE
+            binding.abRepeatMarkerGuidelineContainer.setMarkerPositions(
+                    start = abvalues.start,
+                    stop = abvalues.stop,
+                    length = playlistModel.service!!.playlistManager.player.getLength()
+            )
             refreshAbRepeatStep()
         }
         playlistModel.service?.playlistManager?.abRepeatOn?.observe(viewLifecycleOwner) {
@@ -422,7 +412,6 @@ class AudioPlayer(
         setupAudioSeekHudControls()
         setupAudioChapterControls()
         setupAudioHingeControls()
-        setupAudioAbRepeatMarkers()
         setupAudioTrackInfoTexts()
         setupAudioQueueProgressPill()
         setupResumeVideoHint()
@@ -863,23 +852,6 @@ class AudioPlayer(
                     }
                 ) {
                     AudioPlayerTransportIcon(R.drawable.ic_arrow_right, size = 24.composeDp)
-                }
-            }
-        }
-    }
-
-    private fun setupAudioAbRepeatMarkers() {
-        binding.abRepeatMarkerA.setContent {
-            VLCTheme {
-                VLCAudioAbRepeatMarker {
-                    AudioPlayerAbRepeatMarkerIcon()
-                }
-            }
-        }
-        binding.abRepeatMarkerB.setContent {
-            VLCTheme {
-                VLCAudioAbRepeatMarker {
-                    AudioPlayerAbRepeatMarkerIcon()
                 }
             }
         }

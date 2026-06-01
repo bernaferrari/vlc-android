@@ -104,6 +104,7 @@ import org.videolan.vlc.gui.helpers.UiTools.showVideoTrack
 import org.videolan.vlc.gui.helpers.hf.checkPIN
 import org.videolan.vlc.gui.view.AbRepeatControlsView
 import org.videolan.vlc.gui.view.PlayerProgress
+import org.videolan.vlc.gui.view.VideoInfoOverlayView
 import org.videolan.vlc.isVLC4
 import org.videolan.vlc.manageAbRepeatStep
 import org.videolan.vlc.media.MediaUtils
@@ -126,8 +127,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
     private lateinit var playerOverlayVolume: ConstraintLayout
     private lateinit var volumeValueText: TextView
     private lateinit var playerVolumeProgress: PlayerProgress
-    var info: TextView? = null
-    var subinfo: TextView? = null
+    var info: View? = null
     var overlayInfo: View? = null
     lateinit var playerUiContainer: ViewGroup
 
@@ -332,13 +332,9 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
     fun showInfo(text: String, duration: Int, subText:String = "") {
         if (player.isInPictureInPictureMode) return
         initInfoOverlay()
-        overlayInfo.setVisible()
-        info.setVisible()
-        info?.text = text
-        if (subText.isNotBlank()) {
-            subinfo?.text = subText
-            subinfo.setVisible()
-        } else subinfo.setGone()
+        val infoOverlay = overlayInfo as? VideoInfoOverlayView ?: return
+        infoOverlay.updateInfo(text, subText)
+        infoOverlay.setVisible()
         player.handler.removeMessages(VideoPlayerActivity.FADE_OUT_INFO)
         player.handler.sendEmptyMessageDelayed(VideoPlayerActivity.FADE_OUT_INFO, duration.toLong())
         player.rootView?.announceForAccessibility("$text.$subText")
@@ -357,14 +353,10 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
     }
 
     fun initInfoOverlay() {
-        val vsc = player.findViewById<ViewStubCompat>(R.id.player_info_stub)
-        if (vsc != null) {
-            vsc.setVisible()
-            // the info textView is not on the overlay
-            info = player.findViewById(R.id.player_overlay_textinfo)
-            subinfo = player.findViewById(R.id.player_overlay_subtextinfo)
-            overlayInfo = player.findViewById(R.id.player_overlay_info)
-        }
+        if (overlayInfo != null) return
+        val infoOverlay = player.findViewById<VideoInfoOverlayView>(R.id.player_info_stub) ?: return
+        info = infoOverlay
+        overlayInfo = infoOverlay
     }
 
     /**
@@ -581,16 +573,18 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                 hudBinding = DataBindingUtil.bind(player.findViewById(R.id.progress_overlay)) ?: return
                 hudBinding.player = player
                 hudBinding.progress = service.playlistManager.player.progress
+                hudBinding.abRepeatMarkerGuidelineContainer.setMarkerIcon(R.drawable.ic_abrepeat_marker)
                 service.playlistManager.abRepeat.observe(player) { abvalues ->
                     if (abvalues.start != -1L && abvalues.stop != -1L && player.settings.getBoolean(KEY_ALWAYS_FAST_SEEK, false)) {
                         hudBinding.fastSeekWarning.setVisible()
                     } else {
                         hudBinding.fastSeekWarning.setGone()
                     }
-                    hudBinding.abRepeatA = if (abvalues.start == -1L) -1F else abvalues.start / service.playlistManager.player.getLength().toFloat()
-                    hudBinding.abRepeatB = if (abvalues.stop == -1L) -1F else abvalues.stop / service.playlistManager.player.getLength().toFloat()
-                    hudBinding.abRepeatMarkerA.visibility = if (abvalues.start == -1L) View.GONE else View.VISIBLE
-                    hudBinding.abRepeatMarkerB.visibility = if (abvalues.stop == -1L) View.GONE else View.VISIBLE
+                    hudBinding.abRepeatMarkerGuidelineContainer.setMarkerPositions(
+                        start = abvalues.start,
+                        stop = abvalues.stop,
+                        length = service.playlistManager.player.getLength()
+                    )
                     refreshAbRepeatStep(service)
                     if (player.settings.getBoolean(VIDEO_TRANSITION_SHOW, true)) showOverlayTimeout(if (abvalues.start == -1L || abvalues.stop == -1L) VideoPlayerActivity.OVERLAY_INFINITE else Settings.videoHudDelay * 1000)
                 }

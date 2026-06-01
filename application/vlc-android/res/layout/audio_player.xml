@@ -12,14 +12,6 @@
                 type="org.videolan.vlc.gui.audio.AudioPlayer" />
 
         <variable
-                name="ab_repeat_a"
-                type="Float" />
-
-        <variable
-                name="ab_repeat_b"
-                type="Float" />
-
-        <variable
                 name="can_shuffle"
                 type="Boolean" />
     </data>
@@ -609,52 +601,20 @@
                 app:layout_constraintStart_toStartOf="@+id/timeline"
                 app:layout_constraintTop_toTopOf="@+id/timeline" />
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <org.videolan.vlc.gui.view.AbRepeatMarkerContainerView
                 android:id="@+id/ab_repeat_marker_guideline_container"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="32dp"
                 android:clipToPadding="false"
                 android:elevation="4dp"
+                android:layoutDirection="ltr"
                 android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="@+id/timeline"
                 app:layout_constraintEnd_toEndOf="@+id/timeline"
                 app:layout_constraintStart_toStartOf="@+id/timeline"
                 app:layout_constraintTop_toTopOf="@+id/timeline"
-                tools:visibility="visible">
-
-            <androidx.constraintlayout.widget.Guideline
-                    android:id="@+id/ab_repeat_marker_guideline_a"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    app:constraintPercent="@{ab_repeat_a}" />
-
-            <androidx.constraintlayout.widget.Guideline
-                    android:id="@+id/ab_repeat_marker_guideline_b"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    app:constraintPercent="@{ab_repeat_b}" />
-
-            <org.videolan.vlc.compose.interop.VLCComposeView
-                    android:id="@+id/ab_repeat_marker_a"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:layout_constraintLeft_toLeftOf="@+id/ab_repeat_marker_guideline_a"
-                    app:layout_constraintRight_toRightOf="@+id/ab_repeat_marker_guideline_a"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-            <org.videolan.vlc.compose.interop.VLCComposeView
-                    android:id="@+id/ab_repeat_marker_b"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:layout_constraintLeft_toLeftOf="@+id/ab_repeat_marker_guideline_b"
-                    app:layout_constraintRight_toRightOf="@+id/ab_repeat_marker_guideline_b"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                tools:visibility="visible" />
 
         <org.videolan.vlc.gui.view.AbRepeatControlsView
                 android:id="@+id/ab_repeat_container"

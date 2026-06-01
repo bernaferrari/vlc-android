@@ -40,6 +40,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -61,7 +62,7 @@ import org.videolan.vlc.compose.components.VLCDebugLogLine
 import org.videolan.vlc.compose.components.VLCDialogConfirmDelete
 import org.videolan.vlc.compose.components.VLCDropdownItem
 import org.videolan.vlc.compose.components.VLCInfoItem
-import org.videolan.vlc.compose.components.VLCAudioAbRepeatMarker
+import org.videolan.vlc.compose.components.VLCAudioAbRepeatMarkers
 import org.videolan.vlc.compose.components.VLCBookmarkRow
 import org.videolan.vlc.compose.components.VLCBookmarkMarkers
 import org.videolan.vlc.compose.components.VLCAudioHeaderActionButton
@@ -408,11 +409,12 @@ fun ComposeInteropLabContent() {
             VLCAbRepeatControls(markerText = "Set start point") {
                 Text("AB", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
             }
-            VLCAudioAbRepeatMarker {
-                Text("A", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
-            }
-            VLCAudioAbRepeatMarker {
-                Text("B", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
+            VLCAudioAbRepeatMarkers(
+                startFraction = 0.28f,
+                stopFraction = 0.72f,
+                modifier = Modifier.width(160.dp)
+            ) {
+                Text("AB", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
             }
         }
         Column {
@@ -484,7 +486,7 @@ fun ComposeInteropLabContent() {
             "The landscape title/subtitle/track-detail text stack is Compose-hosted under song_title/song_subtitle/song_track_info. " +
             "The search, playlist switch, and overflow actions are Compose-hosted under their existing IDs. " +
             "The AB-repeat reset/stop header actions are also Compose-hosted under ab_repeat_reset and ab_repeat_stop while the service helper still controls their visibility. " +
-            "The A-B repeat timeline markers are Compose-hosted under ab_repeat_marker_a and ab_repeat_marker_b while the guidelines still control their positions. " +
+            "The A-B repeat timeline markers are Compose-positioned by AbRepeatMarkerContainerView in both audio and video HUD hosts, replacing the old guideline/DataBinding marker islands. " +
             "The bookmark timeline markers are Compose-drawn under bookmark_marker_container in audio and video HUD hosts, with BookmarkListDelegate now pushing normalized media positions instead of dynamic ImageViews. " +
             "The restore-video hint is Compose-hosted under resume_video_hint instead of using a transient Material Snackbar from AudioPlayer.onResume. " +
             "The shared A-B repeat add-marker chip root is Compose-rendered through AbRepeatControlsView directly in both audio and video HUD hosts. " +

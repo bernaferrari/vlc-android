@@ -83,13 +83,14 @@
                 android:visibility="invisible"
                 app:srcCompat="@drawable/ic_cone_o" />
 
-        <androidx.appcompat.widget.ViewStubCompat
+        <org.videolan.vlc.gui.view.VideoInfoOverlayView
                 android:id="@+id/player_info_stub"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginBottom="@dimen/default_margin"
-                android:layout="@layout/player_overlay_info" />
+                android:visibility="invisible"
+                tools:visibility="visible" />
 
         <androidx.appcompat.widget.ViewStubCompat
                 android:id="@+id/player_overlay_settings_stub"

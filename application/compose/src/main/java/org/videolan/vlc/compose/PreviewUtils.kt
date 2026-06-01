@@ -30,7 +30,7 @@ import org.videolan.vlc.compose.components.VLCDialogConfirmDelete
 import org.videolan.vlc.compose.components.VLCDropdownItem
 import org.videolan.vlc.compose.components.VLCEmptyState
 import org.videolan.vlc.compose.components.VLCInfoItem
-import org.videolan.vlc.compose.components.VLCAudioAbRepeatMarker
+import org.videolan.vlc.compose.components.VLCAudioAbRepeatMarkers
 import org.videolan.vlc.compose.components.VLCBookmarkRow
 import org.videolan.vlc.compose.components.VLCBookmarkMarkers
 import org.videolan.vlc.compose.components.VLCAudioHeaderActionButton
@@ -542,15 +542,11 @@ private fun PlayerChromeTokensDemo() {
                 Text("AB", color = c.playerIconColor, style = MaterialTheme.typography.labelSmall)
             }
             Spacer(Modifier.width(16.dp))
-            VLCAudioAbRepeatMarker {
-                Box(
-                    Modifier
-                        .size(12.dp)
-                        .background(c.playerIconColor)
-                )
-            }
-            Spacer(Modifier.width(32.dp))
-            VLCAudioAbRepeatMarker {
+            VLCAudioAbRepeatMarkers(
+                startFraction = 0.2f,
+                stopFraction = 0.78f,
+                modifier = Modifier.width(180.dp)
+            ) {
                 Box(
                     Modifier
                         .size(12.dp)
