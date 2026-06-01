@@ -31,6 +31,7 @@ import org.videolan.vlc.compose.components.VLCInfoItem
 import org.videolan.vlc.compose.components.VLCAudioHeaderActionButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderPlayPauseButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderTimeLabel
+import org.videolan.vlc.compose.components.VLCAudioHeaderTransportButton
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
 import org.videolan.vlc.compose.components.VLCAudioPlayerChips
@@ -253,9 +254,24 @@ private fun PlayerChromeTokensDemo() {
             horizontalArrangement = Arrangement.SpaceEvenly,
             modifier = Modifier.fillMaxWidth()
         ) {
-            IconMock("▶", c.playerIconColor)
-            IconMock("⏸", c.playerIconColor)
-            IconMock("⏭", c.playerIconColor)
+            VLCAudioHeaderTransportButton(contentDescription = "Shuffle") {
+                IconMock("S", c.playerIconColor)
+            }
+            VLCAudioHeaderTransportButton(contentDescription = "Previous") {
+                IconMock("<", c.playerIconColor)
+            }
+            VLCAudioHeaderTransportButton(
+                contentDescription = "Pause",
+                size = 56.dp
+            ) {
+                IconMock("P", c.playerIconColor)
+            }
+            VLCAudioHeaderTransportButton(contentDescription = "Next") {
+                IconMock(">", c.playerIconColor)
+            }
+            VLCAudioHeaderTransportButton(contentDescription = "Repeat") {
+                IconMock("R", c.playerIconColor)
+            }
             // Subtle selection example
             Box(
                 modifier = Modifier

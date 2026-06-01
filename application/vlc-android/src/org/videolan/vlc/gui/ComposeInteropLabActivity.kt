@@ -60,6 +60,7 @@ import org.videolan.vlc.compose.components.VLCInfoItem
 import org.videolan.vlc.compose.components.VLCAudioHeaderActionButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderPlayPauseButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderTimeLabel
+import org.videolan.vlc.compose.components.VLCAudioHeaderTransportButton
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
 import org.videolan.vlc.compose.components.VLCAudioPlayerChips
@@ -331,11 +332,29 @@ fun ComposeInteropLabContent() {
                 Text("Ⅱ", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
             }
         }
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            VLCAudioHeaderTransportButton(contentDescription = "Shuffle") {
+                Text("S", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
+            }
+            VLCAudioHeaderTransportButton(contentDescription = "Previous") {
+                Text("<", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
+            }
+            VLCAudioHeaderTransportButton(contentDescription = "Pause", size = 56.dp) {
+                Text("P", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
+            }
+            VLCAudioHeaderTransportButton(contentDescription = "Next") {
+                Text(">", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
+            }
+            VLCAudioHeaderTransportButton(contentDescription = "Repeat") {
+                Text("R", color = org.videolan.vlc.compose.theme.VLCThemeDefaults.colors.playerIconColor)
+            }
+        }
         Text(
             "Hosted in the real AudioPlayer fragment by replacing the playback_chips ChipGroup with VLCComposeView. " +
             "The collapsed header time label is also Compose-hosted under the existing header_time ID. " +
             "The search, playlist switch, and overflow actions are Compose-hosted under their existing IDs. " +
             "The mini play/pause button is Compose-hosted under header_play_pause with the long-press stop action preserved. " +
+            "The tablet header transport strip is Compose-hosted under the existing header_shuffle/header_previous/header_large_play_pause/header_next/header_repeat IDs. " +
             "The player gesture/switcher surface stays outside this slice; the speed and sleep quick actions are now Compose.",
             style = MaterialTheme.typography.bodySmall
         )
