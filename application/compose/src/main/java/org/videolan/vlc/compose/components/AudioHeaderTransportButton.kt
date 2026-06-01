@@ -27,6 +27,8 @@ import org.videolan.vlc.compose.theme.VLCTheme
  *   - application/vlc-android/res/layout/audio_player.xml @id/header_large_play_pause
  *   - application/vlc-android/res/layout/audio_player.xml @id/header_next
  *   - application/vlc-android/res/layout/audio_player.xml @id/header_repeat
+ *   - application/vlc-android/res/layout-land/audio_player.xml @id/previous_chapter
+ *   - application/vlc-android/res/layout-land/audio_player.xml @id/next_chapter
  *
  * The host owns drawable resources, playback state, and click callbacks. This
  * leaf owns the stable touch target and semantics while ConstraintLayout keeps

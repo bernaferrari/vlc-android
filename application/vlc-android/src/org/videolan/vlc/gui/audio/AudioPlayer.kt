@@ -226,12 +226,12 @@ private fun AudioPlayerPlayPauseIcon(@DrawableRes drawable: Int, size: Dp = 38.c
 }
 
 @Composable
-private fun AudioPlayerTransportIcon(@DrawableRes drawable: Int) {
+private fun AudioPlayerTransportIcon(@DrawableRes drawable: Int, size: Dp = 32.composeDp) {
     Icon(
             painter = painterResource(drawable),
             contentDescription = null,
             tint = VLCThemeDefaults.colors.playerIconColor,
-            modifier = Modifier.size(32.composeDp)
+            modifier = Modifier.size(size)
     )
 }
 
@@ -331,13 +331,6 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
             val activity = activity as AudioPlayerContainerActivity
             activity.slideUpOrDownAudioPlayer()
         }
-        binding.nextChapter?.setOnClickListener {
-            coverMediaSwitcherListener.onChapterSwitching(true)
-        }
-        binding.previousChapter?.setOnClickListener {
-            coverMediaSwitcherListener.onChapterSwitching(false)
-        }
-
         callback = SwipeDragItemTouchHelperCallback(playlistAdapter, true)
         val touchHelper = ItemTouchHelper(callback)
         touchHelper.attachToRecyclerView(binding.songsList)
@@ -386,6 +379,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         setupAudioHeaderTransportControls()
         setupAudioPlayerTransportControls()
         setupAudioSeekHudControls()
+        setupAudioChapterControls()
         setupAudioQueueProgressPill()
         setupPlaybackChips()
 
@@ -684,6 +678,31 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
             }
         }
         updateAudioSeekHudState()
+    }
+
+    private fun setupAudioChapterControls() {
+        binding.previousChapter?.setContent {
+            VLCTheme {
+                VLCAudioHeaderTransportButton(
+                    contentDescription = getString(R.string.previous),
+                    size = 40.composeDp,
+                    onClick = { coverMediaSwitcherListener.onChapterSwitching(false) }
+                ) {
+                    AudioPlayerTransportIcon(R.drawable.ic_chevron_left, size = 24.composeDp)
+                }
+            }
+        }
+        binding.nextChapter?.setContent {
+            VLCTheme {
+                VLCAudioHeaderTransportButton(
+                    contentDescription = getString(R.string.next),
+                    size = 40.composeDp,
+                    onClick = { coverMediaSwitcherListener.onChapterSwitching(true) }
+                ) {
+                    AudioPlayerTransportIcon(R.drawable.ic_chevron_right, size = 24.composeDp)
+                }
+            }
+        }
     }
 
     private fun updateAudioSeekHudState() {

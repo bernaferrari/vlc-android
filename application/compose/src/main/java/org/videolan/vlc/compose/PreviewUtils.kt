@@ -280,12 +280,27 @@ private fun PlayerChromeTokensDemo() {
             VLCAudioHeaderTransportButton(contentDescription = "Repeat") {
                 IconMock("R", c.playerIconColor)
             }
-            // Subtle selection example
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .background(c.subtleSelection, RoundedCornerShape(4.dp))
-            )
+        }
+
+        Spacer(Modifier.height(8.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            VLCAudioHeaderTransportButton(
+                contentDescription = "Previous chapter",
+                size = 40.dp
+            ) {
+                IconMock("<", c.playerIconColor)
+            }
+            Spacer(Modifier.width(24.dp))
+            VLCAudioHeaderTransportButton(
+                contentDescription = "Next chapter",
+                size = 40.dp
+            ) {
+                IconMock(">", c.playerIconColor)
+            }
         }
 
         Spacer(Modifier.height(12.dp))
