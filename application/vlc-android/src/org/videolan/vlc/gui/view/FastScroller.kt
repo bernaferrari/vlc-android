@@ -109,6 +109,10 @@ class FastScroller : LinearLayout, Observer<HeadersIndex>, SchedulerCallback, Ap
         fun hasSections(): Boolean
     }
 
+    constructor(context: Context) : super(context) {
+        initialize(context)
+    }
+
     constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
         initialize(context)
     }

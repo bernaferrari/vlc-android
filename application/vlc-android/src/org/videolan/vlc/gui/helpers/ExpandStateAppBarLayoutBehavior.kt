@@ -30,7 +30,7 @@ import android.view.View
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import com.google.android.material.appbar.AppBarLayout
 
-class ExpandStateAppBarLayoutBehavior(context: Context, attrs: AttributeSet) : AppBarLayout.Behavior(context, attrs) {
+class ExpandStateAppBarLayoutBehavior(context: Context, attrs: AttributeSet?) : AppBarLayout.Behavior(context, attrs) {
     var scrollEnabled = true
 
     override fun onStartNestedScroll(parent: CoordinatorLayout, child: AppBarLayout, directTargetChild: View, target: View, nestedScrollAxes: Int, type: Int): Boolean {

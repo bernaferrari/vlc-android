@@ -23,15 +23,20 @@
   -->
 
 <resources>
+    <item type="id" name="appbar" />
     <item type="id" name="ariane" />
+    <item type="id" name="audio_player_tips" />
+    <item type="id" name="browser_fast_scroller" />
     <item type="id" name="fab" />
     <item type="id" name="fab_large" />
     <item type="id" name="fragment_placeholder" />
+    <item type="id" name="main_toolbar" />
     <item type="id" name="ml_menu_search" />
     <item type="id" name="navigation" />
     <item type="id" name="navigation_rail" />
     <item type="id" name="scan_viewstub" />
     <item type="id" name="sliding_tabs" />
+    <item type="id" name="songs" />
     <item type="id" name="sort" />
     <item type="id" name="sort_desc" />
     <item type="id" name="toolbar_icon" />
