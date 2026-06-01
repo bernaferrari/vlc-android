@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
 import android.widget.FrameLayout
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -38,9 +39,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
-import androidx.core.os.bundleOf
-import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.setFragmentResult
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -58,17 +56,17 @@ import org.videolan.vlc.gui.helpers.hf.StoragePermissionsDelegate.Companion.getS
 import org.videolan.vlc.util.Permissions
 import org.videolan.vlc.util.isTalkbackIsEnabled
 
-const val CONFIRM_PERMISSION_CHANGED = "CONFIRM_PERMISSION_CHANGED"
-const val KEY_PERMISSION_CHANGED = "KEY_PERMISSION_CHANGED"
-
 /**
  * Compose-hosted permission overview bottom sheet.
  */
-fun FragmentActivity.showPermissionListComposeDialog() {
-    PermissionListComposeDialog(this).show()
+fun ComponentActivity.showPermissionListComposeDialog(onPermissionChanged: ((Boolean) -> Unit)? = null) {
+    PermissionListComposeDialog(this, onPermissionChanged).show()
 }
 
-private class PermissionListComposeDialog(private val activity: FragmentActivity) {
+private class PermissionListComposeDialog(
+    private val activity: ComponentActivity,
+    private val onPermissionChanged: ((Boolean) -> Unit)?
+) {
     private val dialog = if (Settings.showTvUi) {
         BottomSheetDialog(activity, R.style.Theme_VLC_Black_BottomSheet)
     } else {
@@ -79,7 +77,6 @@ private class PermissionListComposeDialog(private val activity: FragmentActivity
     private var initialPermissionLevel = -1
     private var permissionChanged = false
     private var rootView: ComposeView? = null
-    private var resultSent = false
     private val lifecycleObserver = object : DefaultLifecycleObserver {
         override fun onResume(owner: LifecycleOwner) {
             refreshState()
@@ -114,7 +111,7 @@ private class PermissionListComposeDialog(private val activity: FragmentActivity
         }
         dialog.setContentView(rootView!!)
         dialog.setOnDismissListener {
-            sendResult()
+            onPermissionChanged?.invoke(permissionChanged)
             activity.lifecycle.removeObserver(lifecycleObserver)
             rootView = null
         }
@@ -266,15 +263,6 @@ private class PermissionListComposeDialog(private val activity: FragmentActivity
             )
             Permissions.timeAsked = System.currentTimeMillis()
         }
-    }
-
-    private fun sendResult() {
-        if (resultSent) return
-        resultSent = true
-        activity.supportFragmentManager.setFragmentResult(
-            CONFIRM_PERMISSION_CHANGED,
-            bundleOf(KEY_PERMISSION_CHANGED to permissionChanged)
-        )
     }
 
     private fun configureBottomSheet() {

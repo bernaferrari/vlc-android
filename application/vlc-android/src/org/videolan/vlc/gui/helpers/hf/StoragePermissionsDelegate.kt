@@ -114,7 +114,7 @@ class StoragePermissionsDelegate private constructor() {
                 val intent = Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri)
                 if (intent.isCallable(this)) {
                     if (withDialog && this !is StartActivity) {
-                        (this as? FragmentActivity)?.showPermissionListComposeDialog()
+                        showPermissionListComposeDialog()
                         return false
                     }
                     return requestAllFilesAccess(intent)
