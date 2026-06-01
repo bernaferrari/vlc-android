@@ -23,11 +23,8 @@
 
 package org.videolan.vlc.gui.audio
 
-import android.annotation.TargetApi
 import android.content.Context
 import android.graphics.drawable.BitmapDrawable
-import android.os.Build
-import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -57,12 +54,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.MotionEventCompat
-import androidx.databinding.ViewDataBinding
 import androidx.paging.PagedList
 import androidx.paging.PagedListAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import org.videolan.libvlc.util.AndroidUtil
 import org.videolan.medialibrary.Tools
 import org.videolan.medialibrary.interfaces.media.Album
 import org.videolan.medialibrary.interfaces.media.Artist
@@ -77,13 +72,10 @@ import org.videolan.resources.interfaces.FocusListener
 import org.videolan.tools.MultiSelectAdapter
 import org.videolan.tools.MultiSelectHelper
 import org.videolan.tools.Settings
-import org.videolan.vlc.BR
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.components.VLCBrowserItemCard
 import org.videolan.vlc.compose.components.VLCBrowserItemRow
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
-import org.videolan.vlc.databinding.AudioBrowserCardItemBinding
-import org.videolan.vlc.databinding.AudioBrowserItemBinding
 import org.videolan.vlc.gui.helpers.MARQUEE_ACTION
 import org.videolan.vlc.gui.helpers.MarqueeViewHolder
 import org.videolan.vlc.gui.helpers.TalkbackUtil
@@ -121,7 +113,6 @@ open class AudioBrowserAdapter @JvmOverloads constructor(
     private val defaultCoverCard: BitmapDrawable?
     private var focusNext = -1
     private var focusListener: FocusListener? = null
-    lateinit var inflater: LayoutInflater
     private var scheduler: LifecycleAwareScheduler? = null
     var stopReorder = false
     var areSectionsEnabled = true
@@ -143,7 +134,6 @@ open class AudioBrowserAdapter @JvmOverloads constructor(
             }
             playbackStateChanged(former, currentMedia)
         }
-    protected fun inflaterInitialized() = ::inflater.isInitialized
 
     open fun playbackStateChanged(former: MediaWrapper?, currentMedia: MediaWrapper?) {}
 
@@ -425,143 +415,6 @@ open class AudioBrowserAdapter @JvmOverloads constructor(
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.M)
-    inner class MediaItemViewHolder(binding: AudioBrowserItemBinding) : BindingMediaItemViewHolder<AudioBrowserItemBinding>(binding) {
-        var onTouchListener: View.OnTouchListener
-
-        override val titleView: TextView? = binding.title
-
-        init {
-            binding.holder = this
-            defaultCover?.let { binding.cover = it }
-            if (AndroidUtil.isMarshMallowOrLater)
-                itemView.setOnContextClickListener { v ->
-                    onMoreClick(v)
-                    true
-                }
-
-            onTouchListener = object : View.OnTouchListener {
-                override fun onTouch(v: View, event: MotionEvent): Boolean {
-                    if (listEventsHandler == null) {
-                        return false
-                    }
-                    if (multiSelectHelper.getSelectionCount() != 0) {
-                        return false
-                    }
-                    if (MotionEventCompat.getActionMasked(event) == MotionEvent.ACTION_DOWN) {
-                        listEventsHandler.onStartDrag(this@MediaItemViewHolder)
-                        return true
-                    }
-                    return false
-                }
-            }
-            binding.imageWidth = listImageWidth
-        }
-
-        override fun selectView(selected: Boolean) {
-            binding.setVariable(BR.selected, selected)
-            binding.itemMore.visibility = if (multiSelectHelper.inActionMode) View.INVISIBLE else View.VISIBLE
-        }
-
-        override fun setItem(item: MediaLibraryItem?) {
-            binding.item = item
-        }
-
-        override fun recycle() {
-            binding.cover = if (cardSize == SHOW_IN_LIST && defaultCover != null) defaultCover else null
-            binding.mediaCover.resetFade()
-            binding.title.isSelected = false
-        }
-
-        override fun getMiniVisu() = binding.playing
-
-        override fun changePlayingVisibility(isCurrent: Boolean) {
-            binding.mediaCover.visibility = if (isCurrent) View.INVISIBLE else View.VISIBLE
-        }
-
-    }
-
-    @TargetApi(Build.VERSION_CODES.M)
-    inner class MediaItemCardViewHolder(binding: AudioBrowserCardItemBinding) : BindingMediaItemViewHolder<AudioBrowserCardItemBinding>(binding) {
-
-        override val titleView = binding.title
-
-        init {
-            binding.holder = this
-            binding.scaleType = ImageView.ScaleType.CENTER_INSIDE
-            defaultCoverCard?.let { binding.cover = it }
-            if (AndroidUtil.isMarshMallowOrLater)
-                itemView.setOnContextClickListener { v ->
-                    onMoreClick(v)
-                    true
-                }
-            binding.imageWidth = cardSize
-            binding.container.layoutParams.width = cardSize
-
-        }
-
-        override fun selectView(selected: Boolean) {
-            super.selectView(selected)
-            binding.setVariable(BR.selected, selected)
-            binding.itemMore.visibility = if (multiSelectHelper.inActionMode) View.INVISIBLE else View.VISIBLE
-            binding.mainActionButton.visibility = if (multiSelectHelper.inActionMode) View.INVISIBLE else View.VISIBLE
-        }
-
-        override fun setItem(item: MediaLibraryItem?) {
-            binding.item = item
-        }
-
-        override fun recycle() {
-            defaultCoverCard?.let { binding.cover = it }
-            binding.mediaCover.resetFade()
-            binding.title.isSelected = false
-        }
-
-        override fun getMiniVisu() = binding.playing
-
-        override fun changePlayingVisibility(isCurrent: Boolean) { }
-
-    }
-
-    abstract inner class BindingMediaItemViewHolder<T : ViewDataBinding>(val binding: T) : AbstractMediaItemViewHolder(binding.root) {
-
-        override fun bindItem(
-                item: MediaLibraryItem?,
-                selected: Boolean,
-                inSelection: Boolean,
-                isCurrent: Boolean,
-                playing: Boolean
-        ) {
-            setItem(item)
-            selectView(selected)
-            if (item is MediaWrapper) {
-                binding.setVariable(BR.isNetwork, item.uri.scheme.isSchemeSMB())
-                binding.setVariable(BR.isOTG, item.uri.isOTG())
-                binding.setVariable(BR.isSD, item.uri.isSD())
-                binding.setVariable(BR.isPresent, item.isPresent)
-            } else {
-                binding.setVariable(BR.isPresent, true)
-            }
-            val miniVisualizer = getMiniVisu()
-            if (isCurrent) {
-                if (playing) miniVisualizer?.start() else miniVisualizer?.stop()
-                miniVisualizer?.visibility = View.VISIBLE
-                changePlayingVisibility(true)
-            } else {
-                miniVisualizer?.stop()
-                changePlayingVisibility(false)
-                miniVisualizer?.visibility = View.INVISIBLE
-            }
-            item?.let { binding.setVariable(BR.isFavorite, it.isFavorite) }
-            binding.setVariable(BR.inSelection, inSelection)
-            binding.invalidateAll()
-            binding.executePendingBindings()
-        }
-
-        abstract fun setItem(item: MediaLibraryItem?)
-    }
-
-    @TargetApi(Build.VERSION_CODES.M)
     abstract inner class AbstractMediaItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), MarqueeViewHolder {
 
         override val titleView: TextView? = null

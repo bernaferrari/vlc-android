@@ -42,13 +42,10 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
 /**
  * Shared Compose row for the core media-browser list item pattern.
  *
- * Traceability:
- * - application/vlc-android/res/layout/audio_browser_item.xml
- * - application/vlc-android/res/layout/audio_browser_card_item.xml
- * - application/vlc-android/res/layout/mrl_card_item.xml
- * - application/vlc-android/res/layout/history_item_card.xml
+ * Traceability: this replaces the former media-browser row/card XML patterns,
+ * including audio browser, album track, MRL, and history variants.
  *
- * The legacy XML combines a stable media icon/artwork box, title/subtitle text,
+ * The former XML combined a stable media icon/artwork box, title/subtitle text,
  * selection background, and trailing actions. This leaf owns that layout and
  * theme behavior while keeping artwork, badges, and action icons as slots so
  * app modules can provide their drawables or async thumbnail hosts. Audio album
@@ -126,9 +123,9 @@ fun VLCBrowserItemRow(
 /**
  * Shared Compose card variant for media-browser grid/list-card layouts.
  *
- * Mirrors the card branch of audio_browser_card_item.xml: selected state,
- * rounded media tile, action row, title, and one-line subtitle. Artwork and
- * action icons are slots for app-side drawable/resource ownership.
+ * Mirrors the former media-browser card branch: selected state, rounded media
+ * tile, action row, title, and one-line subtitle. Artwork and action icons are
+ * slots for app-side drawable/resource ownership.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

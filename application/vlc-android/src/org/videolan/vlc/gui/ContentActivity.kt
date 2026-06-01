@@ -28,7 +28,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import androidx.appcompat.widget.SearchView
 import org.videolan.resources.AndroidDevices
 import org.videolan.tools.KEY_ENABLE_CASTING
@@ -115,17 +114,7 @@ open class ContentActivity : AudioPlayerContainerActivity(), SearchView.OnQueryT
 
     override fun onQueryTextSubmit(@Suppress("UNUSED_PARAMETER") query: String) = false
 
-    private fun openSearchActivity() {
-        setSearchVisibility(false)
-        startActivity(Intent(Intent.ACTION_SEARCH, null, this, SearchActivity::class.java)
-                .putExtra(SearchManager.QUERY, ""))
-    }
-
     private fun setSearchVisibility(@Suppress("UNUSED_PARAMETER") visible: Boolean) = Unit
-
-    fun onClick(v: View) {
-        if (v.id == R.id.searchButton) openSearchActivity()
-    }
 
     fun closeSearchView() {
         toolbar.menu?.findItem(R.id.ml_menu_filter)?.collapseActionView()

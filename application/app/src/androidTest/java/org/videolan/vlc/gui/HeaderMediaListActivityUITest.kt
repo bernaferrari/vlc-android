@@ -19,7 +19,6 @@ import org.videolan.medialibrary.interfaces.Medialibrary
 import org.videolan.resources.TAG_ITEM
 import org.videolan.vlc.BaseUITest
 import org.videolan.vlc.R
-import org.videolan.vlc.databinding.AudioBrowserItemBinding
 import org.videolan.vlc.findFirstPosition
 import org.videolan.vlc.gui.audio.AudioBrowserAdapter
 import org.videolan.vlc.sizeOfAtLeast
@@ -70,7 +69,7 @@ class HeaderMediaListActivityUITest: BaseUITest() {
 
         val count = recyclerView.adapter!!.itemCount
 
-        val firstItem = (recyclerView.findViewHolderForAdapterPosition(0) as AudioBrowserAdapter.AbstractMediaItemViewHolder<AudioBrowserItemBinding>).binding.item.also { println(it!!.title) }
+        val firstItem = adapter.getItem(0).also { println(it!!.title) }
 
         val finalCoord = CoordinatesProvider {
             val coords = GeneralLocation.BOTTOM_CENTER.calculateCoordinates(it)

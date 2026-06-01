@@ -23,12 +23,8 @@
 
 package org.videolan.vlc.gui.audio
 
-import android.annotation.TargetApi
-import android.os.Build
 import android.view.MotionEvent
-import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -48,15 +44,12 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.MotionEventCompat
 import androidx.paging.PagedList
 import androidx.recyclerview.widget.RecyclerView
-import org.videolan.libvlc.util.AndroidUtil
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.tools.Settings
-import org.videolan.vlc.BR
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.components.VLCBrowserItemRow
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
-import org.videolan.vlc.databinding.AudioAlbumTrackItemBinding
 import org.videolan.vlc.gui.helpers.TalkbackUtil
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.view.MiniVisualizer
@@ -187,70 +180,6 @@ class AudioAlbumTracksAdapter @JvmOverloads constructor(
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.M)
-    inner class TrackItemViewHolder(binding: AudioAlbumTrackItemBinding) : BindingMediaItemViewHolder<AudioAlbumTrackItemBinding>(binding) {
-        var onTouchListener: View.OnTouchListener
-
-        override val titleView: TextView = binding.title
-
-        init {
-            binding.holder = this
-            defaultCover?.let { binding.cover = it }
-            if (AndroidUtil.isMarshMallowOrLater)
-                itemView.setOnContextClickListener { v ->
-                    onMoreClick(v)
-                    true
-                }
-
-            onTouchListener = object : View.OnTouchListener {
-                override fun onTouch(v: View, event: MotionEvent): Boolean {
-                    if (listEventsHandler == null) {
-                        return false
-                    }
-                    if (multiSelectHelper.getSelectionCount() != 0) {
-                        return false
-                    }
-                    if (MotionEventCompat.getActionMasked(event) == MotionEvent.ACTION_DOWN) {
-                        listEventsHandler.onStartDrag(this@TrackItemViewHolder)
-                        return true
-                    }
-                    return false
-                }
-            }
-            binding.imageWidth = listImageWidth
-        }
-
-        override fun selectView(selected: Boolean) {
-            binding.setVariable(BR.selected, selected)
-            binding.itemMore.visibility = if (multiSelectHelper.inActionMode) View.INVISIBLE else View.VISIBLE
-        }
-
-        override fun setItem(item: MediaLibraryItem?) {
-            binding.item = item as MediaWrapper
-            binding.trackNumber.text = if (item.trackNumber > 0 && Settings.showTrackNumber)  "${item.trackNumber}." else ""
-            binding.subtitle.text = MediaUtils.getMediaSubtitle(item)
-        }
-
-        fun shouldShowTrackNumber() : Int {
-            return when {
-                currentMedia == binding.item -> View.INVISIBLE
-                Settings.showTrackNumber && !forceNoTracks -> View.VISIBLE
-                currentMedia != null && currentList?.contains(currentMedia) == true -> View.INVISIBLE
-                else -> View.GONE
-            }
-        }
-
-        override fun recycle() {
-            binding.cover = defaultCover
-            binding.title.isSelected = false
-            binding.trackNumber.text = ""
-        }
-
-        override fun getMiniVisu() = binding.playing
-
-        override fun changePlayingVisibility(isCurrent: Boolean) { }
-
-    }
 }
 
 @Composable

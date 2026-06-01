@@ -43,7 +43,6 @@ import org.videolan.tools.BitmapCache
 import org.videolan.tools.HttpImageLoader
 import org.videolan.tools.Settings
 import org.videolan.tools.sanitizePath
-import org.videolan.vlc.BR
 import org.videolan.vlc.R
 import org.videolan.vlc.util.ThumbnailsProvider
 import org.videolan.vlc.util.ThumbnailsProvider.obtainBitmap
@@ -250,7 +249,10 @@ private suspend fun getImage(v: View, item: MediaLibraryItem, binding: ViewDataB
 
     if (image == null) {
         //keep the default image
-        binding?.setVariable(BR.scaleType, ImageView.ScaleType.CENTER_INSIDE)
+        when (v) {
+            is ImageView -> v.scaleType = ImageView.ScaleType.CENTER_INSIDE
+            is ImageCardView -> v.mainImageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
+        }
         binding?.removeOnRebindCallback(rebindCallbacks!!)
         return
     }
@@ -300,10 +302,7 @@ fun updateImageViewTv(@DrawableRes res: Int, target: View) {
 @MainThread
 fun updateImageView(bitmap: Bitmap?, target: View, vdb: ViewDataBinding?, updateScaleType: Boolean = true, tv: Boolean = false, card: Boolean = false) {
     if (bitmap === null || bitmap.width <= 1 || bitmap.height <= 1) return
-    if (vdb !== null && !tv) {
-        vdb.setVariable(BR.scaleType, if (card) ImageView.ScaleType.CENTER_CROP else ImageView.ScaleType.FIT_CENTER)
-        vdb.setVariable(BR.cover, BitmapDrawable(target.resources, bitmap))
-    } else when (target) {
+    when (target) {
         is ImageView -> {
             if (updateScaleType) target.scaleType = if (tv) ImageView.ScaleType.CENTER_CROP else ImageView.ScaleType.FIT_CENTER
             target.setImageBitmap(bitmap)

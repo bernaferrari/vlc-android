@@ -26,8 +26,6 @@ import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.databinding.ViewDataBinding
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.coroutines.flow.callbackFlow
-import org.videolan.vlc.BR
 import org.videolan.vlc.R
 
 open class SelectorViewHolder<T : ViewDataBinding>(vdb: T) : RecyclerView.ViewHolder(vdb.root) {
@@ -49,7 +47,7 @@ open class SelectorViewHolder<T : ViewDataBinding>(vdb: T) : RecyclerView.ViewHo
 
     private fun setViewBackground(focus: Boolean, selected: Boolean) {
         val color = if (focus) ITEM_FOCUS_ON else if (selected) ITEM_SELECTION_ON else ITEM_FOCUS_OFF
-        binding.setVariable(BR.bgColor, color)
+        itemView.setBackgroundColor(color)
     }
 
 }
