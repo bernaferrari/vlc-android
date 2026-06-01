@@ -38,6 +38,8 @@ import org.videolan.vlc.compose.components.VLCAudioHeaderPlayPauseButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderTimeLabel
 import org.videolan.vlc.compose.components.VLCAudioHeaderTransportButton
 import org.videolan.vlc.compose.components.VLCAudioMiniProgressBar
+import org.videolan.vlc.compose.components.VLCAudioPlayerGradient
+import org.videolan.vlc.compose.components.VLCAudioPlayerGradientEdge
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
 import org.videolan.vlc.compose.components.VLCAudioPlayerChips
@@ -250,6 +252,28 @@ private fun PlayerChromeTokensDemo() {
                 .fillMaxWidth()
                 .height(1.dp)
         )
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(96.dp)
+                .background(c.backgroundDefaultDarker)
+        ) {
+            VLCAudioPlayerGradient(
+                edge = VLCAudioPlayerGradientEdge.Top,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth()
+                    .height(48.dp)
+            )
+            VLCAudioPlayerGradient(
+                edge = VLCAudioPlayerGradientEdge.Bottom,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .height(48.dp)
+            )
+        }
 
         Spacer(Modifier.height(16.dp))
 
