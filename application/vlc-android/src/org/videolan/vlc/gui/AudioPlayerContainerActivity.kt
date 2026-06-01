@@ -116,6 +116,7 @@ private const val BOTTOM_IS_HIDDEN = "bottom_is_hidden"
 private const val PLAYER_OPENED = "player_opened"
 private const val SHOWN_TIPS = "shown_tips"
 private const val BOOKMARK_VISIBLE: String = "bookmark_visible"
+private const val AUDIO_PLAYER_STATE = "audio_player_state"
 
 open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, SchedulerCallback, PlayerOptionsDelegateCallback {
 
@@ -136,6 +137,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
     private lateinit var resumeCard: Snackbar
     private var preventRescan = false
     private var showAudioPlayerWhenResumed = false
+    private var audioPlayerState: Bundle? = null
 
     private var playerShown = false
     val tipsDelegate: AudioTipsDelegate by lazy(LazyThreadSafetyMode.NONE) { AudioTipsDelegate(this) }
@@ -192,6 +194,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
 
         //Init Medialibrary if KO
         if (savedInstanceState != null) {
+            audioPlayerState = savedInstanceState.getBundle(AUDIO_PLAYER_STATE)
             this.startMedialibrary(firstRun = false, upgrade = false, parse = true)
             bottomIsHiddden = savedInstanceState.getBoolean(BOTTOM_IS_HIDDEN, false) && !savedInstanceState.getBoolean(PLAYER_OPENED, false)
             savedInstanceState.getIntegerArrayList(SHOWN_TIPS)?.let { shownTips.addAll(it) }
@@ -357,7 +360,8 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
 
     private fun initAudioPlayer() {
         findViewById<View>(R.id.audio_player_stub).visibility = View.VISIBLE
-        audioPlayer = supportFragmentManager.findFragmentById(R.id.audio_player) as AudioPlayer
+        audioPlayer = AudioPlayer(this, findViewById(R.id.audio_player), audioPlayerState)
+        audioPlayerState = null
         playerBehavior = from(audioPlayerContainer) as PlayerBehavior<*>
         val bottomBehavior = bottomBar?.let {
             @Suppress("UNCHECKED_CAST")
@@ -415,6 +419,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
                 restoreBookmarks = false
             }
         }
+        if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) audioPlayer.onResume()
     }
 
     private fun hideStatusIfNeeded(newState: Int) {
@@ -495,7 +500,10 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
         outState.putBoolean(BOTTOM_IS_HIDDEN, bottomBar?.let { it.translationY != 0F } == true)
         outState.putBoolean(PLAYER_OPENED, if (::playerBehavior.isInitialized) playerBehavior.state == STATE_EXPANDED else false)
         outState.putIntegerArrayList(SHOWN_TIPS, shownTips)
-        if (::audioPlayer.isInitialized) outState.putBoolean(BOOKMARK_VISIBLE, audioPlayer.areBookmarksVisible())
+        if (::audioPlayer.isInitialized) {
+            outState.putBoolean(BOOKMARK_VISIBLE, audioPlayer.areBookmarksVisible())
+            outState.putBundle(AUDIO_PLAYER_STATE, Bundle().also { audioPlayer.onSaveInstanceState(it) })
+        }
         super.onSaveInstanceState(outState)
     }
 
@@ -541,6 +549,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
 
     override fun onDestroy() {
         scheduler.cancelAction(ACTION_SHOW_PLAYER)
+        if (::audioPlayer.isInitialized) audioPlayer.onDestroy()
         super.onDestroy()
     }
 
@@ -555,6 +564,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
         setContentBottomPadding()
         if (showAudioPlayerWhenResumed)
             showAudioPlayerImpl()
+        if (::audioPlayer.isInitialized) audioPlayer.onResume()
         super.onResume()
     }
 

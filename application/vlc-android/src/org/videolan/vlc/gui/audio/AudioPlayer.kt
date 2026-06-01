@@ -21,8 +21,10 @@
 package org.videolan.vlc.gui.audio
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.res.Resources
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -35,6 +37,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresPermission
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -48,8 +51,8 @@ import androidx.compose.ui.unit.dp as composeDp
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.getSystemService
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -65,6 +68,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.videolan.libvlc.MediaPlayer
+import org.videolan.medialibrary.MLServiceLocator
 import org.videolan.medialibrary.Tools
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.resources.AndroidDevices
@@ -89,6 +93,7 @@ import org.videolan.tools.hasRtl
 import org.videolan.tools.isStarted
 import org.videolan.tools.markBidi
 import org.videolan.tools.putSingle
+import org.videolan.tools.retrieveParent
 import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.PlaybackService
@@ -119,6 +124,8 @@ import org.videolan.vlc.gui.HeaderMediaListActivity.Companion.ARTIST_FROM_ALBUM
 import org.videolan.vlc.gui.InfoActivity
 import org.videolan.vlc.gui.MainActivity
 import org.videolan.vlc.gui.SecondaryActivity
+import org.videolan.vlc.gui.browser.KEY_JUMP_TO
+import org.videolan.vlc.gui.browser.KEY_MEDIA
 import org.videolan.vlc.gui.dialogs.CtxActionReceiver
 import org.videolan.vlc.gui.dialogs.showContext
 import org.videolan.vlc.gui.dialogs.showPlaybackSpeedComposeDialog
@@ -156,7 +163,6 @@ import org.videolan.vlc.util.LocaleUtil
 import org.videolan.vlc.util.TextUtils
 import org.videolan.vlc.util.launchWhenStarted
 import org.videolan.vlc.util.share
-import org.videolan.vlc.util.showParentFolder
 import org.videolan.vlc.viewmodels.BookmarkModel
 import org.videolan.vlc.viewmodels.PlaybackProgress
 import org.videolan.vlc.viewmodels.PlaylistModel
@@ -239,7 +245,11 @@ private fun AudioPlayerAbRepeatMarkerIcon() {
     )
 }
 
-class AudioPlayer : Fragment(), IAudioPlayerAnimator by AudioPlayerAnimator() {
+class AudioPlayer(
+        val activity: AudioPlayerContainerActivity,
+        container: ViewGroup,
+        savedInstanceState: Bundle?
+) : IAudioPlayerAnimator by AudioPlayerAnimator() {
 
     private lateinit var binding: AudioPlayerBinding
     private lateinit var settings: SharedPreferences
@@ -272,6 +282,24 @@ class AudioPlayer : Fragment(), IAudioPlayerAnimator by AudioPlayerAnimator() {
     private var audioTimelineLengthText by mutableStateOf("")
     private var resumeVideoHintVisible by mutableStateOf(false)
 
+    val lifecycle: Lifecycle
+        get() = activity.lifecycle
+
+    val resources: Resources
+        get() = activity.resources
+
+    private val context: Context?
+        get() = activity
+
+    private val lifecycleScope
+        get() = activity.lifecycleScope
+
+    private val viewLifecycleOwner: LifecycleOwner
+        get() = activity
+
+    val isVisible: Boolean
+        get() = binding.root.isShown
+
     private var showRemainingTime = false
     private var previewingSeek = false
     private var playerState = 0
@@ -282,17 +310,41 @@ class AudioPlayer : Fragment(), IAudioPlayerAnimator by AudioPlayerAnimator() {
     private var isDragging = false
     private var currentChapters: Pair<MediaWrapper,  List<MediaPlayer.Chapter>?>? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    init {
         savedInstanceState?.let {
             playerState = it.getInt("player_state")
             showRemainingTime = it.getBoolean("show_remaining_time")
         }
-        settings = Settings.getInstance(requireContext())
-        playlistModel = PlaylistModel.get(this)
-        playlistModel.progress.observe(this@AudioPlayer) { it?.let { updateProgress(it) } }
-        playlistModel.speed.observe(this@AudioPlayer) { showChips() }
-        playlistModel.filteringState.observe(this@AudioPlayer) {
+        settings = Settings.getInstance(activity)
+        playlistModel = PlaylistModel.get(activity)
+        bookmarkModel = BookmarkModel.get(activity)
+        binding = AudioPlayerBinding.inflate(LayoutInflater.from(activity), container, true)
+        setupAnimator(binding)
+        lifecycleScope.launch(Dispatchers.Main) {
+            activity.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                WindowInfoTracker.getOrCreate(activity)
+                        .windowLayoutInfo(activity)
+                        .collect { layoutInfo ->
+                            foldingFeature = layoutInfo.displayFeatures.firstOrNull() as? FoldingFeature
+                        }
+            }
+        }
+        setupView()
+        registerObservers()
+    }
+
+    fun requireActivity(): AudioPlayerContainerActivity = activity
+
+    fun requireContext(): Context = activity
+
+    fun getString(@StringRes resId: Int, vararg formatArgs: Any?): String = activity.getString(resId, *formatArgs)
+
+    fun startActivity(intent: Intent) = activity.startActivity(intent)
+
+    private fun registerObservers() {
+        playlistModel.progress.observe(viewLifecycleOwner) { it?.let { updateProgress(it) } }
+        playlistModel.speed.observe(viewLifecycleOwner) { showChips() }
+        playlistModel.filteringState.observe(viewLifecycleOwner) {
             playlistFiltering = it
             playlistShowReorderButtons = !it
         }
@@ -301,8 +353,7 @@ class AudioPlayer : Fragment(), IAudioPlayerAnimator by AudioPlayerAnimator() {
             updateAudioPlaylistItems(it)
             delay(50L)
         }.launchWhenStarted(lifecycleScope)
-        bookmarkModel = BookmarkModel.get(requireActivity())
-        PlaybackService.playerSleepTime.observe(this@AudioPlayer) {
+        PlaybackService.playerSleepTime.observe(viewLifecycleOwner) {
             showChips()
         }
         Settings.setAudioControlsChangeListener {
@@ -317,23 +368,7 @@ class AudioPlayer : Fragment(), IAudioPlayerAnimator by AudioPlayerAnimator() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        binding = AudioPlayerBinding.inflate(inflater)
-        setupAnimator(binding)
-        lifecycleScope.launch(Dispatchers.Main) {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                WindowInfoTracker.getOrCreate(requireActivity())
-                        .windowLayoutInfo(requireActivity())
-                        .collect { layoutInfo ->
-                            foldingFeature = layoutInfo.displayFeatures.firstOrNull() as? FoldingFeature
-                        }
-            }
-        }
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    private fun setupView() {
         binding.audioMediaSwitcher.setAudioMediaSwitcherListener(headerMediaSwitcherListener)
         binding.coverMediaSwitcher.setAudioMediaSwitcherListener(coverMediaSwitcherListener)
         binding.playlistSearchText.onQueryChanged = ::onSearchQueryChanged
@@ -348,7 +383,6 @@ class AudioPlayer : Fragment(), IAudioPlayerAnimator by AudioPlayerAnimator() {
         binding.next.setOnTouchListener(LongSeekListener(true))
         binding.previous.setOnTouchListener(LongSeekListener(false))
 
-        userVisibleHint = true
         binding.timeline.setOnTimelineSeekChangeListener(timelineListener)
 
         onSlide(0f)
@@ -403,10 +437,9 @@ class AudioPlayer : Fragment(), IAudioPlayerAnimator by AudioPlayerAnimator() {
         }
     }
 
-    override fun onDestroy() {
+    fun onDestroy() {
         Settings.removeAudioControlsChangeListener()
         currentChapters = null
-        super.onDestroy()
     }
 
     fun setBottomMargin() {
@@ -973,12 +1006,12 @@ class AudioPlayer : Fragment(), IAudioPlayerAnimator by AudioPlayerAnimator() {
                         AudioPlayerChipIcon(if (state.speedUsesGlobalRate) R.drawable.ic_speed_all else R.drawable.ic_speed)
                     },
                     sleepIconContent = { AudioPlayerChipIcon(R.drawable.ic_sleep) },
-                    onSpeedClick = { activity?.showPlaybackSpeedComposeDialog() },
+                    onSpeedClick = { activity.showPlaybackSpeedComposeDialog() },
                     onSpeedLongClick = {
                         playlistModel.service?.setRate(1F, true)
                         showChips()
                     },
-                    onSleepClick = { activity?.showSleepTimerComposeDialog() },
+                    onSleepClick = { activity.showSleepTimerComposeDialog() },
                     onSleepLongClick = {
                         playlistModel.service?.setSleepTimer(null)
                         showChips()
@@ -1009,7 +1042,7 @@ class AudioPlayer : Fragment(), IAudioPlayerAnimator by AudioPlayerAnimator() {
         }
     }
 
-    override fun onResume() {
+    fun onResume() {
         onStateChanged(playerState)
         showRemainingTime = Settings.getInstance(requireContext()).getBoolean(SHOW_REMAINING_TIME, false)
         val restoreVideoTipCount = settings.getInt(PREF_RESTORE_VIDEO_TIPS_SHOWN, 0)
@@ -1023,11 +1056,9 @@ class AudioPlayer : Fragment(), IAudioPlayerAnimator by AudioPlayerAnimator() {
                     onResumeToVideoClick()
                 }
         }
-        super.onResume()
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
+    fun onSaveInstanceState(outState: Bundle) {
         outState.putInt("player_state", playerState)
         outState.putBoolean("show_remaining_time", showRemainingTime)
     }
@@ -1036,7 +1067,7 @@ class AudioPlayer : Fragment(), IAudioPlayerAnimator by AudioPlayerAnimator() {
         override fun onCtxAction(position: Int, option: ContextOption) {
             val media = playlistItems.getOrNull(position) ?: return
             when (option) {
-                CTX_SET_RINGTONE -> activity?.setRingtone(media)
+                CTX_SET_RINGTONE -> activity.setRingtone(media)
                 CTX_ADD_TO_PLAYLIST -> {
                     requireActivity().addToPlaylist(listOf(media))
                 }
@@ -1079,9 +1110,19 @@ class AudioPlayer : Fragment(), IAudioPlayerAnimator by AudioPlayerAnimator() {
         startActivity(i)
     }
 
+    private fun showParentFolder(media: MediaWrapper) {
+        val parent = MLServiceLocator.getAbstractMediaWrapper(media.uri.retrieveParent()).apply {
+            type = MediaWrapper.TYPE_DIR
+        }
+        startActivity(Intent(activity.applicationContext, SecondaryActivity::class.java).apply {
+            putExtra(KEY_MEDIA, parent)
+            putExtra(KEY_JUMP_TO, media)
+            putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.FILE_BROWSER)
+        })
+    }
+
     private fun showPlaylistContext(position: Int, item: MediaWrapper) {
-        val activity = activity
-        if (activity === null || position !in playlistItems.indices) return
+        if (position !in playlistItems.indices) return
         val flags = FlagSet(ContextOption::class.java).apply {
             addAll(CTX_GO_TO_FOLDER, CTX_INFORMATION, CTX_REMOVE_FROM_PLAYLIST, CTX_STOP_AFTER_THIS)
             if (item.uri?.scheme != "content") addAll(CTX_ADD_TO_PLAYLIST, CTX_SET_RINGTONE, CTX_SHARE)
@@ -1342,8 +1383,7 @@ class AudioPlayer : Fragment(), IAudioPlayerAnimator by AudioPlayerAnimator() {
 
     fun onStopClick(@Suppress("UNUSED_PARAMETER") view: View?): Boolean {
         playlistModel.stop()
-        if (activity is AudioPlayerContainerActivity)
-            (activity as AudioPlayerContainerActivity).closeMiniPlayer()
+        activity.closeMiniPlayer()
         return true
     }
 
@@ -1529,8 +1569,7 @@ class AudioPlayer : Fragment(), IAudioPlayerAnimator by AudioPlayerAnimator() {
     }
 
     private fun showPlaylistTips() {
-        val activity = activity as? AudioPlayerContainerActivity
-        activity?.showTipViewIfNeeded(R.id.audio_playlist_tips, PREF_PLAYLIST_TIPS_SHOWN)
+        activity.showTipViewIfNeeded(R.id.audio_playlist_tips, PREF_PLAYLIST_TIPS_SHOWN)
     }
 
     fun onStateChanged(newState: Int) {
@@ -1661,7 +1700,7 @@ class AudioPlayer : Fragment(), IAudioPlayerAnimator by AudioPlayerAnimator() {
 
     fun update() {
         lifecycleScope.launch {
-            if (activity != null && activity?.isStarted() == true) doUpdate()
+            if (activity.isStarted()) doUpdate()
         }
     }
 

@@ -233,7 +233,7 @@ internal class AudioPlayerAnimator : IAudioPlayerAnimator, LifecycleObserver {
             currentCoverArt = mw.artworkMrl
             if (mw.artworkMrl.isNullOrEmpty()) setDefaultBackground()
             else {
-                val width = if (binding.contentLayout.width > 0) binding.contentLayout.width else audioPlayer.activity?.getScreenWidth() ?: return
+                val width = if (binding.contentLayout.width > 0) binding.contentLayout.width else audioPlayer.activity.getScreenWidth()
                 val activity = audioPlayer.activity as? AudioPlayerContainerActivity ?: return
                 val cover = withContext(Dispatchers.IO) { AudioUtil.readCoverBitmap(Uri.decode(mw.artworkMrl), width) }
                 if (cover == null) setDefaultBackground()

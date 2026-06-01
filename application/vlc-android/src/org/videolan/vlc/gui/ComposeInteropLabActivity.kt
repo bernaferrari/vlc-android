@@ -565,7 +565,7 @@ fun ComposeInteropLabContent() {
             }
         }
         Text(
-            "Hosted in the real AudioPlayer fragment by replacing the playback_chips ChipGroup with VLCComposeView. " +
+            "Hosted in the real AudioPlayer bottom-sheet controller by replacing the playback_chips ChipGroup with VLCComposeView. " +
             "The collapsed header background and divider are Compose-hosted under the existing header_background and header_divider IDs so slide alpha transitions stay intact. " +
             "The collapsed mini progress bar is Compose-backed under progressBar while keeping the existing max/progress and slide-height contract. " +
             "The blurred cover background is Compose-backed under backgroundView with AudioPlayerAnimator still owning cover loading and blur generation. " +
