@@ -66,8 +66,6 @@ import android.view.animation.RotateAnimation
 import android.view.inputmethod.BaseInputConnection
 import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.SeekBar
-import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -201,6 +199,7 @@ import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
 import org.videolan.vlc.gui.helpers.hf.StoragePermissionsDelegate
+import org.videolan.vlc.gui.view.PlayerTimelineSeekBarView
 import org.videolan.vlc.interfaces.IPlaybackSettingsController
 import org.videolan.vlc.media.NO_LENGTH_PROGRESS_MAX
 import org.videolan.vlc.media.PlaylistManager
@@ -402,20 +401,20 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     /**
      * handle changes of the seekbar (slicer)
      */
-    val seekListener = object : OnSeekBarChangeListener {
+    val seekListener = object : PlayerTimelineSeekBarView.Listener {
 
-        override fun onStartTrackingTouch(seekBar: SeekBar) {
+        override fun onStartTrackingTouch() {
             isDragging = true
             overlayDelegate.showOverlayTimeout(OVERLAY_INFINITE)
         }
 
-        override fun onStopTrackingTouch(seekBar: SeekBar) {
+        override fun onStopTrackingTouch(progress: Int) {
             isDragging = false
             overlayDelegate.showOverlay(true)
-            seek(seekBar.progress.toLong(), fromUser = true, fast = false)
+            seek(progress.toLong(), fromUser = true, fast = false)
         }
 
-        override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+        override fun onProgressChanged(progress: Int, fromUser: Boolean) {
             if (!isFinishing && fromUser && service?.isSeekable == true) {
                 seek(progress.toLong(), fromUser, isDragging)
                 if (service?.length != 0L) overlayDelegate.showInfo(Tools.millisToString(progress.toLong()), 1000)
@@ -2661,6 +2660,6 @@ fun setConstraintPercent(view: Guideline, percent: Float) {
 }
 
 @BindingAdapter("mediamax")
-fun setProgressMax(view: SeekBar, length: Long) {
+fun setProgressMax(view: PlayerTimelineSeekBarView, length: Long) {
     view.max =  if (length == 0L) NO_LENGTH_PROGRESS_MAX else length.toInt()
 }

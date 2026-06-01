@@ -651,7 +651,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
     fun setListeners(enabled: Boolean) {
         if (::hudBinding.isInitialized) {
-            hudBinding.playerOverlaySeekbar.setOnSeekBarChangeListener(if (enabled) player.seekListener else null)
+            hudBinding.playerOverlaySeekbar.setOnTimelineSeekChangeListener(if (enabled) player.seekListener else null)
             hudBinding.abRepeatReset.setOnClickListener(player)
             hudBinding.abRepeatStop.setOnClickListener(player)
             hudBinding.fastSeekWarning.setOnClickListener {

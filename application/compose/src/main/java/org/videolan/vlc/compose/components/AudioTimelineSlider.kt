@@ -16,9 +16,10 @@ import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
 /**
- * Compose equivalent of audio_player.xml's full-player timeline seekbar:
+ * Compose equivalent of the audio/video full-player timeline seekbars:
  *   - application/vlc-android/res/layout/audio_player.xml @id/timeline
  *   - application/vlc-android/res/layout-land/audio_player.xml @id/timeline
+ *   - application/vlc-android/res/layout/player_hud.xml @id/player_overlay_seekbar
  *
  * The XML bridge keeps the existing imperative max/progress and drag callback
  * contract while this leaf owns the visual track/thumb rendering.

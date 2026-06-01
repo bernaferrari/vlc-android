@@ -141,7 +141,7 @@ import org.videolan.vlc.gui.video.VideoPlayerActivity
 import org.videolan.vlc.gui.view.AbRepeatControlsView
 import org.videolan.vlc.gui.view.AudioMediaSwitcher
 import org.videolan.vlc.gui.view.AudioMediaSwitcher.AudioMediaSwitcherListener
-import org.videolan.vlc.gui.view.AudioTimelineSeekBarView
+import org.videolan.vlc.gui.view.PlayerTimelineSeekBarView
 import org.videolan.vlc.manageAbRepeatStep
 import org.videolan.vlc.media.PlaylistManager
 import org.videolan.vlc.media.PlaylistManager.Companion.hasMedia
@@ -1557,7 +1557,7 @@ class AudioPlayer(
         }
     }
 
-    private var timelineListener = object : AudioTimelineSeekBarView.Listener {
+    private var timelineListener = object : PlayerTimelineSeekBarView.Listener {
 
         override fun onStopTrackingTouch(progress: Int) {
             playlistModel.setTime(progress.toLong())
