@@ -33,7 +33,6 @@ import androidx.appcompat.view.ActionMode
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -115,6 +114,8 @@ import org.videolan.tools.stripTrailingSlash
 import org.videolan.resources.util.canReadStorage
 import org.videolan.vlc.MediaParsingService
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.components.VLCBrowserItemCard
+import org.videolan.vlc.compose.components.VLCBrowserItemRow
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.MainActivity
 import org.videolan.vlc.gui.SecondaryActivity
@@ -1924,7 +1925,6 @@ private fun BrowserEmptyState(loading: Boolean, text: String) {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun BrowserListRow(
     item: MediaLibraryItem,
@@ -1933,49 +1933,19 @@ private fun BrowserListRow(
     onLongClick: () -> Unit,
     onMoreClick: () -> Unit
 ) {
-    val colors = VLCThemeDefaults.colors
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(if (selected) colors.subtleSelection else colors.backgroundDefault)
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
-            .padding(start = 16.dp, end = 4.dp, top = 10.dp, bottom = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        BrowserItemIcon(item)
-        Spacer(modifier = Modifier.width(16.dp))
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(2.dp)
-        ) {
-            Text(
-                text = item.title.orEmpty(),
-                color = colors.listTitle,
-                style = MaterialTheme.typography.bodyLarge,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            item.subtitleText()?.takeIf { it.isNotBlank() }?.let {
-                Text(
-                    text = it,
-                    color = colors.listSubtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
-        IconButton(onClick = onMoreClick) {
-            Icon(
-                painter = painterResource(R.drawable.ic_more),
-                contentDescription = stringResource(R.string.more),
-                tint = colors.listSubtitle
-            )
-        }
-    }
+    VLCBrowserItemRow(
+        title = item.title.orEmpty(),
+        subtitle = item.subtitleText(),
+        selected = selected,
+        titleMaxLines = 1,
+        onClick = onClick,
+        onLongClick = onLongClick,
+        artworkContent = { BrowserItemIcon(item) },
+        moreActionContent = { BrowserMoreActionIcon() },
+        onMoreClick = onMoreClick
+    )
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun BrowserCard(
     item: MediaLibraryItem,
@@ -1985,44 +1955,26 @@ private fun BrowserCard(
     onLongClick: () -> Unit,
     onMoreClick: () -> Unit
 ) {
-    val colors = VLCThemeDefaults.colors
-    Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(6.dp))
-            .background(if (selected) colors.subtleSelection else colors.backgroundDefaultDarker)
-            .border(1.dp, colors.listSubtitle.copy(alpha = 0.18f), RoundedCornerShape(6.dp))
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            BrowserItemIcon(item, large = true)
-            Spacer(modifier = Modifier.weight(1f))
-            IconButton(onClick = onMoreClick, modifier = Modifier.size(36.dp)) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_more),
-                    contentDescription = stringResource(R.string.more),
-                    tint = colors.listSubtitle
-                )
-            }
-        }
-        Text(
-            text = item.title.orEmpty(),
-            color = colors.listTitle,
-            style = MaterialTheme.typography.bodyMedium,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
-        item.subtitleText()?.takeIf { it.isNotBlank() }?.let {
-            Text(
-                text = it,
-                color = colors.listSubtitle,
-                style = MaterialTheme.typography.bodySmall,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-    }
+    VLCBrowserItemCard(
+        title = item.title.orEmpty(),
+        subtitle = item.subtitleText(),
+        modifier = modifier,
+        selected = selected,
+        onClick = onClick,
+        onLongClick = onLongClick,
+        artworkContent = { BrowserItemIcon(item, large = true) },
+        moreActionContent = { BrowserMoreActionIcon() },
+        onMoreClick = onMoreClick
+    )
+}
+
+@Composable
+private fun BrowserMoreActionIcon() {
+    Icon(
+        painter = painterResource(R.drawable.ic_more),
+        contentDescription = stringResource(R.string.more),
+        tint = VLCThemeDefaults.colors.listSubtitle
+    )
 }
 
 @Composable

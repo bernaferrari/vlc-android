@@ -26,17 +26,27 @@ import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.channels.SendChannel
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.tools.Settings
 import org.videolan.vlc.R
-import org.videolan.vlc.databinding.MrlCardItemBinding
+import org.videolan.vlc.compose.components.VLCBrowserItemCard
+import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.databinding.MrlDummyItemBinding
 import org.videolan.vlc.databinding.MrlItemBinding
 import org.videolan.vlc.gui.DiffUtilAdapter
-import org.videolan.vlc.gui.helpers.MarqueeViewHolder
+import org.videolan.vlc.gui.helpers.TalkbackUtil
 import org.videolan.vlc.gui.helpers.enableMarqueeEffect
 
 private const val TYPE_LIST = 0
@@ -50,7 +60,11 @@ internal class MRLAdapter(private val eventActor: SendChannel<MrlAction>, privat
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
-            TYPE_CARD -> CardViewHolder(DataBindingUtil.inflate(inflater, R.layout.mrl_card_item, parent, false))
+            TYPE_CARD -> CardComposeViewHolder(
+                ComposeView(parent.context).apply {
+                    layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                }
+            )
             TYPE_LIST -> ListViewHolder(DataBindingUtil.inflate(inflater, R.layout.mrl_item, parent, false))
             else -> DummyViewHolder(DataBindingUtil.inflate(inflater, R.layout.mrl_dummy_item, parent, false))
         }
@@ -70,10 +84,8 @@ internal class MRLAdapter(private val eventActor: SendChannel<MrlAction>, privat
                 holder.binding.mrlItemTitle.text = Uri.decode(item.title)
                 holder.binding.item = item
             }
-            is CardViewHolder -> {
-                holder.binding.mrlItemUri.text = Uri.decode(item.location)
-                holder.binding.mrlItemTitle.text = Uri.decode(item.title)
-                holder.binding.item = item
+            is CardComposeViewHolder -> {
+                holder.bind(item)
             }
         }
     }
@@ -92,7 +104,6 @@ internal class MRLAdapter(private val eventActor: SendChannel<MrlAction>, privat
         if (Settings.listTitleEllipsize == 4) handler.removeCallbacksAndMessages(null)
         when (holder) {
             is ListViewHolder -> holder.recycle()
-            is CardViewHolder -> holder.recycle()
         }
 
         super.onViewRecycled(holder)
@@ -106,7 +117,7 @@ internal class MRLAdapter(private val eventActor: SendChannel<MrlAction>, privat
         for (payload in payloads) {
             if (payload is String) when (holder) {
                 is ListViewHolder -> holder.binding.mrlItemTitle.text = payload
-                is CardViewHolder -> holder.binding.mrlItemTitle.text = payload
+                is CardComposeViewHolder -> onBindViewHolder(holder, position)
             }
         }
     }
@@ -138,23 +149,52 @@ internal class MRLAdapter(private val eventActor: SendChannel<MrlAction>, privat
         fun recycle() {}
     }
 
-    inner class CardViewHolder(val binding: MrlCardItemBinding) : RecyclerView.ViewHolder(binding.root), View.OnClickListener, MarqueeViewHolder {
+    inner class CardComposeViewHolder(private val composeView: ComposeView) : RecyclerView.ViewHolder(composeView) {
 
-        init {
-            binding.container.setOnClickListener(this)
-            binding.container.setOnLongClickListener { eventActor.trySend(ShowContext(layoutPosition)).isSuccess }
-            binding.mrlCtx.setOnClickListener { eventActor.trySend(ShowContext(layoutPosition)) }
+        fun bind(item: MediaWrapper) {
+            composeView.setContent {
+                VLCBrowserItemCard(
+                    title = Uri.decode(item.title),
+                    subtitle = Uri.decode(item.location),
+                    modifier = Modifier.widthIn(min = 160.dp),
+                    contentDescription = TalkbackUtil.getStream(composeView.context, item),
+                    titleMaxLines = 1,
+                    onClick = ::play,
+                    onLongClick = ::showContext,
+                    artworkContent = { StreamCardIcon() },
+                    moreActionContent = { StreamMoreIcon() },
+                    onMoreClick = ::showContext
+                )
+            }
         }
 
-        override fun onClick(v: View) {
-            dataset.getOrNull(layoutPosition)?.let { eventActor.trySend(Playmedia(it)) }
+        private fun play() {
+            dataset.getOrNull(bindingAdapterPosition)?.let { eventActor.trySend(Playmedia(it)) }
         }
 
-        fun recycle() {
-            binding.mrlItemTitle.isSelected = false
+        private fun showContext() {
+            val position = bindingAdapterPosition.takeIf { it != RecyclerView.NO_POSITION } ?: return
+            eventActor.trySend(ShowContext(position))
         }
+    }
 
-        override val titleView = binding.mrlItemTitle
+    @Composable
+    private fun StreamCardIcon() {
+        Icon(
+            painter = painterResource(R.drawable.ic_more_stream),
+            contentDescription = null,
+            modifier = Modifier.size(32.dp),
+            tint = VLCThemeDefaults.colors.primary
+        )
+    }
+
+    @Composable
+    private fun StreamMoreIcon() {
+        Icon(
+            painter = painterResource(R.drawable.ic_more),
+            contentDescription = stringResource(R.string.more_actions),
+            tint = VLCThemeDefaults.colors.listSubtitle
+        )
     }
 
     override fun createCB() = object : DiffCallback<MediaWrapper>() {
