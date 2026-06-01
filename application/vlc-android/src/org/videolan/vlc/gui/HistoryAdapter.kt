@@ -19,27 +19,41 @@
  */
 package org.videolan.vlc.gui
 
-import android.view.LayoutInflater
+import android.content.Context
 import android.view.View
 import android.view.ViewGroup
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.databinding.ViewDataBinding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.RecyclerView
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
-import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.resources.UPDATE_SELECTION
 import org.videolan.tools.MultiSelectAdapter
 import org.videolan.tools.MultiSelectHelper
-import org.videolan.tools.Settings
-import org.videolan.vlc.BR
-import org.videolan.vlc.databinding.HistoryItemBinding
-import org.videolan.vlc.databinding.HistoryItemCardBinding
+import org.videolan.vlc.R
+import org.videolan.vlc.compose.components.VLCBrowserItemCard
+import org.videolan.vlc.compose.components.VLCBrowserItemRow
+import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.helpers.*
 import org.videolan.vlc.interfaces.IListEventsHandler
 import org.videolan.vlc.interfaces.SwipeDragHelperAdapter
-import org.videolan.vlc.util.LifecycleAwareScheduler
 import org.videolan.vlc.util.isOTG
 import org.videolan.vlc.util.isSD
 import org.videolan.vlc.util.isSchemeNetwork
@@ -49,95 +63,104 @@ class HistoryAdapter(private val inCards: Boolean = false, private val listEvent
         MultiSelectAdapter<MediaWrapper>, IEventsSource<Click> by EventsSource(), SwipeDragHelperAdapter {
 
     val updateEvt : LiveData<Unit> = MutableLiveData()
-    private lateinit var layoutInflater: LayoutInflater
     var multiSelectHelper: MultiSelectHelper<MediaWrapper> = MultiSelectHelper(this, UPDATE_SELECTION)
-    var scheduler: LifecycleAwareScheduler? = null
 
-    inner class ViewHolder(binding: ViewDataBinding) : SelectorViewHolder<ViewDataBinding>(binding), MarqueeViewHolder {
+    inner class ViewHolder(private val composeView: ComposeView) : RecyclerView.ViewHolder(composeView) {
 
-        override val titleView = when (binding) {
-            is HistoryItemBinding -> binding.title
-            is HistoryItemCardBinding -> binding.title
-            else -> null
+        fun bind(media: MediaWrapper, selected: Boolean) {
+            val contentDescription = historyContentDescription(composeView.context, media)
+            composeView.setContent {
+                if (inCards) {
+                    VLCBrowserItemCard(
+                        title = media.title.orEmpty(),
+                        subtitle = media.description,
+                        modifier = Modifier.widthIn(min = 160.dp),
+                        selected = selected,
+                        contentDescription = contentDescription,
+                        titleMaxLines = 1,
+                        onClick = ::onClick,
+                        onLongClick = ::onLongClick,
+                        artworkContent = {
+                            HistoryArtwork(
+                                media = media,
+                                large = true,
+                                onImageClick = ::onImageClick
+                            )
+                        }
+                    )
+                } else {
+                    VLCBrowserItemRow(
+                        title = media.title.orEmpty(),
+                        subtitle = media.description,
+                        selected = selected,
+                        contentDescription = contentDescription,
+                        titleMaxLines = 1,
+                        onClick = ::onClick,
+                        onLongClick = ::onLongClick,
+                        artworkContent = {
+                            HistoryArtwork(
+                                media = media,
+                                onImageClick = ::onImageClick
+                            )
+                        }
+                    )
+                }
+            }
         }
 
-        init {
-            this.binding = binding
-            when (binding) {
-                is HistoryItemBinding -> binding.holder = this
-                is HistoryItemCardBinding -> binding.holder = this
+        private fun onClick() {
+            bindingAdapterPosition.takeIf { it != RecyclerView.NO_POSITION }?.let {
+                eventsChannel.trySend(SimpleClick(it))
             }
+        }
 
+        private fun onLongClick() {
+            bindingAdapterPosition.takeIf { it != RecyclerView.NO_POSITION }?.let {
+                eventsChannel.trySend(LongClick(it))
+            }
+        }
+
+        private fun onImageClick() {
+            bindingAdapterPosition.takeIf { it != RecyclerView.NO_POSITION }?.let {
+                eventsChannel.trySend(if (inCards) SimpleClick(it) else ImageClick(it))
+            }
         }
 
         fun onClick(@Suppress("UNUSED_PARAMETER") v: View) {
-            eventsChannel.trySend(SimpleClick(layoutPosition))
+            onClick()
         }
 
-        fun onLongClick(@Suppress("UNUSED_PARAMETER") v: View) = eventsChannel.trySend(LongClick(layoutPosition)).isSuccess
+        fun onLongClick(@Suppress("UNUSED_PARAMETER") v: View): Boolean {
+            onLongClick()
+            return true
+        }
 
         fun onImageClick(@Suppress("UNUSED_PARAMETER") v: View) {
-            if (inCards)
-                eventsChannel.trySend(SimpleClick(layoutPosition))
-            else
-                eventsChannel.trySend(ImageClick(layoutPosition))
+            onImageClick()
         }
-
-        override fun isSelected() = getItem(layoutPosition).hasStateFlags(MediaLibraryItem.FLAG_SELECTED)
-        fun recycle() {
-            when (binding) {
-                is HistoryItemBinding -> (binding as HistoryItemBinding).title.isSelected = false
-                is HistoryItemCardBinding -> (binding as HistoryItemCardBinding).title.isSelected = false
-            }
-        }
-    }
-
-    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
-        super.onAttachedToRecyclerView(recyclerView)
-        if (Settings.listTitleEllipsize == 4) scheduler = enableMarqueeEffect(recyclerView)
-    }
-
-    override fun onViewRecycled(holder: ViewHolder) {
-        scheduler?.cancelAction(MARQUEE_ACTION)
-        holder.recycle()
-        super.onViewRecycled(holder)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        if (!::layoutInflater.isInitialized) layoutInflater = LayoutInflater.from(parent.context)
-        return ViewHolder(if (inCards) HistoryItemCardBinding.inflate(layoutInflater, parent, false) else HistoryItemBinding.inflate(layoutInflater, parent, false))
+        return ViewHolder(
+            ComposeView(parent.context).apply {
+                layoutParams = ViewGroup.LayoutParams(
+                    if (inCards) ViewGroup.LayoutParams.WRAP_CONTENT else ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+            }
+        )
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val media = getItem(position)
-        when (holder.binding) {
-            is HistoryItemBinding -> {
-                (holder.binding as HistoryItemBinding).media = media
-                holder.binding.setVariable(BR.isNetwork, media.uri.scheme.isSchemeNetwork())
-                holder.binding.setVariable(BR.isSD, media.uri.isSD())
-                holder.binding.setVariable(BR.isOTG, media.uri.isOTG())
-                (holder.binding as HistoryItemBinding).cover = getMediaIconDrawable(holder.itemView.context, media.type)
-                ((holder.binding as HistoryItemBinding).icon.layoutParams as ConstraintLayout.LayoutParams).dimensionRatio = if (media.type == MediaWrapper.TYPE_VIDEO) "16:10" else "1"
-            }
-            is HistoryItemCardBinding -> {
-                (holder.binding as HistoryItemCardBinding).media = media
-                holder.binding.setVariable(BR.isNetwork, media.uri.scheme.isSchemeNetwork())
-                holder.binding.setVariable(BR.isSD, media.uri.isSD())
-                holder.binding.setVariable(BR.isOTG, media.uri.isOTG())
-                (holder.binding as HistoryItemCardBinding).cover = getMediaIconDrawable(holder.itemView.context, media.type)
-                ((holder.binding as HistoryItemCardBinding).icon.layoutParams as ConstraintLayout.LayoutParams).dimensionRatio = if (media.type == MediaWrapper.TYPE_VIDEO) "16:10" else "1"
-            }
-        }
-
-
-        holder.selectView(multiSelectHelper.isSelected(position))
+        holder.bind(media, multiSelectHelper.isSelected(position))
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: List<Any>) {
         if (payloads.isNullOrEmpty())
-            super.onBindViewHolder(holder, position, payloads)
+            onBindViewHolder(holder, position)
         else
-            holder.selectView(multiSelectHelper.isSelected(position))
+            holder.bind(getItem(position), multiSelectHelper.isSelected(position))
     }
 
     override fun getItemId(arg0: Int): Long {
@@ -170,5 +193,68 @@ class HistoryAdapter(private val inCards: Boolean = false, private val listEvent
         override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int) =
                 oldList[oldItemPosition].title == newList[newItemPosition].title &&
                         oldList[oldItemPosition].description == newList[newItemPosition].description
+    }
+}
+
+@Composable
+private fun BoxScope.HistoryArtwork(
+    media: MediaWrapper,
+    large: Boolean = false,
+    onImageClick: () -> Unit
+) {
+    val colors = VLCThemeDefaults.colors
+    val enabledAlpha = if (media.isPresent) 1f else 0.45f
+    Box(
+        modifier = Modifier
+            .size(if (large) 48.dp else 40.dp)
+            .clip(RoundedCornerShape(4.dp))
+            .background(colors.backgroundDefaultDarker)
+            .clickable(onClick = onImageClick)
+            .alpha(enabledAlpha),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(if (media.type == MediaWrapper.TYPE_VIDEO) R.drawable.ic_video_big else R.drawable.ic_song_big),
+            contentDescription = null,
+            tint = colors.fontLight,
+            modifier = Modifier.size(if (large) 34.dp else 30.dp)
+        )
+    }
+    HistoryBadge(media = media, modifier = Modifier.align(Alignment.BottomStart))
+}
+
+@Composable
+private fun HistoryBadge(media: MediaWrapper, modifier: Modifier = Modifier) {
+    val icon = when {
+        !media.isPresent -> R.drawable.ic_emoji_absent
+        media.uri.scheme.isSchemeNetwork() -> R.drawable.ic_emoji_network
+        media.uri.isSD() -> R.drawable.ic_emoji_sd
+        media.uri.isOTG() -> R.drawable.ic_emoji_otg
+        else -> null
+    } ?: return
+    Box(
+        modifier = modifier
+            .padding(4.dp)
+            .clip(RoundedCornerShape(3.dp))
+            .background(Color.Black.copy(alpha = 0.55f))
+            .padding(3.dp)
+    ) {
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = null,
+            tint = Color.White,
+            modifier = Modifier.size(16.dp)
+        )
+    }
+}
+
+private fun historyContentDescription(context: Context, media: MediaWrapper): String {
+    return when (media.type) {
+        MediaWrapper.TYPE_VIDEO -> TalkbackUtil.getVideo(context, media)
+        MediaWrapper.TYPE_AUDIO -> TalkbackUtil.getAudioTrack(context, media)
+        MediaWrapper.TYPE_STREAM -> TalkbackUtil.getStream(context, media)
+        MediaWrapper.TYPE_DIR, MediaWrapper.TYPE_SUBTITLE, MediaWrapper.TYPE_PLAYLIST -> TalkbackUtil.getDir(context, media, false)
+        MediaWrapper.TYPE_ALL -> TalkbackUtil.getAll(media)
+        else -> media.title
     }
 }
