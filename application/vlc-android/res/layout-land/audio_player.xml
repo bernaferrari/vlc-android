@@ -185,21 +185,19 @@
                     app:layout_constraintStart_toEndOf="@+id/header_next"
                     app:layout_constraintTop_toTopOf="@id/header_large_play_pause" />
 
-            <View
+            <org.videolan.vlc.compose.interop.VLCComposeView
                     android:id="@+id/header_background"
                     android:layout_width="0dp"
                     android:layout_height="0dp"
-                    android:background="?attr/audio_header_background"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-            <View
+            <org.videolan.vlc.compose.interop.VLCComposeView
                     android:id="@+id/header_divider"
                     android:layout_width="0dp"
                     android:layout_height="1dp"
-                    android:background="?attr/audio_header_divider"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent" />

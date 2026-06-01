@@ -24,14 +24,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import org.videolan.vlc.compose.components.VLCAbRepeatChipIcon
 import org.videolan.vlc.compose.components.VLCAbRepeatAddMarkerButton
+import org.videolan.vlc.compose.components.VLCAbRepeatChipIcon
 import org.videolan.vlc.compose.components.VLCDebugLogLine
 import org.videolan.vlc.compose.components.VLCDialogConfirmDelete
 import org.videolan.vlc.compose.components.VLCDropdownItem
 import org.videolan.vlc.compose.components.VLCInfoItem
 import org.videolan.vlc.compose.components.VLCAudioAbRepeatMarker
 import org.videolan.vlc.compose.components.VLCAudioHeaderActionButton
+import org.videolan.vlc.compose.components.VLCAudioHeaderBackground
+import org.videolan.vlc.compose.components.VLCAudioHeaderDivider
 import org.videolan.vlc.compose.components.VLCAudioHeaderPlayPauseButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderTimeLabel
 import org.videolan.vlc.compose.components.VLCAudioHeaderTransportButton
@@ -208,13 +210,15 @@ private fun PlayerChromeTokensDemo() {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(c.audioHeaderBackground)
-                .padding(8.dp)
+                .height(56.dp)
         ) {
+            VLCAudioHeaderBackground()
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
             ) {
                 Text("Now Playing - Audio Title", color = c.fontDefault)
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -240,11 +244,10 @@ private fun PlayerChromeTokensDemo() {
                 }
             }
         }
-        Box(
+        VLCAudioHeaderDivider(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp)
-                .background(c.audioHeaderDivider)
         )
 
         Spacer(Modifier.height(16.dp))

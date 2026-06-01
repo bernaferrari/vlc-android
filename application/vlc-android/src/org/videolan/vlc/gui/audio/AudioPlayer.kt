@@ -105,6 +105,8 @@ import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.components.VLCAudioAbRepeatMarker
 import org.videolan.vlc.compose.components.VLCAudioHeaderActionButton
+import org.videolan.vlc.compose.components.VLCAudioHeaderBackground
+import org.videolan.vlc.compose.components.VLCAudioHeaderDivider
 import org.videolan.vlc.compose.components.VLCAudioHeaderPlayPauseButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderTimeLabel
 import org.videolan.vlc.compose.components.VLCAudioHeaderTransportButton
@@ -394,6 +396,7 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
         audioHeaderTimeText = getString(R.string.time_0)
         audioTimelineTimeText = getString(R.string.time_0)
         audioTimelineLengthText = getString(R.string.time_0)
+        setupAudioHeaderDecorations()
         setupAudioHeaderTime()
         setupAudioTimelineTimeLabels()
         setupAudioHeaderActions()
@@ -437,6 +440,19 @@ class AudioPlayer : Fragment(), PlaylistAdapter.IPlayer, TextWatcher, IAudioPlay
     }
 
     fun isTablet() = requireActivity().isTablet()
+
+    private fun setupAudioHeaderDecorations() {
+        binding.headerBackground.setContent {
+            VLCTheme {
+                VLCAudioHeaderBackground()
+            }
+        }
+        binding.headerDivider.setContent {
+            VLCTheme {
+                VLCAudioHeaderDivider()
+            }
+        }
+    }
 
     private fun setupAudioHeaderTime() {
         binding.headerTime.setContent {

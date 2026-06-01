@@ -61,6 +61,8 @@ import org.videolan.vlc.compose.components.VLCDropdownItem
 import org.videolan.vlc.compose.components.VLCInfoItem
 import org.videolan.vlc.compose.components.VLCAudioAbRepeatMarker
 import org.videolan.vlc.compose.components.VLCAudioHeaderActionButton
+import org.videolan.vlc.compose.components.VLCAudioHeaderBackground
+import org.videolan.vlc.compose.components.VLCAudioHeaderDivider
 import org.videolan.vlc.compose.components.VLCAudioHeaderPlayPauseButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderTimeLabel
 import org.videolan.vlc.compose.components.VLCAudioHeaderTransportButton
@@ -312,6 +314,8 @@ fun ComposeInteropLabContent() {
         // WAVE 2. VLCAudioPlayerChips (audio_player.xml quick actions)
         // -----------------------------------------------------------------
         VLCSectionHeader(text = "Wave 2. VLCAudioPlayerChips (audio_player.xml)")
+        VLCAudioHeaderBackground(modifier = Modifier.fillMaxWidth().height(40.dp))
+        VLCAudioHeaderDivider(modifier = Modifier.fillMaxWidth().height(1.dp))
         VLCAudioPlayerChips(
             state = VLCAudioPlayerChipsState(
                 speedText = "1.25x",
@@ -426,6 +430,7 @@ fun ComposeInteropLabContent() {
         }
         Text(
             "Hosted in the real AudioPlayer fragment by replacing the playback_chips ChipGroup with VLCComposeView. " +
+            "The collapsed header background and divider are Compose-hosted under the existing header_background and header_divider IDs so slide alpha transitions stay intact. " +
             "The collapsed header time label is also Compose-hosted under the existing header_time ID. " +
             "The full-player elapsed/length timeline labels are Compose-hosted under time and length. " +
             "The landscape title/subtitle/track-detail text stack is Compose-hosted under song_title/song_subtitle/song_track_info. " +
