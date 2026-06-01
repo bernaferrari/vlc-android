@@ -154,7 +154,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
             )
             WindowInsetsCompat.CONSUMED
         }
-        setContentView(R.layout.secondary)
+        setContentView(createSecondaryActivityShell())
         initAudioPlayerContainerActivity()
 
         if (isOnboarding) WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false

@@ -41,7 +41,7 @@ import org.videolan.vlc.R
 private const val STATE_SCROLLED_DOWN = 1
 private const val STATE_SCROLLED_UP = 2
 
-class BottomNavigationBehavior<V : View>(context: Context, attrs: AttributeSet) :
+class BottomNavigationBehavior<V : View>(context: Context, attrs: AttributeSet?) :
         CoordinatorLayout.Behavior<V>(context, attrs) {
 
     private var stateIsScrolling: Boolean = false

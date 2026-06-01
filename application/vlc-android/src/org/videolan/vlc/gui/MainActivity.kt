@@ -106,7 +106,7 @@ class MainActivity : ContentActivity(),
         super.onCreate(savedInstanceState)
         Util.checkCpuCompatibility(this)
         /*** Start initializing the UI  */
-        setContentView(R.layout.main)
+        setContentView(createMainActivityShell())
         initAudioPlayerContainerActivity()
         setupNavigation(savedInstanceState)
 
