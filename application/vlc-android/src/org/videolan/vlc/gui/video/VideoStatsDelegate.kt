@@ -35,7 +35,6 @@ import org.videolan.libvlc.interfaces.IMedia
 import org.videolan.tools.readableSize
 import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.R
-import org.videolan.vlc.databinding.PlayerHudBinding
 import org.videolan.vlc.getAllTracks
 import org.videolan.vlc.gui.view.VideoStatEntry
 import org.videolan.vlc.gui.view.VideoStatTrackInfo
@@ -48,7 +47,7 @@ class VideoStatsDelegate(private val player: VideoPlayerActivity, val scrolling:
     private var started = false
     private val plotHandler: Handler = Handler(Looper.getMainLooper())
     private val firstTimecode = System.currentTimeMillis()
-    lateinit var binding: PlayerHudBinding
+    lateinit var binding: VideoHudOverlayViews
 
     fun stop() {
         started = false
@@ -65,7 +64,7 @@ class VideoStatsDelegate(private val player: VideoPlayerActivity, val scrolling:
         if (::container.isInitialized) container.visibility = View.VISIBLE
     }
 
-    fun initStatsView(binding: PlayerHudBinding) {
+    fun initStatsView(binding: VideoHudOverlayViews) {
         this.binding = binding
         container = binding.statsContainer
         binding.statsContainer.setScrollCallbacks(scrolling = { scrolling() }, idle = { idle() })

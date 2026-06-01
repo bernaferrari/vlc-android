@@ -1,0 +1,70 @@
+/*
+ * ************************************************************************
+ *  VideoHudOverlayViews.kt
+ * *************************************************************************
+ * Copyright © 2026 VLC authors and VideoLAN
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
+ * **************************************************************************
+ */
+
+package org.videolan.vlc.gui.video
+
+import android.view.View
+import androidx.annotation.IdRes
+import androidx.constraintlayout.widget.ConstraintLayout
+import org.videolan.vlc.R
+import org.videolan.vlc.gui.view.AbRepeatControlsView
+import org.videolan.vlc.gui.view.AbRepeatMarkerContainerView
+import org.videolan.vlc.gui.view.BookmarkMarkerContainerView
+import org.videolan.vlc.gui.view.BookmarksPanelView
+import org.videolan.vlc.gui.view.SwipeToUnlockView
+import org.videolan.vlc.gui.view.VideoHudIconButtonView
+import org.videolan.vlc.gui.view.VideoHudSeekJumpLabelView
+import org.videolan.vlc.gui.view.VideoStatsOverlayView
+import org.videolan.vlc.gui.view.VideoTimelineSeekBarView
+import org.videolan.vlc.gui.view.VideoTimelineTimeLabelView
+
+class VideoHudOverlayViews(val progressOverlay: ConstraintLayout) {
+    val statsContainer: VideoStatsOverlayView = progressOverlay.requireHudView(R.id.stats_container)
+    val abRepeatContainer: AbRepeatControlsView = progressOverlay.requireHudView(R.id.ab_repeat_container)
+    val abRepeatReset: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.ab_repeat_reset)
+    val abRepeatStop: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.ab_repeat_stop)
+    val fastSeekWarning: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.fast_seek_warning)
+    val bookmarksBackground: BookmarksPanelView = progressOverlay.requireHudView(R.id.bookmarks_background)
+    val playerOverlayTime: VideoTimelineTimeLabelView = progressOverlay.requireHudView(R.id.player_overlay_time)
+    val playerOverlayLength: VideoTimelineTimeLabelView = progressOverlay.requireHudView(R.id.player_overlay_length)
+    val playerOverlaySeekbar: VideoTimelineSeekBarView = progressOverlay.requireHudView(R.id.player_overlay_seekbar)
+    val bookmarkMarkerContainer: BookmarkMarkerContainerView = progressOverlay.requireHudView(R.id.bookmark_marker_container)
+    val abRepeatMarkerGuidelineContainer: AbRepeatMarkerContainerView = progressOverlay.requireHudView(R.id.ab_repeat_marker_guideline_container)
+    val playerOverlayTracks: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.player_overlay_tracks)
+    val orientationToggle: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.orientation_toggle)
+    val playerSpaceLeft: View = progressOverlay.requireHudView(R.id.player_space_left)
+    val playlistPrevious: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.playlist_previous)
+    val playerOverlayRewind: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.player_overlay_rewind)
+    val playerOverlayRewindText: VideoHudSeekJumpLabelView = progressOverlay.requireHudView(R.id.player_overlay_rewind_text)
+    val playerOverlayPlay: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.player_overlay_play)
+    val playerOverlayForward: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.player_overlay_forward)
+    val playerOverlayForwardText: VideoHudSeekJumpLabelView = progressOverlay.requireHudView(R.id.player_overlay_forward_text)
+    val playlistNext: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.playlist_next)
+    val playerSpaceRight: View = progressOverlay.requireHudView(R.id.player_space_right)
+    val playerResize: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.player_resize)
+    val playerOverlayAdvFunction: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.player_overlay_adv_function)
+    val swipeToUnlock: SwipeToUnlockView = progressOverlay.requireHudView(R.id.swipe_to_unlock)
+
+    private inline fun <reified T : View> View.requireHudView(@IdRes id: Int): T {
+        return findViewById(id) ?: error("Missing video HUD view ${resources.getResourceEntryName(id)}")
+    }
+}

@@ -47,7 +47,6 @@ import androidx.compose.ui.unit.dp as composeDp
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.net.toUri
 import androidx.core.view.children
-import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -83,7 +82,6 @@ import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
 import org.videolan.vlc.RendererDelegate
 import org.videolan.vlc.VlcMigrationHelper
-import org.videolan.vlc.databinding.PlayerHudBinding
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.gui.audio.AudioPlaylistQueue
@@ -97,7 +95,6 @@ import org.videolan.vlc.gui.helpers.TalkbackUtil
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.showVideoTrack
 import org.videolan.vlc.gui.helpers.hf.checkPIN
-import org.videolan.vlc.gui.view.AbRepeatControlsView
 import org.videolan.vlc.gui.view.VideoHudRightOverlayView
 import org.videolan.vlc.gui.view.VideoInfoOverlayView
 import org.videolan.vlc.gui.view.VideoVerticalProgressOverlayView
@@ -125,7 +122,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
     var overlayInfo: View? = null
     lateinit var playerUiContainer: ViewGroup
 
-    lateinit var hudBinding: PlayerHudBinding
+    lateinit var hudBinding: VideoHudOverlayViews
     private lateinit var hudRightOverlay: VideoHudRightOverlayView
     private var overlayBackground: View? = null
 
@@ -528,7 +525,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
     private fun refreshAbRepeatStep(service: PlaybackService) {
         service.manageAbRepeatStep(hudBinding.abRepeatReset, hudBinding.abRepeatStop, hudBinding.abRepeatContainer) { markerText ->
-            (hudBinding.abRepeatContainer as AbRepeatControlsView).setMarkerText(markerText)
+            hudBinding.abRepeatContainer.setMarkerText(markerText)
         }
     }
 
@@ -544,7 +541,8 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
             if (!::hudBinding.isInitialized) {
                 seekButtons = player.settings.getBoolean(ENABLE_SEEK_BUTTONS, false)
-                hudBinding = DataBindingUtil.bind(player.findViewById(R.id.progress_overlay)) ?: return
+                val hudRoot = player.findViewById<ConstraintLayout>(R.id.progress_overlay) ?: return
+                hudBinding = VideoHudOverlayViews(hudRoot)
                 hudBinding.abRepeatMarkerGuidelineContainer.setMarkerIcon(R.drawable.ic_abrepeat_marker)
                 configureHudBindingListeners()
                 observeHudProgress(service)
