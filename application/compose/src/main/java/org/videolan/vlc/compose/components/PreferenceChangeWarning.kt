@@ -33,7 +33,7 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
  * Full Compose replacement for:
  * - application/vlc-android/res/layout/dialog_confirm_audio_playqueue.xml
  *
- * The app module owns result delivery back to PreferencesFragment. This content
+ * The app module owns result delivery back to the active preferences host. This content
  * keeps the warning icon, title, message, and OK/Cancel action surface.
  */
 @Composable

@@ -134,6 +134,8 @@ fun MyFullScreen() {
   - `VLCLibrariesScreen` hosted by `LibrariesActivity` (former DataBinding RecyclerView/list XML removed; license detail is Compose in this screen)
   - `VLCAboutScreen` hosted by `AboutActivity` (former About Fragment/XML and About license/version bottom-sheet Fragment paths removed)
   - `VLCFeedbackScreen` hosted by `FeedbackActivity` (former DataBinding XML layout removed)
+- Compose-hosted root screens with remaining subpage follow-up:
+  - `PreferencesActivity` root settings list (former phone root preference Fragment removed; deeper `BasePreferenceFragment` subpages still tracked separately)
   - `VLCPinCodeScreen` hosted by `PinCodeActivity` (former DataBinding PIN keypad XML layout removed)
   - `VLCSearchScreen` hosted by `SearchActivity` (former DataBinding Activity and result row XML layouts removed)
   - `VLCEqualizerSettingsScreen` hosted by `EqualizerSettingsActivity` (former DataBinding Activity/list row XML layouts and menu XML removed)
@@ -189,6 +191,7 @@ The **Compose Interop Lab** (`ComposeInteropLabActivity` + `compose_interop_lab.
   - Shared playback bookmark hosts: `application/vlc-android/src/org/videolan/vlc/gui/helpers/BookmarkListDelegate.kt` + `BookmarkMarkerContainerView.kt` + `BookmarksPanelView.kt` + `bookmarks.xml` + `audio_player.xml` / `layout-land/audio_player.xml` / `player_hud.xml` (`VLCBookmarkMarkers`, `VLCBookmarkRow`; compose-68e; timeline markers plus the shared bookmarks panel used by AudioPlayer and VideoPlayerOverlayDelegate)
   - Shared playback A-B repeat include: `application/vlc-android/res/layout/ab_repeat_controls.xml` + `application/vlc-android/src/org/videolan/vlc/gui/view/AbRepeatControlsView.kt` (`VLCAbRepeatControls`, `VLCAbRepeatChipIcon`, `VLCAbRepeatAddMarkerButton`; compose-68e; used by AudioPlayer and VideoPlayerOverlayDelegate through the shared include)
   - Shared playback option panel: `application/vlc-android/src/org/videolan/vlc/gui/helpers/PlayerOptionsDelegate.kt` + `PlayerOptionsPanelView.kt` + `player_options.xml` (`VLCPlayerOptionItem`; compose-68e; used by audio/video/player remote option panels through PlayerOptionsDelegate)
+  - Preferences root host: `application/vlc-android/src/org/videolan/vlc/gui/preferences/PreferencesActivity.kt` + `PreferencesRootScreen.kt` (bd compose-qeh; removes the phone root preference Fragment while preserving existing subpage preference fragments as follow-up work)
   - Crown jewel cross-cutting Lab (this milestone): `application/vlc-android/src/org/videolan/vlc/gui/ComposeInteropLabActivity.kt` + `compose_interop_lab.xml`
   - All leaves + interop + theme: `application/compose/src/main/java/org/videolan/vlc/compose/{components,interop,theme}/*`
   - Richer mocks derived from the Lab: `application/compose/src/main/java/org/videolan/vlc/compose/PreviewUtils.kt`
@@ -220,6 +223,7 @@ ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:comp
 - Part of the "preview + gate enforcement" acceptance criteria for Wave 1.
 
 **Current gate evidence**:
+- 2026-06-01: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk ANDROID_SDK_ROOT=/Users/bernardoferrari/Library/Android/sdk gradle :application:compose:build :application:vlc-android:compileDebugKotlin --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 20s` after replacing the phone root preference Fragment screen with `PreferencesRootScreen` hosted by `PreferencesActivity`, preserving root setting toggles/list dialogs and endpoint routing into existing subpages.
 - 2026-06-01: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk ANDROID_SDK_ROOT=/Users/bernardoferrari/Library/Android/sdk gradle :application:compose:build :application:vlc-android:compileDebugKotlin --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 22s` after moving `AudioAlbumTracksAdapter` active album track rows to `ComposeView` + `VLCBrowserItemRow`, preserving track-number/current-track/subtitle/action behavior while keeping `audio_album_track_item.xml` buildable as rollback.
 - 2026-06-01: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:compose:build :application:vlc-android:compileDebugKotlin --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 9s` after deleting `playlist_item.xml` and `PlaylistItemView.kt`, moving the app-side row artwork/action bridge into `AudioPlaylistMediaItem.kt`, and creating the audio playlist tips fake rows programmatically as Compose widgets.
 - 2026-06-01: `ANDROID_HOME=/Users/bernardoferrari/Library/Android/sdk gradle :application:vlc-android:compileDebugKotlin --no-daemon --console=plain` completed with `BUILD SUCCESSFUL in 22s` after deleting `playlist_item.xml` and `PlaylistItemView.kt`, moving the app-side row artwork/action bridge into `AudioPlaylistMediaItem.kt`, and creating the audio playlist tips fake rows programmatically as Compose widgets.

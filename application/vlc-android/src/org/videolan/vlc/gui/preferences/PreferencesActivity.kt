@@ -25,31 +25,57 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
+import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.Toolbar
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.os.bundleOf
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentManager
 import com.google.android.material.appbar.AppBarLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.videolan.libvlc.util.AndroidUtil
+import org.videolan.medialibrary.interfaces.Medialibrary
 import org.videolan.resources.ACTIVITY_RESULT_PREFERENCES
 import org.videolan.resources.util.parcelable
+import org.videolan.tools.AUDIO_RESUME_PLAYBACK
+import org.videolan.tools.KEY_AUDIO_LAST_PLAYLIST
+import org.videolan.tools.KEY_CURRENT_AUDIO
+import org.videolan.tools.KEY_CURRENT_AUDIO_RESUME_ARTIST
+import org.videolan.tools.KEY_CURRENT_AUDIO_RESUME_THUMB
+import org.videolan.tools.KEY_CURRENT_AUDIO_RESUME_TITLE
+import org.videolan.tools.KEY_CURRENT_MEDIA
+import org.videolan.tools.KEY_CURRENT_MEDIA_RESUME
+import org.videolan.tools.KEY_MEDIA_LAST_PLAYLIST
+import org.videolan.tools.KEY_MEDIA_LAST_PLAYLIST_RESUME
 import org.videolan.tools.KEY_RESTRICT_SETTINGS
+import org.videolan.tools.KEY_VIDEO_APP_SWITCH
+import org.videolan.tools.PLAYBACK_HISTORY
 import org.videolan.tools.RESULT_RESTART
 import org.videolan.tools.RESULT_RESTART_APP
 import org.videolan.tools.RESULT_UPDATE_ARTISTS
 import org.videolan.tools.Settings
+import org.videolan.tools.Settings.isPinCodeSet
+import org.videolan.tools.VIDEO_RESUME_PLAYBACK
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
 import org.videolan.vlc.gui.BaseActivity
+import org.videolan.vlc.gui.EqualizerSettingsActivity
 import org.videolan.vlc.gui.PinCodeActivity
 import org.videolan.vlc.gui.PinCodeReason
+import org.videolan.vlc.gui.SecondaryActivity
 import org.videolan.vlc.gui.dialogs.showAudioControlsSettingsComposeDialog
+import org.videolan.vlc.gui.dialogs.showPermissionListComposeDialog
 import org.videolan.vlc.gui.dialogs.showVideoControlsSettingsComposeDialog
+import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.preferences.search.PreferenceItem
 import org.videolan.vlc.gui.preferences.search.PreferenceParser
 import org.videolan.vlc.gui.preferences.search.PreferenceSearchActivity
+import org.videolan.vlc.util.Permissions
 import org.videolan.vlc.widget.utils.refreshAllWidgets
 
 const val EXTRA_PREF_END_POINT = "extra_pref_end_point"
@@ -63,6 +89,11 @@ class PreferencesActivity : BaseActivity() {
             finish()
         }
     }
+    private var parentalPinCodeResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            openPreferenceFragment(PreferencesParentalControl())
+        }
+    }
     override fun getSnackAnchorView(overAudioPlayer:Boolean): View? = findViewById(android.R.id.content)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,13 +105,16 @@ class PreferencesActivity : BaseActivity() {
 
         setContentView(R.layout.preferences_activity)
         setSupportActionBar(findViewById<View>(R.id.main_toolbar) as Toolbar)
-        if (savedInstanceState == null) {
-            supportFragmentManager.beginTransaction()
-                    .replace(R.id.fragment_placeholder, PreferencesFragment().apply { if (intent.hasExtra(EXTRA_PREF_END_POINT)) arguments = bundleOf(EXTRA_PREF_END_POINT to intent.parcelable(EXTRA_PREF_END_POINT)) })
-                    .commit()
-        }
         mAppBarLayout = findViewById(R.id.appbar)
         mAppBarLayout!!.post { ViewCompat.setElevation(mAppBarLayout!!, resources.getDimensionPixelSize(R.dimen.default_appbar_elevation).toFloat()) }
+        onBackPressedDispatcher.addCallback(this) {
+            if (!navigateUp()) finish()
+        }
+        if (savedInstanceState == null) {
+            intent.parcelable<PreferenceItem>(EXTRA_PREF_END_POINT)?.let(::routePreferenceEndpoint) ?: showPreferencesRoot()
+        } else if (supportFragmentManager.findFragmentById(R.id.fragment_placeholder) == null) {
+            showPreferencesRoot()
+        }
     }
 
     override fun onStop() {
@@ -100,7 +134,7 @@ class PreferencesActivity : BaseActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {
-                if (!supportFragmentManager.popBackStackImmediate())
+                if (!navigateUp())
                     finish()
                 return true
             }
@@ -115,13 +149,160 @@ class PreferencesActivity : BaseActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == searchRequestCode && resultCode == RESULT_OK) {
             data?.extras?.parcelable<PreferenceItem>(EXTRA_PREF_END_POINT)?.let {
-                supportFragmentManager.popBackStack()
-                supportFragmentManager.beginTransaction()
-                        .replace(R.id.fragment_placeholder, PreferencesFragment().apply { arguments = bundleOf(EXTRA_PREF_END_POINT to it) })
-                        .commit()
+                supportFragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+                routePreferenceEndpoint(it)
             }
         }
 
+    }
+
+    private fun showPreferencesRoot(highlightedKey: String? = null) {
+        expandBar()
+        supportActionBar?.title = getString(R.string.preferences)
+        findViewById<ViewGroup>(R.id.fragment_placeholder).apply {
+            removeAllViews()
+            addView(
+                ComposeView(this@PreferencesActivity).apply {
+                    layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+                    setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+                    setContent {
+                        val settings = Settings.getInstance(this@PreferencesActivity)
+                        PreferencesRootScreen(
+                            settings = settings,
+                            highlightedKey = highlightedKey,
+                            isVisible = { PreferenceVisibilityManager.isPreferenceVisible(it, settings, false) },
+                            onDirectoriesClick = ::openDirectories,
+                            onPermissionClick = { showPermissionListComposeDialog() },
+                            onEqualizerClick = { startActivity(Intent(applicationContext, EqualizerSettingsActivity::class.java)) },
+                            onCategoryClick = ::openRootDestination,
+                            onPlaybackHistoryDisabled = ::disablePlaybackHistory,
+                            onAudioResumeDisabled = ::disableAudioResumePlayback,
+                            onVideoResumeChanged = ::onVideoResumePlaybackChanged,
+                            onVideoActionSwitchChanged = ::onVideoActionSwitchChanged
+                        )
+                    }
+                }
+            )
+        }
+    }
+
+    private fun openDirectories() {
+        if (Medialibrary.getInstance().isWorking) {
+            UiTools.snacker(this, getString(R.string.settings_ml_block_scan))
+        } else {
+            val intent = Intent(applicationContext, SecondaryActivity::class.java)
+            intent.putExtra("fragment", SecondaryActivity.STORAGE_BROWSER)
+            startActivity(intent)
+            setResult(RESULT_RESTART)
+        }
+    }
+
+    private fun openRootDestination(destination: PreferencesRootDestination) {
+        when (destination) {
+            PreferencesRootDestination.Ui -> openPreferenceFragment(PreferencesUi())
+            PreferencesRootDestination.Video -> openPreferenceFragment(PreferencesVideo())
+            PreferencesRootDestination.Subtitles -> openPreferenceFragment(PreferencesSubtitles())
+            PreferencesRootDestination.Audio -> openPreferenceFragment(PreferencesAudio())
+            PreferencesRootDestination.Casting -> openPreferenceFragment(PreferencesCasting())
+            PreferencesRootDestination.ParentalControl -> {
+                if (isPinCodeSet()) {
+                    openPreferenceFragment(PreferencesParentalControl())
+                } else {
+                    parentalPinCodeResult.launch(PinCodeActivity.getIntent(this, PinCodeReason.FIRST_CREATION))
+                }
+            }
+            PreferencesRootDestination.RemoteAccess -> openPreferenceFragment(PreferencesRemoteAccess())
+            PreferencesRootDestination.AndroidAuto -> openPreferenceFragment(PreferencesAndroidAuto())
+            PreferencesRootDestination.Advanced -> openPreferenceFragment(PreferencesAdvanced())
+        }
+    }
+
+    private fun routePreferenceEndpoint(endPoint: PreferenceItem) {
+        when (endPoint.parentScreen) {
+            PreferenceParser.VIDEO_CONTROLS_PARENT_SCREEN -> {
+                showPreferencesRoot(endPoint.key)
+                showVideoControlsSettingsComposeDialog()
+            }
+            PreferenceParser.AUDIO_CONTROLS_PARENT_SCREEN -> {
+                showPreferencesRoot(endPoint.key)
+                showAudioControlsSettingsComposeDialog()
+            }
+            R.xml.preferences_ui -> openPreferenceFragment(PreferencesUi().withEndpoint(endPoint))
+            R.xml.preferences_video -> openPreferenceFragment(PreferencesVideo().withEndpoint(endPoint))
+            R.xml.preferences_subtitles -> openPreferenceFragment(PreferencesSubtitles().withEndpoint(endPoint))
+            R.xml.preferences_audio -> openPreferenceFragment(PreferencesAudio().withEndpoint(endPoint))
+            R.xml.preferences_adv -> openPreferenceFragment(PreferencesAdvanced().withEndpoint(endPoint))
+            R.xml.preferences_casting -> openPreferenceFragment(PreferencesCasting().withEndpoint(endPoint))
+            R.xml.preferences_parental_control -> openPreferenceFragment(PreferencesParentalControl().withEndpoint(endPoint))
+            R.xml.preferences_remote_access -> openPreferenceFragment(PreferencesRemoteAccess().withEndpoint(endPoint))
+            R.xml.preferences_android_auto -> openPreferenceFragment(PreferencesAndroidAuto().withEndpoint(endPoint))
+            else -> showPreferencesRoot(endPoint.key)
+        }
+    }
+
+    private fun BasePreferenceFragment.withEndpoint(endPoint: PreferenceItem): BasePreferenceFragment {
+        arguments = bundleOf(EXTRA_PREF_END_POINT to endPoint)
+        return this
+    }
+
+    private fun openPreferenceFragment(fragment: BasePreferenceFragment) {
+        findViewById<ViewGroup>(R.id.fragment_placeholder).removeAllViews()
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragment_placeholder, fragment)
+            .addToBackStack("main")
+            .commit()
+    }
+
+    private fun navigateUp(): Boolean {
+        if (supportFragmentManager.popBackStackImmediate()) {
+            if (supportFragmentManager.findFragmentById(R.id.fragment_placeholder) == null) {
+                showPreferencesRoot()
+            }
+            return true
+        }
+        return false
+    }
+
+    private fun disablePlaybackHistory() {
+        Settings.getInstance(this).edit()
+            .putBoolean(PLAYBACK_HISTORY, false)
+            .apply()
+        setResult(RESULT_RESTART)
+    }
+
+    private fun disableAudioResumePlayback() {
+        Settings.getInstance(this).edit()
+            .remove(KEY_AUDIO_LAST_PLAYLIST)
+            .remove(KEY_MEDIA_LAST_PLAYLIST_RESUME)
+            .remove(KEY_CURRENT_AUDIO_RESUME_TITLE)
+            .remove(KEY_CURRENT_AUDIO_RESUME_ARTIST)
+            .remove(KEY_CURRENT_AUDIO_RESUME_THUMB)
+            .remove(KEY_CURRENT_AUDIO)
+            .remove(KEY_CURRENT_MEDIA)
+            .remove(KEY_CURRENT_MEDIA_RESUME)
+            .putBoolean(AUDIO_RESUME_PLAYBACK, false)
+            .apply()
+        setResult(RESULT_RESTART)
+    }
+
+    private fun onVideoResumePlaybackChanged(enabled: Boolean) {
+        if (!enabled) {
+            Settings.getInstance(this).edit()
+                .remove(KEY_MEDIA_LAST_PLAYLIST)
+                .remove(KEY_MEDIA_LAST_PLAYLIST_RESUME)
+                .remove(KEY_CURRENT_MEDIA_RESUME)
+                .remove(KEY_CURRENT_MEDIA)
+                .putBoolean(VIDEO_RESUME_PLAYBACK, false)
+                .apply()
+            setResult(RESULT_RESTART)
+        }
+    }
+
+    private fun onVideoActionSwitchChanged(value: String) {
+        if (!AndroidUtil.isOOrLater && value == "2" && !Permissions.canDrawOverlays(this)) {
+            Permissions.checkDrawOverlaysPermission(this)
+        }
+        Settings.getInstance(this).edit().putString(KEY_VIDEO_APP_SWITCH, value).apply()
     }
 
     fun exitAndRescan() {
