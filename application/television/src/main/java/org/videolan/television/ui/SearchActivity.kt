@@ -25,26 +25,29 @@ import android.app.Activity
 import android.app.SearchManager
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.view.KeyEvent
-import android.widget.ImageView
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -62,8 +65,9 @@ import org.videolan.vlc.compose.components.VLCSearchResultRow
 import org.videolan.vlc.compose.components.VLCSearchScreen
 import org.videolan.vlc.compose.components.VLCSearchSection
 import org.videolan.vlc.gui.helpers.UiTools
-import org.videolan.vlc.gui.helpers.loadImage
+import org.videolan.vlc.gui.helpers.getTvIconRes
 import org.videolan.vlc.util.generateResolutionClass
+import org.videolan.vlc.util.ThumbnailsProvider
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 class SearchActivity : BaseTvActivity() {
@@ -239,24 +243,31 @@ private fun SearchIcon(drawable: Int) {
 
 @Composable
 private fun SearchResultThumbnail(item: MediaLibraryItem?, thumbnailWide: Boolean) {
+    if (item == null) return
     val imageWidth = with(LocalDensity.current) { (if (thumbnailWide) 100.dp else 48.dp).roundToPx() }
-
-    AndroidView(
-        factory = { context ->
-            ImageView(context).apply {
-                adjustViewBounds = true
-                scaleType = ImageView.ScaleType.CENTER_CROP
-            }
-        },
-        modifier = Modifier.fillMaxSize(),
-        update = { imageView ->
-            if (item == null) {
-                imageView.setImageDrawable(null)
-                return@AndroidView
-            }
-            imageView.scaleType = ImageView.ScaleType.CENTER_CROP
-            imageView.setImageDrawable(UiTools.getDefaultCover(imageView.context, item))
-            loadImage(imageView, item, imageWidth)
+    val bitmap by produceState<Bitmap?>(initialValue = null, item, imageWidth, Settings.showVideoThumbs) {
+        value = null
+        value = if (!Settings.showVideoThumbs && item is MediaWrapper && item.type == MediaWrapper.TYPE_VIDEO) {
+            null
+        } else {
+            ThumbnailsProvider.obtainBitmap(item, imageWidth)
         }
-    )
+    }
+
+    val cover = bitmap
+    if (cover == null) {
+        Image(
+            painter = painterResource(getTvIconRes(item)),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+    } else {
+        Image(
+            bitmap = cover.asImageBitmap(),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+    }
 }
