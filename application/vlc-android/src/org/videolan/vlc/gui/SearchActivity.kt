@@ -2,27 +2,32 @@ package org.videolan.vlc.gui
 
 import android.app.SearchManager
 import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
-import android.widget.ImageView
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.videolan.medialibrary.Tools
 import org.videolan.medialibrary.interfaces.media.Genre
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
@@ -36,8 +41,8 @@ import org.videolan.vlc.compose.components.VLCSearchResultRow
 import org.videolan.vlc.compose.components.VLCSearchScreen
 import org.videolan.vlc.compose.components.VLCSearchSection
 import org.videolan.vlc.gui.helpers.UiTools
-import org.videolan.vlc.gui.helpers.loadImage
 import org.videolan.vlc.media.MediaUtils
+import org.videolan.vlc.util.ThumbnailsProvider
 import org.videolan.vlc.util.generateResolutionClass
 
 open class SearchActivity : BaseActivity() {
@@ -184,24 +189,47 @@ private fun SearchIcon(drawable: Int) {
 
 @Composable
 private fun SearchResultThumbnail(item: MediaLibraryItem?, thumbnailWide: Boolean) {
+    if (item == null) return
     val imageWidth = with(LocalDensity.current) { (if (thumbnailWide) 100.dp else 48.dp).roundToPx() }
+    val thumbnail by produceState<Bitmap?>(initialValue = null, item, imageWidth, Settings.showVideoThumbs) {
+        value = null
+        value = loadSearchThumbnail(item, imageWidth)
+    }
 
-    AndroidView(
-        factory = { context ->
-            ImageView(context).apply {
-                adjustViewBounds = true
-                scaleType = ImageView.ScaleType.CENTER_CROP
-            }
-        },
-        modifier = Modifier.fillMaxSize(),
-        update = { imageView ->
-            if (item == null) {
-                imageView.setImageDrawable(null)
-                return@AndroidView
-            }
-            imageView.scaleType = ImageView.ScaleType.CENTER_CROP
-            imageView.setImageDrawable(UiTools.getDefaultCover(imageView.context, item))
-            loadImage(imageView, item, imageWidth)
-        }
-    )
+    val bitmap = thumbnail?.takeIf { it.width > 1 && it.height > 1 }
+    if (bitmap == null) {
+        Image(
+            painter = painterResource(item.defaultSearchCoverResource),
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.fillMaxSize()
+        )
+    } else {
+        Image(
+            bitmap = bitmap.asImageBitmap(),
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.fillMaxSize()
+        )
+    }
 }
+
+private suspend fun loadSearchThumbnail(item: MediaLibraryItem, imageWidth: Int): Bitmap? {
+    if (!Settings.showVideoThumbs && item is MediaWrapper && item.type == MediaWrapper.TYPE_VIDEO) return null
+    if ((item.itemType == MediaLibraryItem.TYPE_PLAYLIST || item.itemType == MediaLibraryItem.TYPE_GENRE) && imageWidth > 0) {
+        val tracks = withContext(Dispatchers.IO) { item.tracks.toList() }
+        val key = if (item is MediaWrapper && item.type == MediaWrapper.TYPE_PLAYLIST) "playlist" else "genre"
+        return ThumbnailsProvider.getPlaylistOrGenreImage("$key:${item.id}_$imageWidth", tracks, imageWidth)
+    }
+    return ThumbnailsProvider.obtainBitmap(item, imageWidth)
+}
+
+private val MediaLibraryItem.defaultSearchCoverResource: Int
+    get() = when (itemType) {
+        MediaLibraryItem.TYPE_ARTIST -> R.drawable.ic_no_artist
+        MediaLibraryItem.TYPE_ALBUM -> R.drawable.ic_no_album
+        MediaLibraryItem.TYPE_MEDIA -> {
+            if ((this as? MediaWrapper)?.type == MediaWrapper.TYPE_VIDEO) R.drawable.ic_no_thumbnail_1610 else R.drawable.ic_no_song
+        }
+        else -> R.drawable.ic_no_song
+    }
