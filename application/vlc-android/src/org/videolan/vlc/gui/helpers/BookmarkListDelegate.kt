@@ -24,7 +24,6 @@
 
 package org.videolan.vlc.gui.helpers
 
-import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.lifecycleScope
@@ -39,6 +38,7 @@ import org.videolan.vlc.R
 import org.videolan.vlc.gui.dialogs.showRenameComposeDialog
 import org.videolan.vlc.gui.view.BookmarkMarkerContainerView
 import org.videolan.vlc.gui.view.BookmarkPanelItem
+import org.videolan.vlc.gui.view.BookmarkPanelHost
 import org.videolan.vlc.gui.view.BookmarksPanelView
 import org.videolan.vlc.util.LocaleUtil
 import org.videolan.vlc.viewmodels.BookmarkModel
@@ -58,25 +58,29 @@ class BookmarkListDelegate(
 ) : LifecycleObserver {
 
     private var markerHost: BookmarkMarkerHost? = null
+    private var panelHost: BookmarkPanelHost? = null
+    private var panelHostConfigured = false
     var markerContainer: BookmarkMarkerContainerView
         get() = (markerHost as? BookmarkMarkerContainerHost)?.view ?: error("Bookmark marker container is not a view host")
         set(value) {
             markerHost = BookmarkMarkerContainerHost(value)
         }
-    private lateinit var rootView: BookmarksPanelView
     lateinit var visibilityListener: () -> Unit
     lateinit var seekListener: (Boolean, Boolean) -> Unit
     val visible: Boolean
-        get() = ::rootView.isInitialized && rootView.visibility != View.GONE
+        get() = panelHost?.visible == true
 
     fun show() {
-        if (!::rootView.isInitialized) {
-            rootView = activity.findViewById<BookmarksPanelView>(R.id.bookmarks_background) ?: return
+        val panel = panelHost ?: activity.findViewById<BookmarksPanelView>(R.id.bookmarks_background)?.also {
+            panelHost = it
+        } ?: return
+        if (!panelHostConfigured) {
             setupRootView()
             observeBookmarks()
+            panelHostConfigured = true
         }
         bookmarkModel.refresh()
-        rootView.setVisible()
+        panel.show()
         markerHost?.show()
         visibilityListener.invoke()
         updateJumpDelay()
@@ -85,43 +89,44 @@ class BookmarkListDelegate(
     private fun setupRootView() {
         service.lifecycle.addObserver(this)
         activity.lifecycle.addObserver(this)
+        val panel = panelHost ?: return
 
-        rootView.setOnCloseClickListener { hide() }
-        rootView.setOnAddBookmarkClickListener {
+        panel.setOnCloseClickListener { hide() }
+        panel.setOnAddBookmarkClickListener {
             bookmarkModel.addBookmark(activity)
-            rootView.announceBookmarkAdded(activity.getString(R.string.bookmark_added))
+            panel.announceBookmarkAdded(activity.getString(R.string.bookmark_added))
         }
-        rootView.setOnPreviousBookmarkClickListener {
+        panel.setOnPreviousBookmarkClickListener {
             val bookmark = if (LocaleUtil.isRtl()) bookmarkModel.findNext() else bookmarkModel.findPrevious()
             bookmark?.let { service.setTime(it.time) }
         }
-        rootView.setOnNextBookmarkClickListener {
+        panel.setOnNextBookmarkClickListener {
             val bookmark = if (LocaleUtil.isRtl()) bookmarkModel.findPrevious() else bookmarkModel.findNext()
             bookmark?.let { service.setTime(it.time) }
         }
-        rootView.setOnRewindClickListener { seekListener.invoke(false, false) }
-        rootView.setOnForwardClickListener { seekListener.invoke(true, false) }
-        rootView.setOnRewindLongClickListener { seekListener.invoke(false, true) }
-        rootView.setOnForwardLongClickListener { seekListener.invoke(true, true) }
-        rootView.setOnBookmarkClickListener { service.setTime(it.time) }
-        rootView.setOnBookmarkRenameClickListener { bookmark ->
+        panel.setOnRewindClickListener { seekListener.invoke(false, false) }
+        panel.setOnForwardClickListener { seekListener.invoke(true, false) }
+        panel.setOnRewindLongClickListener { seekListener.invoke(false, true) }
+        panel.setOnForwardLongClickListener { seekListener.invoke(true, true) }
+        panel.setOnBookmarkClickListener { service.setTime(it.time) }
+        panel.setOnBookmarkRenameClickListener { bookmark ->
             activity.showRenameComposeDialog(bookmark) { media, name ->
                 renameBookmark(media as Bookmark, name)
             }
         }
-        rootView.setOnBookmarkDeleteClickListener { bookmarkModel.delete(it) }
+        panel.setOnBookmarkDeleteClickListener { bookmarkModel.delete(it) }
     }
 
     private fun observeBookmarks() {
         bookmarkModel.dataset.observe(activity) { bookmarkList ->
-            rootView.setBookmarks(bookmarkList.toPanelItems())
+            panelHost?.setBookmarks(bookmarkList.toPanelItems())
             markerHost?.let { showBookmarks(it, service, bookmarkList) }
         }
     }
 
     private fun updateJumpDelay() {
         val jumpDelay = if (forVideo) Settings.videoJumpDelay else Settings.audioJumpDelay
-        rootView.setJumpDelay(
+        panelHost?.setJumpDelay(
             jumpDelay = jumpDelay,
             rewindDescription = activity.getString(R.string.talkback_action_rewind, jumpDelay.toString()),
             forwardDescription = activity.getString(R.string.talkback_action_forward, jumpDelay.toString())
@@ -129,9 +134,13 @@ class BookmarkListDelegate(
     }
 
     fun hide() {
-        if (::rootView.isInitialized) rootView.setGone()
+        panelHost?.hide()
         markerHost?.hide()
         if (::visibilityListener.isInitialized) visibilityListener.invoke()
+    }
+
+    fun setPanelHost(host: BookmarkPanelHost) {
+        panelHost = host
     }
 
     fun setMarkerHost(host: BookmarkMarkerHost) {
@@ -139,21 +148,21 @@ class BookmarkListDelegate(
     }
 
     fun setProgressHeight(y: Float) {
-        if (::rootView.isInitialized) rootView.setProgressTop(y)
+        panelHost?.setProgressTop(y)
     }
 
     fun sendAddBookmarkAccessibilityEvent() {
-        if (::rootView.isInitialized) rootView.sendAddBookmarkAccessibilityEvent()
+        panelHost?.sendAddBookmarkAccessibilityEvent()
     }
 
     fun requestFocus() {
-        if (::rootView.isInitialized) rootView.requestFocus()
+        panelHost?.requestPanelFocus()
     }
 
     fun renameBookmark(media: Bookmark, name: String) {
         activity.lifecycleScope.launch {
             val bookmarks = bookmarkModel.rename(media, name)
-            rootView.setBookmarks(bookmarks.toPanelItems())
+            panelHost?.setBookmarks(bookmarks.toPanelItems())
             bookmarkModel.refresh()
         }
     }

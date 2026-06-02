@@ -61,6 +61,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.videolan.libvlc.MediaPlayer
 import org.videolan.libvlc.interfaces.IMedia
+import org.videolan.medialibrary.interfaces.media.Bookmark
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.resources.AndroidDevices
 import org.videolan.resources.util.parcelableList
@@ -86,7 +87,8 @@ import org.videolan.vlc.gui.helpers.PlayerOptionsDelegateCallback
 import org.videolan.vlc.gui.helpers.TalkbackUtil
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
-import org.videolan.vlc.gui.view.BookmarksPanelView
+import org.videolan.vlc.gui.view.BookmarkPanelHost
+import org.videolan.vlc.gui.view.BookmarkPanelItem
 import org.videolan.vlc.gui.view.PlayerOptionsPanelView
 import org.videolan.vlc.gui.video.VideoPlayerActivity
 import org.videolan.vlc.media.MediaUtils
@@ -127,7 +129,107 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
     private var progressLabelsState by mutableStateOf(TvAudioProgressLabelsState())
     private var artworkState by mutableStateOf(TvAudioArtworkState())
     private var timelineState by mutableStateOf(TvAudioTimelineState())
+    private var bookmarksPanelState by mutableStateOf(TvAudioBookmarksPanelState())
     private var bookmarkMarkersState by mutableStateOf(TvAudioBookmarkMarkersState())
+    private val tvBookmarksPanelHost = object : BookmarkPanelHost {
+        var onCloseClick: () -> Unit = {}
+        var onAddBookmarkClick: () -> Unit = {}
+        var onPreviousBookmarkClick: () -> Unit = {}
+        var onNextBookmarkClick: () -> Unit = {}
+        var onRewindClick: () -> Unit = {}
+        var onForwardClick: () -> Unit = {}
+        var onRewindLongClick: () -> Unit = {}
+        var onForwardLongClick: () -> Unit = {}
+        var onBookmarkClick: (Bookmark) -> Unit = {}
+        var onBookmarkRenameClick: (Bookmark) -> Unit = {}
+        var onBookmarkDeleteClick: (Bookmark) -> Unit = {}
+
+        override val visible: Boolean
+            get() = bookmarksPanelState.visible
+
+        override fun show() {
+            bookmarksPanelState = bookmarksPanelState.copy(visible = true)
+            if (::views.isInitialized) views.bookmarksPanel.visibility = View.VISIBLE
+        }
+
+        override fun hide() {
+            bookmarksPanelState = bookmarksPanelState.copy(visible = false)
+            if (::views.isInitialized) views.bookmarksPanel.visibility = View.GONE
+        }
+
+        override fun setBookmarks(bookmarks: List<BookmarkPanelItem>) {
+            bookmarksPanelState = bookmarksPanelState.copy(bookmarks = bookmarks)
+        }
+
+        override fun setJumpDelay(jumpDelay: Int, rewindDescription: String, forwardDescription: String) {
+            bookmarksPanelState = bookmarksPanelState.copy(
+                jumpDelayText = jumpDelay.toString(),
+                rewindContentDescription = rewindDescription,
+                forwardContentDescription = forwardDescription
+            )
+        }
+
+        override fun setProgressTop(y: Float) {
+            bookmarksPanelState = bookmarksPanelState.copy(progressTopPx = y)
+        }
+
+        @Suppress("DEPRECATION")
+        override fun announceBookmarkAdded(message: String) {
+            if (::views.isInitialized) views.bookmarksPanel.announceForAccessibility(message)
+        }
+
+        override fun sendAddBookmarkAccessibilityEvent() {
+            requestPanelFocus()
+        }
+
+        override fun requestPanelFocus() {
+            bookmarksPanelState = bookmarksPanelState.copy(addBookmarkFocusToken = bookmarksPanelState.addBookmarkFocusToken + 1)
+        }
+
+        override fun setOnCloseClickListener(listener: () -> Unit) {
+            onCloseClick = listener
+        }
+
+        override fun setOnAddBookmarkClickListener(listener: () -> Unit) {
+            onAddBookmarkClick = listener
+        }
+
+        override fun setOnPreviousBookmarkClickListener(listener: () -> Unit) {
+            onPreviousBookmarkClick = listener
+        }
+
+        override fun setOnNextBookmarkClickListener(listener: () -> Unit) {
+            onNextBookmarkClick = listener
+        }
+
+        override fun setOnRewindClickListener(listener: () -> Unit) {
+            onRewindClick = listener
+        }
+
+        override fun setOnForwardClickListener(listener: () -> Unit) {
+            onForwardClick = listener
+        }
+
+        override fun setOnRewindLongClickListener(listener: () -> Unit) {
+            onRewindLongClick = listener
+        }
+
+        override fun setOnForwardLongClickListener(listener: () -> Unit) {
+            onForwardLongClick = listener
+        }
+
+        override fun setOnBookmarkClickListener(listener: (Bookmark) -> Unit) {
+            onBookmarkClick = listener
+        }
+
+        override fun setOnBookmarkRenameClickListener(listener: (Bookmark) -> Unit) {
+            onBookmarkRenameClick = listener
+        }
+
+        override fun setOnBookmarkDeleteClickListener(listener: (Bookmark) -> Unit) {
+            onBookmarkDeleteClick = listener
+        }
+    }
     private val tvBookmarkMarkerHost = object : BookmarkMarkerHost {
         override fun show() {
             bookmarkMarkersState = bookmarkMarkersState.copy(visible = true)
@@ -262,6 +364,26 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
             VLCTheme(darkTheme = true) {
                 TvAudioBookmarkMarkers(
                     state = bookmarkMarkersState
+                )
+            }
+        }
+        views.bookmarksPanel.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        views.bookmarksPanel.setContent {
+            VLCTheme(darkTheme = true) {
+                TvAudioBookmarksPanel(
+                    state = bookmarksPanelState,
+                    onCloseClick = { tvBookmarksPanelHost.onCloseClick() },
+                    onAddBookmarkClick = { tvBookmarksPanelHost.onAddBookmarkClick() },
+                    onPreviousBookmarkClick = { tvBookmarksPanelHost.onPreviousBookmarkClick() },
+                    onNextBookmarkClick = { tvBookmarksPanelHost.onNextBookmarkClick() },
+                    onRewindClick = { tvBookmarksPanelHost.onRewindClick() },
+                    onForwardClick = { tvBookmarksPanelHost.onForwardClick() },
+                    onRewindLongClick = { tvBookmarksPanelHost.onRewindLongClick() },
+                    onForwardLongClick = { tvBookmarksPanelHost.onForwardLongClick() },
+                    onBookmarkClick = { tvBookmarksPanelHost.onBookmarkClick(it) },
+                    onBookmarkRenameClick = { tvBookmarksPanelHost.onBookmarkRenameClick(it) },
+                    onBookmarkDeleteClick = { tvBookmarksPanelHost.onBookmarkDeleteClick(it) },
+                    modifier = Modifier.fillMaxSize()
                 )
             }
         }
@@ -512,6 +634,7 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
         model.service?.let {
             if (!this::bookmarkListDelegate.isInitialized) {
                 bookmarkListDelegate = BookmarkListDelegate(this, it, bookmarkModel, false)
+                bookmarkListDelegate.setPanelHost(tvBookmarksPanelHost)
                 bookmarkListDelegate.visibilityListener = {
                     if (bookmarkListDelegate.visible) bookmarkListDelegate.requestFocus()
                     playlistFocusEnabled = !bookmarkListDelegate.visible
@@ -624,6 +747,7 @@ private data class TvAudioPlayerViews(
     val trackInfo: ComposeView,
     val quickActions: ComposeView,
     val transportControls: ComposeView,
+    val bookmarksPanel: ComposeView,
     val bookmarkMarkerContainer: ComposeView,
     val mediaProgress: ComposeView,
     val progressLabels: ComposeView
@@ -724,11 +848,10 @@ private fun createTvAudioPlayerViews(context: Context): TvAudioPlayerViews {
         bottomMargin = 16.dp
     })
 
-    val bookmarksPanel = BookmarksPanelView(context).apply {
+    val bookmarksPanel = ComposeView(context).apply {
         id = VlcR.id.bookmarks_background
         visibility = View.GONE
         isFocusable = false
-        setBackgroundColor(context.resolveThemeColor(VlcR.attr.bookmark_background))
     }
     root.addView(bookmarksPanel, ConstraintLayout.LayoutParams(500.dp, 0).apply {
         topToTop = ConstraintLayout.LayoutParams.PARENT_ID
@@ -795,6 +918,7 @@ private fun createTvAudioPlayerViews(context: Context): TvAudioPlayerViews {
         trackInfo = trackInfo,
         quickActions = quickActions,
         transportControls = transportControls,
+        bookmarksPanel = bookmarksPanel,
         bookmarkMarkerContainer = bookmarkMarkerContainer,
         mediaProgress = mediaProgress,
         progressLabels = progressLabels

@@ -2,6 +2,7 @@ package org.videolan.vlc.gui.view
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.View
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -43,6 +44,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.videolan.medialibrary.interfaces.media.Bookmark
 import org.videolan.tools.Settings
+import org.videolan.tools.setGone
+import org.videolan.tools.setVisible
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.components.VLCAudioSeekDelayLabel
 import org.videolan.vlc.compose.components.VLCAudioSeekHudButton
@@ -58,6 +61,29 @@ data class BookmarkPanelItem(
     val timeContentDescription: String
 )
 
+interface BookmarkPanelHost {
+    val visible: Boolean
+    fun show()
+    fun hide()
+    fun setBookmarks(bookmarks: List<BookmarkPanelItem>)
+    fun setJumpDelay(jumpDelay: Int, rewindDescription: String, forwardDescription: String)
+    fun setProgressTop(y: Float)
+    fun announceBookmarkAdded(message: String)
+    fun sendAddBookmarkAccessibilityEvent()
+    fun requestPanelFocus()
+    fun setOnCloseClickListener(listener: () -> Unit)
+    fun setOnAddBookmarkClickListener(listener: () -> Unit)
+    fun setOnPreviousBookmarkClickListener(listener: () -> Unit)
+    fun setOnNextBookmarkClickListener(listener: () -> Unit)
+    fun setOnRewindClickListener(listener: () -> Unit)
+    fun setOnForwardClickListener(listener: () -> Unit)
+    fun setOnRewindLongClickListener(listener: () -> Unit)
+    fun setOnForwardLongClickListener(listener: () -> Unit)
+    fun setOnBookmarkClickListener(listener: (Bookmark) -> Unit)
+    fun setOnBookmarkRenameClickListener(listener: (Bookmark) -> Unit)
+    fun setOnBookmarkDeleteClickListener(listener: (Bookmark) -> Unit)
+}
+
 /**
  * Direct Compose-backed shared bookmarks overlay. The audio/video hosts place
  * this view at the former stub bounds while it owns the former toolbar,
@@ -68,7 +94,7 @@ class BookmarksPanelView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : VLCAbstractComposeWidget(context, attrs, defStyleAttr) {
+) : VLCAbstractComposeWidget(context, attrs, defStyleAttr), BookmarkPanelHost {
 
     private var panelBookmarks by mutableStateOf<List<BookmarkPanelItem>>(emptyList())
     private var jumpDelayText by mutableStateOf(Settings.audioJumpDelay.toString())
@@ -93,11 +119,22 @@ class BookmarksPanelView @JvmOverloads constructor(
         isFocusable = false
     }
 
-    fun setBookmarks(bookmarks: List<BookmarkPanelItem>) {
+    override val visible: Boolean
+        get() = visibility != View.GONE
+
+    override fun show() {
+        setVisible()
+    }
+
+    override fun hide() {
+        setGone()
+    }
+
+    override fun setBookmarks(bookmarks: List<BookmarkPanelItem>) {
         panelBookmarks = bookmarks
     }
 
-    fun setJumpDelay(
+    override fun setJumpDelay(
         jumpDelay: Int,
         rewindDescription: String,
         forwardDescription: String
@@ -107,126 +144,174 @@ class BookmarksPanelView @JvmOverloads constructor(
         forwardContentDescription = forwardDescription
     }
 
-    fun setProgressTop(y: Float) {
+    override fun setProgressTop(y: Float) {
         progressTopPx = y
     }
 
     @Suppress("DEPRECATION")
-    fun announceBookmarkAdded(message: String) {
+    override fun announceBookmarkAdded(message: String) {
         announceForAccessibility(message)
     }
 
-    fun sendAddBookmarkAccessibilityEvent() {
+    override fun sendAddBookmarkAccessibilityEvent() {
         addBookmarkFocusToken += 1
     }
 
-    fun setOnCloseClickListener(listener: () -> Unit) {
+    override fun requestPanelFocus() {
+        requestFocus()
+    }
+
+    override fun setOnCloseClickListener(listener: () -> Unit) {
         onCloseClick = listener
     }
 
-    fun setOnAddBookmarkClickListener(listener: () -> Unit) {
+    override fun setOnAddBookmarkClickListener(listener: () -> Unit) {
         onAddBookmarkClick = listener
     }
 
-    fun setOnPreviousBookmarkClickListener(listener: () -> Unit) {
+    override fun setOnPreviousBookmarkClickListener(listener: () -> Unit) {
         onPreviousBookmarkClick = listener
     }
 
-    fun setOnNextBookmarkClickListener(listener: () -> Unit) {
+    override fun setOnNextBookmarkClickListener(listener: () -> Unit) {
         onNextBookmarkClick = listener
     }
 
-    fun setOnRewindClickListener(listener: () -> Unit) {
+    override fun setOnRewindClickListener(listener: () -> Unit) {
         onRewindClick = listener
     }
 
-    fun setOnForwardClickListener(listener: () -> Unit) {
+    override fun setOnForwardClickListener(listener: () -> Unit) {
         onForwardClick = listener
     }
 
-    fun setOnRewindLongClickListener(listener: () -> Unit) {
+    override fun setOnRewindLongClickListener(listener: () -> Unit) {
         onRewindLongClick = listener
     }
 
-    fun setOnForwardLongClickListener(listener: () -> Unit) {
+    override fun setOnForwardLongClickListener(listener: () -> Unit) {
         onForwardLongClick = listener
     }
 
-    fun setOnBookmarkClickListener(listener: (Bookmark) -> Unit) {
+    override fun setOnBookmarkClickListener(listener: (Bookmark) -> Unit) {
         onBookmarkClick = listener
     }
 
-    fun setOnBookmarkRenameClickListener(listener: (Bookmark) -> Unit) {
+    override fun setOnBookmarkRenameClickListener(listener: (Bookmark) -> Unit) {
         onBookmarkRenameClick = listener
     }
 
-    fun setOnBookmarkDeleteClickListener(listener: (Bookmark) -> Unit) {
+    override fun setOnBookmarkDeleteClickListener(listener: (Bookmark) -> Unit) {
         onBookmarkDeleteClick = listener
     }
 
     @Composable
     override fun WidgetContent() {
-        val density = LocalDensity.current
-        val addBookmarkFocusRequester = remember { FocusRequester() }
+        VLCBookmarksPanelContent(
+            bookmarks = panelBookmarks,
+            jumpDelayText = jumpDelayText,
+            rewindContentDescription = rewindContentDescription,
+            forwardContentDescription = forwardContentDescription,
+            progressTopPx = progressTopPx,
+            addBookmarkFocusToken = addBookmarkFocusToken,
+            onCloseClick = onCloseClick,
+            onAddBookmarkClick = onAddBookmarkClick,
+            onPreviousBookmarkClick = onPreviousBookmarkClick,
+            onNextBookmarkClick = onNextBookmarkClick,
+            onRewindClick = onRewindClick,
+            onForwardClick = onForwardClick,
+            onRewindLongClick = onRewindLongClick,
+            onForwardLongClick = onForwardLongClick,
+            onBookmarkClick = onBookmarkClick,
+            onBookmarkRenameClick = onBookmarkRenameClick,
+            onBookmarkDeleteClick = onBookmarkDeleteClick
+        )
+    }
+}
 
-        LaunchedEffect(addBookmarkFocusToken) {
-            if (addBookmarkFocusToken > 0) {
-                runCatching { addBookmarkFocusRequester.requestFocus() }
-            }
+@Composable
+fun VLCBookmarksPanelContent(
+    bookmarks: List<BookmarkPanelItem>,
+    jumpDelayText: String,
+    rewindContentDescription: String,
+    forwardContentDescription: String,
+    progressTopPx: Float,
+    addBookmarkFocusToken: Int,
+    onCloseClick: () -> Unit,
+    onAddBookmarkClick: () -> Unit,
+    onPreviousBookmarkClick: () -> Unit,
+    onNextBookmarkClick: () -> Unit,
+    onRewindClick: () -> Unit,
+    onForwardClick: () -> Unit,
+    onRewindLongClick: () -> Unit,
+    onForwardLongClick: () -> Unit,
+    onBookmarkClick: (Bookmark) -> Unit,
+    onBookmarkRenameClick: (Bookmark) -> Unit,
+    onBookmarkDeleteClick: (Bookmark) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val density = LocalDensity.current
+    val addBookmarkFocusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(addBookmarkFocusToken) {
+        if (addBookmarkFocusToken > 0) {
+            runCatching { addBookmarkFocusRequester.requestFocus() }
         }
+    }
 
-        BoxWithConstraints(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            val controlsBottomPadding = controlsBottomPadding(density.run { progressTopPx.toDp() }, maxHeight)
-            val listBottomPadding = controlsBottomPadding + 72.dp
+    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val controlsBottomPadding = controlsBottomPadding(
+            progressTopPx = progressTopPx,
+            progressTop = density.run { progressTopPx.toDp() },
+            maxHeight = maxHeight
+        )
+        val listBottomPadding = controlsBottomPadding + 72.dp
 
-            Box(Modifier.fillMaxSize()) {
-                BookmarkHeader(
-                    addBookmarkFocusRequester = addBookmarkFocusRequester,
-                    onCloseClick = onCloseClick,
-                    onAddBookmarkClick = onAddBookmarkClick
-                )
+        Box(Modifier.fillMaxSize()) {
+            BookmarkHeader(
+                addBookmarkFocusRequester = addBookmarkFocusRequester,
+                onCloseClick = onCloseClick,
+                onAddBookmarkClick = onAddBookmarkClick
+            )
 
-                if (panelBookmarks.isEmpty()) {
-                    BookmarkEmptyState(
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(bottom = controlsBottomPadding)
-                    )
-                } else {
-                    BookmarkList(
-                        bookmarks = panelBookmarks,
-                        contentPadding = PaddingValues(top = 16.dp, bottom = listBottomPadding),
-                        onBookmarkClick = onBookmarkClick,
-                        onBookmarkRenameClick = onBookmarkRenameClick,
-                        onBookmarkDeleteClick = onBookmarkDeleteClick
-                    )
-                }
-
-                BookmarkControls(
+            if (bookmarks.isEmpty()) {
+                BookmarkEmptyState(
                     modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = controlsBottomPadding),
-                    jumpDelayText = jumpDelayText,
-                    rewindContentDescription = rewindContentDescription,
-                    forwardContentDescription = forwardContentDescription,
-                    onPreviousBookmarkClick = onPreviousBookmarkClick,
-                    onNextBookmarkClick = onNextBookmarkClick,
-                    onRewindClick = onRewindClick,
-                    onForwardClick = onForwardClick,
-                    onRewindLongClick = onRewindLongClick,
-                    onForwardLongClick = onForwardLongClick
+                        .align(Alignment.Center)
+                        .padding(bottom = controlsBottomPadding)
+                )
+            } else {
+                BookmarkList(
+                    bookmarks = bookmarks,
+                    contentPadding = PaddingValues(top = 16.dp, bottom = listBottomPadding),
+                    onBookmarkClick = onBookmarkClick,
+                    onBookmarkRenameClick = onBookmarkRenameClick,
+                    onBookmarkDeleteClick = onBookmarkDeleteClick
                 )
             }
+
+            BookmarkControls(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = controlsBottomPadding),
+                jumpDelayText = jumpDelayText,
+                rewindContentDescription = rewindContentDescription,
+                forwardContentDescription = forwardContentDescription,
+                onPreviousBookmarkClick = onPreviousBookmarkClick,
+                onNextBookmarkClick = onNextBookmarkClick,
+                onRewindClick = onRewindClick,
+                onForwardClick = onForwardClick,
+                onRewindLongClick = onRewindLongClick,
+                onForwardLongClick = onForwardLongClick
+            )
         }
     }
+}
 
-    private fun controlsBottomPadding(progressTop: Dp, maxHeight: Dp): Dp {
-        if (progressTopPx <= 0f) return 8.dp
-        val distanceFromBottom = maxHeight - progressTop
-        return (if (distanceFromBottom < 0.dp) 0.dp else distanceFromBottom) + 8.dp
-    }
+private fun controlsBottomPadding(progressTopPx: Float, progressTop: Dp, maxHeight: Dp): Dp {
+    if (progressTopPx <= 0f) return 8.dp
+    val distanceFromBottom = maxHeight - progressTop
+    return (if (distanceFromBottom < 0.dp) 0.dp else distanceFromBottom) + 8.dp
 }
 
 @Composable
