@@ -34,9 +34,7 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.widget.AppCompatImageView
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -44,6 +42,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.viewinterop.AndroidView
@@ -127,6 +126,7 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
     private var transportControlsState by mutableStateOf(TvAudioTransportControlsState())
     private var trackInfoState by mutableStateOf(TvAudioTrackInfoState())
     private var progressLabelsState by mutableStateOf(TvAudioProgressLabelsState())
+    private var artworkState by mutableStateOf(TvAudioArtworkState())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -151,6 +151,22 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
     }
 
     private fun initializeAudioPlayerScreen() {
+        views.background.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        views.background.setContent {
+            VLCTheme(darkTheme = true) {
+                TvAudioBackground(
+                    state = artworkState,
+                    overlayColor = Color(views.background.context.resolveThemeColor(R.attr.audio_player_background_tint)),
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
+        views.albumCover.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        views.albumCover.setContent {
+            VLCTheme(darkTheme = true) {
+                TvAudioAlbumCover(state = artworkState, modifier = Modifier.fillMaxSize())
+            }
+        }
         views.playlist.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         views.playlist.setContent {
             VLCTheme(darkTheme = true) {
@@ -321,16 +337,12 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
     }
 
     private fun updateBackground() = lifecycleScope.launchWhenStarted {
+        val artworkMrl = currentCoverArt
         val width = if (views.albumCover.width > 0) views.albumCover.width else this@AudioPlayerActivity.getScreenWidth()
-        val cover = withContext(Dispatchers.IO) { AudioUtil.readCoverBitmap(Uri.decode(currentCoverArt), width) }
-        if (cover == null) {
-            views.albumCover.setImageResource(R.drawable.ic_song_big)
-            views.background.clearColorFilter()
-            views.background.setImageResource(0)
-        } else {
-            UiTools.blurView(views.background, cover, 15F, UiTools.getColorFromAttribute(views.background.context, R.attr.audio_player_background_tint))
-            views.albumCover.setImageBitmap(cover)
-        }
+        val cover = withContext(Dispatchers.IO) { AudioUtil.readCoverBitmap(Uri.decode(artworkMrl), width) }
+        val background = withContext(Dispatchers.IO) { cover?.let { UiTools.blurBitmap(it) } }
+        if (artworkMrl != currentCoverArt) return@launchWhenStarted
+        artworkState = TvAudioArtworkState(cover = cover, background = background)
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
@@ -567,9 +579,9 @@ private fun TvAudioPlayerScreen(onReady: (TvAudioPlayerViews) -> Unit) {
 
 private data class TvAudioPlayerViews(
     val root: ConstraintLayout,
-    val background: AppCompatImageView,
+    val background: ComposeView,
     val playlist: ComposeView,
-    val albumCover: AppCompatImageView,
+    val albumCover: ComposeView,
     val trackInfo: ComposeView,
     val quickActions: ComposeView,
     val transportControls: ComposeView,
@@ -583,9 +595,8 @@ private fun createTvAudioPlayerViews(context: Context): TvAudioPlayerViews {
         layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
     }
 
-    val background = AppCompatImageView(context).apply {
+    val background = ComposeView(context).apply {
         id = R.id.background
-        scaleType = ImageView.ScaleType.CENTER_CROP
     }
     root.addView(background, matchConstraints().apply {
         leftToLeft = ConstraintLayout.LayoutParams.PARENT_ID
@@ -651,10 +662,8 @@ private fun createTvAudioPlayerViews(context: Context): TvAudioPlayerViews {
         setReferencedIds(intArrayOf(R.id.playback_speed_quick_action))
     }, wrapContent())
 
-    val albumCover = AppCompatImageView(context).apply {
+    val albumCover = ComposeView(context).apply {
         id = R.id.album_cover
-        scaleType = ImageView.ScaleType.FIT_CENTER
-        setImageResource(R.drawable.ic_song_big)
     }
     root.addView(albumCover, matchConstraints().apply {
         topToBottom = R.id.barrier
