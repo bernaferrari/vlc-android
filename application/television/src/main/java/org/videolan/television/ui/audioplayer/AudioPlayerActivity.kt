@@ -77,6 +77,7 @@ import org.videolan.vlc.gui.dialogs.showPlaybackSpeedComposeDialog
 import org.videolan.vlc.gui.dialogs.showSleepTimerComposeDialog
 import org.videolan.vlc.gui.helpers.AudioUtil
 import org.videolan.vlc.gui.helpers.BookmarkListDelegate
+import org.videolan.vlc.gui.helpers.BookmarkMarkerHost
 import org.videolan.vlc.gui.helpers.KeycodeListener
 import org.videolan.vlc.gui.helpers.MediaComparators
 import org.videolan.vlc.gui.helpers.PlayerKeyListenerDelegate
@@ -85,7 +86,6 @@ import org.videolan.vlc.gui.helpers.PlayerOptionsDelegateCallback
 import org.videolan.vlc.gui.helpers.TalkbackUtil
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
-import org.videolan.vlc.gui.view.BookmarkMarkerContainerView
 import org.videolan.vlc.gui.view.BookmarksPanelView
 import org.videolan.vlc.gui.view.PlayerOptionsPanelView
 import org.videolan.vlc.gui.video.VideoPlayerActivity
@@ -127,6 +127,24 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
     private var progressLabelsState by mutableStateOf(TvAudioProgressLabelsState())
     private var artworkState by mutableStateOf(TvAudioArtworkState())
     private var timelineState by mutableStateOf(TvAudioTimelineState())
+    private var bookmarkMarkersState by mutableStateOf(TvAudioBookmarkMarkersState())
+    private val tvBookmarkMarkerHost = object : BookmarkMarkerHost {
+        override fun show() {
+            bookmarkMarkersState = bookmarkMarkersState.copy(visible = true)
+        }
+
+        override fun hide() {
+            bookmarkMarkersState = bookmarkMarkersState.copy(visible = false)
+        }
+
+        override fun setMarkerFractions(fractions: List<Float>) {
+            bookmarkMarkersState = bookmarkMarkersState.copy(markerFractions = fractions)
+        }
+
+        override fun clearMarkers() {
+            bookmarkMarkersState = bookmarkMarkersState.copy(markerFractions = emptyList())
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -236,6 +254,14 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
                     onUserDragStarted = { timelineDragging = true },
                     onUserProgressChange = ::onTimelineUserProgressChanged,
                     onUserDragStopped = { timelineDragging = false }
+                )
+            }
+        }
+        views.bookmarkMarkerContainer.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        views.bookmarkMarkerContainer.setContent {
+            VLCTheme(darkTheme = true) {
+                TvAudioBookmarkMarkers(
+                    state = bookmarkMarkersState
                 )
             }
         }
@@ -496,7 +522,7 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
                 bookmarkListDelegate.seekListener = { forward, long ->
                     model.jump(forward, long, this)
                 }
-                bookmarkListDelegate.markerContainer = views.bookmarkMarkerContainer
+                bookmarkListDelegate.setMarkerHost(tvBookmarkMarkerHost)
             }
             bookmarkListDelegate.show()
         }
@@ -598,7 +624,7 @@ private data class TvAudioPlayerViews(
     val trackInfo: ComposeView,
     val quickActions: ComposeView,
     val transportControls: ComposeView,
-    val bookmarkMarkerContainer: BookmarkMarkerContainerView,
+    val bookmarkMarkerContainer: ComposeView,
     val mediaProgress: ComposeView,
     val progressLabels: ComposeView
 )
@@ -713,9 +739,8 @@ private fun createTvAudioPlayerViews(context: Context): TvAudioPlayerViews {
         bottomMargin = 17.dp
     })
 
-    val bookmarkMarkerContainer = BookmarkMarkerContainerView(context).apply {
+    val bookmarkMarkerContainer = ComposeView(context).apply {
         id = VlcR.id.bookmark_marker_container
-        setPadding(16.dp, paddingTop, 16.dp, paddingBottom)
     }
     root.addView(bookmarkMarkerContainer, ConstraintLayout.LayoutParams(0, ConstraintLayout.LayoutParams.WRAP_CONTENT).apply {
         bottomToBottom = R.id.media_progress

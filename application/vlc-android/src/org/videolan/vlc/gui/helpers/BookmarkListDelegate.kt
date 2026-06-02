@@ -43,6 +43,13 @@ import org.videolan.vlc.gui.view.BookmarksPanelView
 import org.videolan.vlc.util.LocaleUtil
 import org.videolan.vlc.viewmodels.BookmarkModel
 
+interface BookmarkMarkerHost {
+    fun show()
+    fun hide()
+    fun setMarkerFractions(fractions: List<Float>)
+    fun clearMarkers()
+}
+
 class BookmarkListDelegate(
     val activity: ComponentActivity,
     val service: PlaybackService,
@@ -50,7 +57,12 @@ class BookmarkListDelegate(
     val forVideo: Boolean
 ) : LifecycleObserver {
 
-    lateinit var markerContainer: BookmarkMarkerContainerView
+    private var markerHost: BookmarkMarkerHost? = null
+    var markerContainer: BookmarkMarkerContainerView
+        get() = (markerHost as? BookmarkMarkerContainerHost)?.view ?: error("Bookmark marker container is not a view host")
+        set(value) {
+            markerHost = BookmarkMarkerContainerHost(value)
+        }
     private lateinit var rootView: BookmarksPanelView
     lateinit var visibilityListener: () -> Unit
     lateinit var seekListener: (Boolean, Boolean) -> Unit
@@ -65,7 +77,7 @@ class BookmarkListDelegate(
         }
         bookmarkModel.refresh()
         rootView.setVisible()
-        markerContainer.setVisible()
+        markerHost?.show()
         visibilityListener.invoke()
         updateJumpDelay()
     }
@@ -103,7 +115,7 @@ class BookmarkListDelegate(
     private fun observeBookmarks() {
         bookmarkModel.dataset.observe(activity) { bookmarkList ->
             rootView.setBookmarks(bookmarkList.toPanelItems())
-            showBookmarks(markerContainer, service, bookmarkList)
+            markerHost?.let { showBookmarks(it, service, bookmarkList) }
         }
     }
 
@@ -118,8 +130,12 @@ class BookmarkListDelegate(
 
     fun hide() {
         if (::rootView.isInitialized) rootView.setGone()
-        if (::markerContainer.isInitialized) markerContainer.setGone()
+        markerHost?.hide()
         if (::visibilityListener.isInitialized) visibilityListener.invoke()
+    }
+
+    fun setMarkerHost(host: BookmarkMarkerHost) {
+        markerHost = host
     }
 
     fun setProgressHeight(y: Float) {
@@ -154,12 +170,34 @@ class BookmarkListDelegate(
 
     companion object {
         fun showBookmarks(markerContainer: BookmarkMarkerContainerView, service: PlaybackService, bookmarkList: List<Bookmark>) {
+            showBookmarks(BookmarkMarkerContainerHost(markerContainer), service, bookmarkList)
+        }
+
+        fun showBookmarks(markerHost: BookmarkMarkerHost, service: PlaybackService, bookmarkList: List<Bookmark>) {
             val mediaLength = service.currentMediaWrapper?.length
             if (mediaLength == null || mediaLength < 1) {
-                markerContainer.clearMarkers()
+                markerHost.clearMarkers()
                 return
             }
-            markerContainer.setMarkerFractions(bookmarkList.map { it.time.toFloat() / mediaLength.toFloat() })
+            markerHost.setMarkerFractions(bookmarkList.map { it.time.toFloat() / mediaLength.toFloat() })
         }
+    }
+}
+
+private class BookmarkMarkerContainerHost(val view: BookmarkMarkerContainerView) : BookmarkMarkerHost {
+    override fun show() {
+        view.setVisible()
+    }
+
+    override fun hide() {
+        view.setGone()
+    }
+
+    override fun setMarkerFractions(fractions: List<Float>) {
+        view.setMarkerFractions(fractions)
+    }
+
+    override fun clearMarkers() {
+        view.clearMarkers()
     }
 }
