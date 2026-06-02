@@ -12,7 +12,7 @@ import org.videolan.vlc.compose.components.VLCAudioPlaylistSearchField
 import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
 
 /**
- * XML-friendly Compose replacement for audio_player.xml's TextInputLayout +
+ * XML-friendly Compose replacement for the former audio player XML shell's TextInputLayout +
  * EditText playlist search field. AudioPlayer keeps the existing imperative
  * show/hide timeout flow through this small bridge.
  */

@@ -10,7 +10,7 @@ import org.videolan.vlc.compose.components.VLCAudioMiniProgressBar
 import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
 
 /**
- * XML-friendly Compose replacement for audio_player.xml's collapsed mini
+ * XML-friendly Compose replacement for the former audio player XML shell's collapsed mini
  * ProgressBar. It deliberately exposes max/progress so existing AudioPlayer
  * code can keep the same small imperative contract during the migration.
  */

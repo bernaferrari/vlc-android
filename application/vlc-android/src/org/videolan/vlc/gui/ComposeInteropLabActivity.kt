@@ -274,9 +274,9 @@ fun ComposeInteropLabContent() {
         )
 
         // -----------------------------------------------------------------
-        // WAVE 2. VLCAudioPlayerChips (audio_player.xml quick actions)
+        // WAVE 2. VLCAudioPlayerChips (the former audio player XML shell quick actions)
         // -----------------------------------------------------------------
-        VLCSectionHeader(text = "Wave 2. VLCAudioPlayerChips (audio_player.xml)")
+        VLCSectionHeader(text = "Wave 2. VLCAudioPlayerChips (the former audio player XML shell)")
         VLCAudioPlayerBackground(
             bitmap = null,
             overlayColor = androidx.compose.ui.graphics.Color.Transparent,

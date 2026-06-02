@@ -12,7 +12,7 @@ import org.videolan.vlc.compose.components.VLCAudioPlayerBackground
 import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
 
 /**
- * XML-friendly Compose replacement for audio_player.xml's blurred cover
+ * XML-friendly Compose replacement for the former audio player XML shell's blurred cover
  * ImageView. AudioPlayerAnimator keeps the existing cover-loading contract and
  * pushes already-blurred bitmaps into this view.
  */

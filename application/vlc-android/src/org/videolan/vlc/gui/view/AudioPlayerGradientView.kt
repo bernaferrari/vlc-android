@@ -8,7 +8,7 @@ import org.videolan.vlc.compose.components.VLCAudioPlayerGradientEdge
 import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
 
 /**
- * XML-friendly Compose replacements for audio_player.xml's decorative gradient
+ * XML-friendly Compose replacements for the former audio player XML shell's decorative gradient
  * overlay Views. The layouts keep the existing IDs and constraints.
  */
 class AudioPlayerTopGradientView @JvmOverloads constructor(

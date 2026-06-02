@@ -30,7 +30,7 @@ import org.videolan.tools.Settings
 import org.videolan.vlc.util.LocaleUtil
 import org.videolan.vlc.util.TextUtils
 
-class CoverMediaSwitcher(context: Context, attrs: AttributeSet) : AudioMediaSwitcher(context, attrs) {
+class CoverMediaSwitcher @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : AudioMediaSwitcher(context, attrs) {
 
     override fun addMediaView(
         inflater: LayoutInflater,

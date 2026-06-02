@@ -29,7 +29,7 @@ import android.view.ViewGroup
 import android.widget.Scroller
 import kotlin.math.absoluteValue
 
-abstract class FlingViewGroup(context: Context, attrs: AttributeSet) : ViewGroup(context, attrs) {
+abstract class FlingViewGroup(context: Context, attrs: AttributeSet? = null) : ViewGroup(context, attrs) {
 
     var position = 0
     private val scroller: Scroller
@@ -245,4 +245,3 @@ interface ViewSwitchListener {
 
     fun onBackSwitched()
 }
-

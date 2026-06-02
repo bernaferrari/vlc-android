@@ -97,7 +97,7 @@ open class PlayerTimelineSeekBarView @JvmOverloads constructor(
 }
 
 /**
- * XML-friendly Compose replacement for audio_player.xml's former
+ * XML-friendly Compose replacement for the former audio player XML shell's former
  * AccessibleSeekBar timeline.
  */
 class AudioTimelineSeekBarView @JvmOverloads constructor(

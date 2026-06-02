@@ -31,7 +31,6 @@ import android.os.Looper
 import android.os.Vibrator
 import android.support.v4.media.session.PlaybackStateCompat
 import android.text.format.DateFormat
-import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -305,7 +304,7 @@ class AudioPlayer(
         settings = Settings.getInstance(activity)
         playlistModel = PlaylistModel.get(activity)
         bookmarkModel = BookmarkModel.get(activity)
-        val root = LayoutInflater.from(activity).inflate(R.layout.audio_player, container, false) as ConstraintLayout
+        val root = activity.createAudioPlayerShell()
         container.addView(root)
         binding = AudioPlayerViews(root)
         setupAnimator(binding)

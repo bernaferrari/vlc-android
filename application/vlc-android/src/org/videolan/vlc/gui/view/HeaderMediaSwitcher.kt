@@ -26,7 +26,7 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.ViewGroup
 
-class HeaderMediaSwitcher(context: Context, attrs: AttributeSet) : AudioMediaSwitcher(context, attrs) {
+class HeaderMediaSwitcher @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : AudioMediaSwitcher(context, attrs) {
 
     override fun addMediaView(
         inflater: LayoutInflater,

@@ -30,7 +30,7 @@ import kotlinx.coroutines.withContext
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.gui.helpers.AudioUtil
 
-abstract class AudioMediaSwitcher(context: Context, attrs: AttributeSet) : FlingViewGroup(context, attrs) {
+abstract class AudioMediaSwitcher(context: Context, attrs: AttributeSet? = null) : FlingViewGroup(context, attrs) {
 
     private lateinit var audioMediaSwitcherListener: AudioMediaSwitcherListener
 
