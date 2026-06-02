@@ -55,7 +55,6 @@ import androidx.constraintlayout.widget.Guideline
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
@@ -113,8 +112,6 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
     private var currentCoverArt: String? = null
     private lateinit var model: PlaylistModel
     private var settings: SharedPreferences? = null
-    private lateinit var pauseToPlay: AnimatedVectorDrawableCompat
-    private lateinit var playToPause: AnimatedVectorDrawableCompat
     private var optionsDelegate: PlayerOptionsDelegate? = null
     lateinit var bookmarkModel: BookmarkModel
     private lateinit var bookmarkListDelegate: BookmarkListDelegate
@@ -129,6 +126,7 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
     private var playlistFocusEnabled by mutableStateOf(true)
     private var quickActionsState by mutableStateOf(TvAudioQuickActionsState())
     private var quickActionsFocusEnabled by mutableStateOf(true)
+    private var transportControlsState by mutableStateOf(TvAudioTransportControlsState())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -187,6 +185,21 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
             }
         }
         syncQuickActionsFocusability()
+        views.transportControls.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        views.transportControls.setContent {
+            VLCTheme(darkTheme = true) {
+                TvAudioTransportControls(
+                    state = transportControlsState,
+                    onShuffleClick = { setShuffleMode(!shuffling) },
+                    onPreviousClick = ::previous,
+                    onPlayPauseClick = ::togglePlayPause,
+                    onNextClick = ::next,
+                    onRepeatClick = ::switchRepeatMode,
+                    onMoreClick = ::showAdvancedOptionsPanel
+                )
+            }
+        }
+        updateTransportControlsState(playing = false)
         model.progress.observe(this) { progress ->
             views.mediaTime.text = progress.timeText
             views.mediaLength.text = progress.lengthText
@@ -212,15 +225,6 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
             intent.getLongExtra(MEDIA_PLAYLIST, -1L).let { MediaUtils.openPlaylist(this, it, position) }
         else
             intent.parcelableList<MediaWrapper>(MEDIA_LIST)?.let { MediaUtils.openList(this, it, position) }
-        playToPause = AnimatedVectorDrawableCompat.create(this, R.drawable.anim_play_pause_video)!!
-        pauseToPlay = AnimatedVectorDrawableCompat.create(this, R.drawable.anim_pause_play_video)!!
-        views.buttonShuffle.setOnClickListener(::onClick)
-        views.buttonPrevious.setOnClickListener(::onClick)
-        views.buttonPlay.setOnClickListener(::onClick)
-        views.buttonNext.setOnClickListener(::onClick)
-        views.buttonRepeat.setOnClickListener(::onClick)
-        views.buttonMore.setOnClickListener(::onClick)
-        views.buttonPlay.requestFocus()
         bookmarkModel = BookmarkModel.get(this)
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -285,20 +289,12 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
 
     override fun refresh() {}
 
-    private var wasPlaying = false
     fun update(state: PlayerState?) {
         if (state == null) return
 
-        val drawable = if (state.playing) playToPause else pauseToPlay
-        views.buttonPlay.setImageDrawable(drawable)
         playlistPlaying = state.playing
-        if (state.playing != wasPlaying) {
-            views.buttonPlay.post { drawable.start() }
-        }
+        updateTransportControlsState(state.playing)
         updatePlaylistSelection()
-
-        wasPlaying = state.playing
-        views.buttonPlay.contentDescription = getString(if (state.playing) org.videolan.vlc.R.string.pause else org.videolan.vlc.R.string.play)
 
         val mw = model.currentMediaWrapper
         lifecycleScope.launch {
@@ -308,11 +304,6 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
             }
             views.mediaTitle.text = state.title
             views.mediaArtist.text = state.artist
-            views.buttonShuffle.setImageResource(if (shuffling)
-                R.drawable.ic_shuffle_on
-            else
-                R.drawable.ic_shuffle_audio)
-            views.buttonShuffle.contentDescription = getString(if (shuffling) org.videolan.vlc.R.string.shuffle_on else org.videolan.vlc.R.string.shuffle)
             if (mw == null || currentCoverArt == mw.artworkMrl) return@launch
             currentCoverArt = mw.artworkMrl
             updateBackground()
@@ -353,7 +344,7 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
     override fun isReadyForDirectional() = true
 
     override fun showAdvancedOptions() {
-        showAdvancedOptions(null)
+        showAdvancedOptionsPanel()
     }
 
     override fun previous() {
@@ -418,18 +409,7 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
         return true
     }
 
-    fun onClick(v: View) {
-        when (v.id) {
-            R.id.button_play -> togglePlayPause()
-            R.id.button_next -> next()
-            R.id.button_previous -> previous()
-            R.id.button_repeat -> switchRepeatMode()
-            R.id.button_shuffle -> setShuffleMode(!shuffling)
-            R.id.button_more -> showAdvancedOptions(v)
-        }
-    }
-
-    private fun showAdvancedOptions(@Suppress("UNUSED_PARAMETER") v: View?) {
+    private fun showAdvancedOptionsPanel() {
         if (optionsDelegate == null) {
             val service = model.service ?: return
             optionsDelegate = PlayerOptionsDelegate(this, service, false)
@@ -438,6 +418,30 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
             }
         }
         optionsDelegate?.show()
+    }
+
+    private fun updateTransportControlsState(playing: Boolean = playlistPlaying) {
+        val repeatType = model.repeatType
+        transportControlsState = TvAudioTransportControlsState(
+            shuffleIcon = if (shuffling) R.drawable.ic_shuffle_on else R.drawable.ic_shuffle_audio,
+            shuffleContentDescription = getString(if (shuffling) org.videolan.vlc.R.string.shuffle_on else org.videolan.vlc.R.string.shuffle),
+            shuffleActive = shuffling,
+            playPauseIcon = if (playing) R.drawable.ic_pause_player else R.drawable.ic_play_player,
+            playPauseContentDescription = getString(if (playing) org.videolan.vlc.R.string.pause else org.videolan.vlc.R.string.play),
+            repeatIcon = when (repeatType) {
+                PlaybackStateCompat.REPEAT_MODE_ALL -> R.drawable.ic_repeat_all_audio
+                PlaybackStateCompat.REPEAT_MODE_ONE -> R.drawable.ic_repeat_one_audio
+                else -> R.drawable.ic_repeat_audio
+            },
+            repeatContentDescription = getString(
+                when (repeatType) {
+                    PlaybackStateCompat.REPEAT_MODE_ALL -> R.string.repeat_all
+                    PlaybackStateCompat.REPEAT_MODE_ONE -> R.string.repeat_single
+                    else -> R.string.repeat_none
+                }
+            ),
+            repeatActive = repeatType != PlaybackStateCompat.REPEAT_MODE_NONE
+        )
     }
 
     /**
@@ -471,44 +475,29 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
         else
             medias.sortWith(MediaComparators.BY_TRACK_NUMBER)
         model.load(medias, 0)
+        updateTransportControlsState()
     }
 
     private fun updateRepeatMode() {
-        when (model.repeatType) {
-            PlaybackStateCompat.REPEAT_MODE_ALL -> {
-                views.buttonRepeat.setImageResource(R.drawable.ic_repeat_all_audio)
-                views.buttonRepeat.contentDescription = getString(R.string.repeat_all)
-            }
-            PlaybackStateCompat.REPEAT_MODE_ONE -> {
-                views.buttonRepeat.setImageResource(R.drawable.ic_repeat_one_audio)
-                views.buttonRepeat.contentDescription = getString(R.string.repeat_single)
-            }
-            PlaybackStateCompat.REPEAT_MODE_NONE -> {
-                model.repeatType = PlaybackStateCompat.REPEAT_MODE_NONE
-                views.buttonRepeat.setImageResource(R.drawable.ic_repeat_audio)
-                views.buttonRepeat.contentDescription = getString(R.string.repeat_none)
-            }
-        }
+        if (model.repeatType != PlaybackStateCompat.REPEAT_MODE_ALL &&
+            model.repeatType != PlaybackStateCompat.REPEAT_MODE_ONE
+        ) model.repeatType = PlaybackStateCompat.REPEAT_MODE_NONE
+        updateTransportControlsState()
     }
 
     private fun switchRepeatMode() {
         when (model.repeatType) {
             PlaybackStateCompat.REPEAT_MODE_NONE -> {
                 model.repeatType = PlaybackStateCompat.REPEAT_MODE_ALL
-                views.buttonRepeat.setImageResource(R.drawable.ic_repeat_all_audio)
-                views.buttonRepeat.contentDescription = getString(R.string.repeat_all)
             }
             PlaybackStateCompat.REPEAT_MODE_ALL -> {
                 model.repeatType = PlaybackStateCompat.REPEAT_MODE_ONE
-                views.buttonRepeat.setImageResource(R.drawable.ic_repeat_one_audio)
-                views.buttonRepeat.contentDescription = getString(R.string.repeat_single)
             }
             PlaybackStateCompat.REPEAT_MODE_ONE -> {
                 model.repeatType = PlaybackStateCompat.REPEAT_MODE_NONE
-                views.buttonRepeat.setImageResource(R.drawable.ic_repeat_audio)
-                views.buttonRepeat.contentDescription = getString(R.string.repeat_none)
             }
         }
+        updateTransportControlsState()
     }
 
     private fun updatePlaylistSelection() {
@@ -574,16 +563,11 @@ private data class TvAudioPlayerViews(
     val mediaTitle: TextView,
     val mediaArtist: TextView,
     val quickActions: ComposeView,
+    val transportControls: ComposeView,
     val bookmarkMarkerContainer: BookmarkMarkerContainerView,
     val mediaTime: TextView,
     val mediaProgress: AudioTimelineSeekBarView,
-    val mediaLength: TextView,
-    val buttonShuffle: AppCompatImageView,
-    val buttonPrevious: AppCompatImageView,
-    val buttonPlay: AppCompatImageView,
-    val buttonNext: AppCompatImageView,
-    val buttonRepeat: AppCompatImageView,
-    val buttonMore: AppCompatImageView
+    val mediaLength: TextView
 )
 
 private fun createTvAudioPlayerViews(context: Context): TvAudioPlayerViews {
@@ -743,79 +727,16 @@ private fun createTvAudioPlayerViews(context: Context): TvAudioPlayerViews {
         marginEnd = 16.dp
     })
 
-    val buttonPlay = controlButton(context, R.id.button_play, R.string.play).apply {
+    val transportControls = ComposeView(context).apply {
+        id = R.id.button_play
+        isFocusable = true
         nextFocusDownId = R.id.playlist
     }
-    root.addView(buttonPlay, wrapContent().apply {
+    root.addView(transportControls, ConstraintLayout.LayoutParams(0, ConstraintLayout.LayoutParams.WRAP_CONTENT).apply {
         bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-        startToEnd = R.id.button_previous
-        endToStart = R.id.button_next
-        bottomMargin = context.resources.getDimensionPixelSize(R.dimen.tv_overscan_vertical)
-        marginStart = 16.dp
-        marginEnd = 16.dp
-    })
-
-    val buttonPrevious = controlButton(context, R.id.button_previous, R.string.previous).apply {
-        setImageResource(R.drawable.ic_player_previous)
-        nextFocusDownId = R.id.playlist
-    }
-    root.addView(buttonPrevious, wrapContent().apply {
-        topToTop = R.id.button_play
-        bottomToBottom = R.id.button_play
-        startToEnd = R.id.button_shuffle
-        endToStart = R.id.button_play
-        marginStart = 16.dp
-        marginEnd = 16.dp
-    })
-
-    val buttonShuffle = controlButton(context, R.id.button_shuffle, org.videolan.vlc.R.string.shuffle).apply {
-        setImageResource(R.drawable.ic_shuffle_audio)
-        nextFocusRightId = R.id.button_previous
-    }
-    root.addView(buttonShuffle, wrapContent().apply {
-        topToTop = R.id.button_previous
-        bottomToBottom = R.id.button_previous
         startToStart = R.id.media_progress
-        endToStart = R.id.button_previous
-        marginStart = 16.dp
-        marginEnd = 16.dp
-        horizontalChainStyle = ConstraintLayout.LayoutParams.CHAIN_PACKED
-    })
-
-    val buttonNext = controlButton(context, R.id.button_next, R.string.next).apply {
-        setImageResource(R.drawable.ic_player_next)
-        nextFocusDownId = R.id.playlist
-    }
-    root.addView(buttonNext, wrapContent().apply {
-        topToTop = R.id.button_play
-        bottomToBottom = R.id.button_play
-        startToEnd = R.id.button_play
-        endToStart = R.id.button_repeat
-        marginStart = 16.dp
-        marginEnd = 16.dp
-    })
-
-    val buttonRepeat = controlButton(context, R.id.button_repeat, R.string.repeat_title).apply {
-        setImageResource(R.drawable.ic_repeat_audio)
-        nextFocusDownId = R.id.playlist
-    }
-    root.addView(buttonRepeat, wrapContent().apply {
-        topToTop = R.id.button_next
-        bottomToBottom = R.id.button_next
-        startToEnd = R.id.button_next
         endToEnd = R.id.media_progress
-        marginStart = 16.dp
-        marginEnd = 16.dp
-    })
-
-    val buttonMore = controlButton(context, R.id.button_more, R.string.more_actions).apply {
-        setImageResource(R.drawable.ic_overflow_tv_audio)
-        nextFocusDownId = R.id.playlist
-    }
-    root.addView(buttonMore, wrapContent().apply {
-        topToTop = R.id.button_play
-        bottomToBottom = R.id.button_play
-        endToEnd = R.id.media_progress
+        bottomMargin = context.resources.getDimensionPixelSize(R.dimen.tv_overscan_vertical)
     })
 
     val playerOptionsPanel = PlayerOptionsPanelView(context).apply {
@@ -840,16 +761,11 @@ private fun createTvAudioPlayerViews(context: Context): TvAudioPlayerViews {
         mediaTitle = mediaTitle,
         mediaArtist = mediaArtist,
         quickActions = quickActions,
+        transportControls = transportControls,
         bookmarkMarkerContainer = bookmarkMarkerContainer,
         mediaTime = mediaTime,
         mediaProgress = mediaProgress,
-        mediaLength = mediaLength,
-        buttonShuffle = buttonShuffle,
-        buttonPrevious = buttonPrevious,
-        buttonPlay = buttonPlay,
-        buttonNext = buttonNext,
-        buttonRepeat = buttonRepeat,
-        buttonMore = buttonMore
+        mediaLength = mediaLength
     )
 }
 
@@ -869,13 +785,4 @@ private fun Context.resolveThemeColor(attr: Int): Int {
     val typedValue = TypedValue()
     theme.resolveAttribute(attr, typedValue, true)
     return if (typedValue.resourceId != 0) ContextCompat.getColor(this, typedValue.resourceId) else typedValue.data
-}
-
-private fun controlButton(context: Context, viewId: Int, labelRes: Int) = AppCompatImageView(context).apply {
-    id = viewId
-    setBackgroundResource(R.drawable.ic_circle_audio_player)
-    isClickable = true
-    isFocusable = true
-    contentDescription = context.getString(labelRes)
-    setPadding(8.dp, 8.dp, 8.dp, 8.dp)
 }

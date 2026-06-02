@@ -3,12 +3,7 @@
     <item type="id" name="album_cover" />
     <item type="id" name="background" />
     <item type="id" name="barrier" />
-    <item type="id" name="button_more" />
-    <item type="id" name="button_next" />
     <item type="id" name="button_play" />
-    <item type="id" name="button_previous" />
-    <item type="id" name="button_repeat" />
-    <item type="id" name="button_shuffle" />
     <item type="id" name="guideline8" />
     <item type="id" name="media_artist" />
     <item type="id" name="media_length" />
