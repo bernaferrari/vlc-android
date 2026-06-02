@@ -32,23 +32,29 @@ import android.util.TypedValue
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
-import android.view.View
-import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.constraintlayout.widget.Barrier
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.Guideline
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -69,7 +75,6 @@ import org.videolan.television.R
 import org.videolan.television.ui.browser.BaseTvActivity
 import org.videolan.tools.KEY_PLAYBACK_SPEED_AUDIO_GLOBAL
 import org.videolan.tools.Settings
-import org.videolan.tools.dp
 import org.videolan.tools.formatRateString
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.compose.theme.VLCTheme
@@ -105,7 +110,6 @@ import org.videolan.vlc.R as VlcR
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Callback, PlayerOptionsDelegateCallback  {
 
-    private lateinit var views: TvAudioPlayerViews
     private var lastMove: Long = 0
     private var shuffling = false
     private var currentCoverArt: String? = null
@@ -142,12 +146,10 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
 
         override fun show() {
             optionsPanelState = optionsPanelState.copy(visible = true)
-            if (::views.isInitialized) views.playerOptionsPanel.visibility = View.VISIBLE
         }
 
         override fun hide() {
             optionsPanelState = optionsPanelState.copy(visible = false)
-            if (::views.isInitialized) views.playerOptionsPanel.visibility = View.GONE
         }
 
         override fun setOptions(options: List<PlayerOption>) {
@@ -193,12 +195,10 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
 
         override fun show() {
             bookmarksPanelState = bookmarksPanelState.copy(visible = true)
-            if (::views.isInitialized) views.bookmarksPanel.visibility = View.VISIBLE
         }
 
         override fun hide() {
             bookmarksPanelState = bookmarksPanelState.copy(visible = false)
-            if (::views.isInitialized) views.bookmarksPanel.visibility = View.GONE
         }
 
         override fun setBookmarks(bookmarks: List<BookmarkPanelItem>) {
@@ -219,7 +219,7 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
 
         @Suppress("DEPRECATION")
         override fun announceBookmarkAdded(message: String) {
-            if (::views.isInitialized) views.bookmarksPanel.announceForAccessibility(message)
+            window.decorView.announceForAccessibility(message)
         }
 
         override fun sendAddBookmarkAccessibilityEvent() {
@@ -302,146 +302,65 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
                 setContent {
                     VLCTheme(darkTheme = true) {
-                        TvAudioPlayerScreen { refs ->
-                            if (!::views.isInitialized) {
-                                views = refs
-                                initializeAudioPlayerScreen()
-                            }
-                        }
+                        TvAudioPlayerScreen(
+                            artworkState = artworkState,
+                            playlistItems = playlistItems,
+                            selectedPlaylistItem = selectedPlaylistItem,
+                            playlistPlaying = playlistPlaying,
+                            playlistFocusEnabled = playlistFocusEnabled,
+                            playlistScrollTarget = playlistScrollTarget,
+                            quickActionsState = quickActionsState,
+                            quickActionsFocusEnabled = quickActionsFocusEnabled,
+                            transportControlsState = transportControlsState,
+                            trackInfoState = trackInfoState,
+                            progressLabelsState = progressLabelsState,
+                            timelineState = timelineState,
+                            bookmarkMarkersState = bookmarkMarkersState,
+                            bookmarksPanelState = bookmarksPanelState,
+                            optionsPanelState = optionsPanelState,
+                            onPlaylistItemClick = ::playPlaylistItem,
+                            onSpeedClick = ::showPlaybackSpeedComposeDialog,
+                            onSpeedLongClick = {
+                                model.service?.setRate(1F, true)
+                                showChips()
+                            },
+                            onSleepClick = ::showSleepTimerComposeDialog,
+                            onSleepLongClick = {
+                                model.service?.setSleepTimer(null)
+                                showChips()
+                            },
+                            onShuffleClick = { setShuffleMode(!shuffling) },
+                            onPreviousClick = ::previous,
+                            onPlayPauseClick = ::togglePlayPause,
+                            onNextClick = ::next,
+                            onRepeatClick = ::switchRepeatMode,
+                            onMoreClick = ::showAdvancedOptionsPanel,
+                            onTimelineDragStarted = { timelineDragging = true },
+                            onTimelineProgressChange = ::onTimelineUserProgressChanged,
+                            onTimelineDragStopped = { timelineDragging = false },
+                            onBookmarkCloseClick = { tvBookmarksPanelHost.onCloseClick() },
+                            onAddBookmarkClick = { tvBookmarksPanelHost.onAddBookmarkClick() },
+                            onPreviousBookmarkClick = { tvBookmarksPanelHost.onPreviousBookmarkClick() },
+                            onNextBookmarkClick = { tvBookmarksPanelHost.onNextBookmarkClick() },
+                            onRewindClick = { tvBookmarksPanelHost.onRewindClick() },
+                            onForwardClick = { tvBookmarksPanelHost.onForwardClick() },
+                            onRewindLongClick = { tvBookmarksPanelHost.onRewindLongClick() },
+                            onForwardLongClick = { tvBookmarksPanelHost.onForwardLongClick() },
+                            onBookmarkClick = { tvBookmarksPanelHost.onBookmarkClick(it) },
+                            onBookmarkRenameClick = { tvBookmarksPanelHost.onBookmarkRenameClick(it) },
+                            onBookmarkDeleteClick = { tvBookmarksPanelHost.onBookmarkDeleteClick(it) },
+                            onOptionsDismissClick = { tvOptionsPanelHost.onDismissClick() },
+                            onOptionClick = { tvOptionsPanelHost.onOptionClick(it) }
+                        )
                     }
                 }
             }
         )
+        initializeAudioPlayerScreen()
     }
 
     private fun initializeAudioPlayerScreen() {
-        views.background.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        views.background.setContent {
-            VLCTheme(darkTheme = true) {
-                TvAudioBackground(
-                    state = artworkState,
-                    overlayColor = Color(views.background.context.resolveThemeColor(R.attr.audio_player_background_tint)),
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-        }
-        views.albumCover.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        views.albumCover.setContent {
-            VLCTheme(darkTheme = true) {
-                TvAudioAlbumCover(state = artworkState, modifier = Modifier.fillMaxSize())
-            }
-        }
-        views.playlist.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        views.playlist.setContent {
-            VLCTheme(darkTheme = true) {
-                TvAudioPlaylist(
-                    items = playlistItems,
-                    selectedItem = selectedPlaylistItem,
-                    playing = playlistPlaying,
-                    focusEnabled = playlistFocusEnabled,
-                    scrollTarget = playlistScrollTarget,
-                    onItemClick = ::playPlaylistItem,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-        }
-        views.quickActions.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        views.quickActions.setContent {
-            VLCTheme(darkTheme = true) {
-                TvAudioQuickActions(
-                    state = quickActionsState,
-                    focusEnabled = quickActionsFocusEnabled,
-                    onSpeedClick = ::showPlaybackSpeedComposeDialog,
-                    onSpeedLongClick = {
-                        model.service?.setRate(1F, true)
-                        showChips()
-                    },
-                    onSleepClick = ::showSleepTimerComposeDialog,
-                    onSleepLongClick = {
-                        model.service?.setSleepTimer(null)
-                        showChips()
-                    }
-                )
-            }
-        }
-        syncQuickActionsFocusability()
-        views.transportControls.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        views.transportControls.setContent {
-            VLCTheme(darkTheme = true) {
-                TvAudioTransportControls(
-                    state = transportControlsState,
-                    onShuffleClick = { setShuffleMode(!shuffling) },
-                    onPreviousClick = ::previous,
-                    onPlayPauseClick = ::togglePlayPause,
-                    onNextClick = ::next,
-                    onRepeatClick = ::switchRepeatMode,
-                    onMoreClick = ::showAdvancedOptionsPanel
-                )
-            }
-        }
         updateTransportControlsState(playing = false)
-        views.trackInfo.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        views.trackInfo.setContent {
-            VLCTheme(darkTheme = true) {
-                TvAudioTrackInfo(state = trackInfoState, modifier = Modifier.fillMaxSize())
-            }
-        }
-        views.progressLabels.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        views.progressLabels.setContent {
-            VLCTheme(darkTheme = true) {
-                TvAudioProgressLabels(state = progressLabelsState, modifier = Modifier.fillMaxSize())
-            }
-        }
-        views.mediaProgress.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        views.mediaProgress.setContent {
-            VLCTheme(darkTheme = true) {
-                TvAudioTimeline(
-                    state = timelineState,
-                    onUserDragStarted = { timelineDragging = true },
-                    onUserProgressChange = ::onTimelineUserProgressChanged,
-                    onUserDragStopped = { timelineDragging = false }
-                )
-            }
-        }
-        views.bookmarkMarkerContainer.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        views.bookmarkMarkerContainer.setContent {
-            VLCTheme(darkTheme = true) {
-                TvAudioBookmarkMarkers(
-                    state = bookmarkMarkersState
-                )
-            }
-        }
-        views.bookmarksPanel.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        views.bookmarksPanel.setContent {
-            VLCTheme(darkTheme = true) {
-                TvAudioBookmarksPanel(
-                    state = bookmarksPanelState,
-                    onCloseClick = { tvBookmarksPanelHost.onCloseClick() },
-                    onAddBookmarkClick = { tvBookmarksPanelHost.onAddBookmarkClick() },
-                    onPreviousBookmarkClick = { tvBookmarksPanelHost.onPreviousBookmarkClick() },
-                    onNextBookmarkClick = { tvBookmarksPanelHost.onNextBookmarkClick() },
-                    onRewindClick = { tvBookmarksPanelHost.onRewindClick() },
-                    onForwardClick = { tvBookmarksPanelHost.onForwardClick() },
-                    onRewindLongClick = { tvBookmarksPanelHost.onRewindLongClick() },
-                    onForwardLongClick = { tvBookmarksPanelHost.onForwardLongClick() },
-                    onBookmarkClick = { tvBookmarksPanelHost.onBookmarkClick(it) },
-                    onBookmarkRenameClick = { tvBookmarksPanelHost.onBookmarkRenameClick(it) },
-                    onBookmarkDeleteClick = { tvBookmarksPanelHost.onBookmarkDeleteClick(it) },
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-        }
-        views.playerOptionsPanel.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        views.playerOptionsPanel.setContent {
-            VLCTheme(darkTheme = true) {
-                TvAudioPlayerOptionsPanel(
-                    state = optionsPanelState,
-                    onDismissClick = { tvOptionsPanelHost.onDismissClick() },
-                    onOptionClick = { tvOptionsPanelHost.onOptionClick(it) },
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-        }
         model.progress.observe(this) { progress ->
             progressLabelsState = TvAudioProgressLabelsState(progress.timeText, progress.lengthText)
             val max = progress.length.toInt()
@@ -523,11 +442,6 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
             sleepText = PlaybackService.playerSleepTime.value?.let { DateFormat.getTimeFormat(this).format(it.time) },
             speedUsesGlobalRate = settings?.getBoolean(KEY_PLAYBACK_SPEED_AUDIO_GLOBAL, false) == true
         )
-        syncQuickActionsFocusability()
-    }
-
-    private fun syncQuickActionsFocusability() {
-        if (::views.isInitialized) views.quickActions.isFocusable = quickActionsFocusEnabled && quickActionsState.hasVisibleActions
     }
 
     override fun refresh() {}
@@ -554,7 +468,7 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
 
     private fun updateBackground() = lifecycleScope.launchWhenStarted {
         val artworkMrl = currentCoverArt
-        val width = if (views.albumCover.width > 0) views.albumCover.width else this@AudioPlayerActivity.getScreenWidth()
+        val width = this@AudioPlayerActivity.getScreenWidth()
         val cover = withContext(Dispatchers.IO) { AudioUtil.readCoverBitmap(Uri.decode(artworkMrl), width) }
         val background = withContext(Dispatchers.IO) { cover?.let { UiTools.blurBitmap(it) } }
         if (artworkMrl != currentCoverArt) return@launchWhenStarted
@@ -695,8 +609,6 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
                     if (bookmarkListDelegate.visible) bookmarkListDelegate.requestFocus()
                     playlistFocusEnabled = !bookmarkListDelegate.visible
                     quickActionsFocusEnabled = !bookmarkListDelegate.visible
-                    views.playlist.isFocusable = !bookmarkListDelegate.visible
-                    syncQuickActionsFocusability()
                 }
                 bookmarkListDelegate.seekListener = { forward, long ->
                     model.jump(forward, long, this)
@@ -786,209 +698,216 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
 }
 
 @Composable
-private fun TvAudioPlayerScreen(onReady: (TvAudioPlayerViews) -> Unit) {
-    AndroidView(
-        modifier = Modifier.fillMaxSize(),
-        factory = { context ->
-            createTvAudioPlayerViews(context).also(onReady).root
+private fun TvAudioPlayerScreen(
+    artworkState: TvAudioArtworkState,
+    playlistItems: List<MediaWrapper>,
+    selectedPlaylistItem: Int,
+    playlistPlaying: Boolean,
+    playlistFocusEnabled: Boolean,
+    playlistScrollTarget: Int,
+    quickActionsState: TvAudioQuickActionsState,
+    quickActionsFocusEnabled: Boolean,
+    transportControlsState: TvAudioTransportControlsState,
+    trackInfoState: TvAudioTrackInfoState,
+    progressLabelsState: TvAudioProgressLabelsState,
+    timelineState: TvAudioTimelineState,
+    bookmarkMarkersState: TvAudioBookmarkMarkersState,
+    bookmarksPanelState: TvAudioBookmarksPanelState,
+    optionsPanelState: TvAudioPlayerOptionsPanelState,
+    onPlaylistItemClick: (Int) -> Unit,
+    onSpeedClick: () -> Unit,
+    onSpeedLongClick: () -> Unit,
+    onSleepClick: () -> Unit,
+    onSleepLongClick: () -> Unit,
+    onShuffleClick: () -> Unit,
+    onPreviousClick: () -> Unit,
+    onPlayPauseClick: () -> Unit,
+    onNextClick: () -> Unit,
+    onRepeatClick: () -> Unit,
+    onMoreClick: () -> Unit,
+    onTimelineDragStarted: () -> Unit,
+    onTimelineProgressChange: (Int) -> Unit,
+    onTimelineDragStopped: () -> Unit,
+    onBookmarkCloseClick: () -> Unit,
+    onAddBookmarkClick: () -> Unit,
+    onPreviousBookmarkClick: () -> Unit,
+    onNextBookmarkClick: () -> Unit,
+    onRewindClick: () -> Unit,
+    onForwardClick: () -> Unit,
+    onRewindLongClick: () -> Unit,
+    onForwardLongClick: () -> Unit,
+    onBookmarkClick: (Bookmark) -> Unit,
+    onBookmarkRenameClick: (Bookmark) -> Unit,
+    onBookmarkDeleteClick: (Bookmark) -> Unit,
+    onOptionsDismissClick: () -> Unit,
+    onOptionClick: (PlayerOption) -> Unit
+) {
+    val context = LocalContext.current
+    val overscanVertical = dimensionResource(R.dimen.tv_overscan_vertical)
+    val progressHorizontal = dimensionResource(R.dimen.tv_overscan_horizontal_progressbar)
+    val transportHeight = 56.dp
+    val timelineHeight = 42.dp
+    val progressLabelsHeight = 24.dp
+    val bottomControlsHeight = overscanVertical + transportHeight + timelineHeight + progressLabelsHeight
+
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val playlistWidth = maxWidth * 0.35F
+        val nowPlayingWidth = maxWidth - playlistWidth
+
+        TvAudioBackground(
+            state = artworkState,
+            overlayColor = Color(context.resolveThemeColor(R.attr.audio_player_background_tint)),
+            modifier = Modifier.fillMaxSize()
+        )
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .width(nowPlayingWidth)
+                .fillMaxHeight()
+                .padding(
+                    start = progressHorizontal,
+                    top = overscanVertical,
+                    bottom = bottomControlsHeight
+                )
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                TvAudioQuickActions(
+                    state = quickActionsState,
+                    focusEnabled = quickActionsFocusEnabled,
+                    onSpeedClick = onSpeedClick,
+                    onSpeedLongClick = onSpeedLongClick,
+                    onSleepClick = onSleepClick,
+                    onSleepLongClick = onSleepLongClick,
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(start = 16.dp)
+                )
+                Box(
+                    modifier = Modifier
+                        .weight(1F)
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    TvAudioAlbumCover(
+                        state = artworkState,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                TvAudioTrackInfo(
+                    state = trackInfoState,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(80.dp)
+                        .padding(top = 16.dp, bottom = 16.dp)
+                )
+            }
         }
-    )
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .width(playlistWidth)
+                .fillMaxHeight()
+                .padding(bottom = overscanVertical + transportHeight + timelineHeight)
+        ) {
+            TvAudioPlaylist(
+                items = playlistItems,
+                selectedItem = selectedPlaylistItem,
+                playing = playlistPlaying,
+                focusEnabled = playlistFocusEnabled,
+                scrollTarget = playlistScrollTarget,
+                onItemClick = onPlaylistItemClick,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(start = progressHorizontal, end = progressHorizontal, bottom = overscanVertical)
+        ) {
+            TvAudioProgressLabels(
+                state = progressLabelsState,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(progressLabelsHeight)
+                    .padding(horizontal = 16.dp)
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(timelineHeight),
+                contentAlignment = Alignment.Center
+            ) {
+                TvAudioTimeline(
+                    state = timelineState,
+                    onUserDragStarted = onTimelineDragStarted,
+                    onUserProgressChange = onTimelineProgressChange,
+                    onUserDragStopped = onTimelineDragStopped,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                TvAudioBookmarkMarkers(
+                    state = bookmarkMarkersState,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                )
+            }
+            TvAudioTransportControls(
+                state = transportControlsState,
+                onShuffleClick = onShuffleClick,
+                onPreviousClick = onPreviousClick,
+                onPlayPauseClick = onPlayPauseClick,
+                onNextClick = onNextClick,
+                onRepeatClick = onRepeatClick,
+                onMoreClick = onMoreClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(transportHeight)
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .width(500.dp)
+                .fillMaxHeight()
+                .padding(
+                    top = overscanVertical,
+                    bottom = overscanVertical + transportHeight + timelineHeight
+                )
+        ) {
+            TvAudioBookmarksPanel(
+                state = bookmarksPanelState,
+                onCloseClick = onBookmarkCloseClick,
+                onAddBookmarkClick = onAddBookmarkClick,
+                onPreviousBookmarkClick = onPreviousBookmarkClick,
+                onNextBookmarkClick = onNextBookmarkClick,
+                onRewindClick = onRewindClick,
+                onForwardClick = onForwardClick,
+                onRewindLongClick = onRewindLongClick,
+                onForwardLongClick = onForwardLongClick,
+                onBookmarkClick = onBookmarkClick,
+                onBookmarkRenameClick = onBookmarkRenameClick,
+                onBookmarkDeleteClick = onBookmarkDeleteClick,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+
+        TvAudioPlayerOptionsPanel(
+            state = optionsPanelState,
+            onDismissClick = onOptionsDismissClick,
+            onOptionClick = onOptionClick,
+            modifier = Modifier.fillMaxSize()
+        )
+    }
 }
-
-private data class TvAudioPlayerViews(
-    val root: ConstraintLayout,
-    val background: ComposeView,
-    val playlist: ComposeView,
-    val albumCover: ComposeView,
-    val trackInfo: ComposeView,
-    val quickActions: ComposeView,
-    val transportControls: ComposeView,
-    val playerOptionsPanel: ComposeView,
-    val bookmarksPanel: ComposeView,
-    val bookmarkMarkerContainer: ComposeView,
-    val mediaProgress: ComposeView,
-    val progressLabels: ComposeView
-)
-
-private fun createTvAudioPlayerViews(context: Context): TvAudioPlayerViews {
-    val root = ConstraintLayout(context).apply {
-        layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-    }
-
-    val background = ComposeView(context).apply {
-        id = R.id.background
-    }
-    root.addView(background, matchConstraints().apply {
-        leftToLeft = ConstraintLayout.LayoutParams.PARENT_ID
-        rightToRight = ConstraintLayout.LayoutParams.PARENT_ID
-        topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-        bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-    })
-
-    root.addView(Guideline(context).apply { id = R.id.guideline8 }, ConstraintLayout.LayoutParams(
-        ConstraintLayout.LayoutParams.WRAP_CONTENT,
-        ConstraintLayout.LayoutParams.WRAP_CONTENT
-    ).apply {
-        orientation = ConstraintLayout.LayoutParams.VERTICAL
-        guidePercent = 0.65F
-    })
-
-    val mediaProgress = ComposeView(context).apply {
-        id = R.id.media_progress
-        isFocusable = true
-        layoutDirection = View.LAYOUT_DIRECTION_LTR
-        nextFocusUpId = R.id.playlist
-        nextFocusDownId = R.id.button_play
-    }
-    root.addView(mediaProgress, ConstraintLayout.LayoutParams(0, ConstraintLayout.LayoutParams.WRAP_CONTENT).apply {
-        leftToLeft = ConstraintLayout.LayoutParams.PARENT_ID
-        rightToRight = ConstraintLayout.LayoutParams.PARENT_ID
-        bottomToTop = R.id.button_play
-        marginStart = context.resources.getDimensionPixelSize(R.dimen.tv_overscan_horizontal_progressbar)
-        marginEnd = context.resources.getDimensionPixelSize(R.dimen.tv_overscan_horizontal_progressbar)
-    })
-
-    val playlist = ComposeView(context).apply {
-        id = R.id.playlist
-        isFocusable = true
-        nextFocusLeftId = R.id.button_play
-        nextFocusRightId = R.id.playlist
-        nextFocusUpId = R.id.playlist
-        nextFocusDownId = R.id.playlist
-    }
-    root.addView(playlist, matchConstraints().apply {
-        topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-        bottomToBottom = R.id.media_progress
-        startToStart = R.id.guideline8
-        endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
-        bottomMargin = 17.dp
-    })
-
-    val quickActions = ComposeView(context).apply {
-        id = R.id.playback_speed_quick_action
-        isFocusable = true
-        nextFocusDownId = R.id.media_progress
-    }
-    root.addView(quickActions, wrapContent().apply {
-        topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-        startToStart = R.id.media_time
-        topMargin = context.resources.getDimensionPixelSize(R.dimen.tv_overscan_vertical)
-    })
-
-    root.addView(Barrier(context).apply {
-        id = R.id.barrier
-        type = Barrier.BOTTOM
-        setReferencedIds(intArrayOf(R.id.playback_speed_quick_action))
-    }, wrapContent())
-
-    val albumCover = ComposeView(context).apply {
-        id = R.id.album_cover
-    }
-    root.addView(albumCover, matchConstraints().apply {
-        topToBottom = R.id.barrier
-        bottomToTop = R.id.media_title
-        startToStart = R.id.media_progress
-        endToStart = R.id.guideline8
-        dimensionRatio = "1"
-        topMargin = 16.dp
-    })
-
-    val trackInfo = ComposeView(context).apply {
-        id = R.id.media_title
-    }
-    root.addView(trackInfo, ConstraintLayout.LayoutParams(0, ConstraintLayout.LayoutParams.WRAP_CONTENT).apply {
-        topToBottom = R.id.album_cover
-        bottomToTop = R.id.media_time
-        startToStart = R.id.media_progress
-        endToStart = R.id.guideline8
-        topMargin = 16.dp
-        bottomMargin = 16.dp
-    })
-
-    val bookmarksPanel = ComposeView(context).apply {
-        id = VlcR.id.bookmarks_background
-        visibility = View.GONE
-        isFocusable = false
-    }
-    root.addView(bookmarksPanel, ConstraintLayout.LayoutParams(500.dp, 0).apply {
-        topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-        bottomToBottom = R.id.media_progress
-        startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-        endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
-        topMargin = context.resources.getDimensionPixelSize(R.dimen.tv_overscan_vertical)
-        bottomMargin = 17.dp
-    })
-
-    val bookmarkMarkerContainer = ComposeView(context).apply {
-        id = VlcR.id.bookmark_marker_container
-    }
-    root.addView(bookmarkMarkerContainer, ConstraintLayout.LayoutParams(0, ConstraintLayout.LayoutParams.WRAP_CONTENT).apply {
-        bottomToBottom = R.id.media_progress
-        startToStart = R.id.media_progress
-        endToEnd = R.id.media_progress
-        bottomMargin = 16.dp
-    })
-
-    val progressLabels = ComposeView(context).apply {
-        id = R.id.media_time
-        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-    }
-    root.addView(progressLabels, ConstraintLayout.LayoutParams(0, ConstraintLayout.LayoutParams.WRAP_CONTENT).apply {
-        bottomToTop = R.id.media_progress
-        startToStart = R.id.media_progress
-        endToEnd = R.id.media_progress
-        marginStart = 16.dp
-        marginEnd = 16.dp
-    })
-
-    val transportControls = ComposeView(context).apply {
-        id = R.id.button_play
-        isFocusable = true
-        nextFocusDownId = R.id.playlist
-    }
-    root.addView(transportControls, ConstraintLayout.LayoutParams(0, ConstraintLayout.LayoutParams.WRAP_CONTENT).apply {
-        bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-        startToStart = R.id.media_progress
-        endToEnd = R.id.media_progress
-        bottomMargin = context.resources.getDimensionPixelSize(R.dimen.tv_overscan_vertical)
-    })
-
-    val playerOptionsPanel = ComposeView(context).apply {
-        id = VlcR.id.options_background
-        visibility = View.GONE
-        isClickable = true
-        isFocusable = false
-        elevation = 16.dp.toFloat()
-    }
-    root.addView(playerOptionsPanel, matchConstraints().apply {
-        topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-        bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
-        startToStart = ConstraintLayout.LayoutParams.PARENT_ID
-        endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
-    })
-
-    return TvAudioPlayerViews(
-        root = root,
-        background = background,
-        playlist = playlist,
-        albumCover = albumCover,
-        trackInfo = trackInfo,
-        quickActions = quickActions,
-        transportControls = transportControls,
-        playerOptionsPanel = playerOptionsPanel,
-        bookmarksPanel = bookmarksPanel,
-        bookmarkMarkerContainer = bookmarkMarkerContainer,
-        mediaProgress = mediaProgress,
-        progressLabels = progressLabels
-    )
-}
-
-private fun matchConstraints() = ConstraintLayout.LayoutParams(0, 0)
-
-private fun wrapContent() = ConstraintLayout.LayoutParams(
-    ConstraintLayout.LayoutParams.WRAP_CONTENT,
-    ConstraintLayout.LayoutParams.WRAP_CONTENT
-)
 
 private fun Context.resolveThemeColor(attr: Int): Int {
     val typedValue = TypedValue()
