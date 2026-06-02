@@ -24,12 +24,13 @@
 package org.videolan.vlc.gui.audio
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -40,24 +41,29 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInteropFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.MotionEventCompat
 import androidx.paging.PagedList
 import androidx.paging.PagedListAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.videolan.medialibrary.Tools
 import org.videolan.medialibrary.interfaces.media.Album
 import org.videolan.medialibrary.interfaces.media.Artist
@@ -81,14 +87,13 @@ import org.videolan.vlc.gui.helpers.MarqueeViewHolder
 import org.videolan.vlc.gui.helpers.TalkbackUtil
 import org.videolan.vlc.gui.helpers.enableMarqueeEffect
 import org.videolan.vlc.gui.helpers.getAudioIconDrawable
-import org.videolan.vlc.gui.helpers.loadImage
-import org.videolan.vlc.gui.view.FadableImageView
 import org.videolan.vlc.gui.view.FastScroller
 import org.videolan.vlc.interfaces.IEventsHandler
 import org.videolan.vlc.interfaces.IListEventsHandler
 import org.videolan.vlc.interfaces.SwipeDragHelperAdapter
 import org.videolan.vlc.util.LifecycleAwareScheduler
 import org.videolan.vlc.util.TextUtils
+import org.videolan.vlc.util.ThumbnailsProvider
 import org.videolan.vlc.util.isOTG
 import org.videolan.vlc.util.isSD
 import org.videolan.vlc.util.isSchemeSMB
@@ -522,20 +527,28 @@ private fun BoxScope.AudioBrowserArtwork(
                     .alpha(if (isPresent) 1f else 0.45f),
             contentAlignment = Alignment.Center
     ) {
-        AndroidView(
-                factory = { context ->
-                    FadableImageView(context).apply {
-                        scaleType = if (card) ImageView.ScaleType.CENTER_INSIDE else ImageView.ScaleType.CENTER_CROP
-                        defaultCover?.let { setImageDrawable(it) }
-                    }
-                },
-                modifier = Modifier.size(size),
-                update = { imageView ->
-                    imageView.resetFade()
-                    defaultCover?.let { imageView.setImageDrawable(it) }
-                    loadImage(imageView, item, imageWidth = imageWidth.takeIf { it > 0 } ?: 0, card = card)
-                }
-        )
+        val fallback = defaultCover?.bitmap
+        val thumbnailWidth = imageWidth.takeIf { it > 0 } ?: with(LocalDensity.current) { size.roundToPx() }
+        val thumbnail by produceState<Bitmap?>(
+                null,
+                item?.id,
+                item?.title,
+                item?.artworkMrl,
+                item?.tracksCount,
+                thumbnailWidth,
+                Settings.showVideoThumbs
+        ) {
+            value = loadAudioBrowserArtwork(item, thumbnailWidth)
+        }
+        val bitmap = thumbnail ?: fallback
+        if (bitmap != null) {
+            Image(
+                    bitmap = bitmap.asImageBitmap(),
+                    contentDescription = null,
+                    contentScale = if (thumbnail == null && !card) ContentScale.Crop else ContentScale.Fit,
+                    modifier = Modifier.size(size)
+            )
+        }
         if (!isPresent) {
             Box(
                     modifier = Modifier
@@ -572,6 +585,17 @@ private fun BoxScope.AudioBrowserArtwork(
             }
         }
     }
+}
+
+private suspend fun loadAudioBrowserArtwork(item: MediaLibraryItem?, width: Int): Bitmap? {
+    if (item == null) return null
+    if (!Settings.showVideoThumbs && item is MediaWrapper && item.type == MediaWrapper.TYPE_VIDEO) return null
+    if ((item.itemType == MediaLibraryItem.TYPE_PLAYLIST || item.itemType == MediaLibraryItem.TYPE_GENRE) && width > 0) {
+        val tracks = withContext(Dispatchers.IO) { item.tracks.toList() }
+        val key = if (item is MediaWrapper && item.type == MediaWrapper.TYPE_PLAYLIST) "playlist" else "genre"
+        return ThumbnailsProvider.getPlaylistOrGenreImage("$key:${item.id}_$width", tracks, width)
+    }
+    return ThumbnailsProvider.obtainBitmap(item, width)
 }
 
 @Composable
