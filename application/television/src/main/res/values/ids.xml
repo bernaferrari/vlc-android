@@ -16,9 +16,5 @@
     <item type="id" name="media_time" />
     <item type="id" name="media_title" />
     <item type="id" name="playback_speed_quick_action" />
-    <item type="id" name="playback_speed_quick_action_image" />
-    <item type="id" name="playback_speed_quick_action_text" />
     <item type="id" name="playlist" />
-    <item type="id" name="sleep_quick_action" />
-    <item type="id" name="sleep_quick_action_text" />
 </resources>

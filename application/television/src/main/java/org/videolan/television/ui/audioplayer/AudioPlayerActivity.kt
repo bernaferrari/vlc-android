@@ -36,7 +36,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.AppCompatImageView
@@ -75,8 +74,6 @@ import org.videolan.tools.KEY_PLAYBACK_SPEED_AUDIO_GLOBAL
 import org.videolan.tools.Settings
 import org.videolan.tools.dp
 import org.videolan.tools.formatRateString
-import org.videolan.tools.setGone
-import org.videolan.tools.setVisible
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.gui.dialogs.showEqualizerComposeDialog
@@ -130,6 +127,8 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
     private var playlistPlaying by mutableStateOf(false)
     private var playlistScrollTarget by mutableIntStateOf(-1)
     private var playlistFocusEnabled by mutableStateOf(true)
+    private var quickActionsState by mutableStateOf(TvAudioQuickActionsState())
+    private var quickActionsFocusEnabled by mutableStateOf(true)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -168,6 +167,26 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
                 )
             }
         }
+        views.quickActions.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        views.quickActions.setContent {
+            VLCTheme(darkTheme = true) {
+                TvAudioQuickActions(
+                    state = quickActionsState,
+                    focusEnabled = quickActionsFocusEnabled,
+                    onSpeedClick = ::showPlaybackSpeedComposeDialog,
+                    onSpeedLongClick = {
+                        model.service?.setRate(1F, true)
+                        showChips()
+                    },
+                    onSleepClick = ::showSleepTimerComposeDialog,
+                    onSleepLongClick = {
+                        model.service?.setSleepTimer(null)
+                        showChips()
+                    }
+                )
+            }
+        }
+        syncQuickActionsFocusability()
         model.progress.observe(this) { progress ->
             views.mediaTime.text = progress.timeText
             views.mediaLength.text = progress.lengthText
@@ -202,22 +221,6 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
         views.buttonRepeat.setOnClickListener(::onClick)
         views.buttonMore.setOnClickListener(::onClick)
         views.buttonPlay.requestFocus()
-        views.playbackSpeedQuickAction.setOnClickListener {
-            showPlaybackSpeedComposeDialog()
-        }
-        views.playbackSpeedQuickAction.setOnLongClickListener {
-            model.service?.setRate(1F, true)
-            showChips()
-            true
-        }
-        views.sleepQuickAction.setOnClickListener {
-            showSleepTimerComposeDialog()
-        }
-        views.sleepQuickAction.setOnLongClickListener {
-            model.service?.setSleepTimer(null)
-            showChips()
-            true
-        }
         bookmarkModel = BookmarkModel.get(this)
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -267,21 +270,17 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
     }
 
     private fun showChips() {
-        if (settings?.getBoolean(KEY_PLAYBACK_SPEED_AUDIO_GLOBAL, false) == true) {
-            views.playbackSpeedQuickActionImage.setImageDrawable(ContextCompat.getDrawable(this, org.videolan.vlc.R.drawable.ic_speed_all))
-        } else {
-            views.playbackSpeedQuickActionImage.setImageDrawable(ContextCompat.getDrawable(this, org.videolan.vlc.R.drawable.ic_speed))
-        }
-        views.playbackSpeedQuickAction.setGone()
-        views.sleepQuickAction.setGone()
-        model.speed.value?.let {
-            if (it != 1.0F) views.playbackSpeedQuickAction.setVisible()
-            views.playbackSpeedQuickActionText.text = it.formatRateString()
-        }
-        PlaybackService.playerSleepTime.value?.let {
-            views.sleepQuickAction.setVisible()
-            views.sleepQuickActionText.text = DateFormat.getTimeFormat(this).format(it.time)
-        }
+        val speed = model.speed.value
+        quickActionsState = TvAudioQuickActionsState(
+            speedText = speed?.takeIf { it != 1.0F }?.formatRateString(),
+            sleepText = PlaybackService.playerSleepTime.value?.let { DateFormat.getTimeFormat(this).format(it.time) },
+            speedUsesGlobalRate = settings?.getBoolean(KEY_PLAYBACK_SPEED_AUDIO_GLOBAL, false) == true
+        )
+        syncQuickActionsFocusability()
+    }
+
+    private fun syncQuickActionsFocusability() {
+        if (::views.isInitialized) views.quickActions.isFocusable = quickActionsFocusEnabled && quickActionsState.hasVisibleActions
     }
 
     override fun refresh() {}
@@ -451,9 +450,9 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
                 bookmarkListDelegate.visibilityListener = {
                     if (bookmarkListDelegate.visible) bookmarkListDelegate.requestFocus()
                     playlistFocusEnabled = !bookmarkListDelegate.visible
+                    quickActionsFocusEnabled = !bookmarkListDelegate.visible
                     views.playlist.isFocusable = !bookmarkListDelegate.visible
-                    views.sleepQuickAction.isFocusable = !bookmarkListDelegate.visible
-                    views.playbackSpeedQuickAction.isFocusable = !bookmarkListDelegate.visible
+                    syncQuickActionsFocusability()
                 }
                 bookmarkListDelegate.seekListener = { forward, long ->
                     model.jump(forward, long, this)
@@ -574,11 +573,7 @@ private data class TvAudioPlayerViews(
     val albumCover: AppCompatImageView,
     val mediaTitle: TextView,
     val mediaArtist: TextView,
-    val playbackSpeedQuickAction: LinearLayout,
-    val playbackSpeedQuickActionImage: ImageView,
-    val playbackSpeedQuickActionText: TextView,
-    val sleepQuickAction: LinearLayout,
-    val sleepQuickActionText: TextView,
+    val quickActions: ComposeView,
     val bookmarkMarkerContainer: BookmarkMarkerContainerView,
     val mediaTime: TextView,
     val mediaProgress: AudioTimelineSeekBarView,
@@ -647,45 +642,21 @@ private fun createTvAudioPlayerViews(context: Context): TvAudioPlayerViews {
         bottomMargin = 17.dp
     })
 
-    val playbackSpeedQuickActionImage = ImageView(context).apply {
-        id = R.id.playback_speed_quick_action_image
-        setImageResource(VlcR.drawable.ic_speed)
-    }
-    val playbackSpeedQuickActionText = chipText(context).apply {
-        id = R.id.playback_speed_quick_action_text
-    }
-    val playbackSpeedQuickAction = quickActionChip(context, R.id.playback_speed_quick_action).apply {
+    val quickActions = ComposeView(context).apply {
+        id = R.id.playback_speed_quick_action
+        isFocusable = true
         nextFocusDownId = R.id.media_progress
-        addView(playbackSpeedQuickActionImage, LinearLayout.LayoutParams(24.dp, 24.dp))
-        addView(playbackSpeedQuickActionText)
     }
-    root.addView(playbackSpeedQuickAction, wrapContent().apply {
+    root.addView(quickActions, wrapContent().apply {
         topToTop = ConstraintLayout.LayoutParams.PARENT_ID
         startToStart = R.id.media_time
         topMargin = context.resources.getDimensionPixelSize(R.dimen.tv_overscan_vertical)
     })
 
-    val sleepQuickActionText = chipText(context).apply {
-        id = R.id.sleep_quick_action_text
-    }
-    val sleepQuickAction = quickActionChip(context, R.id.sleep_quick_action).apply {
-        nextFocusUpId = R.id.playback_speed_quick_action
-        nextFocusDownId = R.id.media_progress
-        addView(ImageView(context).apply { setImageResource(VlcR.drawable.ic_sleep) }, LinearLayout.LayoutParams(24.dp, 24.dp))
-        addView(sleepQuickActionText)
-    }
-    root.addView(sleepQuickAction, wrapContent().apply {
-        topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-        startToEnd = R.id.playback_speed_quick_action
-        topMargin = context.resources.getDimensionPixelSize(R.dimen.tv_overscan_vertical)
-        marginStart = 16.dp
-        goneStartMargin = 0
-    })
-
     root.addView(Barrier(context).apply {
         id = R.id.barrier
         type = Barrier.BOTTOM
-        setReferencedIds(intArrayOf(R.id.sleep_quick_action, R.id.playback_speed_quick_action))
+        setReferencedIds(intArrayOf(R.id.playback_speed_quick_action))
     }, wrapContent())
 
     val albumCover = AppCompatImageView(context).apply {
@@ -868,11 +839,7 @@ private fun createTvAudioPlayerViews(context: Context): TvAudioPlayerViews {
         albumCover = albumCover,
         mediaTitle = mediaTitle,
         mediaArtist = mediaArtist,
-        playbackSpeedQuickAction = playbackSpeedQuickAction,
-        playbackSpeedQuickActionImage = playbackSpeedQuickActionImage,
-        playbackSpeedQuickActionText = playbackSpeedQuickActionText,
-        sleepQuickAction = sleepQuickAction,
-        sleepQuickActionText = sleepQuickActionText,
+        quickActions = quickActions,
         bookmarkMarkerContainer = bookmarkMarkerContainer,
         mediaTime = mediaTime,
         mediaProgress = mediaProgress,
@@ -892,22 +859,6 @@ private fun wrapContent() = ConstraintLayout.LayoutParams(
     ConstraintLayout.LayoutParams.WRAP_CONTENT,
     ConstraintLayout.LayoutParams.WRAP_CONTENT
 )
-
-private fun quickActionChip(context: Context, viewId: Int) = LinearLayout(context).apply {
-    id = viewId
-    setBackgroundResource(R.drawable.tv_audio_chips)
-    isClickable = true
-    isFocusable = true
-    isLongClickable = true
-    gravity = android.view.Gravity.CENTER_VERTICAL
-    orientation = LinearLayout.HORIZONTAL
-    visibility = View.GONE
-    setPadding(4.dp, 4.dp, 4.dp, 4.dp)
-}
-
-private fun chipText(context: Context) = TextView(context).apply {
-    setPadding(8.dp, 0, 8.dp, 0)
-}
 
 private fun playerText(context: Context, sp: Float) = TextView(context).apply {
     setTextColor(Color.WHITE)
