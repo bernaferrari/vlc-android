@@ -26,12 +26,13 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.Guideline
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.interop.VLCComposeView
-import org.videolan.vlc.gui.view.AudioPlayerBackgroundView
 import org.videolan.vlc.gui.view.AudioPlaylistSearchFieldView
 
 class AudioPlayerViews(val root: ConstraintLayout) {
     val contentLayout: ConstraintLayout = root
-    val backgroundView: AudioPlayerBackgroundView = root.requireAudioPlayerView(R.id.backgroundView)
+    val backgroundView: VLCComposeView = root.requireAudioPlayerView(R.id.backgroundView)
+    val topGradient: VLCComposeView = root.requireAudioPlayerView(R.id.top_gradient)
+    val bottomGradient: VLCComposeView = root.requireAudioPlayerView(R.id.bottom_gradient)
     val progressBar: VLCComposeView = root.requireAudioPlayerView(R.id.progressBar)
     val header: ConstraintLayout = root.requireAudioPlayerView(R.id.header)
     val headerShuffle: VLCComposeView = root.requireAudioPlayerView(R.id.header_shuffle)

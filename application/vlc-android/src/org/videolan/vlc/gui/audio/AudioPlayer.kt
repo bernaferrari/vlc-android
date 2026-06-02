@@ -108,6 +108,7 @@ import org.videolan.vlc.R
 import org.videolan.vlc.compose.components.VLCAudioCoverMediaSwitcher
 import org.videolan.vlc.compose.components.VLCAudioCoverMediaSwitcherItem
 import org.videolan.vlc.compose.components.VLCAudioCoverMediaSwitcherState
+import org.videolan.vlc.compose.components.VLCAudioPlayerBackground
 import org.videolan.vlc.compose.components.VLCAudioHeaderActionButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderBackground
 import org.videolan.vlc.compose.components.VLCAudioHeaderDivider
@@ -119,6 +120,8 @@ import org.videolan.vlc.compose.components.VLCAudioHeaderTimeLabel
 import org.videolan.vlc.compose.components.VLCAudioHeaderTransportButton
 import org.videolan.vlc.compose.components.VLCAudioMiniProgressBar
 import org.videolan.vlc.compose.components.VLCAudioMediaSwitchTarget
+import org.videolan.vlc.compose.components.VLCAudioPlayerGradient
+import org.videolan.vlc.compose.components.VLCAudioPlayerGradientEdge
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
 import org.videolan.vlc.compose.components.VLCAbRepeatControls
@@ -220,6 +223,11 @@ private data class AudioSeekHudState(
 private data class AudioAbRepeatMarkerState(
         val startFraction: Float = -1F,
         val stopFraction: Float = -1F
+)
+
+private data class AudioPlayerBackgroundState(
+        val bitmap: Bitmap? = null,
+        val overlayColor: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color.Transparent
 )
 
 private data class AudioPlayerOptionsPanelState(
@@ -325,6 +333,7 @@ class AudioPlayer(
     private var audioBookmarkMarkerFractions by mutableStateOf(emptyList<Float>())
     private var audioAbRepeatMarkerState by mutableStateOf(AudioAbRepeatMarkerState())
     private var audioAbRepeatMarkerText by mutableStateOf("")
+    private var audioBackgroundState by mutableStateOf(AudioPlayerBackgroundState())
     private var audioOptionsPanelState by mutableStateOf(AudioPlayerOptionsPanelState())
     private var audioBookmarksPanelState by mutableStateOf(AudioBookmarksPanelState())
     private var resumeVideoHintVisible by mutableStateOf(false)
@@ -616,6 +625,7 @@ class AudioPlayer(
         audioTimelineLengthText = getString(R.string.time_0)
         setupAudioHeaderMediaSwitcher()
         setupAudioCoverMediaSwitcher()
+        setupAudioBackgroundDecorations()
         setupAudioHeaderDecorations()
         setupAudioHeaderTime()
         setupAudioMiniProgressBar()
@@ -784,6 +794,38 @@ class AudioPlayer(
             else -> playlistCurrentIndex
         }
         playlistModel.move(from, if (to > from) to + 1 else to)
+    }
+
+    private fun setupAudioBackgroundDecorations() {
+        binding.backgroundView.setContent {
+            VLCTheme {
+                VLCAudioPlayerBackground(
+                        bitmap = audioBackgroundState.bitmap,
+                        overlayColor = audioBackgroundState.overlayColor
+                )
+            }
+        }
+        binding.topGradient.setContent {
+            VLCTheme {
+                VLCAudioPlayerGradient(edge = VLCAudioPlayerGradientEdge.Top)
+            }
+        }
+        binding.bottomGradient.setContent {
+            VLCTheme {
+                VLCAudioPlayerGradient(edge = VLCAudioPlayerGradientEdge.Bottom)
+            }
+        }
+    }
+
+    internal fun setAudioPlayerBackground(bitmap: Bitmap?, colorFilter: Int) {
+        audioBackgroundState = AudioPlayerBackgroundState(
+                bitmap = bitmap,
+                overlayColor = androidx.compose.ui.graphics.Color(colorFilter)
+        )
+    }
+
+    internal fun clearAudioPlayerBackground() {
+        audioBackgroundState = AudioPlayerBackgroundState()
     }
 
     private fun setupAudioHeaderDecorations() {

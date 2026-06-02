@@ -35,9 +35,6 @@ import androidx.constraintlayout.widget.Guideline
 import org.videolan.tools.dp
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.interop.VLCComposeView
-import org.videolan.vlc.gui.view.AudioPlayerBackgroundView
-import org.videolan.vlc.gui.view.AudioPlayerBottomGradientView
-import org.videolan.vlc.gui.view.AudioPlayerTopGradientView
 import org.videolan.vlc.gui.view.AudioPlaylistSearchFieldView
 
 internal fun Context.createAudioPlayerShell(): ConstraintLayout =
@@ -77,7 +74,7 @@ private fun ConstraintLayout.addPortraitAudioPlayerChildren() {
         bottomToTop = R.id.songs_list_guide
         matchConstraintMaxWidth = 800.dp
     })
-    addView(AudioPlayerBottomGradientView(context).apply {
+    addView(composeView(R.id.bottom_gradient).apply {
         id = R.id.bottom_gradient
         importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
     }, audioLayout(matchConstraint, matchConstraint) {
@@ -129,7 +126,7 @@ private fun ConstraintLayout.addLandscapeAudioPlayerChildren() {
 }
 
 private fun ConstraintLayout.addSharedBackgroundChildren(includeBottomGradient: Boolean) {
-    addView(AudioPlayerBackgroundView(context).apply {
+    addView(composeView(R.id.backgroundView).apply {
         id = R.id.backgroundView
     }, audioLayout(matchConstraint, matchConstraint) {
         startToStart = parentId
@@ -138,7 +135,7 @@ private fun ConstraintLayout.addSharedBackgroundChildren(includeBottomGradient: 
         bottomToBottom = parentId
     })
     if (includeBottomGradient) {
-        addView(AudioPlayerBottomGradientView(context).apply {
+        addView(composeView(R.id.bottom_gradient).apply {
             id = R.id.bottom_gradient
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         }, audioLayout(matchConstraint, matchConstraint) {
@@ -148,7 +145,7 @@ private fun ConstraintLayout.addSharedBackgroundChildren(includeBottomGradient: 
             bottomToBottom = parentId
         })
     }
-    addView(AudioPlayerTopGradientView(context).apply {
+    addView(composeView(R.id.top_gradient).apply {
         id = R.id.top_gradient
         importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
     }, audioLayout(matchConstraint, matchConstraint) {

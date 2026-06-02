@@ -513,8 +513,8 @@ fun ComposeInteropLabContent() {
             "Hosted in the real AudioPlayer bottom-sheet controller by replacing the playback_chips ChipGroup with VLCComposeView. " +
             "The collapsed header background and divider are Compose-hosted under the existing header_background and header_divider IDs so slide alpha transitions stay intact. " +
             "The collapsed mini progress bar is Compose-backed under progressBar while keeping the existing max/progress and slide-height contract. " +
-            "The blurred cover background is Compose-backed under backgroundView with AudioPlayerAnimator still owning cover loading and blur generation. " +
-            "The top and bottom audio-player gradient overlays are Compose-backed under top_gradient and bottom_gradient while keeping their layout constraints. " +
+            "The blurred cover background is direct Compose-hosted under backgroundView with AudioPlayerAnimator still owning cover loading and blur generation. " +
+            "The top and bottom audio-player gradient overlays are direct Compose-hosted under top_gradient and bottom_gradient while keeping their layout constraints. " +
             "The playlist search input is Compose-backed under playlist_search_text with a small query/focus bridge replacing TextInputLayout/EditText. " +
             "The full-player timeline seekbar is Compose-backed under timeline with a max/progress and drag callback bridge replacing AccessibleSeekBar. " +
             "The collapsed header time label is also Compose-hosted under the existing header_time ID. " +
