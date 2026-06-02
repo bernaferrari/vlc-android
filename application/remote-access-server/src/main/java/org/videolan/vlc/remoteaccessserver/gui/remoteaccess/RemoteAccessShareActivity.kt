@@ -25,163 +25,403 @@
 package org.videolan.vlc.remoteaccessserver.gui.remoteaccess
 
 import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Bundle
-import android.util.TypedValue
-import android.view.Gravity
-import android.view.Menu
-import android.view.MenuItem
-import android.widget.ImageView
-import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
-import androidx.core.content.ContextCompat
-import androidx.databinding.DataBindingUtil
-import androidx.gridlayout.widget.GridLayout
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.appbar.MaterialToolbar
-import com.google.android.material.snackbar.Snackbar
+import android.view.View
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import org.videolan.resources.ACTION_START_SERVER
 import org.videolan.resources.ACTION_STOP_SERVER
 import org.videolan.resources.AndroidDevices
 import org.videolan.resources.REMOTE_ACCESS_ONBOARDING
 import org.videolan.resources.util.applyOverscanMargin
 import org.videolan.tools.copy
-import org.videolan.tools.dp
-import org.videolan.tools.setGone
-import org.videolan.tools.setVisible
+import org.videolan.vlc.compose.theme.VLCTheme
+import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.BaseActivity
 import org.videolan.vlc.remoteaccessserver.R
 import org.videolan.vlc.remoteaccessserver.RemoteAccessServer
 import org.videolan.vlc.remoteaccessserver.ServerStatus
-import org.videolan.vlc.remoteaccessserver.databinding.RemoteAccessShareActivityBinding
-import org.videolan.vlc.remoteaccessserver.gui.remoteaccess.adapters.ConnnectionAdapter
 import org.videolan.vlc.util.UrlUtils
 import org.videolan.vlc.util.share
 
-
-/**
- * Activity showing the different libraries used by VLC for Android and their licenses
- */
 class RemoteAccessShareActivity : BaseActivity() {
 
-
-    private lateinit var binding: RemoteAccessShareActivityBinding
-    override fun getSnackAnchorView(overAudioPlayer: Boolean) = binding.root
     override val displayTitle = true
-    private lateinit var connectionAdapter: ConnnectionAdapter
+
+    private var rootView: ComposeView? = null
+    private var serverStatus by mutableStateOf(ServerStatus.NOT_INIT)
+    private var serverLinks by mutableStateOf(emptyList<String>())
+    private var serverConnections by mutableStateOf(emptyList<RemoteAccessServer.RemoteAccessConnection>())
+    private var snackbarMessage by mutableStateOf<String?>(null)
+    private var qrDialogLink by mutableStateOf<String?>(null)
+
+    override fun getSnackAnchorView(overAudioPlayer: Boolean): View? = rootView ?: window.decorView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = DataBindingUtil.setContentView(this, R.layout.remote_access_share_activity)
-        if (AndroidDevices.isTv) applyOverscanMargin(this)
-        val toolbar = findViewById<MaterialToolbar>(R.id.main_toolbar)
-        setSupportActionBar(toolbar)
-        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_close_up)
-        title = getString(R.string.remote_access)
-
         val remoteAccessServer = RemoteAccessServer.getInstance(applicationContext)
-        remoteAccessServer.serverStatus.observe(this) { serverStatus ->
-            binding.serverStatus.text = when (serverStatus) {
-                ServerStatus.NOT_INIT -> getString(R.string.remote_access_notification_not_init)
-                ServerStatus.STARTED -> getString(R.string.remote_access_active)
-                ServerStatus.STOPPED -> getString(R.string.remote_access_notification_stopped)
-                ServerStatus.CONNECTING -> getString(R.string.remote_access_notification_connecting)
-                ServerStatus.ERROR -> getString(R.string.remote_access_notification_error)
-                ServerStatus.STOPPING -> getString(R.string.remote_access_notification_stopping)
-                else -> ""
-            }
-
-            arrayOf(binding.connectionTitle, binding.connectionList, binding.linksTitle, binding.remoteAccessQrCode, binding.linksGrid).forEach {
-                if (serverStatus == ServerStatus.STARTED) it.setVisible() else it.setGone()
-            }
-            binding.statusButton.isEnabled = serverStatus in arrayOf(ServerStatus.STARTED, ServerStatus.STOPPED)
-            binding.statusButton.text = getString(if (serverStatus == ServerStatus.STARTED) R.string.stop else R.string.start)
-            binding.linksGrid.removeAllViews()
-            remoteAccessServer.getServerAddresses().forEach { link ->
-                val linkText = TextView(this)
-                linkText.text = link
-                val copyImageView = ImageView(this)
-                copyImageView.isFocusable = true
-                copyImageView.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_copy))
-                copyImageView.setOnClickListener {
-                    copy("VLC for Android Remote Access link", link)
-                    Snackbar.make(window.decorView.findViewById(android.R.id.content), R.string.url_copied_to_clipboard, Snackbar.LENGTH_LONG).show()
+        rootView = ComposeView(this).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                VLCTheme {
+                    RemoteAccessShareScreen(
+                        serverStatus = serverStatus,
+                        links = serverLinks,
+                        connections = serverConnections,
+                        snackbarMessage = snackbarMessage,
+                        qrDialogLink = qrDialogLink,
+                        onSnackbarShown = { snackbarMessage = null },
+                        onClose = ::finish,
+                        onShowOnboarding = ::showOnboarding,
+                        onToggleServer = { toggleServer(remoteAccessServer) },
+                        onCopyLink = ::copyRemoteAccessLink,
+                        onShareLink = { share(getString(R.string.remote_access), it) },
+                        onShowQr = { qrDialogLink = it },
+                        onDismissQr = { qrDialogLink = null }
+                    )
                 }
-                val outValue = TypedValue()
-                theme.resolveAttribute(R.attr.selectableItemBackgroundBorderless, outValue, true)
-                copyImageView.setBackgroundResource(outValue.resourceId)
-                copyImageView.setPadding(8.dp, 8.dp, 8.dp, 8.dp)
-
-                val shareImageView = ImageView(this)
-                shareImageView.isFocusable = true
-                shareImageView.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_share))
-                shareImageView.setOnClickListener {
-                    share(getString(R.string.remote_access), link)
-                }
-                shareImageView.setBackgroundResource(outValue.resourceId)
-                shareImageView.setPadding(8.dp, 8.dp, 8.dp, 8.dp)
-
-                val qrImageView = ImageView(this)
-                qrImageView.isFocusable = true
-                qrImageView.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_qr_code))
-                qrImageView.setBackgroundResource(outValue.resourceId)
-                qrImageView.setPadding(8.dp, 8.dp, 8.dp, 8.dp)
-                qrImageView.setOnClickListener {
-                    val qrView = ImageView(this)
-                    qrView.setPadding(8.dp,8.dp,8.dp,8.dp)
-                    qrView.setImageBitmap(UrlUtils.generateQRCode(link, 512))
-                    AlertDialog.Builder(this)
-                            .setTitle(resources.getString(R.string.remote_access_notification, link))
-                            .setView(qrView)
-                            .setPositiveButton(R.string.ok, null)
-                            .show()
-                }
-                binding.linksGrid.addView(linkText)
-                binding.linksGrid.addView(qrImageView)
-                binding.linksGrid.addView(shareImageView)
-                binding.linksGrid.addView(copyImageView)
-
-                (qrImageView.layoutParams as GridLayout.LayoutParams).setGravity(Gravity.CENTER_VERTICAL)
-                (copyImageView.layoutParams as GridLayout.LayoutParams).setGravity(Gravity.CENTER_VERTICAL)
-                (shareImageView.layoutParams as GridLayout.LayoutParams).setGravity(Gravity.CENTER_VERTICAL)
-
-                val layoutParams = linkText.layoutParams as GridLayout.LayoutParams
-                layoutParams.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
-                layoutParams.height = 48.dp
-                linkText.gravity = Gravity.CENTER_VERTICAL
-                linkText.layoutParams = layoutParams
             }
-
         }
-        binding.statusButton.setOnClickListener {
-            val action = if (remoteAccessServer.serverStatus.value == ServerStatus.STARTED) ACTION_STOP_SERVER else ACTION_START_SERVER
-            sendBroadcast(Intent(action).apply { `package` = packageName })
+        setContentView(rootView)
+        if (AndroidDevices.isTv) applyOverscanMargin(this)
+
+        remoteAccessServer.serverStatus.observe(this) { status ->
+            serverStatus = status
+            serverLinks = if (status == ServerStatus.STARTED) remoteAccessServer.getServerAddresses() else emptyList()
         }
-
-        connectionAdapter = ConnnectionAdapter(layoutInflater, listOf())
-        binding.connectionList.layoutManager = LinearLayoutManager(this)
-        binding.connectionList.adapter = connectionAdapter
-
-        remoteAccessServer.serverConnections.observe(this) {
-            connectionAdapter.connections = it
-            connectionAdapter.notifyDataSetChanged()
+        remoteAccessServer.serverConnections.observe(this) { connections ->
+            serverConnections = connections
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        super.onCreateOptionsMenu(menu)
-        menuInflater.inflate(R.menu.remote_access_share, menu)
-        return true
+    private fun toggleServer(remoteAccessServer: RemoteAccessServer) {
+        val action = if (remoteAccessServer.serverStatus.value == ServerStatus.STARTED) ACTION_STOP_SERVER else ACTION_START_SERVER
+        sendBroadcast(Intent(action).apply { `package` = packageName })
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            android.R.id.home -> finish()
-            R.id.menu_remote_access_onboarding -> startActivity(Intent(Intent.ACTION_VIEW).apply { setClassName(this@RemoteAccessShareActivity, REMOTE_ACCESS_ONBOARDING) })
+    private fun copyRemoteAccessLink(link: String) {
+        copy("VLC for Android Remote Access link", link)
+        snackbarMessage = getString(R.string.url_copied_to_clipboard)
+    }
 
+    private fun showOnboarding() {
+        startActivity(Intent(Intent.ACTION_VIEW).apply { setClassName(this@RemoteAccessShareActivity, REMOTE_ACCESS_ONBOARDING) })
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RemoteAccessShareScreen(
+    serverStatus: ServerStatus,
+    links: List<String>,
+    connections: List<RemoteAccessServer.RemoteAccessConnection>,
+    snackbarMessage: String?,
+    qrDialogLink: String?,
+    onSnackbarShown: () -> Unit,
+    onClose: () -> Unit,
+    onShowOnboarding: () -> Unit,
+    onToggleServer: () -> Unit,
+    onCopyLink: (String) -> Unit,
+    onShareLink: (String) -> Unit,
+    onShowQr: (String) -> Unit,
+    onDismissQr: () -> Unit
+) {
+    val colors = VLCThemeDefaults.colors
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(snackbarMessage) {
+        snackbarMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            onSnackbarShown()
         }
-        return super.onOptionsItemSelected(item)
     }
 
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = colors.backgroundDefault,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(R.string.remote_access),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onClose) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_close_up),
+                            contentDescription = stringResource(R.string.close)
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onShowOnboarding) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_information),
+                            contentDescription = stringResource(R.string.ra_remote_access)
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = colors.backgroundDefault,
+                    titleContentColor = colors.fontDefault,
+                    navigationIconContentColor = colors.fontDefault,
+                    actionIconContentColor = colors.fontDefault
+                )
+            )
+        }
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item {
+                RemoteAccessStatusCard(
+                    serverStatus = serverStatus,
+                    onToggleServer = onToggleServer
+                )
+            }
+            if (serverStatus == ServerStatus.STARTED) {
+                item {
+                    SectionTitle(text = stringResource(R.string.remote_access_links))
+                }
+                items(links, key = { it }) { link ->
+                    RemoteAccessLinkRow(
+                        link = link,
+                        onShowQr = onShowQr,
+                        onShareLink = onShareLink,
+                        onCopyLink = onCopyLink
+                    )
+                }
+                item {
+                    SectionTitle(text = stringResource(R.string.remote_access_connections))
+                }
+                items(connections, key = { it.ip }) { connection ->
+                    RemoteAccessConnectionRow(connection.ip)
+                }
+            }
+        }
+    }
+
+    qrDialogLink?.let { link ->
+        RemoteAccessQrDialog(
+            link = link,
+            onDismiss = onDismissQr
+        )
+    }
+}
+
+@Composable
+private fun RemoteAccessStatusCard(
+    serverStatus: ServerStatus,
+    onToggleServer: () -> Unit
+) {
+    val colors = VLCThemeDefaults.colors
+    Card(
+        colors = CardDefaults.cardColors(containerColor = colors.cardBackground),
+        shape = RoundedCornerShape(8.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            SectionTitle(text = stringResource(R.string.remote_access_status))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(statusText(serverStatus)),
+                    color = colors.fontDefault,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(Modifier.width(12.dp))
+                Button(
+                    onClick = onToggleServer,
+                    enabled = serverStatus == ServerStatus.STARTED || serverStatus == ServerStatus.STOPPED,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colors.primary,
+                        contentColor = colors.onPrimary
+                    )
+                ) {
+                    Text(stringResource(if (serverStatus == ServerStatus.STARTED) R.string.stop else R.string.start))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RemoteAccessLinkRow(
+    link: String,
+    onShowQr: (String) -> Unit,
+    onShareLink: (String) -> Unit,
+    onCopyLink: (String) -> Unit
+) {
+    val colors = VLCThemeDefaults.colors
+    Card(
+        colors = CardDefaults.cardColors(containerColor = colors.backgroundDefaultDarker),
+        shape = RoundedCornerShape(8.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, top = 8.dp, end = 4.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = link,
+                color = colors.fontDefault,
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
+            IconButton(onClick = { onShowQr(link) }) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_qr_code),
+                    contentDescription = stringResource(R.string.remote_access)
+                )
+            }
+            IconButton(onClick = { onShareLink(link) }) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_share),
+                    contentDescription = stringResource(R.string.share)
+                )
+            }
+            IconButton(onClick = { onCopyLink(link) }) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_copy),
+                    contentDescription = stringResource(R.string.url_copied_to_clipboard)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun RemoteAccessConnectionRow(ip: String) {
+    val colors = VLCThemeDefaults.colors
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp),
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = ip,
+            color = colors.fontDefault,
+            style = MaterialTheme.typography.bodyLarge,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+private fun SectionTitle(text: String) {
+    val colors = VLCThemeDefaults.colors
+    Text(
+        text = text,
+        color = colors.listTitle,
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.SemiBold
+    )
+}
+
+@Composable
+private fun RemoteAccessQrDialog(
+    link: String,
+    onDismiss: () -> Unit
+) {
+    val qrBitmap: Bitmap = remember(link) { UrlUtils.generateQRCode(link, 512) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = stringResource(R.string.remote_access_notification, link),
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
+        text = {
+            Image(
+                bitmap = qrBitmap.asImageBitmap(),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .padding(8.dp)
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.ok))
+            }
+        }
+    )
+}
+
+private fun statusText(status: ServerStatus) = when (status) {
+    ServerStatus.NOT_INIT -> R.string.remote_access_notification_not_init
+    ServerStatus.STARTED -> R.string.remote_access_active
+    ServerStatus.STOPPED -> R.string.remote_access_notification_stopped
+    ServerStatus.CONNECTING -> R.string.remote_access_notification_connecting
+    ServerStatus.ERROR -> R.string.remote_access_notification_error
+    ServerStatus.STOPPING -> R.string.remote_access_notification_stopping
 }

@@ -66,6 +66,12 @@ android {
         }
     }
     androidComponents {
+        beforeVariants(selector().withBuildType("debug")) { variantBuilder ->
+            // AndroidTest builds the debug APK before compiling tests. The Compose UI stack
+            // brings Material3 into that APK, whose manifest requires API 21, so keep the
+            // test/debug artifact on the Compose floor without changing release minSdk.
+            variantBuilder.minSdk = Math.max(rootProject.ext.vlcMajorVersion == 3 ? 17 : 23, 21)
+        }
         beforeVariants(selector().withBuildType("vlcBundle")) { variantBuilder ->
             variantBuilder.minSdk = 30
         }
