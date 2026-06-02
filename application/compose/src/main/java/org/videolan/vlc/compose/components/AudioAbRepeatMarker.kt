@@ -27,8 +27,9 @@ import kotlin.math.roundToInt
  *   - application/vlc-android/res/layout-land/audio_player.xml
  *   - application/vlc-android/src/org/videolan/vlc/gui/view/VideoHudOverlayView.kt
  *
- * Hosts push normalized start/stop fractions into AbRepeatMarkerContainerView;
- * this leaf owns both marker placement and the stable 24dp decorative bounds.
+ * Hosts push normalized start/stop fractions into this leaf directly, or through
+ * AbRepeatMarkerContainerView for legacy video HUD compatibility. This leaf owns
+ * both marker placement and the stable 24dp decorative bounds.
  */
 @Composable
 fun VLCAudioAbRepeatMarkers(

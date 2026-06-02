@@ -110,11 +110,13 @@ import org.videolan.vlc.compose.components.VLCAudioHeaderTransportButton
 import org.videolan.vlc.compose.components.VLCAudioMiniProgressBar
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
+import org.videolan.vlc.compose.components.VLCAbRepeatControls
 import org.videolan.vlc.compose.components.VLCAudioPlayerChips
 import org.videolan.vlc.compose.components.VLCAudioPlayerChipsState
 import org.videolan.vlc.compose.components.VLCAudioResumeVideoHint
 import org.videolan.vlc.compose.components.VLCAudioSeekDelayLabel
 import org.videolan.vlc.compose.components.VLCAudioSeekHudButton
+import org.videolan.vlc.compose.components.VLCAudioAbRepeatMarkers
 import org.videolan.vlc.compose.components.VLCAudioTimelineSlider
 import org.videolan.vlc.compose.components.VLCAudioTrackInfoText
 import org.videolan.vlc.compose.components.VLCAudioTrackInfoTextStyle
@@ -203,6 +205,11 @@ private data class AudioSeekHudState(
         val delayText: String = "",
         val rewindContentDescription: String = "",
         val forwardContentDescription: String = ""
+)
+
+private data class AudioAbRepeatMarkerState(
+        val startFraction: Float = -1F,
+        val stopFraction: Float = -1F
 )
 
 private data class AudioPlayerOptionsPanelState(
@@ -303,6 +310,8 @@ class AudioPlayer(
     private var audioMiniProgressMax by mutableIntStateOf(100)
     private var audioMiniProgress by mutableIntStateOf(0)
     private var audioBookmarkMarkerFractions by mutableStateOf(emptyList<Float>())
+    private var audioAbRepeatMarkerState by mutableStateOf(AudioAbRepeatMarkerState())
+    private var audioAbRepeatMarkerText by mutableStateOf("")
     private var audioOptionsPanelState by mutableStateOf(AudioPlayerOptionsPanelState())
     private var audioBookmarksPanelState by mutableStateOf(AudioBookmarksPanelState())
     private var resumeVideoHintVisible by mutableStateOf(false)
@@ -572,7 +581,7 @@ class AudioPlayer(
 
         onSlide(0f)
         playlistModel.service?.playlistManager?.abRepeat?.observe(viewLifecycleOwner) { abvalues ->
-            binding.abRepeatMarkerGuidelineContainer.setMarkerPositions(
+            updateAudioAbRepeatMarkers(
                     start = abvalues.start,
                     stop = abvalues.stop,
                     length = playlistModel.service!!.playlistManager.player.getLength()
@@ -590,10 +599,6 @@ class AudioPlayer(
             playlistShowTrackNumbers = showTrackNumbers
         }
 
-        binding.abRepeatContainer.setOnClickListener {
-            playlistModel.service?.playlistManager?.setABRepeatValue(playlistModel.service?.playlistManager?.getCurrentMedia(), audioTimelineProgress.toLong())
-        }
-
         audioPlayProgressMode = Settings.getInstance(requireActivity()).getBoolean(AUDIO_PLAY_PROGRESS_MODE, false)
         audioHeaderTimeText = getString(R.string.time_0)
         audioTimelineTimeText = getString(R.string.time_0)
@@ -603,6 +608,7 @@ class AudioPlayer(
         setupAudioMiniProgressBar()
         setupAudioTimelineSlider()
         setupAudioBookmarkMarkers()
+        setupAudioAbRepeatHosts()
         setupAudioPanelOverlays()
         setupAudioTimelineTimeLabels()
         setupAudioHeaderActions()
@@ -768,6 +774,39 @@ class AudioPlayer(
         binding.bookmarkMarkerContainer.setContent {
             VLCTheme {
                 VLCBookmarkMarkers(markerFractions = audioBookmarkMarkerFractions)
+            }
+        }
+    }
+
+    private fun setupAudioAbRepeatHosts() {
+        binding.abRepeatMarkerGuidelineContainer.setContent {
+            VLCTheme {
+                VLCAudioAbRepeatMarkers(
+                        startFraction = audioAbRepeatMarkerState.startFraction,
+                        stopFraction = audioAbRepeatMarkerState.stopFraction
+                ) {
+                    Icon(
+                            painter = painterResource(R.drawable.ic_abrepeat_marker_audio),
+                            contentDescription = null,
+                            tint = VLCThemeDefaults.colors.playerIconColor,
+                            modifier = Modifier.size(24.composeDp)
+                    )
+                }
+            }
+        }
+        binding.abRepeatContainer.setContent {
+            VLCTheme {
+                VLCAbRepeatControls(
+                        markerText = audioAbRepeatMarkerText,
+                        onAddMarkerClick = ::onABRepeatAddMarkerClick
+                ) {
+                    Icon(
+                            painter = painterResource(R.drawable.ic_abrepeat_chips),
+                            contentDescription = null,
+                            tint = VLCThemeDefaults.colors.playerIconColor,
+                            modifier = Modifier.size(36.composeDp)
+                    )
+                }
             }
         }
     }
@@ -1623,6 +1662,16 @@ class AudioPlayer(
         audioMiniProgress = progress.coerceIn(0, audioMiniProgressMax.coerceAtLeast(1))
     }
 
+    private fun updateAudioAbRepeatMarkers(start: Long, stop: Long, length: Long) {
+        audioAbRepeatMarkerState = AudioAbRepeatMarkerState(
+                startFraction = abRepeatMarkerFraction(start, length),
+                stopFraction = abRepeatMarkerFraction(stop, length)
+        )
+    }
+
+    private fun abRepeatMarkerFraction(position: Long, length: Long): Float =
+            if (position < 0L || length <= 0L) -1F else (position / length.toFloat()).coerceIn(0F, 1F)
+
     fun onTimeLabelClick(@Suppress("UNUSED_PARAMETER") view: View) {
         toggleRemainingTimeMode()
     }
@@ -1760,6 +1809,10 @@ class AudioPlayer(
     fun onABRepeatStopClick(@Suppress("UNUSED_PARAMETER") v: View) {
         playlistModel.service?.playlistManager?.resetABRepeatValues(playlistModel.service?.playlistManager?.getCurrentMedia())
         playlistModel.service?.playlistManager?.clearABRepeat()
+    }
+
+    fun onABRepeatAddMarkerClick() {
+        playlistModel.service?.playlistManager?.setABRepeatValue(playlistModel.service?.playlistManager?.getCurrentMedia(), audioTimelineProgress.toLong())
     }
 
     fun onABRepeatResetClick(@Suppress("UNUSED_PARAMETER") v: View) {
@@ -1982,7 +2035,7 @@ class AudioPlayer(
 
     fun refreshAbRepeatStep() {
         playlistModel.service?.manageAbRepeatStep(binding.abRepeatReset, binding.abRepeatStop, binding.abRepeatContainer) { markerText ->
-            binding.abRepeatContainer.setMarkerText(markerText)
+            audioAbRepeatMarkerText = markerText
         }
     }
 

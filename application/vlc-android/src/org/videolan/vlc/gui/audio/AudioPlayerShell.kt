@@ -35,8 +35,6 @@ import androidx.constraintlayout.widget.Guideline
 import org.videolan.tools.dp
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.interop.VLCComposeView
-import org.videolan.vlc.gui.view.AbRepeatControlsView
-import org.videolan.vlc.gui.view.AbRepeatMarkerContainerView
 import org.videolan.vlc.gui.view.AudioPlayerBackgroundView
 import org.videolan.vlc.gui.view.AudioPlayerBottomGradientView
 import org.videolan.vlc.gui.view.AudioPlayerTopGradientView
@@ -655,7 +653,7 @@ private fun ConstraintLayout.addAudioOverlays(landscape: Boolean) {
         if (!landscape) topToTop = R.id.timeline
         bottomMargin = if (landscape) 14.dp else 18.dp
     })
-    addView(AbRepeatMarkerContainerView(context).apply {
+    addView(composeView(R.id.ab_repeat_marker_guideline_container).apply {
         id = R.id.ab_repeat_marker_guideline_container
         clipToPadding = false
         layoutDirection = View.LAYOUT_DIRECTION_LTR
@@ -673,7 +671,7 @@ private fun ConstraintLayout.addAudioOverlays(landscape: Boolean) {
             bottomMargin = 32.dp
         }
     })
-    addView(AbRepeatControlsView(context).apply {
+    addView(composeView(R.id.ab_repeat_container).apply {
         id = R.id.ab_repeat_container
         visibility = View.GONE
     }, audioLayout(wrapContent, wrapContent) {

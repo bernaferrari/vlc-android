@@ -26,8 +26,6 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.Guideline
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.interop.VLCComposeView
-import org.videolan.vlc.gui.view.AbRepeatControlsView
-import org.videolan.vlc.gui.view.AbRepeatMarkerContainerView
 import org.videolan.vlc.gui.view.AudioPlayerBackgroundView
 import org.videolan.vlc.gui.view.AudioPlaylistSearchFieldView
 import org.videolan.vlc.gui.view.CoverMediaSwitcher
@@ -79,8 +77,8 @@ class AudioPlayerViews(val root: ConstraintLayout) {
     val optionsBackground: VLCComposeView = root.requireAudioPlayerView(R.id.options_background)
     val bookmarksBackground: VLCComposeView = root.requireAudioPlayerView(R.id.bookmarks_background)
     val bookmarkMarkerContainer: VLCComposeView = root.requireAudioPlayerView(R.id.bookmark_marker_container)
-    val abRepeatMarkerGuidelineContainer: AbRepeatMarkerContainerView = root.requireAudioPlayerView(R.id.ab_repeat_marker_guideline_container)
-    val abRepeatContainer: AbRepeatControlsView = root.requireAudioPlayerView(R.id.ab_repeat_container)
+    val abRepeatMarkerGuidelineContainer: VLCComposeView = root.requireAudioPlayerView(R.id.ab_repeat_marker_guideline_container)
+    val abRepeatContainer: VLCComposeView = root.requireAudioPlayerView(R.id.ab_repeat_container)
     val trackInfoContainer: ConstraintLayout? = root.findAudioPlayerView(R.id.track_info_container)
     val previousChapter: VLCComposeView? = root.findAudioPlayerView(R.id.previous_chapter)
     val nextChapter: VLCComposeView? = root.findAudioPlayerView(R.id.next_chapter)
