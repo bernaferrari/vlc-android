@@ -515,7 +515,7 @@ fun ComposeInteropLabContent() {
             "The collapsed mini progress bar is Compose-backed under progressBar while keeping the existing max/progress and slide-height contract. " +
             "The blurred cover background is direct Compose-hosted under backgroundView with AudioPlayerAnimator still owning cover loading and blur generation. " +
             "The top and bottom audio-player gradient overlays are direct Compose-hosted under top_gradient and bottom_gradient while keeping their layout constraints. " +
-            "The playlist search input is Compose-backed under playlist_search_text with a small query/focus bridge replacing TextInputLayout/EditText. " +
+            "The playlist search input is direct Compose-hosted under playlist_search_text with AudioPlayer owning query and focus state. " +
             "The full-player timeline seekbar is Compose-backed under timeline with a max/progress and drag callback bridge replacing AccessibleSeekBar. " +
             "The collapsed header time label is also Compose-hosted under the existing header_time ID. " +
             "The full-player elapsed/length timeline labels are Compose-hosted under time and length. " +

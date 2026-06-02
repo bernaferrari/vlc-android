@@ -122,6 +122,7 @@ import org.videolan.vlc.compose.components.VLCAudioMiniProgressBar
 import org.videolan.vlc.compose.components.VLCAudioMediaSwitchTarget
 import org.videolan.vlc.compose.components.VLCAudioPlayerGradient
 import org.videolan.vlc.compose.components.VLCAudioPlayerGradientEdge
+import org.videolan.vlc.compose.components.VLCAudioPlaylistSearchField
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
 import org.videolan.vlc.compose.components.VLCAbRepeatControls
@@ -307,6 +308,8 @@ class AudioPlayer(
     private var playlistShowReorderButtons by mutableStateOf(true)
     private var playlistFiltering by mutableStateOf(false)
     private var playlistStopAfter by mutableStateOf(-1)
+    private var playlistSearchQuery by mutableStateOf("")
+    private var playlistSearchFocusRequest by mutableIntStateOf(0)
     private var playlistScrollSerial = 0
     private var playlistScrollRequest by mutableStateOf<AudioPlaylistScrollRequest?>(null)
     private var audioPlayerChipsState by mutableStateOf(VLCAudioPlayerChipsState())
@@ -589,7 +592,7 @@ class AudioPlayer(
     }
 
     private fun setupView() {
-        binding.playlistSearchText.onQueryChanged = ::onSearchQueryChanged
+        setupAudioPlaylistSearchField()
         setupAudioPlaylistQueue()
         binding.header.setOnClickListener {
             val activity = activity as AudioPlayerContainerActivity
@@ -689,6 +692,21 @@ class AudioPlayer(
                     onMoveItem = ::movePlaylistItem
                 )
             }
+        }
+    }
+
+    private fun setupAudioPlaylistSearchField() {
+        val hint = getString(R.string.search_hint)
+        binding.playlistSearchText.setContent {
+            VLCAudioPlaylistSearchField(
+                    query = playlistSearchQuery,
+                    hint = hint,
+                    focusRequest = playlistSearchFocusRequest,
+                    onQueryChange = { value ->
+                        playlistSearchQuery = value
+                        onSearchQueryChanged(value)
+                    }
+            )
         }
     }
 
@@ -2041,7 +2059,8 @@ class AudioPlayer(
     fun onSearchClick(@Suppress("UNUSED_PARAMETER") v: View) {
         if (isShowingCover()) onPlaylistSwitchClick(binding.playlistSwitch)
         manageSearchVisibilities(true)
-        binding.playlistSearchText.requestSearchFocus()
+        binding.playlistSearchText.requestFocus()
+        playlistSearchFocusRequest += 1
         handler.postDelayed(hideSearchRunnable, SEARCH_TIMEOUT_MILLIS)
     }
 
@@ -2079,7 +2098,7 @@ class AudioPlayer(
 
     private fun hideSearchField(): Boolean {
         if (binding.playlistSearchText.visibility != View.VISIBLE) return false
-        binding.playlistSearchText.clearSearchText()
+        playlistSearchQuery = ""
         UiTools.setKeyboardVisibility(binding.playlistSearchText, false)
         manageSearchVisibilities(false)
         return true

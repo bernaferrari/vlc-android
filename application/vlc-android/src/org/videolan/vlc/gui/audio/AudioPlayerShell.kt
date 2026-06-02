@@ -35,7 +35,6 @@ import androidx.constraintlayout.widget.Guideline
 import org.videolan.tools.dp
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.interop.VLCComposeView
-import org.videolan.vlc.gui.view.AudioPlaylistSearchFieldView
 
 internal fun Context.createAudioPlayerShell(): ConstraintLayout =
         ConstraintLayout(this).apply {
@@ -235,9 +234,9 @@ private fun audioHeader(context: Context, landscape: Boolean) = ConstraintLayout
             bottomMargin = 8.dp
         }
     })
-    addView(AudioPlaylistSearchFieldView(context).apply {
-        id = R.id.playlist_search_text
+    addView(composeView(R.id.playlist_search_text).apply {
         isFocusable = true
+        isFocusableInTouchMode = true
         visibility = View.GONE
     }, audioLayout(matchConstraint, matchConstraint) {
         startToStart = parentId
