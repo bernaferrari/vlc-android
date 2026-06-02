@@ -41,10 +41,8 @@ import org.videolan.vlc.gui.view.AudioPlayerBackgroundView
 import org.videolan.vlc.gui.view.AudioPlayerBottomGradientView
 import org.videolan.vlc.gui.view.AudioPlayerTopGradientView
 import org.videolan.vlc.gui.view.AudioPlaylistSearchFieldView
-import org.videolan.vlc.gui.view.BookmarksPanelView
 import org.videolan.vlc.gui.view.CoverMediaSwitcher
 import org.videolan.vlc.gui.view.HeaderMediaSwitcher
-import org.videolan.vlc.gui.view.PlayerOptionsPanelView
 
 internal fun Context.createAudioPlayerShell(): ConstraintLayout =
         ConstraintLayout(this).apply {
@@ -623,7 +621,7 @@ private fun ConstraintLayout.addAudioOverlays(landscape: Boolean) {
     addView(FrameLayout(context).apply {
         id = R.id.player_options_container
         elevation = 32.dp.toFloat()
-        addView(PlayerOptionsPanelView(context).apply {
+        addView(composeView(R.id.options_background).apply {
             id = R.id.options_background
             isClickable = true
             elevation = 16.dp.toFloat()
@@ -636,9 +634,10 @@ private fun ConstraintLayout.addAudioOverlays(landscape: Boolean) {
         topToTop = parentId
         bottomToBottom = parentId
     })
-    addView(BookmarksPanelView(context).apply {
+    addView(composeView(R.id.bookmarks_background).apply {
         id = R.id.bookmarks_background
         setBackgroundFromAttr(R.attr.bookmark_background)
+        isClickable = true
         isFocusable = false
         visibility = View.GONE
     }, audioLayout(matchConstraint, matchConstraint) {

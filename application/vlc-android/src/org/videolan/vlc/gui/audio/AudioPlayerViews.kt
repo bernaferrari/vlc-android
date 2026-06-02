@@ -76,6 +76,8 @@ class AudioPlayerViews(val root: ConstraintLayout) {
     val centerGuideline: Guideline = root.requireAudioPlayerView(R.id.centerGuideline)
     val hingeGoLeft: VLCComposeView = root.requireAudioPlayerView(R.id.hinge_go_left)
     val hingeGoRight: VLCComposeView = root.requireAudioPlayerView(R.id.hinge_go_right)
+    val optionsBackground: VLCComposeView = root.requireAudioPlayerView(R.id.options_background)
+    val bookmarksBackground: VLCComposeView = root.requireAudioPlayerView(R.id.bookmarks_background)
     val bookmarkMarkerContainer: VLCComposeView = root.requireAudioPlayerView(R.id.bookmark_marker_container)
     val abRepeatMarkerGuidelineContainer: AbRepeatMarkerContainerView = root.requireAudioPlayerView(R.id.ab_repeat_marker_guideline_container)
     val abRepeatContainer: AbRepeatControlsView = root.requireAudioPlayerView(R.id.ab_repeat_container)

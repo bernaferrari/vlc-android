@@ -31,9 +31,11 @@ import android.os.Looper
 import android.os.Vibrator
 import android.support.v4.media.session.PlaybackStateCompat
 import android.text.format.DateFormat
+import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresPermission
 import androidx.annotation.StringRes
@@ -70,6 +72,7 @@ import kotlinx.coroutines.withContext
 import org.videolan.libvlc.MediaPlayer
 import org.videolan.medialibrary.MLServiceLocator
 import org.videolan.medialibrary.Tools
+import org.videolan.medialibrary.interfaces.media.Bookmark
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.resources.AndroidDevices
 import org.videolan.resources.AppContextProvider
@@ -134,6 +137,7 @@ import org.videolan.vlc.gui.dialogs.showSleepTimerComposeDialog
 import org.videolan.vlc.gui.helpers.AudioUtil.setRingtone
 import org.videolan.vlc.gui.helpers.BookmarkListDelegate
 import org.videolan.vlc.gui.helpers.BookmarkMarkerHost
+import org.videolan.vlc.gui.helpers.PlayerOption
 import org.videolan.vlc.gui.helpers.PlayerOptionsDelegate
 import org.videolan.vlc.gui.helpers.TalkbackUtil
 import org.videolan.vlc.gui.helpers.UiTools
@@ -143,6 +147,11 @@ import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
 import org.videolan.vlc.gui.video.VideoPlayerActivity
 import org.videolan.vlc.gui.view.AudioMediaSwitcher
 import org.videolan.vlc.gui.view.AudioMediaSwitcher.AudioMediaSwitcherListener
+import org.videolan.vlc.gui.view.BookmarkPanelHost
+import org.videolan.vlc.gui.view.BookmarkPanelItem
+import org.videolan.vlc.gui.view.PlayerOptionsPanelHost
+import org.videolan.vlc.gui.view.VLCBookmarksPanelContent
+import org.videolan.vlc.gui.view.VLCPlayerOptionsPanelContent
 import org.videolan.vlc.manageAbRepeatStep
 import org.videolan.vlc.media.PlaylistManager
 import org.videolan.vlc.media.PlaylistManager.Companion.hasMedia
@@ -161,6 +170,7 @@ import org.videolan.vlc.util.ContextOption.CTX_STOP_AFTER_THIS
 import org.videolan.vlc.util.FlagSet
 import org.videolan.vlc.util.LocaleUtil
 import org.videolan.vlc.util.TextUtils
+import org.videolan.vlc.util.getScreenHeight
 import org.videolan.vlc.util.isTalkbackIsEnabled
 import org.videolan.vlc.util.launchWhenStarted
 import org.videolan.vlc.util.share
@@ -193,6 +203,22 @@ private data class AudioSeekHudState(
         val delayText: String = "",
         val rewindContentDescription: String = "",
         val forwardContentDescription: String = ""
+)
+
+private data class AudioPlayerOptionsPanelState(
+        val visible: Boolean = false,
+        val options: List<PlayerOption> = emptyList(),
+        val focusRequestToken: Int = 0
+)
+
+private data class AudioBookmarksPanelState(
+        val visible: Boolean = false,
+        val bookmarks: List<BookmarkPanelItem> = emptyList(),
+        val jumpDelayText: String = "",
+        val rewindContentDescription: String = "",
+        val forwardContentDescription: String = "",
+        val progressTopPx: Float = -1F,
+        val addBookmarkFocusToken: Int = 0
 )
 
 @Composable
@@ -277,7 +303,154 @@ class AudioPlayer(
     private var audioMiniProgressMax by mutableIntStateOf(100)
     private var audioMiniProgress by mutableIntStateOf(0)
     private var audioBookmarkMarkerFractions by mutableStateOf(emptyList<Float>())
+    private var audioOptionsPanelState by mutableStateOf(AudioPlayerOptionsPanelState())
+    private var audioBookmarksPanelState by mutableStateOf(AudioBookmarksPanelState())
     private var resumeVideoHintVisible by mutableStateOf(false)
+    private val audioOptionsPanelHost = object : PlayerOptionsPanelHost {
+        var onDismissClick: () -> Unit = {}
+        var onOptionClick: (PlayerOption) -> Unit = {}
+
+        override val visible: Boolean
+            get() = audioOptionsPanelState.visible
+
+        override fun show() {
+            if (::binding.isInitialized) {
+                updateAudioOptionsPanelLayout()
+                binding.optionsBackground.setVisible()
+            }
+            audioOptionsPanelState = audioOptionsPanelState.copy(visible = true)
+        }
+
+        override fun hide() {
+            audioOptionsPanelState = audioOptionsPanelState.copy(visible = false)
+            if (::binding.isInitialized) binding.optionsBackground.setGone()
+        }
+
+        override fun setOptions(options: List<PlayerOption>) {
+            audioOptionsPanelState = audioOptionsPanelState.copy(options = options)
+        }
+
+        override fun setOnDismissClickListener(listener: () -> Unit) {
+            onDismissClick = listener
+        }
+
+        override fun setOnOptionClickListener(listener: (PlayerOption) -> Unit) {
+            onOptionClick = listener
+        }
+
+        override fun requestInitialFocus() {
+            audioOptionsPanelState = audioOptionsPanelState.copy(focusRequestToken = audioOptionsPanelState.focusRequestToken + 1)
+        }
+
+        override fun setOptionIcon(optionId: Long, icon: Int, contentDescription: String?) {
+            audioOptionsPanelState = audioOptionsPanelState.copy(
+                    options = audioOptionsPanelState.options.map { option ->
+                        if (option.id == optionId) option.copy(icon = icon, contentDescription = contentDescription ?: option.contentDescription)
+                        else option
+                    }
+            )
+        }
+    }
+    private val audioBookmarksPanelHost = object : BookmarkPanelHost {
+        var onCloseClick: () -> Unit = {}
+        var onAddBookmarkClick: () -> Unit = {}
+        var onPreviousBookmarkClick: () -> Unit = {}
+        var onNextBookmarkClick: () -> Unit = {}
+        var onRewindClick: () -> Unit = {}
+        var onForwardClick: () -> Unit = {}
+        var onRewindLongClick: () -> Unit = {}
+        var onForwardLongClick: () -> Unit = {}
+        var onBookmarkClick: (Bookmark) -> Unit = {}
+        var onBookmarkRenameClick: (Bookmark) -> Unit = {}
+        var onBookmarkDeleteClick: (Bookmark) -> Unit = {}
+
+        override val visible: Boolean
+            get() = audioBookmarksPanelState.visible
+
+        override fun show() {
+            if (::binding.isInitialized) binding.bookmarksBackground.setVisible()
+            audioBookmarksPanelState = audioBookmarksPanelState.copy(visible = true)
+        }
+
+        override fun hide() {
+            audioBookmarksPanelState = audioBookmarksPanelState.copy(visible = false)
+            if (::binding.isInitialized) binding.bookmarksBackground.setGone()
+        }
+
+        override fun setBookmarks(bookmarks: List<BookmarkPanelItem>) {
+            audioBookmarksPanelState = audioBookmarksPanelState.copy(bookmarks = bookmarks)
+        }
+
+        override fun setJumpDelay(jumpDelay: Int, rewindDescription: String, forwardDescription: String) {
+            audioBookmarksPanelState = audioBookmarksPanelState.copy(
+                    jumpDelayText = jumpDelay.toString(),
+                    rewindContentDescription = rewindDescription,
+                    forwardContentDescription = forwardDescription
+            )
+        }
+
+        override fun setProgressTop(y: Float) {
+            audioBookmarksPanelState = audioBookmarksPanelState.copy(progressTopPx = y)
+        }
+
+        @Suppress("DEPRECATION")
+        override fun announceBookmarkAdded(message: String) {
+            if (::binding.isInitialized) binding.bookmarksBackground.announceForAccessibility(message)
+            else activity.window.decorView.announceForAccessibility(message)
+        }
+
+        override fun sendAddBookmarkAccessibilityEvent() {
+            requestPanelFocus()
+        }
+
+        override fun requestPanelFocus() {
+            audioBookmarksPanelState = audioBookmarksPanelState.copy(addBookmarkFocusToken = audioBookmarksPanelState.addBookmarkFocusToken + 1)
+        }
+
+        override fun setOnCloseClickListener(listener: () -> Unit) {
+            onCloseClick = listener
+        }
+
+        override fun setOnAddBookmarkClickListener(listener: () -> Unit) {
+            onAddBookmarkClick = listener
+        }
+
+        override fun setOnPreviousBookmarkClickListener(listener: () -> Unit) {
+            onPreviousBookmarkClick = listener
+        }
+
+        override fun setOnNextBookmarkClickListener(listener: () -> Unit) {
+            onNextBookmarkClick = listener
+        }
+
+        override fun setOnRewindClickListener(listener: () -> Unit) {
+            onRewindClick = listener
+        }
+
+        override fun setOnForwardClickListener(listener: () -> Unit) {
+            onForwardClick = listener
+        }
+
+        override fun setOnRewindLongClickListener(listener: () -> Unit) {
+            onRewindLongClick = listener
+        }
+
+        override fun setOnForwardLongClickListener(listener: () -> Unit) {
+            onForwardLongClick = listener
+        }
+
+        override fun setOnBookmarkClickListener(listener: (Bookmark) -> Unit) {
+            onBookmarkClick = listener
+        }
+
+        override fun setOnBookmarkRenameClickListener(listener: (Bookmark) -> Unit) {
+            onBookmarkRenameClick = listener
+        }
+
+        override fun setOnBookmarkDeleteClickListener(listener: (Bookmark) -> Unit) {
+            onBookmarkDeleteClick = listener
+        }
+    }
     private val audioBookmarkMarkerHost = object : BookmarkMarkerHost {
         override fun show() {
             if (::binding.isInitialized) binding.bookmarkMarkerContainer.setVisible()
@@ -430,6 +603,7 @@ class AudioPlayer(
         setupAudioMiniProgressBar()
         setupAudioTimelineSlider()
         setupAudioBookmarkMarkers()
+        setupAudioPanelOverlays()
         setupAudioTimelineTimeLabels()
         setupAudioHeaderActions()
         setupAudioHeaderPlayPause()
@@ -596,6 +770,58 @@ class AudioPlayer(
                 VLCBookmarkMarkers(markerFractions = audioBookmarkMarkerFractions)
             }
         }
+    }
+
+    private fun setupAudioPanelOverlays() {
+        binding.optionsBackground.setContent {
+            VLCTheme {
+                if (audioOptionsPanelState.visible) {
+                    VLCPlayerOptionsPanelContent(
+                            options = audioOptionsPanelState.options,
+                            focusRequestToken = audioOptionsPanelState.focusRequestToken,
+                            onDismissClick = audioOptionsPanelHost.onDismissClick,
+                            onOptionClick = audioOptionsPanelHost.onOptionClick
+                    )
+                }
+            }
+        }
+        binding.bookmarksBackground.setContent {
+            VLCTheme {
+                if (audioBookmarksPanelState.visible) {
+                    VLCBookmarksPanelContent(
+                            bookmarks = audioBookmarksPanelState.bookmarks,
+                            jumpDelayText = audioBookmarksPanelState.jumpDelayText,
+                            rewindContentDescription = audioBookmarksPanelState.rewindContentDescription,
+                            forwardContentDescription = audioBookmarksPanelState.forwardContentDescription,
+                            progressTopPx = audioBookmarksPanelState.progressTopPx,
+                            addBookmarkFocusToken = audioBookmarksPanelState.addBookmarkFocusToken,
+                            onCloseClick = audioBookmarksPanelHost.onCloseClick,
+                            onAddBookmarkClick = audioBookmarksPanelHost.onAddBookmarkClick,
+                            onPreviousBookmarkClick = audioBookmarksPanelHost.onPreviousBookmarkClick,
+                            onNextBookmarkClick = audioBookmarksPanelHost.onNextBookmarkClick,
+                            onRewindClick = audioBookmarksPanelHost.onRewindClick,
+                            onForwardClick = audioBookmarksPanelHost.onForwardClick,
+                            onRewindLongClick = audioBookmarksPanelHost.onRewindLongClick,
+                            onForwardLongClick = audioBookmarksPanelHost.onForwardLongClick,
+                            onBookmarkClick = audioBookmarksPanelHost.onBookmarkClick,
+                            onBookmarkRenameClick = audioBookmarksPanelHost.onBookmarkRenameClick,
+                            onBookmarkDeleteClick = audioBookmarksPanelHost.onBookmarkDeleteClick
+                    )
+                }
+            }
+        }
+    }
+
+    private fun updateAudioOptionsPanelLayout() {
+        val horizontalFold = foldingFeature?.takeIf { feature ->
+            feature.isSeparating &&
+                    feature.occlusionType == FoldingFeature.OcclusionType.FULL &&
+                    feature.orientation == FoldingFeature.Orientation.HORIZONTAL
+        }
+        val layoutParams = binding.optionsBackground.layoutParams as ViewGroup.MarginLayoutParams
+        layoutParams.height = if (horizontalFold != null) activity.getScreenHeight() - horizontalFold.bounds.bottom else FrameLayout.LayoutParams.MATCH_PARENT
+        if (layoutParams is FrameLayout.LayoutParams) layoutParams.gravity = Gravity.BOTTOM
+        binding.optionsBackground.layoutParams = layoutParams
     }
 
     private fun setupAudioTimelineTimeLabels() {
@@ -1493,6 +1719,7 @@ class AudioPlayer(
             val service = playlistModel.service ?: return
             val activity = activity as? AppCompatActivity ?: return
             optionsDelegate = PlayerOptionsDelegate(activity, service)
+            optionsDelegate.setPanelHost(audioOptionsPanelHost)
             optionsDelegate.setBookmarkClickedListener {
                 lifecycleScope.launch { if (!activity.showPinIfNeeded()) showBookmarks() }
             }
@@ -1507,6 +1734,7 @@ class AudioPlayer(
         val service = playlistModel.service ?: return
         if (!this::bookmarkListDelegate.isInitialized) {
             bookmarkListDelegate = BookmarkListDelegate(requireActivity(), service, bookmarkModel, false)
+            bookmarkListDelegate.setPanelHost(audioBookmarksPanelHost)
             bookmarkListDelegate.visibilityListener = {
                 binding.audioPlayProgress.visibility = if (shouldHidePlayProgress()) View.GONE else View.VISIBLE
                 lifecycleScope.launch {
