@@ -28,10 +28,8 @@ import org.videolan.vlc.R
 import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.gui.view.AbRepeatControlsView
 import org.videolan.vlc.gui.view.AbRepeatMarkerContainerView
-import org.videolan.vlc.gui.view.AudioMiniProgressBarView
 import org.videolan.vlc.gui.view.AudioPlayerBackgroundView
 import org.videolan.vlc.gui.view.AudioPlaylistSearchFieldView
-import org.videolan.vlc.gui.view.AudioTimelineSeekBarView
 import org.videolan.vlc.gui.view.BookmarkMarkerContainerView
 import org.videolan.vlc.gui.view.CoverMediaSwitcher
 import org.videolan.vlc.gui.view.HeaderMediaSwitcher
@@ -39,7 +37,7 @@ import org.videolan.vlc.gui.view.HeaderMediaSwitcher
 class AudioPlayerViews(val root: ConstraintLayout) {
     val contentLayout: ConstraintLayout = root
     val backgroundView: AudioPlayerBackgroundView = root.requireAudioPlayerView(R.id.backgroundView)
-    val progressBar: AudioMiniProgressBarView = root.requireAudioPlayerView(R.id.progressBar)
+    val progressBar: VLCComposeView = root.requireAudioPlayerView(R.id.progressBar)
     val header: ConstraintLayout = root.requireAudioPlayerView(R.id.header)
     val headerShuffle: VLCComposeView = root.requireAudioPlayerView(R.id.header_shuffle)
     val headerPrevious: VLCComposeView = root.requireAudioPlayerView(R.id.header_previous)
@@ -69,7 +67,7 @@ class AudioPlayerViews(val root: ConstraintLayout) {
     val audioForwardText: VLCComposeView = root.requireAudioPlayerView(R.id.audio_forward_text)
     val audioForwardBookmark: VLCComposeView = root.requireAudioPlayerView(R.id.audio_forward_bookmark)
     val time: VLCComposeView = root.requireAudioPlayerView(R.id.time)
-    val timeline: AudioTimelineSeekBarView = root.requireAudioPlayerView(R.id.timeline)
+    val timeline: VLCComposeView = root.requireAudioPlayerView(R.id.timeline)
     val length: VLCComposeView = root.requireAudioPlayerView(R.id.length)
     val shuffle: VLCComposeView = root.requireAudioPlayerView(R.id.shuffle)
     val previous: VLCComposeView = root.requireAudioPlayerView(R.id.previous)

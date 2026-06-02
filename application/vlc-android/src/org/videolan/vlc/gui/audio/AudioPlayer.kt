@@ -41,6 +41,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -103,6 +104,7 @@ import org.videolan.vlc.compose.components.VLCAudioHeaderDivider
 import org.videolan.vlc.compose.components.VLCAudioHeaderPlayPauseButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderTimeLabel
 import org.videolan.vlc.compose.components.VLCAudioHeaderTransportButton
+import org.videolan.vlc.compose.components.VLCAudioMiniProgressBar
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPill
 import org.videolan.vlc.compose.components.VLCAudioQueueProgressPillState
 import org.videolan.vlc.compose.components.VLCAudioPlayerChips
@@ -110,6 +112,7 @@ import org.videolan.vlc.compose.components.VLCAudioPlayerChipsState
 import org.videolan.vlc.compose.components.VLCAudioResumeVideoHint
 import org.videolan.vlc.compose.components.VLCAudioSeekDelayLabel
 import org.videolan.vlc.compose.components.VLCAudioSeekHudButton
+import org.videolan.vlc.compose.components.VLCAudioTimelineSlider
 import org.videolan.vlc.compose.components.VLCAudioTrackInfoText
 import org.videolan.vlc.compose.components.VLCAudioTrackInfoTextStyle
 import org.videolan.vlc.compose.components.VLCAudioTimelineTimeLabel
@@ -138,7 +141,6 @@ import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
 import org.videolan.vlc.gui.video.VideoPlayerActivity
 import org.videolan.vlc.gui.view.AudioMediaSwitcher
 import org.videolan.vlc.gui.view.AudioMediaSwitcher.AudioMediaSwitcherListener
-import org.videolan.vlc.gui.view.PlayerTimelineSeekBarView
 import org.videolan.vlc.manageAbRepeatStep
 import org.videolan.vlc.media.PlaylistManager
 import org.videolan.vlc.media.PlaylistManager.Companion.hasMedia
@@ -157,6 +159,7 @@ import org.videolan.vlc.util.ContextOption.CTX_STOP_AFTER_THIS
 import org.videolan.vlc.util.FlagSet
 import org.videolan.vlc.util.LocaleUtil
 import org.videolan.vlc.util.TextUtils
+import org.videolan.vlc.util.isTalkbackIsEnabled
 import org.videolan.vlc.util.launchWhenStarted
 import org.videolan.vlc.util.share
 import org.videolan.vlc.viewmodels.BookmarkModel
@@ -266,6 +269,11 @@ class AudioPlayer(
     private var audioTrackDetailText by mutableStateOf("")
     private var audioTimelineTimeText by mutableStateOf("")
     private var audioTimelineLengthText by mutableStateOf("")
+    private var audioTimelineMax by mutableIntStateOf(100)
+    private var audioTimelineProgress by mutableIntStateOf(0)
+    private var audioTimelineContentDescription by mutableStateOf("")
+    private var audioMiniProgressMax by mutableIntStateOf(100)
+    private var audioMiniProgress by mutableIntStateOf(0)
     private var resumeVideoHintVisible by mutableStateOf(false)
 
     val lifecycle: Lifecycle
@@ -369,8 +377,6 @@ class AudioPlayer(
         binding.next.setOnTouchListener(LongSeekListener(true))
         binding.previous.setOnTouchListener(LongSeekListener(false))
 
-        binding.timeline.setOnTimelineSeekChangeListener(timelineListener)
-
         onSlide(0f)
         playlistModel.service?.playlistManager?.abRepeat?.observe(viewLifecycleOwner) { abvalues ->
             binding.abRepeatMarkerGuidelineContainer.setMarkerPositions(
@@ -392,7 +398,7 @@ class AudioPlayer(
         }
 
         binding.abRepeatContainer.setOnClickListener {
-            playlistModel.service?.playlistManager?.setABRepeatValue(playlistModel.service?.playlistManager?.getCurrentMedia(), binding.timeline.progress.toLong())
+            playlistModel.service?.playlistManager?.setABRepeatValue(playlistModel.service?.playlistManager?.getCurrentMedia(), audioTimelineProgress.toLong())
         }
 
         audioPlayProgressMode = Settings.getInstance(requireActivity()).getBoolean(AUDIO_PLAY_PROGRESS_MODE, false)
@@ -401,6 +407,8 @@ class AudioPlayer(
         audioTimelineLengthText = getString(R.string.time_0)
         setupAudioHeaderDecorations()
         setupAudioHeaderTime()
+        setupAudioMiniProgressBar()
+        setupAudioTimelineSlider()
         setupAudioTimelineTimeLabels()
         setupAudioHeaderActions()
         setupAudioHeaderPlayPause()
@@ -530,6 +538,32 @@ class AudioPlayer(
                 VLCAudioHeaderTimeLabel(
                     text = audioHeaderTimeText,
                     onClick = { toggleRemainingTimeMode() }
+                )
+            }
+        }
+    }
+
+    private fun setupAudioMiniProgressBar() {
+        binding.progressBar.setContent {
+            VLCTheme {
+                val max = audioMiniProgressMax.coerceAtLeast(1)
+                VLCAudioMiniProgressBar(
+                        progressFraction = audioMiniProgress.coerceIn(0, max).toFloat() / max
+                )
+            }
+        }
+    }
+
+    private fun setupAudioTimelineSlider() {
+        binding.timeline.setContent {
+            VLCTheme {
+                VLCAudioTimelineSlider(
+                        progress = audioTimelineProgress,
+                        max = audioTimelineMax,
+                        contentDescription = audioTimelineContentDescription,
+                        onUserDragStarted = ::onTimelineDragStarted,
+                        onUserProgressChange = ::onTimelineUserProgressChanged,
+                        onUserDragStopped = { onTimelineDragStopped(audioTimelineProgress) }
                 )
             }
         }
@@ -1214,15 +1248,15 @@ class AudioPlayer(
     private fun updateProgress(progress: PlaybackProgress) {
         if (playlistModel.currentMediaPosition == -1) return
         audioTimelineLengthText = if (showRemainingTime) Tools.millisToString(progress.time - progress.length) else progress.lengthText
-        binding.timeline.max = progress.length.toInt()
-        binding.progressBar.max = progress.length.toInt()
+        updateAudioTimelineMax(progress.length.toInt())
+        updateAudioMiniProgressMax(progress.length.toInt())
 
         if (!previewingSeek) {
             val displayTime = progress.timeText
             audioHeaderTimeText = if (showRemainingTime) Tools.millisToString(progress.time - progress.length) else displayTime
             audioTimelineTimeText = displayTime
-            if (!isDragging) binding.timeline.progress = progress.time.toInt()
-            binding.progressBar.progress = progress.time.toInt()
+            if (!isDragging) updateAudioTimelineProgress(progress.time.toInt())
+            updateAudioMiniProgress(progress.time.toInt())
         }
 
         lifecycleScope.launchWhenStarted {
@@ -1303,6 +1337,36 @@ class AudioPlayer(
     }
 
     private fun shouldHidePlayProgress() = abRepeatControlsActive || areBookmarksVisible() || playlistModel.medias?.size ?: 0 < 2
+
+    private fun updateAudioTimelineMax(max: Int) {
+        audioTimelineMax = max.coerceAtLeast(0)
+        updateAudioTimelineProgress(audioTimelineProgress)
+    }
+
+    private fun updateAudioTimelineProgress(progress: Int) {
+        val safeMax = audioTimelineMax.coerceAtLeast(1)
+        audioTimelineProgress = progress.coerceIn(0, safeMax)
+        updateAudioTimelineContentDescription()
+    }
+
+    private fun updateAudioTimelineContentDescription() {
+        val text = getString(
+                R.string.talkback_out_of,
+                TalkbackUtil.millisToString(requireActivity(), audioTimelineProgress.toLong()),
+                TalkbackUtil.millisToString(requireActivity(), audioTimelineMax.toLong())
+        )
+        audioTimelineContentDescription = text
+        if (::binding.isInitialized) binding.timeline.contentDescription = text
+    }
+
+    private fun updateAudioMiniProgressMax(max: Int) {
+        audioMiniProgressMax = max.coerceAtLeast(0)
+        updateAudioMiniProgress(audioMiniProgress)
+    }
+
+    private fun updateAudioMiniProgress(progress: Int) {
+        audioMiniProgress = progress.coerceIn(0, audioMiniProgressMax.coerceAtLeast(1))
+    }
 
     fun onTimeLabelClick(@Suppress("UNUSED_PARAMETER") view: View) {
         toggleRemainingTimeMode()
@@ -1505,8 +1569,8 @@ class AudioPlayer(
                 }
 
                 audioTimelineTimeText = Tools.millisToString(possibleSeek.toLong())
-                binding.timeline.progress = possibleSeek
-                binding.progressBar.progress = possibleSeek
+                updateAudioTimelineProgress(possibleSeek)
+                updateAudioMiniProgress(possibleSeek)
                 handler.postDelayed(this, 50)
             }
         }
@@ -1556,26 +1620,24 @@ class AudioPlayer(
         }
     }
 
-    private var timelineListener = object : PlayerTimelineSeekBarView.Listener {
+    private fun onTimelineDragStarted() {
+        isDragging = true
+    }
 
-        override fun onStopTrackingTouch(progress: Int) {
-            playlistModel.setTime(progress.toLong())
-            isDragging = false
+    private fun onTimelineUserProgressChanged(progress: Int) {
+        updateAudioTimelineProgress(progress)
+        playlistModel.setTime(progress.toLong(), true)
+        val displayTime = Tools.millisToString(progress.toLong())
+        audioTimelineTimeText = displayTime
+        audioHeaderTimeText = displayTime
+        if (requireActivity().isTalkbackIsEnabled()) {
+            binding.timeline.announceForAccessibility(audioTimelineContentDescription)
         }
+    }
 
-        override fun onStartTrackingTouch() {
-            isDragging = true
-        }
-
-        override fun onProgressChanged(progress: Int, fromUser: Boolean) {
-            if (fromUser) {
-                playlistModel.setTime(progress.toLong(), true)
-                val displayTime = Tools.millisToString(progress.toLong())
-                audioTimelineTimeText = displayTime
-                audioHeaderTimeText = displayTime
-                binding.timeline.forceAccessibilityUpdate()
-            }
-        }
+    private fun onTimelineDragStopped(progress: Int) {
+        playlistModel.setTime(progress.toLong())
+        isDragging = false
     }
 
     private val headerMediaSwitcherListener = object : AudioMediaSwitcherListener {

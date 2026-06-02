@@ -21,8 +21,9 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
  *   - application/vlc-android/res/layout-land/audio_player.xml @id/timeline
  *   - application/vlc-android/src/org/videolan/vlc/gui/view/VideoHudOverlayView.kt @id/player_overlay_seekbar
  *
- * The XML bridge keeps the existing imperative max/progress and drag callback
- * contract while this leaf owns the visual track/thumb rendering.
+ * Direct Compose hosts and the remaining video HUD bridge keep the existing
+ * max/progress and drag callback contracts while this leaf owns the visual
+ * track/thumb rendering.
  */
 @Composable
 fun VLCAudioTimelineSlider(

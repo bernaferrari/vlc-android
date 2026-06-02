@@ -37,12 +37,10 @@ import org.videolan.vlc.R
 import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.gui.view.AbRepeatControlsView
 import org.videolan.vlc.gui.view.AbRepeatMarkerContainerView
-import org.videolan.vlc.gui.view.AudioMiniProgressBarView
 import org.videolan.vlc.gui.view.AudioPlayerBackgroundView
 import org.videolan.vlc.gui.view.AudioPlayerBottomGradientView
 import org.videolan.vlc.gui.view.AudioPlayerTopGradientView
 import org.videolan.vlc.gui.view.AudioPlaylistSearchFieldView
-import org.videolan.vlc.gui.view.AudioTimelineSeekBarView
 import org.videolan.vlc.gui.view.BookmarkMarkerContainerView
 import org.videolan.vlc.gui.view.BookmarksPanelView
 import org.videolan.vlc.gui.view.CoverMediaSwitcher
@@ -168,7 +166,7 @@ private fun ConstraintLayout.addSharedBackgroundChildren(includeBottomGradient: 
     })
     addHorizontalGuideline(R.id.guideline8, 0.65f)
     addHorizontalGuideline(R.id.guideline9, 0.3f)
-    addView(AudioMiniProgressBarView(context).apply {
+    addView(composeView(R.id.progressBar).apply {
         id = R.id.progressBar
         isFocusable = false
         importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
@@ -534,7 +532,7 @@ private fun ConstraintLayout.addCommonTransportChildren(landscape: Boolean) {
             marginStart = resources.getDimensionPixelSize(R.dimen.default_margin)
         }
     })
-    addView(AudioTimelineSeekBarView(context).apply {
+    addView(composeView(R.id.timeline).apply {
         id = R.id.timeline
         elevation = 4.dp.toFloat()
         isFocusable = true

@@ -14,7 +14,7 @@ import org.videolan.vlc.gui.helpers.TalkbackUtil
 import org.videolan.vlc.util.isTalkbackIsEnabled
 
 /**
- * Shared XML-friendly Compose replacement for player timeline seekbars. It
+ * Shared view-friendly Compose replacement for player timeline seekbars. It
  * exposes the small max/progress and drag callback surface that legacy player
  * controllers already use while removing native SeekBar widgets from layouts.
  */
@@ -95,16 +95,6 @@ open class PlayerTimelineSeekBarView @JvmOverloads constructor(
         )
     }
 }
-
-/**
- * XML-friendly Compose replacement for the former audio player XML shell's former
- * AccessibleSeekBar timeline.
- */
-class AudioTimelineSeekBarView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : PlayerTimelineSeekBarView(context, attrs, defStyleAttr)
 
 /**
  * View-friendly Compose replacement for the video HUD's former native timeline.
