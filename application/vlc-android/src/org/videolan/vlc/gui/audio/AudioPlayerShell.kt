@@ -41,7 +41,6 @@ import org.videolan.vlc.gui.view.AudioPlayerBackgroundView
 import org.videolan.vlc.gui.view.AudioPlayerBottomGradientView
 import org.videolan.vlc.gui.view.AudioPlayerTopGradientView
 import org.videolan.vlc.gui.view.AudioPlaylistSearchFieldView
-import org.videolan.vlc.gui.view.BookmarkMarkerContainerView
 import org.videolan.vlc.gui.view.BookmarksPanelView
 import org.videolan.vlc.gui.view.CoverMediaSwitcher
 import org.videolan.vlc.gui.view.HeaderMediaSwitcher
@@ -648,7 +647,7 @@ private fun ConstraintLayout.addAudioOverlays(landscape: Boolean) {
         topToTop = parentId
         bottomToBottom = parentId
     })
-    addView(BookmarkMarkerContainerView(context).apply {
+    addView(composeView(R.id.bookmark_marker_container).apply {
         id = R.id.bookmark_marker_container
     }, audioLayout(matchConstraint, wrapContent) {
         startToStart = R.id.timeline

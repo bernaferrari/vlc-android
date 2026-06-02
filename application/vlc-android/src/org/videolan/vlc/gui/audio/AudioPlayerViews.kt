@@ -30,7 +30,6 @@ import org.videolan.vlc.gui.view.AbRepeatControlsView
 import org.videolan.vlc.gui.view.AbRepeatMarkerContainerView
 import org.videolan.vlc.gui.view.AudioPlayerBackgroundView
 import org.videolan.vlc.gui.view.AudioPlaylistSearchFieldView
-import org.videolan.vlc.gui.view.BookmarkMarkerContainerView
 import org.videolan.vlc.gui.view.CoverMediaSwitcher
 import org.videolan.vlc.gui.view.HeaderMediaSwitcher
 
@@ -77,7 +76,7 @@ class AudioPlayerViews(val root: ConstraintLayout) {
     val centerGuideline: Guideline = root.requireAudioPlayerView(R.id.centerGuideline)
     val hingeGoLeft: VLCComposeView = root.requireAudioPlayerView(R.id.hinge_go_left)
     val hingeGoRight: VLCComposeView = root.requireAudioPlayerView(R.id.hinge_go_right)
-    val bookmarkMarkerContainer: BookmarkMarkerContainerView = root.requireAudioPlayerView(R.id.bookmark_marker_container)
+    val bookmarkMarkerContainer: VLCComposeView = root.requireAudioPlayerView(R.id.bookmark_marker_container)
     val abRepeatMarkerGuidelineContainer: AbRepeatMarkerContainerView = root.requireAudioPlayerView(R.id.ab_repeat_marker_guideline_container)
     val abRepeatContainer: AbRepeatControlsView = root.requireAudioPlayerView(R.id.ab_repeat_container)
     val trackInfoContainer: ConstraintLayout? = root.findAudioPlayerView(R.id.track_info_container)

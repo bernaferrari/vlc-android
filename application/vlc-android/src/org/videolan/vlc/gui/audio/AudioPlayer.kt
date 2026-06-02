@@ -116,6 +116,7 @@ import org.videolan.vlc.compose.components.VLCAudioTimelineSlider
 import org.videolan.vlc.compose.components.VLCAudioTrackInfoText
 import org.videolan.vlc.compose.components.VLCAudioTrackInfoTextStyle
 import org.videolan.vlc.compose.components.VLCAudioTimelineTimeLabel
+import org.videolan.vlc.compose.components.VLCBookmarkMarkers
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.AudioPlayerContainerActivity
@@ -132,6 +133,7 @@ import org.videolan.vlc.gui.dialogs.showPlaybackSpeedComposeDialog
 import org.videolan.vlc.gui.dialogs.showSleepTimerComposeDialog
 import org.videolan.vlc.gui.helpers.AudioUtil.setRingtone
 import org.videolan.vlc.gui.helpers.BookmarkListDelegate
+import org.videolan.vlc.gui.helpers.BookmarkMarkerHost
 import org.videolan.vlc.gui.helpers.PlayerOptionsDelegate
 import org.videolan.vlc.gui.helpers.TalkbackUtil
 import org.videolan.vlc.gui.helpers.UiTools
@@ -274,7 +276,25 @@ class AudioPlayer(
     private var audioTimelineContentDescription by mutableStateOf("")
     private var audioMiniProgressMax by mutableIntStateOf(100)
     private var audioMiniProgress by mutableIntStateOf(0)
+    private var audioBookmarkMarkerFractions by mutableStateOf(emptyList<Float>())
     private var resumeVideoHintVisible by mutableStateOf(false)
+    private val audioBookmarkMarkerHost = object : BookmarkMarkerHost {
+        override fun show() {
+            if (::binding.isInitialized) binding.bookmarkMarkerContainer.setVisible()
+        }
+
+        override fun hide() {
+            if (::binding.isInitialized) binding.bookmarkMarkerContainer.setGone()
+        }
+
+        override fun setMarkerFractions(fractions: List<Float>) {
+            audioBookmarkMarkerFractions = fractions
+        }
+
+        override fun clearMarkers() {
+            audioBookmarkMarkerFractions = emptyList()
+        }
+    }
 
     val lifecycle: Lifecycle
         get() = activity.lifecycle
@@ -409,6 +429,7 @@ class AudioPlayer(
         setupAudioHeaderTime()
         setupAudioMiniProgressBar()
         setupAudioTimelineSlider()
+        setupAudioBookmarkMarkers()
         setupAudioTimelineTimeLabels()
         setupAudioHeaderActions()
         setupAudioHeaderPlayPause()
@@ -565,6 +586,14 @@ class AudioPlayer(
                         onUserProgressChange = ::onTimelineUserProgressChanged,
                         onUserDragStopped = { onTimelineDragStopped(audioTimelineProgress) }
                 )
+            }
+        }
+    }
+
+    private fun setupAudioBookmarkMarkers() {
+        binding.bookmarkMarkerContainer.setContent {
+            VLCTheme {
+                VLCBookmarkMarkers(markerFractions = audioBookmarkMarkerFractions)
             }
         }
     }
@@ -1167,10 +1196,10 @@ class AudioPlayer(
         if (!::bookmarkListDelegate.isInitialized || !bookmarkListDelegate.visible) {
             if (settings.getBoolean(KEY_AUDIO_SHOW_BOOKMARK_MARKERS, true))
                 bookmarkModel.service?.let { service ->
-                    binding.bookmarkMarkerContainer.setVisible()
-                    BookmarkListDelegate.showBookmarks(binding.bookmarkMarkerContainer, service, bookmarkModel.dataset.getList())
+                    audioBookmarkMarkerHost.show()
+                    BookmarkListDelegate.showBookmarks(audioBookmarkMarkerHost, service, bookmarkModel.dataset.getList())
                 }
-            else binding.bookmarkMarkerContainer.clearMarkers()
+            else audioBookmarkMarkerHost.clearMarkers()
             if (isShowingCover()) {
                 binding.audioForward10.setVisible()
                 binding.audioRewind10.setVisible()
@@ -1487,7 +1516,7 @@ class AudioPlayer(
             bookmarkListDelegate.seekListener = { forward, long ->
                 playlistModel.jump(forward , long, requireActivity())
             }
-            bookmarkListDelegate.markerContainer = binding.bookmarkMarkerContainer
+            bookmarkListDelegate.setMarkerHost(audioBookmarkMarkerHost)
         }
         bookmarkListDelegate.show()
         bookmarkListDelegate.setProgressHeight(binding.time.y)
