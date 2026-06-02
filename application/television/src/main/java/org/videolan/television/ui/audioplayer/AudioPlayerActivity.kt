@@ -42,6 +42,10 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -52,7 +56,6 @@ import androidx.constraintlayout.widget.Guideline
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -108,7 +111,6 @@ import org.videolan.vlc.R as VlcR
 class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Callback, PlayerOptionsDelegateCallback  {
 
     private lateinit var views: TvAudioPlayerViews
-    private lateinit var adapter: PlaylistAdapter
     private var lastMove: Long = 0
     private var shuffling = false
     private var currentCoverArt: String? = null
@@ -123,6 +125,11 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
     private val playerKeyListenerDelegate: PlayerKeyListenerDelegate by lazy(LazyThreadSafetyMode.NONE) { PlayerKeyListenerDelegate(this@AudioPlayerActivity) }
     var playbackStarted = false
     private var service: PlaybackService? = null
+    private var playlistItems by mutableStateOf<List<MediaWrapper>>(emptyList())
+    private var selectedPlaylistItem by mutableIntStateOf(-1)
+    private var playlistPlaying by mutableStateOf(false)
+    private var playlistScrollTarget by mutableIntStateOf(-1)
+    private var playlistFocusEnabled by mutableStateOf(true)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -147,9 +154,20 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
     }
 
     private fun initializeAudioPlayerScreen() {
-        views.playlist.layoutManager = LinearLayoutManager(this)
-        adapter = PlaylistAdapter(this, model)
-        views.playlist.adapter = adapter
+        views.playlist.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        views.playlist.setContent {
+            VLCTheme(darkTheme = true) {
+                TvAudioPlaylist(
+                    items = playlistItems,
+                    selectedItem = selectedPlaylistItem,
+                    playing = playlistPlaying,
+                    focusEnabled = playlistFocusEnabled,
+                    scrollTarget = playlistScrollTarget,
+                    onItemClick = ::playPlaylistItem,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
         model.progress.observe(this) { progress ->
             views.mediaTime.text = progress.timeText
             views.mediaLength.text = progress.lengthText
@@ -158,8 +176,9 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
         }
         model.dataset.observe(this) { mediaWrappers ->
             if (mediaWrappers != null) {
-                adapter.setSelection(-1)
-                adapter.update(mediaWrappers)
+                playlistItems = mediaWrappers
+                selectedPlaylistItem = -1
+                updatePlaylistSelection()
             }
             updateRepeatMode()
         }
@@ -273,10 +292,11 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
 
         val drawable = if (state.playing) playToPause else pauseToPlay
         views.buttonPlay.setImageDrawable(drawable)
+        playlistPlaying = state.playing
         if (state.playing != wasPlaying) {
             views.buttonPlay.post { drawable.start() }
-            if (::adapter.isInitialized) adapter.refreshCurrentPlayingState()
         }
+        updatePlaylistSelection()
 
         wasPlaying = state.playing
         views.buttonPlay.contentDescription = getString(if (state.playing) org.videolan.vlc.R.string.pause else org.videolan.vlc.R.string.play)
@@ -372,8 +392,10 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
         }
     }
 
-    fun playSelection() {
-        model.play(adapter.selectedItem)
+    private fun playPlaylistItem(position: Int) {
+        selectedPlaylistItem = position
+        playlistScrollTarget = position
+        model.play(position)
     }
 
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
@@ -428,7 +450,7 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
                 bookmarkListDelegate = BookmarkListDelegate(this, it, bookmarkModel, false)
                 bookmarkListDelegate.visibilityListener = {
                     if (bookmarkListDelegate.visible) bookmarkListDelegate.requestFocus()
-                    views.playlist.descendantFocusability = if (bookmarkListDelegate.visible) ViewGroup.FOCUS_BLOCK_DESCENDANTS else ViewGroup.FOCUS_AFTER_DESCENDANTS
+                    playlistFocusEnabled = !bookmarkListDelegate.visible
                     views.playlist.isFocusable = !bookmarkListDelegate.visible
                     views.sleepQuickAction.isFocusable = !bookmarkListDelegate.visible
                     views.playbackSpeedQuickAction.isFocusable = !bookmarkListDelegate.visible
@@ -490,15 +512,11 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
         }
     }
 
-    fun onUpdateFinished() {
-        views.root.post {
-            val position = model.currentMediaPosition
-            if (position < 0) return@post
-            adapter.setSelection(position)
-            val first = (views.playlist.layoutManager as LinearLayoutManager).findFirstCompletelyVisibleItemPosition()
-            val last = (views.playlist.layoutManager as LinearLayoutManager).findLastCompletelyVisibleItemPosition()
-            if (position < first || position > last) views.playlist.smoothScrollToPosition(position)
-        }
+    private fun updatePlaylistSelection() {
+        val position = model.currentMediaPosition
+        if (position < 0 || position >= playlistItems.size || selectedPlaylistItem == position) return
+        selectedPlaylistItem = position
+        playlistScrollTarget = position
     }
 
     companion object {
@@ -552,7 +570,7 @@ private fun TvAudioPlayerScreen(onReady: (TvAudioPlayerViews) -> Unit) {
 private data class TvAudioPlayerViews(
     val root: ConstraintLayout,
     val background: AppCompatImageView,
-    val playlist: androidx.recyclerview.widget.RecyclerView,
+    val playlist: ComposeView,
     val albumCover: AppCompatImageView,
     val mediaTitle: TextView,
     val mediaArtist: TextView,
@@ -613,15 +631,13 @@ private fun createTvAudioPlayerViews(context: Context): TvAudioPlayerViews {
         marginEnd = context.resources.getDimensionPixelSize(R.dimen.tv_overscan_horizontal_progressbar)
     })
 
-    val playlist = androidx.recyclerview.widget.RecyclerView(context).apply {
+    val playlist = ComposeView(context).apply {
         id = R.id.playlist
-        setBackgroundColor(ContextCompat.getColor(context, R.color.black_transparent_20))
-        clipToPadding = false
+        isFocusable = true
         nextFocusLeftId = R.id.button_play
         nextFocusRightId = R.id.playlist
         nextFocusUpId = R.id.playlist
         nextFocusDownId = R.id.playlist
-        setPadding(paddingLeft, context.resources.getDimensionPixelSize(R.dimen.tv_overscan_vertical), paddingRight, paddingBottom)
     }
     root.addView(playlist, matchConstraints().apply {
         topToTop = ConstraintLayout.LayoutParams.PARENT_ID

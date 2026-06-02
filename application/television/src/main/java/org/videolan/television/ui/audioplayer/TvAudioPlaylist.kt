@@ -1,5 +1,5 @@
 /*****************************************************************************
- * PlaylistAdapter.kt
+ * TvAudioPlaylist.kt
  *
  * Copyright © 2014-2015 VLC authors, VideoLAN and VideoLabs
  * Author: Geoffrey Métais
@@ -21,8 +21,6 @@
 package org.videolan.television.ui.audioplayer
 
 import android.graphics.drawable.BitmapDrawable
-import android.view.View
-import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -31,6 +29,10 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,137 +44,98 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.recyclerview.widget.RecyclerView
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.television.R
-import org.videolan.vlc.compose.theme.VLCTheme
-import org.videolan.vlc.gui.DiffUtilAdapter
 import org.videolan.vlc.gui.helpers.getBitmapFromDrawable
 import org.videolan.vlc.gui.helpers.loadImage
 import org.videolan.vlc.media.MediaUtils
-import org.videolan.vlc.viewmodels.PlaylistModel
 
-class PlaylistAdapter
-internal constructor(private val audioPlayerActivity: AudioPlayerActivity, val model: PlaylistModel) : DiffUtilAdapter<MediaWrapper, PlaylistAdapter.ViewHolder>() {
-    var selectedItem = -1
-        private set
-    private var defaultCoverAudio: BitmapDrawable = BitmapDrawable(audioPlayerActivity.resources, getBitmapFromDrawable(audioPlayerActivity, R.drawable.ic_song_background))
+@Composable
+internal fun TvAudioPlaylist(
+    items: List<MediaWrapper>,
+    selectedItem: Int,
+    playing: Boolean,
+    focusEnabled: Boolean,
+    scrollTarget: Int,
+    onItemClick: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val listState = rememberLazyListState()
+    LaunchedEffect(scrollTarget, items.size) {
+        if (scrollTarget in items.indices) listState.animateScrollToItem(scrollTarget)
+    }
 
-    inner class ViewHolder(parent: ViewGroup) : RecyclerView.ViewHolder(
-        ComposeView(parent.context).apply {
-            isFocusable = true
-            isClickable = true
-            layoutParams = RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            setBackgroundResource(R.drawable.rectangle_circle_right_white_selector)
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindowOrReleasedFromPool)
-        }
-    ), View.OnClickListener {
-        private var rowState by mutableStateOf(TvPlaylistRowState())
-
-        init {
-            itemView.setOnClickListener(this)
-            (itemView as ComposeView).setContent {
-                VLCTheme(darkTheme = true) {
-                    rowState.media?.let { media ->
-                        TvPlaylistRow(
-                            media = media,
-                            current = rowState.current,
-                            playing = rowState.playing,
-                            defaultCover = defaultCoverAudio
-                        )
-                    }
-                }
-            }
-        }
-
-        override fun onClick(v: View) {
-            val position = bindingAdapterPosition
-            if (position == RecyclerView.NO_POSITION) return
-            setSelection(position)
-            audioPlayerActivity.playSelection()
-        }
-
-        fun bind(media: MediaWrapper, current: Boolean, playing: Boolean) {
-            rowState = TvPlaylistRowState(
+    LazyColumn(
+        state = listState,
+        modifier = modifier
+            .fillMaxSize()
+            .background(colorResource(R.color.black_transparent_20))
+            .padding(top = dimensionResource(R.dimen.tv_overscan_vertical))
+    ) {
+        itemsIndexed(items) { index, media ->
+            TvPlaylistRow(
                 media = media,
-                current = current,
-                playing = playing
+                current = selectedItem == index,
+                playing = playing && selectedItem == index,
+                focusEnabled = focusEnabled,
+                onClick = { onItemClick(index) }
             )
         }
     }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(parent)
-    }
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(dataset[position], selectedItem == position, model.playing)
-    }
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: List<Any>) {
-        if (payloads.isNullOrEmpty())
-            super.onBindViewHolder(holder, position, payloads)
-        else {
-            val isCurrent = payloads[0] as Boolean
-            holder.bind(dataset[position], isCurrent, isCurrent && model.playing)
-        }
-    }
-
-    fun setSelection(pos: Int) {
-        if (pos == selectedItem) return
-        val previous = selectedItem
-        selectedItem = pos
-        if (previous != -1) notifyItemChanged(previous, false)
-        if (pos != -1) notifyItemChanged(selectedItem, true)
-    }
-
-    fun refreshCurrentPlayingState() {
-        if (selectedItem != -1) notifyItemChanged(selectedItem, true)
-    }
-
-    override fun onUpdateFinished() {
-        audioPlayerActivity.onUpdateFinished()
-    }
-
-    companion object {
-        const val TAG = "VLC/PlaylistAdapter"
-    }
 }
-
-private data class TvPlaylistRowState(
-    val media: MediaWrapper? = null,
-    val current: Boolean = false,
-    val playing: Boolean = false
-)
 
 @Composable
 private fun TvPlaylistRow(
     media: MediaWrapper,
     current: Boolean,
     playing: Boolean,
-    defaultCover: BitmapDrawable
+    focusEnabled: Boolean,
+    onClick: () -> Unit
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val focused by interactionSource.collectIsFocusedAsState()
+    val focusShape = RoundedCornerShape(topEnd = 48.dp, bottomEnd = 48.dp)
+    val rowBackground = when {
+        focused -> Color.White.copy(alpha = 0.20F)
+        current -> Color.White.copy(alpha = 0.07F)
+        else -> Color.Transparent
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 90.dp)
-            .padding(end = dimensionResource(R.dimen.tv_overscan_horizontal)),
+            .padding(end = dimensionResource(R.dimen.tv_overscan_horizontal))
+            .background(rowBackground, focusShape)
+            .focusProperties { canFocus = focusEnabled }
+            .focusable(enabled = focusEnabled, interactionSource = interactionSource)
+            .clickable(
+                enabled = focusEnabled,
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -184,7 +147,7 @@ private fun TvPlaylistRow(
             if (current) {
                 TvPlaylistPlayingIndicator(playing)
             } else {
-                TvPlaylistCover(media = media, defaultCover = defaultCover)
+                TvPlaylistCover(media = media)
             }
         }
 
@@ -214,13 +177,15 @@ private fun TvPlaylistRow(
 }
 
 @Composable
-private fun TvPlaylistCover(
-    media: MediaWrapper,
-    defaultCover: BitmapDrawable
-) {
+private fun TvPlaylistCover(media: MediaWrapper) {
+    val context = LocalContext.current
+    val defaultCover = remember {
+        BitmapDrawable(context.resources, getBitmapFromDrawable(context, R.drawable.ic_song_background))
+    }
+
     AndroidView(
-        factory = { context ->
-            ImageView(context).apply {
+        factory = { viewContext ->
+            ImageView(viewContext).apply {
                 scaleType = ImageView.ScaleType.CENTER_CROP
             }
         },
