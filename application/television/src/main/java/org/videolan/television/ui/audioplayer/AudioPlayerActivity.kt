@@ -82,6 +82,7 @@ import org.videolan.vlc.gui.helpers.BookmarkMarkerHost
 import org.videolan.vlc.gui.helpers.KeycodeListener
 import org.videolan.vlc.gui.helpers.MediaComparators
 import org.videolan.vlc.gui.helpers.PlayerKeyListenerDelegate
+import org.videolan.vlc.gui.helpers.PlayerOption
 import org.videolan.vlc.gui.helpers.PlayerOptionsDelegate
 import org.videolan.vlc.gui.helpers.PlayerOptionsDelegateCallback
 import org.videolan.vlc.gui.helpers.TalkbackUtil
@@ -89,7 +90,7 @@ import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
 import org.videolan.vlc.gui.view.BookmarkPanelHost
 import org.videolan.vlc.gui.view.BookmarkPanelItem
-import org.videolan.vlc.gui.view.PlayerOptionsPanelView
+import org.videolan.vlc.gui.view.PlayerOptionsPanelHost
 import org.videolan.vlc.gui.video.VideoPlayerActivity
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.media.PlaylistManager
@@ -129,8 +130,51 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
     private var progressLabelsState by mutableStateOf(TvAudioProgressLabelsState())
     private var artworkState by mutableStateOf(TvAudioArtworkState())
     private var timelineState by mutableStateOf(TvAudioTimelineState())
+    private var optionsPanelState by mutableStateOf(TvAudioPlayerOptionsPanelState())
     private var bookmarksPanelState by mutableStateOf(TvAudioBookmarksPanelState())
     private var bookmarkMarkersState by mutableStateOf(TvAudioBookmarkMarkersState())
+    private val tvOptionsPanelHost = object : PlayerOptionsPanelHost {
+        var onDismissClick: () -> Unit = {}
+        var onOptionClick: (PlayerOption) -> Unit = {}
+
+        override val visible: Boolean
+            get() = optionsPanelState.visible
+
+        override fun show() {
+            optionsPanelState = optionsPanelState.copy(visible = true)
+            if (::views.isInitialized) views.playerOptionsPanel.visibility = View.VISIBLE
+        }
+
+        override fun hide() {
+            optionsPanelState = optionsPanelState.copy(visible = false)
+            if (::views.isInitialized) views.playerOptionsPanel.visibility = View.GONE
+        }
+
+        override fun setOptions(options: List<PlayerOption>) {
+            optionsPanelState = optionsPanelState.copy(options = options)
+        }
+
+        override fun setOnDismissClickListener(listener: () -> Unit) {
+            onDismissClick = listener
+        }
+
+        override fun setOnOptionClickListener(listener: (PlayerOption) -> Unit) {
+            onOptionClick = listener
+        }
+
+        override fun requestInitialFocus() {
+            optionsPanelState = optionsPanelState.copy(focusRequestToken = optionsPanelState.focusRequestToken + 1)
+        }
+
+        override fun setOptionIcon(optionId: Long, icon: Int, contentDescription: String?) {
+            optionsPanelState = optionsPanelState.copy(
+                options = optionsPanelState.options.map { option ->
+                    if (option.id == optionId) option.copy(icon = icon, contentDescription = contentDescription ?: option.contentDescription)
+                    else option
+                }
+            )
+        }
+    }
     private val tvBookmarksPanelHost = object : BookmarkPanelHost {
         var onCloseClick: () -> Unit = {}
         var onAddBookmarkClick: () -> Unit = {}
@@ -387,6 +431,17 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
                 )
             }
         }
+        views.playerOptionsPanel.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        views.playerOptionsPanel.setContent {
+            VLCTheme(darkTheme = true) {
+                TvAudioPlayerOptionsPanel(
+                    state = optionsPanelState,
+                    onDismissClick = { tvOptionsPanelHost.onDismissClick() },
+                    onOptionClick = { tvOptionsPanelHost.onOptionClick(it) },
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
         model.progress.observe(this) { progress ->
             progressLabelsState = TvAudioProgressLabelsState(progress.timeText, progress.lengthText)
             val max = progress.length.toInt()
@@ -596,6 +651,7 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
         if (optionsDelegate == null) {
             val service = model.service ?: return
             optionsDelegate = PlayerOptionsDelegate(this, service, false)
+            optionsDelegate?.setPanelHost(tvOptionsPanelHost)
             optionsDelegate?.setBookmarkClickedListener {
                 lifecycleScope.launch { if (!showPinIfNeeded()) showBookmarks() }
             }
@@ -747,6 +803,7 @@ private data class TvAudioPlayerViews(
     val trackInfo: ComposeView,
     val quickActions: ComposeView,
     val transportControls: ComposeView,
+    val playerOptionsPanel: ComposeView,
     val bookmarksPanel: ComposeView,
     val bookmarkMarkerContainer: ComposeView,
     val mediaProgress: ComposeView,
@@ -896,7 +953,7 @@ private fun createTvAudioPlayerViews(context: Context): TvAudioPlayerViews {
         bottomMargin = context.resources.getDimensionPixelSize(R.dimen.tv_overscan_vertical)
     })
 
-    val playerOptionsPanel = PlayerOptionsPanelView(context).apply {
+    val playerOptionsPanel = ComposeView(context).apply {
         id = VlcR.id.options_background
         visibility = View.GONE
         isClickable = true
@@ -918,6 +975,7 @@ private fun createTvAudioPlayerViews(context: Context): TvAudioPlayerViews {
         trackInfo = trackInfo,
         quickActions = quickActions,
         transportControls = transportControls,
+        playerOptionsPanel = playerOptionsPanel,
         bookmarksPanel = bookmarksPanel,
         bookmarkMarkerContainer = bookmarkMarkerContainer,
         mediaProgress = mediaProgress,

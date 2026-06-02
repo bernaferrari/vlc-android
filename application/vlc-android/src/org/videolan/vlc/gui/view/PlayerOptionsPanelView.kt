@@ -2,6 +2,7 @@ package org.videolan.vlc.gui.view
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.View
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,10 +28,27 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import org.videolan.tools.setGone
+import org.videolan.tools.setVisible
 import org.videolan.vlc.compose.components.VLCPlayerOptionItem
 import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.helpers.PlayerOption
+
+interface PlayerOptionsPanelHost {
+    val visible: Boolean
+    fun show()
+    fun hide()
+    fun setOptions(options: List<PlayerOption>)
+    fun setOnDismissClickListener(listener: () -> Unit)
+    fun setOnOptionClickListener(listener: (PlayerOption) -> Unit)
+    fun requestInitialFocus()
+    fun setOptionIcon(
+        optionId: Long,
+        @DrawableRes icon: Int,
+        contentDescription: String? = null
+    )
+}
 
 /**
  * Direct Compose-backed shared player options overlay. The audio/video hosts
@@ -41,7 +59,7 @@ class PlayerOptionsPanelView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : VLCAbstractComposeWidget(context, attrs, defStyleAttr) {
+) : VLCAbstractComposeWidget(context, attrs, defStyleAttr), PlayerOptionsPanelHost {
 
     private var panelOptions by mutableStateOf<List<PlayerOption>>(emptyList())
     private var focusRequestToken by mutableStateOf(0)
@@ -53,26 +71,37 @@ class PlayerOptionsPanelView @JvmOverloads constructor(
         isFocusable = false
     }
 
-    fun setOptions(options: List<PlayerOption>) {
+    override val visible: Boolean
+        get() = visibility == View.VISIBLE
+
+    override fun show() {
+        setVisible()
+    }
+
+    override fun hide() {
+        setGone()
+    }
+
+    override fun setOptions(options: List<PlayerOption>) {
         panelOptions = options
     }
 
-    fun setOnDismissClickListener(listener: () -> Unit) {
+    override fun setOnDismissClickListener(listener: () -> Unit) {
         onDismissClick = listener
     }
 
-    fun setOnOptionClickListener(listener: (PlayerOption) -> Unit) {
+    override fun setOnOptionClickListener(listener: (PlayerOption) -> Unit) {
         onOptionClick = listener
     }
 
-    fun requestInitialFocus() {
+    override fun requestInitialFocus() {
         focusRequestToken += 1
     }
 
-    fun setOptionIcon(
+    override fun setOptionIcon(
         optionId: Long,
         @DrawableRes icon: Int,
-        contentDescription: String? = null
+        contentDescription: String?
     ) {
         panelOptions = panelOptions.map { option ->
             if (option.id == optionId) option.copy(icon = icon, contentDescription = contentDescription ?: option.contentDescription)
@@ -82,55 +111,71 @@ class PlayerOptionsPanelView @JvmOverloads constructor(
 
     @Composable
     override fun WidgetContent() {
-        val firstItemFocusRequester = remember { FocusRequester() }
-        val dismissInteractionSource = remember { MutableInteractionSource() }
+        VLCPlayerOptionsPanelContent(
+            options = panelOptions,
+            focusRequestToken = focusRequestToken,
+            onDismissClick = onDismissClick,
+            onOptionClick = onOptionClick
+        )
+    }
+}
 
-        LaunchedEffect(focusRequestToken, panelOptions) {
-            if (focusRequestToken > 0 && panelOptions.isNotEmpty()) {
-                firstItemFocusRequester.requestFocus()
-            }
+@Composable
+fun VLCPlayerOptionsPanelContent(
+    options: List<PlayerOption>,
+    focusRequestToken: Int,
+    onDismissClick: () -> Unit,
+    onOptionClick: (PlayerOption) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val firstItemFocusRequester = remember { FocusRequester() }
+    val dismissInteractionSource = remember { MutableInteractionSource() }
+
+    LaunchedEffect(focusRequestToken, options) {
+        if (focusRequestToken > 0 && options.isNotEmpty()) {
+            firstItemFocusRequester.requestFocus()
         }
+    }
 
-        Box(
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .clickable(
+                interactionSource = dismissInteractionSource,
+                indication = null,
+                onClick = { onDismissClick() }
+            )
+    ) {
+        LazyColumn(
             modifier = Modifier
-                .fillMaxSize()
-                .clickable(
-                    interactionSource = dismissInteractionSource,
-                    indication = null,
-                    onClick = { onDismissClick() }
+                .align(Alignment.CenterEnd)
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(topStart = 4.dp, bottomStart = 4.dp),
+                    clip = false
                 )
+                .background(
+                    color = VLCThemeDefaults.colors.backgroundDefault,
+                    shape = RoundedCornerShape(topStart = 4.dp, bottomStart = 4.dp)
+                )
+                .padding(vertical = 16.dp)
         ) {
-            LazyColumn(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .shadow(
-                        elevation = 8.dp,
-                        shape = RoundedCornerShape(topStart = 4.dp, bottomStart = 4.dp),
-                        clip = false
+            itemsIndexed(
+                items = options,
+                key = { _, option -> option.id }
+            ) { index, option ->
+                val focusModifier = if (index == 0) Modifier.focusRequester(firstItemFocusRequester) else Modifier
+                VLCPlayerOptionItem(
+                    title = option.title,
+                    contentDescription = option.contentDescription,
+                    onClick = { onOptionClick(option) },
+                    modifier = focusModifier.focusable()
+                ) {
+                    Icon(
+                        painter = painterResource(option.icon),
+                        contentDescription = null,
+                        tint = VLCThemeDefaults.colors.playerIconColor
                     )
-                    .background(
-                        color = VLCThemeDefaults.colors.backgroundDefault,
-                        shape = RoundedCornerShape(topStart = 4.dp, bottomStart = 4.dp)
-                    )
-                    .padding(vertical = 16.dp)
-            ) {
-                itemsIndexed(
-                    items = panelOptions,
-                    key = { _, option -> option.id }
-                ) { index, option ->
-                    val focusModifier = if (index == 0) Modifier.focusRequester(firstItemFocusRequester) else Modifier
-                    VLCPlayerOptionItem(
-                        title = option.title,
-                        contentDescription = option.contentDescription,
-                        onClick = { onOptionClick(option) },
-                        modifier = focusModifier.focusable()
-                    ) {
-                        Icon(
-                            painter = painterResource(option.icon),
-                            contentDescription = null,
-                            tint = VLCThemeDefaults.colors.playerIconColor
-                        )
-                    }
                 }
             }
         }

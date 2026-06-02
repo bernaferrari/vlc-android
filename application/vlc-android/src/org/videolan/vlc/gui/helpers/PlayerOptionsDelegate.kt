@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.support.v4.media.session.PlaybackStateCompat
 import android.view.Gravity
-import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.Toast
@@ -33,6 +32,7 @@ import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.hf.PinCodeDelegate
 import org.videolan.vlc.gui.helpers.hf.checkPIN
 import org.videolan.vlc.gui.view.AudioPlayerTipsHostView
+import org.videolan.vlc.gui.view.PlayerOptionsPanelHost
 import org.videolan.vlc.gui.view.PlayerOptionsPanelView
 import org.videolan.vlc.gui.video.VideoPlayerActivity
 import org.videolan.vlc.media.PlayerController
@@ -71,7 +71,9 @@ private const val ID_SHARE = 23L
 class PlayerOptionsDelegate(val activity: ComponentActivity, val service: PlaybackService, private val showABReapeat:Boolean = true)  {
 
     private lateinit var bookmarkClickedListener: () -> Unit
-    private lateinit var rootView: PlayerOptionsPanelView
+    private var panelHost: PlayerOptionsPanelHost? = null
+    private var viewHost: PlayerOptionsPanelView? = null
+    private var panelHostConfigured = false
     var flags: Long = 0L
     private val toast by lazy(LazyThreadSafetyMode.NONE) { Toast.makeText(activity, "", Toast.LENGTH_SHORT) }
 
@@ -82,7 +84,8 @@ class PlayerOptionsDelegate(val activity: ComponentActivity, val service: Playba
     private val settings = Settings.getInstance(activity)
 
     fun setup() {
-        if (!this::rootView.isInitialized || PlayerController.playbackState == PlaybackStateCompat.STATE_STOPPED) return
+        val panel = panelHost ?: return
+        if (PlayerController.playbackState == PlaybackStateCompat.STATE_STOPPED) return
         val options = mutableListOf<PlayerOption>()
         if (video) options.add(PlayerOption(ID_LOCK_PLAYER, R.drawable.ic_lock_player, res.getString(R.string.lock)))
         options.add(PlayerOption(ID_SLEEP, R.drawable.ic_sleep, res.getString(R.string.sleep_title)))
@@ -126,43 +129,55 @@ class PlayerOptionsDelegate(val activity: ComponentActivity, val service: Playba
                 options.add(PlayerOption(ID_SHOW_PLAYLIST_TIPS, R.drawable.ic_playlisttips, res.getString(R.string.playlist_tips)))
             }
         }
-        rootView.setOptions(options)
+        panel.setOptions(options)
         if (options.any { it.id == ID_REPEAT }) updateRepeatOption()
         if (options.any { it.id == ID_SHUFFLE }) updateShuffleOption()
     }
 
     fun show() {
-        if (!::rootView.isInitialized) {
-            rootView = activity.findViewById<PlayerOptionsPanelView>(R.id.options_background) ?: return
-            rootView.setOnOptionClickListener(::onClick)
-            rootView.setOnDismissClickListener { hide() }
+        val panel = panelHost ?: activity.findViewById<PlayerOptionsPanelView>(R.id.options_background)?.also {
+            viewHost = it
+            panelHost = it
+        } ?: return
+        if (!panelHostConfigured) {
+            panel.setOnOptionClickListener(::onClick)
+            panel.setOnDismissClickListener { hide() }
+            panelHostConfigured = true
         }
+        val rootView = viewHost
         val windowInfoLayout = if (activity is VideoPlayerActivity) activity.windowLayoutInfo else if (activity is BaseActivity) activity.windowLayoutInfo else null
         val foldingFeature = windowInfoLayout?.displayFeatures?.firstOrNull() as? FoldingFeature
-        if (foldingFeature?.isSeparating == true && foldingFeature.occlusionType == FoldingFeature.OcclusionType.FULL && foldingFeature.orientation == FoldingFeature.Orientation.HORIZONTAL) {
-            val halfScreenSize = activity.getScreenHeight() - foldingFeature.bounds.bottom
-            val lp = (rootView.layoutParams as ViewGroup.MarginLayoutParams)
-            lp.height = halfScreenSize
-            if (lp is FrameLayout.LayoutParams) lp.gravity = Gravity.BOTTOM
-            rootView.layoutParams = lp
-        } else {
-             val lp = (rootView.layoutParams as ViewGroup.MarginLayoutParams)
-            lp.height = FrameLayout.LayoutParams.MATCH_PARENT
-            if (lp is FrameLayout.LayoutParams) lp.gravity = Gravity.BOTTOM
-            rootView.layoutParams = lp
+        if (rootView != null) {
+            if (foldingFeature?.isSeparating == true && foldingFeature.occlusionType == FoldingFeature.OcclusionType.FULL && foldingFeature.orientation == FoldingFeature.Orientation.HORIZONTAL) {
+                val halfScreenSize = activity.getScreenHeight() - foldingFeature.bounds.bottom
+                val lp = (rootView.layoutParams as ViewGroup.MarginLayoutParams)
+                lp.height = halfScreenSize
+                if (lp is FrameLayout.LayoutParams) lp.gravity = Gravity.BOTTOM
+                rootView.layoutParams = lp
+            } else {
+                val lp = (rootView.layoutParams as ViewGroup.MarginLayoutParams)
+                lp.height = FrameLayout.LayoutParams.MATCH_PARENT
+                if (lp is FrameLayout.LayoutParams) lp.gravity = Gravity.BOTTOM
+                rootView.layoutParams = lp
+            }
         }
         setup()
-        rootView.visibility = View.VISIBLE
+        panel.show()
         if (Settings.showTvUi) {
             activity.lifecycleScope.launch {
                 delay(100L)
-                rootView.requestInitialFocus()
+                panel.requestInitialFocus()
             }
         }
     }
 
     fun hide() {
-        rootView.visibility = View.GONE
+        panelHost?.hide()
+    }
+
+    fun setPanelHost(host: PlayerOptionsPanelHost) {
+        panelHost = host
+        viewHost = host as? PlayerOptionsPanelView
     }
 
     fun setBookmarkClickedListener(listener:()->Unit) {
@@ -344,22 +359,22 @@ class PlayerOptionsDelegate(val activity: ComponentActivity, val service: Playba
     }
 
     private fun updateShuffleOption() {
-        rootView.setOptionIcon(
+        panelHost?.setOptionIcon(
             ID_SHUFFLE,
             if (service.isShuffling) R.drawable.ic_shuffle_on_48dp else R.drawable.ic_player_shuffle,
-            rootView.context.getString(if (service.isShuffling) R.string.shuffle_on else R.string.shuffle)
+            activity.getString(if (service.isShuffling) R.string.shuffle_on else R.string.shuffle)
         )
     }
 
     private fun updateRepeatOption() {
-        rootView.setOptionIcon(
+        panelHost?.setOptionIcon(
             ID_REPEAT,
             when (service.repeatType) {
                 PlaybackStateCompat.REPEAT_MODE_ONE -> R.drawable.ic_repeat_one
                 PlaybackStateCompat.REPEAT_MODE_ALL -> R.drawable.ic_repeat_all
                 else -> R.drawable.ic_repeat
             },
-            rootView.context.getString(when (service.repeatType) {
+            activity.getString(when (service.repeatType) {
                 PlaybackStateCompat.REPEAT_MODE_ONE -> R.string.repeat_single
                 PlaybackStateCompat.REPEAT_MODE_ALL -> R.string.repeat_all
                 else -> R.string.repeat_none
@@ -370,7 +385,7 @@ class PlayerOptionsDelegate(val activity: ComponentActivity, val service: Playba
     private fun togglePassthrough() {
         val enabled = !VLCOptions.isAudioDigitalOutputEnabled(settings)
         if (service.setAudioDigitalOutputEnabled(enabled)) {
-            rootView.setOptionIcon(
+            panelHost?.setOptionIcon(
                 ID_PASSTHROUGH,
                 if (enabled) R.drawable.ic_passthrough_on else UiTools.getResourceFromAttribute(activity, R.attr.ic_passthrough)
             )
@@ -381,7 +396,7 @@ class PlayerOptionsDelegate(val activity: ComponentActivity, val service: Playba
         toast.show()
     }
 
-    fun isShowing() = rootView.visibility == View.VISIBLE
+    fun isShowing() = panelHost?.visible == true
 }
 
 interface PlayerOptionsDelegateCallback {
