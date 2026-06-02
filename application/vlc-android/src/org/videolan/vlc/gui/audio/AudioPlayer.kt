@@ -41,6 +41,7 @@ import android.widget.FrameLayout
 import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresPermission
 import androidx.annotation.StringRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -82,6 +83,7 @@ import org.videolan.resources.TAG_ITEM
 import org.videolan.tools.AUDIO_HINGE_ON_RIGHT
 import org.videolan.tools.AUDIO_PLAY_PROGRESS_MODE
 import org.videolan.tools.KEY_AUDIO_PLAYER_SHOW_COVER
+import org.videolan.tools.KEY_AUDIO_SHOW_CHAPTER_BUTTONS
 import org.videolan.tools.KEY_AUDIO_SHOW_BOOKMARK_MARKERS
 import org.videolan.tools.KEY_AUDIO_SHOW_BOOkMARK_BUTTONS
 import org.videolan.tools.KEY_PLAYBACK_SPEED_AUDIO_GLOBAL
@@ -103,6 +105,9 @@ import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.components.VLCAudioCoverMediaSwitcher
+import org.videolan.vlc.compose.components.VLCAudioCoverMediaSwitcherItem
+import org.videolan.vlc.compose.components.VLCAudioCoverMediaSwitcherState
 import org.videolan.vlc.compose.components.VLCAudioHeaderActionButton
 import org.videolan.vlc.compose.components.VLCAudioHeaderBackground
 import org.videolan.vlc.compose.components.VLCAudioHeaderDivider
@@ -154,8 +159,6 @@ import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.UiTools.isTablet
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
 import org.videolan.vlc.gui.video.VideoPlayerActivity
-import org.videolan.vlc.gui.view.AudioMediaSwitcher
-import org.videolan.vlc.gui.view.AudioMediaSwitcher.AudioMediaSwitcherListener
 import org.videolan.vlc.gui.view.BookmarkPanelHost
 import org.videolan.vlc.gui.view.BookmarkPanelItem
 import org.videolan.vlc.gui.view.PlayerOptionsPanelHost
@@ -302,6 +305,7 @@ class AudioPlayer(
     private var audioQueueProgressPillState by mutableStateOf(VLCAudioQueueProgressPillState())
     private var audioHeaderMediaSwitcherState by mutableStateOf(VLCAudioHeaderMediaSwitcherState())
     private var audioHeaderMediaSwitcherContentDescription by mutableStateOf("")
+    private var audioCoverMediaSwitcherState by mutableStateOf(VLCAudioCoverMediaSwitcherState())
     private var audioHeaderTimeText by mutableStateOf("")
     private var audioPlaylistSwitchState by mutableStateOf(AudioPlaylistSwitchState())
     private var audioPlayPauseState by mutableStateOf(AudioPlayPauseState())
@@ -576,7 +580,6 @@ class AudioPlayer(
     }
 
     private fun setupView() {
-        binding.coverMediaSwitcher.setAudioMediaSwitcherListener(coverMediaSwitcherListener)
         binding.playlistSearchText.onQueryChanged = ::onSearchQueryChanged
         setupAudioPlaylistQueue()
         binding.header.setOnClickListener {
@@ -612,6 +615,7 @@ class AudioPlayer(
         audioTimelineTimeText = getString(R.string.time_0)
         audioTimelineLengthText = getString(R.string.time_0)
         setupAudioHeaderMediaSwitcher()
+        setupAudioCoverMediaSwitcher()
         setupAudioHeaderDecorations()
         setupAudioHeaderTime()
         setupAudioMiniProgressBar()
@@ -687,6 +691,45 @@ class AudioPlayer(
                         onMediaSwitched = ::onAudioHeaderMediaSwitched,
                         onClick = ::onAudioHeaderMediaClick,
                         onLongClick = ::onAudioHeaderMediaLongClick
+                )
+            }
+        }
+    }
+
+    private fun setupAudioCoverMediaSwitcher() {
+        binding.coverMediaSwitcher.setContent {
+            VLCTheme {
+                VLCAudioCoverMediaSwitcher(
+                        state = audioCoverMediaSwitcherState,
+                        onMediaSwitching = ::onAudioCoverMediaSwitching,
+                        onMediaSwitched = ::onAudioCoverMediaSwitched,
+                        onTextClick = ::onAudioCoverTextClick,
+                        onPreviousChapterClick = { onAudioCoverChapterSwitching(LocaleUtil.isRtl()) },
+                        onNextChapterClick = { onAudioCoverChapterSwitching(!LocaleUtil.isRtl()) },
+                        fallbackCoverContent = { contentScale, modifier ->
+                            Image(
+                                    painter = painterResource(R.drawable.ic_no_thumbnail_song),
+                                    contentDescription = null,
+                                    contentScale = contentScale,
+                                    modifier = modifier
+                            )
+                        },
+                        previousChapterIcon = {
+                            Icon(
+                                    painter = painterResource(R.drawable.ic_previous_chapter),
+                                    contentDescription = null,
+                                    tint = VLCThemeDefaults.colors.fontDefault,
+                                    modifier = Modifier.size(32.composeDp)
+                            )
+                        },
+                        nextChapterIcon = {
+                            Icon(
+                                    painter = painterResource(R.drawable.ic_next_chapter),
+                                    contentDescription = null,
+                                    tint = VLCThemeDefaults.colors.fontDefault,
+                                    modifier = Modifier.size(32.composeDp)
+                            )
+                        }
                 )
             }
         }
@@ -1155,7 +1198,7 @@ class AudioPlayer(
                 VLCAudioHeaderTransportButton(
                     contentDescription = getString(R.string.previous),
                     size = 40.composeDp,
-                    onClick = { coverMediaSwitcherListener.onChapterSwitching(false) }
+                    onClick = { onAudioCoverChapterSwitching(false) }
                 ) {
                     AudioPlayerTransportIcon(R.drawable.ic_chevron_left, size = 24.composeDp)
                 }
@@ -1166,7 +1209,7 @@ class AudioPlayer(
                 VLCAudioHeaderTransportButton(
                     contentDescription = getString(R.string.next),
                     size = 40.composeDp,
-                    onClick = { coverMediaSwitcherListener.onChapterSwitching(true) }
+                    onClick = { onAudioCoverChapterSwitching(true) }
                 ) {
                     AudioPlayerTransportIcon(R.drawable.ic_chevron_right, size = 24.composeDp)
                 }
@@ -1211,7 +1254,7 @@ class AudioPlayer(
                 VLCAudioTrackInfoText(
                     text = audioTrackTitleText,
                     style = VLCAudioTrackInfoTextStyle.Title,
-                    onClick = { coverMediaSwitcherListener.onTextClicked() }
+                    onClick = ::onAudioCoverTextClick
                 )
             }
         }
@@ -1220,7 +1263,7 @@ class AudioPlayer(
                 VLCAudioTrackInfoText(
                     text = audioTrackSubtitleText,
                     style = VLCAudioTrackInfoTextStyle.Subtitle,
-                    onClick = { coverMediaSwitcherListener.onTextClicked() }
+                    onClick = ::onAudioCoverTextClick
                 )
             }
         }
@@ -1466,9 +1509,9 @@ class AudioPlayer(
         val nextArtMrl = service.nextCoverArt
         val (currentCover, previousCover, nextCover) = withContext(Dispatchers.IO) {
             Triple(
-                    readAudioHeaderCover(currentArtMrl),
-                    readAudioHeaderCover(previousArtMrl),
-                    readAudioHeaderCover(nextArtMrl)
+                    readAudioSwitcherCover(currentArtMrl),
+                    readAudioSwitcherCover(previousArtMrl),
+                    readAudioSwitcherCover(nextArtMrl)
             )
         }
 
@@ -1513,7 +1556,76 @@ class AudioPlayer(
         binding.audioMediaSwitcher.contentDescription = audioHeaderMediaSwitcherContentDescription
     }
 
-    private fun readAudioHeaderCover(artMrl: String?): Bitmap? =
+    private suspend fun updateAudioCoverMediaSwitcher(service: PlaybackService?) {
+        if (service == null) {
+            audioCoverMediaSwitcherState = VLCAudioCoverMediaSwitcherState()
+            return
+        }
+
+        val currentArtMrl = service.coverArt
+        val previousArtMrl = service.prevCoverArt
+        val nextArtMrl = service.nextCoverArt
+        val (currentCover, previousCover, nextCover) = withContext(Dispatchers.IO) {
+            Triple(
+                    readAudioSwitcherCover(currentArtMrl),
+                    readAudioSwitcherCover(previousArtMrl),
+                    readAudioSwitcherCover(nextArtMrl)
+            )
+        }
+        val currentTrackInfo = service.trackInfo().orEmpty()
+        val previousTrackInfo = service.prevTrackInfo().orEmpty()
+        val nextTrackInfo = service.nextTrackInfo().orEmpty()
+
+        val items = mutableListOf<VLCAudioCoverMediaSwitcherItem>()
+        val hasPrevious = service.hasPrevious()
+        if (hasPrevious) {
+            items += VLCAudioCoverMediaSwitcherItem(
+                    target = VLCAudioMediaSwitchTarget.Previous,
+                    title = service.titlePrev.orEmpty(),
+                    subtitle = TextUtils.separatedString(service.artistPrev, service.albumPrev),
+                    trackInfo = previousTrackInfo,
+                    cover = previousCover,
+                    showChapterButtons = false
+            )
+        }
+
+        val chapter = service.getCurrentChapter()
+        if (service.hasMedia()) {
+            val hasChapters = !chapter.isNullOrEmpty()
+            items += VLCAudioCoverMediaSwitcherItem(
+                    target = VLCAudioMediaSwitchTarget.Current,
+                    title = if (hasChapters) chapter.orEmpty() else service.title.orEmpty(),
+                    subtitle = if (hasChapters) {
+                        TextUtils.separatedString(service.title, service.artist)
+                    } else {
+                        TextUtils.separatedString(service.artist, service.album)
+                    },
+                    trackInfo = currentTrackInfo,
+                    cover = currentCover,
+                    showChapterButtons = hasChapters && settings.getBoolean(KEY_AUDIO_SHOW_CHAPTER_BUTTONS, true)
+            )
+        }
+
+        if (service.hasNext()) {
+            items += VLCAudioCoverMediaSwitcherItem(
+                    target = VLCAudioMediaSwitchTarget.Next,
+                    title = service.titleNext.orEmpty(),
+                    subtitle = TextUtils.separatedString(service.artistNext, service.albumNext),
+                    trackInfo = nextTrackInfo,
+                    cover = nextCover,
+                    showChapterButtons = false
+            )
+        }
+
+        audioCoverMediaSwitcherState = VLCAudioCoverMediaSwitcherState(
+                items = items,
+                currentPage = if (hasPrevious && service.hasMedia()) 1 else 0,
+                showTrackInfo = Settings.showAudioTrackInfo,
+                marquee = Settings.listTitleEllipsize == 4
+        )
+    }
+
+    private fun readAudioSwitcherCover(artMrl: String?): Bitmap? =
             AudioUtil.readCoverBitmap(Uri.decode(artMrl), 512)
 
     private suspend fun doUpdate() {
@@ -1522,7 +1634,7 @@ class AudioPlayer(
         updateShuffleMode()
         updateRepeatMode()
         updateAudioHeaderMediaSwitcher(playlistModel.service)
-        binding.coverMediaSwitcher.updateMedia(playlistModel.service)
+        updateAudioCoverMediaSwitcher(playlistModel.service)
         playlistModel.service?.currentMediaWrapper?.let {
             binding.trackInfoContainer?.contentDescription = getString(R.string.talkback_audio_player,TalkbackUtil.getAudioTrack(requireActivity(), it))
         }
@@ -2057,49 +2169,47 @@ class AudioPlayer(
         }
     }
 
-    private val coverMediaSwitcherListener = object : AudioMediaSwitcherListener by AudioMediaSwitcher.EmptySwitcherListener {
+    private fun onAudioCoverMediaSwitching() {
+        activity.playerBehavior.lock(true)
+    }
 
-
-        override fun onMediaSwitching() {
-            (activity as? AudioPlayerContainerActivity)?.playerBehavior?.lock(true)
+    private fun onAudioCoverMediaSwitched(target: VLCAudioMediaSwitchTarget) {
+        when (target) {
+            VLCAudioMediaSwitchTarget.Previous -> playlistModel.previous(true)
+            VLCAudioMediaSwitchTarget.Next -> playlistModel.next()
+            VLCAudioMediaSwitchTarget.Current -> Unit
         }
+        activity.playerBehavior.lock(false)
+    }
 
-        override fun onMediaSwitched(position: Int) {
-            when (position) {
-                AudioMediaSwitcherListener.PREVIOUS_MEDIA -> playlistModel.previous(true)
-                AudioMediaSwitcherListener.NEXT_MEDIA -> playlistModel.next()
-            }
-            (activity as? AudioPlayerContainerActivity)?.playerBehavior?.lock(false)
-        }
+    private fun onAudioCoverTextClick() {
+        Settings.getInstance(requireActivity()).putSingle(KEY_SHOW_TRACK_INFO, !Settings.showAudioTrackInfo)
+        Settings.showAudioTrackInfo = !Settings.showAudioTrackInfo
+        lifecycleScope.launch { doUpdate() }
+    }
 
-        override fun onTextClicked() {
-            Settings.getInstance(requireActivity()).putSingle(KEY_SHOW_TRACK_INFO, !Settings.showAudioTrackInfo)
-            Settings.showAudioTrackInfo = !Settings.showAudioTrackInfo
-            lifecycleScope.launch { doUpdate() }
-        }
-
-        override fun onChapterSwitching(next: Boolean) {
-            playlistModel.service?.let { service ->
-                service.currentMediaWrapper?.let { media ->
-                    if (currentChapters?.first?.uri != media.uri) {
-                        playlistModel.service?.getChapters(-1)?.let {
-                            currentChapters = Pair(media, it.toList())
-                        }
+    private fun onAudioCoverChapterSwitching(next: Boolean) {
+        playlistModel.service?.let { service ->
+            service.currentMediaWrapper?.let { media ->
+                if (currentChapters?.first?.uri != media.uri) {
+                    playlistModel.service?.getChapters(-1)?.let {
+                        currentChapters = Pair(media, it.toList())
                     }
                 }
             }
+        }
 
-            currentChapters?.second?.let { chapters ->
-                playlistModel.service?.let { service ->
-                    val chapterIdx = playlistModel.service!!.chapterIdx
-                    if (!next) {
-                        val chapter = chapters[service.chapterIdx]
-                        if (chapter.timeOffset + 5000 > service.getTime())
-                            playlistModel.service!!.chapterIdx = chapterIdx.plus(-1).coerceAtLeast(0)
-                        else
-                            playlistModel.service!!.chapterIdx = chapterIdx
-                    } else if (chapterIdx != chapters.size - 1)
-                        playlistModel.service!!.chapterIdx = chapterIdx.plus(1).coerceAtMost(chapters.size - 1)
+        currentChapters?.second?.let { chapters ->
+            playlistModel.service?.let { service ->
+                val chapterIdx = playlistModel.service!!.chapterIdx
+                if (!next) {
+                    val chapter = chapters[service.chapterIdx]
+                    if (chapter.timeOffset + 5000 > service.getTime())
+                        playlistModel.service!!.chapterIdx = chapterIdx.plus(-1).coerceAtLeast(0)
+                    else
+                        playlistModel.service!!.chapterIdx = chapterIdx
+                } else if (chapterIdx != chapters.size - 1) {
+                    playlistModel.service!!.chapterIdx = chapterIdx.plus(1).coerceAtMost(chapters.size - 1)
                 }
             }
         }

@@ -28,7 +28,6 @@ import org.videolan.vlc.R
 import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.gui.view.AudioPlayerBackgroundView
 import org.videolan.vlc.gui.view.AudioPlaylistSearchFieldView
-import org.videolan.vlc.gui.view.CoverMediaSwitcher
 
 class AudioPlayerViews(val root: ConstraintLayout) {
     val contentLayout: ConstraintLayout = root
@@ -55,7 +54,7 @@ class AudioPlayerViews(val root: ConstraintLayout) {
     val resumeVideoHint: VLCComposeView = root.requireAudioPlayerView(R.id.resume_video_hint)
     val songsList: VLCComposeView = root.requireAudioPlayerView(R.id.songs_list)
     val audioPlayProgress: VLCComposeView = root.requireAudioPlayerView(R.id.audio_play_progress)
-    val coverMediaSwitcher: CoverMediaSwitcher = root.requireAudioPlayerView(R.id.cover_media_switcher)
+    val coverMediaSwitcher: VLCComposeView = root.requireAudioPlayerView(R.id.cover_media_switcher)
     val audioRewindBookmark: VLCComposeView = root.requireAudioPlayerView(R.id.audio_rewind_bookmark)
     val audioRewind10: VLCComposeView = root.requireAudioPlayerView(R.id.audio_rewind_10)
     val audioRewindText: VLCComposeView = root.requireAudioPlayerView(R.id.audio_rewind_text)

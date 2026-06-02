@@ -39,7 +39,6 @@ import org.videolan.vlc.gui.view.AudioPlayerBackgroundView
 import org.videolan.vlc.gui.view.AudioPlayerBottomGradientView
 import org.videolan.vlc.gui.view.AudioPlayerTopGradientView
 import org.videolan.vlc.gui.view.AudioPlaylistSearchFieldView
-import org.videolan.vlc.gui.view.CoverMediaSwitcher
 
 internal fun Context.createAudioPlayerShell(): ConstraintLayout =
         ConstraintLayout(this).apply {
@@ -438,8 +437,7 @@ private fun ConstraintLayout.addCommonProgressAndCoverChildren(landscape: Boolea
             endToEnd = parentId
         }
     })
-    addView(CoverMediaSwitcher(context).apply {
-        id = R.id.cover_media_switcher
+    addView(composeView(R.id.cover_media_switcher).apply {
         if (!landscape) visibility = View.GONE
     }, audioLayout(matchConstraint, matchConstraint) {
         startToStart = parentId
