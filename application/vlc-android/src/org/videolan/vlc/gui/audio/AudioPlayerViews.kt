@@ -29,7 +29,6 @@ import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.gui.view.AudioPlayerBackgroundView
 import org.videolan.vlc.gui.view.AudioPlaylistSearchFieldView
 import org.videolan.vlc.gui.view.CoverMediaSwitcher
-import org.videolan.vlc.gui.view.HeaderMediaSwitcher
 
 class AudioPlayerViews(val root: ConstraintLayout) {
     val contentLayout: ConstraintLayout = root
@@ -43,7 +42,7 @@ class AudioPlayerViews(val root: ConstraintLayout) {
     val headerRepeat: VLCComposeView = root.requireAudioPlayerView(R.id.header_repeat)
     val headerBackground: VLCComposeView = root.requireAudioPlayerView(R.id.header_background)
     val headerDivider: VLCComposeView = root.requireAudioPlayerView(R.id.header_divider)
-    val audioMediaSwitcher: HeaderMediaSwitcher = root.requireAudioPlayerView(R.id.audio_media_switcher)
+    val audioMediaSwitcher: VLCComposeView = root.requireAudioPlayerView(R.id.audio_media_switcher)
     val playlistSearchText: AudioPlaylistSearchFieldView = root.requireAudioPlayerView(R.id.playlist_search_text)
     val abRepeatReset: VLCComposeView = root.requireAudioPlayerView(R.id.ab_repeat_reset)
     val abRepeatStop: VLCComposeView = root.requireAudioPlayerView(R.id.ab_repeat_stop)

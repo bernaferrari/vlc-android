@@ -34,12 +34,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -67,28 +65,6 @@ import org.videolan.tools.Settings
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
-
-class HeaderMediaSwitcherItemView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : VLCAbstractComposeWidget(context, attrs, defStyleAttr) {
-
-    private var state by mutableStateOf(HeaderSwitcherItemState())
-
-    fun bind(title: String?, artist: String?, cover: Bitmap?) {
-        state = HeaderSwitcherItemState(
-            title = title.orEmpty(),
-            artist = artist.orEmpty(),
-            cover = cover
-        )
-    }
-
-    @Composable
-    override fun WidgetContent() {
-        HeaderSwitcherItem(state)
-    }
-}
 
 class CoverMediaSwitcherItemView @JvmOverloads constructor(
     context: Context,
@@ -128,12 +104,6 @@ class CoverMediaSwitcherItemView @JvmOverloads constructor(
     }
 }
 
-private data class HeaderSwitcherItemState(
-    val title: String = "",
-    val artist: String = "",
-    val cover: Bitmap? = null
-)
-
 private data class CoverSwitcherItemState(
     val title: String = "",
     val subtitle: String = "",
@@ -145,45 +115,6 @@ private data class CoverSwitcherItemState(
     val onPreviousChapterClick: () -> Unit = {},
     val onNextChapterClick: () -> Unit = {}
 )
-
-@Composable
-private fun HeaderSwitcherItem(state: HeaderSwitcherItemState) {
-    Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(start = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        state.cover?.let { cover ->
-            Image(
-                bitmap = cover.asImageBitmap(),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.size(48.dp)
-            )
-            Spacer(Modifier.width(16.dp))
-        }
-
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.Center
-        ) {
-            MarqueeText(
-                text = state.title,
-                color = VLCThemeDefaults.colors.fontDefault,
-                fontSize = 16,
-                fontWeight = FontWeight.Medium
-            )
-            if (state.artist.isNotEmpty()) {
-                MarqueeText(
-                    text = state.artist,
-                    color = VLCThemeDefaults.colors.fontAudioLight,
-                    fontSize = 14
-                )
-            }
-        }
-    }
-}
 
 @Composable
 private fun CoverSwitcherItem(state: CoverSwitcherItemState) {

@@ -40,7 +40,6 @@ import org.videolan.vlc.gui.view.AudioPlayerBottomGradientView
 import org.videolan.vlc.gui.view.AudioPlayerTopGradientView
 import org.videolan.vlc.gui.view.AudioPlaylistSearchFieldView
 import org.videolan.vlc.gui.view.CoverMediaSwitcher
-import org.videolan.vlc.gui.view.HeaderMediaSwitcher
 
 internal fun Context.createAudioPlayerShell(): ConstraintLayout =
         ConstraintLayout(this).apply {
@@ -217,8 +216,7 @@ private fun audioHeader(context: Context, landscape: Boolean) = ConstraintLayout
         endToEnd = parentId
         bottomToBottom = parentId
     })
-    addView(HeaderMediaSwitcher(context).apply {
-        id = R.id.audio_media_switcher
+    addView(composeView(R.id.audio_media_switcher).apply {
         setBackgroundColor(Color.TRANSPARENT)
     }, audioLayout(matchConstraint, if (landscape) matchConstraint else 68.dp) {
         startToStart = parentId
