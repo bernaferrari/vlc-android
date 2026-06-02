@@ -82,13 +82,12 @@ import org.videolan.vlc.gui.helpers.MediaComparators
 import org.videolan.vlc.gui.helpers.PlayerKeyListenerDelegate
 import org.videolan.vlc.gui.helpers.PlayerOptionsDelegate
 import org.videolan.vlc.gui.helpers.PlayerOptionsDelegateCallback
+import org.videolan.vlc.gui.helpers.TalkbackUtil
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
-import org.videolan.vlc.gui.view.AudioTimelineSeekBarView
 import org.videolan.vlc.gui.view.BookmarkMarkerContainerView
 import org.videolan.vlc.gui.view.BookmarksPanelView
 import org.videolan.vlc.gui.view.PlayerOptionsPanelView
-import org.videolan.vlc.gui.view.PlayerTimelineSeekBarView
 import org.videolan.vlc.gui.video.VideoPlayerActivity
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.media.PlaylistManager
@@ -127,6 +126,7 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
     private var trackInfoState by mutableStateOf(TvAudioTrackInfoState())
     private var progressLabelsState by mutableStateOf(TvAudioProgressLabelsState())
     private var artworkState by mutableStateOf(TvAudioArtworkState())
+    private var timelineState by mutableStateOf(TvAudioTimelineState())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -228,10 +228,22 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
                 TvAudioProgressLabels(state = progressLabelsState, modifier = Modifier.fillMaxSize())
             }
         }
+        views.mediaProgress.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        views.mediaProgress.setContent {
+            VLCTheme(darkTheme = true) {
+                TvAudioTimeline(
+                    state = timelineState,
+                    onUserDragStarted = { timelineDragging = true },
+                    onUserProgressChange = ::onTimelineUserProgressChanged,
+                    onUserDragStopped = { timelineDragging = false }
+                )
+            }
+        }
         model.progress.observe(this) { progress ->
             progressLabelsState = TvAudioProgressLabelsState(progress.timeText, progress.lengthText)
-            views.mediaProgress.max = progress.length.toInt()
-            if (!timelineDragging) views.mediaProgress.progress = progress.time.toInt()
+            val max = progress.length.toInt()
+            val currentProgress = if (timelineDragging) timelineState.progress else progress.time.toInt()
+            updateTimelineState(currentProgress, max)
         }
         model.dataset.observe(this) { mediaWrappers ->
             if (mediaWrappers != null) {
@@ -245,7 +257,6 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
         PlaybackService.playerSleepTime.observe(this) {
             showChips()
         }
-        views.mediaProgress.setOnTimelineSeekChangeListener(timelineListener)
         model.playerState.observe(this) { playerState -> update(playerState) }
         val position = intent.getIntExtra(MEDIA_POSITION, 0)
         if (intent.hasExtra(MEDIA_PLAYLIST))
@@ -283,21 +294,23 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
         service?.removeCallback(this)
     }
 
-    private var timelineListener: PlayerTimelineSeekBarView.Listener = object : PlayerTimelineSeekBarView.Listener {
+    private fun onTimelineUserProgressChanged(progress: Int) {
+        updateTimelineState(progress, timelineState.max)
+        model.setTime(progress.toLong())
+    }
 
-        override fun onStopTrackingTouch(progress: Int) {
-            timelineDragging = false
-        }
-
-        override fun onStartTrackingTouch() {
-            timelineDragging = true
-        }
-
-        override fun onProgressChanged(progress: Int, fromUser: Boolean) {
-            if (fromUser) {
-                model.setTime(progress.toLong())
-            }
-        }
+    private fun updateTimelineState(progress: Int, max: Int) {
+        val safeMax = max.coerceAtLeast(0)
+        val safeProgress = progress.coerceIn(0, safeMax.coerceAtLeast(1))
+        timelineState = TvAudioTimelineState(
+            progress = safeProgress,
+            max = safeMax,
+            contentDescription = getString(
+                VlcR.string.talkback_out_of,
+                TalkbackUtil.millisToString(this, safeProgress.toLong()),
+                TalkbackUtil.millisToString(this, safeMax.toLong())
+            )
+        )
     }
 
     private fun showChips() {
@@ -586,7 +599,7 @@ private data class TvAudioPlayerViews(
     val quickActions: ComposeView,
     val transportControls: ComposeView,
     val bookmarkMarkerContainer: BookmarkMarkerContainerView,
-    val mediaProgress: AudioTimelineSeekBarView,
+    val mediaProgress: ComposeView,
     val progressLabels: ComposeView
 )
 
@@ -613,13 +626,12 @@ private fun createTvAudioPlayerViews(context: Context): TvAudioPlayerViews {
         guidePercent = 0.65F
     })
 
-    val mediaProgress = AudioTimelineSeekBarView(context).apply {
+    val mediaProgress = ComposeView(context).apply {
         id = R.id.media_progress
         isFocusable = true
         layoutDirection = View.LAYOUT_DIRECTION_LTR
         nextFocusUpId = R.id.playlist
         nextFocusDownId = R.id.button_play
-        setPadding(16.dp, paddingTop, 16.dp, paddingBottom)
     }
     root.addView(mediaProgress, ConstraintLayout.LayoutParams(0, ConstraintLayout.LayoutParams.WRAP_CONTENT).apply {
         leftToLeft = ConstraintLayout.LayoutParams.PARENT_ID
