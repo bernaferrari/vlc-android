@@ -23,7 +23,6 @@ package org.videolan.television.ui.audioplayer
 import android.annotation.TargetApi
 import android.content.Context
 import android.content.SharedPreferences
-import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -36,7 +35,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.compose.foundation.layout.fillMaxSize
@@ -127,6 +125,8 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
     private var quickActionsState by mutableStateOf(TvAudioQuickActionsState())
     private var quickActionsFocusEnabled by mutableStateOf(true)
     private var transportControlsState by mutableStateOf(TvAudioTransportControlsState())
+    private var trackInfoState by mutableStateOf(TvAudioTrackInfoState())
+    private var progressLabelsState by mutableStateOf(TvAudioProgressLabelsState())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -200,9 +200,20 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
             }
         }
         updateTransportControlsState(playing = false)
+        views.trackInfo.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        views.trackInfo.setContent {
+            VLCTheme(darkTheme = true) {
+                TvAudioTrackInfo(state = trackInfoState, modifier = Modifier.fillMaxSize())
+            }
+        }
+        views.progressLabels.setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        views.progressLabels.setContent {
+            VLCTheme(darkTheme = true) {
+                TvAudioProgressLabels(state = progressLabelsState, modifier = Modifier.fillMaxSize())
+            }
+        }
         model.progress.observe(this) { progress ->
-            views.mediaTime.text = progress.timeText
-            views.mediaLength.text = progress.lengthText
+            progressLabelsState = TvAudioProgressLabelsState(progress.timeText, progress.lengthText)
             views.mediaProgress.max = progress.length.toInt()
             if (!timelineDragging) views.mediaProgress.progress = progress.time.toInt()
         }
@@ -302,8 +313,7 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
                 finish()
                 return@launch
             }
-            views.mediaTitle.text = state.title
-            views.mediaArtist.text = state.artist
+            trackInfoState = TvAudioTrackInfoState(state.title.orEmpty(), state.artist.orEmpty())
             if (mw == null || currentCoverArt == mw.artworkMrl) return@launch
             currentCoverArt = mw.artworkMrl
             updateBackground()
@@ -560,14 +570,12 @@ private data class TvAudioPlayerViews(
     val background: AppCompatImageView,
     val playlist: ComposeView,
     val albumCover: AppCompatImageView,
-    val mediaTitle: TextView,
-    val mediaArtist: TextView,
+    val trackInfo: ComposeView,
     val quickActions: ComposeView,
     val transportControls: ComposeView,
     val bookmarkMarkerContainer: BookmarkMarkerContainerView,
-    val mediaTime: TextView,
     val mediaProgress: AudioTimelineSeekBarView,
-    val mediaLength: TextView
+    val progressLabels: ComposeView
 )
 
 private fun createTvAudioPlayerViews(context: Context): TvAudioPlayerViews {
@@ -657,27 +665,15 @@ private fun createTvAudioPlayerViews(context: Context): TvAudioPlayerViews {
         topMargin = 16.dp
     })
 
-    val mediaTitle = playerText(context, 24F).apply {
+    val trackInfo = ComposeView(context).apply {
         id = R.id.media_title
-        gravity = android.view.Gravity.CENTER_HORIZONTAL
     }
-    root.addView(mediaTitle, ConstraintLayout.LayoutParams(0, ConstraintLayout.LayoutParams.WRAP_CONTENT).apply {
+    root.addView(trackInfo, ConstraintLayout.LayoutParams(0, ConstraintLayout.LayoutParams.WRAP_CONTENT).apply {
         topToBottom = R.id.album_cover
-        bottomToTop = R.id.media_artist
-        startToStart = R.id.media_progress
-        endToStart = R.id.guideline8
-        topMargin = 16.dp
-    })
-
-    val mediaArtist = playerText(context, 18F).apply {
-        id = R.id.media_artist
-        gravity = android.view.Gravity.CENTER_HORIZONTAL
-    }
-    root.addView(mediaArtist, ConstraintLayout.LayoutParams(0, ConstraintLayout.LayoutParams.WRAP_CONTENT).apply {
-        topToBottom = R.id.media_title
         bottomToTop = R.id.media_time
         startToStart = R.id.media_progress
         endToStart = R.id.guideline8
+        topMargin = 16.dp
         bottomMargin = 16.dp
     })
 
@@ -707,23 +703,15 @@ private fun createTvAudioPlayerViews(context: Context): TvAudioPlayerViews {
         bottomMargin = 16.dp
     })
 
-    val mediaTime = playerText(context, 14F).apply {
+    val progressLabels = ComposeView(context).apply {
         id = R.id.media_time
         importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
     }
-    root.addView(mediaTime, wrapContent().apply {
+    root.addView(progressLabels, ConstraintLayout.LayoutParams(0, ConstraintLayout.LayoutParams.WRAP_CONTENT).apply {
         bottomToTop = R.id.media_progress
         startToStart = R.id.media_progress
-        marginStart = 16.dp
-    })
-
-    val mediaLength = playerText(context, 14F).apply {
-        id = R.id.media_length
-        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-    }
-    root.addView(mediaLength, wrapContent().apply {
-        bottomToTop = R.id.media_progress
         endToEnd = R.id.media_progress
+        marginStart = 16.dp
         marginEnd = 16.dp
     })
 
@@ -758,14 +746,12 @@ private fun createTvAudioPlayerViews(context: Context): TvAudioPlayerViews {
         background = background,
         playlist = playlist,
         albumCover = albumCover,
-        mediaTitle = mediaTitle,
-        mediaArtist = mediaArtist,
+        trackInfo = trackInfo,
         quickActions = quickActions,
         transportControls = transportControls,
         bookmarkMarkerContainer = bookmarkMarkerContainer,
-        mediaTime = mediaTime,
         mediaProgress = mediaProgress,
-        mediaLength = mediaLength
+        progressLabels = progressLabels
     )
 }
 
@@ -775,11 +761,6 @@ private fun wrapContent() = ConstraintLayout.LayoutParams(
     ConstraintLayout.LayoutParams.WRAP_CONTENT,
     ConstraintLayout.LayoutParams.WRAP_CONTENT
 )
-
-private fun playerText(context: Context, sp: Float) = TextView(context).apply {
-    setTextColor(Color.WHITE)
-    setTextSize(TypedValue.COMPLEX_UNIT_SP, sp)
-}
 
 private fun Context.resolveThemeColor(attr: Int): Int {
     val typedValue = TypedValue()

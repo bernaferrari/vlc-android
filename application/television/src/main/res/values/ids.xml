@@ -5,8 +5,6 @@
     <item type="id" name="barrier" />
     <item type="id" name="button_play" />
     <item type="id" name="guideline8" />
-    <item type="id" name="media_artist" />
-    <item type="id" name="media_length" />
     <item type="id" name="media_progress" />
     <item type="id" name="media_time" />
     <item type="id" name="media_title" />
