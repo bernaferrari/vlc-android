@@ -22,10 +22,11 @@ package org.videolan.television.ui
 
 import android.annotation.TargetApi
 import android.content.Intent
+import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
-import android.widget.ImageView
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -57,6 +58,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -67,15 +69,15 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
 import androidx.leanback.app.BackgroundManager
 import androidx.lifecycle.ViewModelProvider
@@ -87,6 +89,7 @@ import org.videolan.libvlc.MediaPlayer
 import org.videolan.libvlc.interfaces.IMedia
 import org.videolan.medialibrary.Tools
 import org.videolan.medialibrary.interfaces.Medialibrary
+import org.videolan.medialibrary.interfaces.media.Folder
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.medialibrary.media.DummyItem
 import org.videolan.medialibrary.media.MediaLibraryItem
@@ -120,6 +123,7 @@ import org.videolan.television.ui.browser.VerticalGridActivity
 import org.videolan.television.ui.preferences.PreferencesActivity
 import org.videolan.television.viewmodel.MainTvModel
 import org.videolan.tools.KEY_SHOW_UPDATE
+import org.videolan.tools.HttpImageLoader
 import org.videolan.tools.RESULT_RESCAN
 import org.videolan.tools.RESULT_RESTART
 import org.videolan.tools.RESULT_RESTART_APP
@@ -136,15 +140,15 @@ import org.videolan.vlc.gui.helpers.UiTools.showDonations
 import org.videolan.vlc.gui.helpers.getTvIconRes
 import org.videolan.vlc.gui.helpers.hf.PinCodeDelegate
 import org.videolan.vlc.gui.helpers.hf.StoragePermissionsDelegate
-import org.videolan.vlc.gui.helpers.loadImage
-import org.videolan.vlc.gui.helpers.downloadIcon
 import org.videolan.vlc.gui.video.VideoPlayerActivity
 import org.videolan.vlc.reloadLibrary
 import org.videolan.vlc.util.AutoUpdate
 import org.videolan.vlc.util.LifecycleAwareScheduler
 import org.videolan.vlc.util.Permissions
 import org.videolan.vlc.util.SchedulerCallback
+import org.videolan.vlc.util.ThumbnailsProvider
 import org.videolan.vlc.util.Util
+import org.videolan.vlc.util.isSchemeHttpOrHttps
 import org.videolan.vlc.R as VlcR
 
 private data class HomeRow(
@@ -609,7 +613,7 @@ private fun MainTvCard(
                 .height(imageHeight)
                 .background(Color.Black.copy(alpha = 0.24f))
         ) {
-            MainTvCardImage(item = item, imageHeight = imageHeight)
+            MainTvCardImage(item = item)
             MainTvNowPlayingBadge(item = item)
         }
         Column(
@@ -637,7 +641,7 @@ private fun MainTvCard(
 }
 
 @Composable
-private fun MainTvCardImage(item: Any, imageHeight: Dp) {
+private fun MainTvCardImage(item: Any) {
     when (item) {
         is GenericCardItem -> Icon(
             painter = painterResource(item.icon),
@@ -645,36 +649,8 @@ private fun MainTvCardImage(item: Any, imageHeight: Dp) {
             tint = Color.White.copy(alpha = 0.92f),
             modifier = Modifier.size(58.dp)
         )
-        is MediaMetadataWithImages -> AndroidView(
-            factory = { context ->
-                ImageView(context).apply {
-                    adjustViewBounds = true
-                    scaleType = ImageView.ScaleType.CENTER_CROP
-                }
-            },
-            modifier = Modifier.fillMaxSize(),
-            update = { imageView ->
-                imageView.scaleType = ImageView.ScaleType.CENTER_CROP
-                imageView.setImageResource(VlcR.drawable.ic_people_big)
-                downloadIcon(imageView, item.metadata.currentPoster.toUri())
-            }
-        )
-        is MediaLibraryItem -> AndroidView(
-            factory = { context ->
-                ImageView(context).apply {
-                    adjustViewBounds = true
-                    scaleType = ImageView.ScaleType.CENTER_CROP
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(imageHeight),
-            update = { imageView ->
-                imageView.scaleType = ImageView.ScaleType.CENTER_CROP
-                imageView.setImageResource(getTvIconRes(item))
-                loadImage(imageView, item, tv = true, card = true)
-            }
-        )
+        is MediaMetadataWithImages -> MainTvRemotePoster(item.metadata.currentPoster)
+        is MediaLibraryItem -> MainTvMediaArtwork(item)
         else -> Icon(
             painter = painterResource(VlcR.drawable.ic_default_cone),
             contentDescription = null,
@@ -682,6 +658,68 @@ private fun MainTvCardImage(item: Any, imageHeight: Dp) {
             modifier = Modifier.size(58.dp)
         )
     }
+}
+
+@Composable
+private fun MainTvRemotePoster(imageUrl: String) {
+    val imageUri = remember(imageUrl) { imageUrl.toUri() }
+    val bitmap by mainTvRemoteBitmap(imageUri)
+    MainTvArtworkImage(bitmap = bitmap, fallback = VlcR.drawable.ic_people_big)
+}
+
+@Composable
+private fun MainTvMediaArtwork(item: MediaLibraryItem) {
+    val context = LocalContext.current
+    val imageWidth = remember(context) {
+        context.resources.getDimensionPixelSize(VlcR.dimen.tv_grid_card_thumb_width)
+    }
+    val bitmap by produceState<Bitmap?>(initialValue = null, item, imageWidth, Settings.showVideoThumbs) {
+        value = null
+        value = if (item.shouldUseFallbackArtworkOnly()) {
+            null
+        } else {
+            ThumbnailsProvider.obtainBitmap(item, imageWidth)
+        }
+    }
+
+    MainTvArtworkImage(bitmap = bitmap, fallback = getTvIconRes(item))
+}
+
+@Composable
+private fun mainTvRemoteBitmap(imageUri: Uri?) = produceState<Bitmap?>(initialValue = null, imageUri) {
+    val url = imageUri?.toString()
+    value = null
+    value = if (!url.isNullOrEmpty() && isSchemeHttpOrHttps(imageUri.scheme)) {
+        HttpImageLoader.downloadBitmap(url)
+    } else {
+        null
+    }
+}
+
+@Composable
+private fun MainTvArtworkImage(bitmap: Bitmap?, fallback: Int) {
+    val cover = bitmap
+    if (cover == null) {
+        Image(
+            painter = painterResource(fallback),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+    } else {
+        Image(
+            bitmap = cover.asImageBitmap(),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+    }
+}
+
+private fun MediaLibraryItem.shouldUseFallbackArtworkOnly(): Boolean {
+    if (Settings.showVideoThumbs) return false
+    val isVideoMedia = this is MediaWrapper && type == MediaWrapper.TYPE_VIDEO
+    return isVideoMedia || itemType == MediaLibraryItem.TYPE_VIDEO_GROUP || this is Folder
 }
 
 @Composable
