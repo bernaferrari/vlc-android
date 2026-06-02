@@ -527,7 +527,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
 
         enableCloneMode = clone ?: settings.getBoolean(KEY_ENABLE_CLONE_MODE, false)
         displayManager = DisplayManager(this, PlaybackService.renderer, false, enableCloneMode, isBenchmark)
-        setContentView(if (displayManager.isPrimary) R.layout.player else R.layout.player_remote_control)
+        setContentView(createVideoPlayerShell(displayManager.isPrimary))
 
 
         rootView = findViewById(R.id.player_root)

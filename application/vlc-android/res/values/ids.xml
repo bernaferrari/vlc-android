@@ -27,4 +27,32 @@
     <item name="popup_close" type="id" />
     <item name="popup_expand" type="id" />
     <item name="video_play_pause" type="id" />
+    <item name="player_root" type="id" />
+    <item name="video_layout" type="id" />
+    <item name="seekContainer" type="id" />
+    <item name="player_overlay_brightness" type="id" />
+    <item name="player_overlay_volume" type="id" />
+    <item name="hud_background" type="id" />
+    <item name="hud_right_background" type="id" />
+    <item name="player_ui_container" type="id" />
+    <item name="player_overlay_tips" type="id" />
+    <item name="player_overlay_loading" type="id" />
+    <item name="player_info_stub" type="id" />
+    <item name="delay_container" type="id" />
+    <item name="hud_right_overlay" type="id" />
+    <item name="progress_overlay" type="id" />
+    <item name="hinge_go_left" type="id" />
+    <item name="hinge_go_right" type="id" />
+    <item name="video_playlist_container" type="id" />
+    <item name="video_playlist_header" type="id" />
+    <item name="close_button" type="id" />
+    <item name="playlist_search_text" type="id" />
+    <item name="playlist_search_edittext" type="id" />
+    <item name="video_playlist" type="id" />
+    <item name="options_background" type="id" />
+    <item name="player_resize_stub" type="id" />
+    <item name="player_orientation_stub" type="id" />
+    <item name="player_screenshot_stub" type="id" />
+    <item name="player_overlay_background" type="id" />
+    <item name="renderer_background_cone" type="id" />
 </resources>
