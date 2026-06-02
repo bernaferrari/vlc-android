@@ -1057,7 +1057,7 @@ class AudioPlayer(
                 }
                 CTX_GO_TO_ARTIST -> lifecycleScope.launch(Dispatchers.IO) {
                     val i = Intent(requireActivity(), SecondaryActivity::class.java)
-                    i.putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.ALBUMS_SONGS)
+                    i.putExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.ALBUMS_SONGS)
                     i.putExtra(TAG_ITEM, media.artist)
                     i.putExtra(ARTIST_FROM_ALBUM, true)
                     i.flags = i.flags or Intent.FLAG_ACTIVITY_NO_HISTORY
@@ -1086,7 +1086,7 @@ class AudioPlayer(
         startActivity(Intent(activity.applicationContext, SecondaryActivity::class.java).apply {
             putExtra(KEY_MEDIA, parent)
             putExtra(KEY_JUMP_TO, media)
-            putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.FILE_BROWSER)
+            putExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.FILE_BROWSER)
         })
     }
 

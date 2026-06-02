@@ -141,7 +141,7 @@ class PhoneScreenhotsInstrumentedTest : BaseUITest() {
     fun testTakeScreenshotBrowser() {
         onView(AllOf.allOf(withId(R.id.nav_directories), withEffectiveVisibility(Visibility.VISIBLE)))
                  .perform(click())
-        waitUntilLoaded { activity.findViewById<android.view.View>(R.id.fragment_placeholder) }
+        waitUntilLoaded { activity.findViewById<android.view.View>(R.id.content_placeholder) }
 
         ScreenshotUtil.takeScreenshot(5,"browser")
      }

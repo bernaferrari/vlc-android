@@ -96,7 +96,7 @@ class OnboardingActivity : AppCompatActivity() {
 
     private fun openStorageCustomization() {
         val intent = Intent(applicationContext, SecondaryActivity::class.java)
-        intent.putExtra("fragment", SecondaryActivity.STORAGE_BROWSER_ONBOARDING)
+        intent.putExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.STORAGE_BROWSER_ONBOARDING)
         intent.putExtra(KEY_ANIMATED, true)
         startActivity(intent)
         overridePendingTransition(R.anim.slide_in_bottom, R.anim.no_animation)

@@ -40,7 +40,7 @@ class PreferencesUITest: BasePreferenceUITest() {
 
         intended(allOf(
                 hasComponent(ComponentName(context, SecondaryActivity::class.java)),
-                hasExtra("fragment", SecondaryActivity.STORAGE_BROWSER)
+                hasExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.STORAGE_BROWSER)
         ))
     }
 

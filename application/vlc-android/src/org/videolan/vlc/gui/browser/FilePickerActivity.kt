@@ -92,7 +92,7 @@ const val EXTRA_MRL = "sub_mrl"
  * Full Compose file picker for subtitles, soundfonts, settings, and equalizer imports.
  *
  * This Activity owns the picker state directly and reuses [FilePickerProvider] so file
- * filtering, root discovery, and result semantics stay aligned with the legacy fragment path.
+ * filtering, root discovery, and result semantics stay aligned with the legacy route path.
  */
 class FilePickerActivity : BaseActivity() {
     private val dataset = LiveDataset<MediaLibraryItem>()

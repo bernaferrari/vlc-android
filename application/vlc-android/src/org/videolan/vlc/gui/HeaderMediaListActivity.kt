@@ -226,8 +226,8 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
             WindowInsetsCompat.CONSUMED
         }
 
-        fragmentContainer = songs
-        originalBottomPadding = fragmentContainer.paddingBottom
+        contentContainer = songs
+        originalBottomPadding = contentContainer.paddingBottom
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = ""
 
@@ -485,7 +485,7 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
             withContext(Dispatchers.IO) {
                 val artist = (viewModel.playlist as Album).retrieveAlbumArtist()
                 val i = Intent(this@HeaderMediaListActivity, SecondaryActivity::class.java)
-                i.putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.ALBUMS_SONGS)
+                i.putExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.ALBUMS_SONGS)
                 i.putExtra(TAG_ITEM, artist)
                 i.putExtra(ARTIST_FROM_ALBUM, true)
                 i.flags = i.flags or Intent.FLAG_ACTIVITY_NO_HISTORY
@@ -770,7 +770,7 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
             CTX_GO_TO_ARTIST -> lifecycleScope.launch(Dispatchers.IO) {
                 val artist = if (media is Album) media.retrieveAlbumArtist() else (media as MediaWrapper).artist
                 val i = Intent(this@HeaderMediaListActivity, SecondaryActivity::class.java)
-                i.putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.ALBUMS_SONGS)
+                i.putExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.ALBUMS_SONGS)
                 i.putExtra(TAG_ITEM, artist)
                 i.putExtra(ARTIST_FROM_ALBUM, true)
                 i.flags = i.flags or Intent.FLAG_ACTIVITY_NO_HISTORY
@@ -779,7 +779,7 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
             CTX_GO_TO_ALBUM_ARTIST -> lifecycleScope.launch(Dispatchers.IO) {
                 val artist = (media as MediaWrapper).albumArtist
                 val i = Intent(this@HeaderMediaListActivity, SecondaryActivity::class.java)
-                i.putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.ALBUMS_SONGS)
+                i.putExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.ALBUMS_SONGS)
                 i.putExtra(TAG_ITEM, artist)
                 i.putExtra(ARTIST_FROM_ALBUM, true)
                 i.flags = i.flags or Intent.FLAG_ACTIVITY_NO_HISTORY

@@ -30,7 +30,7 @@ import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * View model allowing to emit / collect display setting changes between
- * a calling fragment and the [DisplaySettingsDialog]
+ * a calling screen and the [DisplaySettingsDialog]
  *
  */
 class DisplaySettingsViewModel: ViewModel() {

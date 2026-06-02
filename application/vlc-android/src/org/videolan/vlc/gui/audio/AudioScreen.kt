@@ -472,7 +472,7 @@ class AudioScreenController(private val activity: MainActivity) : DefaultLifecyc
 
     private fun openAlbumsSongs(item: MediaLibraryItem) {
         activity.startActivity(Intent(activity, SecondaryActivity::class.java).apply {
-            putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.ALBUMS_SONGS)
+            putExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.ALBUMS_SONGS)
             putExtra(TAG_ITEM, item)
         })
     }
@@ -493,7 +493,7 @@ class AudioScreenController(private val activity: MainActivity) : DefaultLifecyc
             } ?: return@launch
             withContext(Dispatchers.Main) {
                 activity.startActivity(Intent(activity, SecondaryActivity::class.java).apply {
-                    putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.ALBUMS_SONGS)
+                    putExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.ALBUMS_SONGS)
                     putExtra(TAG_ITEM, artist)
                     putExtra(ARTIST_FROM_ALBUM, true)
                     flags = flags or Intent.FLAG_ACTIVITY_NO_HISTORY
@@ -524,7 +524,7 @@ class AudioScreenController(private val activity: MainActivity) : DefaultLifecyc
         activity.startActivity(Intent(activity.applicationContext, SecondaryActivity::class.java).apply {
             putExtra(KEY_MEDIA, parent)
             putExtra(KEY_JUMP_TO, media)
-            putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.FILE_BROWSER)
+            putExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.FILE_BROWSER)
         })
     }
 
@@ -877,7 +877,7 @@ class SecondaryAudioScreenController(
             } ?: return@launch
             withContext(Dispatchers.Main) {
                 activity.startActivity(Intent(activity, SecondaryActivity::class.java).apply {
-                    putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.ALBUMS_SONGS)
+                    putExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.ALBUMS_SONGS)
                     putExtra(TAG_ITEM, artist)
                     putExtra(ARTIST_FROM_ALBUM, true)
                     flags = flags or Intent.FLAG_ACTIVITY_NO_HISTORY
@@ -908,7 +908,7 @@ class SecondaryAudioScreenController(
         activity.startActivity(Intent(activity.applicationContext, SecondaryActivity::class.java).apply {
             putExtra(KEY_MEDIA, parent)
             putExtra(KEY_JUMP_TO, media)
-            putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.FILE_BROWSER)
+            putExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.FILE_BROWSER)
         })
     }
 

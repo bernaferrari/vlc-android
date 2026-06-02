@@ -620,7 +620,7 @@ class VideoScreenController(private val activity: MainActivity) : DefaultLifecyc
 
     private fun openVideoContainer(item: MediaLibraryItem) {
         activity.startActivityForResult(Intent(activity, SecondaryActivity::class.java).apply {
-            putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.VIDEO_GROUP_LIST)
+            putExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.VIDEO_GROUP_LIST)
             if (item is Folder) putExtra(KEY_FOLDER, item)
             else if (item is VideoGroup) putExtra(KEY_GROUP, item)
         }, SecondaryActivity.ACTIVITY_RESULT_SECONDARY)
@@ -714,7 +714,7 @@ class VideoScreenController(private val activity: MainActivity) : DefaultLifecyc
         activity.startActivity(Intent(activity.applicationContext, SecondaryActivity::class.java).apply {
             putExtra(KEY_MEDIA, parent)
             putExtra(KEY_JUMP_TO, media)
-            putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.FILE_BROWSER)
+            putExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.FILE_BROWSER)
         })
     }
 
@@ -1055,7 +1055,7 @@ class SecondaryVideoScreenController(
 
     private fun openVideoContainer(item: MediaLibraryItem) {
         activity.startActivityForResult(Intent(activity, SecondaryActivity::class.java).apply {
-            putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.VIDEO_GROUP_LIST)
+            putExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.VIDEO_GROUP_LIST)
             if (item is Folder) putExtra(KEY_FOLDER, item)
             else if (item is VideoGroup) putExtra(KEY_GROUP, item)
         }, SecondaryActivity.ACTIVITY_RESULT_SECONDARY)
@@ -1157,7 +1157,7 @@ class SecondaryVideoScreenController(
         activity.startActivity(Intent(activity.applicationContext, SecondaryActivity::class.java).apply {
             putExtra(KEY_MEDIA, parent)
             putExtra(KEY_JUMP_TO, media)
-            putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.FILE_BROWSER)
+            putExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.FILE_BROWSER)
         })
     }
 

@@ -53,7 +53,7 @@ import kotlin.math.roundToInt
 /**
  * Compose-hosted equalizer bottom sheet for player callers.
  *
- * This replaces EqualizerFragmentDialog without changing the player option
+ * This replaces legacy equalizer dialog without changing the player option
  * entry points or EqualizerViewModel behavior.
  */
 fun ComponentActivity.showEqualizerComposeDialog(

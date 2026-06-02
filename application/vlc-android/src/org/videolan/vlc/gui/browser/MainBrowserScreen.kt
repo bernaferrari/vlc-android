@@ -190,7 +190,7 @@ class MainBrowserScreenController(
     private val settings = Settings.getInstance(activity)
     private val browserFavRepository = BrowserFavRepository.getInstance(activity)
     private val networkMonitor = NetworkMonitor.getInstance(activity)
-    private val displayInListKey = "main_browser_fragment_display_mode"
+    private val displayInListKey = "main_browser_display_mode"
 
     private val localViewModel = ViewModelProvider(
         activity,
@@ -250,7 +250,7 @@ class MainBrowserScreenController(
         }
         activity.startActivity(Intent(activity.applicationContext, SecondaryActivity::class.java).apply {
             putExtra(KEY_MEDIA, otgMedia)
-            putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.FILE_BROWSER)
+            putExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.FILE_BROWSER)
         })
         requiringOtg = false
     }
@@ -360,7 +360,7 @@ class MainBrowserScreenController(
         }
         activity.startActivity(Intent(activity.applicationContext, SecondaryActivity::class.java).apply {
             putExtra(KEY_MEDIA, media)
-            putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.FILE_BROWSER)
+            putExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.FILE_BROWSER)
         })
     }
 
@@ -659,7 +659,7 @@ class SecondaryStorageBrowserScreenController(
         activity.startActivity(Intent(activity.applicationContext, SecondaryActivity::class.java).apply {
             putExtra(KEY_MEDIA, media)
             putExtra(KEY_IN_MEDIALIB, storageState(item) == ToggleableState.On)
-            putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.FILE_BROWSER)
+            putExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.FILE_BROWSER)
         })
     }
 
@@ -1237,7 +1237,7 @@ class SecondaryFileBrowserScreenController(
         viewModel.saveList(media)
         activity.startActivity(Intent(activity.applicationContext, SecondaryActivity::class.java).apply {
             putExtra(KEY_MEDIA, media)
-            putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.FILE_BROWSER)
+            putExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.FILE_BROWSER)
         })
     }
 
@@ -1247,7 +1247,7 @@ class SecondaryFileBrowserScreenController(
         activity.startActivity(Intent(activity.applicationContext, SecondaryActivity::class.java).apply {
             putExtra(KEY_MEDIA, media)
             putExtra(KEY_IN_MEDIALIB, scannedDirectory || storageState(item) == ToggleableState.On)
-            putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.FILE_BROWSER)
+            putExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.FILE_BROWSER)
         })
     }
 

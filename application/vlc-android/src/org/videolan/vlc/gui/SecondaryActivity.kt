@@ -130,12 +130,12 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
     private val dialogsDelegate = DialogDelegate()
     val isOnboarding:Boolean
     get() {
-        return intent.getStringExtra(KEY_FRAGMENT) == STORAGE_BROWSER_ONBOARDING
+        return intent.getStringExtra(KEY_DESTINATION) == STORAGE_BROWSER_ONBOARDING
     }
 
 
     override fun forcedTheme() =
-        if (intent.getStringExtra(KEY_FRAGMENT) == STORAGE_BROWSER_ONBOARDING) R.style.Theme_VLC_Onboarding
+        if (intent.getStringExtra(KEY_DESTINATION) == STORAGE_BROWSER_ONBOARDING) R.style.Theme_VLC_Onboarding
         else null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -159,31 +159,31 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
 
         if (isOnboarding) WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightStatusBars = false
 
-        val fph = findViewById<ViewGroup>(R.id.fragment_placeholder)
-        val params = fph.layoutParams as CoordinatorLayout.LayoutParams
+        val contentContainer = findViewById<ViewGroup>(R.id.content_placeholder)
+        val params = contentContainer.layoutParams as CoordinatorLayout.LayoutParams
 
         if (AndroidDevices.isTv) {
             applyOverscanMargin(this)
             params.topMargin = resources.getDimensionPixelSize(UiTools.getResourceFromAttribute(this, R.attr.actionBarSize))
         } else
             params.behavior = AppBarLayout.ScrollingViewBehavior()
-        fph.requestLayout()
+        contentContainer.requestLayout()
 
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
-        val fragmentId = intent.getStringExtra(KEY_FRAGMENT)
-        if (fragmentId == STREAMS) {
-            setupStreamsContent(fph)
-        } else if (fragmentId == HISTORY) {
-            setupHistoryContent(fph)
-        } else if (fragmentId == VIDEO_GROUP_LIST) {
-            setupVideoGroupContent(fph)
-        } else if (fragmentId == ALBUMS_SONGS) {
-            setupAudioAlbumsSongsContent(fph)
-        } else if (fragmentId == STORAGE_BROWSER || fragmentId == STORAGE_BROWSER_ONBOARDING) {
-            setupStorageBrowserContent(fph, fragmentId == STORAGE_BROWSER_ONBOARDING)
-        } else if (fragmentId == FILE_BROWSER) {
-            setupFileBrowserContent(fph)
+        val destinationId = intent.getStringExtra(KEY_DESTINATION)
+        if (destinationId == STREAMS) {
+            setupStreamsContent(contentContainer)
+        } else if (destinationId == HISTORY) {
+            setupHistoryContent(contentContainer)
+        } else if (destinationId == VIDEO_GROUP_LIST) {
+            setupVideoGroupContent(contentContainer)
+        } else if (destinationId == ALBUMS_SONGS) {
+            setupAudioAlbumsSongsContent(contentContainer)
+        } else if (destinationId == STORAGE_BROWSER || destinationId == STORAGE_BROWSER_ONBOARDING) {
+            setupStorageBrowserContent(contentContainer, destinationId == STORAGE_BROWSER_ONBOARDING)
+        } else if (destinationId == FILE_BROWSER) {
+            setupFileBrowserContent(contentContainer)
         } else {
             finish()
             return
@@ -200,7 +200,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         audioAlbumsSongsController?.onVisible()
         storageBrowserController?.onVisible()
         fileBrowserController?.onVisible()
-        when (intent.getStringExtra(KEY_FRAGMENT)) {
+        when (intent.getStringExtra(KEY_DESTINATION)) {
             STREAMS -> supportActionBar?.setTitle(R.string.streams)
             HISTORY -> supportActionBar?.setTitle(R.string.history)
         }
@@ -253,10 +253,10 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val result = super.onCreateOptionsMenu(menu)
-        if (fileBrowserController != null) menuInflater.inflate(R.menu.fragment_option_network, menu)
+        if (fileBrowserController != null) menuInflater.inflate(R.menu.network_options, menu)
         if (isHistoryContent()) {
             setupHistoryFilterMenu(menu)
-            menuInflater.inflate(R.menu.fragment_option_history, menu)
+            menuInflater.inflate(R.menu.history_options, menu)
             historyCleanMenuItem = menu.findItem(R.id.ml_menu_clean)
             updateHistoryCleanMenuVisibility()
         }
@@ -319,8 +319,8 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         return super.onOptionsItemSelected(item)
     }
 
-    override fun hideRenderers() = intent.getStringExtra(KEY_FRAGMENT) == STORAGE_BROWSER ||
-            intent.getStringExtra(KEY_FRAGMENT) == STORAGE_BROWSER_ONBOARDING ||
+    override fun hideRenderers() = intent.getStringExtra(KEY_DESTINATION) == STORAGE_BROWSER ||
+            intent.getStringExtra(KEY_DESTINATION) == STORAGE_BROWSER_ONBOARDING ||
             fileBrowserController?.hideRenderers() == true
 
     private fun setupStreamsContent(container: ViewGroup) {
@@ -612,7 +612,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
                 historyItems?.value.orEmpty().isNotEmpty()
     }
 
-    private fun isHistoryContent() = intent.getStringExtra(KEY_FRAGMENT) == HISTORY
+    private fun isHistoryContent() = intent.getStringExtra(KEY_DESTINATION) == HISTORY
 
     private fun onHistoryItemClicked(position: Int, item: MediaWrapper) {
         if (KeyHelper.isShiftPressed && historyActionMode == null) {
@@ -715,7 +715,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         startActivity(Intent(applicationContext, SecondaryActivity::class.java).apply {
             putExtra(KEY_MEDIA, parent)
             putExtra(KEY_JUMP_TO, media)
-            putExtra(KEY_FRAGMENT, FILE_BROWSER)
+            putExtra(KEY_DESTINATION, FILE_BROWSER)
         })
     }
 
@@ -724,7 +724,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
 
         const val ACTIVITY_RESULT_SECONDARY = 3
 
-        const val KEY_FRAGMENT = "fragment"
+        const val KEY_DESTINATION = "destination"
 
         const val ALBUMS_SONGS = "albumsSongs"
         const val STREAMS = "streams"

@@ -207,7 +207,7 @@ class InfoActivity : AudioPlayerContainerActivity(), PathAdapterListener,
         root.addView(createInfoToolbar())
 
         infoContent = ComposeView(this).apply {
-            id = R.id.fragment_placeholder
+            id = R.id.content_placeholder
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 VLCTheme {

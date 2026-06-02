@@ -77,7 +77,7 @@ internal fun MainActivity.createMainActivityShell(): View {
     root.addView(createPhoneToolbarShell())
 
     val content = FrameLayout(this).apply {
-        id = R.id.fragment_placeholder
+        id = R.id.content_placeholder
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) isKeyboardNavigationCluster = true
     }
     root.addView(
@@ -151,7 +151,7 @@ internal fun SecondaryActivity.createSecondaryActivityShell(): View {
     coordinator.addView(createPhoneToolbarShell())
 
     val content = FrameLayout(this).apply {
-        id = R.id.fragment_placeholder
+        id = R.id.content_placeholder
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) isKeyboardNavigationCluster = true
     }
     coordinator.addView(
@@ -175,7 +175,7 @@ internal fun SecondaryActivity.createSecondaryActivityShell(): View {
         },
         CoordinatorLayout.LayoutParams(CoordinatorLayout.LayoutParams.WRAP_CONTENT, CoordinatorLayout.LayoutParams.WRAP_CONTENT).apply {
             setMargins(16.dp, 16.dp, 16.dp, 16.dp)
-            anchorId = R.id.fragment_placeholder
+            anchorId = R.id.content_placeholder
             anchorGravity = Gravity.BOTTOM or Gravity.END
             behavior = FloatingActionButtonBehavior(this@createSecondaryActivityShell, null)
         }

@@ -439,7 +439,7 @@ open class PreferencesActivity : BaseActivity() {
             UiTools.snacker(this, getString(R.string.settings_ml_block_scan))
         } else {
             val intent = Intent(applicationContext, SecondaryActivity::class.java)
-            intent.putExtra("fragment", SecondaryActivity.STORAGE_BROWSER)
+            intent.putExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.STORAGE_BROWSER)
             startActivity(intent)
             setResult(RESULT_RESTART)
         }

@@ -32,7 +32,7 @@ class StorageBrowserUITest : BaseUITest() {
 
     override fun beforeTest() {
         val intent = Intent().apply {
-            putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.STORAGE_BROWSER)
+            putExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.STORAGE_BROWSER)
         }
         activityTestRule.launchActivity(intent)
         activity = activityTestRule.activity

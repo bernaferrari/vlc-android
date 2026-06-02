@@ -210,14 +210,14 @@ class MoreScreenController(private val activity: MainActivity) : CtxActionReceiv
 
     private fun openStreamsScreen() {
         activity.startActivityForResult(
-            Intent(activity, SecondaryActivity::class.java).putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.STREAMS),
+            Intent(activity, SecondaryActivity::class.java).putExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.STREAMS),
             SecondaryActivity.ACTIVITY_RESULT_SECONDARY
         )
     }
 
     private fun openHistoryScreen() {
         activity.startActivityForResult(
-            Intent(activity, SecondaryActivity::class.java).putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.HISTORY),
+            Intent(activity, SecondaryActivity::class.java).putExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.HISTORY),
             SecondaryActivity.ACTIVITY_RESULT_SECONDARY
         )
     }
@@ -353,7 +353,7 @@ class MoreScreenController(private val activity: MainActivity) : CtxActionReceiv
         activity.startActivity(Intent(activity, SecondaryActivity::class.java).apply {
             putExtra(KEY_MEDIA, parent)
             putExtra(KEY_JUMP_TO, media)
-            putExtra(SecondaryActivity.KEY_FRAGMENT, SecondaryActivity.FILE_BROWSER)
+            putExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.FILE_BROWSER)
         })
     }
 

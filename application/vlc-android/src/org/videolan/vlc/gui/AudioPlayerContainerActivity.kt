@@ -126,7 +126,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
     lateinit var audioPlayer: AudioPlayer
     private lateinit var audioPlayerContainer: FrameLayout
     lateinit var playerBehavior: PlayerBehavior<*>
-    protected lateinit var fragmentContainer: View
+    protected lateinit var contentContainer: View
     protected var originalBottomPadding: Int = 0
     private var scanProgressLayout: ScanProgressView? = null
     private lateinit var resumeCard: Snackbar
@@ -247,7 +247,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
         bottomMargin += if (this is MainActivity && !isTablet()) 58.dp else 0
         //mini player
         bottomMargin += if (::playerBehavior.isInitialized && playerBehavior.state != STATE_HIDDEN) 72.dp else 0 + 4.dp
-        fragmentContainer.setPadding(fragmentContainer.paddingLeft, fragmentContainer.paddingTop, fragmentContainer.paddingRight, bottomMargin)
+        contentContainer.setPadding(contentContainer.paddingLeft, contentContainer.paddingTop, contentContainer.paddingRight, bottomMargin)
     }
 
     /**
@@ -261,9 +261,9 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
     }
 
     protected open fun initAudioPlayerContainerActivity() {
-        findViewById<View>(R.id.fragment_placeholder)?.let {
-            fragmentContainer = it
-            originalBottomPadding = fragmentContainer.paddingBottom
+        findViewById<View>(R.id.content_placeholder)?.let {
+            contentContainer = it
+            originalBottomPadding = contentContainer.paddingBottom
         }
         toolbar = findViewById(R.id.main_toolbar)
         setSupportActionBar(toolbar)
@@ -705,7 +705,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
         progressView.let {
             val lp = it.layoutParams as CoordinatorLayout.LayoutParams
             if (this is MainActivity) {
-                lp.anchorId = if (isTablet()) R.id.fragment_placeholder else R.id.navigation
+                lp.anchorId = if (isTablet()) R.id.content_placeholder else R.id.navigation
                 lp.anchorGravity = if (isTablet()) Gravity.BOTTOM else Gravity.TOP
                 lp.marginStart = if (isTablet()) 72.dp else 0.dp
             }

@@ -55,6 +55,7 @@
     <item name="player_screenshot_stub" type="id" />
     <item name="player_overlay_background" type="id" />
     <item name="renderer_background_cone" type="id" />
+    <item name="content_placeholder" type="id" />
     <item name="content_layout" type="id" />
     <item name="backgroundView" type="id" />
     <item name="top_gradient" type="id" />

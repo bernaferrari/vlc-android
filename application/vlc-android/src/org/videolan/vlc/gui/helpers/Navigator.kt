@@ -107,7 +107,7 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
         clearComposeScreenIfNeeded()
 
         val controller = moreController ?: MoreScreenController(activity).also { moreController = it }
-        val container = activity.findViewById<ViewGroup>(R.id.fragment_placeholder)
+        val container = activity.findViewById<ViewGroup>(R.id.content_placeholder)
         container.removeAllViews()
         container.addView(
             ComposeView(activity).apply {
@@ -130,7 +130,7 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
         clearComposeScreenIfNeeded()
 
         val controller = mainBrowserController ?: MainBrowserScreenController(activity, forExpresso).also { mainBrowserController = it }
-        val container = activity.findViewById<ViewGroup>(R.id.fragment_placeholder)
+        val container = activity.findViewById<ViewGroup>(R.id.content_placeholder)
         container.removeAllViews()
         container.addView(
             ComposeView(activity).apply {
@@ -153,7 +153,7 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
         clearComposeScreenIfNeeded()
 
         val controller = playlistController ?: PlaylistScreenController(activity).also { playlistController = it }
-        val container = activity.findViewById<ViewGroup>(R.id.fragment_placeholder)
+        val container = activity.findViewById<ViewGroup>(R.id.content_placeholder)
         container.removeAllViews()
         container.addView(
             ComposeView(activity).apply {
@@ -176,7 +176,7 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
         clearComposeScreenIfNeeded()
 
         val controller = videoController ?: VideoScreenController(activity).also { videoController = it }
-        val container = activity.findViewById<ViewGroup>(R.id.fragment_placeholder)
+        val container = activity.findViewById<ViewGroup>(R.id.content_placeholder)
         container.removeAllViews()
         container.addView(
             ComposeView(activity).apply {
@@ -199,7 +199,7 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
         clearComposeScreenIfNeeded()
 
         val controller = audioController ?: AudioScreenController(activity).also { audioController = it }
-        val container = activity.findViewById<ViewGroup>(R.id.fragment_placeholder)
+        val container = activity.findViewById<ViewGroup>(R.id.content_placeholder)
         container.removeAllViews()
         container.addView(
             ComposeView(activity).apply {
@@ -225,7 +225,7 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
         playlistController?.onHidden()
         videoController?.onHidden()
         audioController?.onHidden()
-        activity.findViewById<ViewGroup>(R.id.fragment_placeholder).removeAllViews()
+        activity.findViewById<ViewGroup>(R.id.content_placeholder).removeAllViews()
     }
 
     override fun currentIdIsExtension() = idIsExtension(currentDestinationId)
