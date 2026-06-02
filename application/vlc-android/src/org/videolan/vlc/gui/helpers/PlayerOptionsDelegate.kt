@@ -18,9 +18,9 @@ import org.videolan.tools.KEY_AOUT
 import org.videolan.tools.Settings
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.gui.AudioPlayerContainerActivity
 import org.videolan.vlc.gui.BaseActivity
-import org.videolan.vlc.gui.audio.AudioPlaylistTipsHostView
 import org.videolan.vlc.gui.dialogs.showAudioControlsSettingsComposeDialog
 import org.videolan.vlc.gui.dialogs.showEqualizerComposeDialog
 import org.videolan.vlc.gui.dialogs.showJumpToTimeComposeDialog
@@ -31,7 +31,6 @@ import org.videolan.vlc.gui.dialogs.showVideoControlsSettingsComposeDialog
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.hf.PinCodeDelegate
 import org.videolan.vlc.gui.helpers.hf.checkPIN
-import org.videolan.vlc.gui.view.AudioPlayerTipsHostView
 import org.videolan.vlc.gui.view.PlayerOptionsPanelHost
 import org.videolan.vlc.gui.view.PlayerOptionsPanelView
 import org.videolan.vlc.gui.video.VideoPlayerActivity
@@ -228,14 +227,14 @@ class PlayerOptionsDelegate(val activity: ComponentActivity, val service: Playba
             ID_SHOW_AUDIO_TIPS -> {
                 hide()
                 val audioPlayerContainerActivity = activity as AudioPlayerContainerActivity
-                audioPlayerContainerActivity.findViewById<AudioPlayerTipsHostView>(R.id.audio_player_tips)?.let {
+                audioPlayerContainerActivity.findViewById<VLCComposeView>(R.id.audio_player_tips)?.let {
                     audioPlayerContainerActivity.tipsDelegate.init(it)
                 }
             }
             ID_SHOW_PLAYLIST_TIPS -> {
                 hide()
                 val audioPlayerContainerActivity = activity as AudioPlayerContainerActivity
-                audioPlayerContainerActivity.findViewById<AudioPlaylistTipsHostView>(R.id.audio_playlist_tips)?.let {
+                audioPlayerContainerActivity.findViewById<VLCComposeView>(R.id.audio_playlist_tips)?.let {
                     audioPlayerContainerActivity.playlistTipsDelegate.init(it)
                 }
             }

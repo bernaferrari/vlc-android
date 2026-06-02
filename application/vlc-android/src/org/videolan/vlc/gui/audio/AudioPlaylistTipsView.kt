@@ -1,6 +1,6 @@
 /*
  * ************************************************************************
- *  AudioPlaylistTipsView.kt
+ *  AudioPlaylistTipsHost.kt
  * *************************************************************************
  * Copyright (C) 2026 VLC authors and VideoLAN
  *
@@ -23,11 +23,7 @@
 package org.videolan.vlc.gui.audio
 
 import android.content.Context
-import android.util.AttributeSet
 import android.util.TypedValue
-import android.view.View
-import android.view.ViewGroup
-import android.widget.FrameLayout
 import androidx.annotation.StringRes
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -75,34 +71,9 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.vlc.R
-import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
-
-/**
- * Permanent host for the playlist gesture tips overlay. It replaces the former
- * ViewStub payload while keeping the public audio_playlist_tips ID used by
- * AudioPlayerContainerActivity.
- */
-class AudioPlaylistTipsHostView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : FrameLayout(context, attrs, defStyleAttr) {
-
-    val tipsView = AudioPlaylistTipsView(context)
-
-    init {
-        id = R.id.audio_playlist_tips
-        visibility = View.GONE
-        isClickable = true
-        elevation = resources.getDimension(R.dimen.audio_player_elevation)
-        addView(
-            tipsView,
-            LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
-        )
-        layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-    }
-}
 
 private data class AudioPlaylistTipsUiState(
     val visible: Boolean = false,
@@ -114,25 +85,30 @@ private data class AudioPlaylistTipsUiState(
     val subtitle: String = ""
 )
 
+internal fun VLCComposeView.installAudioPlaylistTipsHost(context: Context) {
+    val host = AudioPlaylistTipsHost(context)
+    setTag(R.id.audio_playlist_tips, host)
+    setContent {
+        VLCTheme {
+            host.Content()
+        }
+    }
+}
+
+internal fun VLCComposeView.audioPlaylistTipsHost(): AudioPlaylistTipsHost =
+    getTag(R.id.audio_playlist_tips) as? AudioPlaylistTipsHost ?: error("Missing audio playlist tips host")
+
 /**
- * Compose replacement for the playlist tips overlay. AudioPlaylistTipsDelegate
- * owns sequencing and side effects, while this view owns the visual surface.
+ * State owner for the playlist tips overlay. AudioPlaylistTipsDelegate owns
+ * sequencing and side effects, while this host owns the visual surface.
  */
-class AudioPlaylistTipsView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : VLCAbstractComposeWidget(context, attrs, defStyleAttr) {
+internal class AudioPlaylistTipsHost(context: Context) {
 
     private var state by mutableStateOf(AudioPlaylistTipsUiState())
     private var onDismissClick: () -> Unit = {}
     private var onNextClick: () -> Unit = {}
     private val tipsBackgroundColor = context.resolveComposeColor(R.attr.background_audio_tips)
     private val primaryColor = context.resolveComposeColor(R.attr.colorPrimary)
-
-    init {
-        isClickable = true
-    }
 
     fun setCallbacks(
         onDismiss: () -> Unit,
@@ -166,7 +142,7 @@ class AudioPlaylistTipsView @JvmOverloads constructor(
     }
 
     @Composable
-    override fun WidgetContent() {
+    fun Content() {
         val current = state
         if (!current.visible || current.step == null) return
 

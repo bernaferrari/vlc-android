@@ -79,8 +79,8 @@ import org.videolan.vlc.MediaParsingService
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
 import org.videolan.vlc.VlcMigrationHelper
+import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.gui.audio.AudioPlayer
-import org.videolan.vlc.gui.audio.AudioPlaylistTipsHostView
 import org.videolan.vlc.gui.audio.AudioPlaylistTipsDelegate
 import org.videolan.vlc.gui.audio.AudioTipsDelegate
 import org.videolan.vlc.gui.dialogs.createResumePlaybackDialogView
@@ -92,7 +92,7 @@ import org.videolan.vlc.gui.helpers.PlayerKeyListenerDelegate
 import org.videolan.vlc.gui.helpers.PlayerOptionsDelegateCallback
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.isTablet
-import org.videolan.vlc.gui.view.AudioPlayerTipsHostView
+import org.videolan.vlc.gui.view.audioPlayerTipsHost
 import org.videolan.vlc.gui.view.ScanProgressView
 import org.videolan.vlc.media.PlaylistManager
 import org.videolan.vlc.media.ResumeStatus
@@ -584,14 +584,14 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
             var shown = false
             when (stubId) {
                 R.id.audio_player_tips -> {
-                    val tipsHost = findViewById<AudioPlayerTipsHostView>(stubId)
+                    val tipsHost = findViewById<VLCComposeView>(stubId)
                     if (tipsHost != null && tipsDelegate.currentTip == null && !shownTips.contains(stubId)) {
                         tipsDelegate.init(tipsHost)
                         shown = true
                     }
                 }
                 R.id.audio_playlist_tips -> {
-                    val tipsHost = findViewById<AudioPlaylistTipsHostView>(stubId)
+                    val tipsHost = findViewById<VLCComposeView>(stubId)
                     if (tipsHost != null && playlistTipsDelegate.currentTip == null && !shownTips.contains(stubId)) {
                         playlistTipsDelegate.init(tipsHost)
                         shown = true
@@ -614,8 +614,8 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
      * Remove the current tip view if there is one displayed.
      */
     fun removeTipViewIfDisplayed() {
-        findViewById<AudioPlayerTipsHostView>(R.id.audio_player_tips)?.let {
-            it.tipsView.hideTips()
+        findViewById<VLCComposeView>(R.id.audio_player_tips)?.let {
+            it.audioPlayerTipsHost().hideTips()
             it.visibility = View.GONE
             return
         }

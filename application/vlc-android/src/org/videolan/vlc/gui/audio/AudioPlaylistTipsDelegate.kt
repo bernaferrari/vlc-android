@@ -34,6 +34,7 @@ import org.videolan.tools.putSingle
 import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.gui.AudioPlayerContainerActivity
 import org.videolan.vlc.gui.helpers.UiTools.isTablet
 import org.videolan.vlc.media.MediaUtils
@@ -41,13 +42,13 @@ import org.videolan.vlc.viewmodels.PlaylistModel
 
 class AudioPlaylistTipsDelegate(private val activity: AudioPlayerContainerActivity) {
     var currentTip: AudioPlaylistTipsStep? = null
-    private lateinit var audioPlaylistTipsHost: AudioPlaylistTipsHostView
+    private lateinit var audioPlaylistTipsHost: VLCComposeView
     private var media: MediaWrapper? = null
     private var subtitle: String = ""
 
-    fun init(host: AudioPlaylistTipsHostView) {
+    fun init(host: VLCComposeView) {
         audioPlaylistTipsHost = host
-        audioPlaylistTipsHost.tipsView.setCallbacks(
+        audioPlaylistTipsHost.audioPlaylistTipsHost().setCallbacks(
             onDismiss = ::close,
             onNext = ::next
         )
@@ -70,7 +71,7 @@ class AudioPlaylistTipsDelegate(private val activity: AudioPlayerContainerActivi
 
         val tablet = activity.isTablet()
         audioPlaylistTipsHost.setVisible()
-        audioPlaylistTipsHost.tipsView.showTip(
+        audioPlaylistTipsHost.audioPlaylistTipsHost().showTip(
             step = currentTip!!,
             title = currentTip!!.titleText,
             description = if (tablet) currentTip!!.descriptionTextTablet else currentTip!!.descriptionText,
@@ -85,7 +86,7 @@ class AudioPlaylistTipsDelegate(private val activity: AudioPlayerContainerActivi
      */
     fun close() {
         if (::audioPlaylistTipsHost.isInitialized) {
-            audioPlaylistTipsHost.tipsView.hideTips()
+            audioPlaylistTipsHost.audioPlaylistTipsHost().hideTips()
             audioPlaylistTipsHost.setGone()
         }
         Settings.getInstance(activity).putSingle(PREF_PLAYLIST_TIPS_SHOWN, true)

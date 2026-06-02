@@ -24,10 +24,12 @@ package org.videolan.vlc.gui
 
 import android.content.Context
 import android.view.View
+import android.view.ViewGroup
 import android.widget.FrameLayout
 import org.videolan.vlc.R
-import org.videolan.vlc.gui.audio.AudioPlaylistTipsHostView
-import org.videolan.vlc.gui.view.AudioPlayerTipsHostView
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.gui.audio.installAudioPlaylistTipsHost
+import org.videolan.vlc.gui.view.installAudioPlayerTipsHost
 
 internal fun Context.createAudioPlayerHostView() = FrameLayout(this).apply {
     id = R.id.audio_player_stub
@@ -40,6 +42,21 @@ internal fun Context.createAudioPlayerHostView() = FrameLayout(this).apply {
     )
 }
 
-internal fun Context.createAudioPlayerTipsHostView() = AudioPlayerTipsHostView(this)
+internal fun Context.createAudioPlayerTipsComposeHost() = VLCComposeView(this).apply {
+    id = R.id.audio_player_tips
+    visibility = View.GONE
+    isClickable = true
+    elevation = resources.getDimension(R.dimen.audio_player_elevation)
+    setOnTouchListener { _, _ -> true }
+    layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+    installAudioPlayerTipsHost(this@createAudioPlayerTipsComposeHost)
+}
 
-internal fun Context.createAudioPlaylistTipsHostView() = AudioPlaylistTipsHostView(this)
+internal fun Context.createAudioPlaylistTipsComposeHost() = VLCComposeView(this).apply {
+    id = R.id.audio_playlist_tips
+    visibility = View.GONE
+    isClickable = true
+    elevation = resources.getDimension(R.dimen.audio_player_elevation)
+    layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+    installAudioPlaylistTipsHost(this@createAudioPlaylistTipsComposeHost)
+}

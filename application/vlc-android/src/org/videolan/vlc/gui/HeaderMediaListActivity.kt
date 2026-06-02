@@ -328,7 +328,7 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
         })
         coordinator.addView(createAudioPlayerContainer())
         coordinator.addView(
-            createAudioPlayerTipsHostView(),
+            createAudioPlayerTipsComposeHost(),
             CoordinatorLayout.LayoutParams(CoordinatorLayout.LayoutParams.MATCH_PARENT, CoordinatorLayout.LayoutParams.MATCH_PARENT)
         )
         return coordinator
@@ -438,7 +438,7 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
             FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
         )
         addView(
-            context.createAudioPlaylistTipsHostView(),
+            context.createAudioPlaylistTipsComposeHost(),
             FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
         )
         layoutParams = CoordinatorLayout.LayoutParams(CoordinatorLayout.LayoutParams.MATCH_PARENT, CoordinatorLayout.LayoutParams.MATCH_PARENT).apply {

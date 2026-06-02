@@ -131,7 +131,7 @@ internal fun MainActivity.createMainActivityShell(): View {
         }
     )
 
-    root.addView(createAudioPlayerTipsHostView())
+    root.addView(createAudioPlayerTipsComposeHost())
 
     return root
 }
@@ -182,11 +182,11 @@ internal fun SecondaryActivity.createSecondaryActivityShell(): View {
     )
 
     root.addView(
-        createAudioPlaylistTipsHostView(),
+        createAudioPlaylistTipsComposeHost(),
         FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
     )
     root.addView(
-        createAudioPlayerTipsHostView(),
+        createAudioPlayerTipsComposeHost(),
         FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
     )
 
@@ -276,7 +276,7 @@ private fun Context.createAudioPlayerContainerShell(): FrameLayout {
             FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
         )
         addView(
-            createAudioPlaylistTipsHostView(),
+            createAudioPlaylistTipsComposeHost(),
             FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
         )
         layoutParams = CoordinatorLayout.LayoutParams(CoordinatorLayout.LayoutParams.MATCH_PARENT, CoordinatorLayout.LayoutParams.MATCH_PARENT).apply {

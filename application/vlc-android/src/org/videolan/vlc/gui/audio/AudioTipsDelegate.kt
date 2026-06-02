@@ -36,18 +36,19 @@ import org.videolan.tools.putSingle
 import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.gui.AudioPlayerContainerActivity
 import org.videolan.vlc.gui.helpers.UiTools.isTablet
-import org.videolan.vlc.gui.view.AudioPlayerTipsHostView
+import org.videolan.vlc.gui.view.audioPlayerTipsHost
 
 class AudioTipsDelegate(private val activity: AudioPlayerContainerActivity) {
     var currentTip: AudioPlayerTipsStep? = null
-    private lateinit var audioPlayerTipsHost: AudioPlayerTipsHostView
+    private lateinit var audioPlayerTipsHost: VLCComposeView
 
-    fun init(host: AudioPlayerTipsHostView) {
+    fun init(host: VLCComposeView) {
         audioPlayerTipsHost = host
         audioPlayerTipsHost.setVisible()
-        audioPlayerTipsHost.tipsView.setCallbacks(
+        audioPlayerTipsHost.audioPlayerTipsHost().setCallbacks(
             onDismiss = ::close,
             onNext = ::next
         )
@@ -60,7 +61,7 @@ class AudioTipsDelegate(private val activity: AudioPlayerContainerActivity) {
     }
 
     private fun updateBackgroundPosition(peek: Int) {
-        if (::audioPlayerTipsHost.isInitialized) audioPlayerTipsHost.tipsView.setBottomInset(peek)
+        if (::audioPlayerTipsHost.isInitialized) audioPlayerTipsHost.audioPlayerTipsHost().setBottomInset(peek)
     }
 
     /**
@@ -75,7 +76,7 @@ class AudioTipsDelegate(private val activity: AudioPlayerContainerActivity) {
 
         val tablet = activity.isTablet()
         audioPlayerTipsHost.setVisible()
-        audioPlayerTipsHost.tipsView.showTip(
+        audioPlayerTipsHost.audioPlayerTipsHost().showTip(
             step = currentTip!!,
             title = currentTip!!.titleText,
             description = if (tablet) currentTip!!.descriptionTextTablet else currentTip!!.descriptionText,
@@ -91,7 +92,7 @@ class AudioTipsDelegate(private val activity: AudioPlayerContainerActivity) {
      */
     fun close() {
         if (::audioPlayerTipsHost.isInitialized) {
-            audioPlayerTipsHost.tipsView.hideTips()
+            audioPlayerTipsHost.audioPlayerTipsHost().hideTips()
             audioPlayerTipsHost.setGone()
         }
         activity.playerBehavior.removePeekHeightListener()
