@@ -20,14 +20,15 @@
  */
 package org.videolan.television.ui.audioplayer
 
-import android.graphics.drawable.BitmapDrawable
-import android.widget.ImageView
+import android.graphics.Bitmap
+import android.net.Uri
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -53,22 +54,26 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.television.R
-import org.videolan.vlc.gui.helpers.getBitmapFromDrawable
-import org.videolan.vlc.gui.helpers.loadImage
+import org.videolan.vlc.gui.helpers.AudioUtil
 import org.videolan.vlc.media.MediaUtils
 
 @Composable
@@ -178,24 +183,29 @@ private fun TvPlaylistRow(
 
 @Composable
 private fun TvPlaylistCover(media: MediaWrapper) {
-    val context = LocalContext.current
-    val defaultCover = remember {
-        BitmapDrawable(context.resources, getBitmapFromDrawable(context, R.drawable.ic_song_background))
+    val coverWidth = with(LocalDensity.current) { 58.dp.roundToPx() }
+    val cover by produceState<Bitmap?>(initialValue = null, media.artworkMrl, coverWidth) {
+        value = withContext(Dispatchers.IO) {
+            AudioUtil.readCoverBitmap(Uri.decode(media.artworkMrl), coverWidth)
+        }
     }
 
-    AndroidView(
-        factory = { viewContext ->
-            ImageView(viewContext).apply {
-                scaleType = ImageView.ScaleType.CENTER_CROP
-            }
-        },
-        update = { image ->
-            image.scaleType = ImageView.ScaleType.CENTER_CROP
-            image.setImageDrawable(defaultCover)
-            loadImage(image, media, tv = true, card = true)
-        },
-        modifier = Modifier.fillMaxSize()
-    )
+    val bitmap = cover
+    if (bitmap == null) {
+        Image(
+            painter = painterResource(R.drawable.ic_song_background),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+    } else {
+        Image(
+            bitmap = bitmap.asImageBitmap(),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+    }
 }
 
 @Composable
