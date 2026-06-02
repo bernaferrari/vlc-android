@@ -27,7 +27,6 @@ import android.os.Build
 import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
 import androidx.annotation.AttrRes
 import androidx.constraintlayout.widget.Barrier
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -608,21 +607,18 @@ private fun ConstraintLayout.addHingeButton(
 }
 
 private fun ConstraintLayout.addAudioOverlays(landscape: Boolean) {
-    addView(FrameLayout(context).apply {
-        id = R.id.player_options_container
+    addView(composeView(R.id.options_background).apply {
+        id = R.id.options_background
+        isClickable = true
         elevation = 32.dp.toFloat()
-        addView(composeView(R.id.options_background).apply {
-            id = R.id.options_background
-            isClickable = true
-            elevation = 16.dp.toFloat()
-            isFocusable = false
-            visibility = View.GONE
-        }, FrameLayout.LayoutParams(matchParent, matchParent))
+        isFocusable = false
+        visibility = View.GONE
     }, audioLayout(matchConstraint, matchConstraint) {
         startToStart = parentId
         endToEnd = parentId
         topToTop = parentId
         bottomToBottom = parentId
+        verticalBias = 1F
     })
     addView(composeView(R.id.bookmarks_background).apply {
         id = R.id.bookmarks_background

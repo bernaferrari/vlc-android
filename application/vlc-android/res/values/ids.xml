@@ -104,7 +104,6 @@
     <item name="play_pause" type="id" />
     <item name="next" type="id" />
     <item name="repeat" type="id" />
-    <item name="player_options_container" type="id" />
     <item name="ab_repeat_marker_guideline_container" type="id" />
     <item name="ab_repeat_container" type="id" />
     <item name="track_info_container" type="id" />

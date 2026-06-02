@@ -33,11 +33,9 @@ import android.os.Looper
 import android.os.Vibrator
 import android.support.v4.media.session.PlaybackStateCompat
 import android.text.format.DateFormat
-import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
 import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresPermission
 import androidx.annotation.StringRes
@@ -984,8 +982,12 @@ class AudioPlayer(
                     feature.orientation == FoldingFeature.Orientation.HORIZONTAL
         }
         val layoutParams = binding.optionsBackground.layoutParams as ViewGroup.MarginLayoutParams
-        layoutParams.height = if (horizontalFold != null) activity.getScreenHeight() - horizontalFold.bounds.bottom else FrameLayout.LayoutParams.MATCH_PARENT
-        if (layoutParams is FrameLayout.LayoutParams) layoutParams.gravity = Gravity.BOTTOM
+        if (layoutParams is ConstraintLayout.LayoutParams) {
+            layoutParams.height = horizontalFold?.let { activity.getScreenHeight() - it.bounds.bottom } ?: 0
+            layoutParams.verticalBias = 1F
+        } else {
+            layoutParams.height = horizontalFold?.let { activity.getScreenHeight() - it.bounds.bottom } ?: ViewGroup.LayoutParams.MATCH_PARENT
+        }
         binding.optionsBackground.layoutParams = layoutParams
     }
 
