@@ -49,25 +49,31 @@ import android.app.Activity
 import android.app.SearchManager
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.view.KeyEvent
-import android.widget.ImageView
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
@@ -84,12 +90,13 @@ import org.videolan.television.ui.browser.BaseTvActivity
 import org.videolan.television.util.manageHttpException
 import org.videolan.tools.NetworkMonitor
 import org.videolan.tools.getLocaleLanguages
+import org.videolan.tools.HttpImageLoader
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.components.VLCSearchResultRow
 import org.videolan.vlc.compose.components.VLCSearchScreen
 import org.videolan.vlc.compose.components.VLCSearchSection
 import org.videolan.vlc.gui.helpers.UiTools
-import org.videolan.vlc.gui.helpers.downloadIcon
+import org.videolan.vlc.util.isSchemeHttpOrHttps
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 class MediaScrapingTvActivity : BaseTvActivity() {
@@ -274,18 +281,36 @@ private fun SearchIcon(drawable: Int) {
 
 @Composable
 private fun MediaScrapingResultThumbnail(item: ResolverMedia?) {
-    AndroidView(
-        factory = { context ->
-            ImageView(context).apply {
-                adjustViewBounds = true
-                scaleType = ImageView.ScaleType.CENTER_CROP
-            }
-        },
-        modifier = Modifier.fillMaxSize(),
-        update = { imageView ->
-            imageView.scaleType = ImageView.ScaleType.CENTER_CROP
-            imageView.setImageResource(R.drawable.ic_video_big)
-            if (item != null) downloadIcon(imageView, item.imageUri(imageView.context.getLocaleLanguages()))
-        }
-    )
+    val context = LocalContext.current
+    val languages = remember(context) { context.getLocaleLanguages() }
+    val imageUri = remember(item, languages) { item?.imageUri(languages) }
+    val bitmap by remoteBitmap(imageUri)
+
+    val poster = bitmap
+    if (poster == null) {
+        Image(
+            painter = painterResource(R.drawable.ic_video_big),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+    } else {
+        Image(
+            bitmap = poster.asImageBitmap(),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+    }
+}
+
+@Composable
+private fun remoteBitmap(imageUri: Uri?) = produceState<Bitmap?>(initialValue = null, imageUri) {
+    val url = imageUri?.toString()
+    value = null
+    value = if (!url.isNullOrEmpty() && isSchemeHttpOrHttps(imageUri.scheme)) {
+        HttpImageLoader.downloadBitmap(url)
+    } else {
+        null
+    }
 }
