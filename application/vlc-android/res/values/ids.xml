@@ -107,9 +107,4 @@
     <item name="ab_repeat_marker_guideline_container" type="id" />
     <item name="ab_repeat_container" type="id" />
     <item name="track_info_container" type="id" />
-    <item name="previous_chapter" type="id" />
-    <item name="next_chapter" type="id" />
-    <item name="song_title" type="id" />
-    <item name="song_subtitle" type="id" />
-    <item name="song_track_info" type="id" />
 </resources>

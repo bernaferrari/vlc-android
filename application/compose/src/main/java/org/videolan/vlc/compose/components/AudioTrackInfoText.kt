@@ -21,15 +21,14 @@ enum class VLCAudioTrackInfoTextStyle {
 }
 
 /**
- * Compose equivalent of the landscape audio-player track info TextViews:
- *   - application/vlc-android/res/layout-land/audio_player.xml @id/song_title
- *   - application/vlc-android/res/layout-land/audio_player.xml @id/song_subtitle
- *   - application/vlc-android/res/layout-land/audio_player.xml @id/song_track_info
+ * Compose equivalent of the landscape audio-player title, subtitle, and
+ * technical-detail text formerly hosted as child TextViews inside the
+ * landscape track-info island.
  *
- * The host keeps the existing IDs for chapter constraints, track-info
- * visibility, and tablet/foldable ConstraintSet transitions. This leaf owns
- * VLC text colors, sizes, one-line marquee behavior, and optional click
- * handling for the title/subtitle text-click shortcut.
+ * The host now renders these rows inside the direct track_info_container
+ * Compose island. This leaf owns VLC text colors, sizes, one-line marquee
+ * behavior, and optional click handling for the title/subtitle text-click
+ * shortcut.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

@@ -40,13 +40,23 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresPermission
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
@@ -286,6 +296,136 @@ private fun AudioPlayerTransportIcon(@DrawableRes drawable: Int, size: Dp = 32.c
     )
 }
 
+@Composable
+private fun AudioLandscapeTrackInfoHost(
+        title: String,
+        subtitle: String,
+        detail: String,
+        showDetail: Boolean,
+        showChapterControls: Boolean,
+        showSeekButtons: Boolean,
+        showBookmarkButtons: Boolean,
+        seekState: AudioSeekHudState,
+        previousChapterContentDescription: String,
+        nextChapterContentDescription: String,
+        previousBookmarkContentDescription: String,
+        nextBookmarkContentDescription: String,
+        onTrackInfoClick: () -> Unit,
+        onPreviousChapterClick: () -> Unit,
+        onNextChapterClick: () -> Unit,
+        onPreviousBookmarkClick: () -> Unit,
+        onRewindClick: () -> Unit,
+        onRewindLongClick: () -> Unit,
+        onForwardClick: () -> Unit,
+        onForwardLongClick: () -> Unit,
+        onNextBookmarkClick: () -> Unit
+) {
+    Column(
+            modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.composeDp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+    ) {
+        Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (showChapterControls) {
+                VLCAudioHeaderTransportButton(
+                        contentDescription = previousChapterContentDescription,
+                        size = 40.composeDp,
+                        onClick = onPreviousChapterClick
+                ) {
+                    AudioPlayerTransportIcon(R.drawable.ic_chevron_left, size = 24.composeDp)
+                }
+            } else {
+                Spacer(Modifier.width(40.composeDp))
+            }
+            Box(
+                    modifier = Modifier.weight(1F),
+                    contentAlignment = Alignment.Center
+            ) {
+                VLCAudioTrackInfoText(
+                        text = title,
+                        style = VLCAudioTrackInfoTextStyle.Title,
+                        onClick = onTrackInfoClick
+                )
+            }
+            if (showChapterControls) {
+                VLCAudioHeaderTransportButton(
+                        contentDescription = nextChapterContentDescription,
+                        size = 40.composeDp,
+                        onClick = onNextChapterClick
+                ) {
+                    AudioPlayerTransportIcon(R.drawable.ic_chevron_right, size = 24.composeDp)
+                }
+            } else {
+                Spacer(Modifier.width(40.composeDp))
+            }
+        }
+        Spacer(Modifier.height(8.composeDp))
+        VLCAudioTrackInfoText(
+                text = subtitle,
+                style = VLCAudioTrackInfoTextStyle.Subtitle,
+                onClick = onTrackInfoClick
+        )
+        if (showDetail) {
+            Spacer(Modifier.height(8.composeDp))
+            VLCAudioTrackInfoText(
+                    text = detail,
+                    style = VLCAudioTrackInfoTextStyle.Detail
+            )
+        }
+        if (showSeekButtons || showBookmarkButtons) {
+            Spacer(Modifier.height(16.composeDp))
+            Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (showBookmarkButtons) {
+                    VLCAudioSeekHudButton(
+                            contentDescription = previousBookmarkContentDescription,
+                            onClick = onPreviousBookmarkClick
+                    ) {
+                        AudioPlayerTransportIcon(R.drawable.ic_player_bookmark_previous)
+                    }
+                }
+                if (showSeekButtons) {
+                    Box(contentAlignment = Alignment.Center) {
+                        VLCAudioSeekHudButton(
+                                contentDescription = seekState.rewindContentDescription,
+                                onClick = onRewindClick,
+                                onLongClick = onRewindLongClick
+                        ) {
+                            AudioPlayerTransportIcon(R.drawable.ic_player_rewind_10)
+                        }
+                        VLCAudioSeekDelayLabel(text = seekState.delayText)
+                    }
+                    Box(contentAlignment = Alignment.Center) {
+                        VLCAudioSeekHudButton(
+                                contentDescription = seekState.forwardContentDescription,
+                                onClick = onForwardClick,
+                                onLongClick = onForwardLongClick
+                        ) {
+                            AudioPlayerTransportIcon(R.drawable.ic_player_forward_10)
+                        }
+                        VLCAudioSeekDelayLabel(text = seekState.delayText)
+                    }
+                }
+                if (showBookmarkButtons) {
+                    VLCAudioSeekHudButton(
+                            contentDescription = nextBookmarkContentDescription,
+                            onClick = onNextBookmarkClick
+                    ) {
+                        AudioPlayerTransportIcon(R.drawable.ic_player_bookmark_next)
+                    }
+                }
+            }
+        }
+    }
+}
+
 class AudioPlayer(
         val activity: AudioPlayerContainerActivity,
         container: ViewGroup,
@@ -324,6 +464,10 @@ class AudioPlayer(
     private var audioTrackTitleText by mutableStateOf("")
     private var audioTrackSubtitleText by mutableStateOf("")
     private var audioTrackDetailText by mutableStateOf("")
+    private var audioTrackDetailVisible by mutableStateOf(false)
+    private var audioTrackChapterControlsVisible by mutableStateOf(false)
+    private var audioSeekButtonsVisible by mutableStateOf(false)
+    private var audioSeekBookmarkButtonsVisible by mutableStateOf(false)
     private var audioTimelineTimeText by mutableStateOf("")
     private var audioTimelineLengthText by mutableStateOf("")
     private var audioTimelineMax by mutableIntStateOf(100)
@@ -640,9 +784,8 @@ class AudioPlayer(
         setupAudioHeaderTransportControls()
         setupAudioPlayerTransportControls()
         setupAudioSeekHudControls()
-        setupAudioChapterControls()
         setupAudioHingeControls()
-        setupAudioTrackInfoTexts()
+        setupAudioLandscapeTrackInfo()
         setupAudioQueueProgressPill()
         setupResumeVideoHint()
         setupPlaybackChips()
@@ -1197,55 +1340,55 @@ class AudioPlayer(
     }
 
     private fun setupAudioSeekHudControls() {
-        binding.audioRewindBookmark.setContent {
+        binding.audioRewindBookmark?.setContent {
             VLCTheme {
                 VLCAudioSeekHudButton(
                     contentDescription = getString(R.string.previous_bookmark),
-                    onClick = { onPreviousBookmark(binding.audioRewindBookmark) }
+                    onClick = { onPreviousBookmark() }
                 ) {
                     AudioPlayerTransportIcon(R.drawable.ic_player_bookmark_previous)
                 }
             }
         }
-        binding.audioRewind10.setContent {
+        binding.audioRewind10?.setContent {
             VLCTheme {
                 val state = audioSeekHudState
                 VLCAudioSeekHudButton(
                     contentDescription = state.rewindContentDescription,
-                    onClick = { onJumpBack(binding.audioRewind10) },
-                    onLongClick = { onJumpBackLong(binding.audioRewind10) }
+                    onClick = { onJumpBack() },
+                    onLongClick = { onJumpBackLong() }
                 ) {
                     AudioPlayerTransportIcon(R.drawable.ic_player_rewind_10)
                 }
             }
         }
-        binding.audioRewindText.setContent {
+        binding.audioRewindText?.setContent {
             VLCTheme {
                 VLCAudioSeekDelayLabel(text = audioSeekHudState.delayText)
             }
         }
-        binding.audioForward10.setContent {
+        binding.audioForward10?.setContent {
             VLCTheme {
                 val state = audioSeekHudState
                 VLCAudioSeekHudButton(
                     contentDescription = state.forwardContentDescription,
-                    onClick = { onJumpForward(binding.audioForward10) },
-                    onLongClick = { onJumpForwardLong(binding.audioForward10) }
+                    onClick = { onJumpForward() },
+                    onLongClick = { onJumpForwardLong() }
                 ) {
                     AudioPlayerTransportIcon(R.drawable.ic_player_forward_10)
                 }
             }
         }
-        binding.audioForwardText.setContent {
+        binding.audioForwardText?.setContent {
             VLCTheme {
                 VLCAudioSeekDelayLabel(text = audioSeekHudState.delayText)
             }
         }
-        binding.audioForwardBookmark.setContent {
+        binding.audioForwardBookmark?.setContent {
             VLCTheme {
                 VLCAudioSeekHudButton(
                     contentDescription = getString(R.string.next_bookmark),
-                    onClick = { onNextBookmark(binding.audioForwardBookmark) }
+                    onClick = { onNextBookmark() }
                 ) {
                     AudioPlayerTransportIcon(R.drawable.ic_player_bookmark_next)
                 }
@@ -1254,27 +1397,32 @@ class AudioPlayer(
         updateAudioSeekHudState()
     }
 
-    private fun setupAudioChapterControls() {
-        binding.previousChapter?.setContent {
+    private fun setupAudioLandscapeTrackInfo() {
+        binding.trackInfoContainer?.setContent {
             VLCTheme {
-                VLCAudioHeaderTransportButton(
-                    contentDescription = getString(R.string.previous),
-                    size = 40.composeDp,
-                    onClick = { onAudioCoverChapterSwitching(false) }
-                ) {
-                    AudioPlayerTransportIcon(R.drawable.ic_chevron_left, size = 24.composeDp)
-                }
-            }
-        }
-        binding.nextChapter?.setContent {
-            VLCTheme {
-                VLCAudioHeaderTransportButton(
-                    contentDescription = getString(R.string.next),
-                    size = 40.composeDp,
-                    onClick = { onAudioCoverChapterSwitching(true) }
-                ) {
-                    AudioPlayerTransportIcon(R.drawable.ic_chevron_right, size = 24.composeDp)
-                }
+                AudioLandscapeTrackInfoHost(
+                        title = audioTrackTitleText,
+                        subtitle = audioTrackSubtitleText,
+                        detail = audioTrackDetailText,
+                        showDetail = audioTrackDetailVisible,
+                        showChapterControls = audioTrackChapterControlsVisible,
+                        showSeekButtons = audioSeekButtonsVisible,
+                        showBookmarkButtons = audioSeekBookmarkButtonsVisible,
+                        seekState = audioSeekHudState,
+                        previousChapterContentDescription = getString(R.string.previous),
+                        nextChapterContentDescription = getString(R.string.next),
+                        previousBookmarkContentDescription = getString(R.string.previous_bookmark),
+                        nextBookmarkContentDescription = getString(R.string.next_bookmark),
+                        onTrackInfoClick = ::onAudioCoverTextClick,
+                        onPreviousChapterClick = { onAudioCoverChapterSwitching(false) },
+                        onNextChapterClick = { onAudioCoverChapterSwitching(true) },
+                        onPreviousBookmarkClick = { onPreviousBookmark() },
+                        onRewindClick = { onJumpBack() },
+                        onRewindLongClick = { onJumpBackLong() },
+                        onForwardClick = { onJumpForward() },
+                        onForwardLongClick = { onJumpForwardLong() },
+                        onNextBookmarkClick = { onNextBookmark() }
+                )
             }
         }
     }
@@ -1306,35 +1454,6 @@ class AudioPlayer(
                 ) {
                     AudioPlayerTransportIcon(R.drawable.ic_arrow_right, size = 24.composeDp)
                 }
-            }
-        }
-    }
-
-    private fun setupAudioTrackInfoTexts() {
-        binding.songTitle?.setContent {
-            VLCTheme {
-                VLCAudioTrackInfoText(
-                    text = audioTrackTitleText,
-                    style = VLCAudioTrackInfoTextStyle.Title,
-                    onClick = ::onAudioCoverTextClick
-                )
-            }
-        }
-        binding.songSubtitle?.setContent {
-            VLCTheme {
-                VLCAudioTrackInfoText(
-                    text = audioTrackSubtitleText,
-                    style = VLCAudioTrackInfoTextStyle.Subtitle,
-                    onClick = ::onAudioCoverTextClick
-                )
-            }
-        }
-        binding.songTrackInfo?.setContent {
-            VLCTheme {
-                VLCAudioTrackInfoText(
-                    text = audioTrackDetailText,
-                    style = VLCAudioTrackInfoTextStyle.Detail
-                )
             }
         }
     }
@@ -1702,21 +1821,17 @@ class AudioPlayer(
         }
 
         val chapter = playlistModel.service?.getCurrentChapter()
-        if (chapter.isNullOrEmpty()) {
-            binding.nextChapter?.visibility = View.GONE
-            binding.previousChapter?.visibility = View.GONE
-        } else {
-            binding.nextChapter?.visibility = View.VISIBLE
-            binding.previousChapter?.visibility = View.VISIBLE
-        }
+        audioTrackChapterControlsVisible = !chapter.isNullOrEmpty()
 
-        if (isShowingCover() && !bookmarkModel.dataset.isEmpty() && settings.getBoolean(KEY_AUDIO_SHOW_BOOkMARK_BUTTONS, true)) {
+        audioSeekBookmarkButtonsVisible = isShowingCover() && !bookmarkModel.dataset.isEmpty() && settings.getBoolean(KEY_AUDIO_SHOW_BOOkMARK_BUTTONS, true)
+        if (audioSeekBookmarkButtonsVisible) {
             binding.audioForwardBookmark.setVisible()
             binding.audioRewindBookmark.setVisible()
         } else {
             binding.audioForwardBookmark.setGone()
             binding.audioRewindBookmark.setGone()
         }
+        audioSeekButtonsVisible = false
         if (!::bookmarkListDelegate.isInitialized || !bookmarkListDelegate.visible) {
             if (settings.getBoolean(KEY_AUDIO_SHOW_BOOKMARK_MARKERS, true))
                 bookmarkModel.service?.let { service ->
@@ -1725,6 +1840,7 @@ class AudioPlayer(
                 }
             else audioBookmarkMarkerHost.clearMarkers()
             if (isShowingCover()) {
+                audioSeekButtonsVisible = true
                 binding.audioForward10.setVisible()
                 binding.audioRewind10.setVisible()
             }
@@ -1738,7 +1854,7 @@ class AudioPlayer(
         audioTrackTitleText = if (!chapter.isNullOrEmpty()) chapter else playlistModel.title.orEmpty()
         audioTrackSubtitleText = if (!chapter.isNullOrEmpty()) TextUtils.separatedString(playlistModel.title, playlistModel.artist) else TextUtils.separatedString(playlistModel.artist, playlistModel.album)
         audioTrackDetailText = playlistModel.service?.trackInfo().orEmpty()
-        binding.songTrackInfo?.visibility = if (Settings.showAudioTrackInfo) View.VISIBLE else View.GONE
+        audioTrackDetailVisible = Settings.showAudioTrackInfo
 
         updateAudioSeekHudState()
         updateBackground()
@@ -1935,32 +2051,32 @@ class AudioPlayer(
         toggleRemainingTimeMode()
     }
 
-    fun onJumpBack(@Suppress("UNUSED_PARAMETER") view: View) {
+    fun onJumpBack(@Suppress("UNUSED_PARAMETER") view: View? = null) {
         playlistModel.jump(forward = false, long = false, requireActivity())
     }
 
-    fun onJumpBackLong(@Suppress("UNUSED_PARAMETER") view: View):Boolean {
+    fun onJumpBackLong(@Suppress("UNUSED_PARAMETER") view: View? = null):Boolean {
         playlistModel.jump(forward = false, long = true, requireActivity())
         return true
     }
 
-    fun onJumpForward(@Suppress("UNUSED_PARAMETER") view: View) {
+    fun onJumpForward(@Suppress("UNUSED_PARAMETER") view: View? = null) {
         playlistModel.jump(forward = true, long = false, requireActivity())
     }
 
-    fun onJumpForwardLong(@Suppress("UNUSED_PARAMETER") view: View):Boolean {
+    fun onJumpForwardLong(@Suppress("UNUSED_PARAMETER") view: View? = null):Boolean {
         playlistModel.jump(forward = true, long = true, requireActivity())
         return true
     }
 
-    fun onPreviousBookmark(@Suppress("UNUSED_PARAMETER") view: View) {
+    fun onPreviousBookmark(@Suppress("UNUSED_PARAMETER") view: View? = null) {
         val bookmark = if (LocaleUtil.isRtl()) bookmarkModel.findNext() else bookmarkModel.findPrevious()
         bookmark?.let {
             bookmarkModel.service?.setTime(it.time)
         }
     }
 
-    fun onNextBookmark(@Suppress("UNUSED_PARAMETER") view: View) {
+    fun onNextBookmark(@Suppress("UNUSED_PARAMETER") view: View? = null) {
         val bookmark = if (LocaleUtil.isRtl()) bookmarkModel.findPrevious() else bookmarkModel.findNext()
         bookmark?.let {
             bookmarkModel.service?.setTime(it.time)

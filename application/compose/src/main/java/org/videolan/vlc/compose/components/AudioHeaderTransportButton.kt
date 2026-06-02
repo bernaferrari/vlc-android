@@ -27,8 +27,7 @@ import org.videolan.vlc.compose.theme.VLCTheme
  *   - application/vlc-android/res/layout/audio_player.xml @id/header_large_play_pause
  *   - application/vlc-android/res/layout/audio_player.xml @id/header_next
  *   - application/vlc-android/res/layout/audio_player.xml @id/header_repeat
- *   - application/vlc-android/res/layout-land/audio_player.xml @id/previous_chapter
- *   - application/vlc-android/res/layout-land/audio_player.xml @id/next_chapter
+ *   - landscape audio-player chapter chevrons rendered inside track_info_container
  *   - application/vlc-android/res/layout/audio_player.xml @id/hinge_go_left
  *   - application/vlc-android/res/layout/audio_player.xml @id/hinge_go_right
  *   - application/vlc-android/res/layout-land/audio_player.xml @id/hinge_go_left

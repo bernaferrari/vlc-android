@@ -316,95 +316,10 @@ private fun ConstraintLayout.addHeaderAction(id: Int, endTo: Int, bottomTo: Int,
 }
 
 private fun ConstraintLayout.addLandscapeTrackInfo() {
-    addView(ConstraintLayout(context).apply {
+    addView(composeView(R.id.track_info_container).apply {
         id = R.id.track_info_container
         visibility = View.GONE
-        addView(composeView(R.id.previous_chapter), audioLayout(wrapContent, wrapContent) {
-            startToStart = parentId
-            topToTop = R.id.song_title
-            bottomToBottom = R.id.song_title
-            marginStart = 16.dp
-            horizontalChainStyle = ConstraintLayout.LayoutParams.CHAIN_PACKED
-        })
-        addView(composeView(R.id.song_title), audioLayout(wrapContent, wrapContent) {
-            startToEnd = R.id.previous_chapter
-            endToStart = R.id.next_chapter
-            topToTop = parentId
-            bottomToTop = R.id.song_subtitle
-            marginStart = 16.dp
-            marginEnd = 16.dp
-            constrainedWidth = true
-            horizontalBias = 0.5f
-            verticalChainStyle = ConstraintLayout.LayoutParams.CHAIN_PACKED
-        })
-        addView(composeView(R.id.next_chapter), audioLayout(wrapContent, wrapContent) {
-            endToEnd = parentId
-            topToTop = R.id.song_title
-            bottomToBottom = R.id.song_title
-            marginEnd = 16.dp
-        })
-        addView(composeView(R.id.song_subtitle), audioLayout(wrapContent, wrapContent) {
-            startToStart = parentId
-            endToEnd = parentId
-            topToBottom = R.id.song_title
-            bottomToTop = R.id.song_track_info
-            marginStart = 24.dp
-            topMargin = 8.dp
-            marginEnd = 24.dp
-            goneBottomMargin = 16.dp
-            constrainedWidth = true
-        })
-        addView(composeView(R.id.song_track_info), audioLayout(wrapContent, wrapContent) {
-            startToStart = parentId
-            endToEnd = parentId
-            topToBottom = R.id.song_subtitle
-            bottomToTop = R.id.audio_rewind_10
-            marginStart = 24.dp
-            marginEnd = 24.dp
-            bottomMargin = 16.dp
-            constrainedWidth = true
-        })
-        addView(composeView(R.id.audio_rewind_bookmark), audioLayout(wrapContent, wrapContent) {
-            startToStart = parentId
-            endToStart = R.id.audio_rewind_10
-            topToTop = R.id.audio_rewind_10
-            bottomToBottom = R.id.audio_rewind_10
-            horizontalChainStyle = ConstraintLayout.LayoutParams.CHAIN_PACKED
-        })
-        addView(composeView(R.id.audio_rewind_10), audioLayout(wrapContent, wrapContent) {
-            startToEnd = R.id.audio_rewind_bookmark
-            endToStart = R.id.audio_forward_10
-            topToBottom = R.id.song_track_info
-            bottomToBottom = parentId
-            horizontalChainStyle = ConstraintLayout.LayoutParams.CHAIN_PACKED
-        })
-        addView(composeView(R.id.audio_rewind_text), audioLayout(48.dp, 48.dp) {
-            startToStart = R.id.audio_rewind_10
-            endToEnd = R.id.audio_rewind_10
-            topToTop = R.id.audio_rewind_10
-            bottomToBottom = R.id.audio_rewind_10
-        })
-        addView(composeView(R.id.audio_forward_10), audioLayout(wrapContent, wrapContent) {
-            startToEnd = R.id.audio_rewind_10
-            endToStart = R.id.audio_forward_bookmark
-            topToTop = R.id.audio_rewind_10
-            bottomToBottom = R.id.audio_rewind_10
-            horizontalBias = 0.5f
-        })
-        addView(composeView(R.id.audio_forward_text), audioLayout(48.dp, 48.dp) {
-            startToStart = R.id.audio_forward_10
-            endToEnd = R.id.audio_forward_10
-            topToTop = R.id.audio_forward_10
-            bottomToBottom = R.id.audio_forward_10
-        })
-        addView(composeView(R.id.audio_forward_bookmark), audioLayout(wrapContent, wrapContent) {
-            startToEnd = R.id.audio_forward_10
-            endToEnd = parentId
-            topToTop = R.id.audio_rewind_10
-            bottomToBottom = R.id.audio_rewind_10
-            horizontalBias = 0.5f
-        })
-    }, audioLayout(matchConstraint, matchConstraint) {
+    }, audioLayout(matchConstraint, wrapContent) {
         startToStart = R.id.guideline14
         endToEnd = parentId
         topToBottom = R.id.header
