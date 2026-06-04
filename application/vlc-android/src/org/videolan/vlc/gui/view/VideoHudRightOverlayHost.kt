@@ -1,6 +1,6 @@
 /*
  * ************************************************************************
- *  VideoHudRightOverlayView.kt
+ *  VideoHudRightOverlayHost.kt
  * *************************************************************************
  * Copyright © 2026 VLC authors and VideoLAN
  *
@@ -24,7 +24,6 @@ package org.videolan.vlc.gui.view
 
 import android.content.Context
 import android.content.res.Configuration
-import android.util.AttributeSet
 import android.view.View
 import androidx.annotation.DrawableRes
 import androidx.annotation.IdRes
@@ -68,7 +67,8 @@ import kotlinx.coroutines.delay
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.components.VLCVideoQuickAction
 import org.videolan.vlc.compose.components.VLCVideoQuickActions
-import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.compose.theme.VLCTheme
 import java.text.DateFormat
 import java.util.Date
 import java.util.Locale
@@ -99,14 +99,27 @@ private data class VideoQuickActionEntry(
 
 /**
  * Compose replacement for player_hud_right.xml. The player delegates still own
- * playback state and action dispatch; this view owns the top video HUD title,
+ * playback state and action dispatch; this host owns the top video HUD title,
  * icon cluster, TV clock, and quick-action chip strip.
  */
-class VideoHudRightOverlayView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : VLCAbstractComposeWidget(context, attrs, defStyleAttr) {
+internal fun VLCComposeView.installVideoHudRightOverlayHost() {
+    val host = VideoHudRightOverlayHost(context)
+    setTag(R.id.hud_right_overlay, host)
+    id = R.id.hud_right_overlay
+    visibility = View.INVISIBLE
+    isClickable = false
+    isFocusable = false
+    setContent {
+        VLCTheme {
+            host.Content()
+        }
+    }
+}
+
+internal fun VLCComposeView.videoHudRightOverlayHost(): VideoHudRightOverlayHost =
+    getTag(R.id.hud_right_overlay) as? VideoHudRightOverlayHost ?: error("Missing video HUD right overlay host")
+
+internal class VideoHudRightOverlayHost(context: Context) {
 
     private var state by mutableStateOf(
         VideoHudRightOverlayState(
@@ -118,13 +131,6 @@ class VideoHudRightOverlayView @JvmOverloads constructor(
     private var onQuickActionClick by mutableStateOf<(Int) -> Unit>({ _ -> })
     private var onQuickActionLongClick by mutableStateOf<(Int) -> Unit>({ _ -> })
     private var onQuickActionsInteraction by mutableStateOf<(() -> Unit)>({})
-
-    init {
-        id = R.id.hud_right_overlay
-        visibility = View.INVISIBLE
-        isClickable = false
-        isFocusable = false
-    }
 
     fun setTitle(title: String?) {
         state = state.copy(
@@ -212,7 +218,7 @@ class VideoHudRightOverlayView @JvmOverloads constructor(
     }
 
     @Composable
-    override fun WidgetContent() {
+    fun Content() {
         val current = state
         val isPortrait = LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT
         val titleTopPadding = with(LocalDensity.current) { current.titleTopPaddingPx.toDp() }

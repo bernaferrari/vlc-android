@@ -42,9 +42,9 @@ import org.videolan.tools.dp
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.gui.view.PlayerOptionsPanelView
-import org.videolan.vlc.gui.view.VideoHudRightOverlayView
 import org.videolan.vlc.gui.view.VideoSeekOverlayView
 import org.videolan.vlc.gui.view.createVideoHudOverlay
+import org.videolan.vlc.gui.view.installVideoHudRightOverlayHost
 import org.videolan.vlc.gui.view.installVideoDelayOverlayHost
 import org.videolan.vlc.gui.view.installVideoInfoOverlayHost
 import org.videolan.vlc.gui.view.installVideoOrientationOverlayHost
@@ -243,9 +243,10 @@ private fun Context.infoOverlay() = VLCComposeView(this).apply {
     installVideoInfoOverlayHost()
 }
 
-private fun Context.hudRightOverlay() = VideoHudRightOverlayView(this).apply {
+private fun Context.hudRightOverlay() = VLCComposeView(this).apply {
     id = R.id.hud_right_overlay
     visibility = View.INVISIBLE
+    installVideoHudRightOverlayHost()
 }
 
 private fun Context.hingeArrow(id: Int, icon: Int) = ImageView(this).apply {

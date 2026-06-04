@@ -95,11 +95,11 @@ import org.videolan.vlc.gui.helpers.TalkbackUtil
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.showVideoTrack
 import org.videolan.vlc.gui.helpers.hf.checkPIN
-import org.videolan.vlc.gui.view.VideoHudRightOverlayView
 import org.videolan.vlc.gui.view.abRepeatControlsHost
 import org.videolan.vlc.gui.view.abRepeatMarkerContainerHost
 import org.videolan.vlc.gui.view.showSwipeToUnlock
 import org.videolan.vlc.gui.view.swipeToUnlockHost
+import org.videolan.vlc.gui.view.videoHudRightOverlayHost
 import org.videolan.vlc.gui.view.videoHudSeekJumpLabelHost
 import org.videolan.vlc.gui.view.videoInfoOverlayHost
 import org.videolan.vlc.gui.view.videoStatsOverlayHost
@@ -133,7 +133,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
     lateinit var playerUiContainer: ViewGroup
 
     lateinit var hudBinding: VideoHudOverlayViews
-    private lateinit var hudRightOverlay: VideoHudRightOverlayView
+    private lateinit var hudRightOverlay: VLCComposeView
     private var overlayBackground: View? = null
 
 
@@ -141,6 +141,8 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
     private val hudBackground: View? by lazy { player.findViewById(R.id.hud_background) }
     private val hudRightBackground: View? by lazy { player.findViewById(R.id.hud_right_background) }
     private var hudProgressSource: LiveData<Progress>? = null
+
+    private fun hudRightHost() = hudRightOverlay.videoHudRightOverlayHost()
 
 
     var seekButtons: Boolean = false
@@ -152,11 +154,11 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
     fun isHudBindingInitialized() = ::hudBinding.isInitialized
     fun isHudRightOverlayInitialized() = ::hudRightOverlay.isInitialized
-    fun hasHudRightTitleText() = ::hudRightOverlay.isInitialized && hudRightOverlay.hasTitleText()
+    fun hasHudRightTitleText() = ::hudRightOverlay.isInitialized && hudRightHost().hasTitleText()
     fun isPlaylistQueueInitialized() = playlistQueueInitialized
 
     fun setNavMenuVisible(visible: Boolean) {
-        if (::hudRightOverlay.isInitialized) hudRightOverlay.setNavMenuVisible(visible)
+        if (::hudRightOverlay.isInitialized) hudRightHost().setNavMenuVisible(visible)
     }
 
     private var orientationLockedBeforeLock: Boolean = false
@@ -596,7 +598,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                 overlayBackground = player.findViewById(R.id.player_overlay_background)
                 if (!AndroidDevices.isChromeBook && !player.isTv
                         && player.settings.getBoolean(KEY_ENABLE_CASTING, true)) {
-                    PlaybackService.renderer.observe(player) { rendererItem -> hudRightOverlay.setRendererConnected(rendererItem != null) }
+                    PlaybackService.renderer.observe(player) { rendererItem -> hudRightHost().setRendererConnected(rendererItem != null) }
                     RendererDelegate.renderers.observe(player) { updateRendererVisibility() }
                 }
 
@@ -661,7 +663,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
     fun setTitle(title: String?) {
         if (!::hudRightOverlay.isInitialized) return
-        hudRightOverlay.setTitle(title)
+        hudRightHost().setTitle(title)
     }
 
     fun updateSeekable(seekable: Boolean) {
@@ -703,17 +705,17 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                     }
                 }
             }
-            hudRightOverlay.setOnActionClickListener(if (enabled) ::dispatchHudRightAction else null)
+            hudRightHost().setOnActionClickListener(if (enabled) ::dispatchHudRightAction else null)
             hudBinding.playerOverlaySeekbar.setOnClickListener {
                 if (player.service?.isPaused == true)
                     player.togglePlayPause()
             }
         }
         if (::hudRightOverlay.isInitialized) {
-            hudRightOverlay.setOnActionClickListener(if (enabled) ::dispatchHudRightAction else null)
-            hudRightOverlay.setOnQuickActionClickListener(::dispatchQuickActionClick)
-            hudRightOverlay.setOnQuickActionLongClickListener(::handleQuickActionLongClick)
-            hudRightOverlay.setOnQuickActionsTouched { showOverlay() }
+            hudRightHost().setOnActionClickListener(if (enabled) ::dispatchHudRightAction else null)
+            hudRightHost().setOnQuickActionClickListener(::dispatchQuickActionClick)
+            hudRightHost().setOnQuickActionLongClickListener(::handleQuickActionLongClick)
+            hudRightHost().setOnQuickActionsTouched { showOverlay() }
         }
     }
 
@@ -792,9 +794,9 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                 } else {
                     R.drawable.ic_player_lock_portrait
                 }
-                hudRightOverlay.setActionVisible(R.id.orientation_quick_action, true)
-                hudRightOverlay.setActionIcon(R.id.orientation_quick_action, drawable)
-            } else hudRightOverlay.setActionVisible(R.id.orientation_quick_action, false)
+                hudRightHost().setActionVisible(R.id.orientation_quick_action, true)
+                hudRightHost().setActionIcon(R.id.orientation_quick_action, drawable)
+            } else hudRightHost().setActionVisible(R.id.orientation_quick_action, false)
         }
     }
 
@@ -818,7 +820,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
     }
 
     fun updateRendererVisibility() {
-        if (::hudRightOverlay.isInitialized) hudRightOverlay.setRendererVisible(!player.isLocked && !RendererDelegate.renderers.value.isNullOrEmpty())
+        if (::hudRightOverlay.isInitialized) hudRightHost().setRendererVisible(!player.isLocked && !RendererDelegate.renderers.value.isNullOrEmpty())
     }
 
     fun updateTitleConstraints() {
@@ -872,7 +874,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                 applyMargin(hudBinding.playerResize, smallMargin.toInt(), true)
             }
         }
-        if (::hudRightOverlay.isInitialized) hudRightOverlay.setTitleTopPadding(overscanVertical)
+        if (::hudRightOverlay.isInitialized) hudRightHost().setTitleTopPadding(overscanVertical)
     }
 
     private fun applyMargin(view: View, margin: Int, isEnd: Boolean) = (view.layoutParams as ConstraintLayout.LayoutParams).apply {
@@ -881,7 +883,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
     }
 
     fun updateScreenshotButton() {
-        if (::hudRightOverlay.isInitialized) hudRightOverlay.setScreenshotVisible(!player.isLocked && Settings.getInstance(player).getString(SCREENSHOT_MODE, "0") in arrayOf("1", "3"))
+        if (::hudRightOverlay.isInitialized) hudRightHost().setScreenshotVisible(!player.isLocked && Settings.getInstance(player).getString(SCREENSHOT_MODE, "0") in arrayOf("1", "3"))
     }
 
     fun updatePlaylistItems(mediaWrappers: List<MediaWrapper>) {
@@ -957,12 +959,12 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
             }
         }
         if (player.service?.hasPlaylist() == true) {
-            if (::hudRightOverlay.isInitialized) hudRightOverlay.setPlaylistVisible(true)
+            if (::hudRightOverlay.isInitialized) hudRightHost().setPlaylistVisible(true)
             if (::hudBinding.isInitialized) {
                 hudBinding.playlistPrevious.setVisible()
                 hudBinding.playlistNext.setVisible()
             }
-        } else if (::hudRightOverlay.isInitialized) hudRightOverlay.setPlaylistVisible(false)
+        } else if (::hudRightOverlay.isInitialized) hudRightHost().setPlaylistVisible(false)
         closeButton.setOnClickListener { togglePlaylist() }
         hingeArrowLeft?.setOnClickListener {
             Settings.getInstance(player).putSingle(HINGE_ON_RIGHT, false)
@@ -1017,31 +1019,32 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
         }
         if (::hudRightOverlay.isInitialized) {
             val secondary = player.displayManager.isSecondary
-            hudRightOverlay.setSecondaryDisplay(
+            val hudRightHost = hudRightHost()
+            hudRightHost.setSecondaryDisplay(
                 visible = show && UiTools.hasSecondaryDisplay(player.applicationContext),
                 secondary = secondary,
                 contentDescription = player.resources.getString(if (secondary) R.string.video_remote_disable else R.string.video_remote_enable)
             )
 
-            hudRightOverlay.setPlaylistVisible(show && player.service?.hasPlaylist() == true)
-            hudRightOverlay.setScreenshotVisible(!player.isLocked && Settings.getInstance(player).getString(SCREENSHOT_MODE, "0") in arrayOf("1", "3"))
-            hudRightOverlay.setNavMenuVisible(player.menuIdx >= 0)
-            hudRightOverlay.setActionVisible(R.id.sleep_quick_action, show && PlaybackService.playerSleepTime.value != null)
+            hudRightHost.setPlaylistVisible(show && player.service?.hasPlaylist() == true)
+            hudRightHost.setScreenshotVisible(!player.isLocked && Settings.getInstance(player).getString(SCREENSHOT_MODE, "0") in arrayOf("1", "3"))
+            hudRightHost.setNavMenuVisible(player.menuIdx >= 0)
+            hudRightHost.setActionVisible(R.id.sleep_quick_action, show && PlaybackService.playerSleepTime.value != null)
 
 
-            hudRightOverlay.setActionVisible(R.id.spu_delay_quick_action, show && player.service?.spuDelay != 0L)
-            hudRightOverlay.setActionVisible(R.id.audio_delay_quick_action, show && player.service?.audioDelay != 0L)
-            hudRightOverlay.setClockVisible(Settings.showTvUi)
+            hudRightHost.setActionVisible(R.id.spu_delay_quick_action, show && player.service?.spuDelay != 0L)
+            hudRightHost.setActionVisible(R.id.audio_delay_quick_action, show && player.service?.audioDelay != 0L)
+            hudRightHost.setClockVisible(Settings.showTvUi)
 
-            hudRightOverlay.setActionVisible(R.id.playback_speed_quick_action, show && player.service?.rate != 1.0F)
+            hudRightHost.setActionVisible(R.id.playback_speed_quick_action, show && player.service?.rate != 1.0F)
             updatePlaybackSpeedChip()
             val format =  DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault())
             PlaybackService.playerSleepTime.value?.let {
-                hudRightOverlay.setActionText(R.id.sleep_quick_action, format.format(it.time))
-                hudRightOverlay.setActionContentDescription(R.id.sleep_quick_action, player.getString(R.string.sleep_in) + TalkbackUtil.millisToString(player, System.currentTimeMillis() - it.time.time))
+                hudRightHost.setActionText(R.id.sleep_quick_action, format.format(it.time))
+                hudRightHost.setActionContentDescription(R.id.sleep_quick_action, player.getString(R.string.sleep_in) + TalkbackUtil.millisToString(player, System.currentTimeMillis() - it.time.time))
             }
-            hudRightOverlay.setActionText(R.id.spu_delay_quick_action, "${(player.service?.spuDelay ?: 0L) / 1000L} ms")
-            hudRightOverlay.setActionText(R.id.audio_delay_quick_action, "${(player.service?.audioDelay ?: 0L) / 1000L} ms")
+            hudRightHost.setActionText(R.id.spu_delay_quick_action, "${(player.service?.spuDelay ?: 0L) / 1000L} ms")
+            hudRightHost.setActionText(R.id.audio_delay_quick_action, "${(player.service?.audioDelay ?: 0L) / 1000L} ms")
 
         }
 
@@ -1049,13 +1052,14 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
     fun updatePlaybackSpeedChip() {
         if (::hudRightOverlay.isInitialized) {
-            hudRightOverlay.setActionText(R.id.playback_speed_quick_action, player.service?.rate?.formatRateString())
-            hudRightOverlay.setActionContentDescription(R.id.playback_speed_quick_action, player.getString(R.string.playback_speed) + ". " + player.service?.rate?.formatRateString())
-            if (player.service?.rate == 1.0F) hudRightOverlay.setActionVisible(R.id.playback_speed_quick_action, false)
+            val hudRightHost = hudRightHost()
+            hudRightHost.setActionText(R.id.playback_speed_quick_action, player.service?.rate?.formatRateString())
+            hudRightHost.setActionContentDescription(R.id.playback_speed_quick_action, player.getString(R.string.playback_speed) + ". " + player.service?.rate?.formatRateString())
+            if (player.service?.rate == 1.0F) hudRightHost.setActionVisible(R.id.playback_speed_quick_action, false)
             if (Settings.getInstance(player).getBoolean(KEY_PLAYBACK_SPEED_VIDEO_GLOBAL, false)) {
-                hudRightOverlay.setActionIcon(R.id.playback_speed_quick_action, R.drawable.ic_speed_all)
+                hudRightHost.setActionIcon(R.id.playback_speed_quick_action, R.drawable.ic_speed_all)
             } else {
-                hudRightOverlay.setActionIcon(R.id.playback_speed_quick_action, R.drawable.ic_speed)
+                hudRightHost.setActionIcon(R.id.playback_speed_quick_action, R.drawable.ic_speed)
             }
         }
     }
