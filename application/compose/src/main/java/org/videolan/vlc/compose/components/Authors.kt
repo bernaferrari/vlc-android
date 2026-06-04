@@ -41,8 +41,8 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
  *
  * The Activity keeps ownership of loading R.raw.authors and supplying app drawables.
  * This composable owns the complete visible screen: toolbar, close action, and
- * author rows. It lets AuthorsActivity retire DataBinding, RecyclerView, and the
- * XML row/layout pair as part of the full Compose migration.
+ * author rows. It lets AuthorsActivity retire the XML row/layout pair as part of
+ * the full Compose migration.
  */
 @Composable
 fun VLCAuthorsScreen(

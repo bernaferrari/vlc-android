@@ -53,7 +53,7 @@ interface PlayerOptionsPanelHost {
 /**
  * Direct Compose-backed shared player options overlay. The audio/video hosts
  * place this view at the former stub bounds while this root owns the former
- * BrowseFrameLayout + RecyclerView option list content.
+ * BrowseFrameLayout option list content.
  */
 class PlayerOptionsPanelView @JvmOverloads constructor(
     context: Context,

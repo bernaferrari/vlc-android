@@ -87,8 +87,7 @@ interface BookmarkPanelHost {
 /**
  * Direct Compose-backed shared bookmarks overlay. The audio/video hosts place
  * this view at the former stub bounds while it owns the former toolbar,
- * RecyclerView row list, empty state, overflow menu, and bottom seek/bookmark
- * controls.
+ * bookmark list, empty state, overflow menu, and bottom seek/bookmark controls.
  */
 class BookmarksPanelView @JvmOverloads constructor(
     context: Context,
