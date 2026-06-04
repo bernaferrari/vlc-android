@@ -29,12 +29,11 @@ import android.content.Intent
 import android.content.pm.ResolveInfo
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.widget.ImageView
-import androidx.appcompat.app.AlertDialog
 import androidx.core.net.toUri
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
 import org.videolan.vlc.R
+import org.videolan.vlc.gui.dialogs.showSimpleBitmapComposeDialog
 
 
 fun Context.openLinkIfPossible(url: String, size: Int = 512) {
@@ -52,18 +51,12 @@ fun Context.openLinkIfPossible(url: String, size: Int = 512) {
         }
         startActivity(intent)
     } catch (e: Exception) {
-        val image = ImageView(this)
-
-
-        image.setImageBitmap(UrlUtils.generateQRCode(url, size))
-        AlertDialog.Builder(this)
-                .setTitle(getString(R.string.no_web_browser))
-                .setMessage(getString(R.string.no_web_browser_message, url))
-                .setView(image)
-                .setPositiveButton(R.string.ok) { _, _ ->
-
-                }
-                .show()
+        showSimpleBitmapComposeDialog(
+            title = getString(R.string.no_web_browser),
+            message = getString(R.string.no_web_browser_message, url),
+            bitmap = UrlUtils.generateQRCode(url, size),
+            confirmText = getString(R.string.ok)
+        )
     }
 }
 
