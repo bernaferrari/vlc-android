@@ -55,7 +55,6 @@ import androidx.annotation.IdRes
 import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
 import androidx.appcompat.view.ActionMode
@@ -780,27 +779,14 @@ object UiTools {
                 ?: uuid)
         val si = Intent(ACTION_DISCOVER_DEVICE, null, activity, MediaParsingService::class.java)
                 .putExtra(EXTRA_PATH, path)
-        if (activity is AppCompatActivity) {
-            val builder = AlertDialog.Builder(activity)
-                    .setTitle(R.string.ml_external_storage_title)
-                    .setCancelable(false)
-                    .setMessage(message)
-                    .setPositiveButton(R.string.ml_external_storage_accept) { _, _ ->
-                        activity.launchForeground(si)
-                    }
-                    .setNegativeButton(R.string.ml_external_storage_decline) { dialog, _ -> dialog.dismiss() }
-            builder.show()
-        } else {
-            val builder = android.app.AlertDialog.Builder(activity)
-                    .setTitle(R.string.ml_external_storage_title)
-                    .setCancelable(false)
-                    .setMessage(message)
-                    .setPositiveButton(R.string.ml_external_storage_accept) { _, _ ->
-                        activity.launchForeground(si)
-                    }
-                    .setNegativeButton(R.string.ml_external_storage_decline) { dialog, _ -> dialog.dismiss() }
-            builder.show()
-        }
+        activity.showSimpleComposeDialog(
+            title = activity.getString(R.string.ml_external_storage_title),
+            message = message,
+            confirmText = activity.getString(R.string.ml_external_storage_accept),
+            dismissText = activity.getString(R.string.ml_external_storage_decline),
+            onConfirm = { activity.launchForeground(si) },
+            cancelable = false
+        )
     }
 
     @TargetApi(Build.VERSION_CODES.N)

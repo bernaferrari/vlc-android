@@ -38,10 +38,12 @@ fun Context.showSimpleComposeDialog(
     confirmText: String,
     dismissText: String,
     onConfirm: () -> Unit,
-    onDismiss: () -> Unit = {}
+    onDismiss: () -> Unit = {},
+    cancelable: Boolean = true
 ) {
     val dialog = AppCompatDialog(this)
     dialog.supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
+    dialog.setCancelable(cancelable)
     dialog.setContentView(
         ComposeView(this).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
