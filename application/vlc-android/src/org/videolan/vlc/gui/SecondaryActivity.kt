@@ -253,11 +253,10 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val result = super.onCreateOptionsMenu(menu)
-        if (fileBrowserController != null) menuInflater.inflate(R.menu.network_options, menu)
+        if (fileBrowserController != null) addNetworkOptionsMenu(menu)
         if (isHistoryContent()) {
             setupHistoryFilterMenu(menu)
-            menuInflater.inflate(R.menu.history_options, menu)
-            historyCleanMenuItem = menu.findItem(R.id.ml_menu_clean)
+            historyCleanMenuItem = addHistoryOptionsMenu(menu)
             updateHistoryCleanMenuVisibility()
         }
         videoGroupController?.prepareOptionsMenu(menu)
@@ -571,6 +570,22 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
             container.addView(this, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
         }
         controller.onVisible()
+    }
+
+    private fun addNetworkOptionsMenu(menu: Menu): MenuItem {
+        return menu.findItem(R.id.ml_menu_save) ?: menu.add(Menu.NONE, R.id.ml_menu_save, 2, R.string.favorites_add).apply {
+            setIcon(R.drawable.ic_fav_add)
+            isVisible = false
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        }
+    }
+
+    private fun addHistoryOptionsMenu(menu: Menu): MenuItem {
+        return menu.findItem(R.id.ml_menu_clean) ?: menu.add(Menu.NONE, R.id.ml_menu_clean, 2, R.string.clear_history).apply {
+            setIcon(R.drawable.ic_trash)
+            isVisible = false
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+        }
     }
 
     private fun setupHistoryFilterMenu(menu: Menu) {
