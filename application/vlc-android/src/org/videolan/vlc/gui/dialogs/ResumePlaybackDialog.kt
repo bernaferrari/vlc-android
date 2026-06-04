@@ -1,10 +1,10 @@
 package org.videolan.vlc.gui.dialogs
 
 import android.content.Context
+import android.app.Dialog
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.view.Window
-import androidx.appcompat.app.AppCompatDialog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -40,9 +40,9 @@ fun Context.showResumePlaybackComposeDialog(
     onResume: () -> Unit,
     onRestart: () -> Unit,
     onApplyToPlayQueueChanged: (Boolean) -> Unit
-): AppCompatDialog {
-    val dialog = AppCompatDialog(this)
-    dialog.supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
+): Dialog {
+    val dialog = Dialog(this)
+    dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
     dialog.setCancelable(cancelable)
     dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
     dialog.setContentView(

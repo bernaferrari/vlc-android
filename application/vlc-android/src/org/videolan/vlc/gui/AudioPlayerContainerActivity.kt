@@ -24,6 +24,7 @@
 package org.videolan.vlc.gui
 
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.media.AudioManager
 import android.os.Bundle
 import android.view.Gravity
@@ -34,7 +35,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.app.AppCompatDialog
 import androidx.appcompat.widget.Toolbar
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.graphics.Insets
@@ -139,7 +139,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
     val playlistTipsDelegate: AudioPlaylistTipsDelegate by lazy(LazyThreadSafetyMode.NONE) { AudioPlaylistTipsDelegate(this) }
     private val playerKeyListenerDelegate: PlayerKeyListenerDelegate by lazy(LazyThreadSafetyMode.NONE) { PlayerKeyListenerDelegate(this@AudioPlayerContainerActivity) }
     val shownTips = ArrayList<Int>()
-    private var currentConfirmationDialog: AppCompatDialog? = null
+    private var currentConfirmationDialog: Dialog? = null
 
     val menu: Menu
         get() = toolbar.menu

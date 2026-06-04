@@ -26,7 +26,6 @@ package org.videolan.vlc.util
 import android.Manifest
 import android.annotation.TargetApi
 import android.app.AppOpsManager
-import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -51,6 +50,7 @@ import org.videolan.tools.putSingle
 import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.R
 import org.videolan.vlc.VlcMigrationHelper
+import org.videolan.vlc.gui.dialogs.ComposeMaterialDialogHandle
 import org.videolan.vlc.gui.dialogs.showSimpleComposeDialog
 import org.videolan.vlc.gui.helpers.hf.StoragePermissionsDelegate.Companion.askStoragePermission
 import org.videolan.vlc.gui.helpers.hf.WriteExternalDelegate
@@ -70,7 +70,7 @@ object Permissions {
     private const val PERMISSION_SYSTEM_DRAW_OVRLAYS = 44
     private const val PERMISSION_PIP = 45
 
-    var sAlertDialog: Dialog? = null
+    var sAlertDialog: ComposeMaterialDialogHandle? = null
 
     var cache = mutableMapOf<PermissionType, Pair<Long, Boolean>>()
 
@@ -296,7 +296,7 @@ object Permissions {
         sAlertDialog = createStoragePermissionDialog(activity, exit)
     }
 
-    private fun createStoragePermissionDialog(activity: ComponentActivity, exit: Boolean): Dialog {
+    private fun createStoragePermissionDialog(activity: ComponentActivity, exit: Boolean): ComposeMaterialDialogHandle {
         return activity.showSimpleComposeDialog(
             title = activity.getString(R.string.allow_storage_access_title),
             message = activity.getString(R.string.allow_storage_access_description),
@@ -331,7 +331,7 @@ object Permissions {
 
     }
 
-    private fun createSettingsDialog(activity: ComponentActivity, mode: Int): Dialog {
+    private fun createSettingsDialog(activity: ComponentActivity, mode: Int): ComposeMaterialDialogHandle {
         var titleId = 0
         var textId = 0
         var action = android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS

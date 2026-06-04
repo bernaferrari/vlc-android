@@ -2,35 +2,73 @@ package org.videolan.vlc.gui.dialogs
 
 import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.graphics.Bitmap
-import android.view.Window
-import androidx.appcompat.app.AppCompatDialog
+import android.view.ViewGroup
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.theme.VLCTheme
-import org.videolan.vlc.compose.theme.VLCThemeDefaults
+
+class ComposeMaterialDialogHandle internal constructor(
+    private val parent: ViewGroup,
+    private val composeView: ComposeView,
+    private val visible: MutableState<Boolean>
+) {
+    val isShowing: Boolean
+        get() = visible.value
+
+    fun dismiss() {
+        if (!visible.value) return
+        visible.value = false
+        parent.removeView(composeView)
+    }
+}
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
+
+private fun Context.showMaterialDialog(content: @Composable (ComposeMaterialDialogHandle) -> Unit): ComposeMaterialDialogHandle {
+    val activity = requireNotNull(findActivity()) { "Material Compose dialogs require an Activity context" }
+    val parent = activity.window.decorView as ViewGroup
+    val visible = mutableStateOf(true)
+    lateinit var handle: ComposeMaterialDialogHandle
+    val composeView = ComposeView(activity).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+    }
+    handle = ComposeMaterialDialogHandle(parent, composeView, visible)
+    composeView.setContent {
+        VLCTheme {
+            if (visible.value) content(handle)
+        }
+    }
+    parent.addView(
+        composeView,
+        ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+    )
+    return handle
+}
 
 fun Context.showSimpleComposeDialog(
     title: String,
@@ -40,63 +78,36 @@ fun Context.showSimpleComposeDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit = {},
     cancelable: Boolean = true
-): AppCompatDialog {
-    val dialog = AppCompatDialog(this)
-    dialog.supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
-    dialog.setCancelable(cancelable)
-    dialog.setContentView(
-        ComposeView(this).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
-                VLCTheme {
-                    val colors = VLCThemeDefaults.colors
-                    Surface(color = colors.backgroundDefault, contentColor = colors.fontDefault) {
-                        Column(
-                            modifier = Modifier
-                                .widthIn(min = 280.dp, max = 560.dp)
-                                .padding(24.dp)
-                        ) {
-                            Text(text = title, fontWeight = FontWeight.SemiBold)
-                            Text(
-                                text = message,
-                                modifier = Modifier.padding(top = 16.dp),
-                                color = colors.fontLight
-                            )
-                            Row(
-                                horizontalArrangement = Arrangement.End,
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 24.dp)
-                            ) {
-                                if (dismissText != null) {
-                                    TextButton(
-                                        onClick = {
-                                            onDismiss()
-                                            dialog.dismiss()
-                                        }
-                                    ) {
-                                        Text(dismissText)
-                                    }
-                                }
-                                Button(
-                                    onClick = {
-                                        onConfirm()
-                                        dialog.dismiss()
-                                    },
-                                    modifier = Modifier.padding(start = 8.dp)
-                                ) {
-                                    Text(confirmText)
-                                }
-                            }
-                        }
+): ComposeMaterialDialogHandle = showMaterialDialog { handle ->
+    AlertDialog(
+        onDismissRequest = {
+            if (cancelable) handle.dismiss()
+        },
+        title = { Text(text = title) },
+        text = { Text(text = message) },
+        confirmButton = {
+            Button(
+                onClick = {
+                    onConfirm()
+                    handle.dismiss()
+                }
+            ) {
+                Text(confirmText)
+            }
+        },
+        dismissButton = dismissText?.let { text ->
+            {
+                TextButton(
+                    onClick = {
+                        onDismiss()
+                        handle.dismiss()
                     }
+                ) {
+                    Text(text)
                 }
             }
         }
     )
-    dialog.show()
-    return dialog
 }
 
 fun Activity.showSimpleTextInputComposeDialog(
@@ -106,63 +117,39 @@ fun Activity.showSimpleTextInputComposeDialog(
     dismissText: String,
     initialValue: String = "",
     onConfirm: (String) -> Boolean
-): AppCompatDialog {
-    val dialog = AppCompatDialog(this)
-    dialog.supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
-    dialog.setContentView(
-        ComposeView(this).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
-                VLCTheme {
-                    val colors = VLCThemeDefaults.colors
-                    var value by remember { mutableStateOf(initialValue) }
-                    Surface(color = colors.backgroundDefault, contentColor = colors.fontDefault) {
-                        Column(
-                            modifier = Modifier
-                                .widthIn(min = 280.dp, max = 560.dp)
-                                .padding(24.dp)
-                        ) {
-                            Text(text = title, fontWeight = FontWeight.SemiBold)
-                            Text(
-                                text = message,
-                                modifier = Modifier.padding(top = 16.dp),
-                                color = colors.fontLight
-                            )
-                            OutlinedTextField(
-                                value = value,
-                                onValueChange = { value = it },
-                                singleLine = true,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 16.dp)
-                            )
-                            Row(
-                                horizontalArrangement = Arrangement.End,
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 24.dp)
-                            ) {
-                                TextButton(onClick = { dialog.dismiss() }) {
-                                    Text(dismissText)
-                                }
-                                Button(
-                                    onClick = {
-                                        if (onConfirm(value.trim { it <= ' ' })) dialog.dismiss()
-                                    },
-                                    modifier = Modifier.padding(start = 8.dp)
-                                ) {
-                                    Text(confirmText)
-                                }
-                            }
-                        }
-                    }
+): ComposeMaterialDialogHandle = showMaterialDialog { handle ->
+    var value by remember { mutableStateOf(initialValue) }
+    AlertDialog(
+        onDismissRequest = { handle.dismiss() },
+        title = { Text(text = title) },
+        text = {
+            Column {
+                Text(text = message)
+                OutlinedTextField(
+                    value = value,
+                    onValueChange = { value = it },
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp)
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    if (onConfirm(value.trim { it <= ' ' })) handle.dismiss()
                 }
+            ) {
+                Text(confirmText)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { handle.dismiss() }) {
+                Text(dismissText)
             }
         }
     )
-    dialog.show()
-    return dialog
 }
 
 fun Context.showSimpleBitmapComposeDialog(
@@ -171,57 +158,29 @@ fun Context.showSimpleBitmapComposeDialog(
     bitmap: Bitmap,
     confirmText: String
 ) {
-    val dialog = AppCompatDialog(this)
-    dialog.supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
-    dialog.setContentView(
-        ComposeView(this).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
-                VLCTheme {
-                    val colors = VLCThemeDefaults.colors
-                    Surface(color = colors.backgroundDefault, contentColor = colors.fontDefault) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .widthIn(min = 280.dp, max = 560.dp)
-                                .padding(24.dp)
-                        ) {
-                            Text(
-                                text = title,
-                                fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                            Text(
-                                text = message,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 16.dp),
-                                color = colors.fontLight
-                            )
-                            Image(
-                                bitmap = bitmap.asImageBitmap(),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .padding(top = 16.dp)
-                                    .size(256.dp)
-                            )
-                            Row(
-                                horizontalArrangement = Arrangement.End,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 24.dp)
-                            ) {
-                                Button(onClick = { dialog.dismiss() }) {
-                                    Text(confirmText)
-                                }
-                            }
-                        }
-                    }
+    showMaterialDialog { handle ->
+        AlertDialog(
+            onDismissRequest = { handle.dismiss() },
+            title = { Text(text = title) },
+            text = {
+                Column {
+                    Text(text = message)
+                    Image(
+                        bitmap = bitmap.asImageBitmap(),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .padding(top = 16.dp)
+                            .size(256.dp)
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = { handle.dismiss() }) {
+                    Text(confirmText)
                 }
             }
-        }
-    )
-    dialog.show()
+        )
+    }
 }
 
 fun Context.showSingleActionComposeDialog(
@@ -231,47 +190,24 @@ fun Context.showSingleActionComposeDialog(
     onAction: () -> Unit,
     onCancel: () -> Unit
 ) {
-    val dialog = AppCompatDialog(this)
-    dialog.supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
-    dialog.setOnCancelListener { onCancel() }
-    dialog.setContentView(
-        ComposeView(this).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
-                VLCTheme {
-                    val colors = VLCThemeDefaults.colors
-                    Surface(color = colors.backgroundDefault, contentColor = colors.fontDefault) {
-                        Column(
-                            modifier = Modifier
-                                .widthIn(min = 280.dp, max = 560.dp)
-                                .padding(24.dp)
-                        ) {
-                            Text(text = title, fontWeight = FontWeight.SemiBold)
-                            Text(
-                                text = message,
-                                modifier = Modifier.padding(top = 16.dp),
-                                color = colors.fontLight
-                            )
-                            Row(
-                                horizontalArrangement = Arrangement.End,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 24.dp)
-                            ) {
-                                Button(
-                                    onClick = {
-                                        onAction()
-                                        dialog.dismiss()
-                                    }
-                                ) {
-                                    Text(actionText)
-                                }
-                            }
-                        }
+    showMaterialDialog { handle ->
+        AlertDialog(
+            onDismissRequest = {
+                onCancel()
+                handle.dismiss()
+            },
+            title = { Text(text = title) },
+            text = { Text(text = message) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        onAction()
+                        handle.dismiss()
                     }
+                ) {
+                    Text(actionText)
                 }
             }
-        }
-    )
-    dialog.show()
+        )
+    }
 }

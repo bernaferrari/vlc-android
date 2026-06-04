@@ -26,7 +26,6 @@ import android.content.Intent
 import android.net.Uri
 import android.view.Menu
 import android.view.MenuItem
-import androidx.appcompat.app.AppCompatDialog
 import androidx.appcompat.view.ActionMode
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -128,6 +127,7 @@ import org.videolan.vlc.gui.dialogs.DISPLAY_IN_CARDS
 import org.videolan.vlc.gui.dialogs.SHOW_HIDDEN_FILES
 import org.videolan.vlc.gui.dialogs.SHOW_ONLY_MULTIMEDIA_FILES
 import org.videolan.vlc.gui.dialogs.SavePlaylistDialog
+import org.videolan.vlc.gui.dialogs.ComposeMaterialDialogHandle
 import org.videolan.vlc.gui.dialogs.showConfirmDeleteComposeDialog
 import org.videolan.vlc.gui.dialogs.showContext
 import org.videolan.vlc.gui.dialogs.showDisplaySettingsComposeDialog
@@ -531,7 +531,7 @@ class SecondaryStorageBrowserScreenController(
     private var contextItems: List<MediaLibraryItem> = emptyList()
     private var loaded = false
     private var visible = false
-    private var addDirectoryDialog: AppCompatDialog? = null
+    private var addDirectoryDialog: ComposeMaterialDialogHandle? = null
 
     private val rootsCallback = object : org.videolan.medialibrary.interfaces.RootsEventsCb {
         override fun onRootBanned(entryPoint: String, success: Boolean) = refreshStorageState()
@@ -813,7 +813,7 @@ class SecondaryFileBrowserScreenController(
     private var visible = false
     private var contextItems: List<MediaLibraryItem> = emptyList()
     private var actionMode: ActionMode? = null
-    private var addDirectoryDialog: AppCompatDialog? = null
+    private var addDirectoryDialog: ComposeMaterialDialogHandle? = null
 
     private val rootsCallback = object : org.videolan.medialibrary.interfaces.RootsEventsCb {
         override fun onRootBanned(entryPoint: String, success: Boolean) = refreshStorageState()

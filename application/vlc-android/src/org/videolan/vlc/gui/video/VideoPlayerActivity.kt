@@ -23,6 +23,7 @@ package org.videolan.vlc.gui.video
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.app.Activity
+import android.app.Dialog as AndroidDialog
 import android.app.KeyguardManager
 import android.app.PictureInPictureParams
 import android.bluetooth.BluetoothA2dp
@@ -70,7 +71,6 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.appcompat.app.AppCompatDialog
 import androidx.appcompat.app.BaseContextWrappingDelegate
 import androidx.core.content.edit
 import androidx.core.content.getSystemService
@@ -273,7 +273,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     private var savedTime: Long = -1
 
     lateinit var windowLayoutInfo: WindowLayoutInfo
-    private var currentConfirmationDialog: AppCompatDialog? = null
+    private var currentConfirmationDialog: AndroidDialog? = null
     val resumeDialogObserver: (t: WaitConfirmation?) -> Unit = {
         if (it != null)
             showConfirmResumeDialog(it)
@@ -330,7 +330,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     private var forcedTime: Long = -1
     private var lastTime: Long = -1
 
-    private var alertDialog: AppCompatDialog? = null
+    private var alertDialog: AndroidDialog? = null
 
     var isBenchmark = false
 
