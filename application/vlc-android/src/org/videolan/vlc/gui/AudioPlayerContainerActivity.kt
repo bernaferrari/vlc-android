@@ -34,7 +34,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatDialog
 import androidx.appcompat.widget.Toolbar
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.graphics.Insets
@@ -83,7 +83,7 @@ import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.gui.audio.AudioPlayer
 import org.videolan.vlc.gui.audio.AudioPlaylistTipsDelegate
 import org.videolan.vlc.gui.audio.AudioTipsDelegate
-import org.videolan.vlc.gui.dialogs.createResumePlaybackDialogView
+import org.videolan.vlc.gui.dialogs.showResumePlaybackComposeDialog
 import org.videolan.vlc.gui.dialogs.showEqualizerComposeDialog
 import org.videolan.vlc.gui.helpers.BottomNavigationBehavior
 import org.videolan.vlc.gui.helpers.KeycodeListener
@@ -139,7 +139,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
     val playlistTipsDelegate: AudioPlaylistTipsDelegate by lazy(LazyThreadSafetyMode.NONE) { AudioPlaylistTipsDelegate(this) }
     private val playerKeyListenerDelegate: PlayerKeyListenerDelegate by lazy(LazyThreadSafetyMode.NONE) { PlayerKeyListenerDelegate(this@AudioPlayerContainerActivity) }
     val shownTips = ArrayList<Int>()
-    private var currentConfirmationDialog: AlertDialog? = null
+    private var currentConfirmationDialog: AppCompatDialog? = null
 
     val menu: Menu
         get() = toolbar.menu
@@ -308,38 +308,35 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
         PlaybackService.instance?.pause()
         PlaybackService.waitConfirmation.postValue(confirmation.title)
         var applyToPlayQueue = false
-        val dialogView = createResumePlaybackDialogView { applyToPlayQueue = it }
-        AlertDialog.Builder(this)
-            .setTitle(confirmation.title)
-            .setView(dialogView)
-            .setCancelable(true)
-            .setPositiveButton(R.string.resume) { _, _ ->
+        showResumePlaybackComposeDialog(
+            title = confirmation.title,
+            cancelable = true,
+            onResume = {
                 if (applyToPlayQueue) PlaybackService.instance?.playlistManager?.audioResumeStatus = ResumeStatus.ALWAYS
                 lifecycleScope.launch { PlaybackService.instance?.playlistManager?.playIndex(confirmation.index, confirmation.flags, forceResume = true) }
-            }
-            .setNegativeButton(R.string.no) { _, _ ->
+            },
+            onRestart = {
                 if (applyToPlayQueue) PlaybackService.instance?.playlistManager?.audioResumeStatus = ResumeStatus.NEVER
                 lifecycleScope.launch { PlaybackService.instance?.playlistManager?.playIndex(confirmation.index, confirmation.flags, forceRestart = true) }
-            }
-            .setOnDismissListener {
+            },
+            onApplyToPlayQueueChanged = { applyToPlayQueue = it }
+        ).apply {
+            setOnDismissListener {
                 currentConfirmationDialog = null
                 PlaybackService.waitConfirmation.postValue(null)
             }
-            .create().apply {
-                setCancelable(true)
-                setOnCancelListener {
-                    PlaybackService.instance?.playlistManager?.stop()
-                }
-                setOnKeyListener { dialog, keyCode, _ ->
-                    if (keyCode == KeyEvent.KEYCODE_BACK) {
-                        dialog.dismiss()
-                        finish()
-                        true
-                    } else false
-                }
-                currentConfirmationDialog = this
-                show()
+            setOnCancelListener {
+                PlaybackService.instance?.playlistManager?.stop()
             }
+            setOnKeyListener { dialog, keyCode, _ ->
+                if (keyCode == KeyEvent.KEYCODE_BACK) {
+                    dialog.dismiss()
+                    finish()
+                    true
+                } else false
+            }
+            currentConfirmationDialog = this
+        }
     }
 
     private fun initAudioPlayer() {

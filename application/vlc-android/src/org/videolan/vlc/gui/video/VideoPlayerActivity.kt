@@ -68,9 +68,9 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.app.AppCompatDialog
 import androidx.appcompat.app.BaseContextWrappingDelegate
 import androidx.core.content.edit
 import androidx.core.content.getSystemService
@@ -179,7 +179,7 @@ import org.videolan.vlc.gui.browser.EXTRA_MRL
 import org.videolan.vlc.gui.dialogs.CtxActionReceiver
 import org.videolan.vlc.gui.dialogs.PlaybackRemoteControl.shouldInterceptRemote
 import org.videolan.vlc.gui.dialogs.adapters.VlcTrack
-import org.videolan.vlc.gui.dialogs.createResumePlaybackDialogView
+import org.videolan.vlc.gui.dialogs.showResumePlaybackComposeDialog
 import org.videolan.vlc.gui.dialogs.showEqualizerComposeDialog
 import org.videolan.vlc.gui.dialogs.showContext
 import org.videolan.vlc.gui.dialogs.showPlaybackSpeedComposeDialog
@@ -273,7 +273,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     private var savedTime: Long = -1
 
     lateinit var windowLayoutInfo: WindowLayoutInfo
-    private var currentConfirmationDialog: AlertDialog? = null
+    private var currentConfirmationDialog: AppCompatDialog? = null
     val resumeDialogObserver: (t: WaitConfirmation?) -> Unit = {
         if (it != null)
             showConfirmResumeDialog(it)
@@ -330,7 +330,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     private var forcedTime: Long = -1
     private var lastTime: Long = -1
 
-    private var alertDialog: AlertDialog? = null
+    private var alertDialog: AppCompatDialog? = null
 
     var isBenchmark = false
 
@@ -2364,34 +2364,32 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         service?.pause()
         PlaybackService.waitConfirmation.postValue(confirmation.title)
         var applyToPlayQueue = false
-        val dialogView = createResumePlaybackDialogView { applyToPlayQueue = it }
-        alertDialog = AlertDialog.Builder(this@VideoPlayerActivity)
-                .setTitle(confirmation.title)
-                .setView(dialogView)
-                .setPositiveButton(R.string.resume) { _, _ ->
-                    if (applyToPlayQueue) service?.playlistManager?.videoResumeStatus = ResumeStatus.ALWAYS
-                    lifecycleScope.launch { service?.playlistManager?.playIndex(confirmation.index, confirmation.flags, forceResume = true) }
-                }
-                .setNegativeButton(R.string.no) { _, _ ->
-                    if (applyToPlayQueue) service?.playlistManager?.videoResumeStatus = ResumeStatus.NEVER
-                    lifecycleScope.launch { service?.playlistManager?.playIndex(confirmation.index, confirmation.flags, forceRestart = true) }
-                }
-                .setOnDismissListener {
-                    currentConfirmationDialog = null
-                    PlaybackService.waitConfirmation.postValue(null)
-                }
-                .create().apply {
-                    setCancelable(false)
-                    setOnKeyListener { dialog, keyCode, _ ->
-                        if (keyCode == KeyEvent.KEYCODE_BACK) {
-                            dialog.dismiss()
-                            finish()
-                            true
-                        } else false
-                    }
-                currentConfirmationDialog = this
-                    show()
-                }
+        alertDialog = showResumePlaybackComposeDialog(
+            title = confirmation.title,
+            cancelable = false,
+            onResume = {
+                if (applyToPlayQueue) service?.playlistManager?.videoResumeStatus = ResumeStatus.ALWAYS
+                lifecycleScope.launch { service?.playlistManager?.playIndex(confirmation.index, confirmation.flags, forceResume = true) }
+            },
+            onRestart = {
+                if (applyToPlayQueue) service?.playlistManager?.videoResumeStatus = ResumeStatus.NEVER
+                lifecycleScope.launch { service?.playlistManager?.playIndex(confirmation.index, confirmation.flags, forceRestart = true) }
+            },
+            onApplyToPlayQueueChanged = { applyToPlayQueue = it }
+        ).apply {
+            setOnDismissListener {
+                currentConfirmationDialog = null
+                PlaybackService.waitConfirmation.postValue(null)
+            }
+            setOnKeyListener { dialog, keyCode, _ ->
+                if (keyCode == KeyEvent.KEYCODE_BACK) {
+                    dialog.dismiss()
+                    finish()
+                    true
+                } else false
+            }
+            currentConfirmationDialog = this
+        }
     }
 
     fun toggleOrientationLock() {
