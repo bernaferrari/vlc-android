@@ -23,14 +23,11 @@
 package org.videolan.vlc.gui.browser
 
 import android.content.Intent
-import android.content.DialogInterface
 import android.net.Uri
-import android.text.InputType
 import android.view.Menu
 import android.view.MenuItem
-import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatDialog
 import androidx.appcompat.view.ActionMode
-import androidx.appcompat.widget.AppCompatEditText
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -136,6 +133,7 @@ import org.videolan.vlc.gui.dialogs.showContext
 import org.videolan.vlc.gui.dialogs.showDisplaySettingsComposeDialog
 import org.videolan.vlc.gui.dialogs.showNetworkServerComposeDialog
 import org.videolan.vlc.gui.dialogs.showRenameComposeDialog
+import org.videolan.vlc.gui.dialogs.showSimpleTextInputComposeDialog
 import org.videolan.vlc.gui.helpers.DefaultPlaybackAction
 import org.videolan.vlc.gui.helpers.DefaultPlaybackActionMediaType
 import org.videolan.vlc.gui.helpers.FloatingActionButtonBehavior
@@ -533,7 +531,7 @@ class SecondaryStorageBrowserScreenController(
     private var contextItems: List<MediaLibraryItem> = emptyList()
     private var loaded = false
     private var visible = false
-    private var addDirectoryDialog: AlertDialog? = null
+    private var addDirectoryDialog: AppCompatDialog? = null
 
     private val rootsCallback = object : org.videolan.medialibrary.interfaces.RootsEventsCb {
         override fun onRootBanned(entryPoint: String, success: Boolean) = refreshStorageState()
@@ -634,28 +632,24 @@ class SecondaryStorageBrowserScreenController(
     }
 
     private fun showAddDirectoryDialog() {
-        val input = AppCompatEditText(activity).apply {
-            inputType = InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+        addDirectoryDialog = activity.showSimpleTextInputComposeDialog(
+            title = activity.getString(R.string.add_custom_path),
+            message = activity.getString(R.string.add_custom_path_description),
+            confirmText = activity.getString(R.string.ok),
+            dismissText = activity.getString(R.string.cancel)
+        ) { path ->
+            val file = File(path)
+            if (!file.exists() || !file.isDirectory) {
+                snacker(activity, activity.getString(R.string.directorynotfound, path))
+                return@showSimpleTextInputComposeDialog false
+            }
+            activity.lifecycleScope.launch {
+                withContext(Dispatchers.IO) { localViewModel.addCustomDirectory(file.canonicalPath).join() }
+                localViewModel.browseRoot()
+                refreshStorageState()
+            }
+            true
         }
-        addDirectoryDialog = AlertDialog.Builder(activity)
-            .setTitle(R.string.add_custom_path)
-            .setMessage(R.string.add_custom_path_description)
-            .setView(input)
-            .setNegativeButton(R.string.cancel) { _, _ -> }
-            .setPositiveButton(R.string.ok, DialogInterface.OnClickListener { _, _ ->
-                val path = input.text.toString().trim { it <= ' ' }
-                val file = File(path)
-                if (!file.exists() || !file.isDirectory) {
-                    snacker(activity, activity.getString(R.string.directorynotfound, path))
-                    return@OnClickListener
-                }
-                activity.lifecycleScope.launch {
-                    withContext(Dispatchers.IO) { localViewModel.addCustomDirectory(file.canonicalPath).join() }
-                    localViewModel.browseRoot()
-                    refreshStorageState()
-                }
-            })
-            .show()
     }
 
     private fun openStorage(item: MediaLibraryItem) {
@@ -819,7 +813,7 @@ class SecondaryFileBrowserScreenController(
     private var visible = false
     private var contextItems: List<MediaLibraryItem> = emptyList()
     private var actionMode: ActionMode? = null
-    private var addDirectoryDialog: AlertDialog? = null
+    private var addDirectoryDialog: AppCompatDialog? = null
 
     private val rootsCallback = object : org.videolan.medialibrary.interfaces.RootsEventsCb {
         override fun onRootBanned(entryPoint: String, success: Boolean) = refreshStorageState()
@@ -1336,28 +1330,24 @@ class SecondaryFileBrowserScreenController(
     }
 
     private fun showAddDirectoryDialog() {
-        val input = AppCompatEditText(activity).apply {
-            inputType = InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+        addDirectoryDialog = activity.showSimpleTextInputComposeDialog(
+            title = activity.getString(R.string.add_custom_path),
+            message = activity.getString(R.string.add_custom_path_description),
+            confirmText = activity.getString(R.string.ok),
+            dismissText = activity.getString(R.string.cancel)
+        ) { path ->
+            val file = File(path)
+            if (!file.exists() || !file.isDirectory) {
+                snacker(activity, activity.getString(R.string.directorynotfound, path))
+                return@showSimpleTextInputComposeDialog false
+            }
+            activity.lifecycleScope.launch {
+                withContext(Dispatchers.IO) { viewModel.addCustomDirectory(file.canonicalPath).join() }
+                viewModel.refresh()
+                refreshStorageState()
+            }
+            true
         }
-        addDirectoryDialog = AlertDialog.Builder(activity)
-            .setTitle(R.string.add_custom_path)
-            .setMessage(R.string.add_custom_path_description)
-            .setView(input)
-            .setNegativeButton(R.string.cancel) { _, _ -> }
-            .setPositiveButton(R.string.ok, DialogInterface.OnClickListener { _, _ ->
-                val path = input.text.toString().trim { it <= ' ' }
-                val file = File(path)
-                if (!file.exists() || !file.isDirectory) {
-                    snacker(activity, activity.getString(R.string.directorynotfound, path))
-                    return@OnClickListener
-                }
-                activity.lifecycleScope.launch {
-                    withContext(Dispatchers.IO) { viewModel.addCustomDirectory(file.canonicalPath).join() }
-                    viewModel.refresh()
-                    refreshStorageState()
-                }
-            })
-            .show()
     }
 
     private fun removeItems(items: List<MediaLibraryItem>) {

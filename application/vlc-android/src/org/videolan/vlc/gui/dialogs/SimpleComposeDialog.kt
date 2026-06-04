@@ -10,9 +10,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -82,4 +87,70 @@ fun ComponentActivity.showSimpleComposeDialog(
         }
     )
     dialog.show()
+}
+
+fun ComponentActivity.showSimpleTextInputComposeDialog(
+    title: String,
+    message: String,
+    confirmText: String,
+    dismissText: String,
+    initialValue: String = "",
+    onConfirm: (String) -> Boolean
+): AppCompatDialog {
+    val dialog = AppCompatDialog(this)
+    dialog.supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
+    dialog.setContentView(
+        ComposeView(this).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+            setContent {
+                VLCTheme {
+                    val colors = VLCThemeDefaults.colors
+                    var value by remember { mutableStateOf(initialValue) }
+                    Surface(color = colors.backgroundDefault, contentColor = colors.fontDefault) {
+                        Column(
+                            modifier = Modifier
+                                .widthIn(min = 280.dp, max = 560.dp)
+                                .padding(24.dp)
+                        ) {
+                            Text(text = title, fontWeight = FontWeight.SemiBold)
+                            Text(
+                                text = message,
+                                modifier = Modifier.padding(top = 16.dp),
+                                color = colors.fontLight
+                            )
+                            OutlinedTextField(
+                                value = value,
+                                onValueChange = { value = it },
+                                singleLine = true,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 16.dp)
+                            )
+                            Row(
+                                horizontalArrangement = Arrangement.End,
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 24.dp)
+                            ) {
+                                TextButton(onClick = { dialog.dismiss() }) {
+                                    Text(dismissText)
+                                }
+                                Button(
+                                    onClick = {
+                                        if (onConfirm(value.trim { it <= ' ' })) dialog.dismiss()
+                                    },
+                                    modifier = Modifier.padding(start = 8.dp)
+                                ) {
+                                    Text(confirmText)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    )
+    dialog.show()
+    return dialog
 }
