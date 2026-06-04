@@ -28,7 +28,6 @@ import android.annotation.TargetApi
 import android.app.Activity
 import android.app.PendingIntent
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.RenderEffect
@@ -880,14 +879,14 @@ object UiTools {
 
 
 
-    fun deleteSubtitleDialog(context: Context, positiveListener: DialogInterface.OnClickListener, negativeListener: DialogInterface.OnClickListener) {
-        AlertDialog.Builder(context)
-                .setTitle(context.resources.getString(R.string.delete_sub_title))
-                .setMessage(context.resources.getString(R.string.delete_sub_message))
-                .setPositiveButton(R.string.delete, positiveListener)
-                .setNegativeButton(R.string.cancel, negativeListener)
-                .create()
-                .show()
+    fun deleteSubtitleDialog(context: Context, onDelete: () -> Unit) {
+        context.showSimpleComposeDialog(
+            title = context.getString(R.string.delete_sub_title),
+            message = context.getString(R.string.delete_sub_message),
+            confirmText = context.getString(R.string.delete),
+            dismissText = context.getString(R.string.cancel),
+            onConfirm = onDelete
+        )
     }
 
     fun hasSecondaryDisplay(context: Context): Boolean {

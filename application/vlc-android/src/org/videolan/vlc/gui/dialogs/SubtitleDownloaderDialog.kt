@@ -1,6 +1,5 @@
 package org.videolan.vlc.gui.dialogs
 
-import android.content.DialogInterface
 import android.content.SharedPreferences
 import android.net.Uri
 import android.text.Spanned
@@ -316,13 +315,9 @@ private class SubtitleDownloaderComposeDialog(
     private fun onSubtitleClicked(item: SubtitleItem) {
         when (item.state) {
             State.NotDownloaded -> downloadSubtitle(item)
-            State.Downloaded -> deleteSubtitleDialog(
-                activity,
-                DialogInterface.OnClickListener { _, _ ->
-                    item.mediaUri.path?.let { viewModel.deleteSubtitle(it, item.idSubtitle) }
-                },
-                DialogInterface.OnClickListener { _, _ -> }
-            )
+            State.Downloaded -> deleteSubtitleDialog(activity) {
+                item.mediaUri.path?.let { viewModel.deleteSubtitle(it, item.idSubtitle) }
+            }
             State.Downloading -> Unit
         }
     }

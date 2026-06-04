@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
-fun Activity.showSimpleComposeDialog(
+fun Context.showSimpleComposeDialog(
     title: String,
     message: String,
     confirmText: String,
