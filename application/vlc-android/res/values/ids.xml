@@ -55,6 +55,38 @@
     <item name="renderer_background_cone" type="id" />
     <item name="content_placeholder" type="id" />
     <item name="content_layout" type="id" />
+    <item name="pin_relocked" type="id" />
+    <item name="play_all" type="id" />
+    <item name="shuffle_all" type="id" />
+    <item name="ml_menu_renderers" type="id" />
+    <item name="ml_menu_filter" type="id" />
+    <item name="ml_menu_last_playlist" type="id" />
+    <item name="ml_menu_display_options" type="id" />
+    <item name="incognito_mode" type="id" />
+    <item name="ml_menu_scan" type="id" />
+    <item name="ml_menu_display_list" type="id" />
+    <item name="browse_network" type="id" />
+    <item name="ml_menu_display_grid" type="id" />
+    <item name="ml_menu_sortby" type="id" />
+    <item name="ml_menu_sortby_name" type="id" />
+    <item name="ml_menu_sortby_filename" type="id" />
+    <item name="ml_menu_sortby_artist_name" type="id" />
+    <item name="ml_menu_sortby_album_name" type="id" />
+    <item name="ml_menu_sortby_length" type="id" />
+    <item name="ml_menu_sortby_date" type="id" />
+    <item name="ml_menu_sortby_last_modified" type="id" />
+    <item name="ml_menu_sortby_insertion_date" type="id" />
+    <item name="ml_menu_sortby_number" type="id" />
+    <item name="ml_menu_sortby_media_number" type="id" />
+    <item name="ml_menu_add_playlist" type="id" />
+    <item name="folder_add_playlist" type="id" />
+    <item name="subfolders_add_playlist" type="id" />
+    <item name="add_server_favorite" type="id" />
+    <item name="pin_unlock" type="id" />
+    <item name="ml_menu_refresh" type="id" />
+    <item name="ml_menu_custom_dir" type="id" />
+    <item name="rename_group" type="id" />
+    <item name="ungroup" type="id" />
     <item name="ml_menu_save" type="id" />
     <item name="ml_menu_clean" type="id" />
     <item name="backgroundView" type="id" />
