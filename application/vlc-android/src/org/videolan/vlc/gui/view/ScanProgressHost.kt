@@ -1,6 +1,6 @@
 /*
  * ************************************************************************
- *  ScanProgressView.kt
+ *  ScanProgressHost.kt
  * *************************************************************************
  * Copyright © 2026 VLC authors and VideoLAN
  *
@@ -24,9 +24,7 @@ package org.videolan.vlc.gui.view
 
 import android.content.Context
 import android.content.res.Configuration
-import android.util.AttributeSet
 import android.util.TypedValue
-import android.view.View
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,7 +46,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import org.videolan.vlc.R
-import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.compose.theme.VLCTheme
 
 private data class ScanProgressState(
     val text: String,
@@ -58,15 +57,23 @@ private data class ScanProgressState(
 
 /**
  * Compose replacement for scan_progress.xml. AudioPlayerContainerActivity owns
- * media-library parsing state and CoordinatorLayout positioning; this view owns
+ * media-library parsing state and CoordinatorLayout positioning; this host owns
  * the text chip plus determinate/indeterminate progress rendering.
  */
-class ScanProgressView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : VLCAbstractComposeWidget(context, attrs, defStyleAttr) {
+internal fun VLCComposeView.installScanProgressHost(context: Context) {
+    val host = ScanProgressHost(context)
+    setTag(R.id.scan_progress_layout, host)
+    setContent {
+        VLCTheme {
+            host.Content()
+        }
+    }
+}
 
+internal fun VLCComposeView.scanProgressHost(): ScanProgressHost =
+    getTag(R.id.scan_progress_layout) as? ScanProgressHost ?: error("Missing scan progress host")
+
+internal class ScanProgressHost(private val context: Context) {
     private var state by mutableStateOf(ScanProgressState(context.getString(R.string.loading_medialibrary)))
     private val textColor = context.resolveComposeColor(R.attr.font_default)
     private val trackColor = context.resolveComposeColor(R.attr.background_default)
@@ -77,13 +84,6 @@ class ScanProgressView @JvmOverloads constructor(
             if ((context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES) R.color.grey875 else R.color.grey200
         )
     )
-
-    init {
-        id = R.id.scan_progress_layout
-        visibility = View.GONE
-        isClickable = false
-        isFocusable = false
-    }
 
     fun showDiscoveryText(text: String?) {
         state = state.copy(text = text.takeUnless { it.isNullOrBlank() } ?: context.getString(R.string.loading_medialibrary))
@@ -102,7 +102,7 @@ class ScanProgressView @JvmOverloads constructor(
     }
 
     @Composable
-    override fun WidgetContent() {
+    fun Content() {
         val current = state
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(

@@ -93,7 +93,7 @@ import org.videolan.vlc.gui.helpers.PlayerOptionsDelegateCallback
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.isTablet
 import org.videolan.vlc.gui.view.audioPlayerTipsHost
-import org.videolan.vlc.gui.view.ScanProgressView
+import org.videolan.vlc.gui.view.scanProgressHost
 import org.videolan.vlc.media.PlaylistManager
 import org.videolan.vlc.media.ResumeStatus
 import org.videolan.vlc.media.WaitConfirmation
@@ -128,7 +128,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
     lateinit var playerBehavior: PlayerBehavior<*>
     protected lateinit var contentContainer: View
     protected var originalBottomPadding: Int = 0
-    private var scanProgressLayout: ScanProgressView? = null
+    private var scanProgressLayout: VLCComposeView? = null
     private lateinit var resumeCard: Snackbar
     private var preventRescan = false
     private var showAudioPlayerWhenResumed = false
@@ -698,7 +698,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
 
     private fun showProgressBar(discovery: String) {
         if (!Medialibrary.getInstance().isWorking) return
-        val progressView = scanProgressLayout ?: findViewById<ScanProgressView>(R.id.scan_progress_layout)?.also {
+        val progressView = scanProgressLayout ?: findViewById<VLCComposeView>(R.id.scan_progress_layout)?.also {
             scanProgressLayout = it
         } ?: return
         progressView.visibility = View.VISIBLE
@@ -711,7 +711,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
             }
             it.layoutParams = lp
         }
-        progressView.showDiscoveryText(discovery)
+        progressView.scanProgressHost().showDiscoveryText(discovery)
     }
 
     fun closeMiniPlayer() {
@@ -742,7 +742,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
                 return@observe
             }
             updateProgressVisibility(true, scanProgress.progressText)
-            scanProgressLayout?.updateProgress(
+            scanProgressLayout?.scanProgressHost()?.updateProgress(
                 text = scanProgress.progressText,
                 progress = scanProgress.parsing.toInt(),
                 indeterminate = scanProgress.inDiscovery

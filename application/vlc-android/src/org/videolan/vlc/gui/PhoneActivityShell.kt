@@ -46,11 +46,12 @@ import com.google.android.material.tabs.TabLayout
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import org.videolan.tools.dp
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.gui.helpers.BottomNavigationBehavior
 import org.videolan.vlc.gui.helpers.FloatingActionButtonBehavior
 import org.videolan.vlc.gui.helpers.PlayerBehavior
 import org.videolan.vlc.gui.helpers.UiTools
-import org.videolan.vlc.gui.view.ScanProgressView
+import org.videolan.vlc.gui.view.installScanProgressHost
 
 internal fun MainActivity.createMainActivityShell(): View {
     val root = CoordinatorLayout(this).apply {
@@ -88,7 +89,7 @@ internal fun MainActivity.createMainActivityShell(): View {
     )
 
     root.addView(
-        createScanProgressView(),
+        createScanProgressComposeHost(),
         CoordinatorLayout.LayoutParams(CoordinatorLayout.LayoutParams.MATCH_PARENT, CoordinatorLayout.LayoutParams.WRAP_CONTENT).apply {
             anchorId = R.id.navigation
             anchorGravity = Gravity.TOP
@@ -159,7 +160,7 @@ internal fun SecondaryActivity.createSecondaryActivityShell(): View {
     )
 
     coordinator.addView(
-        createScanProgressView(),
+        createScanProgressComposeHost(),
         CoordinatorLayout.LayoutParams(CoordinatorLayout.LayoutParams.MATCH_PARENT, CoordinatorLayout.LayoutParams.WRAP_CONTENT).apply {
             gravity = Gravity.BOTTOM
         }
@@ -283,8 +284,12 @@ private fun Context.createShellFab(large: Boolean): FloatingActionButton {
     }
 }
 
-private fun Context.createScanProgressView() = ScanProgressView(this).apply {
+private fun Context.createScanProgressComposeHost() = VLCComposeView(this).apply {
     id = R.id.scan_progress_layout
+    visibility = View.GONE
+    isClickable = false
+    isFocusable = false
+    installScanProgressHost(this@createScanProgressComposeHost)
 }
 
 private fun Context.actionBarSize(): Int {
