@@ -96,13 +96,13 @@ import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.showVideoTrack
 import org.videolan.vlc.gui.helpers.hf.checkPIN
 import org.videolan.vlc.gui.view.VideoHudRightOverlayView
-import org.videolan.vlc.gui.view.VideoVerticalProgressOverlayView
 import org.videolan.vlc.gui.view.abRepeatControlsHost
 import org.videolan.vlc.gui.view.abRepeatMarkerContainerHost
 import org.videolan.vlc.gui.view.videoHudSeekJumpLabelHost
 import org.videolan.vlc.gui.view.videoInfoOverlayHost
 import org.videolan.vlc.gui.view.videoStatsOverlayHost
 import org.videolan.vlc.gui.view.videoTimelineTimeLabelHost
+import org.videolan.vlc.gui.view.videoVerticalProgressOverlayHost
 import org.videolan.vlc.gui.view.setVideoHudIconContentDescription
 import org.videolan.vlc.gui.view.setVideoHudIconEnabled
 import org.videolan.vlc.gui.view.setVideoHudIconResource
@@ -124,8 +124,8 @@ import java.util.Locale
 
 class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
-    private lateinit var playerOverlayBrightness: VideoVerticalProgressOverlayView
-    private lateinit var playerOverlayVolume: VideoVerticalProgressOverlayView
+    private lateinit var playerOverlayBrightness: VLCComposeView
+    private lateinit var playerOverlayVolume: VLCComposeView
     var info: View? = null
     var overlayInfo: View? = null
     lateinit var playerUiContainer: ViewGroup
@@ -366,7 +366,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
     fun showBrightnessBar(brightness: Int) {
         player.handler.sendEmptyMessage(VideoPlayerActivity.FADE_OUT_VOLUME_INFO)
         playerOverlayBrightness = player.findViewById(R.id.player_overlay_brightness)
-        playerOverlayBrightness.showBrightness(brightness)
+        playerOverlayBrightness.videoVerticalProgressOverlayHost().showBrightness(brightness)
         playerOverlayBrightness.setVisible()
         player.handler.removeMessages(VideoPlayerActivity.FADE_OUT_BRIGHTNESS_INFO)
         player.handler.sendEmptyMessageDelayed(VideoPlayerActivity.FADE_OUT_BRIGHTNESS_INFO, 1000L)
@@ -380,7 +380,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
     fun showVolumeBar(volume: Int) {
         player.handler.sendEmptyMessage(VideoPlayerActivity.FADE_OUT_BRIGHTNESS_INFO)
         playerOverlayVolume = player.findViewById(R.id.player_overlay_volume)
-        playerOverlayVolume.showVolume(volume, player.isAudioBoostEnabled)
+        playerOverlayVolume.videoVerticalProgressOverlayHost().showVolume(volume, player.isAudioBoostEnabled)
         playerOverlayVolume.setVisible()
         player.handler.removeMessages(VideoPlayerActivity.FADE_OUT_VOLUME_INFO)
         player.handler.sendEmptyMessageDelayed(VideoPlayerActivity.FADE_OUT_VOLUME_INFO, 1000L)

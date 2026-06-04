@@ -45,13 +45,13 @@ import org.videolan.vlc.gui.view.PlayerOptionsPanelView
 import org.videolan.vlc.gui.view.VideoHudRightOverlayView
 import org.videolan.vlc.gui.view.VideoSeekOverlayView
 import org.videolan.vlc.gui.view.VideoTipsHostView
-import org.videolan.vlc.gui.view.VideoVerticalProgressOverlayView
 import org.videolan.vlc.gui.view.createVideoHudOverlay
 import org.videolan.vlc.gui.view.installVideoDelayOverlayHost
 import org.videolan.vlc.gui.view.installVideoInfoOverlayHost
 import org.videolan.vlc.gui.view.installVideoOrientationOverlayHost
 import org.videolan.vlc.gui.view.installVideoResizeOverlayHost
 import org.videolan.vlc.gui.view.installVideoScreenshotOverlayHost
+import org.videolan.vlc.gui.view.installVideoVerticalProgressOverlayHost
 
 internal fun VideoPlayerActivity.createVideoPlayerShell(isPrimaryDisplay: Boolean): View =
         if (isPrimaryDisplay) createPrimaryVideoPlayerShell() else createRemoteVideoPlayerShell()
@@ -216,9 +216,12 @@ private fun Context.seekOverlay() = VideoSeekOverlayView(this).apply {
     visibility = View.INVISIBLE
 }
 
-private fun Context.verticalOverlay(id: Int) = VideoVerticalProgressOverlayView(this).apply {
+private fun Context.verticalOverlay(id: Int) = VLCComposeView(this).apply {
     this.id = id
     visibility = View.INVISIBLE
+    isClickable = false
+    isFocusable = false
+    installVideoVerticalProgressOverlayHost()
 }
 
 private fun Context.loadingView(wrap: Boolean) = ImageView(this).apply {

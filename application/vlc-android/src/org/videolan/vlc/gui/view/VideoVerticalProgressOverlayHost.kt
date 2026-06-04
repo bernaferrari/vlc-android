@@ -1,6 +1,6 @@
 /*
  * ************************************************************************
- *  VideoVerticalProgressOverlayView.kt
+ *  VideoVerticalProgressOverlayHost.kt
  * *************************************************************************
  * Copyright © 2026 VLC authors and VideoLAN
  *
@@ -23,8 +23,6 @@
 package org.videolan.vlc.gui.view
 
 import android.content.Context
-import android.util.AttributeSet
-import android.view.View
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Canvas
@@ -52,7 +50,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import org.videolan.vlc.R
-import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.compose.theme.VLCTheme
 
 private data class VideoVerticalProgressState(
     @StringRes val title: Int = R.string.brightness,
@@ -65,22 +64,25 @@ private data class VideoVerticalProgressState(
 /**
  * Compose replacement for player_overlay_brightness.xml and
  * player_overlay_volume.xml. The delegate owns gesture/service state; this
- * view owns only the value label, icon, and vertical progress drawing.
+ * host owns only the value label, icon, and vertical progress drawing.
  */
-class VideoVerticalProgressOverlayView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : VLCAbstractComposeWidget(context, attrs, defStyleAttr) {
+internal fun VLCComposeView.installVideoVerticalProgressOverlayHost() {
+    val host = VideoVerticalProgressOverlayHost(context)
+    setTag(id, host)
+    setContent {
+        VLCTheme {
+            host.Content()
+        }
+    }
+}
+
+internal fun VLCComposeView.videoVerticalProgressOverlayHost(): VideoVerticalProgressOverlayHost =
+    getTag(id) as? VideoVerticalProgressOverlayHost ?: error("Missing video vertical progress overlay host")
+
+internal class VideoVerticalProgressOverlayHost(context: Context) {
 
     private var state by mutableStateOf(VideoVerticalProgressState())
     private val boostColor = Color(ContextCompat.getColor(context, R.color.orange700))
-
-    init {
-        visibility = View.INVISIBLE
-        isClickable = false
-        isFocusable = false
-    }
 
     fun showBrightness(value: Int) {
         state = VideoVerticalProgressState(
@@ -90,7 +92,6 @@ class VideoVerticalProgressOverlayView @JvmOverloads constructor(
             labelAfterProgress = false,
             isDoubleRange = false
         )
-        visibility = View.VISIBLE
     }
 
     fun showVolume(value: Int, isDoubleRange: Boolean) {
@@ -101,11 +102,10 @@ class VideoVerticalProgressOverlayView @JvmOverloads constructor(
             labelAfterProgress = true,
             isDoubleRange = isDoubleRange
         )
-        visibility = View.VISIBLE
     }
 
     @Composable
-    override fun WidgetContent() {
+    fun Content() {
         val current = state
         if (current.labelAfterProgress) {
             Row(
