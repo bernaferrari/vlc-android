@@ -9,24 +9,15 @@ import android.content.res.Resources
 import android.icu.text.Transliterator
 import android.net.Uri
 import android.os.Build
-import android.text.Spannable
 import android.text.SpannableString
-import android.text.style.DynamicDrawableSpan
-import android.text.style.ImageSpan
 import android.util.DisplayMetrics
 import android.view.View
 import android.view.ViewGroup.MarginLayoutParams
-import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.annotation.WorkerThread
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
-import androidx.core.text.PrecomputedTextCompat
-import androidx.core.text.toSpannable
-import androidx.core.widget.TextViewCompat
-import androidx.databinding.BindingAdapter
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
@@ -43,13 +34,10 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.videolan.libvlc.util.AndroidUtil
-import org.videolan.medialibrary.Tools
 import org.videolan.medialibrary.interfaces.Medialibrary
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.medialibrary.interfaces.media.MediaWrapper.TYPE_ALL
 import org.videolan.medialibrary.interfaces.media.MediaWrapper.TYPE_VIDEO
-import org.videolan.medialibrary.interfaces.media.Playlist
-import org.videolan.medialibrary.interfaces.media.VideoGroup
 import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.resources.AndroidDevices
 import org.videolan.resources.util.getFromMl
@@ -57,7 +45,6 @@ import org.videolan.tools.AppScope
 import org.videolan.tools.isStarted
 import org.videolan.vlc.R
 import java.io.File
-import java.lang.ref.WeakReference
 import java.net.URI
 import java.net.URISyntaxException
 import java.security.SecureRandom
@@ -191,76 +178,14 @@ fun <X, Y> CoroutineScope.map(
     }
 }
 
-@BindingAdapter("app:asyncText", requireAll = false)
-fun asyncText(view: TextView, text: CharSequence?) {
-    if (text.isNullOrEmpty()) {
-        view.visibility = View.GONE
-        return
-    }
-    view.visibility = View.VISIBLE
-    val params = TextViewCompat.getTextMetricsParams(view)
-    setTextAsync(view, text, params)
-}
-
-@BindingAdapter("app:asyncText", requireAll = false)
-fun asyncTextItem(view: TextView, item: MediaLibraryItem?) {
-    if (item == null) {
-        view.visibility = View.GONE
-        return
-    }
-    val text = if (item is Playlist) {
-        if (item.duration != 0L) {
-            val duration = Tools.millisToString(item.duration)
-            TextUtils.separatedString(view.context.getString(R.string.track_number, item.tracksCount), if (item.nbDurationUnknown > 0) "$duration+" else duration)
-        } else view.context.getString(R.string.track_number, item.tracksCount)
-    } else item.description
-    if (text.isNullOrEmpty()) {
-        view.visibility = View.GONE
-        return
-    }
-    view.visibility = View.VISIBLE
-    val params = TextViewCompat.getTextMetricsParams(view)
-    setTextAsync(view, text, params)
-}
-
-@BindingAdapter("layoutMarginTop")
 fun setLayoutMarginTop(view: View, dimen: Int) {
     val layoutParams = view.layoutParams as MarginLayoutParams
     layoutParams.topMargin = dimen
     view.layoutParams = layoutParams
 }
 
-private fun setTextAsync(view: TextView, text: CharSequence, params: PrecomputedTextCompat.Params) {
-    val ref = WeakReference(view)
-    AppScope.launch(Dispatchers.Default) {
-        val pText = PrecomputedTextCompat.create(text, params)
-        val result = pText.toSpannable()
-        withContext(Dispatchers.Main) {
-            ref.get()?.let { textView ->
-                textView.text = result
-            }
-        }
-    }
-}
-
 const val folderReplacementMarker = "§*§"
 const val fileReplacementMarker = "*§*"
-
-@BindingAdapter("app:browserDescription", requireAll = false)
-fun browserDescription(view: TextView, description: String?) {
-    (view as AppCompatTextView).text = description?.getDescriptionSpan(view.context)
-}
-
-fun CharSequence.getDescriptionSpan(context: Context):SpannableString {
-    val string = SpannableString(this)
-    if (this.contains(folderReplacementMarker)) {
-        string.setSpan(ImageSpan(context, R.drawable.ic_emoji_folder, DynamicDrawableSpan.ALIGN_BASELINE), this.indexOf(folderReplacementMarker), this.indexOf(folderReplacementMarker)+3, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-    }
-    if (this.contains(fileReplacementMarker)) {
-        string.setSpan(ImageSpan(context, R.drawable.ic_emoji_file, DynamicDrawableSpan.ALIGN_BASELINE), this.indexOf(fileReplacementMarker), this.indexOf(fileReplacementMarker)+3, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-    }
-    return string
-}
 
 /**
  * Get the folder number from the formatted string
@@ -302,30 +227,6 @@ fun String.slugify(replacement: String = "-"): String {
     }
     return s.replace("[^a-zA-Z0-9\\s]+".toRegex(), "").trim()
             .replace("\\s+".toRegex(), replacement)
-}
-
-const val presentReplacementMarker = "§*§"
-const val missingReplacementMarker = "*§*"
-
-fun MediaLibraryItem.getPresenceDescription() = when (this) {
-    is VideoGroup -> TextUtils.separatedString("${this.presentCount} §*§", "${this.mediaCount() - this.presentCount} *§*")
-    else -> ""
-}
-
-@BindingAdapter("app:presenceDescription", requireAll = false)
-fun presenceDescription(view: TextView, description: String?) {
-    (view as AppCompatTextView).text = description?.getPresenceDescriptionSpan(view.context)
-}
-
-fun CharSequence.getPresenceDescriptionSpan(context: Context):SpannableString {
-    val string = SpannableString(this)
-    if (this.contains(presentReplacementMarker)) {
-        string.setSpan(ImageSpan(context, R.drawable.ic_emoji_media_present, DynamicDrawableSpan.ALIGN_CENTER), this.indexOf(folderReplacementMarker), this.indexOf(folderReplacementMarker)+3, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-    }
-    if (this.contains(missingReplacementMarker)) {
-        string.setSpan(ImageSpan(context, R.drawable.ic_emoji_media_absent, DynamicDrawableSpan.ALIGN_CENTER), this.indexOf(fileReplacementMarker), this.indexOf(fileReplacementMarker)+3, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-    }
-    return string
 }
 
 fun Array<out CharSequence?>.firstNotNullAsSpannable(): SpannableString? {

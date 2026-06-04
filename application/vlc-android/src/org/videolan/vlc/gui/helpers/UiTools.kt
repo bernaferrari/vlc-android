@@ -43,7 +43,6 @@ import android.renderscript.Element
 import android.renderscript.RSInvalidStateException
 import android.renderscript.RenderScript
 import android.renderscript.ScriptIntrinsicBlur
-import android.text.TextUtils
 import android.view.DragEvent
 import android.view.Menu
 import android.view.MenuItem
@@ -61,7 +60,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
 import androidx.appcompat.view.ActionMode
-import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.content.getSystemService
@@ -73,7 +71,6 @@ import androidx.core.net.toUri
 import androidx.core.os.bundleOf
 import androidx.core.view.MenuItemCompat
 import androidx.core.view.WindowCompat
-import androidx.databinding.BindingAdapter
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineScope
@@ -149,7 +146,6 @@ import org.videolan.vlc.media.getAll
 import org.videolan.vlc.providers.medialibrary.MedialibraryProvider
 import org.videolan.vlc.util.FileUtils
 import org.videolan.vlc.util.ThumbnailsProvider
-import org.videolan.vlc.util.trackNumberText
 import kotlin.math.min
 
 object UiTools {
@@ -823,56 +819,6 @@ object UiTools {
         setCompoundDrawablesWithIntrinsicBounds(null, null, null, null)
     }
 
-}
-
-/**
- * Set the alignment mode of the specified TextView with the desired align
- * mode from preferences.
- *
- *
- * See @array/list_title_alignment_values
- *
- * @param t         Reference to the textview
- * @param activated is the ellipsize mode activated
- */
-@BindingAdapter("ellipsizeMode")
-fun setEllipsizeModeByPref(t: TextView, activated: Boolean) {
-    if (!activated) return
-
-    when (Settings.listTitleEllipsize) {
-        0 -> {}
-        1 -> t.ellipsize = TextUtils.TruncateAt.START
-        2 -> t.ellipsize = TextUtils.TruncateAt.END
-        3 -> t.ellipsize = TextUtils.TruncateAt.MIDDLE
-        4 -> {
-            t.ellipsize = TextUtils.TruncateAt.MARQUEE
-            t.marqueeRepeatLimit = 1
-        }
-    }
-}
-
-@BindingAdapter("selected")
-fun isSelected(v: View, isSelected: Boolean?) {
-    v.isSelected = isSelected!!
-}
-
-@BindingAdapter("selectedPadding")
-fun selectedPadding(v: View, isSelected: Boolean?) {
-    val padding = if (isSelected == true) 16.dp else 0.dp
-    v.setPadding(padding, padding, padding, padding)
-}
-
-@BindingAdapter("selectedElevation")
-fun selectedElevation(v: View, isSelected: Boolean?) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-        val elevation = if (isSelected == true) 0.dp else 4.dp
-        if (v is CardView) v.cardElevation = elevation.toFloat() else v.elevation = elevation.toFloat()
-    }
-}
-
-@BindingAdapter("trackNumber")
-fun trackNumber(v: View, media: MediaWrapper) {
-    (v as? TextView)?.text = media.trackNumberText()
 }
 
 fun BaseActivity.applyTheme() {
