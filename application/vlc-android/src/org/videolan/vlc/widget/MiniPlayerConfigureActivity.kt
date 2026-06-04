@@ -30,10 +30,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
-import android.view.Gravity
 import android.view.View
-import android.widget.FrameLayout
-import android.widget.FrameLayout.LayoutParams
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -78,6 +75,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
@@ -246,25 +244,30 @@ class MiniPlayerConfigureActivity : BaseActivity() {
     }
 
     private suspend fun buildPreviewBitmap(widget: Widget, coverBitmap: Bitmap, palette: Palette): Bitmap? {
-        val provider = MiniPlayerAppWidgetProvider()
         val width = if (widget.width <= 0 || widget.height <= 0) 276 else widget.width
         val height = if (widget.width <= 0 || widget.height <= 0) 94 else widget.height
-        val views = provider.layoutWidget(
+        val state = buildMiniPlayerGlanceState(
             this@MiniPlayerConfigureActivity,
             widget.widgetId,
-            Intent(MiniPlayerAppWidgetProvider.ACTION_WIDGET_INIT),
             true,
             coverBitmap,
             palette,
-            previewPlaying = previewPlaying
-        ) ?: return null
-        val container = FrameLayout(this@MiniPlayerConfigureActivity).apply {
-            layoutParams = LayoutParams(width, height)
+            previewPlaying = previewPlaying,
+        )
+        val preview = ComposeView(this@MiniPlayerConfigureActivity).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+            setContent {
+                VLCTheme {
+                    MiniPlayerWidgetPreviewContent(state)
+                }
+            }
+            measure(
+                View.MeasureSpec.makeMeasureSpec(width.toPx(), View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(height.toPx(), View.MeasureSpec.EXACTLY)
+            )
+            layout(0, 0, width.toPx(), height.toPx())
         }
-        val preview = views.apply(applicationContext, container)
-        (preview.layoutParams as LayoutParams).gravity = Gravity.CENTER
-        container.addView(preview)
-        return bitmapFromView(container, width.toPx(), height.toPx())
+        return bitmapFromView(preview, width.toPx(), height.toPx())
     }
 
     private fun Int.toPx() = (this * resources.displayMetrics.density).toInt()
@@ -534,6 +537,66 @@ private fun WidgetConfigureContent(
                 onCheckedChange = onShowConfigureChanged
             )
         }
+    }
+}
+
+@Composable
+private fun MiniPlayerWidgetPreviewContent(state: MiniPlayerGlanceState) {
+    val cover = state.cover
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(state.backgroundColor))
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(if (state.widgetType == WidgetType.MACRO) 88.dp else 52.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color(state.secondaryBackgroundColor)),
+            contentAlignment = Alignment.Center
+        ) {
+            if (cover != null && state.playing) {
+                Image(
+                    bitmap = cover.asImageBitmap(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Icon(
+                    painter = painterResource(R.drawable.ic_widget_icon),
+                    contentDescription = null,
+                    tint = Color(state.foregroundColor),
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = state.title,
+                color = Color(state.foregroundColor),
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            if (!state.artist.isNullOrBlank()) {
+                Text(
+                    text = state.artist,
+                    color = Color(state.artistColor),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+        Icon(
+            painter = painterResource(if (state.playing) R.drawable.ic_widget_pause_inner else R.drawable.ic_widget_play),
+            contentDescription = null,
+            tint = Color(state.foregroundColor),
+            modifier = Modifier.size(32.dp)
+        )
     }
 }
 

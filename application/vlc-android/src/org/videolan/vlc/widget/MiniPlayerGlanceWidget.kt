@@ -13,12 +13,17 @@
 
 package org.videolan.vlc.widget
 
+import android.appwidget.AppWidgetManager
+import android.content.SharedPreferences
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.net.Uri
+import android.os.Bundle
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.glance.ColorFilter
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
@@ -27,7 +32,9 @@ import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.action.Action
 import androidx.glance.action.clickable
+import androidx.glance.appwidget.AppWidgetId
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.action.actionStartService
@@ -49,43 +56,122 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
+import androidx.palette.graphics.Palette
 import org.videolan.resources.ACTION_REMOTE_BACKWARD
 import org.videolan.resources.ACTION_REMOTE_FORWARD
 import org.videolan.resources.ACTION_REMOTE_PLAYPAUSE
 import org.videolan.resources.ACTION_REMOTE_SEEK_BACKWARD
 import org.videolan.resources.ACTION_REMOTE_SEEK_FORWARD
 import org.videolan.resources.EXTRA_SEEK_DELAY
+import org.videolan.resources.buildPkgString
+import org.videolan.tools.AppScope
+import org.videolan.tools.KEY_CURRENT_AUDIO_RESUME_ARTIST
+import org.videolan.tools.KEY_CURRENT_AUDIO_RESUME_THUMB
+import org.videolan.tools.KEY_CURRENT_AUDIO_RESUME_TITLE
+import org.videolan.tools.Settings
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
 import org.videolan.vlc.StartActivity
+import org.videolan.vlc.gui.helpers.AudioUtil
+import org.videolan.vlc.gui.helpers.BitmapUtil
+import org.videolan.vlc.media.Progress
 import org.videolan.vlc.mediadb.models.Widget
+import org.videolan.vlc.repository.WidgetRepository
 import org.videolan.vlc.util.TextUtils
+import org.videolan.vlc.widget.utils.WidgetCache
+import org.videolan.vlc.widget.utils.WidgetCacheEntry
+import org.videolan.vlc.widget.utils.WidgetSizeUtil
 import org.videolan.vlc.widget.utils.WidgetType
 import org.videolan.vlc.widget.utils.WidgetUtils
+import org.videolan.vlc.widget.utils.generateCircularProgressbar
+import org.videolan.vlc.widget.utils.generatePillProgressbar
 import org.videolan.vlc.widget.utils.getArtistColor
 import org.videolan.vlc.widget.utils.getBackgroundColor
 import org.videolan.vlc.widget.utils.getBackgroundSecondaryColor
 import org.videolan.vlc.widget.utils.getForegroundColor
 import org.videolan.vlc.widget.utils.getSeparatorColor
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
- * Glance prototype for the mini-player App Widget runtime.
- *
- * Glance still renders through the platform App Widget host, but this moves the
- * widget UI declaration from layout XML into Compose-style Kotlin. The current
- * manifest keeps [MiniPlayerAppWidgetProvider] active until state persistence,
- * preview rendering, and legacy migration are wired to this implementation.
+ * Production Glance implementation for the mini-player App Widget runtime.
  */
-class MiniPlayerGlanceAppWidget : GlanceAppWidget() {
+object MiniPlayerGlanceAppWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
+        val appWidgetId = (id as? AppWidgetId)?.appWidgetId ?: GlanceAppWidgetManager(context).getAppWidgetId(id)
+        val state = buildMiniPlayerGlanceState(context, appWidgetId)
         provideContent {
-            MiniPlayerGlanceContent(MiniPlayerGlanceState.idle(context))
+            MiniPlayerGlanceContent(state)
         }
     }
 }
 
-class MiniPlayerGlanceAppWidgetReceiver : GlanceAppWidgetReceiver() {
-    override val glanceAppWidget: GlanceAppWidget = MiniPlayerGlanceAppWidget()
+class MiniPlayerAppWidgetProvider : GlanceAppWidgetReceiver() {
+    override val glanceAppWidget: GlanceAppWidget = MiniPlayerGlanceAppWidget
+
+    override fun onReceive(context: Context, intent: Intent) {
+        super.onReceive(context, intent)
+        val action = intent.action
+        if (action == null || !action.startsWith(ACTION_WIDGET_PREFIX)) return
+        updateWidgets(context, intent)
+    }
+
+    override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
+        super.onUpdate(context, appWidgetManager, appWidgetIds)
+        updateWidgets(context, Intent(ACTION_WIDGET_INIT))
+        context.sendBroadcast(Intent(ACTION_WIDGET_INIT).setPackage(context.packageName))
+    }
+
+    override fun onAppWidgetOptionsChanged(context: Context, appWidgetManager: AppWidgetManager, appWidgetId: Int, newOptions: Bundle) {
+        super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
+        updateWidgets(context, Intent(ACTION_WIDGET_INIT).putExtra("ID", appWidgetId))
+    }
+
+    override fun onDeleted(context: Context, appWidgetIds: IntArray) {
+        super.onDeleted(context, appWidgetIds)
+        AppScope.launch {
+            val widgetRepository = WidgetRepository.getInstance(context)
+            appWidgetIds.forEach { widgetRepository.deleteWidget(it) }
+        }
+    }
+
+    override fun onEnabled(context: Context) {
+        super.onEnabled(context)
+        context.sendBroadcast(Intent(ACTION_WIDGET_ENABLED, null, context.applicationContext, PlaybackService::class.java))
+    }
+
+    override fun onDisabled(context: Context) {
+        super.onDisabled(context)
+        context.sendBroadcast(Intent(ACTION_WIDGET_DISABLED, null, context.applicationContext, PlaybackService::class.java))
+    }
+
+    private fun updateWidgets(context: Context, intent: Intent) {
+        AppScope.launch {
+            val widgetRepository = WidgetRepository.getInstance(context)
+            val manager = GlanceAppWidgetManager(context)
+            val extraId = intent.getIntExtra("ID", -1)
+            val widgetIds = if (extraId == -1) {
+                widgetRepository.getAllWidgets().map { it.widgetId }.filter { it != 0 }
+            } else {
+                listOf(extraId)
+            }
+            widgetIds.forEach { appWidgetId ->
+                updateWidgetSize(context, widgetRepository, appWidgetId)
+                MiniPlayerGlanceAppWidget.update(context, manager.getGlanceIdBy(appWidgetId))
+            }
+        }
+    }
+
+    companion object {
+        const val TAG = "VLC/MiniPlayerAppWidgetProvider"
+        val ACTION_WIDGET_PREFIX = "widget.mini.".buildPkgString()
+        val ACTION_WIDGET_INIT = ACTION_WIDGET_PREFIX + "INIT"
+        val ACTION_WIDGET_UPDATE = ACTION_WIDGET_PREFIX + "UPDATE"
+        val ACTION_WIDGET_UPDATE_POSITION = ACTION_WIDGET_PREFIX + "UPDATE_POSITION"
+        val ACTION_WIDGET_ENABLED = ACTION_WIDGET_PREFIX + "ENABLED"
+        val ACTION_WIDGET_DISABLED = ACTION_WIDGET_PREFIX + "DISABLED"
+    }
 }
 
 data class MiniPlayerGlanceState(
@@ -107,7 +193,7 @@ data class MiniPlayerGlanceState(
 ) {
     companion object {
         fun idle(context: Context): MiniPlayerGlanceState {
-            val foreground = context.getColor(R.color.white)
+            val foreground = ContextCompat.getColor(context, R.color.white)
             return MiniPlayerGlanceState(
                 widgetType = WidgetType.MINI,
                 title = context.getString(R.string.widget_default_text),
@@ -115,9 +201,9 @@ data class MiniPlayerGlanceState(
                 playing = false,
                 foregroundColor = foreground,
                 artistColor = foreground,
-                backgroundColor = context.getColor(R.color.black_transparent_80),
-                secondaryBackgroundColor = context.getColor(R.color.black_transparent_50),
-                separatorColor = context.getColor(R.color.white_transparent_10),
+                backgroundColor = ContextCompat.getColor(context, R.color.black_transparent_80),
+                secondaryBackgroundColor = ContextCompat.getColor(context, R.color.black_transparent_50),
+                separatorColor = ContextCompat.getColor(context, R.color.white_transparent_10),
                 cover = null,
                 progress = null,
                 showSeek = false,
@@ -135,6 +221,7 @@ data class MiniPlayerGlanceState(
             playing: Boolean,
             cover: Bitmap?,
             progress: Bitmap?,
+            palette: Palette? = null,
         ): MiniPlayerGlanceState {
             val widgetType = WidgetUtils.getWidgetType(widget)
             return MiniPlayerGlanceState(
@@ -142,10 +229,10 @@ data class MiniPlayerGlanceState(
                 title = title ?: context.getString(R.string.widget_default_text),
                 artist = artist,
                 playing = playing,
-                foregroundColor = widget.getForegroundColor(context, null),
-                artistColor = widget.getArtistColor(context, null),
-                backgroundColor = widget.getBackgroundColor(context, null),
-                secondaryBackgroundColor = widget.getBackgroundSecondaryColor(context, null),
+                foregroundColor = widget.getForegroundColor(context, palette),
+                artistColor = widget.getArtistColor(context, palette),
+                backgroundColor = widget.getBackgroundColor(context, palette),
+                secondaryBackgroundColor = widget.getBackgroundSecondaryColor(context, palette),
                 separatorColor = widget.getSeparatorColor(context),
                 cover = cover,
                 progress = progress,
@@ -157,6 +244,102 @@ data class MiniPlayerGlanceState(
         }
     }
 }
+
+suspend fun buildMiniPlayerGlanceState(
+    context: Context,
+    appWidgetId: Int,
+    forPreview: Boolean = false,
+    previewBitmap: Bitmap? = null,
+    previewPalette: Palette? = null,
+    previewPlaying: Boolean = false,
+): MiniPlayerGlanceState {
+    val widgetRepository = WidgetRepository.getInstance(context)
+    val persistedWidget = widgetRepository.getWidget(appWidgetId) ?: return MiniPlayerGlanceState.idle(context)
+    val widgetCacheEntry = if (forPreview) {
+        WidgetCacheEntry(persistedWidget)
+    } else {
+        WidgetCache.getEntry(persistedWidget) ?: WidgetCache.addEntry(persistedWidget)
+    }
+    val service = PlaybackService.serviceFlow.value
+    val settings = Settings.getInstance(context)
+    val playing = (service?.isPlaying == true && !forPreview && !service.isVideoPlaying) || previewPlaying
+
+    if (!forPreview) widgetCacheEntry.currentMedia = service?.currentMediaWrapper
+    val title = when {
+        forPreview && !previewPlaying -> context.getString(R.string.widget_default_text)
+        forPreview -> "Track name"
+        playing -> service?.title ?: widgetCacheEntry.currentMedia?.title
+        else -> settings.getString(KEY_CURRENT_AUDIO_RESUME_TITLE, context.getString(R.string.widget_default_text))
+    }
+    val artist = when {
+        forPreview && previewPlaying -> "Artist name"
+        forPreview -> null
+        playing -> service?.artist ?: widgetCacheEntry.currentMedia?.artistName
+        else -> settings.getString(KEY_CURRENT_AUDIO_RESUME_ARTIST, "")
+    }
+
+    val coverSource = when {
+        forPreview -> previewBitmap
+        else -> loadWidgetCover(context, service, settings, widgetCacheEntry)
+    }
+    val palette = previewPalette ?: coverSource?.let { Palette.from(it).generate() }
+    widgetCacheEntry.palette = palette
+    val widgetType = WidgetUtils.getWidgetType(widgetCacheEntry.widget)
+    val cover = coverSource?.let { cutBitmapCover(context, widgetType, it, widgetCacheEntry) }
+    val progress = (service?.playlistManager?.player?.progress?.value ?: if (forPreview && previewPlaying) Progress(3333L, 10000L) else null)
+        ?.let { progress ->
+            val pos = if (progress.length > 0) progress.time.toFloat() / progress.length else 0F
+            when (widgetType) {
+                WidgetType.PILL -> widgetCacheEntry.generatePillProgressbar(context, pos)
+                WidgetType.MICRO -> widgetCacheEntry.generateCircularProgressbar(context, context.dpToPxFloat(128), pos)
+                WidgetType.MINI, WidgetType.MACRO -> widgetCacheEntry.generateCircularProgressbar(context, context.dpToPxFloat(32), pos, context.dpToPxFloat(3))
+            }
+        }
+    widgetCacheEntry.playing = playing
+    return MiniPlayerGlanceState.fromWidget(context, persistedWidget, title, artist, playing, cover, progress, palette)
+}
+
+private suspend fun updateWidgetSize(context: Context, widgetRepository: WidgetRepository, appWidgetId: Int) {
+    val widget = widgetRepository.getWidget(appWidgetId) ?: return
+    val size = WidgetSizeUtil.getWidgetsSize(context, appWidgetId)
+    if (size.first != 0 && size.second != 0 && (widget.width != size.first || widget.height != size.second)) {
+        widget.width = size.first
+        widget.height = size.second
+        widgetRepository.updateWidget(widget, true)
+    }
+}
+
+private suspend fun loadWidgetCover(
+    context: Context,
+    service: PlaybackService?,
+    settings: SharedPreferences,
+    widgetCacheEntry: WidgetCacheEntry,
+): Bitmap? = withContext(Dispatchers.IO) {
+    val coverMrl = if (service?.isPlaying == true && !service.isVideoPlaying) {
+        widgetCacheEntry.currentMedia?.artworkMrl ?: settings.getString(KEY_CURRENT_AUDIO_RESUME_THUMB, null)
+    } else {
+        settings.getString(KEY_CURRENT_AUDIO_RESUME_THUMB, null)
+    }
+    if (coverMrl.isNullOrEmpty()) {
+        widgetCacheEntry.currentCover = null
+        null
+    } else {
+        widgetCacheEntry.currentCover = coverMrl
+        AudioUtil.readCoverBitmap(Uri.decode(coverMrl), 320)
+    }
+}
+
+private fun cutBitmapCover(context: Context, widgetType: WidgetType, cover: Bitmap, widgetCacheEntry: WidgetCacheEntry): Bitmap =
+    when (widgetType) {
+        WidgetType.MICRO -> BitmapUtil.roundBitmap(cover)
+        WidgetType.PILL -> BitmapUtil.roundBitmap(cover)
+        WidgetType.MINI -> BitmapUtil.roundedRectangleBitmap(cover, context.dpToPx(widgetCacheEntry.widget.height), bottomRight = false, topRight = false)
+        WidgetType.MACRO -> BitmapUtil.roundedRectangleBitmap(cover, context.dpToPx(widgetCacheEntry.widget.width))
+    }
+
+private fun Context.dpToPx(value: Int): Int = (value * resources.displayMetrics.density).toInt()
+
+private fun Context.dpToPxFloat(value: Int): Float = value * resources.displayMetrics.density
 
 @Composable
 fun MiniPlayerGlanceContent(state: MiniPlayerGlanceState) {

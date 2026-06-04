@@ -80,7 +80,6 @@ import org.videolan.vlc.util.AutoUpdate
 import org.videolan.vlc.util.Permissions
 import org.videolan.vlc.util.Util
 import org.videolan.vlc.util.WhatsNewManager
-import org.videolan.vlc.util.WidgetMigration
 import org.videolan.vlc.util.getScreenWidth
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -117,9 +116,7 @@ class MainActivity : ContentActivity(),
         mediaLibrary = Medialibrary.getInstance()
 
         if (!NotificationPermissionManager.launchIfNeeded(this)) {
-            if (!WidgetMigration.launchIfNeeded(this)) {
-               if (!Settings.firstRun)  WhatsNewManager.launchIfNeeded(this) else WhatsNewManager.markAsShown(settings)
-            }
+            if (!Settings.firstRun) WhatsNewManager.launchIfNeeded(this) else WhatsNewManager.markAsShown(settings)
         }
 
         lifecycleScope.launch {

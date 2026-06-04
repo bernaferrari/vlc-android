@@ -194,9 +194,6 @@ import org.videolan.vlc.util.firstNotNullAsSpannable
 import org.videolan.vlc.util.isSchemeHttpOrHttps
 import org.videolan.vlc.util.isSchemeStreaming
 import org.videolan.vlc.widget.MiniPlayerAppWidgetProvider
-import org.videolan.vlc.widget.VLCAppWidgetProvider
-import org.videolan.vlc.widget.VLCAppWidgetProviderBlack
-import org.videolan.vlc.widget.VLCAppWidgetProviderWhite
 import videolan.org.commontools.LiveEvent
 import java.util.ArrayDeque
 import java.util.Calendar
@@ -298,8 +295,6 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
                     executeUpdate()
                     showNotification()
                 }
-                VLCAppWidgetProvider.ACTION_WIDGET_INIT -> updateWidget()
-                VLCAppWidgetProvider.ACTION_WIDGET_ENABLED, VLCAppWidgetProvider.ACTION_WIDGET_DISABLED -> updateHasWidget()
                 MiniPlayerAppWidgetProvider.ACTION_WIDGET_INIT -> updateWidget()
                 MiniPlayerAppWidgetProvider.ACTION_WIDGET_ENABLED, MiniPlayerAppWidgetProvider.ACTION_WIDGET_DISABLED -> updateHasWidget()
                 AudioManager.ACTION_AUDIO_BECOMING_NOISY -> if (detectHeadset) {
@@ -771,9 +766,6 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
 
         val filter = IntentFilter().apply {
             priority = Integer.MAX_VALUE
-            addAction(VLCAppWidgetProvider.ACTION_WIDGET_INIT)
-            addAction(VLCAppWidgetProvider.ACTION_WIDGET_ENABLED)
-            addAction(VLCAppWidgetProvider.ACTION_WIDGET_DISABLED)
             addAction(MiniPlayerAppWidgetProvider.ACTION_WIDGET_INIT)
             addAction(MiniPlayerAppWidgetProvider.ACTION_WIDGET_ENABLED)
             addAction(MiniPlayerAppWidgetProvider.ACTION_WIDGET_DISABLED)
@@ -855,8 +847,6 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
     private fun updateHasWidget() {
         val manager = AppWidgetManager.getInstance(this) ?: return
         widget = when {
-            manager.getAppWidgetIds(ComponentName(this, VLCAppWidgetProviderWhite::class.java)).isNotEmpty() -> 1
-            manager.getAppWidgetIds(ComponentName(this, VLCAppWidgetProviderBlack::class.java)).isNotEmpty() -> 2
             manager.getAppWidgetIds(ComponentName(this, MiniPlayerAppWidgetProvider::class.java)).isNotEmpty() -> 3
             else -> 0
         }
@@ -1411,12 +1401,12 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
     }
 
     private fun sendWidgetBroadcast(intent: Intent) {
-        intent.component = ComponentName(this@PlaybackService, if (widget == 1) VLCAppWidgetProviderWhite::class.java else if (widget == 3) MiniPlayerAppWidgetProvider::class.java else VLCAppWidgetProviderBlack::class.java)
+        intent.component = ComponentName(this@PlaybackService, MiniPlayerAppWidgetProvider::class.java)
         sendBroadcast(intent)
     }
 
     fun updateWidgetState() {
-        val widgetIntents = arrayOf(Intent(VLCAppWidgetProvider.ACTION_WIDGET_UPDATE), Intent(MiniPlayerAppWidgetProvider.ACTION_WIDGET_UPDATE))
+        val widgetIntents = arrayOf(Intent(MiniPlayerAppWidgetProvider.ACTION_WIDGET_UPDATE))
         lifecycleScope.launch(Dispatchers.Default) { widgetIntents.forEach { sendWidgetBroadcast(it) } }
     }
 

@@ -29,7 +29,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.*
-import androidx.annotation.LayoutRes
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.ColorUtils.HSLToColor
@@ -289,8 +288,8 @@ fun WidgetCacheEntry.generatePillProgressbar(context: Context, progress: Float):
     return bitmapResult
 }
 
-enum class WidgetType(@LayoutRes val layout: Int) {
-    PILL(R.layout.widget_pill), MINI(R.layout.widget_mini), MICRO(R.layout.widget_micro), MACRO(R.layout.widget_macro)
+enum class WidgetType {
+    PILL, MINI, MICRO, MACRO
 }
 
 object WidgetUtils {
