@@ -360,12 +360,13 @@ private fun ConstraintLayout.hudIconButton(
     visibility = visible
 }
 
-private fun ConstraintLayout.timeLabel(@IdRes id: Int) = VideoTimelineTimeLabelView(context).apply {
+private fun ConstraintLayout.timeLabel(@IdRes id: Int) = VLCComposeView(context).apply {
     this.id = id
     isClickable = true
     isFocusable = true
     importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
     nextFocusUpId = R.id.ab_repeat_container
+    installVideoTimelineTimeLabelHost(alignEnd = id == R.id.player_overlay_length)
 }
 
 private fun ConstraintLayout.seekJumpLabel(@IdRes id: Int) = VLCComposeView(context).apply {

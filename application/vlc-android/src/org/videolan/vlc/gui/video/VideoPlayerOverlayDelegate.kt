@@ -102,6 +102,7 @@ import org.videolan.vlc.gui.view.abRepeatMarkerContainerHost
 import org.videolan.vlc.gui.view.videoHudSeekJumpLabelHost
 import org.videolan.vlc.gui.view.videoInfoOverlayHost
 import org.videolan.vlc.gui.view.videoStatsOverlayHost
+import org.videolan.vlc.gui.view.videoTimelineTimeLabelHost
 import org.videolan.vlc.isVLC4
 import org.videolan.vlc.manageAbRepeatStep
 import org.videolan.vlc.media.MediaUtils
@@ -644,8 +645,8 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
     private fun updateHudProgress(progress: Progress, service: PlaybackService) {
         if (!::hudBinding.isInitialized) return
-        hudBinding.playerOverlayTime.setTimelineText(Tools.millisToString(progress.time))
-        hudBinding.playerOverlayLength.setTimelineText(if (VideoPlayerActivity.sDisplayRemainingTime && progress.length > 0)
+        hudBinding.playerOverlayTime.videoTimelineTimeLabelHost().setTimelineText(Tools.millisToString(progress.time))
+        hudBinding.playerOverlayLength.videoTimelineTimeLabelHost().setTimelineText(if (VideoPlayerActivity.sDisplayRemainingTime && progress.length > 0)
             "-" + '\u00A0'.toString() + Tools.millisToString(progress.length - progress.time)
         else
             Tools.millisToString(progress.length))
@@ -1101,9 +1102,9 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
         orientationLockedBeforeLock = player.orientationMode.locked
         if (!player.orientationMode.locked) player.toggleOrientationLock()
         if (isHudBindingInitialized()) {
-            hudBinding.playerOverlayTime.isEnabled = false
+            hudBinding.playerOverlayTime.videoTimelineTimeLabelHost().setEnabled(false)
             hudBinding.playerOverlaySeekbar.isEnabled = false
-            hudBinding.playerOverlayLength.isEnabled = false
+            hudBinding.playerOverlayLength.videoTimelineTimeLabelHost().setEnabled(false)
             hudBinding.playlistNext.isEnabled = false
             hudBinding.playlistPrevious.isEnabled = false
             hudBinding.swipeToUnlock.setVisible()
@@ -1140,9 +1141,9 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
         player.orientationMode.locked = orientationLockedBeforeLock
         player.requestedOrientation = player.getScreenOrientation(player.orientationMode)
         if (isHudBindingInitialized()) {
-            hudBinding.playerOverlayTime.isEnabled = true
+            hudBinding.playerOverlayTime.videoTimelineTimeLabelHost().setEnabled(true)
             hudBinding.playerOverlaySeekbar.isEnabled = player.service?.isSeekable != false
-            hudBinding.playerOverlayLength.isEnabled = true
+            hudBinding.playerOverlayLength.videoTimelineTimeLabelHost().setEnabled(true)
             hudBinding.playlistNext.isEnabled = true
             hudBinding.playlistPrevious.isEnabled = true
         }

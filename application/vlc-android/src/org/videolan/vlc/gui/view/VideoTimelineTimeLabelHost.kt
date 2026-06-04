@@ -1,6 +1,6 @@
 /*
  * ************************************************************************
- *  VideoTimelineTimeLabelView.kt
+ *  VideoTimelineTimeLabelHost.kt
  * *************************************************************************
  * Copyright © 2026 VLC authors and VideoLAN
  *
@@ -22,11 +22,11 @@
 
 package org.videolan.vlc.gui.view
 
-import android.content.Context
-import android.graphics.Rect
-import android.util.AttributeSet
+import android.view.View
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -35,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,52 +50,58 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.videolan.vlc.R
-import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.compose.theme.VLCTheme
 
 /**
  * Compose-backed replacement for the video HUD elapsed/length time labels.
  * The legacy delegate keeps using the same view IDs for focus, margins, lock
  * state, and bookmark height anchoring while this host owns text rendering.
  */
-class VideoTimelineTimeLabelView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : VLCAbstractComposeWidget(context, attrs, defStyleAttr) {
+internal fun VLCComposeView.installVideoTimelineTimeLabelHost(alignEnd: Boolean) {
+    val host = VideoTimelineTimeLabelHost(this, alignEnd)
+    setTag(id, host)
+    isFocusable = true
+    isClickable = true
+    importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+    setOnFocusChangeListener { _, hasFocus -> host.updateFocused(hasFocus) }
+    setContent {
+        VLCTheme {
+            host.Content()
+        }
+    }
+}
+
+internal fun VLCComposeView.videoTimelineTimeLabelHost(): VideoTimelineTimeLabelHost =
+    getTag(id) as? VideoTimelineTimeLabelHost ?: error("Missing video timeline time label host")
+
+internal class VideoTimelineTimeLabelHost(
+    private val view: VLCComposeView,
+    private val alignEnd: Boolean
+) {
 
     private var label by mutableStateOf("")
     private var focused by mutableStateOf(false)
-    private var pressedState by mutableStateOf(false)
-    private var enabledState by mutableStateOf(isEnabled)
-
-    init {
-        isFocusable = true
-        isClickable = true
-        importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
-    }
+    private var enabledState by mutableStateOf(view.isEnabled)
 
     fun setTimelineText(text: CharSequence?) {
         label = text?.toString().orEmpty()
     }
 
-    override fun setEnabled(enabled: Boolean) {
-        super.setEnabled(enabled)
+    fun setEnabled(enabled: Boolean) {
+        view.isEnabled = enabled
         enabledState = enabled
     }
 
-    override fun setPressed(pressed: Boolean) {
-        super.setPressed(pressed)
-        pressedState = pressed
-    }
-
-    override fun onFocusChanged(gainFocus: Boolean, direction: Int, previouslyFocusedRect: Rect?) {
-        focused = gainFocus
+    fun updateFocused(focused: Boolean) {
+        this.focused = focused
     }
 
     @Composable
-    override fun WidgetContent() {
-        val alignEnd = id == R.id.player_overlay_length
-        val highlighted = focused || pressedState
+    fun Content() {
+        val interactionSource = remember { MutableInteractionSource() }
+        val pressed by interactionSource.collectIsPressedAsState()
+        val highlighted = focused || pressed
         Box(
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = if (alignEnd) Alignment.CenterEnd else Alignment.CenterStart
@@ -124,7 +131,11 @@ class VideoTimelineTimeLabelView @JvmOverloads constructor(
                             Modifier
                         }
                     )
-                    .clickable(enabled = enabledState) { performClick() }
+                    .clickable(
+                        enabled = enabledState,
+                        interactionSource = interactionSource,
+                        indication = null
+                    ) { view.performClick() }
                     .clearAndSetSemantics { }
                     .padding(start = 4.dp, end = 4.dp)
             )

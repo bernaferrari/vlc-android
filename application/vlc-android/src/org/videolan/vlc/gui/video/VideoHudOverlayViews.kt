@@ -31,7 +31,6 @@ import org.videolan.vlc.gui.view.BookmarksPanelView
 import org.videolan.vlc.gui.view.SwipeToUnlockView
 import org.videolan.vlc.gui.view.VideoHudIconButtonView
 import org.videolan.vlc.gui.view.VideoTimelineSeekBarView
-import org.videolan.vlc.gui.view.VideoTimelineTimeLabelView
 
 class VideoHudOverlayViews(val progressOverlay: ConstraintLayout) {
     val statsContainer: VLCComposeView = progressOverlay.requireHudView(R.id.stats_container)
@@ -40,8 +39,8 @@ class VideoHudOverlayViews(val progressOverlay: ConstraintLayout) {
     val abRepeatStop: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.ab_repeat_stop)
     val fastSeekWarning: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.fast_seek_warning)
     val bookmarksBackground: BookmarksPanelView = progressOverlay.requireHudView(R.id.bookmarks_background)
-    val playerOverlayTime: VideoTimelineTimeLabelView = progressOverlay.requireHudView(R.id.player_overlay_time)
-    val playerOverlayLength: VideoTimelineTimeLabelView = progressOverlay.requireHudView(R.id.player_overlay_length)
+    val playerOverlayTime: VLCComposeView = progressOverlay.requireHudView(R.id.player_overlay_time)
+    val playerOverlayLength: VLCComposeView = progressOverlay.requireHudView(R.id.player_overlay_length)
     val playerOverlaySeekbar: VideoTimelineSeekBarView = progressOverlay.requireHudView(R.id.player_overlay_seekbar)
     val bookmarkMarkerContainer: VLCComposeView = progressOverlay.requireHudView(R.id.bookmark_marker_container)
     val abRepeatMarkerGuidelineContainer: VLCComposeView = progressOverlay.requireHudView(R.id.ab_repeat_marker_guideline_container)
