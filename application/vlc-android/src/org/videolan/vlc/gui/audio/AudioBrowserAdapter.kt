@@ -73,7 +73,6 @@ import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.resources.AppContextProvider
 import org.videolan.resources.UPDATE_FAVORITE_STATE
 import org.videolan.resources.UPDATE_SELECTION
-import org.videolan.resources.interfaces.FocusListener
 import org.videolan.tools.MultiSelectAdapter
 import org.videolan.tools.MultiSelectHelper
 import org.videolan.tools.Settings
@@ -110,8 +109,6 @@ open class AudioBrowserAdapter @JvmOverloads constructor(
     val multiSelectHelper: MultiSelectHelper<MediaLibraryItem> = MultiSelectHelper(this, UPDATE_SELECTION)
     protected val defaultCover: BitmapDrawable?
     private val defaultCoverCard: BitmapDrawable?
-    private var focusNext = -1
-    private var focusListener: FocusListener? = null
     var stopReorder = false
     var areSectionsEnabled = true
     private var model: PlaylistModel? = null
@@ -196,10 +193,6 @@ open class AudioBrowserAdapter @JvmOverloads constructor(
             isCurrent = isCurrent,
             playing = model?.playing != false
         )
-        if (position == focusNext) {
-            holder.itemView.requestFocus()
-            focusNext = -1
-        }
     }
 
     override fun onBindViewHolder(holder: AbstractMediaItemViewHolder, position: Int, payloads: List<Any>) {
@@ -232,11 +225,6 @@ open class AudioBrowserAdapter @JvmOverloads constructor(
         return item?.itemType ?: MediaLibraryItem.TYPE_MEDIA
     }
 
-    fun clear() {
-        //        getDataset().clear();
-    }
-
-
     override fun onCurrentListChanged(previousList: PagedList<MediaLibraryItem>?, currentList: PagedList<MediaLibraryItem>?) {
         eventsHandler.onUpdateFinished(this@AudioBrowserAdapter)
     }
@@ -257,11 +245,6 @@ open class AudioBrowserAdapter @JvmOverloads constructor(
     override fun onItemDismiss(position: Int) {
         val item = getItem(position)
         listEventsHandler!!.onRemove(position, item!!)
-    }
-
-
-    fun setOnFocusChangeListener(focusListener: FocusListener?) {
-        this.focusListener = focusListener
     }
 
     inner class AudioBrowserComposeViewHolder(
