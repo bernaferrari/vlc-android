@@ -27,7 +27,6 @@ import androidx.annotation.IdRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.interop.VLCComposeView
-import org.videolan.vlc.gui.view.BookmarksPanelView
 import org.videolan.vlc.gui.view.VideoTimelineSeekBarView
 
 class VideoHudOverlayViews(val progressOverlay: ConstraintLayout) {
@@ -36,7 +35,7 @@ class VideoHudOverlayViews(val progressOverlay: ConstraintLayout) {
     val abRepeatReset: VLCComposeView = progressOverlay.requireHudView(R.id.ab_repeat_reset)
     val abRepeatStop: VLCComposeView = progressOverlay.requireHudView(R.id.ab_repeat_stop)
     val fastSeekWarning: VLCComposeView = progressOverlay.requireHudView(R.id.fast_seek_warning)
-    val bookmarksBackground: BookmarksPanelView = progressOverlay.requireHudView(R.id.bookmarks_background)
+    val bookmarksBackground: VLCComposeView = progressOverlay.requireHudView(R.id.bookmarks_background)
     val playerOverlayTime: VLCComposeView = progressOverlay.requireHudView(R.id.player_overlay_time)
     val playerOverlayLength: VLCComposeView = progressOverlay.requireHudView(R.id.player_overlay_length)
     val playerOverlaySeekbar: VideoTimelineSeekBarView = progressOverlay.requireHudView(R.id.player_overlay_seekbar)

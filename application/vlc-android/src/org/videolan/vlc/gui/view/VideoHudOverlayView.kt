@@ -122,12 +122,13 @@ private fun ConstraintLayout.addHudChildren(
             marginStart = 16.dp
         })
 
-        addView(BookmarksPanelView(context).apply {
+        addView(VLCComposeView(context).apply {
             id = R.id.bookmarks_background
             setBackgroundFromAttr(R.attr.bookmark_background)
             fitsSystemWindows = true
             isFocusable = false
             visibility = View.GONE
+            installBookmarksPanelHost()
         }, hudLayout(0, 0) {
             topToTop = PARENT_ID
             bottomToBottom = PARENT_ID

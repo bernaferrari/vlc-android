@@ -40,7 +40,7 @@ import org.videolan.vlc.gui.dialogs.showRenameComposeDialog
 import org.videolan.vlc.gui.view.bookmarkMarkerContainerHost
 import org.videolan.vlc.gui.view.BookmarkPanelItem
 import org.videolan.vlc.gui.view.BookmarkPanelHost
-import org.videolan.vlc.gui.view.BookmarksPanelView
+import org.videolan.vlc.gui.view.bookmarksPanelHost
 import org.videolan.vlc.util.LocaleUtil
 import org.videolan.vlc.viewmodels.BookmarkModel
 
@@ -72,7 +72,7 @@ class BookmarkListDelegate(
         get() = panelHost?.visible == true
 
     fun show() {
-        val panel = panelHost ?: activity.findViewById<BookmarksPanelView>(R.id.bookmarks_background)?.also {
+        val panel = panelHost ?: activity.findViewById<VLCComposeView>(R.id.bookmarks_background)?.bookmarksPanelHost()?.also {
             panelHost = it
         } ?: return
         if (!panelHostConfigured) {

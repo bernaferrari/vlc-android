@@ -1,7 +1,5 @@
 package org.videolan.vlc.gui.view
 
-import android.content.Context
-import android.util.AttributeSet
 import android.view.View
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -50,7 +48,8 @@ import org.videolan.vlc.R
 import org.videolan.vlc.compose.components.VLCAudioSeekDelayLabel
 import org.videolan.vlc.compose.components.VLCAudioSeekHudButton
 import org.videolan.vlc.compose.components.VLCBookmarkRow
-import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
 data class BookmarkPanelItem(
@@ -89,11 +88,22 @@ interface BookmarkPanelHost {
  * this view at the former stub bounds while it owns the former toolbar,
  * bookmark list, empty state, overflow menu, and bottom seek/bookmark controls.
  */
-class BookmarksPanelView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : VLCAbstractComposeWidget(context, attrs, defStyleAttr), BookmarkPanelHost {
+fun VLCComposeView.installBookmarksPanelHost() {
+    val host = BookmarksPanelController(this)
+    setTag(R.id.bookmarks_background, host)
+    isClickable = true
+    isFocusable = false
+    setContent {
+        VLCTheme {
+            host.Content()
+        }
+    }
+}
+
+fun VLCComposeView.bookmarksPanelHost(): BookmarkPanelHost =
+    getTag(R.id.bookmarks_background) as? BookmarkPanelHost ?: error("Missing bookmarks panel host")
+
+private class BookmarksPanelController(private val view: VLCComposeView) : BookmarkPanelHost {
 
     private var panelBookmarks by mutableStateOf<List<BookmarkPanelItem>>(emptyList())
     private var jumpDelayText by mutableStateOf(Settings.audioJumpDelay.toString())
@@ -113,20 +123,15 @@ class BookmarksPanelView @JvmOverloads constructor(
     private var onBookmarkRenameClick: (Bookmark) -> Unit = {}
     private var onBookmarkDeleteClick: (Bookmark) -> Unit = {}
 
-    init {
-        isClickable = true
-        isFocusable = false
-    }
-
     override val visible: Boolean
-        get() = visibility != View.GONE
+        get() = view.visibility != View.GONE
 
     override fun show() {
-        setVisible()
+        view.setVisible()
     }
 
     override fun hide() {
-        setGone()
+        view.setGone()
     }
 
     override fun setBookmarks(bookmarks: List<BookmarkPanelItem>) {
@@ -149,7 +154,7 @@ class BookmarksPanelView @JvmOverloads constructor(
 
     @Suppress("DEPRECATION")
     override fun announceBookmarkAdded(message: String) {
-        announceForAccessibility(message)
+        view.announceForAccessibility(message)
     }
 
     override fun sendAddBookmarkAccessibilityEvent() {
@@ -157,7 +162,7 @@ class BookmarksPanelView @JvmOverloads constructor(
     }
 
     override fun requestPanelFocus() {
-        requestFocus()
+        view.requestFocus()
     }
 
     override fun setOnCloseClickListener(listener: () -> Unit) {
@@ -205,7 +210,7 @@ class BookmarksPanelView @JvmOverloads constructor(
     }
 
     @Composable
-    override fun WidgetContent() {
+    fun Content() {
         VLCBookmarksPanelContent(
             bookmarks = panelBookmarks,
             jumpDelayText = jumpDelayText,
