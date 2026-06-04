@@ -21,7 +21,6 @@
 package org.videolan.vlc.gui
 
 import android.annotation.SuppressLint
-import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -66,6 +65,7 @@ import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.R
 import org.videolan.vlc.StartActivity
 import org.videolan.vlc.gui.dialogs.NotificationPermissionManager
+import org.videolan.vlc.gui.dialogs.showSimpleComposeDialog
 import org.videolan.vlc.gui.dialogs.showPermissionListComposeDialog
 import org.videolan.vlc.gui.dialogs.showUpdateComposeDialog
 import org.videolan.vlc.gui.helpers.INavigator
@@ -127,16 +127,18 @@ class MainActivity : ContentActivity(),
             AutoUpdate.clean(this@MainActivity.application)
             if (!settings.getBoolean(KEY_SHOW_UPDATE, true)) return@launch
             if (!settings.contains(KEY_SHOW_UPDATE)) {
-                AlertDialog.Builder(this@MainActivity)
-                    .setTitle(resources.getString(R.string.update_nightly))
-                    .setMessage(resources.getString(R.string.update_nightly_alert))
-                    .setPositiveButton(R.string.yes){ _, _ ->
+                showSimpleComposeDialog(
+                    title = getString(R.string.update_nightly),
+                    message = getString(R.string.update_nightly_alert),
+                    confirmText = getString(R.string.yes),
+                    dismissText = getString(R.string.no),
+                    onConfirm = {
                         settings.putSingle(KEY_SHOW_UPDATE, true)
-                    }
-                    .setNegativeButton(R.string.no){ _, _ ->
+                    },
+                    onDismiss = {
                         settings.putSingle(KEY_SHOW_UPDATE, false)
                     }
-                    .show()
+                )
                 return@launch
             }
             AutoUpdate.checkUpdate(this@MainActivity.application) { url, date ->
@@ -146,10 +148,12 @@ class MainActivity : ContentActivity(),
         if (settings.getBoolean(KEY_LAST_SESSION_CRASHED, false)) {
             settings.putSingle(KEY_LAST_SESSION_CRASHED, false)
             if (BuildConfig.BETA) {
-                AlertDialog.Builder(this@MainActivity)
-                    .setTitle(resources.getString(R.string.report_crash))
-                    .setMessage(resources.getString(R.string.serious_crash))
-                    .setPositiveButton(R.string.send_log) { _, _ ->
+                showSimpleComposeDialog(
+                    title = getString(R.string.report_crash),
+                    message = getString(R.string.serious_crash),
+                    confirmText = getString(R.string.send_log),
+                    dismissText = getString(R.string.cancel),
+                    onConfirm = {
                         startActivity(
                             Intent(applicationContext, FeedbackActivity::class.java)
                                 .apply {
@@ -158,10 +162,7 @@ class MainActivity : ContentActivity(),
                                 }
                         )
                     }
-                    .setNegativeButton(R.string.cancel) { _, _ ->
-
-                    }
-                    .show()
+                )
 
             }
         }
