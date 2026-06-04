@@ -1,6 +1,5 @@
 package org.videolan.vlc.gui.dialogs
 
-import androidx.appcompat.app.AppCompatDialog
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.LinearProgressIndicator
@@ -24,8 +24,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import org.videolan.libvlc.Dialog
@@ -56,32 +54,33 @@ private abstract class BaseVlcComposeDialog<T : Dialog>(
     protected val activity: ComponentActivity,
     protected val vlcDialog: T
 ) : VlcComposeDialogController {
-    protected val dialog = AppCompatDialog(activity)
+    private var dialog: ComposeMaterialDialogHandle? = null
     private var dismissedFromVlc = false
     private var dismissHandled = false
 
     fun show() {
         vlcDialog.setContext(this)
-        dialog.setCancelable(true)
-        dialog.setCanceledOnTouchOutside(true)
-        dialog.setTitle(vlcDialog.title)
-        dialog.setContentView(
-            ComposeView(activity).apply {
-                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-                setContent { Content() }
-            }
-        )
-        dialog.setOnDismissListener { handleDismiss() }
-        dialog.show()
+        dialog = activity.showMaterialDialog(onDismiss = ::handleDismiss) { handle ->
+            AlertDialog(
+                onDismissRequest = { handle.dismiss() },
+                title = vlcDialog.title?.takeIf { it.isNotEmpty() }?.let { title ->
+                    { Text(title) }
+                },
+                text = { Content() },
+                confirmButton = {}
+            )
+        }
     }
 
     override fun dismissFromVlc() {
         dismissedFromVlc = true
-        if (dialog.isShowing) dialog.dismiss() else handleDismiss()
+        val currentDialog = dialog
+        if (currentDialog?.isShowing == true) currentDialog.dismiss() else handleDismiss()
     }
 
     protected fun dismissFromUi() {
-        if (dialog.isShowing) dialog.dismiss() else handleDismiss()
+        val currentDialog = dialog
+        if (currentDialog?.isShowing == true) currentDialog.dismiss() else handleDismiss()
     }
 
     private fun handleDismiss() {

@@ -31,7 +31,8 @@ import org.videolan.vlc.compose.theme.VLCTheme
 class ComposeMaterialDialogHandle internal constructor(
     private val parent: ViewGroup,
     private val composeView: ComposeView,
-    private val visible: MutableState<Boolean>
+    private val visible: MutableState<Boolean>,
+    private val onDismiss: (() -> Unit)? = null
 ) {
     val isShowing: Boolean
         get() = visible.value
@@ -40,6 +41,7 @@ class ComposeMaterialDialogHandle internal constructor(
         if (!visible.value) return
         visible.value = false
         parent.removeView(composeView)
+        onDismiss?.invoke()
     }
 }
 
@@ -49,7 +51,10 @@ private tailrec fun Context.findActivity(): Activity? = when (this) {
     else -> null
 }
 
-private fun Context.showMaterialDialog(content: @Composable (ComposeMaterialDialogHandle) -> Unit): ComposeMaterialDialogHandle {
+internal fun Context.showMaterialDialog(
+    onDismiss: (() -> Unit)? = null,
+    content: @Composable (ComposeMaterialDialogHandle) -> Unit
+): ComposeMaterialDialogHandle {
     val activity = requireNotNull(findActivity()) { "Material Compose dialogs require an Activity context" }
     val parent = activity.window.decorView as ViewGroup
     val visible = mutableStateOf(true)
@@ -57,7 +62,7 @@ private fun Context.showMaterialDialog(content: @Composable (ComposeMaterialDial
     val composeView = ComposeView(activity).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
     }
-    handle = ComposeMaterialDialogHandle(parent, composeView, visible)
+    handle = ComposeMaterialDialogHandle(parent, composeView, visible, onDismiss)
     composeView.setContent {
         VLCTheme {
             if (visible.value) content(handle)

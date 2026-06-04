@@ -3,31 +3,19 @@ package org.videolan.vlc.gui.helpers.hf
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.provider.DocumentsContract
-import android.view.Window
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatDialog
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -44,8 +32,8 @@ import org.videolan.tools.Settings
 import org.videolan.tools.putSingle
 import org.videolan.vlc.R
 import org.videolan.vlc.VlcMigrationHelper
-import org.videolan.vlc.compose.theme.VLCTheme
-import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.gui.dialogs.ComposeMaterialDialogHandle
+import org.videolan.vlc.gui.dialogs.showMaterialDialog
 import org.videolan.vlc.util.FileUtils
 import kotlin.coroutines.resume
 
@@ -78,10 +66,9 @@ suspend fun ComponentActivity.getExtWritePermission(uri: Uri) : Boolean = withCo
 private suspend fun ComponentActivity.requestExtWritePermission(storage: String) : Boolean = suspendCancellableCoroutine { continuation ->
     val resultKey = "${WriteExternalDelegate.TAG}:${System.nanoTime()}"
     var launcher: ActivityResultLauncher<Intent>? = null
-    var activeDialog: AppCompatDialog? = null
+    var activeDialog: ComposeMaterialDialogHandle? = null
 
     fun unregister() {
-        activeDialog?.setOnDismissListener(null)
         activeDialog?.dismiss()
         activeDialog = null
         launcher?.unregister()
@@ -113,15 +100,11 @@ private suspend fun ComponentActivity.requestExtWritePermission(storage: String)
                 showSdWriteHelpDialog {
                     if (continuation.isActive) showMainDialog()
                 }
-            }
-        ).apply {
-            setOnCancelListener {
-                complete(false)
-            }
-            setOnDismissListener {
+            },
+            onDismiss = {
                 if (!waitingForPicker && !showingHelp) complete(false)
             }
-        }
+        )
     }
 
     continuation.invokeOnCancellation { unregister() }
@@ -133,90 +116,56 @@ private suspend fun ComponentActivity.requestExtWritePermission(storage: String)
 
 private fun ComponentActivity.showSdWritePermissionDialog(
     onConfirm: () -> Unit,
-    onHelp: () -> Unit
-): AppCompatDialog {
-    val dialog = AppCompatDialog(this)
-    dialog.supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
-    dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-    dialog.setContentView(
-        ComposeView(this).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
-                VLCTheme {
-                    val colors = VLCThemeDefaults.colors
-                    Surface(
-                        color = MaterialTheme.colorScheme.surface,
-                        shape = MaterialTheme.shapes.medium
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 24.dp, top = 24.dp, end = 24.dp, bottom = 16.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.sdcard_permission_dialog_title),
-                                color = colors.fontDefault,
-                                style = MaterialTheme.typography.headlineSmall
-                            )
-                            Text(
-                                text = stringResource(R.string.sdcard_permission_dialog_message),
-                                color = colors.fontDefault,
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(top = 16.dp)
-                            )
-                            Row(
-                                horizontalArrangement = Arrangement.End,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 24.dp)
-                            ) {
-                                TextButton(
-                                    onClick = {
-                                        onHelp()
-                                        dialog.dismiss()
-                                    }
-                                ) {
-                                    Text(text = stringResource(R.string.dialog_sd_wizard))
-                                }
-                                Button(
-                                    onClick = {
-                                        onConfirm()
-                                        dialog.dismiss()
-                                    },
-                                    modifier = Modifier.padding(start = 8.dp)
-                                ) {
-                                    Text(text = stringResource(R.string.ok))
-                                }
-                            }
-                        }
-                    }
+    onHelp: () -> Unit,
+    onDismiss: () -> Unit
+): ComposeMaterialDialogHandle = showMaterialDialog(onDismiss = onDismiss) { handle ->
+    AlertDialog(
+        onDismissRequest = { handle.dismiss() },
+        title = { Text(text = stringResource(R.string.sdcard_permission_dialog_title)) },
+        text = { Text(text = stringResource(R.string.sdcard_permission_dialog_message)) },
+        confirmButton = {
+            Button(
+                onClick = {
+                    onConfirm()
+                    handle.dismiss()
                 }
+            ) {
+                Text(text = stringResource(R.string.ok))
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = {
+                    onHelp()
+                    handle.dismiss()
+                }
+            ) {
+                Text(text = stringResource(R.string.dialog_sd_wizard))
             }
         }
     )
-    dialog.show()
-    return dialog
 }
 
 private fun ComponentActivity.showSdWriteHelpDialog(onDismiss: () -> Unit) {
-    AppCompatDialog(this).apply {
-        setContentView(createSdWriteHelpView())
-        setOnDismissListener { onDismiss() }
-        show()
-    }
-}
-
-private fun ComponentActivity.createSdWriteHelpView() = ComposeView(this).apply {
-    setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-    setContent {
-        Image(
-            painter = painterResource(R.drawable.img_tips_sdcard),
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
-            modifier = Modifier.size(
-                width = dimensionResource(R.dimen.dialog_sd_wisard_width),
-                height = dimensionResource(R.dimen.dialog_sd_wisard_height)
-            )
+    showMaterialDialog(onDismiss = onDismiss) { handle ->
+        AlertDialog(
+            onDismissRequest = { handle.dismiss() },
+            text = {
+                Image(
+                    painter = painterResource(R.drawable.img_tips_sdcard),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.size(
+                        width = dimensionResource(R.dimen.dialog_sd_wisard_width),
+                        height = dimensionResource(R.dimen.dialog_sd_wisard_height)
+                    )
+                )
+            },
+            confirmButton = {
+                Button(onClick = { handle.dismiss() }) {
+                    Text(text = stringResource(R.string.ok))
+                }
+            }
         )
     }
 }
