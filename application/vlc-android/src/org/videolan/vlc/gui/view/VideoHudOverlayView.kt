@@ -365,10 +365,11 @@ private fun ConstraintLayout.timeLabel(@IdRes id: Int) = VideoTimelineTimeLabelV
     nextFocusUpId = R.id.ab_repeat_container
 }
 
-private fun ConstraintLayout.seekJumpLabel(@IdRes id: Int) = VideoHudSeekJumpLabelView(context).apply {
+private fun ConstraintLayout.seekJumpLabel(@IdRes id: Int) = VLCComposeView(context).apply {
     this.id = id
     visibility = View.GONE
     importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+    installVideoHudSeekJumpLabelHost()
 }
 
 private fun hudLayout(

@@ -57,6 +57,7 @@
     <item type="id" name="toolbar_vlc_title" />
     <item type="id" name="tapIndicatorPlaylist" />
     <item type="id" name="tapIndicatorStop" />
+    <item type="id" name="video_hud_seek_jump_label_host" />
     <item type="id" name="video_renderer" />
     <item type="id" name="video_secondary_display" />
 </resources>

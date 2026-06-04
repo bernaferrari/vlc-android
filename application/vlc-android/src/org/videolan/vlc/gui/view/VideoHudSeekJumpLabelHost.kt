@@ -1,6 +1,6 @@
 /*
  * ************************************************************************
- *  VideoHudSeekJumpLabelView.kt
+ *  VideoHudSeekJumpLabelHost.kt
  * *************************************************************************
  * Copyright © 2026 VLC authors and VideoLAN
  *
@@ -22,8 +22,6 @@
 
 package org.videolan.vlc.gui.view
 
-import android.content.Context
-import android.util.AttributeSet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,34 +29,38 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
+import org.videolan.vlc.R
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
 /**
  * Compose-backed replacement for the video HUD's tiny seek jump number labels.
  * VideoPlayerOverlayDelegate still updates the same IDs through the normal
- * ViewBinding text/visibility contract.
+ * HUD binding while this host owns the label rendering.
  */
-class VideoHudSeekJumpLabelView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : VLCAbstractComposeWidget(context, attrs, defStyleAttr) {
-
-    var text: CharSequence? = null
-        set(value) {
-            field = value
-            label = value?.toString().orEmpty()
+internal fun VLCComposeView.installVideoHudSeekJumpLabelHost() {
+    val host = VideoHudSeekJumpLabelHost()
+    setTag(R.id.video_hud_seek_jump_label_host, host)
+    setContent {
+        VLCTheme {
+            host.Content()
         }
+    }
+}
 
+internal fun VLCComposeView.videoHudSeekJumpLabelHost(): VideoHudSeekJumpLabelHost =
+    getTag(R.id.video_hud_seek_jump_label_host) as? VideoHudSeekJumpLabelHost ?: error("Missing video HUD seek jump label host")
+
+internal class VideoHudSeekJumpLabelHost {
     private var label by mutableStateOf("")
 
-    init {
-        importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
+    fun setText(text: CharSequence?) {
+        label = text?.toString().orEmpty()
     }
 
     @Composable
-    override fun WidgetContent() {
+    fun Content() {
         Text(
             text = label,
             color = VLCThemeDefaults.colors.playerIconColor,

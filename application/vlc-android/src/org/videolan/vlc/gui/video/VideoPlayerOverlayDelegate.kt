@@ -98,6 +98,7 @@ import org.videolan.vlc.gui.helpers.hf.checkPIN
 import org.videolan.vlc.gui.view.VideoHudRightOverlayView
 import org.videolan.vlc.gui.view.VideoInfoOverlayView
 import org.videolan.vlc.gui.view.VideoVerticalProgressOverlayView
+import org.videolan.vlc.gui.view.videoHudSeekJumpLabelHost
 import org.videolan.vlc.isVLC4
 import org.videolan.vlc.manageAbRepeatStep
 import org.videolan.vlc.media.MediaUtils
@@ -986,11 +987,11 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
             hudBinding.playerOverlayPlay.visibility = if (show) View.VISIBLE else View.INVISIBLE
             if (seekButtons) {
                 hudBinding.playerOverlayRewind.visibility = if (show) View.VISIBLE else View.INVISIBLE
-                hudBinding.playerOverlayRewindText.text = "${Settings.videoJumpDelay}"
+                hudBinding.playerOverlayRewindText.videoHudSeekJumpLabelHost().setText("${Settings.videoJumpDelay}")
                 hudBinding.playerOverlayRewind.contentDescription = player.getString(R.string.talkback_action_rewind, Settings.videoJumpDelay.toString())
                 hudBinding.playerOverlayRewindText.visibility = if (show) View.VISIBLE else View.INVISIBLE
                 hudBinding.playerOverlayForward.visibility = if (show) View.VISIBLE else View.INVISIBLE
-                hudBinding.playerOverlayForwardText.text = "${Settings.videoJumpDelay}"
+                hudBinding.playerOverlayForwardText.videoHudSeekJumpLabelHost().setText("${Settings.videoJumpDelay}")
                 hudBinding.playerOverlayForward.contentDescription = player.getString(R.string.talkback_action_forward, Settings.videoJumpDelay.toString())
                 hudBinding.playerOverlayForwardText.visibility = if (show) View.VISIBLE else View.INVISIBLE
             }

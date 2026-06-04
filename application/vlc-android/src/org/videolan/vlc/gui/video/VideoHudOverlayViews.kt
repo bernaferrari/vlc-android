@@ -32,7 +32,6 @@ import org.videolan.vlc.gui.view.AbRepeatMarkerContainerView
 import org.videolan.vlc.gui.view.BookmarksPanelView
 import org.videolan.vlc.gui.view.SwipeToUnlockView
 import org.videolan.vlc.gui.view.VideoHudIconButtonView
-import org.videolan.vlc.gui.view.VideoHudSeekJumpLabelView
 import org.videolan.vlc.gui.view.VideoStatsOverlayView
 import org.videolan.vlc.gui.view.VideoTimelineSeekBarView
 import org.videolan.vlc.gui.view.VideoTimelineTimeLabelView
@@ -54,10 +53,10 @@ class VideoHudOverlayViews(val progressOverlay: ConstraintLayout) {
     val playerSpaceLeft: View = progressOverlay.requireHudView(R.id.player_space_left)
     val playlistPrevious: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.playlist_previous)
     val playerOverlayRewind: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.player_overlay_rewind)
-    val playerOverlayRewindText: VideoHudSeekJumpLabelView = progressOverlay.requireHudView(R.id.player_overlay_rewind_text)
+    val playerOverlayRewindText: VLCComposeView = progressOverlay.requireHudView(R.id.player_overlay_rewind_text)
     val playerOverlayPlay: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.player_overlay_play)
     val playerOverlayForward: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.player_overlay_forward)
-    val playerOverlayForwardText: VideoHudSeekJumpLabelView = progressOverlay.requireHudView(R.id.player_overlay_forward_text)
+    val playerOverlayForwardText: VLCComposeView = progressOverlay.requireHudView(R.id.player_overlay_forward_text)
     val playlistNext: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.playlist_next)
     val playerSpaceRight: View = progressOverlay.requireHudView(R.id.player_space_right)
     val playerResize: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.player_resize)
