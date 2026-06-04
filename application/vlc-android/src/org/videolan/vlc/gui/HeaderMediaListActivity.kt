@@ -157,7 +157,6 @@ import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.UiTools.createShortcut
 import org.videolan.vlc.gui.helpers.UiTools.getResourceFromAttribute
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
-import org.videolan.vlc.gui.view.SwipeRefreshLayout
 import org.videolan.vlc.interfaces.Filterable
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.media.PlaylistManager
@@ -394,9 +393,6 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), ActionMode.
     }
 
     private fun createTrackListContainer(): View {
-        val swipeLayout = SwipeRefreshLayout(this).apply {
-            isEnabled = false
-        }
         val content = FrameLayout(this)
         trackListComposeView = ComposeView(this).apply {
             id = R.id.songs
@@ -427,11 +423,7 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), ActionMode.
             trackListComposeView,
             FrameLayout.LayoutParams(defaultContentWidth(), FrameLayout.LayoutParams.MATCH_PARENT, Gravity.CENTER_HORIZONTAL)
         )
-        swipeLayout.addView(
-            content,
-            ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-        )
-        return swipeLayout
+        return content
     }
 
     private fun createAudioPlayerContainer() = FrameLayout(this).apply {
