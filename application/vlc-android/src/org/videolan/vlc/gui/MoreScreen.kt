@@ -298,7 +298,7 @@ class MoreScreenController(private val activity: MainActivity) : CtxActionReceiv
     private fun startHistoryActionMode() {
         historyActionMode = activity.startSupportActionMode(object : ActionMode.Callback {
             override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
-                mode.menuInflater.inflate(R.menu.action_mode_history, menu)
+                UiTools.addHistoryActionModeMenu(menu)
                 return true
             }
 

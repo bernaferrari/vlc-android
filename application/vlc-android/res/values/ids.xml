@@ -87,6 +87,10 @@
     <item name="ml_menu_custom_dir" type="id" />
     <item name="rename_group" type="id" />
     <item name="ungroup" type="id" />
+    <item name="action_history_info" type="id" />
+    <item name="action_history_play" type="id" />
+    <item name="action_history_append" type="id" />
+    <item name="action_go_to_folder" type="id" />
     <item name="ml_menu_save" type="id" />
     <item name="ml_menu_clean" type="id" />
     <item name="backgroundView" type="id" />

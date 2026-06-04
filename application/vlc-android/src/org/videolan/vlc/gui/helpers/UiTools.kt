@@ -671,6 +671,26 @@ object UiTools {
         MenuItemCompat.setContentDescription(menuItem, if (!isCurrent) title else "$title. ${context.getString(if (desc) R.string.descending else R.string.ascending)}")
     }
 
+    fun addHistoryActionModeMenu(menu: Menu) {
+        menu.add(Menu.NONE, R.id.action_history_info, 0, R.string.info).apply {
+            setIcon(R.drawable.ic_information)
+            isVisible = false
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        }
+        menu.add(Menu.NONE, R.id.action_history_play, 0, R.string.play).apply {
+            setIcon(R.drawable.ic_play)
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        }
+        menu.add(Menu.NONE, R.id.action_history_append, 0, R.string.append).apply {
+            setIcon(R.drawable.ic_play_append)
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        }
+        menu.add(Menu.NONE, R.id.action_go_to_folder, 0, R.string.go_to_folder).apply {
+            setIcon(R.drawable.ic_go_to_folder)
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        }
+    }
+
     fun confirmExit(activity: Activity) {
         AlertDialog.Builder(activity)
                 .setMessage(R.string.exit_app_msg)
