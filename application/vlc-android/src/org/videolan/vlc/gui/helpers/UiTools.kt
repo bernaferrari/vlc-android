@@ -136,6 +136,7 @@ import org.videolan.vlc.gui.dialogs.SavePlaylistDialog
 import org.videolan.vlc.gui.dialogs.VideoTracksDialog
 import org.videolan.vlc.gui.dialogs.showAddToGroupComposeDialog
 import org.videolan.vlc.gui.dialogs.showSavePlaylistComposeDialog
+import org.videolan.vlc.gui.dialogs.showSimpleComposeDialog
 import org.videolan.vlc.gui.dialogs.showVideoTracksComposeDialog
 import org.videolan.vlc.gui.helpers.BitmapUtil.vectorToBitmap
 import org.videolan.vlc.gui.helpers.hf.PinCodeDelegate
@@ -763,11 +764,13 @@ object UiTools {
     }
 
     fun confirmExit(activity: Activity) {
-        AlertDialog.Builder(activity)
-                .setMessage(R.string.exit_app_msg)
-                .setTitle(R.string.exit_app)
-                .setPositiveButton(R.string.ok) { _, _ -> activity.finish() }
-                .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }.create().show()
+        activity.showSimpleComposeDialog(
+            title = activity.getString(R.string.exit_app),
+            message = activity.getString(R.string.exit_app_msg),
+            confirmText = activity.getString(R.string.ok),
+            dismissText = activity.getString(R.string.cancel),
+            onConfirm = { activity.finish() }
+        )
     }
 
     fun newStorageDetected(activity: Activity?, path: String?) {
@@ -866,13 +869,13 @@ object UiTools {
             return
         }
 
-        AlertDialog.Builder(activity)
-                .setTitle(activity.resources.getString(R.string.restart_vlc))
-                .setMessage(activity.resources.getString(R.string.restart_message))
-                .setPositiveButton(R.string.restart_message_OK) { _, _ -> android.os.Process.killProcess(android.os.Process.myPid()) }
-                .setNegativeButton(R.string.restart_message_Later, null)
-                .create()
-                .show()
+        activity.showSimpleComposeDialog(
+            title = activity.getString(R.string.restart_vlc),
+            message = activity.getString(R.string.restart_message),
+            confirmText = activity.getString(R.string.restart_message_OK),
+            dismissText = activity.getString(R.string.restart_message_Later),
+            onConfirm = { android.os.Process.killProcess(android.os.Process.myPid()) }
+        )
     }
 
 

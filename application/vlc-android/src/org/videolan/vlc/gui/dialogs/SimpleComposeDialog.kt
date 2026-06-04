@@ -1,7 +1,7 @@
 package org.videolan.vlc.gui.dialogs
 
+import android.app.Activity
 import android.view.Window
-import androidx.activity.ComponentActivity
 import androidx.appcompat.app.AppCompatDialog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
-fun ComponentActivity.showSimpleComposeDialog(
+fun Activity.showSimpleComposeDialog(
     title: String,
     message: String,
     confirmText: String,
@@ -89,7 +89,7 @@ fun ComponentActivity.showSimpleComposeDialog(
     dialog.show()
 }
 
-fun ComponentActivity.showSimpleTextInputComposeDialog(
+fun Activity.showSimpleTextInputComposeDialog(
     title: String,
     message: String,
     confirmText: String,
