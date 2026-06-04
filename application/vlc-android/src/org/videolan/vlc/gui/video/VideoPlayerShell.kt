@@ -43,7 +43,6 @@ import org.videolan.vlc.R
 import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.gui.view.PlayerOptionsPanelView
 import org.videolan.vlc.gui.view.VideoHudRightOverlayView
-import org.videolan.vlc.gui.view.VideoResizeOverlayView
 import org.videolan.vlc.gui.view.VideoSeekOverlayView
 import org.videolan.vlc.gui.view.VideoTipsHostView
 import org.videolan.vlc.gui.view.VideoVerticalProgressOverlayView
@@ -51,6 +50,7 @@ import org.videolan.vlc.gui.view.createVideoHudOverlay
 import org.videolan.vlc.gui.view.installVideoDelayOverlayHost
 import org.videolan.vlc.gui.view.installVideoInfoOverlayHost
 import org.videolan.vlc.gui.view.installVideoOrientationOverlayHost
+import org.videolan.vlc.gui.view.installVideoResizeOverlayHost
 import org.videolan.vlc.gui.view.installVideoScreenshotOverlayHost
 
 internal fun VideoPlayerActivity.createVideoPlayerShell(isPrimaryDisplay: Boolean): View =
@@ -88,9 +88,12 @@ private fun Context.createPrimaryVideoPlayerShell() = createVideoPlayerRoot().ap
     addView(primaryUiContainer(), matchFrame())
     addView(videoPlaylistContainer(primary = true), FrameLayout.LayoutParams(matchParent, matchParent, Gravity.CENTER_HORIZONTAL))
     addView(optionsPanel(), matchFrame())
-    addView(VideoResizeOverlayView(context).apply {
+    addView(VLCComposeView(context).apply {
         id = R.id.player_resize_stub
         visibility = View.GONE
+        isClickable = true
+        isFocusable = false
+        installVideoResizeOverlayHost()
     }, matchFrame())
     addView(VLCComposeView(context).apply {
         id = R.id.player_orientation_stub
@@ -152,9 +155,12 @@ private fun Context.createRemoteVideoPlayerShell() = createVideoPlayerRoot().app
             rightMargin = overlayMargin
             bottomMargin = overlayMargin
         })
-        addView(VideoResizeOverlayView(context).apply {
+        addView(VLCComposeView(context).apply {
             id = R.id.player_resize_stub
             visibility = View.GONE
+            isClickable = true
+            isFocusable = false
+            installVideoResizeOverlayHost()
         }, matchFrame())
         addView(VLCComposeView(context).apply {
             id = R.id.player_orientation_stub

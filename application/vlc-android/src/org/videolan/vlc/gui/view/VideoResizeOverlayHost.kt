@@ -1,6 +1,6 @@
 /*
  * ************************************************************************
- *  VideoResizeOverlayView.kt
+ *  VideoResizeOverlayHost.kt
  * *************************************************************************
  * Copyright © 2026 VLC authors and VideoLAN
  *
@@ -22,8 +22,6 @@
 
 package org.videolan.vlc.gui.view
 
-import android.content.Context
-import android.util.AttributeSet
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -66,17 +64,27 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.videolan.libvlc.MediaPlayer
 import org.videolan.vlc.R
-import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.compose.theme.VLCTheme
 
 /**
  * Compose replacement for the former video resize XML overlay. The delegate
- * owns settings and player mutations; this view owns the side panel UI.
+ * owns settings and player mutations; this host owns the side panel UI.
  */
-class VideoResizeOverlayView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : VLCAbstractComposeWidget(context, attrs, defStyleAttr) {
+internal fun VLCComposeView.installVideoResizeOverlayHost() {
+    val host = VideoResizeOverlayHost()
+    setTag(R.id.player_resize_stub, host)
+    setContent {
+        VLCTheme {
+            host.Content()
+        }
+    }
+}
+
+internal fun VLCComposeView.videoResizeOverlayHost(): VideoResizeOverlayHost =
+    getTag(R.id.player_resize_stub) as? VideoResizeOverlayHost ?: error("Missing video resize overlay host")
+
+internal class VideoResizeOverlayHost {
 
     private var selectedScale by mutableStateOf(MediaPlayer.ScaleType.SURFACE_BEST_FIT)
     private var showFoldSection by mutableStateOf(false)
@@ -88,11 +96,6 @@ class VideoResizeOverlayView @JvmOverloads constructor(
     private var onFoldCheckedChange: (Boolean) -> Unit = {}
     private var onNotchCheckedChange: (Boolean) -> Unit = {}
     private var onScaleSelected: (MediaPlayer.ScaleType) -> Unit = {}
-
-    init {
-        isClickable = true
-        isFocusable = false
-    }
 
     fun bind(
         selectedScale: MediaPlayer.ScaleType,
@@ -121,7 +124,7 @@ class VideoResizeOverlayView @JvmOverloads constructor(
     }
 
     @Composable
-    override fun WidgetContent() {
+    fun Content() {
         val dismissInteraction = remember { MutableInteractionSource() }
         val panelInteraction = remember { MutableInteractionSource() }
         val firstScaleFocusRequester = remember { FocusRequester() }

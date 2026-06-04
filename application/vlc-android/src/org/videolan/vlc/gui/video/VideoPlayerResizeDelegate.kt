@@ -36,12 +36,13 @@ import org.videolan.tools.putSingle
 import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.R
-import org.videolan.vlc.gui.view.VideoResizeOverlayView
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.gui.view.videoResizeOverlayHost
 
 class VideoPlayerResizeDelegate(private val player: VideoPlayerActivity) {
     private val overlayDelegate: VideoPlayerOverlayDelegate
         get() = player.overlayDelegate
-    private lateinit var resizeMainView: VideoResizeOverlayView
+    private lateinit var resizeMainView: VLCComposeView
 
     /**
      * Check if the resize overlay is currently shown
@@ -54,13 +55,13 @@ class VideoPlayerResizeDelegate(private val player: VideoPlayerActivity) {
      */
     fun showResizeOverlay() {
         val settings = Settings.getInstance(player)
-        val resizeView = player.findViewById<VideoResizeOverlayView>(R.id.player_resize_stub) ?: return
+        val resizeView = player.findViewById<VLCComposeView>(R.id.player_resize_stub) ?: return
         val displayUnderNotch = settings.getInt(
             DISPLAY_UNDER_NOTCH,
             WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         )
         resizeMainView = resizeView
-        resizeMainView.bind(
+        resizeMainView.videoResizeOverlayHost().bind(
             selectedScale = player.service?.mediaplayer?.videoScale ?: MediaPlayer.ScaleType.SURFACE_BEST_FIT,
             showFoldSection = player.overlayDelegate.foldingFeature != null,
             foldChecked = settings.getBoolean(ALLOW_FOLD_AUTO_LAYOUT, true),
@@ -86,7 +87,7 @@ class VideoPlayerResizeDelegate(private val player: VideoPlayerActivity) {
             onScaleSelected = { scale -> setVideoScale(scale) }
         )
         resizeMainView.setVisible()
-        if (Settings.showTvUi) resizeMainView.requestInitialFocus()
+        if (Settings.showTvUi) resizeMainView.videoResizeOverlayHost().requestInitialFocus()
     }
 
     /**
