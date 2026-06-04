@@ -44,13 +44,13 @@ import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.gui.view.PlayerOptionsPanelView
 import org.videolan.vlc.gui.view.VideoDelayOverlayView
 import org.videolan.vlc.gui.view.VideoHudRightOverlayView
-import org.videolan.vlc.gui.view.VideoOrientationOverlayView
 import org.videolan.vlc.gui.view.VideoResizeOverlayView
 import org.videolan.vlc.gui.view.VideoSeekOverlayView
 import org.videolan.vlc.gui.view.VideoTipsHostView
 import org.videolan.vlc.gui.view.VideoVerticalProgressOverlayView
 import org.videolan.vlc.gui.view.createVideoHudOverlay
 import org.videolan.vlc.gui.view.installVideoInfoOverlayHost
+import org.videolan.vlc.gui.view.installVideoOrientationOverlayHost
 import org.videolan.vlc.gui.view.installVideoScreenshotOverlayHost
 
 internal fun VideoPlayerActivity.createVideoPlayerShell(isPrimaryDisplay: Boolean): View =
@@ -92,9 +92,12 @@ private fun Context.createPrimaryVideoPlayerShell() = createVideoPlayerRoot().ap
         id = R.id.player_resize_stub
         visibility = View.GONE
     }, matchFrame())
-    addView(VideoOrientationOverlayView(context).apply {
+    addView(VLCComposeView(context).apply {
         id = R.id.player_orientation_stub
         visibility = View.GONE
+        isClickable = true
+        isFocusable = false
+        installVideoOrientationOverlayHost()
     }, matchFrame())
     addView(VLCComposeView(context).apply {
         id = R.id.player_screenshot_stub
@@ -150,9 +153,12 @@ private fun Context.createRemoteVideoPlayerShell() = createVideoPlayerRoot().app
             id = R.id.player_resize_stub
             visibility = View.GONE
         }, matchFrame())
-        addView(VideoOrientationOverlayView(context).apply {
+        addView(VLCComposeView(context).apply {
             id = R.id.player_orientation_stub
             visibility = View.GONE
+            isClickable = true
+            isFocusable = false
+            installVideoOrientationOverlayHost()
         }, matchFrame())
     }, matchFrame())
     addView(verticalOverlay(R.id.player_overlay_brightness), frameWrap(Gravity.CENTER_VERTICAL or Gravity.RIGHT) {

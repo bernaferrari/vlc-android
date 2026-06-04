@@ -33,12 +33,13 @@ import org.videolan.tools.Settings
 import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.R
-import org.videolan.vlc.gui.view.VideoOrientationOverlayView
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.gui.view.videoOrientationOverlayHost
 
 class VideoPlayerOrientationDelegate(private val player: VideoPlayerActivity) {
     private val overlayDelegate: VideoPlayerOverlayDelegate
         get() = player.overlayDelegate
-    private lateinit var orientationMainView: VideoOrientationOverlayView
+    private lateinit var orientationMainView: VLCComposeView
 
     /**
      * Check if the orientation overlay is currently shown
@@ -50,17 +51,17 @@ class VideoPlayerOrientationDelegate(private val player: VideoPlayerActivity) {
      * Show the orientation overlay. Inflate it if it's not yet
      */
     private fun showOrientationOverlay() {
-        player.findViewById<VideoOrientationOverlayView>(R.id.player_orientation_stub)?.let {
+        player.findViewById<VLCComposeView>(R.id.player_orientation_stub)?.let {
             orientationMainView = it
             val settings = Settings.getInstance(player)
-            orientationMainView.bind(
+            orientationMainView.videoOrientationOverlayHost().bind(
                 selected = OrientationMode.findByValue(if (player.orientationMode.locked) player.orientationMode.orientation else -1),
                 showButton = settings.getBoolean(SHOW_ORIENTATION_BUTTON, true),
                 onDismiss = ::hideOrientationOverlay,
                 onShowButtonChange = { isChecked ->
                     settings.edit { putBoolean(SHOW_ORIENTATION_BUTTON, isChecked) }
                     player.overlayDelegate.updateOrientationIcon()
-                    orientationMainView.updateShowOrientationButton(isChecked)
+                    orientationMainView.videoOrientationOverlayHost().updateShowOrientationButton(isChecked)
                 },
                 onOrientationSelected = { orientation ->
                     player.setOrientation(orientation.value)

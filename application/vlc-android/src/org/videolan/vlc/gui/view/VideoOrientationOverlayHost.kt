@@ -1,6 +1,6 @@
 /*
  * ************************************************************************
- *  VideoOrientationOverlayView.kt
+ *  VideoOrientationOverlayHost.kt
  * *************************************************************************
  * Copyright © 2026 VLC authors and VideoLAN
  *
@@ -22,8 +22,6 @@
 
 package org.videolan.vlc.gui.view
 
-import android.content.Context
-import android.util.AttributeSet
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -61,30 +59,34 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.videolan.vlc.R
-import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.gui.video.OrientationMode
 
 /**
  * Compose replacement for the former video orientation XML overlay. The
- * delegate owns settings and orientation mutations; this view owns the side
+ * delegate owns settings and orientation mutations; this host owns the side
  * panel UI and user events.
  */
-class VideoOrientationOverlayView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : VLCAbstractComposeWidget(context, attrs, defStyleAttr) {
+internal fun VLCComposeView.installVideoOrientationOverlayHost() {
+    val host = VideoOrientationOverlayHost()
+    setTag(R.id.player_orientation_stub, host)
+    setContent {
+        VLCTheme {
+            host.Content()
+        }
+    }
+}
 
+internal fun VLCComposeView.videoOrientationOverlayHost(): VideoOrientationOverlayHost =
+    getTag(R.id.player_orientation_stub) as? VideoOrientationOverlayHost ?: error("Missing video orientation overlay host")
+
+internal class VideoOrientationOverlayHost {
     private var selectedOrientation by mutableStateOf(OrientationMode.SENSOR)
     private var showOrientationButton by mutableStateOf(true)
     private var onDismissClick: () -> Unit = {}
     private var onShowButtonChanged: (Boolean) -> Unit = {}
     private var onOrientationSelected: (OrientationMode) -> Unit = {}
-
-    init {
-        isClickable = true
-        isFocusable = false
-    }
 
     fun bind(
         selected: OrientationMode,
@@ -105,7 +107,7 @@ class VideoOrientationOverlayView @JvmOverloads constructor(
     }
 
     @Composable
-    override fun WidgetContent() {
+    fun Content() {
         val dismissInteraction = remember { MutableInteractionSource() }
         val panelInteraction = remember { MutableInteractionSource() }
 
