@@ -36,7 +36,6 @@ import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
@@ -54,6 +53,7 @@ import org.videolan.tools.putSingle
 import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.R
 import org.videolan.vlc.VlcMigrationHelper
+import org.videolan.vlc.gui.dialogs.showSimpleComposeDialog
 import org.videolan.vlc.gui.helpers.hf.StoragePermissionsDelegate.Companion.askStoragePermission
 import org.videolan.vlc.gui.helpers.hf.WriteExternalDelegate
 
@@ -295,44 +295,23 @@ object Permissions {
 
     fun showStoragePermissionDialog(activity: ComponentActivity, exit: Boolean) {
         if (activity.isFinishing || sAlertDialog != null && sAlertDialog!!.isShowing) return
-        sAlertDialog = if (activity is AppCompatActivity)
-            createDialogCompat(activity, exit)
-        else
-            createDialog(activity, exit)
+        sAlertDialog = createStoragePermissionDialog(activity, exit)
     }
 
-    private fun createDialog(activity: ComponentActivity, exit: Boolean): Dialog {
-        val dialogBuilder = android.app.AlertDialog.Builder(activity)
-                .setTitle(activity.getString(R.string.allow_storage_access_title))
-                .setMessage(activity.getString(R.string.allow_storage_access_description))
-                .setIcon(R.drawable.ic_warning)
-                .setPositiveButton(activity.getString(R.string.permission_ask_again)) { _, _ ->
-                    val settings = Settings.getInstance(activity)
-                        activity.requestStoragePermission()
-                    settings.putSingle(KEY_USER_DECLINED_STORAGE_ACCESS, true)
-                }
-        if (exit) {
-            dialogBuilder.setNegativeButton(activity.getString(R.string.exit_app)) { _, _ -> activity.finish() }
-                    .setCancelable(false)
-        }
-        return dialogBuilder.show()
-    }
-
-    private fun createDialogCompat(activity: ComponentActivity, exit: Boolean): Dialog {
-        val dialogBuilder = AlertDialog.Builder(activity)
-                .setTitle(activity.getString(R.string.allow_storage_access_title))
-                .setMessage(activity.getString(R.string.allow_storage_access_description))
-                .setIcon(R.drawable.ic_warning)
-                .setPositiveButton(activity.getString(R.string.permission_ask_again)) { _, _ ->
-                    val settings = Settings.getInstance(activity)
-                        activity.requestStoragePermission()
-                    settings.putSingle(KEY_USER_DECLINED_STORAGE_ACCESS, true)
-                }
-        if (exit) {
-            dialogBuilder.setNegativeButton(activity.getString(R.string.exit_app)) { _, _ -> activity.finish() }
-                    .setCancelable(false)
-        }
-        return dialogBuilder.show().apply {
+    private fun createStoragePermissionDialog(activity: ComponentActivity, exit: Boolean): Dialog {
+        return activity.showSimpleComposeDialog(
+            title = activity.getString(R.string.allow_storage_access_title),
+            message = activity.getString(R.string.allow_storage_access_description),
+            confirmText = activity.getString(R.string.permission_ask_again),
+            dismissText = if (exit) activity.getString(R.string.exit_app) else null,
+            onConfirm = {
+                val settings = Settings.getInstance(activity)
+                activity.requestStoragePermission()
+                settings.putSingle(KEY_USER_DECLINED_STORAGE_ACCESS, true)
+            },
+            onDismiss = { activity.finish() },
+            cancelable = !exit
+        ).apply {
             activity.lifecycle.addObserver(object : DefaultLifecycleObserver {
                 override fun onDestroy(owner: LifecycleOwner) {
                     dismiss()

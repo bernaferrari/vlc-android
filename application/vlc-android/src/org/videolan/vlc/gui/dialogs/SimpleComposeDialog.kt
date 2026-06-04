@@ -36,11 +36,11 @@ fun Context.showSimpleComposeDialog(
     title: String,
     message: String,
     confirmText: String,
-    dismissText: String,
+    dismissText: String? = null,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit = {},
     cancelable: Boolean = true
-) {
+): AppCompatDialog {
     val dialog = AppCompatDialog(this)
     dialog.supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
     dialog.setCancelable(cancelable)
@@ -69,13 +69,15 @@ fun Context.showSimpleComposeDialog(
                                     .fillMaxWidth()
                                     .padding(top = 24.dp)
                             ) {
-                                TextButton(
-                                    onClick = {
-                                        onDismiss()
-                                        dialog.dismiss()
+                                if (dismissText != null) {
+                                    TextButton(
+                                        onClick = {
+                                            onDismiss()
+                                            dialog.dismiss()
+                                        }
+                                    ) {
+                                        Text(dismissText)
                                     }
-                                ) {
-                                    Text(dismissText)
                                 }
                                 Button(
                                     onClick = {
@@ -94,6 +96,7 @@ fun Context.showSimpleComposeDialog(
         }
     )
     dialog.show()
+    return dialog
 }
 
 fun Activity.showSimpleTextInputComposeDialog(
