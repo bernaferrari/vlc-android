@@ -49,6 +49,8 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -103,6 +105,7 @@ import org.videolan.vlc.gui.HeaderMediaListActivity
 import org.videolan.vlc.gui.InfoActivity
 import org.videolan.vlc.gui.MainActivity
 import org.videolan.vlc.gui.SecondaryActivity
+import org.videolan.vlc.gui.compose.VlcMediaImage
 import org.videolan.vlc.gui.browser.KEY_JUMP_TO
 import org.videolan.vlc.gui.browser.KEY_MEDIA
 import org.videolan.vlc.gui.dialogs.CURRENT_SORT
@@ -1343,7 +1346,7 @@ private fun MediaRow(
         onClick = onClick,
         onLongClick = onMoreClick,
         artworkContent = {
-            MediaIconContent(icon = icon, size = 28.dp)
+            MediaArtworkContent(item = item, fallbackIcon = icon, size = 40.dp)
         },
         primaryActionContent = {
             Icon(painterResource(R.drawable.ic_play), contentDescription = stringResource(R.string.play), tint = colors.primary)
@@ -1374,7 +1377,7 @@ private fun MediaCard(
         onClick = onClick,
         onLongClick = onMoreClick,
         artworkContent = {
-            MediaIconContent(icon = icon, size = 32.dp)
+            MediaArtworkContent(item = item, fallbackIcon = icon, size = 48.dp)
         },
         primaryActionContent = {
             Icon(painterResource(R.drawable.ic_play), contentDescription = stringResource(R.string.play), tint = colors.primary)
@@ -1388,12 +1391,14 @@ private fun MediaCard(
 }
 
 @Composable
-private fun MediaIconContent(icon: Int, size: Dp) {
-    Icon(
-        painter = painterResource(icon),
-        contentDescription = null,
-        modifier = Modifier.size(size),
-        tint = VLCThemeDefaults.colors.primary
+private fun MediaArtworkContent(item: MediaLibraryItem, fallbackIcon: Int, size: Dp) {
+    VlcMediaImage(
+        item = item,
+        width = size,
+        fallbackPainter = painterResource(fallbackIcon),
+        fallbackColorFilter = ColorFilter.tint(VLCThemeDefaults.colors.primary),
+        contentScale = ContentScale.Fit,
+        modifier = Modifier.fillMaxSize()
     )
 }
 

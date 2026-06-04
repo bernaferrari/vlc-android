@@ -64,6 +64,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -117,6 +119,7 @@ import org.videolan.vlc.compose.components.VLCBrowserItemCard
 import org.videolan.vlc.compose.components.VLCBrowserItemRow
 import org.videolan.vlc.compose.components.VLCEmptyState
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.gui.compose.VlcMediaImage
 import org.videolan.vlc.gui.MainActivity
 import org.videolan.vlc.gui.SecondaryActivity
 import org.videolan.vlc.gui.dialogs.CONFIRM_DELETE_DIALOG_RESULT_BAN_FOLDER
@@ -2012,9 +2015,21 @@ private fun BrowserItemIcon(item: MediaLibraryItem, large: Boolean = false) {
             else -> R.drawable.ic_unknown
         }
     }
+    val artworkSize = if (large) 48.dp else 40.dp
+    if (item is MediaWrapper) {
+        VlcMediaImage(
+            item = item,
+            width = artworkSize,
+            fallbackPainter = painterResource(icon),
+            fallbackColorFilter = ColorFilter.tint(colors.primary),
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.fillMaxSize()
+        )
+        return
+    }
     Box(
         modifier = Modifier
-            .size(if (large) 48.dp else 40.dp)
+            .size(artworkSize)
             .clip(RoundedCornerShape(4.dp))
             .background(colors.backgroundDefault),
         contentAlignment = Alignment.Center

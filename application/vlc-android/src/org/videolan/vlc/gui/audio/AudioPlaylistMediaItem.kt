@@ -1,8 +1,6 @@
 package org.videolan.vlc.gui.audio
 
 import android.content.Context
-import android.graphics.Bitmap
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,15 +12,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
@@ -30,9 +24,9 @@ import org.videolan.tools.Settings
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.components.VLCAudioPlaylistItem
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.gui.compose.VlcMediaImage
 import org.videolan.vlc.gui.helpers.TalkbackUtil
 import org.videolan.vlc.util.trackNumberText
-import org.videolan.vlc.util.ThumbnailsProvider
 
 @Composable
 internal fun AudioPlaylistMediaItem(
@@ -116,33 +110,13 @@ internal fun AudioPlaylistMediaItem(
 
 @Composable
 private fun AudioPlaylistMediaCover(media: MediaWrapper) {
-    val coverWidth = with(LocalDensity.current) {
-        if (media.type == MediaWrapper.TYPE_VIDEO) 77.dp.roundToPx() else 48.dp.roundToPx()
-    }
-    val thumbnail by produceState<Bitmap?>(null, media.id, media.uri, media.artworkMrl, coverWidth) {
-        value = if (!Settings.showVideoThumbs && media.type == MediaWrapper.TYPE_VIDEO) {
-            null
-        } else {
-            ThumbnailsProvider.obtainBitmap(media, coverWidth)
-        }
-    }
-
-    val bitmap = thumbnail
-    if (bitmap == null) {
-        Image(
-            painter = painterResource(media.defaultCoverResource),
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
-            modifier = Modifier.fillMaxSize()
-        )
-    } else {
-        Image(
-            bitmap = bitmap.asImageBitmap(),
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
-            modifier = Modifier.fillMaxSize()
-        )
-    }
+    VlcMediaImage(
+        item = media,
+        width = if (media.type == MediaWrapper.TYPE_VIDEO) 77.dp else 48.dp,
+        fallbackPainter = painterResource(media.defaultCoverResource),
+        contentScale = ContentScale.Fit,
+        modifier = Modifier.fillMaxSize()
+    )
 }
 
 @Composable
