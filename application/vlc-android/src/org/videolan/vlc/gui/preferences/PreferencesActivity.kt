@@ -129,6 +129,7 @@ import org.videolan.vlc.gui.dialogs.showAudioControlsSettingsComposeDialog
 import org.videolan.vlc.gui.dialogs.showConfirmDeleteComposeDialog
 import org.videolan.vlc.gui.dialogs.showFeatureFlagWarningComposeDialog
 import org.videolan.vlc.gui.dialogs.showPermissionListComposeDialog
+import org.videolan.vlc.gui.dialogs.showSimpleComposeDialog
 import org.videolan.vlc.gui.dialogs.showSleepTimerComposeDialog
 import org.videolan.vlc.gui.dialogs.showUpdateComposeDialog
 import org.videolan.vlc.gui.dialogs.showVideoControlsSettingsComposeDialog
@@ -634,18 +635,19 @@ open class PreferencesActivity : BaseActivity() {
     }
 
     private fun installNightly() {
-        android.app.AlertDialog.Builder(this)
-            .setTitle(getString(R.string.install_nightly))
-            .setMessage(getString(R.string.install_nightly_alert))
-            .setPositiveButton(R.string.ok) { _, _ ->
+        showSimpleComposeDialog(
+            title = getString(R.string.install_nightly),
+            message = getString(R.string.install_nightly_alert),
+            confirmText = getString(R.string.ok),
+            dismissText = getString(R.string.cancel),
+            onConfirm = {
                 lifecycleScope.launch {
                     AutoUpdate.checkUpdate(application, true) { url, date ->
                         showUpdateComposeDialog(url, date, newInstall = true)
                     }
                 }
             }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
+        )
     }
 
     private fun confirmClearPlaybackHistory() {
