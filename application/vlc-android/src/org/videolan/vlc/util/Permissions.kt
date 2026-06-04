@@ -25,7 +25,6 @@ package org.videolan.vlc.util
 
 import android.Manifest
 import android.annotation.TargetApi
-import android.app.Activity
 import android.app.AppOpsManager
 import android.app.Dialog
 import android.content.Context
@@ -35,7 +34,6 @@ import android.net.Uri
 import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
-import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
@@ -290,7 +288,7 @@ object Permissions {
 
     private fun showSettingsPermissionDialog(activity: ComponentActivity, mode: Int) {
         if (activity.isFinishing || sAlertDialog != null && sAlertDialog!!.isShowing) return
-        sAlertDialog = createSettingsDialogCompat(activity, mode)
+        sAlertDialog = createSettingsDialog(activity, mode)
     }
 
     fun showStoragePermissionDialog(activity: ComponentActivity, exit: Boolean) {
@@ -333,7 +331,7 @@ object Permissions {
 
     }
 
-    private fun createSettingsDialogCompat(activity: Activity, mode: Int): Dialog {
+    private fun createSettingsDialog(activity: ComponentActivity, mode: Int): Dialog {
         var titleId = 0
         var textId = 0
         var action = android.provider.Settings.ACTION_MANAGE_WRITE_SETTINGS
@@ -358,22 +356,28 @@ object Permissions {
             }
         }
         val finalAction = action
-        val dialogBuilder = AlertDialog.Builder(activity)
-                .setTitle(activity.getString(titleId))
-                .setMessage(activity.getString(textId))
-                .setIcon(R.drawable.ic_warning)
-                .setPositiveButton(activity.getString(R.string.permission_ask_again)) { _, _ ->
-                    val settings = Settings.getInstance(activity)
-                    val i = Intent(finalAction)
-                    i.data = Uri.fromParts(SCHEME_PACKAGE, activity.packageName, null)
-                    try {
-                        activity.startActivity(i)
-                    } catch (ignored: Exception) {
-                    }
-
-                    settings.edit { putBoolean("user_declined_settings_access", true) }
+        return activity.showSimpleComposeDialog(
+            title = activity.getString(titleId),
+            message = activity.getString(textId),
+            confirmText = activity.getString(R.string.permission_ask_again),
+            onConfirm = {
+                val settings = Settings.getInstance(activity)
+                val i = Intent(finalAction)
+                i.data = Uri.fromParts(SCHEME_PACKAGE, activity.packageName, null)
+                try {
+                    activity.startActivity(i)
+                } catch (ignored: Exception) {
                 }
-        return dialogBuilder.show()
+
+                settings.edit { putBoolean("user_declined_settings_access", true) }
+            }
+        ).apply {
+            activity.lifecycle.addObserver(object : DefaultLifecycleObserver {
+                override fun onDestroy(owner: LifecycleOwner) {
+                    dismiss()
+                }
+            })
+        }
     }
 
     private fun ComponentActivity.requestStoragePermission(write: Boolean = false, callback: Runnable? = null) {
