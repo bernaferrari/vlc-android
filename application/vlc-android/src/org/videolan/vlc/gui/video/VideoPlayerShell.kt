@@ -41,8 +41,8 @@ import org.videolan.libvlc.util.VLCVideoLayout
 import org.videolan.tools.dp
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.interop.VLCComposeView
-import org.videolan.vlc.gui.view.PlayerOptionsPanelView
 import org.videolan.vlc.gui.view.createVideoHudOverlay
+import org.videolan.vlc.gui.view.installPlayerOptionsPanelHost
 import org.videolan.vlc.gui.view.installVideoHudRightOverlayHost
 import org.videolan.vlc.gui.view.installVideoDelayOverlayHost
 import org.videolan.vlc.gui.view.installVideoInfoOverlayHost
@@ -259,12 +259,13 @@ private fun Context.hingeArrow(id: Int, icon: Int) = ImageView(this).apply {
     visibility = View.GONE
 }
 
-private fun Context.optionsPanel() = PlayerOptionsPanelView(this).apply {
+private fun Context.optionsPanel() = VLCComposeView(this).apply {
     id = R.id.options_background
     isClickable = true
     elevation = 16.dp.toFloat()
     isFocusable = false
     visibility = View.GONE
+    installPlayerOptionsPanelHost()
 }
 
 private fun Context.videoPlaylistContainer(primary: Boolean) = ConstraintLayout(this).apply {

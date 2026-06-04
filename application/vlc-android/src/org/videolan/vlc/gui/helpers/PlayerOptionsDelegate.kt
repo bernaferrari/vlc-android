@@ -32,7 +32,7 @@ import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.hf.PinCodeDelegate
 import org.videolan.vlc.gui.helpers.hf.checkPIN
 import org.videolan.vlc.gui.view.PlayerOptionsPanelHost
-import org.videolan.vlc.gui.view.PlayerOptionsPanelView
+import org.videolan.vlc.gui.view.playerOptionsPanelHost
 import org.videolan.vlc.gui.video.VideoPlayerActivity
 import org.videolan.vlc.media.PlayerController
 import org.videolan.vlc.util.TextUtils
@@ -71,7 +71,7 @@ class PlayerOptionsDelegate(val activity: ComponentActivity, val service: Playba
 
     private lateinit var bookmarkClickedListener: () -> Unit
     private var panelHost: PlayerOptionsPanelHost? = null
-    private var viewHost: PlayerOptionsPanelView? = null
+    private var viewHost: VLCComposeView? = null
     private var panelHostConfigured = false
     var flags: Long = 0L
     private val toast by lazy(LazyThreadSafetyMode.NONE) { Toast.makeText(activity, "", Toast.LENGTH_SHORT) }
@@ -134,10 +134,9 @@ class PlayerOptionsDelegate(val activity: ComponentActivity, val service: Playba
     }
 
     fun show() {
-        val panel = panelHost ?: activity.findViewById<PlayerOptionsPanelView>(R.id.options_background)?.also {
+        val panel = panelHost ?: activity.findViewById<VLCComposeView>(R.id.options_background)?.also {
             viewHost = it
-            panelHost = it
-        } ?: return
+        }?.playerOptionsPanelHost()?.also { panelHost = it } ?: return
         if (!panelHostConfigured) {
             panel.setOnOptionClickListener(::onClick)
             panel.setOnDismissClickListener { hide() }
@@ -176,7 +175,6 @@ class PlayerOptionsDelegate(val activity: ComponentActivity, val service: Playba
 
     fun setPanelHost(host: PlayerOptionsPanelHost) {
         panelHost = host
-        viewHost = host as? PlayerOptionsPanelView
     }
 
     fun setBookmarkClickedListener(listener:()->Unit) {

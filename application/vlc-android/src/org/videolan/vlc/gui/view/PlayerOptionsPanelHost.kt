@@ -1,7 +1,5 @@
 package org.videolan.vlc.gui.view
 
-import android.content.Context
-import android.util.AttributeSet
 import android.view.View
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
@@ -31,7 +29,9 @@ import androidx.compose.ui.unit.dp
 import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.compose.components.VLCPlayerOptionItem
-import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
+import org.videolan.vlc.R
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.helpers.PlayerOption
 
@@ -52,34 +52,40 @@ interface PlayerOptionsPanelHost {
 
 /**
  * Direct Compose-backed shared player options overlay. The audio/video hosts
- * place this view at the former stub bounds while this root owns the former
+ * place this view at the former stub bounds while this host owns the former
  * BrowseFrameLayout option list content.
  */
-class PlayerOptionsPanelView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : VLCAbstractComposeWidget(context, attrs, defStyleAttr), PlayerOptionsPanelHost {
+fun VLCComposeView.installPlayerOptionsPanelHost() {
+    val host = PlayerOptionsPanelController(this)
+    setTag(R.id.options_background, host)
+    isClickable = true
+    isFocusable = false
+    setContent {
+        VLCTheme {
+            host.Content()
+        }
+    }
+}
+
+fun VLCComposeView.playerOptionsPanelHost(): PlayerOptionsPanelHost =
+    getTag(R.id.options_background) as? PlayerOptionsPanelHost ?: error("Missing player options panel host")
+
+private class PlayerOptionsPanelController(private val view: VLCComposeView) : PlayerOptionsPanelHost {
 
     private var panelOptions by mutableStateOf<List<PlayerOption>>(emptyList())
     private var focusRequestToken by mutableStateOf(0)
     private var onDismissClick: () -> Unit = {}
     private var onOptionClick: (PlayerOption) -> Unit = {}
 
-    init {
-        isClickable = true
-        isFocusable = false
-    }
-
     override val visible: Boolean
-        get() = visibility == View.VISIBLE
+        get() = view.visibility == View.VISIBLE
 
     override fun show() {
-        setVisible()
+        view.setVisible()
     }
 
     override fun hide() {
-        setGone()
+        view.setGone()
     }
 
     override fun setOptions(options: List<PlayerOption>) {
@@ -110,7 +116,7 @@ class PlayerOptionsPanelView @JvmOverloads constructor(
     }
 
     @Composable
-    override fun WidgetContent() {
+    fun Content() {
         VLCPlayerOptionsPanelContent(
             options = panelOptions,
             focusRequestToken = focusRequestToken,
