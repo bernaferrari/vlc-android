@@ -735,8 +735,6 @@
     <string name="widget_explanation_end">Bileşenler ayrıntılı olarak özelleştirilebilir. Yaratıcılığınızı serbest bırakın ve size özgü görünmesini sağlayın!</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">Hızlı kayıt kaydırıcı</string>
-    <string name="fastscroller_handle">Hızlı kaydırıcı ucu</string>
 
     <!-- Plugins -->
     <string name="plugins">Uygulama ekleri</string>

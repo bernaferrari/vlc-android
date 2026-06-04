@@ -737,8 +737,6 @@
     <string name="widget_explanation_end">A modulok nagy mértékben testreszabhatók. Engedje szabadjára a kreativitását, és alakítsa az Önnek megfelelőre.</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">Gyorsgörgető sáv</string>
-    <string name="fastscroller_handle">Gyorsgörgető fogantyú</string>
 
     <!-- Plugins -->
     <string name="plugins">Bővítmények</string>

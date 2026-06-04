@@ -534,8 +534,6 @@
     <string name="exit_app">VLC അടയ്ക്കുക</string>
     <string name="exit_app_msg">VLC അടക്കണമെന്ന് താങ്കല്‍ക്കുറപ്പാണോ ?</string>
     <!-- fast scroller -->
-    <string name="fastscroller_track">ഫാസ്റ്റ് സ്ക്രോളർ ട്രാക്ക് </string>
-    <string name="fastscroller_handle">ഫാസ്റ്റ് സ്ക്രോളർ ഹാൻഡിൽ</string>
 
     <!-- Plugins -->
     <string name="plugins">പ്ലഗ്ഗിനുകൾ </string>

@@ -732,8 +732,6 @@
     <string name="widget_explanation_end">Οι μικροεφαρμογές είναι σε μεγάλο βαθμό προσαρμόσιμες. Απελευθερώστε την δημιουργικότητά σας και κάντε τις να σας μοιάζουν!</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">Κομμάτι FastScroller</string>
-    <string name="fastscroller_handle">Λαβή FastScroller</string>
 
     <!-- Plugins -->
     <string name="plugins">Προσθήκες</string>

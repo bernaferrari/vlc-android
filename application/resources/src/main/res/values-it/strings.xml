@@ -748,8 +748,6 @@
     <string name="widget_explanation_end">I widget sono incredibilmente personalizzabili. Dai spazio alla tua creatività e dagli l\'aspetto che preferisci!</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">Traccia FastScroller</string>
-    <string name="fastscroller_handle">Maniglia FastScroller</string>
 
     <!-- Plugins -->
     <string name="plugins">Estensioni</string>

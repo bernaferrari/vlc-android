@@ -759,8 +759,6 @@
     <string name="widget_explanation_end">Widgety sú veľmi prispôsobiteľné. Prejavte svoju kreativitu a upravte si ich vzhľad podľa svojich želaní!</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">Rýchle rolovanie stopy</string>
-    <string name="fastscroller_handle">Ovládanie rýchleho rolovania</string>
 
     <!-- Plugins -->
     <string name="plugins">Prídavné moduly</string>

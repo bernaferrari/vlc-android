@@ -491,8 +491,6 @@
     <string name="exit_app">Zamknij VLC</string>
     <string name="exit_app_msg">Na pewno chcesz zamknąć VLC?</string>
     <!-- fast scroller -->
-    <string name="fastscroller_track">Szybkie przewijanie tytułów</string>
-    <string name="fastscroller_handle">Zachowanie szybkiego przewijania</string>
 
     <!-- Plugins -->
     <string name="plugins">Wtyczki</string>

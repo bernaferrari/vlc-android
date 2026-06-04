@@ -568,8 +568,6 @@
     <string name="widget_explanation_end">Wijezi zinaweza kutanafsishwa. Jibambe kwa kutumia ubunifu wako, zikufae!</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">Firigisa nakala haraka</string>
-    <string name="fastscroller_handle">Kishikio cha kufigirisa haraka</string>
 
     <!-- Plugins -->
     <string name="plugins">Programu-jalizi</string>

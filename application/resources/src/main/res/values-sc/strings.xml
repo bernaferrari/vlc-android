@@ -737,8 +737,6 @@
     <string name="widget_explanation_end">Sos widgets si podent personalizare meda. Lìbera sa creatividade tua e dae·li s\'aspetu prus adatu a tie!</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">Rasta FastScroller</string>
-    <string name="fastscroller_handle">Manìllia FastScroller</string>
 
     <!-- Plugins -->
     <string name="plugins">Estensiones</string>

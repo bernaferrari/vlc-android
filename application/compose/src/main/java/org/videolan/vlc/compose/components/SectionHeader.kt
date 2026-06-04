@@ -20,18 +20,18 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
  *   - the former phone recycler section header layout
  *   - the former TV recycler section header layout
  *
- * High-leverage list header used by RecyclerSectionItemDecoration / GridDecoration
- * across audio browsers, playlists, header media lists, etc.
+ * High-leverage list header used across audio browsers, playlists, header media
+ * lists, and TV grid/list surfaces.
  *
  * Respects VLCTheme tokens:
  *   - headerBackground (?attr/header_background)
  *   - audioBrowserSeparator (?attr/audio_browser_separator) for text color
  *
- * Typical usage in adapters / decorations (later migration):
+ * Typical usage in Compose list content:
  *   VLCSectionHeader(text = sectionName)
  *
- * The TV file/media browser routes now use Compose directly; this component remains
- * the shared section-header leaf for hosts that still draw RecyclerView decorations.
+ * The migrated file/media browser routes now use Compose directly; this component
+ * remains the shared section-header leaf for list hosts.
  */
 @Composable
 fun VLCSectionHeader(

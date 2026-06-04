@@ -529,8 +529,6 @@
     <string name="exit_app">Cerrar VLC</string>
     <string name="exit_app_msg">¿Realmente desea cerrar VLC?</string>
     <!-- fast scroller -->
-    <string name="fastscroller_track">Desplazador Rápido de pista</string>
-    <string name="fastscroller_handle">Manejo de Desplazador Rápido</string>
 
     <!-- Plugins -->
     <string name="plugins">Complementos</string>

@@ -755,8 +755,6 @@
     <string name="widget_explanation_end">Gradniki so zelo prilagodljivi. Sprostite svojo kreativnost in jim vdahnite svojo podobo!</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">Hitri drsnik</string>
-    <string name="fastscroller_handle">Ročnik hitrega drsnika</string>
 
     <!-- Plugins -->
     <string name="plugins">Vstavki</string>

@@ -632,8 +632,6 @@
     <string name="widget_explanation_end">Widget có khả năng tùy biến cao. Giải phóng sự sáng tạo của bạn và làm cho họ trông giống bạn!</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">Bản nhạc FastScroller</string>
-    <string name="fastscroller_handle">Xử lý FastScroller</string>
 
     <!-- Plugins -->
     <string name="plugins">Tiện ích</string>

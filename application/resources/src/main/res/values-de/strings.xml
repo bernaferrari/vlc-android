@@ -737,8 +737,6 @@
     <string name="widget_explanation_end">Widgets sind stark anpassbar. Lassen Sie Ihrer Kreativität freien Lauf und lassen Sie diese wie Sie aussehen!</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">Schneller Bildlauf für Titel</string>
-    <string name="fastscroller_handle">Bedienung des Schnellen Bildlaufs</string>
 
     <!-- Plugins -->
     <string name="plugins">Module</string>

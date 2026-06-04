@@ -562,8 +562,6 @@
     <string name="exit_app_msg">Ertu viss um að þú viljir hætta í VLC?</string>
     <string name="widget_explanation_title">VLC-viðmótshlutar</string>
     <!-- fast scroller -->
-    <string name="fastscroller_track">FastScroller spor</string>
-    <string name="fastscroller_handle">FastScroller haldfang</string>
 
     <!-- Plugins -->
     <string name="plugins">Viðbætur</string>

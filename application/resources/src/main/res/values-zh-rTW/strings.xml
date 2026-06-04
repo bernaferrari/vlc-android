@@ -724,8 +724,6 @@
     <string name="widget_explanation_end">小工具是高度可自訂的。釋放您的創造力，讓它們看起來像您！</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">FastScroller 軌道</string>
-    <string name="fastscroller_handle">FastScroller 把手</string>
 
     <!-- Plugins -->
     <string name="plugins">外掛</string>

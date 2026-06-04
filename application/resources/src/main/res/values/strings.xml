@@ -755,8 +755,6 @@
     <string name="widget_explanation_end">Widgets are heavily customizable. Unleash your creativity and make them look like you!</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">FastScroller track</string>
-    <string name="fastscroller_handle">FastScroller handle</string>
 
     <!-- Plugins -->
     <string name="plugins">Plugins</string>

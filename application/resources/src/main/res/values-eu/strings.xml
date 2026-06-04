@@ -663,8 +663,6 @@
     <string name="widget_explanation_end">Trepetak oso pertsonalizagarriak dira. Askatu zure sormena eta eman zure antza!</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">FastScroller pista</string>
-    <string name="fastscroller_handle">FastScroller maneiatzailea</string>
 
     <!-- Plugins -->
     <string name="plugins">Pluginak</string>

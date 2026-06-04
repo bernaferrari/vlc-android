@@ -737,8 +737,6 @@
     <string name="widget_explanation_end">Widgetar är mycket anpassningsbara. Släpp loss din kreativitet och få dem att passa dina preferenser!</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">FastScroller-spår</string>
-    <string name="fastscroller_handle">FastScroller-handtag</string>
 
     <!-- Plugins -->
     <string name="plugins">Insticksmoduler</string>

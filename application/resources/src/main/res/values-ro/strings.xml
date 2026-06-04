@@ -748,8 +748,6 @@
     <string name="widget_explanation_end">Widgeturile sunt foarte personalizabile. Eliberează-ți creativitatea și fă-le să arate ca tine!</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">Pista de derulare rapidă</string>
-    <string name="fastscroller_handle">Mâner derulare rapidă</string>
 
     <!-- Plugins -->
     <string name="plugins">Module</string>

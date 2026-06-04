@@ -26,6 +26,5 @@
 
 
     <!-- fast scroller -->
-    <dimen name="fastscroller_track_padding">0dp</dimen>
 
 </resources>

@@ -748,8 +748,6 @@
     <string name="widget_explanation_end">Les widgets sont largement personnalisables. Libérez votre créativité et faites en sorte qu’ils vous ressemblent !</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">indicateur de défilement rapide</string>
-    <string name="fastscroller_handle">Curseur du défilement rapide</string>
 
     <!-- Plugins -->
     <string name="plugins">Extensions</string>

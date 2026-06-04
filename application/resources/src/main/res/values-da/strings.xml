@@ -708,8 +708,6 @@
     <string name="widget_explanation_end">Widgets er dybt konfigurérbare. Frigør din kreativitet og få dem til at se ud som dig!</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">Hurtig ruller-spor</string>
-    <string name="fastscroller_handle">Hurtig ruller-håndtag</string>
 
     <!-- Plugins -->
     <string name="plugins">Plugins</string>

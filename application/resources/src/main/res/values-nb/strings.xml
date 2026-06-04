@@ -581,8 +581,6 @@
     <string name="widget_explanation_title">VLC-skjermelementer</string>
     <string name="widget_explanation_size">Skjermelementene kommer i forskjellige størrelser og oppbygginger</string>
     <!-- fast scroller -->
-    <string name="fastscroller_track">FastScroller-spor</string>
-    <string name="fastscroller_handle">FastScroller-håndtering</string>
 
     <!-- Plugins -->
     <string name="plugins">Programtillegg</string>

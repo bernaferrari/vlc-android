@@ -663,8 +663,6 @@
     <string name="widget_explanation_end">Os controles são amplamente personalizáveis. Libere sua criatividade e faça-os parecer com seu jeito!</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">Trilha FastScroller</string>
-    <string name="fastscroller_handle">Manipulador FastScroller</string>
 
     <!-- Plugins -->
     <string name="plugins">Complementos</string>

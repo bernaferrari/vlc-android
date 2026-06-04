@@ -499,8 +499,6 @@
     <string name="exit_app">Pechar o VLC</string>
     <string name="exit_app_msg">Confirma que quere pechar o VLC?</string>
     <!-- fast scroller -->
-    <string name="fastscroller_track">Barra de desprazamento rápido</string>
-    <string name="fastscroller_handle">Manexador do desprazamento rápido</string>
 
     <!-- Plugins -->
     <string name="plugins">Plugins</string>

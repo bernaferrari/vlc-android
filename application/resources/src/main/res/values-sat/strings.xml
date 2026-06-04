@@ -461,8 +461,6 @@
     <string name="exit_app">VLC ᱵᱚᱸᱫᱚᱭ ᱢᱮ</string>
     <string name="exit_app_msg">ᱪᱮᱫ ᱟᱢ ᱜᱚᱴᱟ ᱢᱮᱱᱟᱢ-ᱟ VLC ᱟᱱᱟᱜ ᱞᱟᱹᱜᱤᱫ ᱛᱮ?</string>
     <!-- fast scroller -->
-    <string name="fastscroller_track">ᱞᱚᱜᱚᱱᱥᱠᱨᱚᱞᱟᱹᱨ ᱴᱨᱟᱠ</string>
-    <string name="fastscroller_handle">ᱞᱚᱜᱚᱱᱥᱠᱨᱚᱞᱟᱹᱨ ᱦᱮᱸᱰᱟᱹᱞ</string>
 
     <!-- Plugins -->
     <string name="plugins">ᱯᱞᱟᱹᱜᱤᱱᱠᱚ</string>

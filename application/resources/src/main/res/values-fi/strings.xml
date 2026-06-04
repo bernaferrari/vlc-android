@@ -756,8 +756,6 @@ Voit toistaa vain suoratoistoa tai verkkomediaa</string>
     <string name="widget_explanation_end">Sovelmat ovat raskaasti muokattavissa. Päästä luovuutesi valloilleen!</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">FastScroller raita</string>
-    <string name="fastscroller_handle">FastScroller kahva</string>
 
     <!-- Plugins -->
     <string name="plugins">Liitännäiset</string>

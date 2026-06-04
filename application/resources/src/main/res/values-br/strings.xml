@@ -577,8 +577,6 @@
     <string name="exit_app">Serriñ VLC</string>
     <string name="exit_app_msg">Ha sur oc\'h da gaout c\'hoant da guitaat VLC?</string>
     <!-- fast scroller -->
-    <string name="fastscroller_track">Roud FastScroller</string>
-    <string name="fastscroller_handle">Reti an dibunañ herrek</string>
 
     <!-- Plugins -->
     <string name="plugins">Lugantoù</string>

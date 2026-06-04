@@ -726,8 +726,6 @@
     <string name="widget_explanation_end">ウィジェットは自由にカスタマイズすることができます。あなたの想像を解き放ちデザインしてください。</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">FastScroller トラック</string>
-    <string name="fastscroller_handle">FastScroller ハンドル</string>
 
     <!-- Plugins -->
     <string name="plugins">プラグイン</string>

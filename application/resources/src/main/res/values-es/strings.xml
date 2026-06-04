@@ -440,8 +440,6 @@
     <string name="exit_app">Salir de VLC</string>
     <string name="exit_app_msg">¿Desea salir de VLC?</string>
     <!-- fast scroller -->
-    <string name="fastscroller_track">Seguimiento FastScroller</string>
-    <string name="fastscroller_handle">Manejador FastScroller</string>
 
     <!-- Plugins -->
     <string name="plugins">Complementos</string>

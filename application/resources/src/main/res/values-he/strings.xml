@@ -753,8 +753,6 @@
     <string name="widget_explanation_end">וידג׳טים הם גמישים להפליא. אפשר לבטא אתם את הצד היצירתי שבך ולגרום להם להתאים בדיוק בשבילך!</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">רצועת גלילה מהירה</string>
-    <string name="fastscroller_handle">ידית גלילה מהירה</string>
 
     <!-- Plugins -->
     <string name="plugins">הרחבות</string>

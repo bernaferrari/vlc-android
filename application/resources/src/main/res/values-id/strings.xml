@@ -591,8 +591,6 @@
     <string name="widget_explanation_end">Widget sangat dapat disesuaikan. Bebaskan kreativitas Anda dan buat mereka terlihat seperti Anda!</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">Trek dengan sistem pencarian cepat</string>
-    <string name="fastscroller_handle">Pengatur sistem pencarian cepat</string>
 
     <!-- Plugins -->
     <string name="plugins">Pengaya</string>

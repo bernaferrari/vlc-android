@@ -461,8 +461,6 @@
     <string name="exit_app">VLC बन्द गर्नुहोस्</string>
     <string name="exit_app_msg">के तपाईँ VLC छोड्न निश्चित हुनुहुन्छ?</string>
     <!-- fast scroller -->
-    <string name="fastscroller_track">FastScroller ट्रयाक</string>
-    <string name="fastscroller_handle">FastScroller ह्यान्डल</string>
 
     <!-- Plugins -->
     <string name="plugins">प्लगइनहरू</string>

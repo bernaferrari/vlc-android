@@ -739,8 +739,6 @@
     <string name="widget_explanation_end">Vidinaid saab tohutult palju muuta vastavalt sinu eelistustele. Lase oma loovusel lennata ja tee nad selliseks, nagu tahad!</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">Kiirkeritav rada</string>
-    <string name="fastscroller_handle">Kiirkerija kahv</string>
 
     <!-- Plugins -->
     <string name="plugins">Pluginad</string>

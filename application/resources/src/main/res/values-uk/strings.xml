@@ -713,8 +713,6 @@
     <string name="widget_explanation_end">Віджети важко налаштувати. Розкрийте свій творчий потенціал і зробіть їх схожими на вас!</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">Доріжка FastScroller</string>
-    <string name="fastscroller_handle">Держак FastScroller</string>
 
     <!-- Plugins -->
     <string name="plugins">Модулі</string>

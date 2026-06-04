@@ -607,8 +607,6 @@
     <string name="exit_app_msg">Сапраўды закрыць VLC?</string>
     <string name="widget_explanation_title">Віджэты VLC</string>
     <!-- fast scroller -->
-    <string name="fastscroller_track">Хуткае прагортванне</string>
-    <string name="fastscroller_handle">Хуткае прагортванне</string>
 
     <!-- Plugins -->
     <string name="plugins">Плагіны</string>

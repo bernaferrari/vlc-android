@@ -727,8 +727,6 @@
     <string name="widget_explanation_end">위젯은 사용자 정의가 매우 용이합니다. 여러분의 창의력을 발휘해보세요!</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">FastScroller 트랙</string>
-    <string name="fastscroller_handle">FastScroller 핸들</string>
 
     <!-- Plugins -->
     <string name="plugins">플러그인</string>

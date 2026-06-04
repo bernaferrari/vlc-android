@@ -433,8 +433,6 @@
     <string name="exit_app">Cau VLC</string>
     <string name="exit_app_msg">Wyt ti wir eisiau gadael VLC?</string>
     <!-- fast scroller -->
-    <string name="fastscroller_track">Tracio FastScroller</string>
-    <string name="fastscroller_handle">Handlen FastScroller</string>
 
     <!-- Plugins -->
     <string name="plugins">Ategion</string>

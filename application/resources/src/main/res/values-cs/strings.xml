@@ -759,8 +759,6 @@
     <string name="widget_explanation_end">Widgety lze přizpůsobit podle Vašich představ!</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">Stopa pro rychlé posunutí</string>
-    <string name="fastscroller_handle">Posuvník pro rychlé posunutí</string>
 
     <!-- Plugins -->
     <string name="plugins">Moduly</string>

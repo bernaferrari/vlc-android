@@ -737,8 +737,6 @@
     <string name="widget_explanation_end">Els ginys són molt ajustables. Desfermeu la vostra creativitat i feu que se us assemblin!</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">Pista de DesplaçamentRàpid</string>
-    <string name="fastscroller_handle">Gestió del DesplaçamentRàpid</string>
 
     <!-- Plugins -->
     <string name="plugins">Connectors</string>

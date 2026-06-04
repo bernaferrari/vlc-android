@@ -731,8 +731,6 @@
     <string name="widget_explanation_end">Widgets zijn sterk aanpasbaar. Laat uw creativiteit de vrije loop en laat ze op u lijken!</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">FastScroller-track</string>
-    <string name="fastscroller_handle">FastScroller-bediening</string>
 
     <!-- Plugins -->
     <string name="plugins">Plugins</string>

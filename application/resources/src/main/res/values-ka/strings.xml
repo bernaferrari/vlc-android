@@ -731,8 +731,6 @@
     <string name="widget_explanation_end">ეკრანის ჩანართების ყოველმხრივ მორგებაა შესაძლებელი. მიეცით გასაქანი თქვენს წარმოსახვას და მოაწყვეთ საკუთარი გემოვნებით!</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">FastScroller ჩანაწერი</string>
-    <string name="fastscroller_handle">FastScroller სამართავი</string>
 
     <!-- Plugins -->
     <string name="plugins">დანამატები</string>

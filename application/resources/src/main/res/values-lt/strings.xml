@@ -689,8 +689,6 @@
     <string name="widget_explanation_end">Valdikliai yra stipriai tinkintini. Išlaisvinkite savo kūrybiškumą ir padarykite juos panašius į Jus!</string>
 
     <!-- fast scroller -->
-    <string name="fastscroller_track">Greitoji slinktis</string>
-    <string name="fastscroller_handle">Greitoji slinktis</string>
 
     <!-- Plugins -->
     <string name="plugins">Papildiniai</string>
