@@ -26,7 +26,6 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.os.Parcelable
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.compose.foundation.BorderStroke
@@ -76,7 +75,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MediatorLiveData
@@ -121,7 +119,6 @@ import org.videolan.vlc.gui.dialogs.showConfirmDeleteComposeDialog
 import org.videolan.vlc.gui.helpers.AudioUtil
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
-import org.videolan.vlc.gui.helpers.downloadIcon
 import org.videolan.vlc.gui.video.VideoPlayerActivity
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.repository.BrowserFavRepository
@@ -614,7 +611,7 @@ private fun OverviewArtwork(
             !posterUrl.isNullOrEmpty() -> DetailRemoteArtwork(
                 imageUrl = posterUrl,
                 placeholder = placeholder,
-                scaleType = ImageView.ScaleType.CENTER_CROP,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
             coverBitmap != null -> Image(
@@ -683,7 +680,7 @@ private fun DetailPersonCard(person: Person) {
             DetailRemoteArtwork(
                 imageUrl = person.image,
                 placeholder = R.drawable.ic_people_big,
-                scaleType = ImageView.ScaleType.FIT_CENTER,
+                contentScale = ContentScale.Fit,
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(2f / 3f)
@@ -714,7 +711,7 @@ private fun DetailImageCard(image: MediaImage, poster: Boolean, onClick: () -> U
         DetailRemoteArtwork(
             imageUrl = image.url,
             placeholder = if (poster) R.drawable.ic_video_big else R.drawable.ic_default_cone,
-            scaleType = ImageView.ScaleType.CENTER_CROP,
+            contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(if (poster) 2f / 3f else 16f / 9f)
@@ -736,26 +733,14 @@ private fun DetailSectionHeader(title: Int) {
 private fun DetailRemoteArtwork(
     imageUrl: String?,
     placeholder: Int,
-    scaleType: ImageView.ScaleType,
+    contentScale: ContentScale,
     modifier: Modifier = Modifier
 ) {
-    AndroidView(
-        factory = { context ->
-            ImageView(context).apply {
-                adjustViewBounds = true
-                this.scaleType = scaleType
-                setImageResource(placeholder)
-            }
-        },
-        update = { imageView ->
-            imageView.scaleType = scaleType
-            if (imageUrl.isNullOrEmpty()) {
-                imageView.setImageResource(placeholder)
-            } else {
-                downloadIcon(imageView, imageUrl.toUri())
-            }
-        },
-        modifier = modifier
+    TvRemoteArtworkImage(
+        imageUrl = imageUrl,
+        placeholder = placeholder,
+        modifier = modifier,
+        contentScale = contentScale
     )
 }
 

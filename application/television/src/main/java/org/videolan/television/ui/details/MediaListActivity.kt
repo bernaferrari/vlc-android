@@ -3,7 +3,6 @@ package org.videolan.television.ui.details
 import android.content.Intent
 import android.os.Bundle
 import android.os.Parcelable
-import android.widget.ImageView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -50,7 +49,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.leanback.app.BackgroundManager
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -61,6 +59,7 @@ import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.resources.ITEM
 import org.videolan.resources.util.parcelable
 import org.videolan.television.R
+import org.videolan.television.ui.TvMediaArtworkImage
 import org.videolan.television.ui.TvUtil
 import org.videolan.television.ui.browser.BaseTvActivity
 import org.videolan.television.ui.dialogs.ConfirmationTvActivity
@@ -72,8 +71,6 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.dialogs.SavePlaylistDialog
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
-import org.videolan.vlc.gui.helpers.getTvIconRes
-import org.videolan.vlc.gui.helpers.loadImage
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.util.ModelsHelper.getDiscNumberString
 import org.videolan.vlc.viewmodels.mobile.PlaylistViewModel
@@ -585,20 +582,10 @@ private fun TvRowActionButton(
 
 @Composable
 private fun TvMediaImage(item: MediaLibraryItem, modifier: Modifier) {
-    AndroidView(
-        factory = { context ->
-            ImageView(context).apply {
-                adjustViewBounds = true
-                scaleType = ImageView.ScaleType.CENTER_CROP
-            }
-        },
+    TvMediaArtworkImage(
+        item = item,
         modifier = modifier,
-        update = { imageView ->
-            imageView.scaleType = ImageView.ScaleType.CENTER_CROP
-            imageView.setImageResource(getTvIconRes(item))
-            imageView.contentDescription = item.title
-            loadImage(imageView, item, tv = true, card = true)
-        }
+        contentDescription = item.title
     )
 }
 

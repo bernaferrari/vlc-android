@@ -27,7 +27,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.KeyEvent
-import android.widget.ImageView
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -78,8 +77,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.net.toUri
 import androidx.leanback.app.BackgroundManager
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -119,6 +116,8 @@ import org.videolan.television.ui.MainTvActivity
 import org.videolan.television.ui.MediaScrapingTvshowDetailsActivity
 import org.videolan.television.ui.TvUtil
 import org.videolan.television.ui.TV_SHOW_ID
+import org.videolan.television.ui.TvMediaArtworkImage
+import org.videolan.television.ui.TvRemoteArtworkImage
 import org.videolan.television.ui.clearBackground
 import org.videolan.television.ui.updateBackground
 import org.videolan.television.viewmodel.MediaBrowserViewModel
@@ -129,9 +128,6 @@ import org.videolan.tools.Settings
 import org.videolan.tools.putSingle
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
-import org.videolan.vlc.gui.helpers.downloadIcon
-import org.videolan.vlc.gui.helpers.getTvIconRes
-import org.videolan.vlc.gui.helpers.loadImage
 import org.videolan.vlc.providers.medialibrary.MedialibraryProvider
 import org.videolan.vlc.repository.BrowserFavRepository
 import org.videolan.vlc.util.FileUtils
@@ -876,20 +872,11 @@ private fun TvMoviepediaItemSurface(
 
 @Composable
 private fun TvMoviepediaImage(item: MediaMetadataWithImages, modifier: Modifier) {
-    AndroidView(
-        factory = { context ->
-            ImageView(context).apply {
-                adjustViewBounds = true
-                scaleType = ImageView.ScaleType.CENTER_CROP
-            }
-        },
+    TvRemoteArtworkImage(
+        imageUrl = item.metadata.currentPoster,
+        placeholder = if (item.metadata.type == MediaMetadataType.TV_SHOW) VlcR.drawable.ic_browser_tvshow_big else VlcR.drawable.ic_browser_movie_big,
         modifier = modifier,
-        update = { imageView ->
-            imageView.scaleType = ImageView.ScaleType.CENTER_CROP
-            imageView.setImageResource(if (item.metadata.type == MediaMetadataType.TV_SHOW) VlcR.drawable.ic_browser_tvshow_big else VlcR.drawable.ic_browser_movie_big)
-            imageView.contentDescription = item.metadata.title
-            downloadIcon(imageView, item.metadata.currentPoster.toUri())
-        }
+        contentDescription = item.metadata.title
     )
 }
 
@@ -1237,20 +1224,10 @@ private fun TvMediaItemSurface(
 
 @Composable
 private fun TvMediaImage(item: MediaLibraryItem, modifier: Modifier) {
-    AndroidView(
-        factory = { context ->
-            ImageView(context).apply {
-                adjustViewBounds = true
-                scaleType = ImageView.ScaleType.CENTER_CROP
-            }
-        },
+    TvMediaArtworkImage(
+        item = item,
         modifier = modifier,
-        update = { imageView ->
-            imageView.scaleType = ImageView.ScaleType.CENTER_CROP
-            imageView.setImageResource(getTvIconRes(item))
-            imageView.contentDescription = item.title
-            loadImage(imageView, item, tv = true, card = true)
-        }
+        contentDescription = item.title
     )
 }
 

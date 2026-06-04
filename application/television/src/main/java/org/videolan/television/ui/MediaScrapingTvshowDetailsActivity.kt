@@ -24,7 +24,6 @@
 package org.videolan.television.ui
 
 import android.os.Bundle
-import android.widget.ImageView
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -66,13 +65,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
@@ -90,7 +89,6 @@ import org.videolan.television.ui.browser.BaseTvActivity
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
-import org.videolan.vlc.gui.helpers.downloadIcon
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.util.generateResolutionClass
 
@@ -177,7 +175,7 @@ private fun TvShowDetailsScreen(
             RemoteArtwork(
                 imageUrl = backdrop,
                 placeholder = R.drawable.ic_video_big,
-                scaleType = ImageView.ScaleType.CENTER_CROP,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
             Box(
@@ -295,7 +293,7 @@ private fun TvShowOverview(
         RemoteArtwork(
             imageUrl = metadata.currentPoster,
             placeholder = R.drawable.ic_video_big,
-            scaleType = ImageView.ScaleType.CENTER_CROP,
+            contentScale = ContentScale.Crop,
             modifier = Modifier
                 .width(188.dp)
                 .aspectRatio(2f / 3f)
@@ -444,7 +442,7 @@ private fun EpisodeCard(
                 RemoteArtwork(
                     imageUrl = item.metadata.currentPoster,
                     placeholder = R.drawable.ic_video_big,
-                    scaleType = ImageView.ScaleType.CENTER_CROP,
+                    contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(2f / 3f)
@@ -517,7 +515,7 @@ private fun PersonCard(person: Person) {
             RemoteArtwork(
                 imageUrl = person.image,
                 placeholder = R.drawable.ic_people_big,
-                scaleType = ImageView.ScaleType.CENTER_CROP,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(2f / 3f)
@@ -545,7 +543,7 @@ private fun ImageChoiceCard(
     RemoteArtwork(
         imageUrl = image.url,
         placeholder = R.drawable.ic_video_big,
-        scaleType = ImageView.ScaleType.CENTER_CROP,
+        contentScale = ContentScale.Crop,
         modifier = Modifier
             .width(width)
             .aspectRatio(aspectRatio)
@@ -559,22 +557,14 @@ private fun ImageChoiceCard(
 private fun RemoteArtwork(
     imageUrl: String?,
     placeholder: Int,
-    scaleType: ImageView.ScaleType,
+    contentScale: ContentScale,
     modifier: Modifier = Modifier
 ) {
-    AndroidView(
-        factory = { context ->
-            ImageView(context).apply {
-                adjustViewBounds = true
-                this.scaleType = scaleType
-            }
-        },
+    TvRemoteArtworkImage(
+        imageUrl = imageUrl,
+        placeholder = placeholder,
         modifier = modifier,
-        update = { imageView ->
-            imageView.scaleType = scaleType
-            imageView.setImageResource(placeholder)
-            if (!imageUrl.isNullOrBlank()) downloadIcon(imageView, imageUrl)
-        }
+        contentScale = contentScale
     )
 }
 
