@@ -9,6 +9,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatDialog
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.Modifier
@@ -117,11 +118,11 @@ private suspend fun ComponentActivity.requestExtWritePermission(storage: String)
 }
 
 private fun ComponentActivity.showSdWriteHelpDialog(onDismiss: () -> Unit) {
-    AlertDialog.Builder(this)
-        .setView(createSdWriteHelpView())
-        .setOnDismissListener { onDismiss() }
-        .create()
-        .show()
+    AppCompatDialog(this).apply {
+        setContentView(createSdWriteHelpView())
+        setOnDismissListener { onDismiss() }
+        show()
+    }
 }
 
 private fun ComponentActivity.createSdWriteHelpView() = ComposeView(this).apply {
