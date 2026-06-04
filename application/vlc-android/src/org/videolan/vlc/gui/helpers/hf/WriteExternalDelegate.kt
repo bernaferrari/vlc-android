@@ -3,21 +3,35 @@ package org.videolan.vlc.gui.helpers.hf
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.provider.DocumentsContract
+import android.view.Window
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatDialog
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import kotlinx.coroutines.Dispatchers
@@ -30,6 +44,8 @@ import org.videolan.tools.Settings
 import org.videolan.tools.putSingle
 import org.videolan.vlc.R
 import org.videolan.vlc.VlcMigrationHelper
+import org.videolan.vlc.compose.theme.VLCTheme
+import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.util.FileUtils
 import kotlin.coroutines.resume
 
@@ -62,7 +78,7 @@ suspend fun ComponentActivity.getExtWritePermission(uri: Uri) : Boolean = withCo
 private suspend fun ComponentActivity.requestExtWritePermission(storage: String) : Boolean = suspendCancellableCoroutine { continuation ->
     val resultKey = "${WriteExternalDelegate.TAG}:${System.nanoTime()}"
     var launcher: ActivityResultLauncher<Intent>? = null
-    var activeDialog: AlertDialog? = null
+    var activeDialog: AppCompatDialog? = null
 
     fun unregister() {
         activeDialog?.setOnDismissListener(null)
@@ -80,10 +96,8 @@ private suspend fun ComponentActivity.requestExtWritePermission(storage: String)
     fun showMainDialog() {
         var waitingForPicker = false
         var showingHelp = false
-        activeDialog = AlertDialog.Builder(this)
-            .setMessage(R.string.sdcard_permission_dialog_message)
-            .setTitle(R.string.sdcard_permission_dialog_title)
-            .setPositiveButton(R.string.ok) { _, _ ->
+        activeDialog = showSdWritePermissionDialog(
+            onConfirm = {
                 waitingForPicker = true
                 val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
                     putExtra(DocumentsContract.EXTRA_INITIAL_URI, storage.toUri())
@@ -93,21 +107,21 @@ private suspend fun ComponentActivity.requestExtWritePermission(storage: String)
                 } catch (_: RuntimeException) {
                     complete(false)
                 }
-            }
-            .setNeutralButton(getString(R.string.dialog_sd_wizard)) { _, _ ->
+            },
+            onHelp = {
                 showingHelp = true
                 showSdWriteHelpDialog {
                     if (continuation.isActive) showMainDialog()
                 }
             }
-            .setOnCancelListener {
+        ).apply {
+            setOnCancelListener {
                 complete(false)
             }
-            .setOnDismissListener {
+            setOnDismissListener {
                 if (!waitingForPicker && !showingHelp) complete(false)
             }
-            .create()
-            .also { it.show() }
+        }
     }
 
     continuation.invokeOnCancellation { unregister() }
@@ -115,6 +129,73 @@ private suspend fun ComponentActivity.requestExtWritePermission(storage: String)
         complete(handleExtWriteResult(storage, result.resultCode, result.data))
     }
     showMainDialog()
+}
+
+private fun ComponentActivity.showSdWritePermissionDialog(
+    onConfirm: () -> Unit,
+    onHelp: () -> Unit
+): AppCompatDialog {
+    val dialog = AppCompatDialog(this)
+    dialog.supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
+    dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+    dialog.setContentView(
+        ComposeView(this).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+            setContent {
+                VLCTheme {
+                    val colors = VLCThemeDefaults.colors
+                    Surface(
+                        color = MaterialTheme.colorScheme.surface,
+                        shape = MaterialTheme.shapes.medium
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 24.dp, top = 24.dp, end = 24.dp, bottom = 16.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.sdcard_permission_dialog_title),
+                                color = colors.fontDefault,
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+                            Text(
+                                text = stringResource(R.string.sdcard_permission_dialog_message),
+                                color = colors.fontDefault,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(top = 16.dp)
+                            )
+                            Row(
+                                horizontalArrangement = Arrangement.End,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 24.dp)
+                            ) {
+                                TextButton(
+                                    onClick = {
+                                        onHelp()
+                                        dialog.dismiss()
+                                    }
+                                ) {
+                                    Text(text = stringResource(R.string.dialog_sd_wizard))
+                                }
+                                Button(
+                                    onClick = {
+                                        onConfirm()
+                                        dialog.dismiss()
+                                    },
+                                    modifier = Modifier.padding(start = 8.dp)
+                                ) {
+                                    Text(text = stringResource(R.string.ok))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    )
+    dialog.show()
+    return dialog
 }
 
 private fun ComponentActivity.showSdWriteHelpDialog(onDismiss: () -> Unit) {
