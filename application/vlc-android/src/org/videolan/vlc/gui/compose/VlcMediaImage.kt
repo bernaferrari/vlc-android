@@ -52,28 +52,34 @@ internal fun VlcMediaImage(
     width: Dp,
     fallbackPainter: Painter,
     modifier: Modifier = Modifier,
+    fallbackModifier: Modifier = modifier,
     contentDescription: String? = null,
     fallbackColorFilter: ColorFilter? = null,
-    contentScale: ContentScale = ContentScale.Fit
+    contentScale: ContentScale = ContentScale.Fit,
+    fallbackContentScale: ContentScale = contentScale,
+    reloadKey: Any? = null,
+    thumbnailLoader: suspend (MediaLibraryItem, Int) -> Bitmap? = { mediaItem, widthPx ->
+        ThumbnailsProvider.obtainBitmap(mediaItem, widthPx)
+    }
 ) {
     val widthPx = with(LocalDensity.current) { width.roundToPx() }
     val itemUri = (item as? MediaWrapper)?.uri
-    val thumbnail by produceState<Bitmap?>(null, item.id, itemUri, item.artworkMrl, widthPx) {
+    val thumbnail by produceState<Bitmap?>(null, item.id, itemUri, item.artworkMrl, reloadKey, widthPx) {
         value = if (!Settings.showVideoThumbs && item is MediaWrapper && item.type == MediaWrapper.TYPE_VIDEO) {
             null
         } else {
-            ThumbnailsProvider.obtainBitmap(item, widthPx)
+            thumbnailLoader(item, widthPx)
         }
     }
 
-    val bitmap = thumbnail
+    val bitmap = thumbnail?.takeIf { it.width > 1 && it.height > 1 }
     if (bitmap == null) {
         Image(
             painter = fallbackPainter,
             contentDescription = contentDescription,
             colorFilter = fallbackColorFilter,
-            contentScale = contentScale,
-            modifier = modifier
+            contentScale = fallbackContentScale,
+            modifier = fallbackModifier
         )
     } else {
         Image(

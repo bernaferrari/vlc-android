@@ -20,7 +20,6 @@
 
 package org.videolan.vlc.gui.dialogs
 
-import android.graphics.Bitmap
 import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
@@ -28,7 +27,6 @@ import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.annotation.DrawableRes
 import androidx.core.content.pm.ShortcutManagerCompat
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -51,17 +49,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -79,6 +75,7 @@ import org.videolan.vlc.R
 import org.videolan.vlc.VlcMigrationHelper
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.gui.compose.VlcMediaImage
 import org.videolan.vlc.util.ContextOption
 import org.videolan.vlc.util.ContextOption.CTX_ADD_FOLDER_AND_SUB_PLAYLIST
 import org.videolan.vlc.util.ContextOption.CTX_ADD_FOLDER_PLAYLIST
@@ -122,7 +119,6 @@ import org.videolan.vlc.util.ContextOption.CTX_SHARE
 import org.videolan.vlc.util.ContextOption.CTX_STOP_AFTER_THIS
 import org.videolan.vlc.util.ContextOption.CTX_UNGROUP
 import org.videolan.vlc.util.FlagSet
-import org.videolan.vlc.util.ThumbnailsProvider
 import org.videolan.vlc.util.isTalkbackIsEnabled
 
 const val CTX_TITLE_KEY = "CTX_TITLE_KEY"
@@ -283,15 +279,6 @@ private fun ContextSheetHeader(
 @Composable
 private fun ContextCover(media: MediaLibraryItem) {
     val colors = VLCThemeDefaults.colors
-    val width = with(LocalDensity.current) { 48.dp.roundToPx() }
-    val thumbnail: Bitmap? by produceState<Bitmap?>(
-        initialValue = null,
-        key1 = media.id,
-        key2 = media.title,
-        key3 = media.contextArtwork
-    ) {
-        value = ThumbnailsProvider.obtainBitmap(media, width)
-    }
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
@@ -299,21 +286,17 @@ private fun ContextCover(media: MediaLibraryItem) {
             .clip(RoundedCornerShape(4.dp))
             .background(colors.backgroundDefaultDarker)
     ) {
-        if (thumbnail != null) {
-            Image(
-                bitmap = thumbnail!!.asImageBitmap(),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.size(48.dp)
-            )
-        } else {
-            Icon(
-                painter = painterResource(contextCoverIcon(media)),
-                contentDescription = null,
-                tint = colors.fontDefault,
-                modifier = Modifier.size(32.dp)
-            )
-        }
+        VlcMediaImage(
+            item = media,
+            width = 48.dp,
+            fallbackPainter = painterResource(contextCoverIcon(media)),
+            fallbackModifier = Modifier.size(32.dp),
+            fallbackColorFilter = ColorFilter.tint(colors.fontDefault),
+            contentScale = ContentScale.Crop,
+            fallbackContentScale = ContentScale.Fit,
+            reloadKey = media.contextArtwork,
+            modifier = Modifier.size(48.dp)
+        )
     }
 }
 

@@ -1346,7 +1346,7 @@ private fun MediaRow(
         onClick = onClick,
         onLongClick = onMoreClick,
         artworkContent = {
-            MediaArtworkContent(item = item, fallbackIcon = icon, size = 40.dp)
+            MediaArtworkContent(item = item, fallbackIcon = icon, artworkSize = 40.dp, fallbackSize = 28.dp)
         },
         primaryActionContent = {
             Icon(painterResource(R.drawable.ic_play), contentDescription = stringResource(R.string.play), tint = colors.primary)
@@ -1377,7 +1377,7 @@ private fun MediaCard(
         onClick = onClick,
         onLongClick = onMoreClick,
         artworkContent = {
-            MediaArtworkContent(item = item, fallbackIcon = icon, size = 48.dp)
+            MediaArtworkContent(item = item, fallbackIcon = icon, artworkSize = 48.dp, fallbackSize = 32.dp)
         },
         primaryActionContent = {
             Icon(painterResource(R.drawable.ic_play), contentDescription = stringResource(R.string.play), tint = colors.primary)
@@ -1391,11 +1391,12 @@ private fun MediaCard(
 }
 
 @Composable
-private fun MediaArtworkContent(item: MediaLibraryItem, fallbackIcon: Int, size: Dp) {
+private fun MediaArtworkContent(item: MediaLibraryItem, fallbackIcon: Int, artworkSize: Dp, fallbackSize: Dp) {
     VlcMediaImage(
         item = item,
-        width = size,
+        width = artworkSize,
         fallbackPainter = painterResource(fallbackIcon),
+        fallbackModifier = Modifier.size(fallbackSize),
         fallbackColorFilter = ColorFilter.tint(VLCThemeDefaults.colors.primary),
         contentScale = ContentScale.Fit,
         modifier = Modifier.fillMaxSize()

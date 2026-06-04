@@ -2021,6 +2021,7 @@ private fun BrowserItemIcon(item: MediaLibraryItem, large: Boolean = false) {
             item = item,
             width = artworkSize,
             fallbackPainter = painterResource(icon),
+            fallbackModifier = Modifier.size(if (large) 32.dp else 28.dp),
             fallbackColorFilter = ColorFilter.tint(colors.primary),
             contentScale = ContentScale.Fit,
             modifier = Modifier.fillMaxSize()

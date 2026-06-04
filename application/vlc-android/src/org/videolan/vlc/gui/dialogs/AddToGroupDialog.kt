@@ -24,13 +24,11 @@
 
 package org.videolan.vlc.gui.dialogs
 
-import android.graphics.Bitmap
 import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
 import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -56,15 +54,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -89,8 +84,8 @@ import org.videolan.tools.Settings
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.gui.compose.VlcMediaImage
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
-import org.videolan.vlc.util.ThumbnailsProvider
 import org.videolan.vlc.util.isTalkbackIsEnabled
 import org.videolan.vlc.viewmodels.mobile.VideoGroupingType
 import org.videolan.vlc.viewmodels.mobile.VideosViewModel
@@ -356,12 +351,6 @@ private fun AddToGroupRow(
 @Composable
 private fun AddToGroupThumbnail(item: MediaLibraryItem) {
     val colors = VLCThemeDefaults.colors
-    val width = with(LocalDensity.current) { 48.dp.roundToPx() }
-    val thumbnail: Bitmap? by produceState<Bitmap?>(initialValue = null, key1 = item.id, key2 = item.title) {
-        value = withContext(Dispatchers.IO) {
-            (item as? VideoGroup)?.let { ThumbnailsProvider.getVideoGroupThumbnail(it, width) }
-        }
-    }
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
@@ -369,19 +358,23 @@ private fun AddToGroupThumbnail(item: MediaLibraryItem) {
             .clip(RoundedCornerShape(4.dp))
             .background(colors.backgroundDefaultDarker)
     ) {
-        if (thumbnail != null) {
-            Image(
-                bitmap = thumbnail!!.asImageBitmap(),
+        if (item is DummyItem) {
+            Icon(
+                painter = painterResource(R.drawable.ic_add_to_group),
                 contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.size(48.dp)
+                tint = colors.primary,
+                modifier = Modifier.size(32.dp)
             )
         } else {
-            Icon(
-                painter = painterResource(if (item is DummyItem) R.drawable.ic_add_to_group else R.drawable.ic_group),
-                contentDescription = null,
-                tint = if (item is DummyItem) colors.primary else Color.Unspecified,
-                modifier = Modifier.size(32.dp)
+            VlcMediaImage(
+                item = item,
+                width = 48.dp,
+                fallbackPainter = painterResource(R.drawable.ic_group),
+                fallbackModifier = Modifier.size(32.dp),
+                fallbackContentScale = ContentScale.Fit,
+                contentScale = ContentScale.Crop,
+                reloadKey = item.title,
+                modifier = Modifier.size(48.dp)
             )
         }
     }

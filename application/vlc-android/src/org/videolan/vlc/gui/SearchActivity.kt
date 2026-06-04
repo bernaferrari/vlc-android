@@ -6,20 +6,16 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -40,6 +36,7 @@ import org.videolan.vlc.R
 import org.videolan.vlc.compose.components.VLCSearchResultRow
 import org.videolan.vlc.compose.components.VLCSearchScreen
 import org.videolan.vlc.compose.components.VLCSearchSection
+import org.videolan.vlc.gui.compose.VlcMediaImage
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.util.ThumbnailsProvider
@@ -190,28 +187,15 @@ private fun SearchIcon(drawable: Int) {
 @Composable
 private fun SearchResultThumbnail(item: MediaLibraryItem?, thumbnailWide: Boolean) {
     if (item == null) return
-    val imageWidth = with(LocalDensity.current) { (if (thumbnailWide) 100.dp else 48.dp).roundToPx() }
-    val thumbnail by produceState<Bitmap?>(initialValue = null, item, imageWidth, Settings.showVideoThumbs) {
-        value = null
-        value = loadSearchThumbnail(item, imageWidth)
-    }
-
-    val bitmap = thumbnail?.takeIf { it.width > 1 && it.height > 1 }
-    if (bitmap == null) {
-        Image(
-            painter = painterResource(item.defaultSearchCoverResource),
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
-            modifier = Modifier.fillMaxSize()
-        )
-    } else {
-        Image(
-            bitmap = bitmap.asImageBitmap(),
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
-            modifier = Modifier.fillMaxSize()
-        )
-    }
+    VlcMediaImage(
+        item = item,
+        width = if (thumbnailWide) 100.dp else 48.dp,
+        fallbackPainter = painterResource(item.defaultSearchCoverResource),
+        contentScale = ContentScale.Fit,
+        modifier = Modifier.fillMaxSize(),
+        reloadKey = Settings.showVideoThumbs,
+        thumbnailLoader = ::loadSearchThumbnail
+    )
 }
 
 private suspend fun loadSearchThumbnail(item: MediaLibraryItem, imageWidth: Int): Bitmap? {
