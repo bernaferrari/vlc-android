@@ -56,7 +56,8 @@ import org.videolan.tools.putSingle
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
 import org.videolan.vlc.gui.helpers.MISC_CHANNEL_ID
-import org.videolan.vlc.gui.view.PopupLayout
+import org.videolan.vlc.gui.view.PopupLayoutController
+import org.videolan.vlc.gui.view.createPopupLayoutHost
 import org.videolan.vlc.isVLC4
 import org.videolan.vlc.util.getPendingIntent
 import kotlin.math.absoluteValue
@@ -64,7 +65,8 @@ import kotlin.math.floor
 
 class PopupManager(private val service: PlaybackService) : PlaybackService.Callback, GestureDetector.OnDoubleTapListener, View.OnClickListener, GestureDetector.OnGestureListener, IVLCVout.OnNewVideoLayoutListener, IVLCVout.Callback {
 
-    private var rootView: PopupLayout? = null
+    private var rootView: ConstraintLayout? = null
+    private var popupController: PopupLayoutController? = null
     private lateinit var expandButton: ImageView
     private lateinit var closeButton: ImageView
     private lateinit var playPauseButton: ImageView
@@ -93,7 +95,8 @@ class PopupManager(private val service: PlaybackService) : PlaybackService.Callb
         service.removeCallback(this)
         val vlcVout = service.vout
         vlcVout?.detachViews()
-        view.close()
+        popupController?.close()
+        popupController = null
         rootView = null
     }
 
@@ -113,17 +116,19 @@ class PopupManager(private val service: PlaybackService) : PlaybackService.Callb
 
         val gestureDetector = GestureDetectorCompat(service, this)
         gestureDetector.setOnDoubleTapListener(this)
-        view.setGestureDetector(gestureDetector)
+        popupController?.setGestureDetector(gestureDetector)
 
         val vlcVout = service.vout ?: return
         vlcVout.setVideoView(view.findViewById<View>(R.id.player_surface) as SurfaceView)
         vlcVout.addCallback(this)
         vlcVout.attachViews(this)
-        view.setVLCVOut(vlcVout)
+        popupController?.setVLCVOut(vlcVout)
     }
 
-    private fun createPopupView(): PopupLayout {
-        return PopupLayout(service.applicationContext).apply {
+    private fun createPopupView(): ConstraintLayout {
+        val popupHost = service.applicationContext.createPopupLayoutHost()
+        popupController = popupHost.controller
+        return popupHost.view.apply {
             keepScreenOn = true
             val surface = SurfaceView(context).apply { id = R.id.player_surface }
             addView(surface, ConstraintLayout.LayoutParams(
@@ -224,18 +229,19 @@ class PopupManager(private val service: PlaybackService) : PlaybackService.Callb
     override fun onNewVideoLayout(vlcVout: IVLCVout, width: Int, height: Int,
                                   visibleWidth: Int, visibleHeight: Int, sarNum: Int, sarDen: Int) {
         val view = rootView ?: return
+        val popupController = popupController ?: return
         val displayW = view.width
         val displayH = view.height
 
         if (isVLC4())
         {
             if (width == 0 || height == 0) {
-                view.setViewSize(displayW, displayH)
+                popupController.setViewSize(displayW, displayH)
                 vlcVout?.setWindowSize(displayW, displayH)
                 return
             }
 
-            view.setViewSize(visibleWidth, visibleHeight)
+            popupController.setViewSize(visibleWidth, visibleHeight)
         }
         else
         {
@@ -246,7 +252,7 @@ class PopupManager(private val service: PlaybackService) : PlaybackService.Callb
             }
 
             if (width == 0 || height == 0) {
-                view.setViewSize(displayW, displayH)
+                popupController.setViewSize(displayW, displayH)
                 return
             }
 
@@ -269,7 +275,7 @@ class PopupManager(private val service: PlaybackService) : PlaybackService.Callb
             else
                 dw = dh * ar
 
-            view.setViewSize(floor(dw).toInt(), floor(dh).toInt())
+            popupController.setViewSize(floor(dw).toInt(), floor(dh).toInt())
         }
     }
 

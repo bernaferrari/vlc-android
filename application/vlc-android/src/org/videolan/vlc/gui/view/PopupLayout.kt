@@ -27,7 +27,6 @@ package org.videolan.vlc.gui.view
 import android.content.Context
 import android.graphics.PixelFormat
 import android.graphics.Point
-import android.util.AttributeSet
 import android.util.DisplayMetrics
 import android.view.*
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -40,9 +39,19 @@ import org.videolan.tools.Settings
 import org.videolan.tools.putSingle
 import org.videolan.vlc.R
 
-class PopupLayout : ConstraintLayout, ScaleGestureDetector.OnScaleGestureListener, View.OnTouchListener {
+internal data class PopupLayoutHost(
+    val view: ConstraintLayout,
+    val controller: PopupLayoutController
+)
 
-    private lateinit var screenSize: DisplayMetrics
+internal fun Context.createPopupLayoutHost(): PopupLayoutHost {
+    val view = ConstraintLayout(applicationContext)
+    return PopupLayoutHost(view, PopupLayoutController(view))
+}
+
+internal class PopupLayoutController(private val view: ConstraintLayout) : ScaleGestureDetector.OnScaleGestureListener, View.OnTouchListener {
+
+    private val context: Context = view.context
     private var vlcVout: IVLCVout? = null
     private var windowManager: WindowManager? = null
     private var gestureDetector: GestureDetectorCompat? = null
@@ -59,15 +68,7 @@ class PopupLayout : ConstraintLayout, ScaleGestureDetector.OnScaleGestureListene
     private var initialTouchY: Float = 0.toFloat()
     private lateinit var mLayoutParams: WindowManager.LayoutParams
 
-    constructor(context: Context) : super(context) {
-        init(context)
-    }
-
-    constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
-        init(context)
-    }
-
-    constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
+    init {
         init(context)
     }
 
@@ -80,8 +81,8 @@ class PopupLayout : ConstraintLayout, ScaleGestureDetector.OnScaleGestureListene
      * Remove layout from window manager
      */
     fun close() {
-        keepScreenOn = false
-        windowManager!!.removeView(this)
+        view.keepScreenOn = false
+        windowManager!!.removeView(view)
         windowManager = null
         vlcVout = null
     }
@@ -107,7 +108,7 @@ class PopupLayout : ConstraintLayout, ScaleGestureDetector.OnScaleGestureListene
         containInScreen(width, height)
         mLayoutParams.width = width
         mLayoutParams.height = height
-        windowManager!!.updateViewLayout(this, mLayoutParams)
+        windowManager!!.updateViewLayout(view, mLayoutParams)
         if (vlcVout != null)
             vlcVout!!.setWindowSize(popupWidth, popupHeight)
     }
@@ -115,7 +116,7 @@ class PopupLayout : ConstraintLayout, ScaleGestureDetector.OnScaleGestureListene
     private fun init(context: Context) {
         windowManager = context.applicationContext.getSystemService()
 
-        screenSize = DisplayMetrics().also { windowManager!!.defaultDisplay.getMetrics(it) }
+        DisplayMetrics().also { windowManager!!.defaultDisplay.getMetrics(it) }
         popupWidth = context.resources.getDimensionPixelSize(R.dimen.video_pip_width)
         popupHeight = context.resources.getDimensionPixelSize(R.dimen.video_pip_height)
         val ratio = popupWidth.toFloat() / popupHeight.toFloat()
@@ -138,10 +139,10 @@ class PopupLayout : ConstraintLayout, ScaleGestureDetector.OnScaleGestureListene
         params.x = 50
         params.y = 50
         scaleGestureDetector = ScaleGestureDetector(context, this)
-        setOnTouchListener(this)
-        windowManager!!.addView(this, params)
-        if (!isInEditMode) {
-            mLayoutParams = layoutParams as WindowManager.LayoutParams
+        view.setOnTouchListener(this)
+        windowManager!!.addView(view, params)
+        if (!view.isInEditMode) {
+            mLayoutParams = view.layoutParams as WindowManager.LayoutParams
         }
 
         updateWindowSize()
@@ -175,7 +176,7 @@ class PopupLayout : ConstraintLayout, ScaleGestureDetector.OnScaleGestureListene
                 mLayoutParams.x = initialX + (event.rawX - initialTouchX).toInt()
                 mLayoutParams.y = initialY - (event.rawY - initialTouchY).toInt()
                 containInScreen(mLayoutParams.width, mLayoutParams.height)
-                windowManager!!.updateViewLayout(this@PopupLayout, mLayoutParams)
+                windowManager!!.updateViewLayout(view, mLayoutParams)
                 return true
             }
         }
@@ -186,8 +187,8 @@ class PopupLayout : ConstraintLayout, ScaleGestureDetector.OnScaleGestureListene
         scaleFactor *= detector.scaleFactor.toDouble()
 
         scaleFactor = scaleFactor.coerceIn(0.1, 5.0)
-        popupWidth = (width * scaleFactor).toInt()
-        popupHeight = (height * scaleFactor).toInt()
+        popupWidth = (view.width * scaleFactor).toInt()
+        popupHeight = (view.height * scaleFactor).toInt()
         vlcVout?.setWindowSize(popupWidth, popupHeight)
         return true
     }
@@ -198,7 +199,7 @@ class PopupLayout : ConstraintLayout, ScaleGestureDetector.OnScaleGestureListene
 
     override fun onScaleEnd(detector: ScaleGestureDetector) {
         setViewSize(popupWidth, popupHeight)
-        Settings.getInstance(context).putSingle(CUSTOM_POPUP_HEIGHT, popupHeight)
+        Settings.getInstance(view.context).putSingle(CUSTOM_POPUP_HEIGHT, popupHeight)
         scaleFactor = 1.0
     }
 
@@ -209,9 +210,5 @@ class PopupLayout : ConstraintLayout, ScaleGestureDetector.OnScaleGestureListene
             mLayoutParams.x = screenWidth - width
         if (mLayoutParams.y + height > screenHeight)
             mLayoutParams.y = screenHeight - height
-    }
-
-    companion object {
-        private const val TAG = "VLC/PopupView"
     }
 }
