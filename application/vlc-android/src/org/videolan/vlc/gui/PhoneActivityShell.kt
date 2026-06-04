@@ -37,7 +37,6 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -238,18 +237,6 @@ private fun Context.createPhoneToolbarShell(): AppBarLayout {
             androidx.appcompat.widget.Toolbar.LayoutParams.WRAP_CONTENT,
             androidx.appcompat.widget.Toolbar.LayoutParams.WRAP_CONTENT
         )
-    )
-
-    appBar.addView(
-        RecyclerView(this).apply {
-            id = R.id.ariane
-            setPadding(16.dp, 0, 0, 0)
-            clipToPadding = false
-            visibility = View.GONE
-        },
-        AppBarLayout.LayoutParams(AppBarLayout.LayoutParams.WRAP_CONTENT, AppBarLayout.LayoutParams.WRAP_CONTENT).apply {
-            scrollFlags = AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL or AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS
-        }
     )
 
     appBar.addView(
