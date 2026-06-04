@@ -27,6 +27,7 @@ import android.content.res.ColorStateList
 import android.os.Build
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.view.ContextThemeWrapper
@@ -64,7 +65,7 @@ internal fun MainActivity.createMainActivityShell(): View {
         labelVisibilityMode = NavigationBarView.LABEL_VISIBILITY_LABELED
         elevation = 4.dp.toFloat()
         menu.clear()
-        inflateMenu(R.menu.bottom_navigation)
+        addPhoneNavigationItems(menu)
         addHeaderView(createShellFab(large = true))
     }
     root.addView(
@@ -120,7 +121,7 @@ internal fun MainActivity.createMainActivityShell(): View {
         itemTextColor = ContextCompat.getColorStateList(context, R.color.bottom_navigation_selector)
         labelVisibilityMode = NavigationBarView.LABEL_VISIBILITY_LABELED
         menu.clear()
-        inflateMenu(R.menu.bottom_navigation)
+        addPhoneNavigationItems(menu)
     }
     root.addView(
         bottomNavigation,
@@ -134,6 +135,14 @@ internal fun MainActivity.createMainActivityShell(): View {
     root.addView(createAudioPlayerTipsComposeHost())
 
     return root
+}
+
+private fun addPhoneNavigationItems(menu: Menu) {
+    menu.add(Menu.NONE, R.id.nav_video, 0, R.string.video).setIcon(R.drawable.ic_video)
+    menu.add(Menu.NONE, R.id.nav_audio, 1, R.string.audio).setIcon(R.drawable.ic_menu_audio)
+    menu.add(Menu.NONE, R.id.nav_directories, 2, R.string.browse).setIcon(R.drawable.ic_folder)
+    menu.add(Menu.NONE, R.id.nav_playlists, 3, R.string.playlists).setIcon(R.drawable.ic_playlist)
+    menu.add(Menu.NONE, R.id.nav_more, 4, R.string.more).setIcon(R.drawable.ic_nav_more)
 }
 
 internal fun SecondaryActivity.createSecondaryActivityShell(): View {

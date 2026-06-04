@@ -107,6 +107,11 @@
     <item name="action_mode_file_append" type="id" />
     <item name="action_mode_file_delete" type="id" />
     <item name="action_mode_file_add_playlist" type="id" />
+    <item name="nav_video" type="id" />
+    <item name="nav_audio" type="id" />
+    <item name="nav_directories" type="id" />
+    <item name="nav_playlists" type="id" />
+    <item name="nav_more" type="id" />
     <item name="ml_menu_save" type="id" />
     <item name="ml_menu_clean" type="id" />
     <item name="backgroundView" type="id" />
