@@ -98,6 +98,8 @@ import org.videolan.vlc.gui.helpers.hf.checkPIN
 import org.videolan.vlc.gui.view.VideoHudRightOverlayView
 import org.videolan.vlc.gui.view.abRepeatControlsHost
 import org.videolan.vlc.gui.view.abRepeatMarkerContainerHost
+import org.videolan.vlc.gui.view.showSwipeToUnlock
+import org.videolan.vlc.gui.view.swipeToUnlockHost
 import org.videolan.vlc.gui.view.videoHudSeekJumpLabelHost
 import org.videolan.vlc.gui.view.videoInfoOverlayHost
 import org.videolan.vlc.gui.view.videoStatsOverlayHost
@@ -689,9 +691,10 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
             hudBinding.abRepeatContainer.setOnClickListener(player)
             hudBinding.orientationToggle.setOnClickListener(if (enabled) player else null)
             hudBinding.orientationToggle.setOnLongClickListener(if (enabled) player else null)
-            hudBinding.swipeToUnlock.setOnStartTouchingListener { showOverlayTimeout(VideoPlayerActivity.OVERLAY_INFINITE) }
-            hudBinding.swipeToUnlock.setOnStopTouchingListener { showOverlayTimeout(Settings.videoHudDelay * 1000) }
-            hudBinding.swipeToUnlock.setOnUnlockListener {
+            val swipeToUnlockHost = hudBinding.swipeToUnlock.swipeToUnlockHost()
+            swipeToUnlockHost.setOnStartTouchingListener { showOverlayTimeout(VideoPlayerActivity.OVERLAY_INFINITE) }
+            swipeToUnlockHost.setOnStopTouchingListener { showOverlayTimeout(Settings.videoHudDelay * 1000) }
+            swipeToUnlockHost.setOnUnlockListener {
                 player.lifecycleScope.launch(Dispatchers.IO) {
                     if (!player.checkPIN())
                         player.isLocked = false
@@ -1110,7 +1113,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
             hudBinding.playerOverlayLength.videoTimelineTimeLabelHost().setEnabled(false)
             hudBinding.playlistNext.setVideoHudIconEnabled(false)
             hudBinding.playlistPrevious.setVideoHudIconEnabled(false)
-            hudBinding.swipeToUnlock.setVisible()
+            hudBinding.swipeToUnlock.showSwipeToUnlock()
             //make sure the title and unlock views are not conflicting with the cutout / gestures
             (playerUiContainer.layoutParams as? FrameLayout.LayoutParams)?.let {
                 if (AndroidUtil.isPOrLater) {

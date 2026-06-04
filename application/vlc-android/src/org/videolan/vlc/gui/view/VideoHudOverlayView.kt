@@ -332,9 +332,10 @@ private fun ConstraintLayout.addHudChildren(
             marginEnd = smallSideMargin
         })
 
-        addView(SwipeToUnlockView(context).apply {
+        addView(VLCComposeView(context).apply {
             id = R.id.swipe_to_unlock
             visibility = View.GONE
+            installSwipeToUnlockHost()
         }, hudLayout(WRAP_CONTENT, 0) {
             topToBottom = R.id.player_overlay_seekbar
             bottomToBottom = PARENT_ID

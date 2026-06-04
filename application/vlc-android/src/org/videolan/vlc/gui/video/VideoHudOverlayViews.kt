@@ -28,7 +28,6 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.gui.view.BookmarksPanelView
-import org.videolan.vlc.gui.view.SwipeToUnlockView
 import org.videolan.vlc.gui.view.VideoTimelineSeekBarView
 
 class VideoHudOverlayViews(val progressOverlay: ConstraintLayout) {
@@ -56,7 +55,7 @@ class VideoHudOverlayViews(val progressOverlay: ConstraintLayout) {
     val playerSpaceRight: View = progressOverlay.requireHudView(R.id.player_space_right)
     val playerResize: VLCComposeView = progressOverlay.requireHudView(R.id.player_resize)
     val playerOverlayAdvFunction: VLCComposeView = progressOverlay.requireHudView(R.id.player_overlay_adv_function)
-    val swipeToUnlock: SwipeToUnlockView = progressOverlay.requireHudView(R.id.swipe_to_unlock)
+    val swipeToUnlock: VLCComposeView = progressOverlay.requireHudView(R.id.swipe_to_unlock)
 
     private inline fun <reified T : View> View.requireHudView(@IdRes id: Int): T {
         return findViewById(id) ?: error("Missing video HUD view ${resources.getResourceEntryName(id)}")

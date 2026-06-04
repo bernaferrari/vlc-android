@@ -1,6 +1,6 @@
 /*
  * ************************************************************************
- *  SwipeToUnlockView.kt
+ *  SwipeToUnlockHost.kt
  * *************************************************************************
  * Copyright © 2019 VLC authors and VideoLAN
  * Author: Nicolas POMEPUY
@@ -25,11 +25,10 @@
 package org.videolan.vlc.gui.view
 
 import android.animation.ValueAnimator
-import android.content.Context
-import android.util.AttributeSet
 import android.util.LayoutDirection
 import android.view.KeyEvent
 import android.view.MotionEvent
+import android.view.View
 import android.view.animation.AccelerateInterpolator
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -62,18 +61,42 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.videolan.resources.AndroidDevices
 import org.videolan.tools.setGone
+import org.videolan.tools.setVisible
 import org.videolan.vlc.R
-import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.compose.theme.VLCTheme
 import java.util.Locale
 import kotlin.math.roundToInt
 
-class SwipeToUnlockView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : VLCAbstractComposeWidget(context, attrs, defStyleAttr) {
+internal fun VLCComposeView.installSwipeToUnlockHost() {
+    val host = SwipeToUnlockHost(this)
+    setTag(R.id.swipe_to_unlock, host)
+    isFocusable = true
+    isFocusableInTouchMode = true
+    setOnTouchListener { _, event -> host.onTouchEvent(event) }
+    setOnKeyListener { _, keyCode, event -> host.onKeyEvent(keyCode, event) }
+    addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+        override fun onViewAttachedToWindow(v: View) = Unit
+        override fun onViewDetachedFromWindow(v: View) = host.cancelAnimations()
+    })
+    setContent {
+        VLCTheme {
+            host.Content()
+        }
+    }
+}
 
-    private val extremum: Int = (28 * resources.displayMetrics.density).toInt()
+internal fun VLCComposeView.swipeToUnlockHost(): SwipeToUnlockHost =
+    getTag(R.id.swipe_to_unlock) as? SwipeToUnlockHost ?: error("Missing swipe-to-unlock host")
+
+internal fun VLCComposeView.showSwipeToUnlock() {
+    swipeToUnlockHost().onShown()
+    setVisible()
+}
+
+internal class SwipeToUnlockHost(private val view: VLCComposeView) {
+
+    private val extremum: Int = (28 * view.resources.displayMetrics.density).toInt()
 
     private var unlocking: Boolean = false
     private var onStartTouching: () -> Unit = {}
@@ -92,7 +115,7 @@ class SwipeToUnlockView @JvmOverloads constructor(
     private val tvAcceptedKeys = arrayOf(KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER)
 
     init {
-        initialize()
+        updateText()
     }
 
     fun setOnStartTouchingListener(listener: () -> Unit) {
@@ -107,20 +130,18 @@ class SwipeToUnlockView @JvmOverloads constructor(
         onUnlock = listener
     }
 
-    override fun setVisibility(visibility: Int) {
-        if (visibility == VISIBLE) {
-            unlocking = false
-            playStep(extremum)
-            requestFocus()
-        }
-        super.setVisibility(visibility)
+    fun onShown() {
+        unlocking = false
+        playStep(extremum)
+        view.requestFocus()
     }
 
-    override fun onTouchEvent(event: MotionEvent?): Boolean {
-        if (unlocking) return super.onTouchEvent(event)
+    fun onTouchEvent(event: MotionEvent?): Boolean {
+        if (unlocking) return false
         event?.let {
-            val currentX = event.x.toInt().coerceAtLeast(extremum).coerceAtMost(width - extremum).run {
-                if (layoutDirection == LayoutDirection.RTL) width - this
+            val maxX = (view.width - extremum).coerceAtLeast(extremum)
+            val currentX = event.x.toInt().coerceAtLeast(extremum).coerceAtMost(maxX).run {
+                if (view.layoutDirection == LayoutDirection.RTL) view.width - this
                 else this
             }
 
@@ -131,7 +152,7 @@ class SwipeToUnlockView @JvmOverloads constructor(
                 }
                 MotionEvent.ACTION_MOVE -> {
 
-                    if (currentX >= width - extremum) unlock()
+                    if (currentX >= maxX) unlock()
 
                     playStep(currentX)
 
@@ -145,7 +166,7 @@ class SwipeToUnlockView @JvmOverloads constructor(
                 else -> return true
             }
         }
-        return super.onTouchEvent(event)
+        return false
     }
 
     private fun animateBack(currentX: Int) {
@@ -160,28 +181,36 @@ class SwipeToUnlockView @JvmOverloads constructor(
         swipeCenterPx = currentX.toFloat()
     }
 
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (isDPADAllowed && event?.keyCode in tvAcceptedKeys && !unlocking) {
+    fun onKeyEvent(keyCode: Int, event: KeyEvent?): Boolean {
+        return when (event?.action) {
+            KeyEvent.ACTION_DOWN -> onKeyDown(keyCode, event)
+            KeyEvent.ACTION_UP -> onKeyUp(keyCode, event)
+            else -> false
+        }
+    }
+
+    private fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (isDPADAllowed && keyCode in tvAcceptedKeys && event?.keyCode in tvAcceptedKeys && !unlocking) {
             onStartTouching.invoke()
             if (!::keyAnimation.isInitialized || !keyAnimation.isRunning) {
-                keyAnimation = ValueAnimator.ofInt(extremum, width - extremum)
+                keyAnimation = ValueAnimator.ofInt(extremum, view.width - extremum)
                 keyAnimation.interpolator = AccelerateInterpolator()
                 keyAnimation.duration = 2000
                 keyAnimation.addUpdateListener { animator ->
                     run {
                         playStep(animator.animatedValue as Int)
-                        if (animator.animatedValue == width - extremum) unlock()
+                        if (animator.animatedValue == view.width - extremum) unlock()
                     }
                 }
                 keyAnimation.start()
             }
             return true
         }
-        return super.onKeyDown(keyCode, event)
+        return false
     }
 
-    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
-        if (event?.keyCode in tvAcceptedKeys) {
+    private fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode in tvAcceptedKeys && event?.keyCode in tvAcceptedKeys) {
             onStopTouching.invoke()
 
             if (::keyAnimation.isInitialized && keyAnimation.isRunning) {
@@ -191,32 +220,26 @@ class SwipeToUnlockView @JvmOverloads constructor(
             }
             return true
         }
-        return super.onKeyUp(keyCode, event)
+        return false
     }
 
     private fun unlock() {
         unlocking = true
         onUnlock.invoke()
-        setGone()
+        view.setGone()
         playStep(extremum)
     }
 
-    private fun initialize() {
-        isFocusable = true
-        updateText()
-    }
-
     private fun updateText() {
-        currentText = if (!isDPADAllowed || !AndroidDevices.isTv) context.getString(R.string.swipe_unlock) else context.getString(R.string.swipe_unlock_no_touch)
+        currentText = if (!isDPADAllowed || !AndroidDevices.isTv) view.context.getString(R.string.swipe_unlock) else view.context.getString(R.string.swipe_unlock_no_touch)
     }
 
-    override fun onDetachedFromWindow() {
+    fun cancelAnimations() {
         if (::keyAnimation.isInitialized) keyAnimation.cancel()
-        super.onDetachedFromWindow()
     }
 
     @Composable
-    override fun WidgetContent() {
+    fun Content() {
         SwipeUnlockContent(
             text = currentText,
             swipeCenterPx = swipeCenterPx,
