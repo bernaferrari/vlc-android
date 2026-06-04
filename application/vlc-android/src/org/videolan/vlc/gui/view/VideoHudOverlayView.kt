@@ -151,11 +151,12 @@ private fun ConstraintLayout.addHudChildren(
             marginEnd = 24.dp
         })
 
-        addView(VideoTimelineSeekBarView(context).apply {
+        addView(VLCComposeView(context).apply {
             id = R.id.player_overlay_seekbar
             isFocusable = true
             layoutDirection = View.LAYOUT_DIRECTION_LTR
             setPadding(0, 0, 0, 0)
+            installVideoTimelineSeekBarHost()
         }, hudLayout(0, WRAP_CONTENT) {
             bottomToTop = R.id.player_overlay_play
             startToStart = PARENT_ID

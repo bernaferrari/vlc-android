@@ -193,7 +193,7 @@ import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
 import org.videolan.vlc.gui.helpers.hf.StoragePermissionsDelegate
-import org.videolan.vlc.gui.view.PlayerTimelineSeekBarView
+import org.videolan.vlc.gui.view.PlayerTimelineSeekBarHost
 import org.videolan.vlc.interfaces.IPlaybackSettingsController
 import org.videolan.vlc.media.PlaylistManager
 import org.videolan.vlc.media.ResumeStatus
@@ -394,7 +394,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     /**
      * handle changes of the seekbar (slicer)
      */
-    val seekListener = object : PlayerTimelineSeekBarView.Listener {
+    val seekListener = object : PlayerTimelineSeekBarHost.Listener {
 
         override fun onStartTrackingTouch() {
             isDragging = true

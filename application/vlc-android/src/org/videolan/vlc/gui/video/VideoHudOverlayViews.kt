@@ -27,7 +27,8 @@ import androidx.annotation.IdRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.interop.VLCComposeView
-import org.videolan.vlc.gui.view.VideoTimelineSeekBarView
+import org.videolan.vlc.gui.view.PlayerTimelineSeekBarHost
+import org.videolan.vlc.gui.view.playerTimelineSeekBarHost
 
 class VideoHudOverlayViews(val progressOverlay: ConstraintLayout) {
     val statsContainer: VLCComposeView = progressOverlay.requireHudView(R.id.stats_container)
@@ -38,7 +39,8 @@ class VideoHudOverlayViews(val progressOverlay: ConstraintLayout) {
     val bookmarksBackground: VLCComposeView = progressOverlay.requireHudView(R.id.bookmarks_background)
     val playerOverlayTime: VLCComposeView = progressOverlay.requireHudView(R.id.player_overlay_time)
     val playerOverlayLength: VLCComposeView = progressOverlay.requireHudView(R.id.player_overlay_length)
-    val playerOverlaySeekbar: VideoTimelineSeekBarView = progressOverlay.requireHudView(R.id.player_overlay_seekbar)
+    val playerOverlaySeekbarView: VLCComposeView = progressOverlay.requireHudView(R.id.player_overlay_seekbar)
+    val playerOverlaySeekbar: PlayerTimelineSeekBarHost = playerOverlaySeekbarView.playerTimelineSeekBarHost()
     val bookmarkMarkerContainer: VLCComposeView = progressOverlay.requireHudView(R.id.bookmark_marker_container)
     val abRepeatMarkerGuidelineContainer: VLCComposeView = progressOverlay.requireHudView(R.id.ab_repeat_marker_guideline_container)
     val playerOverlayTracks: VLCComposeView = progressOverlay.requireHudView(R.id.player_overlay_tracks)

@@ -679,7 +679,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
         else
             R.drawable.ic_player_forward_10_disabled)
         if (!player.isLocked)
-            hudBinding.playerOverlaySeekbar.isEnabled = seekable
+            hudBinding.playerOverlaySeekbarView.isEnabled = seekable
     }
 
     fun setListeners(enabled: Boolean) {
@@ -706,7 +706,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                 }
             }
             hudRightHost().setOnActionClickListener(if (enabled) ::dispatchHudRightAction else null)
-            hudBinding.playerOverlaySeekbar.setOnClickListener {
+            hudBinding.playerOverlaySeekbarView.setOnClickListener {
                 if (player.service?.isPaused == true)
                     player.togglePlayPause()
             }
@@ -840,7 +840,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
             applyMargin(hudBinding.playerOverlayTracks, if (!player.isTv) smallMargin.toInt() else overscanHorizontal, false)
             applyMargin(hudBinding.playerOverlayAdvFunction, if (!player.isTv) smallMargin.toInt() else overscanHorizontal, true)
 
-            hudBinding.playerOverlaySeekbar.setPadding(overscanHorizontal, 0, overscanHorizontal, 0)
+            hudBinding.playerOverlaySeekbarView.setPadding(overscanHorizontal, 0, overscanHorizontal, 0)
             hudBinding.bookmarkMarkerContainer.setPadding(overscanHorizontal, 0, overscanHorizontal, 0)
 
             if (player.isTv) {
@@ -851,8 +851,8 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
             if (player.resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
                 hudBinding.playerSpaceLeft.setGone()
                 hudBinding.playerSpaceRight.setGone()
-                applyMargin(hudBinding.playerOverlaySeekbar, 0, true)
-                applyMargin(hudBinding.playerOverlaySeekbar, 0, false)
+                applyMargin(hudBinding.playerOverlaySeekbarView, 0, true)
+                applyMargin(hudBinding.playerOverlaySeekbarView, 0, false)
 
                 applyMargin(hudBinding.playlistPrevious, 0, true)
                 applyMargin(hudBinding.playerOverlayRewind, 0, true)
@@ -863,8 +863,8 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
             } else {
                 hudBinding.playerSpaceLeft.setVisible()
                 hudBinding.playerSpaceRight.setVisible()
-                applyMargin(hudBinding.playerOverlaySeekbar, 20.dp, true)
-                applyMargin(hudBinding.playerOverlaySeekbar, 20.dp, false)
+                applyMargin(hudBinding.playerOverlaySeekbarView, 20.dp, true)
+                applyMargin(hudBinding.playerOverlaySeekbarView, 20.dp, false)
 
                 applyMargin(hudBinding.playlistPrevious, largeMargin.toInt(), true)
                 applyMargin(hudBinding.playerOverlayRewind, largeMargin.toInt(), true)
@@ -1113,7 +1113,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
         if (!player.orientationMode.locked) player.toggleOrientationLock()
         if (isHudBindingInitialized()) {
             hudBinding.playerOverlayTime.videoTimelineTimeLabelHost().setEnabled(false)
-            hudBinding.playerOverlaySeekbar.isEnabled = false
+            hudBinding.playerOverlaySeekbarView.isEnabled = false
             hudBinding.playerOverlayLength.videoTimelineTimeLabelHost().setEnabled(false)
             hudBinding.playlistNext.setVideoHudIconEnabled(false)
             hudBinding.playlistPrevious.setVideoHudIconEnabled(false)
@@ -1152,7 +1152,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
         player.requestedOrientation = player.getScreenOrientation(player.orientationMode)
         if (isHudBindingInitialized()) {
             hudBinding.playerOverlayTime.videoTimelineTimeLabelHost().setEnabled(true)
-            hudBinding.playerOverlaySeekbar.isEnabled = player.service?.isSeekable != false
+            hudBinding.playerOverlaySeekbarView.isEnabled = player.service?.isSeekable != false
             hudBinding.playerOverlayLength.videoTimelineTimeLabelHost().setEnabled(true)
             hudBinding.playlistNext.setVideoHudIconEnabled(true)
             hudBinding.playlistPrevious.setVideoHudIconEnabled(true)
