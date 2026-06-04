@@ -29,7 +29,6 @@ import android.graphics.drawable.BitmapDrawable
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -82,16 +81,12 @@ import org.videolan.vlc.R
 import org.videolan.vlc.compose.components.VLCBrowserItemCard
 import org.videolan.vlc.compose.components.VLCBrowserItemRow
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
-import org.videolan.vlc.gui.helpers.MARQUEE_ACTION
-import org.videolan.vlc.gui.helpers.MarqueeViewHolder
 import org.videolan.vlc.gui.helpers.TalkbackUtil
-import org.videolan.vlc.gui.helpers.enableMarqueeEffect
 import org.videolan.vlc.gui.helpers.getAudioIconDrawable
 import org.videolan.vlc.gui.view.FastScroller
 import org.videolan.vlc.interfaces.IEventsHandler
 import org.videolan.vlc.interfaces.IListEventsHandler
 import org.videolan.vlc.interfaces.SwipeDragHelperAdapter
-import org.videolan.vlc.util.LifecycleAwareScheduler
 import org.videolan.vlc.util.TextUtils
 import org.videolan.vlc.util.ThumbnailsProvider
 import org.videolan.vlc.util.isOTG
@@ -117,7 +112,6 @@ open class AudioBrowserAdapter @JvmOverloads constructor(
     private val defaultCoverCard: BitmapDrawable?
     private var focusNext = -1
     private var focusListener: FocusListener? = null
-    private var scheduler: LifecycleAwareScheduler? = null
     var stopReorder = false
     var areSectionsEnabled = true
     private var model: PlaylistModel? = null
@@ -173,13 +167,7 @@ open class AudioBrowserAdapter @JvmOverloads constructor(
 
     private fun displayInCard() = cardSize != SHOW_IN_LIST
 
-    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
-        super.onAttachedToRecyclerView(recyclerView)
-        if (Settings.listTitleEllipsize == 4) scheduler = enableMarqueeEffect(recyclerView)
-    }
-
     override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
-        scheduler?.cancelAction("")
         currentMedia = null
         super.onDetachedFromRecyclerView(recyclerView)
     }
@@ -221,7 +209,6 @@ open class AudioBrowserAdapter @JvmOverloads constructor(
     }
 
     override fun onViewRecycled(h: AbstractMediaItemViewHolder) {
-        scheduler?.cancelAction(MARQUEE_ACTION)
         h.recycle()
         super.onViewRecycled(h)
     }
@@ -415,9 +402,7 @@ open class AudioBrowserAdapter @JvmOverloads constructor(
         }
     }
 
-    abstract inner class AbstractMediaItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), MarqueeViewHolder {
-
-        override val titleView: TextView? = null
+    abstract inner class AbstractMediaItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         val canBeReordered: Boolean
             get() = reorderable && !stopReorder
