@@ -40,7 +40,6 @@ import android.widget.FrameLayout
 import androidx.annotation.DrawableRes
 import androidx.appcompat.view.ActionMode
 import androidx.appcompat.widget.SearchView
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -81,7 +80,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -137,6 +135,7 @@ import org.videolan.vlc.R
 import org.videolan.vlc.compose.components.VLCBrowserItemRow
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.gui.compose.VlcMediaImage
 import org.videolan.vlc.gui.dialogs.CURRENT_SORT
 import org.videolan.vlc.gui.dialogs.CtxActionReceiver
 import org.videolan.vlc.gui.dialogs.DEFAULT_ACTIONS
@@ -146,7 +145,6 @@ import org.videolan.vlc.gui.dialogs.showContext
 import org.videolan.vlc.gui.dialogs.showConfirmDeleteComposeDialog
 import org.videolan.vlc.gui.dialogs.showDisplaySettingsComposeDialog
 import org.videolan.vlc.gui.dialogs.showRenameComposeDialog
-import org.videolan.vlc.gui.helpers.AudioUtil
 import org.videolan.vlc.gui.helpers.AudioUtil.setRingtone
 import org.videolan.vlc.gui.helpers.DefaultPlaybackAction
 import org.videolan.vlc.gui.helpers.DefaultPlaybackActionMediaType
@@ -179,7 +177,6 @@ import org.videolan.vlc.util.ContextOption.CTX_SHARE
 import org.videolan.vlc.util.ContextOption.Companion.createCtxPlaylistItemFlags
 import org.videolan.vlc.util.Permissions
 import org.videolan.vlc.util.ThumbnailsProvider
-import org.videolan.vlc.util.getScreenWidth
 import org.videolan.vlc.util.isOTG
 import org.videolan.vlc.util.isSD
 import org.videolan.vlc.util.isSchemeHttpOrHttps
@@ -288,25 +285,7 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), ActionMode.
             headerState = headerState.copy(showReleaseYear = false)
         }
 
-        val context = this
-        lifecycleScope.launch {
-            var showBackground = true
-            val cover = withContext(Dispatchers.IO) {
-                val width = context.getScreenWidth()
-                if (!playlist.artworkMrl.isNullOrEmpty()) {
-                    AudioUtil.fetchCoverBitmap(Uri.decode(playlist.artworkMrl), width)
-                } else if (playlist is Album) {
-                    showBackground = false
-                    UiTools.getDefaultAlbumDrawableBig(this@HeaderMediaListActivity).bitmap
-                } else {
-                    ThumbnailsProvider.getPlaylistOrGenreImage("playlist:${playlist.id}_$width", playlist.tracks.toList(), width)
-                }
-            }
-            if (cover != null) {
-                headerState = headerState.copy(cover = cover, showBackground = showBackground)
-                appBarLayout.setExpanded(true, true)
-            }
-        }
+        headerState = headerState.copy(showBackground = playlist !is Album)
     }
 
     private fun createHeaderMediaListShell(): View {
@@ -353,7 +332,8 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), ActionMode.
                         onShuffle = ::shuffleCurrentList,
                         onAddToPlaylist = ::addCurrentListToPlaylist,
                         onFavorite = ::toggleFavorite,
-                        onArtistClick = ::openAlbumArtist
+                        onArtistClick = ::openAlbumArtist,
+                        onCoverAvailableChanged = ::onHeaderCoverAvailableChanged
                     )
                 }
             }
@@ -945,12 +925,17 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), ActionMode.
     private fun setAppBarScrollEnabled(enabled: Boolean) {
         ((appBarLayout.layoutParams as? CoordinatorLayout.LayoutParams)?.behavior as? ExpandStateAppBarLayoutBehavior)?.scrollEnabled = enabled
     }
+
+    private fun onHeaderCoverAvailableChanged(available: Boolean) {
+        headerState = headerState.copy(coverAvailable = available)
+        if (available) appBarLayout.setExpanded(true, true)
+    }
 }
 
 private data class HeaderMediaListUiState(
     val item: MediaLibraryItem? = null,
     val isPlaylist: Boolean = false,
-    val cover: Bitmap? = null,
+    val coverAvailable: Boolean = false,
     val showBackground: Boolean = false,
     val totalDuration: Long = 0L,
     val releaseYear: String = "",
@@ -1398,7 +1383,8 @@ private fun HeaderMediaListHeader(
     onShuffle: () -> Unit,
     onAddToPlaylist: () -> Unit,
     onFavorite: () -> Unit,
-    onArtistClick: () -> Unit
+    onArtistClick: () -> Unit,
+    onCoverAvailableChanged: (Boolean) -> Unit
 ) {
     val colors = VLCThemeDefaults.colors
     val item = state.item
@@ -1408,14 +1394,16 @@ private fun HeaderMediaListHeader(
             .height(246.composeDp)
             .background(colors.backgroundDefaultDarker)
     ) {
-        if (state.showBackground) {
-            state.cover?.let { cover ->
-                Image(
-                    bitmap = cover.asImageBitmap(),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
+        if (state.showBackground && item != null) {
+            HeaderCoverImage(
+                item = item,
+                fallback = R.drawable.ic_no_thumbnail_1610,
+                contentScale = ContentScale.Crop,
+                drawFallback = false,
+                modifier = Modifier.fillMaxSize(),
+                onBitmapStateChanged = onCoverAvailableChanged
+            )
+            if (state.coverAvailable) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -1439,9 +1427,10 @@ private fun HeaderMediaListHeader(
             verticalAlignment = Alignment.Top
         ) {
             HeaderCover(
-                cover = state.cover,
+                item = item,
                 fallback = if (state.isPlaylist) R.drawable.ic_song_big else R.drawable.ic_album,
-                modifier = Modifier.size(128.composeDp)
+                modifier = Modifier.size(128.composeDp),
+                onBitmapStateChanged = onCoverAvailableChanged
             )
             Spacer(modifier = Modifier.width(16.composeDp))
             Column(
@@ -1517,19 +1506,28 @@ private fun HeaderMediaListHeader(
 }
 
 @Composable
-private fun HeaderCover(cover: Bitmap?, @DrawableRes fallback: Int, modifier: Modifier = Modifier) {
+private fun HeaderCover(
+    item: MediaLibraryItem?,
+    @DrawableRes fallback: Int,
+    modifier: Modifier = Modifier,
+    onBitmapStateChanged: (Boolean) -> Unit
+) {
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(4.composeDp))
             .background(VLCThemeDefaults.colors.backgroundDefault),
         contentAlignment = Alignment.Center
     ) {
-        if (cover != null) {
-            Image(
-                bitmap = cover.asImageBitmap(),
-                contentDescription = null,
+        if (item != null) {
+            HeaderCoverImage(
+                item = item,
+                fallback = fallback,
+                fallbackModifier = Modifier.size(64.composeDp),
+                fallbackColorFilter = androidx.compose.ui.graphics.ColorFilter.tint(VLCThemeDefaults.colors.fontLight),
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
+                fallbackContentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxSize(),
+                onBitmapStateChanged = onBitmapStateChanged
             )
         } else {
             Icon(
@@ -1539,6 +1537,42 @@ private fun HeaderCover(cover: Bitmap?, @DrawableRes fallback: Int, modifier: Mo
                 modifier = Modifier.size(64.composeDp)
             )
         }
+    }
+}
+
+@Composable
+private fun HeaderCoverImage(
+    item: MediaLibraryItem,
+    @DrawableRes fallback: Int,
+    modifier: Modifier = Modifier,
+    fallbackModifier: Modifier = modifier,
+    fallbackColorFilter: androidx.compose.ui.graphics.ColorFilter? = null,
+    contentScale: ContentScale = ContentScale.Crop,
+    fallbackContentScale: ContentScale = contentScale,
+    drawFallback: Boolean = true,
+    onBitmapStateChanged: (Boolean) -> Unit
+) {
+    VlcMediaImage(
+        item = item,
+        width = 246.composeDp,
+        fallbackPainter = painterResource(fallback),
+        modifier = modifier,
+        fallbackModifier = fallbackModifier,
+        fallbackColorFilter = fallbackColorFilter,
+        contentScale = contentScale,
+        fallbackContentScale = fallbackContentScale,
+        drawFallback = drawFallback,
+        onBitmapStateChanged = onBitmapStateChanged,
+        thumbnailLoader = ::loadHeaderCoverBitmap
+    )
+}
+
+private suspend fun loadHeaderCoverBitmap(item: MediaLibraryItem, width: Int): Bitmap? {
+    return if ((item.itemType == MediaLibraryItem.TYPE_PLAYLIST || item is Playlist) && item !is Album) {
+        val tracks = withContext(Dispatchers.IO) { item.tracks.toList() }
+        ThumbnailsProvider.getPlaylistOrGenreImage("playlist:${item.id}_$width", tracks, width)
+    } else {
+        ThumbnailsProvider.obtainBitmap(item, width)
     }
 }
 
