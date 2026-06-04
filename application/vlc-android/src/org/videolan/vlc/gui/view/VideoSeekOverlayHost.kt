@@ -1,6 +1,6 @@
 /*
  * ************************************************************************
- *  VideoSeekOverlayView.kt
+ *  VideoSeekOverlayHost.kt
  * *************************************************************************
  * Copyright © 2026 VLC authors and VideoLAN
  *
@@ -22,8 +22,6 @@
 
 package org.videolan.vlc.gui.view
 
-import android.content.Context
-import android.util.AttributeSet
 import android.view.View
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
@@ -70,7 +68,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import org.videolan.vlc.R
-import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.compose.theme.VLCTheme
 
 private enum class VideoSeekDirection {
     Rewind,
@@ -90,27 +89,32 @@ private data class VideoSeekOverlayState(
 
 /**
  * Compose replacement for player_overlay_seek.xml. VideoTouchDelegate owns
- * gesture timing and playback seeks; this widget owns the transient visual
+ * gesture timing and playback seeks; this host owns the transient visual
  * overlay for double-tap seek and tap-and-hold fast play.
  */
-class VideoSeekOverlayView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : VLCAbstractComposeWidget(context, attrs, defStyleAttr) {
+internal fun VLCComposeView.installVideoSeekOverlayHost() {
+    val host = VideoSeekOverlayHost(this)
+    setTag(R.id.seekContainer, host)
+    isClickable = false
+    isFocusable = false
+    importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+    setContent {
+        VLCTheme {
+            host.Content()
+        }
+    }
+}
+
+internal fun VLCComposeView.videoSeekOverlayHost(): VideoSeekOverlayHost =
+    getTag(R.id.seekContainer) as? VideoSeekOverlayHost ?: error("Missing video seek overlay host")
+
+internal class VideoSeekOverlayHost(private val view: VLCComposeView) {
 
     private var state by mutableStateOf(VideoSeekOverlayState())
     private var seekToken by mutableIntStateOf(0)
 
-    init {
-        visibility = View.INVISIBLE
-        isClickable = false
-        isFocusable = false
-        importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
-    }
-
     fun showSeek(seekForward: Boolean, text: String, tv: Boolean) {
-        visibility = View.VISIBLE
+        view.visibility = View.VISIBLE
         state = state.copy(
             seekDirection = if (seekForward) VideoSeekDirection.Forward else VideoSeekDirection.Rewind,
             seekText = text,
@@ -130,7 +134,7 @@ class VideoSeekOverlayView @JvmOverloads constructor(
     }
 
     fun showFastPlay(title: String) {
-        visibility = View.VISIBLE
+        view.visibility = View.VISIBLE
         state = state.copy(
             fastPlayVisible = true,
             fastPlayTitle = title
@@ -142,7 +146,7 @@ class VideoSeekOverlayView @JvmOverloads constructor(
     }
 
     @Composable
-    override fun WidgetContent() {
+    fun Content() {
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
             Box(modifier = Modifier.fillMaxSize()) {
                 SeekDimBackground(visible = state.seekVisible)

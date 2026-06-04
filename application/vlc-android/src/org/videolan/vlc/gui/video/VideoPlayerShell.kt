@@ -42,7 +42,6 @@ import org.videolan.tools.dp
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.gui.view.PlayerOptionsPanelView
-import org.videolan.vlc.gui.view.VideoSeekOverlayView
 import org.videolan.vlc.gui.view.createVideoHudOverlay
 import org.videolan.vlc.gui.view.installVideoHudRightOverlayHost
 import org.videolan.vlc.gui.view.installVideoDelayOverlayHost
@@ -50,6 +49,7 @@ import org.videolan.vlc.gui.view.installVideoInfoOverlayHost
 import org.videolan.vlc.gui.view.installVideoOrientationOverlayHost
 import org.videolan.vlc.gui.view.installVideoResizeOverlayHost
 import org.videolan.vlc.gui.view.installVideoScreenshotOverlayHost
+import org.videolan.vlc.gui.view.installVideoSeekOverlayHost
 import org.videolan.vlc.gui.view.installVideoTipsHost
 import org.videolan.vlc.gui.view.installVideoVerticalProgressOverlayHost
 
@@ -214,10 +214,11 @@ private fun Context.videoLayout() = VLCVideoLayout(this).apply {
     fitsSystemWindows = false
 }
 
-private fun Context.seekOverlay() = VideoSeekOverlayView(this).apply {
+private fun Context.seekOverlay() = VLCComposeView(this).apply {
     id = R.id.seekContainer
     fitsSystemWindows = false
     visibility = View.INVISIBLE
+    installVideoSeekOverlayHost()
 }
 
 private fun Context.verticalOverlay(id: Int) = VLCComposeView(this).apply {

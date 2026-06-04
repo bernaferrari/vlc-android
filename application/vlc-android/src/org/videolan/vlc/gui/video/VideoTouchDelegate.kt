@@ -21,7 +21,8 @@ import org.videolan.tools.dp
 import org.videolan.tools.readableString
 import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.R
-import org.videolan.vlc.gui.view.VideoSeekOverlayView
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.gui.view.videoSeekOverlayHost
 import kotlin.math.absoluteValue
 import kotlin.math.pow
 import kotlin.math.roundToInt
@@ -80,7 +81,7 @@ class VideoTouchDelegate(private val player: VideoPlayerActivity,
     //Seek
     private var nbTimesTaped = 0
     private var lastSeekWasForward = true
-    private val seekOverlay: VideoSeekOverlayView by lazy { player.findViewById(R.id.seekContainer) }
+    private val seekOverlay: VLCComposeView by lazy { player.findViewById(R.id.seekContainer) }
     private val gestureSafetyMargin = 24.dp.toFloat()
 
     companion object {
@@ -529,25 +530,25 @@ class VideoTouchDelegate(private val player: VideoPlayerActivity,
      * Show the fast play overlay
      */
     private fun showFastPlay() {
-        seekOverlay.showFastPlay(player.getString(R.string.fastplay_title, org.videolan.tools.Settings.fastplaySpeed.readableString()))
+        seekOverlay.videoSeekOverlayHost().showFastPlay(player.getString(R.string.fastplay_title, org.videolan.tools.Settings.fastplaySpeed.readableString()))
     }
 
     /**
      * Hide the fast play overlay
      */
     private fun hideFastplay() {
-        seekOverlay.hideFastPlay()
+        seekOverlay.videoSeekOverlayHost().hideFastPlay()
     }
 
     private fun showSeek(seekForward: Boolean, text: String) {
-        seekOverlay.showSeek(seekForward, text, isTv)
+        seekOverlay.videoSeekOverlayHost().showSeek(seekForward, text, isTv)
         player.handler.removeMessages(VideoPlayerActivity.HIDE_SEEK)
         player.handler.sendEmptyMessageDelayed(VideoPlayerActivity.HIDE_SEEK, SEEK_TIMEOUT)
     }
 
     fun hideSeekOverlay(immediate: Boolean = false) {
         if (BuildConfig.DEBUG) Log.d(this::class.java.simpleName, "hideSeekOverlay $immediate")
-        seekOverlay.hideSeekOverlay(immediate)
+        seekOverlay.videoSeekOverlayHost().hideSeekOverlay(immediate)
         nbTimesTaped = 0
     }
 
