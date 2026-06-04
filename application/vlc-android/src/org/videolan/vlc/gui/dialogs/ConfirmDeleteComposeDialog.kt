@@ -1,12 +1,14 @@
 package org.videolan.vlc.gui.dialogs
 
-import android.graphics.drawable.Drawable
 import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
 import android.widget.FrameLayout
-import android.widget.ImageView
 import androidx.activity.ComponentActivity
+import androidx.compose.animation.graphics.ExperimentalAnimationGraphicsApi
+import androidx.compose.animation.graphics.res.animatedVectorResource
+import androidx.compose.animation.graphics.res.rememberAnimatedVectorPainter
+import androidx.compose.animation.graphics.vector.AnimatedImageVector
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,18 +22,23 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.lifecycleScope
-import androidx.vectordrawable.graphics.drawable.Animatable2Compat
-import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.videolan.medialibrary.interfaces.media.Album
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
@@ -216,23 +223,25 @@ private class ConfirmDeleteComposeDialog(
         }
     }
 
+    @OptIn(ExperimentalAnimationGraphicsApi::class)
     @androidx.compose.runtime.Composable
     private fun DeleteAnimation() {
-        AndroidView(
-            factory = { context ->
-                ImageView(context).apply {
-                    val anim = AnimatedVectorDrawableCompat.create(context, R.drawable.anim_delete)
-                    setImageDrawable(anim)
-                    anim?.registerAnimationCallback(object : Animatable2Compat.AnimationCallback() {
-                        override fun onAnimationEnd(drawable: Drawable?) {
-                            anim?.start()
-                            super.onAnimationEnd(drawable)
-                        }
-                    })
-                    anim?.start()
-                }
-            },
-            modifier = Modifier.size(40.dp)
-        )
+        val animatedVector = AnimatedImageVector.animatedVectorResource(R.drawable.anim_delete)
+        var iteration by remember { mutableIntStateOf(0) }
+        key(iteration) {
+            var atEnd by remember { mutableStateOf(false) }
+            val painter = rememberAnimatedVectorPainter(animatedVector, atEnd)
+            LaunchedEffect(Unit) {
+                atEnd = true
+                delay(animatedVector.totalDuration.toLong())
+                iteration += 1
+            }
+            Icon(
+                painter = painter,
+                contentDescription = null,
+                tint = Color.Unspecified,
+                modifier = Modifier.size(40.dp)
+            )
+        }
     }
 }

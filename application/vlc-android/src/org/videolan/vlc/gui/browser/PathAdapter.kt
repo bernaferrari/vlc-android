@@ -30,18 +30,7 @@ import org.videolan.vlc.viewmodels.browser.PathOperationDelegate
 
 class PathAdapter(val browser: PathAdapterListener, val media: MediaWrapper) : RecyclerView.Adapter<PathAdapter.ViewHolder>() {
 
-    private val pathOperationDelegate = browser.getPathOperationDelegate()
-
-    init {
-        //we save Base64 encoded strings to be used in substitutions to avoid false positives if a user directory is named as the media title
-        // ie "SDCARD", "Internal Memory" and so on
-        if (media.hasStateFlags(MediaLibraryItem.FLAG_STORAGE)) PathOperationDelegate.storages.put(Uri.decode(media.uri.path), pathOperationDelegate.makePathSafe(media.title))
-        PathOperationDelegate.storages.put(AndroidDevices.EXTERNAL_PUBLIC_DIRECTORY, pathOperationDelegate.makePathSafe(browser.currentContext().getString(R.string.internal_memory)))
-    }
-
-    private val browserTitle = browser.currentContext().getString(R.string.browser)
-    private val otgDevice = browser.currentContext().getString(R.string.otg_device_title)
-    private val segments = prepareSegments(media.uri)
+    private val segments = buildPathSegments(browser, media)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return ViewHolder(
@@ -55,39 +44,22 @@ class PathAdapter(val browser: PathAdapterListener, val media: MediaWrapper) : R
     override fun getItemCount() = segments.size
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val segmentUri = segments[position].toUri()
-        val segmentPath = segmentUri.path
-        val text: String? = when {
-            //substitute a storage path to its name. See [replaceStoragePath]
-            segmentPath != null && PathOperationDelegate.storages.containsKey(segmentPath) -> {
-                val safePath = PathOperationDelegate.storages.valueAt(PathOperationDelegate.storages.indexOfKey(segmentPath))
-                safePath?.let { pathOperationDelegate.retrieveSafePath(it) }
-            }
-            else -> segmentUri.lastPathSegment
-        }
-        val contentDescription = text?.let {
-            val isFile = try {
-                segments[position].toUri().toFile().isFile
-            } catch (e: Exception) {
-                false
-            }
-            holder.root.context.getString(if (isFile) R.string.talkback_file else R.string.talkback_folder, it)
-        }
+        val segment = segments[position]
         holder.bind(
-            text = text.orEmpty(),
-            contentDescription = contentDescription,
-            isLastSegment = position == segments.size - 1,
-            onClick = { browser.backTo(if (position == 0) "root" else segments[position]) }
+            text = segment.text,
+            contentDescription = segment.contentDescription,
+            enabled = segment.enabled,
+            onClick = { browser.backTo(segment.tag) }
         )
     }
 
     inner class ViewHolder(val root: ComposeView) : RecyclerView.ViewHolder(root) {
-        fun bind(text: String, contentDescription: String?, isLastSegment: Boolean, onClick: () -> Unit) {
+        fun bind(text: String, contentDescription: String?, enabled: Boolean, onClick: () -> Unit) {
             root.setContent {
                 PathSegmentRow(
                     text = text,
                     contentDescription = contentDescription,
-                    enabled = !isLastSegment,
+                    enabled = enabled,
                     onClick = onClick
                 )
             }
@@ -113,38 +85,83 @@ class PathAdapter(val browser: PathAdapterListener, val media: MediaWrapper) : R
             )
         }
     }
-    /**
-     * Splits an [Uri] in a list of string used as the adapter items
-     * Each item is a string representing a valid path
-     *
-     * @param uri the [Uri] that has to be split
-     * @return a list of strings representing the items
-     */
-    private fun prepareSegments(uri: Uri): MutableList<String> {
-        val path = Uri.decode(uri.path)
-        val isOtg = path.startsWith("/tree/")
-        val string = when {
-            isOtg -> if (path.endsWith(':')) "" else path.substringAfterLast(':')
-            else -> pathOperationDelegate.replaceStoragePath(path)
-        }
-        val list: MutableList<String> = mutableListOf()
-        if (isOtg) list.add(otgDevice)
+}
 
-        //list of all the path chunks
-        val pathParts = string.split('/').filter { it.isNotEmpty() }
-        for (index in pathParts.indices) {
-            //start creating the Uri
-            val currentPathUri = Uri.Builder().scheme(uri.scheme).encodedAuthority(uri.authority)
-            //append all the previous paths and the current one
-            for (i in 0..index) pathOperationDelegate.appendPathToUri(pathParts[i], currentPathUri)
-            list.add(currentPathUri.toString())
-        }
-        if (browser.showRoot()) list.add(0, browserTitle)
-        return list
+data class PathSegment(
+    val text: String,
+    val contentDescription: String?,
+    val enabled: Boolean,
+    val tag: String
+)
+
+fun buildPathSegments(browser: PathAdapterListener, media: MediaWrapper): List<PathSegment> {
+    val context = browser.currentContext()
+    val pathOperationDelegate = browser.getPathOperationDelegate()
+    // We save Base64 encoded strings to avoid false positives if a user directory is named like a storage title.
+    if (media.hasStateFlags(MediaLibraryItem.FLAG_STORAGE)) {
+        PathOperationDelegate.storages.put(Uri.decode(media.uri.path), pathOperationDelegate.makePathSafe(media.title))
     }
+    PathOperationDelegate.storages.put(
+        AndroidDevices.EXTERNAL_PUBLIC_DIRECTORY,
+        pathOperationDelegate.makePathSafe(context.getString(R.string.internal_memory))
+    )
 
+    val rawSegments = preparePathSegmentUris(
+        browserTitle = context.getString(R.string.browser),
+        otgDevice = context.getString(R.string.otg_device_title),
+        mediaUri = media.uri,
+        showRoot = browser.showRoot(),
+        pathOperationDelegate = pathOperationDelegate
+    )
 
+    return rawSegments.mapIndexed { index, rawSegment ->
+        val segmentUri = rawSegment.toUri()
+        val segmentPath = segmentUri.path
+        val text = when {
+            segmentPath != null && PathOperationDelegate.storages.containsKey(segmentPath) -> {
+                val safePath = PathOperationDelegate.storages.valueAt(PathOperationDelegate.storages.indexOfKey(segmentPath))
+                safePath?.let { pathOperationDelegate.retrieveSafePath(it) }
+            }
+            else -> segmentUri.lastPathSegment
+        }.orEmpty()
+        val isFile = try {
+            segmentUri.toFile().isFile
+        } catch (e: Exception) {
+            false
+        }
+        PathSegment(
+            text = text,
+            contentDescription = context.getString(if (isFile) R.string.talkback_file else R.string.talkback_folder, text),
+            enabled = index != rawSegments.lastIndex,
+            tag = if (index == 0) "root" else rawSegment
+        )
+    }
+}
 
+private fun preparePathSegmentUris(
+    browserTitle: String,
+    otgDevice: String,
+    mediaUri: Uri,
+    showRoot: Boolean,
+    pathOperationDelegate: IPathOperationDelegate
+): MutableList<String> {
+    val path = Uri.decode(mediaUri.path)
+    val isOtg = path.startsWith("/tree/")
+    val string = when {
+        isOtg -> if (path.endsWith(':')) "" else path.substringAfterLast(':')
+        else -> pathOperationDelegate.replaceStoragePath(path)
+    }
+    val list: MutableList<String> = mutableListOf()
+    if (isOtg) list.add(otgDevice)
+
+    val pathParts = string.split('/').filter { it.isNotEmpty() }
+    for (index in pathParts.indices) {
+        val currentPathUri = Uri.Builder().scheme(mediaUri.scheme).encodedAuthority(mediaUri.authority)
+        for (i in 0..index) pathOperationDelegate.appendPathToUri(pathParts[i], currentPathUri)
+        list.add(currentPathUri.toString())
+    }
+    if (showRoot) list.add(0, browserTitle)
+    return list
 }
 
 interface PathAdapterListener {

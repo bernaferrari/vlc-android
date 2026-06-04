@@ -14,6 +14,8 @@ import android.widget.FrameLayout
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,7 +29,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -52,7 +56,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.unit.sp
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
@@ -64,9 +68,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
-import androidx.recyclerview.widget.DividerItemDecoration
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -92,14 +93,13 @@ import org.videolan.vlc.compose.components.VLCInfoItem
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.getAllTracks
-import org.videolan.vlc.gui.browser.PathAdapter
 import org.videolan.vlc.gui.browser.PathAdapterListener
+import org.videolan.vlc.gui.browser.buildPathSegments
 import org.videolan.vlc.gui.helpers.AudioUtil
 import org.videolan.vlc.gui.helpers.PlayerBehavior
 import org.videolan.vlc.gui.helpers.TalkbackUtil
 import org.videolan.vlc.gui.helpers.UiTools.getResourceFromAttribute
 import org.videolan.vlc.gui.helpers.MedialibraryUtils
-import org.videolan.vlc.gui.view.VLCDividerItemDecoration
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.util.LocaleUtil
 import org.videolan.vlc.util.ThumbnailsProvider
@@ -611,22 +611,33 @@ private fun InfoProgress(progress: Int) {
 
 @Composable
 private fun InfoPathBreadcrumb(media: MediaWrapper, listener: PathAdapterListener, modifier: Modifier = Modifier) {
-    AndroidView(
-        modifier = modifier,
-        factory = { context ->
-            RecyclerView(context).apply {
-                layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-                adapter = PathAdapter(listener, media)
-                clipToPadding = false
-                ContextCompat.getDrawable(context, R.drawable.ic_divider)?.let { divider ->
-                    addItemDecoration(VLCDividerItemDecoration(context, DividerItemDecoration.HORIZONTAL, divider))
-                }
+    val segments = buildPathSegments(listener, media)
+    LazyRow(modifier = modifier) {
+        itemsIndexed(segments) { index, segment ->
+            val semanticModifier = segment.contentDescription?.let { description ->
+                Modifier.semantics { contentDescription = description }
+            } ?: Modifier
+            Text(
+                text = segment.text,
+                color = VLCThemeDefaults.colors.fontLight,
+                style = MaterialTheme.typography.bodySmall.copy(fontSize = 14.sp),
+                modifier = semanticModifier
+                    .clickable(enabled = segment.enabled) { listener.backTo(segment.tag) }
+                    .focusable()
+                    .padding(top = 3.dp, bottom = 4.dp)
+            )
+            if (index != segments.lastIndex) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_divider),
+                    contentDescription = null,
+                    tint = androidx.compose.ui.graphics.Color.Unspecified,
+                    modifier = Modifier
+                        .padding(top = 3.dp)
+                        .size(18.dp)
+                )
             }
-        },
-        update = { recyclerView ->
-            recyclerView.adapter = PathAdapter(listener, media)
         }
-    )
+    }
 }
 
 @Composable
