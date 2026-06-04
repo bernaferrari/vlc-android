@@ -218,3 +218,55 @@ fun Context.showSimpleBitmapComposeDialog(
     )
     dialog.show()
 }
+
+fun Context.showSingleActionComposeDialog(
+    title: String,
+    message: String,
+    actionText: String,
+    onAction: () -> Unit,
+    onCancel: () -> Unit
+) {
+    val dialog = AppCompatDialog(this)
+    dialog.supportRequestWindowFeature(Window.FEATURE_NO_TITLE)
+    dialog.setOnCancelListener { onCancel() }
+    dialog.setContentView(
+        ComposeView(this).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+            setContent {
+                VLCTheme {
+                    val colors = VLCThemeDefaults.colors
+                    Surface(color = colors.backgroundDefault, contentColor = colors.fontDefault) {
+                        Column(
+                            modifier = Modifier
+                                .widthIn(min = 280.dp, max = 560.dp)
+                                .padding(24.dp)
+                        ) {
+                            Text(text = title, fontWeight = FontWeight.SemiBold)
+                            Text(
+                                text = message,
+                                modifier = Modifier.padding(top = 16.dp),
+                                color = colors.fontLight
+                            )
+                            Row(
+                                horizontalArrangement = Arrangement.End,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 24.dp)
+                            ) {
+                                Button(
+                                    onClick = {
+                                        onAction()
+                                        dialog.dismiss()
+                                    }
+                                ) {
+                                    Text(actionText)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    )
+    dialog.show()
+}

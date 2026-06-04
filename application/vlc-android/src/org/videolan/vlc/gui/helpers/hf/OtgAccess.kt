@@ -31,7 +31,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.WorkerThread
-import androidx.appcompat.app.AlertDialog
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -42,6 +41,7 @@ import kotlinx.coroutines.launch
 import org.videolan.medialibrary.MLServiceLocator
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.vlc.R
+import org.videolan.vlc.gui.dialogs.showSingleActionComposeDialog
 
 const val TAG = "OtgAccess"
 
@@ -70,20 +70,21 @@ fun ComponentActivity.requestOtgRoot() {
             result.data?.data?.let { OtgAccess.otgRoot.value = it }
             unregister()
         }
-        AlertDialog.Builder(this@requestOtgRoot)
-            .setTitle(resources.getString(R.string.allow_otg))
-            .setMessage(resources.getString(R.string.allow_otg_description))
-            .setPositiveButton(R.string.ok) { _, _ ->
+        showSingleActionComposeDialog(
+            title = getString(R.string.allow_otg),
+            message = getString(R.string.allow_otg_description),
+            actionText = getString(R.string.ok),
+            onAction = {
                 try {
                     launcher?.launch(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE))
                 } catch (_: ActivityNotFoundException) {
                     unregister()
                 }
-            }
-            .setOnCancelListener {
+            },
+            onCancel = {
                 unregister()
             }
-            .show()
+        )
     }
 }
 
