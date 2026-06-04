@@ -691,6 +691,52 @@ object UiTools {
         }
     }
 
+    fun addAudioBrowserActionModeMenu(menu: Menu) {
+        menu.add(Menu.NONE, R.id.action_mode_audio_info, 0, R.string.info).apply {
+            setIcon(R.drawable.ic_information)
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        }
+        menu.add(Menu.NONE, R.id.action_mode_audio_share, 0, R.string.share).apply {
+            setIcon(R.drawable.ic_share)
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        }
+        menu.add(Menu.NONE, R.id.action_mode_audio_play, 0, R.string.play).apply {
+            setIcon(R.drawable.ic_play)
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        }
+        menu.add(Menu.NONE, R.id.action_mode_favorite_add, 0, R.string.favorites_add).apply {
+            setIcon(R.drawable.ic_fav_add)
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+        }
+        menu.add(Menu.NONE, R.id.action_mode_favorite_remove, 0, R.string.favorites_remove).apply {
+            setIcon(R.drawable.ic_fav_add)
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+        }
+        menu.add(Menu.NONE, R.id.action_mode_audio_append, 0, R.string.append).apply {
+            setIcon(R.drawable.ic_play_append)
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+        }
+        menu.add(Menu.NONE, R.id.action_mode_audio_add_playlist, 0, R.string.add_to_playlist).apply {
+            setIcon(R.drawable.ic_add_to_playlist)
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+        }
+        menu.add(Menu.NONE, R.id.action_mode_audio_delete, 0, R.string.delete).apply {
+            setIcon(R.drawable.ic_delete)
+            isVisible = false
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+        }
+        menu.add(R.id.phone_only, R.id.action_mode_audio_set_song, 0, R.string.set_song).apply {
+            setIcon(R.drawable.ic_set_ringtone)
+            isVisible = false
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        }
+        menu.add(Menu.NONE, R.id.action_mode_go_to_folder, 0, R.string.go_to_folder).apply {
+            setIcon(R.drawable.ic_go_to_folder)
+            isVisible = false
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
+        }
+    }
+
     fun confirmExit(activity: Activity) {
         AlertDialog.Builder(activity)
                 .setMessage(R.string.exit_app_msg)

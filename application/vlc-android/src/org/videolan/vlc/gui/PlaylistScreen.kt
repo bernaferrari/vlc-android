@@ -86,6 +86,7 @@ import org.videolan.vlc.gui.dialogs.showRenameComposeDialog
 import org.videolan.vlc.gui.helpers.DefaultPlaybackAction
 import org.videolan.vlc.gui.helpers.DefaultPlaybackActionMediaType
 import org.videolan.vlc.gui.helpers.FloatingActionButtonBehavior
+import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.UiTools.createShortcut
 import org.videolan.vlc.media.MediaUtils
@@ -282,7 +283,7 @@ class PlaylistScreenController(private val activity: MainActivity) : DefaultLife
     private fun startActionMode() {
         actionMode = activity.startSupportActionMode(object : ActionMode.Callback {
             override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
-                mode.menuInflater.inflate(R.menu.action_mode_audio_browser, menu)
+                UiTools.addAudioBrowserActionModeMenu(menu)
                 menu.findItem(R.id.action_mode_audio_add_playlist)?.isVisible = false
                 return true
             }

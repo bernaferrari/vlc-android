@@ -733,7 +733,7 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), ActionMode.
 
     override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
         inSelectionMode = true
-        mode.menuInflater.inflate(R.menu.action_mode_audio_browser, menu)
+        UiTools.addAudioBrowserActionModeMenu(menu)
         return true
     }
 
