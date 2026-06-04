@@ -35,14 +35,15 @@ import org.videolan.libvlc.interfaces.IMedia
 import org.videolan.tools.readableSize
 import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.getAllTracks
 import org.videolan.vlc.gui.view.VideoStatEntry
 import org.videolan.vlc.gui.view.VideoStatTrackInfo
-import org.videolan.vlc.gui.view.VideoStatsOverlayView
+import org.videolan.vlc.gui.view.videoStatsOverlayHost
 import org.videolan.vlc.util.LocaleUtil
 
 class VideoStatsDelegate(private val player: VideoPlayerActivity, val scrolling: () -> Unit, val idle: () -> Unit) {
-    lateinit var container: VideoStatsOverlayView
+    lateinit var container: VLCComposeView
     private var lastMediaUri: Uri? = null
     private var started = false
     private val plotHandler: Handler = Handler(Looper.getMainLooper())
@@ -54,7 +55,7 @@ class VideoStatsDelegate(private val player: VideoPlayerActivity, val scrolling:
         plotHandler.removeCallbacks(runnable)
         if (::container.isInitialized) {
             container.visibility = View.GONE
-            container.clearPlot()
+            container.videoStatsOverlayHost().clearPlot()
         }
     }
 
@@ -67,9 +68,9 @@ class VideoStatsDelegate(private val player: VideoPlayerActivity, val scrolling:
     fun initStatsView(binding: VideoHudOverlayViews) {
         this.binding = binding
         container = binding.statsContainer
-        binding.statsContainer.setScrollCallbacks(scrolling = { scrolling() }, idle = { idle() })
-        binding.statsContainer.addLine(StatIndex.DEMUX_BITRATE.ordinal, player.getString(R.string.demux_bitrate), ContextCompat.getColor(player, R.color.material_blue))
-        binding.statsContainer.addLine(StatIndex.INPUT_BITRATE.ordinal, player.getString(R.string.input_bitrate), ContextCompat.getColor(player, R.color.material_pink))
+        binding.statsContainer.videoStatsOverlayHost().setScrollCallbacks(scrolling = { scrolling() }, idle = { idle() })
+        binding.statsContainer.videoStatsOverlayHost().addLine(StatIndex.DEMUX_BITRATE.ordinal, player.getString(R.string.demux_bitrate), ContextCompat.getColor(player, R.color.material_blue))
+        binding.statsContainer.videoStatsOverlayHost().addLine(StatIndex.INPUT_BITRATE.ordinal, player.getString(R.string.input_bitrate), ContextCompat.getColor(player, R.color.material_pink))
     }
 
     private val runnable = Runnable {
@@ -79,15 +80,15 @@ class VideoStatsDelegate(private val player: VideoPlayerActivity, val scrolling:
         if (BuildConfig.DEBUG) Log.i(this::class.java.simpleName, "Stats: demuxBitrate: ${stats?.demuxBitrate} demuxCorrupted: ${stats?.demuxCorrupted} demuxDiscontinuity: ${stats?.demuxDiscontinuity} demuxReadBytes: ${stats?.demuxReadBytes}")
         val now = System.currentTimeMillis() - firstTimecode
         stats?.demuxBitrate?.let {
-            binding.statsContainer.addData(StatIndex.DEMUX_BITRATE.ordinal, Pair(now, it * 8 * 1024))
+            binding.statsContainer.videoStatsOverlayHost().addData(StatIndex.DEMUX_BITRATE.ordinal, Pair(now, it * 8 * 1024))
         }
         stats?.inputBitrate?.let {
-            binding.statsContainer.addData(StatIndex.INPUT_BITRATE.ordinal, Pair(now, it * 8 * 1024))
+            binding.statsContainer.videoStatsOverlayHost().addData(StatIndex.INPUT_BITRATE.ordinal, Pair(now, it * 8 * 1024))
         }
 
         if (lastMediaUri != media.uri) {
             lastMediaUri = media.uri
-            binding.statsContainer.setTrackInfo(media.buildTrackInfo())
+            binding.statsContainer.videoStatsOverlayHost().setTrackInfo(media.buildTrackInfo())
         }
 
         if (started) {

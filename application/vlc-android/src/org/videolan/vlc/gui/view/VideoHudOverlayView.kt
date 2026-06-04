@@ -58,10 +58,11 @@ private fun ConstraintLayout.addHudChildren(
     smallSideMargin: Int,
     largeCenterMargin: Int
 ) {
-        addView(VideoStatsOverlayView(context).apply {
+        addView(VLCComposeView(context).apply {
             id = R.id.stats_container
             setBackgroundResource(R.drawable.rounded_corners)
             visibility = View.GONE
+            installVideoStatsOverlayHost()
         }, hudLayout(0, 0) {
             topToTop = PARENT_ID
             bottomToTop = R.id.player_overlay_seekbar

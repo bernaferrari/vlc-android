@@ -1,6 +1,6 @@
 /*
  * ************************************************************************
- *  VideoStatsOverlayView.kt
+ *  VideoStatsOverlayHost.kt
  * *************************************************************************
  * Copyright © 2026 VLC authors and VideoLAN
  *
@@ -22,10 +22,8 @@
 
 package org.videolan.vlc.gui.view
 
-import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Paint
-import android.util.AttributeSet
 import android.view.MotionEvent
 import androidx.annotation.ColorInt
 import androidx.compose.foundation.Canvas
@@ -67,7 +65,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.videolan.vlc.R
-import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import kotlin.math.log10
 import kotlin.math.pow
@@ -87,14 +86,23 @@ private data class VideoStatLine(
 /**
  * Compose-backed replacement for the video HUD statistics panel.
  * The delegate keeps ownership of media/stat sampling and feeds immutable
- * values into this view while the panel owns layout, scrolling, rows, graph,
+ * values into this host while the panel owns layout, scrolling, rows, graph,
  * legend, and close affordance rendering.
  */
-class VideoStatsOverlayView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : VLCAbstractComposeWidget(context, attrs, defStyleAttr) {
+internal fun VLCComposeView.installVideoStatsOverlayHost() {
+    val host = VideoStatsOverlayHost()
+    setTag(R.id.stats_container, host)
+    setContent {
+        VLCTheme {
+            host.Content()
+        }
+    }
+}
+
+internal fun VLCComposeView.videoStatsOverlayHost(): VideoStatsOverlayHost =
+    getTag(R.id.stats_container) as? VideoStatsOverlayHost ?: error("Missing video stats overlay host")
+
+internal class VideoStatsOverlayHost {
 
     private var lines by mutableStateOf<List<VideoStatLine>>(emptyList())
     private var tracks by mutableStateOf<List<VideoStatTrackInfo>>(emptyList())
@@ -133,7 +141,7 @@ class VideoStatsOverlayView @JvmOverloads constructor(
 
     @OptIn(ExperimentalComposeUiApi::class)
     @Composable
-    override fun WidgetContent() {
+    fun Content() {
         val scrollState = rememberScrollState()
         val configuration = LocalConfiguration.current
         val largeLayout = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE || configuration.screenWidthDp >= 600

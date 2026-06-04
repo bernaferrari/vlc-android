@@ -100,6 +100,7 @@ import org.videolan.vlc.gui.view.VideoVerticalProgressOverlayView
 import org.videolan.vlc.gui.view.abRepeatMarkerContainerHost
 import org.videolan.vlc.gui.view.videoHudSeekJumpLabelHost
 import org.videolan.vlc.gui.view.videoInfoOverlayHost
+import org.videolan.vlc.gui.view.videoStatsOverlayHost
 import org.videolan.vlc.isVLC4
 import org.videolan.vlc.manageAbRepeatStep
 import org.videolan.vlc.media.MediaUtils
@@ -582,7 +583,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                     player.statsDelegate.initStatsView(hudBinding)
                     if (it) player.statsDelegate.start() else player.statsDelegate.stop()
                 }
-                hudBinding.statsContainer.setOnCloseClickListener { service.playlistManager.videoStatsOn.postValue(false) }
+                hudBinding.statsContainer.videoStatsOverlayHost().setOnCloseClickListener { service.playlistManager.videoStatsOn.postValue(false) }
 
                 updateOrientationIcon()
                 overlayBackground = player.findViewById(R.id.player_overlay_background)
