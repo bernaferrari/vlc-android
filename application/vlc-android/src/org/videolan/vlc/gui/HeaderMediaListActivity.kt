@@ -522,7 +522,7 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), ActionMode.
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         super.onCreateOptionsMenu(menu)
-        menuInflater.inflate(R.menu.playlist_option, menu)
+        configurePlaylistOptionsMenu(menu)
         if (!isPlaylist) {
             menu.findItem(R.id.ml_menu_display_options).isVisible = true
         }
@@ -541,6 +541,42 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), ActionMode.
         }
         searchItem.setOnActionExpandListener(this)
         return true
+    }
+
+    private fun configurePlaylistOptionsMenu(menu: Menu) {
+        menu.findItem(R.id.pin_relocked)?.apply {
+            setIcon(R.drawable.ic_pin_lock)
+            setTitle(R.string.lock_with_pin)
+            isVisible = false
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        } ?: menu.add(Menu.NONE, R.id.pin_relocked, 0, R.string.lock_with_pin).apply {
+            setIcon(R.drawable.ic_pin_lock)
+            isVisible = false
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        }
+
+        menu.findItem(R.id.ml_menu_filter)?.apply {
+            setIcon(R.drawable.ic_search)
+            setTitle(R.string.searchable_hint)
+            isVisible = true
+            if (actionView == null) actionView = SearchView(this@HeaderMediaListActivity)
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS or MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW)
+        } ?: menu.add(Menu.NONE, R.id.ml_menu_filter, 1, R.string.searchable_hint).apply {
+            setIcon(R.drawable.ic_search)
+            actionView = SearchView(this@HeaderMediaListActivity)
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS or MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW)
+        }
+
+        menu.findItem(R.id.ml_menu_display_options)?.apply {
+            setIcon(R.drawable.ic_display_settings)
+            setTitle(R.string.display_settings)
+            isVisible = false
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM or MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW)
+        } ?: menu.add(Menu.NONE, R.id.ml_menu_display_options, 2, R.string.display_settings).apply {
+            setIcon(R.drawable.ic_display_settings)
+            isVisible = false
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM or MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW)
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
