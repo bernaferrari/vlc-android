@@ -25,6 +25,7 @@ package org.videolan.vlc.gui.compose
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
@@ -57,7 +58,9 @@ internal fun VlcMediaImage(
     fallbackColorFilter: ColorFilter? = null,
     contentScale: ContentScale = ContentScale.Fit,
     fallbackContentScale: ContentScale = contentScale,
+    drawFallback: Boolean = true,
     reloadKey: Any? = null,
+    onBitmapStateChanged: (Boolean) -> Unit = {},
     thumbnailLoader: suspend (MediaLibraryItem, Int) -> Bitmap? = { mediaItem, widthPx ->
         ThumbnailsProvider.obtainBitmap(mediaItem, widthPx)
     }
@@ -73,7 +76,11 @@ internal fun VlcMediaImage(
     }
 
     val bitmap = thumbnail?.takeIf { it.width > 1 && it.height > 1 }
+    LaunchedEffect(bitmap != null) {
+        onBitmapStateChanged(bitmap != null)
+    }
     if (bitmap == null) {
+        if (!drawFallback) return
         Image(
             painter = fallbackPainter,
             contentDescription = contentDescription,

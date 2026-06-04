@@ -1,7 +1,6 @@
 package org.videolan.vlc.gui
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.os.Parcelable
@@ -12,7 +11,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -46,7 +44,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -95,17 +92,15 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.getAllTracks
 import org.videolan.vlc.gui.browser.PathAdapterListener
 import org.videolan.vlc.gui.browser.buildPathSegments
-import org.videolan.vlc.gui.helpers.AudioUtil
+import org.videolan.vlc.gui.compose.VlcMediaImage
 import org.videolan.vlc.gui.helpers.PlayerBehavior
 import org.videolan.vlc.gui.helpers.TalkbackUtil
 import org.videolan.vlc.gui.helpers.UiTools.getResourceFromAttribute
 import org.videolan.vlc.gui.helpers.MedialibraryUtils
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.util.LocaleUtil
-import org.videolan.vlc.util.ThumbnailsProvider
 import org.videolan.vlc.util.generateResolutionClass
 import org.videolan.vlc.util.getModel
-import org.videolan.vlc.util.getScreenWidth
 import org.videolan.vlc.util.isSchemeSupported
 import org.videolan.vlc.util.setLayoutMarginTop
 import org.videolan.vlc.viewmodels.browser.IPathOperationDelegate
@@ -147,7 +142,11 @@ class InfoActivity : AudioPlayerContainerActivity(), PathAdapterListener,
             if (libraryItem != null) item = libraryItem
         }
         fabVisible = savedInstanceState?.getInt(TAG_FAB_VISIBILITY)?.let { it == View.VISIBLE } ?: true
-        uiState = uiState.copy(item = item, scanned = true)
+        uiState = uiState.copy(
+            item = item,
+            scanned = true,
+            onCoverAvailableChanged = ::onCoverAvailableChanged
+        )
 
         setContentView(createInfoActivityShell())
         initAudioPlayerContainerActivity()
@@ -187,14 +186,6 @@ class InfoActivity : AudioPlayerContainerActivity(), PathAdapterListener,
                 sizeValueText = if (size != -1L) Formatter.formatFileSize(this, size) else ""
             )
         }
-        model.cover.observe(this) { cover ->
-            if (cover != null) {
-                uiState = uiState.copy(cover = cover)
-            } else {
-                noCoverFallback()
-            }
-        }
-        if (model.cover.value === null) model.getCover(item, getScreenWidth())
         updateMeta()
     }
 
@@ -349,9 +340,9 @@ class InfoActivity : AudioPlayerContainerActivity(), PathAdapterListener,
         uiState = uiState.copy(scanned = true)
     }
 
-    private fun noCoverFallback() {
-        uiState = uiState.copy(cover = null)
-        fabVisible = true
+    private fun onCoverAvailableChanged(available: Boolean) {
+        uiState = uiState.copy(coverAvailable = available)
+        if (!available) fabVisible = true
     }
 
     private fun playItem() {
@@ -506,19 +497,27 @@ private fun InfoScreen(
 @Composable
 private fun InfoHeader(state: InfoUiState) {
     val colors = VLCThemeDefaults.colors
+    val item = state.item
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(if (state.cover != null) 300.dp else 144.dp)
+            .height(if (state.coverAvailable) 300.dp else 144.dp)
             .background(colors.backgroundDefaultDarker)
     ) {
-        state.cover?.let { bitmap ->
-            Image(
-                bitmap = bitmap.asImageBitmap(),
-                contentDescription = null,
+        if (item != null) {
+            VlcMediaImage(
+                item = item,
+                width = 300.dp,
+                fallbackPainter = painterResource(R.drawable.ic_no_thumbnail_1610),
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
+                drawFallback = false,
+                modifier = Modifier.fillMaxSize(),
+                onBitmapStateChanged = { available ->
+                    if (state.coverAvailable != available) state.onCoverAvailableChanged(available)
+                }
             )
+        }
+        if (state.coverAvailable) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -541,7 +540,7 @@ private fun InfoHeader(state: InfoUiState) {
         ) {
             Text(
                 text = state.item?.title.orEmpty(),
-                color = if (state.cover != null) androidx.compose.ui.graphics.Color.White else colors.fontDefault,
+                color = if (state.coverAvailable) androidx.compose.ui.graphics.Color.White else colors.fontDefault,
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis
@@ -549,7 +548,7 @@ private fun InfoHeader(state: InfoUiState) {
             state.item?.description?.takeIf { it.isNotEmpty() }?.let { description ->
                 Text(
                     text = description,
-                    color = if (state.cover != null) androidx.compose.ui.graphics.Color.White.copy(alpha = 0.82f) else colors.fontLight,
+                    color = if (state.coverAvailable) androidx.compose.ui.graphics.Color.White.copy(alpha = 0.82f) else colors.fontLight,
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -701,7 +700,8 @@ private fun InfoMetaRow(
 
 private data class InfoUiState(
     val item: MediaLibraryItem? = null,
-    val cover: Bitmap? = null,
+    val coverAvailable: Boolean = false,
+    val onCoverAvailableChanged: (Boolean) -> Unit = {},
     val resolution: String? = null,
     val showSubtitles: Boolean = false,
     val length: Long? = null,
@@ -786,18 +786,7 @@ class InfoModel : ViewModel() {
     val hasSubs = MutableLiveData<Boolean>()
     val mediaTracks = MutableLiveData<List<IMedia.Track>>()
     val sizeText = MutableLiveData<Long>()
-    val cover = MutableLiveData<Bitmap>()
     private val mediaFactory = FactoryManager.getFactory(IMediaFactory.factoryId) as IMediaFactory
-
-    fun getCover(item: MediaLibraryItem?, width: Int) = viewModelScope.launch {
-        item?.let { item ->
-            cover.value = item.artworkMrl?.let {
-                withContext(Dispatchers.IO) { AudioUtil.fetchCoverBitmap(Uri.decode(it), width) }
-            } ?: (item as? MediaWrapper)?.let { media ->
-                if (item.type == MediaWrapper.TYPE_VIDEO) withContext(Dispatchers.IO) { ThumbnailsProvider.getVideoThumbnail(media, width) } else null
-            }
-        }
-    }
 
     fun parseTracks(context: Context, mw: MediaWrapper) = viewModelScope.launch {
         val media = withContext(Dispatchers.IO) {
