@@ -1,6 +1,6 @@
 /*
  * ************************************************************************
- *  VideoHudIconButtonView.kt
+ *  VideoHudIconButtonHost.kt
  * *************************************************************************
  * Copyright © 2026 VLC authors and VideoLAN
  *
@@ -22,8 +22,6 @@
 
 package org.videolan.vlc.gui.view
 
-import android.content.Context
-import android.util.AttributeSet
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
@@ -37,56 +35,72 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
+import org.videolan.vlc.R
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.compose.theme.VLCTheme
 
 /**
  * Compose-backed icon button for video HUD controls that still need stable
  * IDs and View-level click/visibility hooks during the HUD migration.
  */
-class VideoHudIconButtonView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : VLCAbstractComposeWidget(context, attrs, defStyleAttr) {
+internal fun VLCComposeView.installVideoHudIconButtonHost(
+    @DrawableRes icon: Int,
+    contentDescription: String?,
+    enabled: Boolean = isEnabled
+) {
+    val host = VideoHudIconButtonHost(this)
+    setTag(R.id.video_hud_icon_button_host, host)
+    host.setImageResource(icon)
+    host.setContentDescription(contentDescription)
+    host.setEnabled(enabled)
+    setContent {
+        VLCTheme {
+            host.Content()
+        }
+    }
+}
 
-    private var iconRes by mutableIntStateOf(readIconResource(attrs))
-    private var contentDescriptionState by mutableStateOf(contentDescription?.toString())
-    private var enabledState by mutableStateOf(isEnabled)
-    private var longClickableState by mutableStateOf(isLongClickable)
+internal fun VLCComposeView.videoHudIconButtonHost(): VideoHudIconButtonHost =
+    getTag(R.id.video_hud_icon_button_host) as? VideoHudIconButtonHost ?: error("Missing video HUD icon button host")
+
+internal fun VLCComposeView.setVideoHudIconResource(@DrawableRes resourceId: Int) =
+    videoHudIconButtonHost().setImageResource(resourceId)
+
+internal fun VLCComposeView.setVideoHudIconContentDescription(contentDescription: CharSequence?) =
+    videoHudIconButtonHost().setContentDescription(contentDescription)
+
+internal fun VLCComposeView.setVideoHudIconEnabled(enabled: Boolean) =
+    videoHudIconButtonHost().setEnabled(enabled)
+
+internal class VideoHudIconButtonHost(private val view: VLCComposeView) {
+
+    private var iconRes by mutableIntStateOf(0)
+    private var contentDescriptionState by mutableStateOf(view.contentDescription?.toString())
+    private var enabledState by mutableStateOf(view.isEnabled)
 
     fun setImageResource(@DrawableRes resourceId: Int) {
         iconRes = resourceId
     }
 
-    override fun setContentDescription(contentDescription: CharSequence?) {
-        super.setContentDescription(contentDescription)
+    fun setContentDescription(contentDescription: CharSequence?) {
+        view.contentDescription = contentDescription
         contentDescriptionState = contentDescription?.toString()
     }
 
-    override fun setEnabled(enabled: Boolean) {
-        super.setEnabled(enabled)
+    fun setEnabled(enabled: Boolean) {
+        view.isEnabled = enabled
         enabledState = enabled
-    }
-
-    override fun setLongClickable(longClickable: Boolean) {
-        super.setLongClickable(longClickable)
-        longClickableState = longClickable
-    }
-
-    override fun setOnLongClickListener(listener: OnLongClickListener?) {
-        super.setOnLongClickListener(listener)
-        longClickableState = isLongClickable || listener != null
     }
 
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
-    override fun WidgetContent() {
+    fun Content() {
         Box(
             modifier = Modifier
                 .combinedClickable(
                     enabled = enabledState,
-                    onClick = { performClick() },
-                    onLongClick = if (longClickableState) ({ performLongClick() }) else null
+                    onClick = { view.performClick() },
+                    onLongClick = { view.performLongClick() }
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -96,15 +110,6 @@ class VideoHudIconButtonView @JvmOverloads constructor(
                     contentDescription = contentDescriptionState
                 )
             }
-        }
-    }
-
-    private fun readIconResource(attrs: AttributeSet?): Int {
-        val typedArray = context.obtainStyledAttributes(attrs, intArrayOf(android.R.attr.src))
-        return try {
-            typedArray.getResourceId(0, 0)
-        } finally {
-            typedArray.recycle()
         }
     }
 }

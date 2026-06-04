@@ -349,15 +349,18 @@ private fun ConstraintLayout.hudIconButton(
     @StringRes contentDescription: Int,
     visible: Int = View.VISIBLE,
     longClickable: Boolean = false
-) = VideoHudIconButtonView(context).apply {
+) = VLCComposeView(context).apply {
     this.id = id
     setBackgroundFromAttr(android.R.attr.selectableItemBackgroundBorderless)
     isClickable = true
     isFocusable = true
     isLongClickable = longClickable
-    setImageResource(icon)
     this.contentDescription = context.getString(contentDescription)
     visibility = visible
+    installVideoHudIconButtonHost(
+        icon = icon,
+        contentDescription = context.getString(contentDescription)
+    )
 }
 
 private fun ConstraintLayout.timeLabel(@IdRes id: Int) = VLCComposeView(context).apply {

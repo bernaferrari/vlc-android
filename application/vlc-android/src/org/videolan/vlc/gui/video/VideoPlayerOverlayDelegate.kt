@@ -103,6 +103,9 @@ import org.videolan.vlc.gui.view.videoHudSeekJumpLabelHost
 import org.videolan.vlc.gui.view.videoInfoOverlayHost
 import org.videolan.vlc.gui.view.videoStatsOverlayHost
 import org.videolan.vlc.gui.view.videoTimelineTimeLabelHost
+import org.videolan.vlc.gui.view.setVideoHudIconContentDescription
+import org.videolan.vlc.gui.view.setVideoHudIconEnabled
+import org.videolan.vlc.gui.view.setVideoHudIconResource
 import org.videolan.vlc.isVLC4
 import org.videolan.vlc.manageAbRepeatStep
 import org.videolan.vlc.media.MediaUtils
@@ -496,11 +499,11 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
         player.service?.let { service ->
             if (service.isPausable) {
 
-                hudBinding.playerOverlayPlay.setImageResource(if (service.isPlaying)
+                hudBinding.playerOverlayPlay.setVideoHudIconResource(if (service.isPlaying)
                     R.drawable.ic_pause_player
                 else
                     R.drawable.ic_play_player)
-                hudBinding.playerOverlayPlay.contentDescription = player.getString(if (service.isPlaying) R.string.pause else R.string.play)
+                hudBinding.playerOverlayPlay.setVideoHudIconContentDescription(player.getString(if (service.isPlaying) R.string.pause else R.string.play))
 
             }
             hudBinding.playerOverlayPlay.requestFocus()
@@ -661,13 +664,13 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
     fun updateSeekable(seekable: Boolean) {
         if (!::hudBinding.isInitialized) return
-        hudBinding.playerOverlayRewind.isEnabled = seekable
-        hudBinding.playerOverlayRewind.setImageResource(if (seekable)
+        hudBinding.playerOverlayRewind.setVideoHudIconEnabled(seekable)
+        hudBinding.playerOverlayRewind.setVideoHudIconResource(if (seekable)
             R.drawable.ic_player_rewind_10
         else
             R.drawable.ic_player_rewind_10_disabled)
-        hudBinding.playerOverlayForward.isEnabled = seekable
-        hudBinding.playerOverlayForward.setImageResource(if (seekable)
+        hudBinding.playerOverlayForward.setVideoHudIconEnabled(seekable)
+        hudBinding.playerOverlayForward.setVideoHudIconResource(if (seekable)
             R.drawable.ic_player_forward_10
         else
             R.drawable.ic_player_forward_10_disabled)
@@ -744,9 +747,9 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
     fun updatePausable(pausable: Boolean) {
         if (!::hudBinding.isInitialized) return
-        hudBinding.playerOverlayPlay.isEnabled = pausable
+        hudBinding.playerOverlayPlay.setVideoHudIconEnabled(pausable)
         if (!pausable)
-            hudBinding.playerOverlayPlay.setImageResource(R.drawable.ic_play_player_disabled)
+            hudBinding.playerOverlayPlay.setVideoHudIconResource(R.drawable.ic_play_player_disabled)
     }
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
@@ -777,7 +780,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
             } else {
                 R.drawable.ic_player_lock_portrait
             }
-            hudBinding.orientationToggle.setImageResource(drawable)
+            hudBinding.orientationToggle.setVideoHudIconResource(drawable)
         }
         if (::hudRightOverlay.isInitialized) {
             if (!player.isLocked && player.orientationMode.locked && Settings.getInstance(player).getBoolean(SHOW_ORIENTATION_BUTTON, true)) {
@@ -992,11 +995,11 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
             if (seekButtons) {
                 hudBinding.playerOverlayRewind.visibility = if (show) View.VISIBLE else View.INVISIBLE
                 hudBinding.playerOverlayRewindText.videoHudSeekJumpLabelHost().setText("${Settings.videoJumpDelay}")
-                hudBinding.playerOverlayRewind.contentDescription = player.getString(R.string.talkback_action_rewind, Settings.videoJumpDelay.toString())
+                hudBinding.playerOverlayRewind.setVideoHudIconContentDescription(player.getString(R.string.talkback_action_rewind, Settings.videoJumpDelay.toString()))
                 hudBinding.playerOverlayRewindText.visibility = if (show) View.VISIBLE else View.INVISIBLE
                 hudBinding.playerOverlayForward.visibility = if (show) View.VISIBLE else View.INVISIBLE
                 hudBinding.playerOverlayForwardText.videoHudSeekJumpLabelHost().setText("${Settings.videoJumpDelay}")
-                hudBinding.playerOverlayForward.contentDescription = player.getString(R.string.talkback_action_forward, Settings.videoJumpDelay.toString())
+                hudBinding.playerOverlayForward.setVideoHudIconContentDescription(player.getString(R.string.talkback_action_forward, Settings.videoJumpDelay.toString()))
                 hudBinding.playerOverlayForwardText.visibility = if (show) View.VISIBLE else View.INVISIBLE
             }
             hudBinding.playerOverlayTracks.visibility = if (show) View.VISIBLE else View.INVISIBLE
@@ -1105,8 +1108,8 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
             hudBinding.playerOverlayTime.videoTimelineTimeLabelHost().setEnabled(false)
             hudBinding.playerOverlaySeekbar.isEnabled = false
             hudBinding.playerOverlayLength.videoTimelineTimeLabelHost().setEnabled(false)
-            hudBinding.playlistNext.isEnabled = false
-            hudBinding.playlistPrevious.isEnabled = false
+            hudBinding.playlistNext.setVideoHudIconEnabled(false)
+            hudBinding.playlistPrevious.setVideoHudIconEnabled(false)
             hudBinding.swipeToUnlock.setVisible()
             //make sure the title and unlock views are not conflicting with the cutout / gestures
             (playerUiContainer.layoutParams as? FrameLayout.LayoutParams)?.let {
@@ -1144,8 +1147,8 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
             hudBinding.playerOverlayTime.videoTimelineTimeLabelHost().setEnabled(true)
             hudBinding.playerOverlaySeekbar.isEnabled = player.service?.isSeekable != false
             hudBinding.playerOverlayLength.videoTimelineTimeLabelHost().setEnabled(true)
-            hudBinding.playlistNext.isEnabled = true
-            hudBinding.playlistPrevious.isEnabled = true
+            hudBinding.playlistNext.setVideoHudIconEnabled(true)
+            hudBinding.playlistPrevious.setVideoHudIconEnabled(true)
         }
         player.isShowing = false
         player.isLocked = false

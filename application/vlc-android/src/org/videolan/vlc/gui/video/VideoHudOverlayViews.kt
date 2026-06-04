@@ -29,34 +29,33 @@ import org.videolan.vlc.R
 import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.gui.view.BookmarksPanelView
 import org.videolan.vlc.gui.view.SwipeToUnlockView
-import org.videolan.vlc.gui.view.VideoHudIconButtonView
 import org.videolan.vlc.gui.view.VideoTimelineSeekBarView
 
 class VideoHudOverlayViews(val progressOverlay: ConstraintLayout) {
     val statsContainer: VLCComposeView = progressOverlay.requireHudView(R.id.stats_container)
     val abRepeatContainer: VLCComposeView = progressOverlay.requireHudView(R.id.ab_repeat_container)
-    val abRepeatReset: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.ab_repeat_reset)
-    val abRepeatStop: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.ab_repeat_stop)
-    val fastSeekWarning: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.fast_seek_warning)
+    val abRepeatReset: VLCComposeView = progressOverlay.requireHudView(R.id.ab_repeat_reset)
+    val abRepeatStop: VLCComposeView = progressOverlay.requireHudView(R.id.ab_repeat_stop)
+    val fastSeekWarning: VLCComposeView = progressOverlay.requireHudView(R.id.fast_seek_warning)
     val bookmarksBackground: BookmarksPanelView = progressOverlay.requireHudView(R.id.bookmarks_background)
     val playerOverlayTime: VLCComposeView = progressOverlay.requireHudView(R.id.player_overlay_time)
     val playerOverlayLength: VLCComposeView = progressOverlay.requireHudView(R.id.player_overlay_length)
     val playerOverlaySeekbar: VideoTimelineSeekBarView = progressOverlay.requireHudView(R.id.player_overlay_seekbar)
     val bookmarkMarkerContainer: VLCComposeView = progressOverlay.requireHudView(R.id.bookmark_marker_container)
     val abRepeatMarkerGuidelineContainer: VLCComposeView = progressOverlay.requireHudView(R.id.ab_repeat_marker_guideline_container)
-    val playerOverlayTracks: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.player_overlay_tracks)
-    val orientationToggle: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.orientation_toggle)
+    val playerOverlayTracks: VLCComposeView = progressOverlay.requireHudView(R.id.player_overlay_tracks)
+    val orientationToggle: VLCComposeView = progressOverlay.requireHudView(R.id.orientation_toggle)
     val playerSpaceLeft: View = progressOverlay.requireHudView(R.id.player_space_left)
-    val playlistPrevious: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.playlist_previous)
-    val playerOverlayRewind: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.player_overlay_rewind)
+    val playlistPrevious: VLCComposeView = progressOverlay.requireHudView(R.id.playlist_previous)
+    val playerOverlayRewind: VLCComposeView = progressOverlay.requireHudView(R.id.player_overlay_rewind)
     val playerOverlayRewindText: VLCComposeView = progressOverlay.requireHudView(R.id.player_overlay_rewind_text)
-    val playerOverlayPlay: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.player_overlay_play)
-    val playerOverlayForward: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.player_overlay_forward)
+    val playerOverlayPlay: VLCComposeView = progressOverlay.requireHudView(R.id.player_overlay_play)
+    val playerOverlayForward: VLCComposeView = progressOverlay.requireHudView(R.id.player_overlay_forward)
     val playerOverlayForwardText: VLCComposeView = progressOverlay.requireHudView(R.id.player_overlay_forward_text)
-    val playlistNext: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.playlist_next)
+    val playlistNext: VLCComposeView = progressOverlay.requireHudView(R.id.playlist_next)
     val playerSpaceRight: View = progressOverlay.requireHudView(R.id.player_space_right)
-    val playerResize: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.player_resize)
-    val playerOverlayAdvFunction: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.player_overlay_adv_function)
+    val playerResize: VLCComposeView = progressOverlay.requireHudView(R.id.player_resize)
+    val playerOverlayAdvFunction: VLCComposeView = progressOverlay.requireHudView(R.id.player_overlay_adv_function)
     val swipeToUnlock: SwipeToUnlockView = progressOverlay.requireHudView(R.id.swipe_to_unlock)
 
     private inline fun <reified T : View> View.requireHudView(@IdRes id: Int): T {
