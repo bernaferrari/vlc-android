@@ -36,6 +36,7 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import org.videolan.tools.dp
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.interop.VLCComposeView
 
 /**
  * Direct host factory for the video player's bottom HUD. The leaf controls are
@@ -158,9 +159,10 @@ private fun ConstraintLayout.addHudChildren(
             endToEnd = PARENT_ID
         })
 
-        addView(BookmarkMarkerContainerView(context).apply {
+        addView(VLCComposeView(context).apply {
             id = R.id.bookmark_marker_container
             setPadding(8.dp, 0, 8.dp, 0)
+            installBookmarkMarkerContainerHost()
         }, hudLayout(0, WRAP_CONTENT) {
             bottomToBottom = R.id.player_overlay_seekbar
             startToStart = R.id.player_overlay_seekbar

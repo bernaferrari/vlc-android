@@ -35,8 +35,9 @@ import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.gui.dialogs.showRenameComposeDialog
-import org.videolan.vlc.gui.view.BookmarkMarkerContainerView
+import org.videolan.vlc.gui.view.bookmarkMarkerContainerHost
 import org.videolan.vlc.gui.view.BookmarkPanelItem
 import org.videolan.vlc.gui.view.BookmarkPanelHost
 import org.videolan.vlc.gui.view.BookmarksPanelView
@@ -60,7 +61,7 @@ class BookmarkListDelegate(
     private var markerHost: BookmarkMarkerHost? = null
     private var panelHost: BookmarkPanelHost? = null
     private var panelHostConfigured = false
-    var markerContainer: BookmarkMarkerContainerView
+    var markerContainer: VLCComposeView
         get() = (markerHost as? BookmarkMarkerContainerHost)?.view ?: error("Bookmark marker container is not a view host")
         set(value) {
             markerHost = BookmarkMarkerContainerHost(value)
@@ -178,7 +179,7 @@ class BookmarkListDelegate(
     }
 
     companion object {
-        fun showBookmarks(markerContainer: BookmarkMarkerContainerView, service: PlaybackService, bookmarkList: List<Bookmark>) {
+        fun showBookmarks(markerContainer: VLCComposeView, service: PlaybackService, bookmarkList: List<Bookmark>) {
             showBookmarks(BookmarkMarkerContainerHost(markerContainer), service, bookmarkList)
         }
 
@@ -193,7 +194,7 @@ class BookmarkListDelegate(
     }
 }
 
-private class BookmarkMarkerContainerHost(val view: BookmarkMarkerContainerView) : BookmarkMarkerHost {
+private class BookmarkMarkerContainerHost(val view: VLCComposeView) : BookmarkMarkerHost {
     override fun show() {
         view.setVisible()
     }
@@ -203,10 +204,10 @@ private class BookmarkMarkerContainerHost(val view: BookmarkMarkerContainerView)
     }
 
     override fun setMarkerFractions(fractions: List<Float>) {
-        view.setMarkerFractions(fractions)
+        view.bookmarkMarkerContainerHost().setMarkerFractions(fractions)
     }
 
     override fun clearMarkers() {
-        view.clearMarkers()
+        view.bookmarkMarkerContainerHost().clearMarkers()
     }
 }

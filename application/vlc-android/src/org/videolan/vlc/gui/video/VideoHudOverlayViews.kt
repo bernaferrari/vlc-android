@@ -26,9 +26,9 @@ import android.view.View
 import androidx.annotation.IdRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.gui.view.AbRepeatControlsView
 import org.videolan.vlc.gui.view.AbRepeatMarkerContainerView
-import org.videolan.vlc.gui.view.BookmarkMarkerContainerView
 import org.videolan.vlc.gui.view.BookmarksPanelView
 import org.videolan.vlc.gui.view.SwipeToUnlockView
 import org.videolan.vlc.gui.view.VideoHudIconButtonView
@@ -47,7 +47,7 @@ class VideoHudOverlayViews(val progressOverlay: ConstraintLayout) {
     val playerOverlayTime: VideoTimelineTimeLabelView = progressOverlay.requireHudView(R.id.player_overlay_time)
     val playerOverlayLength: VideoTimelineTimeLabelView = progressOverlay.requireHudView(R.id.player_overlay_length)
     val playerOverlaySeekbar: VideoTimelineSeekBarView = progressOverlay.requireHudView(R.id.player_overlay_seekbar)
-    val bookmarkMarkerContainer: BookmarkMarkerContainerView = progressOverlay.requireHudView(R.id.bookmark_marker_container)
+    val bookmarkMarkerContainer: VLCComposeView = progressOverlay.requireHudView(R.id.bookmark_marker_container)
     val abRepeatMarkerGuidelineContainer: AbRepeatMarkerContainerView = progressOverlay.requireHudView(R.id.ab_repeat_marker_guideline_container)
     val playerOverlayTracks: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.player_overlay_tracks)
     val orientationToggle: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.orientation_toggle)
