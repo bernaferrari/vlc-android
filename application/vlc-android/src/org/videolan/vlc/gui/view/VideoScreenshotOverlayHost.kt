@@ -1,6 +1,6 @@
 /*
  * ************************************************************************
- *  VideoScreenshotOverlayView.kt
+ *  VideoScreenshotOverlayHost.kt
  * *************************************************************************
  * Copyright © 2026 VLC authors and VideoLAN
  *
@@ -22,10 +22,7 @@
 
 package org.videolan.vlc.gui.view
 
-import android.content.Context
 import android.graphics.Bitmap
-import android.util.AttributeSet
-import android.view.View
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -58,7 +55,8 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.videolan.vlc.R
-import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.compose.theme.VLCTheme
 import java.io.File
 import kotlin.math.roundToInt
 
@@ -76,23 +74,26 @@ private data class VideoScreenshotOverlayState(
 
 /**
  * Compose replacement for the former video screenshot overlay XML. The video
- * screenshot delegate supplies a bitmap and this view owns the flash,
+ * screenshot delegate supplies a bitmap and this host owns the flash,
  * thumbnail, share action, and fade-out UI.
  */
-class VideoScreenshotOverlayView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : VLCAbstractComposeWidget(context, attrs, defStyleAttr) {
+internal fun VLCComposeView.installVideoScreenshotOverlayHost(onHidden: () -> Unit) {
+    val host = VideoScreenshotOverlayHost(onHidden)
+    setTag(R.id.player_screenshot_stub, host)
+    setContent {
+        VLCTheme {
+            host.Content()
+        }
+    }
+}
 
+internal fun VLCComposeView.videoScreenshotOverlayHost(): VideoScreenshotOverlayHost =
+    getTag(R.id.player_screenshot_stub) as? VideoScreenshotOverlayHost ?: error("Missing video screenshot overlay host")
+
+internal class VideoScreenshotOverlayHost(private val onHidden: () -> Unit) {
     private var overlayState by mutableStateOf<VideoScreenshotOverlayState?>(null)
     private var screenshotToken by mutableIntStateOf(0)
     private var hideToken by mutableIntStateOf(0)
-
-    init {
-        isClickable = false
-        isFocusable = false
-    }
 
     fun showScreenshot(
         file: File,
@@ -103,7 +104,6 @@ class VideoScreenshotOverlayView @JvmOverloads constructor(
         screenHeight: Int,
         onShare: (File) -> Unit
     ) {
-        visibility = View.VISIBLE
         screenshotToken += 1
         overlayState = VideoScreenshotOverlayState(
             token = screenshotToken,
@@ -123,7 +123,7 @@ class VideoScreenshotOverlayView @JvmOverloads constructor(
     }
 
     @Composable
-    override fun WidgetContent() {
+    fun Content() {
         val state = overlayState ?: return
         val density = LocalDensity.current
         val startX = state.surfaceLeftPx.toFloat()
@@ -179,7 +179,7 @@ class VideoScreenshotOverlayView @JvmOverloads constructor(
                 launch { chromeAlpha.animateTo(0F, tween(durationMillis = 160)) }
             }
             overlayState = null
-            visibility = View.GONE
+            onHidden()
         }
 
         Box(modifier = Modifier.fillMaxSize()) {

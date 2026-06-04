@@ -27,7 +27,8 @@ package org.videolan.vlc.gui.video
 import android.graphics.Bitmap
 import org.videolan.tools.setVisible
 import org.videolan.vlc.R
-import org.videolan.vlc.gui.view.VideoScreenshotOverlayView
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.gui.view.videoScreenshotOverlayHost
 import org.videolan.vlc.util.getScreenHeight
 import org.videolan.vlc.util.share
 import java.io.File
@@ -35,7 +36,7 @@ import java.io.File
 class VideoPlayerScreenshotDelegate(private val player: VideoPlayerActivity) {
 
 
-    private lateinit var screenshotOverlay: VideoScreenshotOverlayView
+    private lateinit var screenshotOverlay: VLCComposeView
 
     /**
      * Retrieves the Compose screenshot overlay host.
@@ -57,7 +58,7 @@ class VideoPlayerScreenshotDelegate(private val player: VideoPlayerActivity) {
      */
     fun takeScreenshot(dst: File, bitmap: Bitmap, surfaceBounds: IntArray, width: Int, height: Int) {
         initScreenshot()
-        screenshotOverlay.showScreenshot(
+        screenshotOverlay.videoScreenshotOverlayHost().showScreenshot(
             file = dst,
             bitmap = bitmap,
             surfaceBounds = surfaceBounds,
@@ -77,7 +78,7 @@ class VideoPlayerScreenshotDelegate(private val player: VideoPlayerActivity) {
      *
      */
     fun hide() {
-        if (::screenshotOverlay.isInitialized) screenshotOverlay.hideScreenshot()
+        if (::screenshotOverlay.isInitialized) screenshotOverlay.videoScreenshotOverlayHost().hideScreenshot()
     }
 
 }

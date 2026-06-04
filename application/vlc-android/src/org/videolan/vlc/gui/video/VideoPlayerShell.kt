@@ -46,12 +46,12 @@ import org.videolan.vlc.gui.view.VideoDelayOverlayView
 import org.videolan.vlc.gui.view.VideoHudRightOverlayView
 import org.videolan.vlc.gui.view.VideoOrientationOverlayView
 import org.videolan.vlc.gui.view.VideoResizeOverlayView
-import org.videolan.vlc.gui.view.VideoScreenshotOverlayView
 import org.videolan.vlc.gui.view.VideoSeekOverlayView
 import org.videolan.vlc.gui.view.VideoTipsHostView
 import org.videolan.vlc.gui.view.VideoVerticalProgressOverlayView
 import org.videolan.vlc.gui.view.createVideoHudOverlay
 import org.videolan.vlc.gui.view.installVideoInfoOverlayHost
+import org.videolan.vlc.gui.view.installVideoScreenshotOverlayHost
 
 internal fun VideoPlayerActivity.createVideoPlayerShell(isPrimaryDisplay: Boolean): View =
         if (isPrimaryDisplay) createPrimaryVideoPlayerShell() else createRemoteVideoPlayerShell()
@@ -96,9 +96,12 @@ private fun Context.createPrimaryVideoPlayerShell() = createVideoPlayerRoot().ap
         id = R.id.player_orientation_stub
         visibility = View.GONE
     }, matchFrame())
-    addView(VideoScreenshotOverlayView(context).apply {
+    addView(VLCComposeView(context).apply {
         id = R.id.player_screenshot_stub
         visibility = View.GONE
+        isClickable = false
+        isFocusable = false
+        installVideoScreenshotOverlayHost { visibility = View.GONE }
     }, matchFrame())
 }
 
