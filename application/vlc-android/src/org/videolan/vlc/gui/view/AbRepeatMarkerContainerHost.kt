@@ -1,7 +1,5 @@
 package org.videolan.vlc.gui.view
 
-import android.content.Context
-import android.util.AttributeSet
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
@@ -16,7 +14,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.components.VLCAudioAbRepeatMarkers
-import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
 /**
@@ -24,21 +23,24 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
  * containers. Playback delegates only provide media positions; Compose owns
  * normalized marker placement and visibility inside the strip.
  */
-class AbRepeatMarkerContainerView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : VLCAbstractComposeWidget(context, attrs, defStyleAttr) {
+internal fun VLCComposeView.installAbRepeatMarkerContainerHost() {
+    val host = AbRepeatMarkerContainerHost()
+    setTag(R.id.ab_repeat_marker_guideline_container, host)
+    setContent {
+        VLCTheme {
+            host.Content()
+        }
+    }
+}
 
+internal fun VLCComposeView.abRepeatMarkerContainerHost(): AbRepeatMarkerContainerHost =
+    getTag(R.id.ab_repeat_marker_guideline_container) as? AbRepeatMarkerContainerHost ?: error("Missing AB repeat marker container host")
+
+internal class AbRepeatMarkerContainerHost {
     private var startFraction by mutableFloatStateOf(-1f)
     private var stopFraction by mutableFloatStateOf(-1f)
 
     private var markerIconRes by mutableIntStateOf(R.drawable.ic_abrepeat_marker_audio)
-
-    init {
-        clipToPadding = false
-        layoutDirection = LAYOUT_DIRECTION_LTR
-    }
 
     fun setMarkerIcon(@DrawableRes icon: Int) {
         markerIconRes = icon
@@ -57,7 +59,7 @@ class AbRepeatMarkerContainerView @JvmOverloads constructor(
     }
 
     @Composable
-    override fun WidgetContent() {
+    fun Content() {
         VLCAudioAbRepeatMarkers(
             startFraction = startFraction,
             stopFraction = stopFraction,

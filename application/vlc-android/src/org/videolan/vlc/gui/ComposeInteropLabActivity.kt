@@ -519,7 +519,7 @@ fun ComposeInteropLabContent() {
             "The landscape title/subtitle/track-detail text stack is Compose-hosted under song_title/song_subtitle/song_track_info. " +
             "The search, playlist switch, and overflow actions are Compose-hosted under their existing IDs. " +
             "The AB-repeat reset/stop header actions are also Compose-hosted under ab_repeat_reset and ab_repeat_stop while the service helper still controls their visibility. " +
-            "The A-B repeat timeline markers are Compose-positioned by AbRepeatMarkerContainerView in both audio and video HUD hosts, replacing the old guideline/DataBinding marker islands. " +
+            "The A-B repeat timeline markers are Compose-positioned by the audio and video HUD hosts, replacing the old guideline/DataBinding marker islands. " +
             "The bookmark timeline markers are Compose-drawn under bookmark_marker_container in audio and video HUD hosts, with BookmarkListDelegate now pushing normalized media positions instead of dynamic ImageViews. " +
             "The restore-video hint is Compose-hosted under resume_video_hint instead of using a transient Material Snackbar from AudioPlayer.onResume. " +
             "The shared A-B repeat add-marker chip root is Compose-rendered through AbRepeatControlsView directly in both audio and video HUD hosts. " +

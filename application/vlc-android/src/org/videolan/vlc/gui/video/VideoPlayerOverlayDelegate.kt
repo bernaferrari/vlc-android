@@ -98,6 +98,7 @@ import org.videolan.vlc.gui.helpers.hf.checkPIN
 import org.videolan.vlc.gui.view.VideoHudRightOverlayView
 import org.videolan.vlc.gui.view.VideoInfoOverlayView
 import org.videolan.vlc.gui.view.VideoVerticalProgressOverlayView
+import org.videolan.vlc.gui.view.abRepeatMarkerContainerHost
 import org.videolan.vlc.gui.view.videoHudSeekJumpLabelHost
 import org.videolan.vlc.isVLC4
 import org.videolan.vlc.manageAbRepeatStep
@@ -544,7 +545,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                 seekButtons = player.settings.getBoolean(ENABLE_SEEK_BUTTONS, false)
                 val hudRoot = player.findViewById<ConstraintLayout>(R.id.progress_overlay) ?: return
                 hudBinding = VideoHudOverlayViews(hudRoot)
-                hudBinding.abRepeatMarkerGuidelineContainer.setMarkerIcon(R.drawable.ic_abrepeat_marker)
+                hudBinding.abRepeatMarkerGuidelineContainer.abRepeatMarkerContainerHost().setMarkerIcon(R.drawable.ic_abrepeat_marker)
                 configureHudBindingListeners()
                 observeHudProgress(service)
                 service.playlistManager.abRepeat.observe(player) { abvalues ->
@@ -553,7 +554,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                     } else {
                         hudBinding.fastSeekWarning.setGone()
                     }
-                    hudBinding.abRepeatMarkerGuidelineContainer.setMarkerPositions(
+                    hudBinding.abRepeatMarkerGuidelineContainer.abRepeatMarkerContainerHost().setMarkerPositions(
                         start = abvalues.start,
                         stop = abvalues.stop,
                         length = service.playlistManager.player.getLength()

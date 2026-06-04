@@ -170,12 +170,13 @@ private fun ConstraintLayout.addHudChildren(
             bottomMargin = 16.dp
         })
 
-        addView(AbRepeatMarkerContainerView(context).apply {
+        addView(VLCComposeView(context).apply {
             id = R.id.ab_repeat_marker_guideline_container
             clipToPadding = false
             layoutDirection = View.LAYOUT_DIRECTION_LTR
             setPadding(8.dp, 0, 8.dp, 0)
             visibility = View.GONE
+            installAbRepeatMarkerContainerHost()
         }, hudLayout(0, WRAP_CONTENT) {
             bottomToTop = R.id.player_overlay_seekbar
             startToStart = R.id.player_overlay_seekbar
