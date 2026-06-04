@@ -38,27 +38,25 @@ import org.videolan.tools.dp
 import org.videolan.vlc.R
 
 /**
- * Direct host for the video player's bottom HUD. The leaf controls are
- * Compose-backed views; this root replaces the old player_hud.xml shell while
- * preserving the same stable IDs for the player delegates.
+ * Direct host factory for the video player's bottom HUD. The leaf controls are
+ * Compose-backed views; this plain root replaces the old player_hud.xml shell
+ * while preserving the same stable IDs for the player delegates.
  */
-class VideoHudOverlayView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : ConstraintLayout(context, attrs, defStyleAttr) {
-
-    private val smallSideMargin = resources.getDimensionPixelSize(R.dimen.small_margins_sides)
-    private val largeCenterMargin = resources.getDimensionPixelSize(R.dimen.large_margins_center)
-
-    init {
-        if (id == View.NO_ID) id = R.id.progress_overlay
+internal fun Context.createVideoHudOverlay(): ConstraintLayout =
+    ConstraintLayout(this).apply {
+        id = R.id.progress_overlay
         setBackgroundColor(ContextCompat.getColor(context, R.color.transparent))
         visibility = View.INVISIBLE
-        addHudChildren()
+        addHudChildren(
+            smallSideMargin = resources.getDimensionPixelSize(R.dimen.small_margins_sides),
+            largeCenterMargin = resources.getDimensionPixelSize(R.dimen.large_margins_center)
+        )
     }
 
-    private fun addHudChildren() {
+private fun ConstraintLayout.addHudChildren(
+    smallSideMargin: Int,
+    largeCenterMargin: Int
+) {
         addView(VideoStatsOverlayView(context).apply {
             id = R.id.stats_container
             setBackgroundResource(R.drawable.rounded_corners)
@@ -93,7 +91,7 @@ class VideoHudOverlayView @JvmOverloads constructor(
             marginStart = 16.dp
             topMargin = 4.dp
             bottomMargin = 8.dp
-            verticalChainStyle = LayoutParams.CHAIN_PACKED
+            verticalChainStyle = ConstraintLayout.LayoutParams.CHAIN_PACKED
         })
 
         addView(hudIconButton(
@@ -139,7 +137,7 @@ class VideoHudOverlayView @JvmOverloads constructor(
             leftToLeft = PARENT_ID
             rightToLeft = R.id.player_overlay_length
             marginStart = 24.dp
-            horizontalChainStyle = LayoutParams.CHAIN_SPREAD
+            horizontalChainStyle = ConstraintLayout.LayoutParams.CHAIN_SPREAD
         })
 
         addView(timeLabel(R.id.player_overlay_length), hudLayout(0, WRAP_CONTENT) {
@@ -192,7 +190,7 @@ class VideoHudOverlayView @JvmOverloads constructor(
             startToStart = PARENT_ID
             endToStart = R.id.orientation_toggle
             marginStart = smallSideMargin
-            horizontalChainStyle = LayoutParams.CHAIN_SPREAD_INSIDE
+            horizontalChainStyle = ConstraintLayout.LayoutParams.CHAIN_SPREAD_INSIDE
         })
 
         addView(hudIconButton(
@@ -340,57 +338,54 @@ class VideoHudOverlayView @JvmOverloads constructor(
         })
     }
 
-    private fun hudIconButton(
-        @IdRes id: Int,
-        @DrawableRes icon: Int,
-        @StringRes contentDescription: Int,
-        visible: Int = View.VISIBLE,
-        longClickable: Boolean = false
-    ) = VideoHudIconButtonView(context).apply {
-        this.id = id
-        setBackgroundFromAttr(android.R.attr.selectableItemBackgroundBorderless)
-        isClickable = true
-        isFocusable = true
-        isLongClickable = longClickable
-        setImageResource(icon)
-        this.contentDescription = context.getString(contentDescription)
-        visibility = visible
-    }
+private fun ConstraintLayout.hudIconButton(
+    @IdRes id: Int,
+    @DrawableRes icon: Int,
+    @StringRes contentDescription: Int,
+    visible: Int = View.VISIBLE,
+    longClickable: Boolean = false
+) = VideoHudIconButtonView(context).apply {
+    this.id = id
+    setBackgroundFromAttr(android.R.attr.selectableItemBackgroundBorderless)
+    isClickable = true
+    isFocusable = true
+    isLongClickable = longClickable
+    setImageResource(icon)
+    this.contentDescription = context.getString(contentDescription)
+    visibility = visible
+}
 
-    private fun timeLabel(@IdRes id: Int) = VideoTimelineTimeLabelView(context).apply {
-        this.id = id
-        isClickable = true
-        isFocusable = true
-        importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
-        nextFocusUpId = R.id.ab_repeat_container
-    }
+private fun ConstraintLayout.timeLabel(@IdRes id: Int) = VideoTimelineTimeLabelView(context).apply {
+    this.id = id
+    isClickable = true
+    isFocusable = true
+    importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+    nextFocusUpId = R.id.ab_repeat_container
+}
 
-    private fun seekJumpLabel(@IdRes id: Int) = VideoHudSeekJumpLabelView(context).apply {
-        this.id = id
-        visibility = View.GONE
-        importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
-    }
+private fun ConstraintLayout.seekJumpLabel(@IdRes id: Int) = VideoHudSeekJumpLabelView(context).apply {
+    this.id = id
+    visibility = View.GONE
+    importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+}
 
-    private fun hudLayout(
-        width: Int = WRAP_CONTENT,
-        height: Int = WRAP_CONTENT,
-        block: LayoutParams.() -> Unit
-    ): LayoutParams {
-        return LayoutParams(width, height).apply(block)
-    }
+private fun hudLayout(
+    width: Int = WRAP_CONTENT,
+    height: Int = WRAP_CONTENT,
+    block: ConstraintLayout.LayoutParams.() -> Unit
+): ConstraintLayout.LayoutParams {
+    return ConstraintLayout.LayoutParams(width, height).apply(block)
+}
 
-    private fun View.setBackgroundFromAttr(@AttrRes attr: Int) {
-        val typedValue = TypedValue()
-        if (!context.theme.resolveAttribute(attr, typedValue, true)) return
-        if (typedValue.resourceId != 0) {
-            setBackgroundResource(typedValue.resourceId)
-        } else {
-            setBackgroundColor(typedValue.data)
-        }
-    }
-
-    private companion object {
-        const val PARENT_ID = LayoutParams.PARENT_ID
-        const val WRAP_CONTENT = ViewGroup.LayoutParams.WRAP_CONTENT
+private fun View.setBackgroundFromAttr(@AttrRes attr: Int) {
+    val typedValue = TypedValue()
+    if (!context.theme.resolveAttribute(attr, typedValue, true)) return
+    if (typedValue.resourceId != 0) {
+        setBackgroundResource(typedValue.resourceId)
+    } else {
+        setBackgroundColor(typedValue.data)
     }
 }
+
+private const val PARENT_ID = ConstraintLayout.LayoutParams.PARENT_ID
+private const val WRAP_CONTENT = ViewGroup.LayoutParams.WRAP_CONTENT

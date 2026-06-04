@@ -43,7 +43,6 @@ import org.videolan.vlc.R
 import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.gui.view.PlayerOptionsPanelView
 import org.videolan.vlc.gui.view.VideoDelayOverlayView
-import org.videolan.vlc.gui.view.VideoHudOverlayView
 import org.videolan.vlc.gui.view.VideoHudRightOverlayView
 import org.videolan.vlc.gui.view.VideoInfoOverlayView
 import org.videolan.vlc.gui.view.VideoOrientationOverlayView
@@ -52,6 +51,7 @@ import org.videolan.vlc.gui.view.VideoScreenshotOverlayView
 import org.videolan.vlc.gui.view.VideoSeekOverlayView
 import org.videolan.vlc.gui.view.VideoTipsHostView
 import org.videolan.vlc.gui.view.VideoVerticalProgressOverlayView
+import org.videolan.vlc.gui.view.createVideoHudOverlay
 
 internal fun VideoPlayerActivity.createVideoPlayerShell(isPrimaryDisplay: Boolean): View =
         if (isPrimaryDisplay) createPrimaryVideoPlayerShell() else createRemoteVideoPlayerShell()
@@ -137,9 +137,7 @@ private fun Context.createRemoteVideoPlayerShell() = createVideoPlayerRoot().app
             rightMargin = overlayMargin
             bottomMargin = overlayMargin
         })
-        addView(VideoHudOverlayView(context).apply {
-            id = R.id.progress_overlay
-        }, matchFrame(Gravity.BOTTOM) {
+        addView(createVideoHudOverlay(), matchFrame(Gravity.BOTTOM) {
             val overlayMargin = resources.getDimensionPixelSize(R.dimen.overlay_margin)
             leftMargin = overlayMargin
             rightMargin = overlayMargin
@@ -181,9 +179,7 @@ private fun Context.primaryUiContainer() = FrameLayout(this).apply {
         visibility = View.INVISIBLE
     }, frameWrap(Gravity.CENTER_VERTICAL or Gravity.END))
     addView(hudRightOverlay(), matchWrapFrame(Gravity.END))
-    addView(VideoHudOverlayView(context).apply {
-        id = R.id.progress_overlay
-    }, matchFrame(Gravity.BOTTOM))
+    addView(createVideoHudOverlay(), matchFrame(Gravity.BOTTOM))
     addView(hingeArrow(R.id.hinge_go_left, R.drawable.ic_arrow_left), frameWrap(Gravity.CENTER_VERTICAL))
     addView(hingeArrow(R.id.hinge_go_right, R.drawable.ic_arrow_right), frameWrap(Gravity.CENTER_VERTICAL or Gravity.RIGHT))
 }
