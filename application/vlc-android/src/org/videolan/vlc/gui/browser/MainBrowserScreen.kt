@@ -137,6 +137,7 @@ import org.videolan.vlc.gui.helpers.DefaultPlaybackAction
 import org.videolan.vlc.gui.helpers.DefaultPlaybackActionMediaType
 import org.videolan.vlc.gui.helpers.FloatingActionButtonBehavior
 import org.videolan.vlc.gui.helpers.MedialibraryUtils
+import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylistAsync
 import org.videolan.vlc.gui.helpers.UiTools.showMediaInfo
@@ -384,7 +385,7 @@ class MainBrowserScreenController(
     private fun startActionMode() {
         actionMode = activity.startSupportActionMode(object : ActionMode.Callback {
             override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
-                mode.menuInflater.inflate(R.menu.action_mode_browser_file, menu)
+                UiTools.addBrowserFileActionModeMenu(menu)
                 return true
             }
 
@@ -1072,7 +1073,7 @@ class SecondaryFileBrowserScreenController(
     private fun startActionMode() {
         actionMode = activity.startSupportActionMode(object : ActionMode.Callback {
             override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
-                mode.menuInflater.inflate(R.menu.action_mode_browser_file, menu)
+                UiTools.addBrowserFileActionModeMenu(menu)
                 return true
             }
 

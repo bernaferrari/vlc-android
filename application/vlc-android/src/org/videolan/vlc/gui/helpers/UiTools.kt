@@ -737,6 +737,31 @@ object UiTools {
         }
     }
 
+    fun addBrowserFileActionModeMenu(menu: Menu) {
+        menu.add(Menu.NONE, R.id.action_mode_file_info, 0, R.string.info).apply {
+            setIcon(R.drawable.ic_information)
+            isVisible = false
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        }
+        menu.add(Menu.NONE, R.id.action_mode_file_play, 0, R.string.play_all).apply {
+            setIcon(R.drawable.ic_play)
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        }
+        menu.add(Menu.NONE, R.id.action_mode_file_append, 0, R.string.append).apply {
+            setIcon(R.drawable.ic_play_append)
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        }
+        menu.add(Menu.NONE, R.id.action_mode_file_delete, 0, R.string.delete).apply {
+            setIcon(R.drawable.ic_delete)
+            isVisible = false
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        }
+        menu.add(Menu.NONE, R.id.action_mode_file_add_playlist, 0, R.string.add_to_playlist).apply {
+            setIcon(R.drawable.ic_add_to_playlist)
+            setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        }
+    }
+
     fun confirmExit(activity: Activity) {
         AlertDialog.Builder(activity)
                 .setMessage(R.string.exit_app_msg)
