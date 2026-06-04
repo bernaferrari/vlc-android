@@ -1,7 +1,5 @@
 package org.videolan.vlc.gui.view
 
-import android.content.Context
-import android.util.AttributeSet
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -13,18 +11,28 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.components.VLCAbRepeatControls
-import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
 /**
- * Compose-backed A-B repeat controls root. Audio and video hosts keep the shared
- * ab_repeat_container ID and drive marker text directly through this view.
+ * Compose-backed A-B repeat controls root. Audio and video hosts keep the
+ * shared ab_repeat_container ID and drive marker text through this host.
  */
-class AbRepeatControlsView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : VLCAbstractComposeWidget(context, attrs, defStyleAttr) {
+internal fun VLCComposeView.installAbRepeatControlsHost() {
+    val host = AbRepeatControlsHost(this)
+    setTag(R.id.ab_repeat_container, host)
+    setContent {
+        VLCTheme {
+            host.Content()
+        }
+    }
+}
+
+internal fun VLCComposeView.abRepeatControlsHost(): AbRepeatControlsHost =
+    getTag(R.id.ab_repeat_container) as? AbRepeatControlsHost ?: error("Missing AB repeat controls host")
+
+internal class AbRepeatControlsHost(private val view: VLCComposeView) {
 
     private var markerLabel by mutableStateOf("")
 
@@ -33,10 +41,10 @@ class AbRepeatControlsView @JvmOverloads constructor(
     }
 
     @Composable
-    override fun WidgetContent() {
+    fun Content() {
         VLCAbRepeatControls(
             markerText = markerLabel,
-            onAddMarkerClick = { performClick() }
+            onAddMarkerClick = { view.performClick() }
         ) {
             Icon(
                 painter = painterResource(R.drawable.ic_abrepeat_chips),

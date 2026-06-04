@@ -97,6 +97,7 @@ import org.videolan.vlc.gui.helpers.UiTools.showVideoTrack
 import org.videolan.vlc.gui.helpers.hf.checkPIN
 import org.videolan.vlc.gui.view.VideoHudRightOverlayView
 import org.videolan.vlc.gui.view.VideoVerticalProgressOverlayView
+import org.videolan.vlc.gui.view.abRepeatControlsHost
 import org.videolan.vlc.gui.view.abRepeatMarkerContainerHost
 import org.videolan.vlc.gui.view.videoHudSeekJumpLabelHost
 import org.videolan.vlc.gui.view.videoInfoOverlayHost
@@ -528,7 +529,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
     private fun refreshAbRepeatStep(service: PlaybackService) {
         service.manageAbRepeatStep(hudBinding.abRepeatReset, hudBinding.abRepeatStop, hudBinding.abRepeatContainer) { markerText ->
-            hudBinding.abRepeatContainer.setMarkerText(markerText)
+            hudBinding.abRepeatContainer.abRepeatControlsHost().setMarkerText(markerText)
         }
     }
 

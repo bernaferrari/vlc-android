@@ -522,7 +522,7 @@ fun ComposeInteropLabContent() {
             "The A-B repeat timeline markers are Compose-positioned by the audio and video HUD hosts, replacing the old guideline/DataBinding marker islands. " +
             "The bookmark timeline markers are Compose-drawn under bookmark_marker_container in audio and video HUD hosts, with BookmarkListDelegate now pushing normalized media positions instead of dynamic ImageViews. " +
             "The restore-video hint is Compose-hosted under resume_video_hint instead of using a transient Material Snackbar from AudioPlayer.onResume. " +
-            "The shared A-B repeat add-marker chip root is Compose-rendered through AbRepeatControlsView directly in both audio and video HUD hosts. " +
+            "The shared A-B repeat add-marker chip root is Compose-rendered through AbRepeatControlsHost in the video HUD and a plain Compose host in audio. " +
             "The shared player options panel is directly hosted through PlayerOptionsPanelView in audio/video player roots, replacing the former stub wrapper plus BrowseFrameLayout shell and player_option_item.xml rows. " +
             "The mini play/pause button is Compose-hosted under header_play_pause with the long-press stop action preserved. " +
             "The tablet header transport strip is Compose-hosted under the existing header_shuffle/header_previous/header_large_play_pause/header_next/header_repeat IDs. " +

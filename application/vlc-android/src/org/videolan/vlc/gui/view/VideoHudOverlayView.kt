@@ -72,9 +72,10 @@ private fun ConstraintLayout.addHudChildren(
             bottomMargin = 8.dp
         })
 
-        addView(AbRepeatControlsView(context).apply {
+        addView(VLCComposeView(context).apply {
             id = R.id.ab_repeat_container
             visibility = View.GONE
+            installAbRepeatControlsHost()
         }, hudLayout {
             bottomToTop = R.id.player_overlay_time
             startToStart = PARENT_ID

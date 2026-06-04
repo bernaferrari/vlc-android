@@ -27,7 +27,6 @@ import androidx.annotation.IdRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.interop.VLCComposeView
-import org.videolan.vlc.gui.view.AbRepeatControlsView
 import org.videolan.vlc.gui.view.BookmarksPanelView
 import org.videolan.vlc.gui.view.SwipeToUnlockView
 import org.videolan.vlc.gui.view.VideoHudIconButtonView
@@ -36,7 +35,7 @@ import org.videolan.vlc.gui.view.VideoTimelineTimeLabelView
 
 class VideoHudOverlayViews(val progressOverlay: ConstraintLayout) {
     val statsContainer: VLCComposeView = progressOverlay.requireHudView(R.id.stats_container)
-    val abRepeatContainer: AbRepeatControlsView = progressOverlay.requireHudView(R.id.ab_repeat_container)
+    val abRepeatContainer: VLCComposeView = progressOverlay.requireHudView(R.id.ab_repeat_container)
     val abRepeatReset: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.ab_repeat_reset)
     val abRepeatStop: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.ab_repeat_stop)
     val fastSeekWarning: VideoHudIconButtonView = progressOverlay.requireHudView(R.id.fast_seek_warning)
