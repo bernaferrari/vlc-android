@@ -31,11 +31,13 @@ import org.videolan.tools.AUDIO_DELAY_GLOBAL
 import org.videolan.tools.Settings
 import org.videolan.tools.putSingle
 import org.videolan.tools.setInvisible
+import org.videolan.tools.setVisible
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.view.VideoDelayOverlayAction
-import org.videolan.vlc.gui.view.VideoDelayOverlayView
+import org.videolan.vlc.gui.view.videoDelayOverlayHost
 import org.videolan.vlc.gui.video.VideoPlayerActivity.Companion.KEY_BLUETOOTH_DELAY
 import org.videolan.vlc.interfaces.IPlaybackSettingsController
 import org.videolan.vlc.media.DelayValues
@@ -54,7 +56,7 @@ class VideoDelayDelegate(private val player: VideoPlayerActivity) : IPlaybackSet
     private var spuDelay = 0L
     private var audioDelay = 0L
 
-    private lateinit var delayOverlay: VideoDelayOverlayView
+    private lateinit var delayOverlay: VLCComposeView
 
     /**
      * Instantiate all the views, set their click listeners and shows the view.
@@ -66,7 +68,7 @@ class VideoDelayDelegate(private val player: VideoPlayerActivity) : IPlaybackSet
         player.overlayDelegate.info.setInvisible()
         val overlay = getDelayOverlay()
         initPlaybackSettingInfo()
-        overlay.show(
+        overlay.videoDelayOverlayHost().show(
             title = currentTitle(),
             value = currentValue(),
             firstButtonText = if (playbackSetting == IPlaybackSettingsController.DelayState.AUDIO) player.getString(R.string.audio_delay_start) else player.getString(R.string.subtitle_delay_first),
@@ -74,7 +76,8 @@ class VideoDelayDelegate(private val player: VideoPlayerActivity) : IPlaybackSet
             showApplyAll = playbackSetting == IPlaybackSettingsController.DelayState.AUDIO,
             showApplyBluetooth = playbackSetting == IPlaybackSettingsController.DelayState.AUDIO && (player.audiomanager.isBluetoothA2dpOn || player.audiomanager.isBluetoothScoOn)
         )
-        overlay.requestPlusFocus()
+        overlay.setVisible()
+        overlay.videoDelayOverlayHost().requestPlusFocus()
         if (player.displayManager.isPrimary) player.overlayDelegate.hideOverlay(fromUser = true, forceTalkback = true)
     }
 
@@ -84,7 +87,7 @@ class VideoDelayDelegate(private val player: VideoPlayerActivity) : IPlaybackSet
      */
     private fun initPlaybackSettingInfo() {
         player.overlayDelegate.initInfoOverlay()
-        if (::delayOverlay.isInitialized) delayOverlay.updateDelayInfo(currentTitle(), currentValue())
+        if (::delayOverlay.isInitialized) delayOverlay.videoDelayOverlayHost().updateDelayInfo(currentTitle(), currentValue())
     }
 
     /**
@@ -97,19 +100,19 @@ class VideoDelayDelegate(private val player: VideoPlayerActivity) : IPlaybackSet
             VideoDelayOverlayAction.Increase -> delayAudioOrSpu(DELAY_DEFAULT_VALUE, delayState = playbackSetting)
             VideoDelayOverlayAction.MarkStart -> if (player.service?.playlistManager?.delayValue?.value?.start ?: -1L == -1L) {
                 player.service?.playlistManager?.setDelayValue(System.currentTimeMillis(), true)
-                if (player.service?.playlistManager?.delayValue?.value?.stop == -1L) getDelayOverlay().requestSecondButtonFocus()
+                if (player.service?.playlistManager?.delayValue?.value?.stop == -1L) getDelayOverlay().videoDelayOverlayHost().requestSecondButtonFocus()
             } else {
                 player.service?.playlistManager?.setDelayValue(-1L, true)
             }
             VideoDelayOverlayAction.MarkStop -> if (player.service?.playlistManager?.delayValue?.value?.stop ?: -1L == -1L) {
                 player.service?.playlistManager?.setDelayValue(System.currentTimeMillis(), false)
-                if (player.service?.playlistManager?.delayValue?.value?.start == -1L) getDelayOverlay().requestFirstButtonFocus()
+                if (player.service?.playlistManager?.delayValue?.value?.start == -1L) getDelayOverlay().videoDelayOverlayHost().requestFirstButtonFocus()
             } else {
                 player.service?.playlistManager?.setDelayValue(-1L, false)
             }
             VideoDelayOverlayAction.Reset -> {
                 if (playbackSetting == IPlaybackSettingsController.DelayState.AUDIO) player.service?.setAudioDelay(0) else player.service?.setSpuDelay(0)
-                if (::delayOverlay.isInitialized) delayOverlay.updateDelayInfo(currentTitle(), "0 ms")
+                if (::delayOverlay.isInitialized) delayOverlay.videoDelayOverlayHost().updateDelayInfo(currentTitle(), "0 ms")
                 player.service?.playlistManager?.resetDelayValues()
             }
             VideoDelayOverlayAction.ApplyAll -> {
@@ -147,7 +150,7 @@ class VideoDelayDelegate(private val player: VideoPlayerActivity) : IPlaybackSet
             player.overlayDelegate.initInfoOverlay()
             if (delayState == IPlaybackSettingsController.DelayState.SUBS) service.setSpuDelay(delay) else service.setAudioDelay(delay)
             if (::delayOverlay.isInitialized) {
-                delayOverlay.updateDelayInfo(
+                delayOverlay.videoDelayOverlayHost().updateDelayInfo(
                     title = player.getString(if (delayState == IPlaybackSettingsController.DelayState.SUBS) R.string.spu_delay else R.string.audio_delay),
                     value = "${delay / 1000L} ms"
                 )
@@ -188,7 +191,7 @@ class VideoDelayDelegate(private val player: VideoPlayerActivity) : IPlaybackSet
         player.service?.let { service ->
             service.saveMediaMeta()
             playbackSetting = IPlaybackSettingsController.DelayState.OFF
-            if (::delayOverlay.isInitialized) delayOverlay.hideOverlay()
+            if (::delayOverlay.isInitialized) delayOverlay.setInvisible()
             player.overlayDelegate.overlayInfo.setInvisible()
             service.playlistManager.delayValue.value = DelayValues()
             player.overlayDelegate.focusPlayPause()
@@ -213,7 +216,7 @@ class VideoDelayDelegate(private val player: VideoPlayerActivity) : IPlaybackSet
         }
         if (!::delayOverlay.isInitialized) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            delayOverlay.updateDelayMarkers(
+            delayOverlay.videoDelayOverlayHost().updateDelayMarkers(
                 firstMarked = delayValues.start != -1L,
                 secondMarked = delayValues.stop != -1L,
                 flashInfo = hasChanged
@@ -221,10 +224,10 @@ class VideoDelayDelegate(private val player: VideoPlayerActivity) : IPlaybackSet
         }
     }
 
-    private fun getDelayOverlay(): VideoDelayOverlayView {
+    private fun getDelayOverlay(): VLCComposeView {
         if (!::delayOverlay.isInitialized) {
             delayOverlay = player.findViewById(R.id.delay_container)
-            delayOverlay.onAction = ::onDelayAction
+            delayOverlay.videoDelayOverlayHost().onAction = ::onDelayAction
         }
         return delayOverlay
     }

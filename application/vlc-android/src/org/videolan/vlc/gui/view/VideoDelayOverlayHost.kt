@@ -1,6 +1,6 @@
 /*
  * ************************************************************************
- *  VideoDelayOverlayView.kt
+ *  VideoDelayOverlayHost.kt
  * *************************************************************************
  * Copyright © 2026 VLC authors and VideoLAN
  *
@@ -23,8 +23,6 @@
 package org.videolan.vlc.gui.view
 
 import android.content.Context
-import android.util.AttributeSet
-import android.view.View
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
@@ -67,7 +65,8 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.delay
 import org.videolan.vlc.R
-import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.compose.theme.VLCTheme
 
 enum class VideoDelayOverlayAction {
     Decrease,
@@ -100,14 +99,23 @@ private data class VideoDelayOverlayState(
 
 /**
  * Compose replacement for player_overlay_settings.xml. VideoDelayDelegate owns
- * playback-service mutations; this view owns only the delay controls surface
+ * playback-service mutations; this host owns only the delay controls surface
  * and exposes a small action/state contract.
  */
-class VideoDelayOverlayView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : VLCAbstractComposeWidget(context, attrs, defStyleAttr) {
+internal fun VLCComposeView.installVideoDelayOverlayHost() {
+    val host = VideoDelayOverlayHost(context)
+    setTag(R.id.delay_container, host)
+    setContent {
+        VLCTheme {
+            host.Content()
+        }
+    }
+}
+
+internal fun VLCComposeView.videoDelayOverlayHost(): VideoDelayOverlayHost =
+    getTag(R.id.delay_container) as? VideoDelayOverlayHost ?: error("Missing video delay overlay host")
+
+internal class VideoDelayOverlayHost(context: Context) {
 
     var onAction: ((VideoDelayOverlayAction) -> Unit)? = null
 
@@ -118,13 +126,6 @@ class VideoDelayOverlayView @JvmOverloads constructor(
     private val flashColor = Color(ContextCompat.getColor(context, R.color.orange500focus))
     private val orangeColor = Color(ContextCompat.getColor(context, R.color.orange500))
     private val inactiveIconColor = Color(ContextCompat.getColor(context, R.color.grey400transparent))
-
-    init {
-        id = R.id.delay_container
-        visibility = View.INVISIBLE
-        isFocusable = false
-        isClickable = false
-    }
 
     fun show(
         title: String,
@@ -144,7 +145,6 @@ class VideoDelayOverlayView @JvmOverloads constructor(
             showApplyAll = showApplyAll,
             showApplyBluetooth = showApplyBluetooth
         )
-        visibility = View.VISIBLE
     }
 
     fun updateDelayInfo(title: String, value: String) {
@@ -163,10 +163,6 @@ class VideoDelayOverlayView @JvmOverloads constructor(
         )
     }
 
-    fun hideOverlay() {
-        visibility = View.INVISIBLE
-    }
-
     fun requestPlusFocus() = requestFocus(VideoDelayFocusTarget.Plus)
 
     fun requestFirstButtonFocus() = requestFocus(VideoDelayFocusTarget.FirstButton)
@@ -178,7 +174,7 @@ class VideoDelayOverlayView @JvmOverloads constructor(
     }
 
     @Composable
-    override fun WidgetContent() {
+    fun Content() {
         val current = state
         val plusRequester = remember { FocusRequester() }
         val firstRequester = remember { FocusRequester() }

@@ -42,13 +42,13 @@ import org.videolan.tools.dp
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.gui.view.PlayerOptionsPanelView
-import org.videolan.vlc.gui.view.VideoDelayOverlayView
 import org.videolan.vlc.gui.view.VideoHudRightOverlayView
 import org.videolan.vlc.gui.view.VideoResizeOverlayView
 import org.videolan.vlc.gui.view.VideoSeekOverlayView
 import org.videolan.vlc.gui.view.VideoTipsHostView
 import org.videolan.vlc.gui.view.VideoVerticalProgressOverlayView
 import org.videolan.vlc.gui.view.createVideoHudOverlay
+import org.videolan.vlc.gui.view.installVideoDelayOverlayHost
 import org.videolan.vlc.gui.view.installVideoInfoOverlayHost
 import org.videolan.vlc.gui.view.installVideoOrientationOverlayHost
 import org.videolan.vlc.gui.view.installVideoScreenshotOverlayHost
@@ -127,9 +127,12 @@ private fun Context.createRemoteVideoPlayerShell() = createVideoPlayerRoot().app
             id = R.id.player_ui_container
             addView(loadingView(wrap = true), frameWrap(Gravity.CENTER))
         }, matchFrame())
-        addView(VideoDelayOverlayView(context).apply {
+        addView(VLCComposeView(context).apply {
             id = R.id.delay_container
             visibility = View.INVISIBLE
+            isFocusable = false
+            isClickable = false
+            installVideoDelayOverlayHost()
         }, frameWrap(Gravity.CENTER) {
             rightMargin = resources.getDimensionPixelSize(R.dimen.default_margin)
             marginEnd = resources.getDimensionPixelSize(R.dimen.default_margin)
@@ -183,9 +186,12 @@ private fun Context.primaryUiContainer() = FrameLayout(this).apply {
     addView(infoOverlay(), frameWrap(Gravity.CENTER) {
         bottomMargin = resources.getDimensionPixelSize(R.dimen.default_margin)
     })
-    addView(VideoDelayOverlayView(context).apply {
+    addView(VLCComposeView(context).apply {
         id = R.id.delay_container
         visibility = View.INVISIBLE
+        isFocusable = false
+        isClickable = false
+        installVideoDelayOverlayHost()
     }, frameWrap(Gravity.CENTER_VERTICAL or Gravity.END))
     addView(hudRightOverlay(), matchWrapFrame(Gravity.END))
     addView(createVideoHudOverlay(), matchFrame(Gravity.BOTTOM))
