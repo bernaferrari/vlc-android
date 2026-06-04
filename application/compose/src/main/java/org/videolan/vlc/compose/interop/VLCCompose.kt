@@ -5,7 +5,6 @@ import android.util.AttributeSet
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.AbstractComposeView
-import org.videolan.vlc.compose.theme.VLCTheme
 
 /**
  * Drop-in replacement helper for hosting Composables inside legacy XML layouts.
@@ -35,25 +34,4 @@ class VLCComposeView @JvmOverloads constructor(
     override fun Content() {
         content.value?.invoke()
     }
-}
-
-/**
- * Example of an AbstractComposeView widget that can be placed directly in legacy layouts
- * (including databound ones). Subclass and override Content().
- */
-abstract class VLCAbstractComposeWidget @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : AbstractComposeView(context, attrs, defStyleAttr) {
-
-    @Composable
-    override fun Content() {
-        VLCTheme {
-            WidgetContent()
-        }
-    }
-
-    @Composable
-    protected abstract fun WidgetContent()
 }
