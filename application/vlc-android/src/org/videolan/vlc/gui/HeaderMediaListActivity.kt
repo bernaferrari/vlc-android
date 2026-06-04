@@ -43,8 +43,11 @@ import androidx.appcompat.widget.SearchView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -62,6 +65,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -72,8 +76,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -88,9 +94,6 @@ import androidx.core.view.updatePadding
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.PagedList
-import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.CollapsingToolbarLayout
 import com.google.android.material.appbar.MaterialToolbar
@@ -110,7 +113,6 @@ import org.videolan.medialibrary.Tools
 import org.videolan.resources.AndroidDevices
 import org.videolan.resources.MEDIALIBRARY_PAGE_SIZE
 import org.videolan.resources.TAG_ITEM
-import org.videolan.resources.UPDATE_REORDER
 import org.videolan.resources.util.parcelable
 import org.videolan.tools.ALBUMS_SHOW_TRACK_NUMBER
 import org.videolan.tools.Settings
@@ -120,10 +122,9 @@ import org.videolan.tools.isStarted
 import org.videolan.tools.putSingle
 import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.components.VLCBrowserItemRow
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
-import org.videolan.vlc.gui.audio.AudioAlbumTracksAdapter
-import org.videolan.vlc.gui.audio.AudioBrowserAdapter
 import org.videolan.vlc.gui.dialogs.CURRENT_SORT
 import org.videolan.vlc.gui.dialogs.CtxActionReceiver
 import org.videolan.vlc.gui.dialogs.DEFAULT_ACTIONS
@@ -138,21 +139,14 @@ import org.videolan.vlc.gui.helpers.AudioUtil.setRingtone
 import org.videolan.vlc.gui.helpers.DefaultPlaybackAction
 import org.videolan.vlc.gui.helpers.DefaultPlaybackActionMediaType
 import org.videolan.vlc.gui.helpers.ExpandStateAppBarLayoutBehavior
-import org.videolan.vlc.gui.helpers.SwipeDragItemTouchHelperCallback
+import org.videolan.vlc.gui.helpers.TalkbackUtil
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.UiTools.createShortcut
 import org.videolan.vlc.gui.helpers.UiTools.getResourceFromAttribute
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
-// WAVE 1 section header host (compose-2l4.1.4 / compose-95d): this activity also
-// adds the Decoration (the true interop site for VLCSectionHeader). See the
-// Decoration .kt files for full docs + rollback. (Phone audio/playlist paths prioritized.)
-import org.videolan.vlc.gui.view.RecyclerSectionItemDecoration
-import org.videolan.vlc.gui.view.FastScroller
 import org.videolan.vlc.gui.view.SwipeRefreshLayout
 import org.videolan.vlc.interfaces.Filterable
-import org.videolan.vlc.interfaces.IEventsHandler
-import org.videolan.vlc.interfaces.IListEventsHandler
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.media.PlaylistManager
 import org.videolan.vlc.util.ContextOption
@@ -175,7 +169,10 @@ import org.videolan.vlc.util.ContextOption.Companion.createCtxPlaylistItemFlags
 import org.videolan.vlc.util.Permissions
 import org.videolan.vlc.util.ThumbnailsProvider
 import org.videolan.vlc.util.getScreenWidth
+import org.videolan.vlc.util.isOTG
+import org.videolan.vlc.util.isSD
 import org.videolan.vlc.util.isSchemeHttpOrHttps
+import org.videolan.vlc.util.isSchemeSMB
 import org.videolan.vlc.util.launchWhenStarted
 import org.videolan.vlc.util.setLayoutMarginTop
 import org.videolan.vlc.util.share
@@ -185,22 +182,24 @@ import org.videolan.vlc.viewmodels.mobile.getViewModel
 import java.security.SecureRandom
 import kotlin.math.min
 
-open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHandler<MediaLibraryItem>, IListEventsHandler, ActionMode.Callback, View.OnClickListener, CtxActionReceiver, Filterable, SearchView.OnQueryTextListener, MenuItem.OnActionExpandListener {
+open class HeaderMediaListActivity : AudioPlayerContainerActivity(), ActionMode.Callback, View.OnClickListener, CtxActionReceiver, Filterable, SearchView.OnQueryTextListener, MenuItem.OnActionExpandListener {
 
-    private var lastDismissedPosition: Int = -1
     private lateinit var searchView: SearchView
-    private lateinit var itemTouchHelperCallback: SwipeDragItemTouchHelperCallback
-    private lateinit var audioBrowserAdapter: AudioBrowserAdapter
     private val mediaLibrary = Medialibrary.getInstance()
     private lateinit var coordinator: CoordinatorLayout
-    private lateinit var songs: RecyclerView
-    private lateinit var browserFastScroller: FastScroller
+    private lateinit var trackListComposeView: ComposeView
     private lateinit var headerComposeView: ComposeView
     private var headerState by mutableStateOf(HeaderMediaListUiState())
+    private var trackItems by mutableStateOf<List<MediaLibraryItem>>(emptyList())
+    private val selectedTrackPositions = mutableStateListOf<Int>()
+    private var trackUiVersion by mutableStateOf(0)
+    private var currentMedia by mutableStateOf<MediaWrapper?>(null)
+    private var playlistPlaying by mutableStateOf(false)
+    private var inSelectionMode by mutableStateOf(false)
+    private var forceNoTrackNumbers by mutableStateOf(false)
     private var actionMode: ActionMode? = null
     private var isPlaylist: Boolean = false
     private lateinit var viewModel: PlaylistViewModel
-    private var itemTouchHelper: ItemTouchHelper? = null
     override fun isTransparent() = true
     override var isEdgeToEdge = false
 
@@ -226,7 +225,7 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
             WindowInsetsCompat.CONSUMED
         }
 
-        contentContainer = songs
+        contentContainer = trackListComposeView
         originalBottomPadding = contentContainer.paddingBottom
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = ""
@@ -249,9 +248,11 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
         viewModel = getViewModel(playlist)
         viewModel.tracksProvider.pagedList.observe(this) { tracks ->
             @Suppress("UNCHECKED_CAST")
-            (tracks as? PagedList<MediaLibraryItem>)?.let { audioBrowserAdapter.submitList(it) }
+            val pagedTracks = tracks as? PagedList<MediaLibraryItem>
+            trackItems = pagedTracks?.toList().orEmpty()
+            forceNoTrackNumbers = !isPlaylist && pagedTracks?.any { ((it as? MediaWrapper)?.trackNumber ?: 0) > 0 } == false
+            selectedTrackPositions.removeAll { it !in trackItems.indices }
             menu.let { UiTools.updateSortTitles(it, viewModel.tracksProvider) }
-            if (::itemTouchHelperCallback.isInitialized) itemTouchHelperCallback.swipeEnabled = true
         }
 
         viewModel.playlistLiveData.observe(this) { playlist ->
@@ -270,26 +271,9 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
             headerState = nextState
         }
 
-        viewModel.tracksProvider.liveHeaders.observe(this) {
-            songs.invalidateItemDecorations()
-        }
-
         if (isPlaylist) {
-            audioBrowserAdapter = AudioBrowserAdapter(MediaLibraryItem.TYPE_MEDIA, this, this, isPlaylist)
-            itemTouchHelperCallback = SwipeDragItemTouchHelperCallback(audioBrowserAdapter, lockedInSafeMode = Settings.safeMode)
-            itemTouchHelperCallback.swipeAttemptListener = {
-                lifecycleScope.launch { showPinIfNeeded() }
-            }
-            itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
-            itemTouchHelper!!.attachToRecyclerView(songs)
             headerState = headerState.copy(showReleaseYear = false)
-        } else {
-            audioBrowserAdapter = AudioAlbumTracksAdapter(MediaLibraryItem.TYPE_MEDIA, this, this)
-            songs.addItemDecoration(RecyclerSectionItemDecoration(resources.getDimensionPixelSize(R.dimen.recycler_section_header_height), true, viewModel.tracksProvider))
-
         }
-        songs.layoutManager = LinearLayoutManager(this)
-        songs.adapter = audioBrowserAdapter
 
         val context = this
         lifecycleScope.launch {
@@ -310,10 +294,6 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
                 appBarLayout.setExpanded(true, true)
             }
         }
-
-        audioBrowserAdapter.areSectionsEnabled = false
-        browserFastScroller.attachToCoordinator(appBarLayout, coordinator, null)
-        browserFastScroller.setRecyclerView(songs, viewModel.tracksProvider)
     }
 
     private fun createHeaderMediaListShell(): View {
@@ -404,23 +384,33 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
             isEnabled = false
         }
         val content = FrameLayout(this)
-        songs = RecyclerView(this).apply {
+        trackListComposeView = ComposeView(this).apply {
             id = R.id.songs
             setBackgroundResource(getResourceFromAttribute(this@HeaderMediaListActivity, R.attr.background_default))
-            clipToPadding = false
-            isVerticalScrollBarEnabled = true
-            setPadding(0, 0, 0, 64.dp)
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                VLCTheme {
+                    HeaderMediaTrackList(
+                        tracks = trackItems,
+                        isPlaylist = isPlaylist,
+                        selectedPositions = selectedTrackPositions,
+                        inSelectionMode = inSelectionMode,
+                        currentMedia = currentMedia,
+                        playing = playlistPlaying,
+                        forceNoTrackNumbers = forceNoTrackNumbers,
+                        uiVersion = trackUiVersion,
+                        onClick = ::onTrackClick,
+                        onLongClick = ::onTrackLongClick,
+                        onImageClick = ::onTrackImageClick,
+                        onMoreClick = ::onTrackMoreClick,
+                        onMainActionClick = ::onTrackMainActionClick
+                    )
+                }
+            }
         }
         content.addView(
-            songs,
+            trackListComposeView,
             FrameLayout.LayoutParams(defaultContentWidth(), FrameLayout.LayoutParams.MATCH_PARENT, Gravity.CENTER_HORIZONTAL)
-        )
-        browserFastScroller = FastScroller(this).apply {
-            id = R.id.browser_fast_scroller
-        }
-        content.addView(
-            browserFastScroller,
-            FrameLayout.LayoutParams(FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.MATCH_PARENT, Gravity.END)
         )
         swipeLayout.addView(
             content,
@@ -498,18 +488,17 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
         super.onResume()
         val playlistModel = PlaylistModel.get(this)
         PlaylistManager.currentPlayedMedia.observe(this) {
-            audioBrowserAdapter.currentMedia = it
+            currentMedia = it
         }
         playlistModel.dataset.asFlow().conflate().onEach {
-            audioBrowserAdapter.setCurrentlyPlaying(playlistModel.playing)
+            playlistPlaying = playlistModel.playing
             delay(50L)
         }.launchWhenStarted(lifecycleScope)
-        audioBrowserAdapter.setModel(playlistModel)
     }
 
     override fun onPause() {
         super.onPause()
-        audioBrowserAdapter.setCurrentlyPlaying(false)
+        playlistPlaying = false
     }
 
     override fun onStop() {
@@ -582,7 +571,7 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
                 val checked = value as Boolean
                 Settings.getInstance(this).putSingle(ALBUMS_SHOW_TRACK_NUMBER, checked)
                 Settings.showTrackNumber = checked
-                audioBrowserAdapter.notifyDataSetChanged()
+                trackUiVersion++
                 viewModel.refresh()
             }
             DEFAULT_ACTIONS -> {
@@ -591,12 +580,12 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
         }
     }
 
-    override fun onClick(v: View, position: Int, item: MediaLibraryItem) {
+    private fun onTrackClick(position: Int, item: MediaLibraryItem) {
         if (actionMode != null) {
-            audioBrowserAdapter.multiSelectHelper.toggleSelection(position)
+            toggleTrackSelection(position)
             invalidateActionMode()
         } else {
-            if (searchView.visibility == View.VISIBLE) UiTools.setKeyboardVisibility(v, false)
+            if (::searchView.isInitialized && searchView.visibility == View.VISIBLE) UiTools.setKeyboardVisibility(trackListComposeView, false)
             if (isPlaylist)
                 MediaUtils.playTracks(this, viewModel.tracksProvider, position)
             else
@@ -609,22 +598,21 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
         }
     }
 
-    override fun onLongClick(v: View, position: Int, item: MediaLibraryItem): Boolean {
-        audioBrowserAdapter.multiSelectHelper.toggleSelection(position, true)
+    private fun onTrackLongClick(position: Int, item: MediaLibraryItem) {
+        toggleTrackSelection(position, true)
         if (actionMode == null) startActionMode() else invalidateActionMode()
-        return true
     }
 
 
-    override fun onImageClick(v: View, position: Int, item: MediaLibraryItem) {
+    private fun onTrackImageClick(position: Int, item: MediaLibraryItem) {
         if (actionMode != null) {
-            onClick(v, position, item)
+            onTrackClick(position, item)
             return
         }
-        onLongClick(v, position, item)
+        onTrackLongClick(position, item)
     }
 
-    override fun onCtxClick(v: View, position: Int, item: MediaLibraryItem) {
+    private fun onTrackMoreClick(position: Int, item: MediaLibraryItem) {
         if (actionMode == null) {
             (item as? MediaWrapper)?.let { media ->
                 val flags = createCtxPlaylistItemFlags().apply {
@@ -643,29 +631,24 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
         }
     }
 
-    override fun onUpdateFinished(adapter: RecyclerView.Adapter<*>) {}
-
-    override fun onItemFocused(v: View, item: MediaLibraryItem) {}
-
-    override fun onRemove(position: Int, item: MediaLibraryItem) {
-        lastDismissedPosition = position
-        val tracks = ArrayList(listOf(*item.tracks))
-        lifecycleScope.launch {  removeFromPlaylist(tracks, ArrayList(listOf(position))) }
-    }
-
-    override fun onMove(oldPosition: Int, newPosition: Int) {
-        if (BuildConfig.DEBUG) Log.d(TAG, "Moving item from $oldPosition to $newPosition")
-        (viewModel.playlist as Playlist).move(oldPosition, newPosition)
-
-    }
-
-    override fun onMainActionClick(v: View, position: Int, item: MediaLibraryItem) {
+    private fun onTrackMainActionClick(position: Int, item: MediaLibraryItem) {
         MediaUtils.openList(this, listOf(*item.tracks), 0)
     }
 
-    override fun onStartDrag(viewHolder: RecyclerView.ViewHolder) {
-        itemTouchHelper!!.startDrag(viewHolder)
+    private fun toggleTrackSelection(position: Int, forceSelected: Boolean = false) {
+        if (position !in trackItems.indices) return
+        val selected = selectedTrackPositions.contains(position)
+        when {
+            selected && !forceSelected -> selectedTrackPositions.remove(position)
+            !selected -> selectedTrackPositions.add(position)
+        }
     }
+
+    private fun selectedTrackItems(): List<MediaLibraryItem> {
+        return selectedTrackPositions.sorted().mapNotNull { trackItems.getOrNull(it) }
+    }
+
+    private fun selectedTrackIndexes(): List<Int> = selectedTrackPositions.sorted()
 
     private fun startActionMode() {
         actionMode = startSupportActionMode(this)
@@ -682,36 +665,37 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
     }
 
     override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
-        audioBrowserAdapter.multiSelectHelper.toggleActionMode(true, audioBrowserAdapter.itemCount)
+        inSelectionMode = true
         mode.menuInflater.inflate(R.menu.action_mode_audio_browser, menu)
         return true
     }
 
     override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
-        val count = audioBrowserAdapter.multiSelectHelper.getSelectionCount()
+        val selection = selectedTrackItems()
+        val count = selection.size
         if (count == 0) {
             stopActionMode()
             return false
         }
-        val isMedia = audioBrowserAdapter.multiSelectHelper.getSelection()[0].itemType == MediaLibraryItem.TYPE_MEDIA
+        val isMedia = selection[0].itemType == MediaLibraryItem.TYPE_MEDIA
         val isSong = count == 1 && isMedia
         menu.findItem(R.id.action_mode_audio_set_song).isVisible = isSong && AndroidDevices.isPhone && !isPlaylist
         menu.findItem(R.id.action_mode_audio_info).isVisible = isSong
         menu.findItem(R.id.action_mode_audio_append).isVisible = PlaylistManager.hasMedia()
         menu.findItem(R.id.action_mode_audio_delete).isVisible = true
         menu.findItem(R.id.action_mode_audio_share).isVisible = isSong
-        menu.findItem(R.id.action_mode_favorite_add).isVisible = audioBrowserAdapter.multiSelectHelper.getSelection().none { it.isFavorite }
-        menu.findItem(R.id.action_mode_favorite_remove).isVisible = audioBrowserAdapter.multiSelectHelper.getSelection().none { !it.isFavorite }
+        menu.findItem(R.id.action_mode_favorite_add).isVisible = selection.none { it.isFavorite }
+        menu.findItem(R.id.action_mode_favorite_remove).isVisible = selection.none { !it.isFavorite }
         return true
     }
 
     override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
         if (!isStarted()) return false
-        val list = audioBrowserAdapter.multiSelectHelper.getSelection()
+        val list = selectedTrackItems()
         val tracks = ArrayList<MediaWrapper>()
         list.forEach { tracks.addAll(listOf(*it.tracks)) }
 
-        val indexes = audioBrowserAdapter.multiSelectHelper.selectionMap
+        val indexes = selectedTrackIndexes()
 
         when (item.itemId) {
             R.id.action_mode_audio_play -> MediaUtils.openList(this, tracks, 0)
@@ -730,9 +714,9 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
     }
 
     override fun onDestroyActionMode(mode: ActionMode) {
-        audioBrowserAdapter.multiSelectHelper.toggleActionMode(false, audioBrowserAdapter.itemCount)
+        inSelectionMode = false
         actionMode = null
-        audioBrowserAdapter.multiSelectHelper.clearSelection()
+        selectedTrackPositions.clear()
     }
 
     private fun showInfoDialog(media: MediaWrapper) {
@@ -742,8 +726,8 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
     }
 
     override fun onCtxAction(position: Int, option: ContextOption) {
-        if (position >= audioBrowserAdapter.itemCount) return
-        val media = audioBrowserAdapter.getItem(position) as MediaWrapper? ?: return
+        if (position !in trackItems.indices) return
+        val media = trackItems[position] as MediaWrapper? ?: return
         when (option) {
             CTX_INFORMATION -> showInfoDialog(media)
             CTX_DELETE -> lifecycleScope.launch { removeItem(position, media) }
@@ -764,7 +748,7 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
             }
             CTX_FAV_ADD, CTX_FAV_REMOVE -> lifecycleScope.launch {
                 media.isFavorite = option == CTX_FAV_ADD
-                withContext(Dispatchers.Main) { audioBrowserAdapter.notifyItemChanged(position) }
+                withContext(Dispatchers.Main) { trackUiVersion++ }
             }
             CTX_ADD_SHORTCUT -> lifecycleScope.launch { createShortcut(media) }
             CTX_GO_TO_ARTIST -> lifecycleScope.launch(Dispatchers.IO) {
@@ -830,7 +814,6 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
             val playlist = viewModel.playlist as? Playlist
                     ?: return
 
-            itemTouchHelperCallback.swipeEnabled = false
             lifecycleScope.launchWhenStarted {
                 val tracks = withContext(Dispatchers.IO) { playlist.tracks }
                 viewModel.playlist?.let { playlist ->
@@ -843,22 +826,12 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
                     }
                 }
                 var removedMessage = if (indexes.size > 1) getString(R.string.removed_from_playlist_anonymous) else getString(R.string.remove_playlist_item, list.first().title)
-                UiTools.snackerWithCancel(this@HeaderMediaListActivity, removedMessage, action = {
-                    lastDismissedPosition = -1
-                }) {
+                UiTools.snackerWithCancel(this@HeaderMediaListActivity, removedMessage, action = {}) {
                     for ((key, value) in itemsRemoved) {
                         playlist.add(value, key)
-                        if (lastDismissedPosition != -1) {
-                            audioBrowserAdapter.notifyItemChanged(lastDismissedPosition)
-                            lastDismissedPosition = -1
-                        }
                     }
+                    trackUiVersion++
                 }
-            }
-        } else {
-            if (lastDismissedPosition != -1) {
-                audioBrowserAdapter.notifyItemChanged(lastDismissedPosition)
-                lastDismissedPosition = -1
             }
         }
     }
@@ -893,15 +866,11 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), IEventsHand
 
     override fun onMenuItemActionExpand(item: MenuItem): Boolean {
         appBarLayout.setExpanded(false, true)
-        audioBrowserAdapter.stopReorder = true
-        audioBrowserAdapter.notifyItemRangeChanged(0, audioBrowserAdapter.itemCount, UPDATE_REORDER)
         setAppBarScrollEnabled(false)
         return true
     }
 
     override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
-        audioBrowserAdapter.stopReorder = false
-        audioBrowserAdapter.notifyItemRangeChanged(0, audioBrowserAdapter.itemCount, UPDATE_REORDER)
         setAppBarScrollEnabled(true)
         return true
     }
@@ -928,6 +897,304 @@ private data class HeaderMediaListStrings(
     val addToPlaylist: String,
     val favorite: String
 )
+
+@Composable
+private fun HeaderMediaTrackList(
+    tracks: List<MediaLibraryItem>,
+    isPlaylist: Boolean,
+    selectedPositions: List<Int>,
+    inSelectionMode: Boolean,
+    currentMedia: MediaWrapper?,
+    playing: Boolean,
+    forceNoTrackNumbers: Boolean,
+    uiVersion: Int,
+    onClick: (Int, MediaLibraryItem) -> Unit,
+    onLongClick: (Int, MediaLibraryItem) -> Unit,
+    onImageClick: (Int, MediaLibraryItem) -> Unit,
+    onMoreClick: (Int, MediaLibraryItem) -> Unit,
+    onMainActionClick: (Int, MediaLibraryItem) -> Unit
+) {
+    val colors = VLCThemeDefaults.colors
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colors.backgroundDefault)
+            .padding(bottom = 64.composeDp)
+    ) {
+        itemsIndexed(
+            items = tracks,
+            key = { index, item -> "${item.itemType}-${item.id}-$index-$uiVersion" }
+        ) { position, item ->
+            val media = item as? MediaWrapper
+            val selected = selectedPositions.contains(position)
+            val isCurrent = currentMedia == item
+            val isPresent = media?.isPresent ?: true
+            if (!isPlaylist && media != null) {
+                HeaderAlbumTrackRow(
+                    media = media,
+                    position = position,
+                    selected = selected,
+                    inSelectionMode = inSelectionMode,
+                    isCurrent = isCurrent,
+                    playing = playing,
+                    forceNoTrackNumbers = forceNoTrackNumbers,
+                    showSelectedIcon = selected,
+                    onClick = { onClick(position, item) },
+                    onLongClick = { onLongClick(position, item) },
+                    onMoreClick = { onMoreClick(position, item) }
+                )
+            } else {
+                HeaderMediaTrackRow(
+                    item = item,
+                    position = position,
+                    selected = selected,
+                    inSelectionMode = inSelectionMode,
+                    isCurrent = isCurrent,
+                    playing = playing,
+                    isPresent = isPresent,
+                    onClick = { onClick(position, item) },
+                    onLongClick = { onLongClick(position, item) },
+                    onImageClick = { onImageClick(position, item) },
+                    onMoreClick = { onMoreClick(position, item) },
+                    onMainActionClick = { onMainActionClick(position, item) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun HeaderMediaTrackRow(
+    item: MediaLibraryItem,
+    position: Int,
+    selected: Boolean,
+    inSelectionMode: Boolean,
+    isCurrent: Boolean,
+    playing: Boolean,
+    isPresent: Boolean,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    onImageClick: () -> Unit,
+    onMoreClick: () -> Unit,
+    onMainActionClick: () -> Unit
+) {
+    val context = LocalContext.current
+    val colors = VLCThemeDefaults.colors
+    VLCBrowserItemRow(
+        title = item.title.orEmpty(),
+        subtitle = item.description?.toString(),
+        selected = selected,
+        contentDescription = (item as? MediaWrapper)?.let { TalkbackUtil.getAudioTrack(context, it) },
+        onClick = onClick,
+        onLongClick = onLongClick,
+        artworkContent = {
+            HeaderTrackArtwork(
+                selected = selected,
+                isCurrent = isCurrent,
+                playing = playing,
+                enabled = isPresent,
+                onImageClick = onImageClick
+            )
+        },
+        badgeContent = {
+            HeaderAudioBadges(item = item, isPresent = isPresent)
+        },
+        primaryActionContent = if (isPresent && !inSelectionMode) {
+            {
+                Icon(
+                    painter = painterResource(R.drawable.ic_play),
+                    contentDescription = null,
+                    tint = colors.primary
+                )
+            }
+        } else null,
+        onPrimaryActionClick = onMainActionClick,
+        moreActionContent = if (isPresent && !inSelectionMode) {
+            { HeaderAudioMoreIcon() }
+        } else null,
+        onMoreClick = onMoreClick
+    )
+}
+
+@Composable
+private fun HeaderAlbumTrackRow(
+    media: MediaWrapper,
+    position: Int,
+    selected: Boolean,
+    inSelectionMode: Boolean,
+    isCurrent: Boolean,
+    playing: Boolean,
+    forceNoTrackNumbers: Boolean,
+    showSelectedIcon: Boolean,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    onMoreClick: () -> Unit
+) {
+    val context = LocalContext.current
+    val showTrackNumberColumn = isCurrent || (Settings.showTrackNumber && !forceNoTrackNumbers) || showSelectedIcon
+    val showTrackNumberText = !isCurrent && Settings.showTrackNumber && !forceNoTrackNumbers
+    val trackNumberText = if (showTrackNumberText && media.trackNumber > 0) "${media.trackNumber}." else ""
+    val trackNumberContentDescription = media
+        .takeIf { showTrackNumberText && it.trackNumber > 0 }
+        ?.let { TalkbackUtil.getTrackNumber(context, it) }
+    VLCBrowserItemRow(
+        title = media.title.orEmpty(),
+        subtitle = MediaUtils.getMediaSubtitle(media),
+        selected = selected,
+        contentDescription = TalkbackUtil.getAudioTrack(context, media),
+        titleMaxLines = 1,
+        showArtwork = showTrackNumberColumn,
+        onClick = onClick,
+        onLongClick = onLongClick,
+        artworkContent = {
+            HeaderAlbumTrackLeadingContent(
+                trackNumberText = trackNumberText,
+                trackNumberContentDescription = trackNumberContentDescription,
+                showTrackNumber = showTrackNumberText,
+                selected = selected,
+                isCurrent = isCurrent,
+                playing = playing
+            )
+        },
+        badgeContent = {
+            HeaderAudioBadges(item = media, isPresent = media.isPresent)
+        },
+        moreActionContent = if (media.isPresent && !inSelectionMode) {
+            { HeaderAudioMoreIcon() }
+        } else null,
+        onMoreClick = onMoreClick
+    )
+}
+
+@Composable
+private fun BoxScope.HeaderTrackArtwork(
+    selected: Boolean,
+    isCurrent: Boolean,
+    playing: Boolean,
+    enabled: Boolean,
+    onImageClick: () -> Unit
+) {
+    val colors = VLCThemeDefaults.colors
+    Box(
+        modifier = Modifier
+            .size(40.composeDp)
+            .clip(RoundedCornerShape(4.composeDp))
+            .background(colors.backgroundDefaultDarker)
+            .clickable(onClick = onImageClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_song),
+            contentDescription = null,
+            tint = colors.listSubtitle.copy(alpha = if (enabled) 1f else 0.45f),
+            modifier = Modifier.size(24.composeDp)
+        )
+        if (selected) {
+            Icon(
+                painter = painterResource(R.drawable.ic_video_grid_check),
+                contentDescription = null,
+                tint = Color.Unspecified,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(2.composeDp)
+                    .size(18.composeDp)
+            )
+        }
+        if (isCurrent) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .clip(RoundedCornerShape(20.composeDp))
+                    .background(Color.Black.copy(alpha = 0.58f))
+                    .padding(5.composeDp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(if (playing) R.drawable.ic_pause_player else R.drawable.ic_play_player),
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(20.composeDp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun HeaderAlbumTrackLeadingContent(
+    trackNumberText: String,
+    trackNumberContentDescription: String?,
+    showTrackNumber: Boolean,
+    selected: Boolean,
+    isCurrent: Boolean,
+    playing: Boolean
+) {
+    Box(
+        modifier = Modifier.size(40.composeDp),
+        contentAlignment = Alignment.Center
+    ) {
+        when {
+            selected -> Icon(
+                painter = painterResource(R.drawable.ic_video_grid_check),
+                contentDescription = null,
+                tint = Color.Unspecified,
+                modifier = Modifier.size(24.composeDp)
+            )
+            isCurrent -> Icon(
+                painter = painterResource(if (playing) R.drawable.ic_pause_player else R.drawable.ic_play_player),
+                contentDescription = null,
+                tint = VLCThemeDefaults.colors.primary,
+                modifier = Modifier.size(24.composeDp)
+            )
+            showTrackNumber -> Text(
+                text = trackNumberText,
+                color = VLCThemeDefaults.colors.listTitle,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Normal,
+                modifier = if (trackNumberContentDescription != null) {
+                    Modifier.semantics { contentDescription = trackNumberContentDescription }
+                } else {
+                    Modifier
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun HeaderAudioBadges(item: MediaLibraryItem?, isPresent: Boolean) {
+    if (item?.isFavorite == true) {
+        HeaderAudioBadgeIcon(R.drawable.ic_emoji_favorite)
+    }
+    val media = item as? MediaWrapper
+    when {
+        !isPresent -> HeaderAudioBadgeIcon(R.drawable.ic_emoji_absent)
+        media?.uri?.scheme.isSchemeSMB() -> HeaderAudioBadgeIcon(R.drawable.ic_emoji_network)
+        media?.uri?.isSD() == true -> HeaderAudioBadgeIcon(R.drawable.ic_emoji_sd)
+        media?.uri?.isOTG() == true -> HeaderAudioBadgeIcon(R.drawable.ic_emoji_otg)
+    }
+}
+
+@Composable
+private fun HeaderAudioBadgeIcon(icon: Int) {
+    Icon(
+        painter = painterResource(icon),
+        contentDescription = null,
+        tint = Color.Unspecified,
+        modifier = Modifier
+            .padding(3.composeDp)
+            .size(16.composeDp)
+    )
+}
+
+@Composable
+private fun HeaderAudioMoreIcon() {
+    Icon(
+        painter = painterResource(R.drawable.ic_more),
+        contentDescription = stringResource(R.string.more),
+        tint = VLCThemeDefaults.colors.listSubtitle
+    )
+}
 
 @Composable
 private fun HeaderMediaListHeader(
