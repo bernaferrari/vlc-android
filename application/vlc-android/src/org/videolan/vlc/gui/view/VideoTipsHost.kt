@@ -1,6 +1,6 @@
 /*
  * ************************************************************************
- *  VideoTipsHostView.kt
+ *  VideoTipsHost.kt
  * *************************************************************************
  * Copyright © 2026 VLC authors and VideoLAN
  *
@@ -23,9 +23,7 @@
 package org.videolan.vlc.gui.view
 
 import android.content.Context
-import android.util.AttributeSet
 import android.util.TypedValue
-import android.view.View
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.animation.core.LinearEasing
@@ -73,7 +71,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import org.videolan.vlc.R
-import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.gui.video.VideoPlayerTipsStep
 
 enum class VideoTipsControl(
@@ -102,11 +101,22 @@ private data class VideoTipsUiState(
  * Compose replacement for player_tips.xml. VideoTipsDelegate keeps the
  * tutorial sequencing contract and pushes the current step/control state here.
  */
-class VideoTipsHostView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : VLCAbstractComposeWidget(context, attrs, defStyleAttr) {
+internal fun VLCComposeView.installVideoTipsHost() {
+    val host = VideoTipsHost(context)
+    setTag(R.id.player_overlay_tips, host)
+    isClickable = true
+    setOnTouchListener { _, _ -> true }
+    setContent {
+        VLCTheme {
+            host.Content()
+        }
+    }
+}
+
+internal fun VLCComposeView.videoTipsHost(): VideoTipsHost =
+    getTag(R.id.player_overlay_tips) as? VideoTipsHost ?: error("Missing video tips host")
+
+internal class VideoTipsHost(context: Context) {
 
     private var state by mutableStateOf(VideoTipsUiState())
     private var onDismissClick: () -> Unit = {}
@@ -114,13 +124,6 @@ class VideoTipsHostView @JvmOverloads constructor(
     private var onControlClick: (VideoTipsControl) -> Unit = {}
     private val fontColor = context.resolveComposeColor(R.attr.font_default)
     private val primaryColor = context.resolveComposeColor(R.attr.colorPrimary)
-
-    init {
-        id = R.id.player_overlay_tips
-        visibility = View.GONE
-        isClickable = true
-        setOnTouchListener { _, _ -> true }
-    }
 
     fun setCallbacks(
         onDismiss: () -> Unit,
@@ -139,7 +142,6 @@ class VideoTipsHostView @JvmOverloads constructor(
         @StringRes nextButtonText: Int,
         selectedControl: VideoTipsControl? = null
     ) {
-        visibility = View.VISIBLE
         state = VideoTipsUiState(
             visible = true,
             step = step,
@@ -164,11 +166,10 @@ class VideoTipsHostView @JvmOverloads constructor(
 
     fun hideTips() {
         state = state.copy(visible = false)
-        visibility = View.GONE
     }
 
     @Composable
-    override fun WidgetContent() {
+    fun Content() {
         val current = state
         if (!current.visible || current.step == null) return
 

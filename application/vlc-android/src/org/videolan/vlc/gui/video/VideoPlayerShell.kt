@@ -44,13 +44,13 @@ import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.gui.view.PlayerOptionsPanelView
 import org.videolan.vlc.gui.view.VideoHudRightOverlayView
 import org.videolan.vlc.gui.view.VideoSeekOverlayView
-import org.videolan.vlc.gui.view.VideoTipsHostView
 import org.videolan.vlc.gui.view.createVideoHudOverlay
 import org.videolan.vlc.gui.view.installVideoDelayOverlayHost
 import org.videolan.vlc.gui.view.installVideoInfoOverlayHost
 import org.videolan.vlc.gui.view.installVideoOrientationOverlayHost
 import org.videolan.vlc.gui.view.installVideoResizeOverlayHost
 import org.videolan.vlc.gui.view.installVideoScreenshotOverlayHost
+import org.videolan.vlc.gui.view.installVideoTipsHost
 import org.videolan.vlc.gui.view.installVideoVerticalProgressOverlayHost
 
 internal fun VideoPlayerActivity.createVideoPlayerShell(isPrimaryDisplay: Boolean): View =
@@ -113,8 +113,10 @@ private fun Context.createPrimaryVideoPlayerShell() = createVideoPlayerRoot().ap
 
 private fun Context.createRemoteVideoPlayerShell() = createVideoPlayerRoot().apply {
     addView(videoLayout(), matchFrame())
-    addView(VideoTipsHostView(context).apply {
+    addView(VLCComposeView(context).apply {
+        id = R.id.player_overlay_tips
         visibility = View.GONE
+        installVideoTipsHost()
     }, matchFrame())
     addView(FrameLayout(context).apply {
         id = R.id.player_overlay_background
@@ -185,8 +187,10 @@ private fun Context.createRemoteVideoPlayerShell() = createVideoPlayerRoot().app
 private fun Context.primaryUiContainer() = FrameLayout(this).apply {
     id = R.id.player_ui_container
     fitsSystemWindows = true
-    addView(VideoTipsHostView(context).apply {
+    addView(VLCComposeView(context).apply {
+        id = R.id.player_overlay_tips
         visibility = View.GONE
+        installVideoTipsHost()
     }, matchFrame())
     addView(loadingView(wrap = false), FrameLayout.LayoutParams(80.dp, 80.dp, Gravity.CENTER))
     addView(infoOverlay(), frameWrap(Gravity.CENTER) {

@@ -28,9 +28,12 @@ import androidx.annotation.StringRes
 import org.videolan.tools.PREF_TIPS_SHOWN
 import org.videolan.tools.Settings
 import org.videolan.tools.putSingle
+import org.videolan.tools.setGone
+import org.videolan.tools.setVisible
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.gui.view.VideoTipsControl
-import org.videolan.vlc.gui.view.VideoTipsHostView
+import org.videolan.vlc.gui.view.videoTipsHost
 
 /**
  * Delegate to manage the video tips workflow.
@@ -39,7 +42,7 @@ class VideoTipsDelegate(private val player: VideoPlayerActivity) {
 
     var currentTip: VideoPlayerTipsStep? = null
     var currentControl: VideoTipsControl? = null
-    private lateinit var tipsHost: VideoTipsHostView
+    private lateinit var tipsHost: VLCComposeView
 
     /**
      * Init the tips:
@@ -48,7 +51,7 @@ class VideoTipsDelegate(private val player: VideoPlayerActivity) {
      */
     fun init() {
         tipsHost = player.findViewById(R.id.player_overlay_tips)
-        tipsHost.setCallbacks(
+        tipsHost.videoTipsHost().setCallbacks(
             onDismiss = ::close,
             onNext = ::next,
             onControl = ::onControlClick
@@ -70,19 +73,23 @@ class VideoTipsDelegate(private val player: VideoPlayerActivity) {
         currentTip = currentTip?.next() ?: VideoPlayerTipsStep.CONTROLS
         currentControl = null
         val step = currentTip!!
-        tipsHost.showStep(
+        tipsHost.videoTipsHost().showStep(
             step = step,
             title = step.titleText,
             description = step.descriptionText,
             nextButtonText = if (step == VideoPlayerTipsStep.SEEK) R.string.close else R.string.next_step
         )
+        tipsHost.setVisible()
     }
 
     /**
      * Close the tips, cancel all the animations, relaunch the playback
      */
     fun close() {
-        if (::tipsHost.isInitialized) tipsHost.hideTips()
+        if (::tipsHost.isInitialized) {
+            tipsHost.videoTipsHost().hideTips()
+            tipsHost.setGone()
+        }
         Settings.getInstance(player).putSingle(PREF_TIPS_SHOWN, true)
         currentTip = null
         currentControl = null
@@ -96,7 +103,7 @@ class VideoTipsDelegate(private val player: VideoPlayerActivity) {
         if (currentTip != VideoPlayerTipsStep.CONTROLS) return
         if (currentControl == control) {
             currentControl = null
-            tipsHost.updateControlCopy(
+            tipsHost.videoTipsHost().updateControlCopy(
                 selectedControl = null,
                 title = R.string.tips_player_controls,
                 description = R.string.tips_player_controls_description
@@ -104,7 +111,7 @@ class VideoTipsDelegate(private val player: VideoPlayerActivity) {
             return
         }
         currentControl = control
-        tipsHost.updateControlCopy(
+        tipsHost.videoTipsHost().updateControlCopy(
             selectedControl = control,
             title = control.selectedTitle,
             description = control.selectedDescription
