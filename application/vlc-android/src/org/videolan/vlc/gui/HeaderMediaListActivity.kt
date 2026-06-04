@@ -43,8 +43,13 @@ import androidx.appcompat.widget.SearchView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -65,8 +70,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,9 +82,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -180,7 +192,9 @@ import org.videolan.vlc.viewmodels.PlaylistModel
 import org.videolan.vlc.viewmodels.mobile.PlaylistViewModel
 import org.videolan.vlc.viewmodels.mobile.getViewModel
 import java.security.SecureRandom
+import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 open class HeaderMediaListActivity : AudioPlayerContainerActivity(), ActionMode.Callback, View.OnClickListener, CtxActionReceiver, Filterable, SearchView.OnQueryTextListener, MenuItem.OnActionExpandListener {
 
@@ -403,7 +417,8 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), ActionMode.
                         onLongClick = ::onTrackLongClick,
                         onImageClick = ::onTrackImageClick,
                         onMoreClick = ::onTrackMoreClick,
-                        onMainActionClick = ::onTrackMainActionClick
+                        onMainActionClick = ::onTrackMainActionClick,
+                        onMoveFinished = ::commitPlaylistTrackMove
                     )
                 }
             }
@@ -633,6 +648,30 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), ActionMode.
 
     private fun onTrackMainActionClick(position: Int, item: MediaLibraryItem) {
         MediaUtils.openList(this, listOf(*item.tracks), 0)
+    }
+
+    private fun movePlaylistTrack(from: Int, to: Int) {
+        if (!isPlaylist || actionMode != null || from == to || from !in trackItems.indices || to !in trackItems.indices) return
+        trackItems = trackItems.toMutableList().apply {
+            add(to, removeAt(from))
+        }
+        selectedTrackPositions.clear()
+    }
+
+    private fun commitPlaylistTrackMove(from: Int, to: Int) {
+        if (!isPlaylist || from == to || from !in trackItems.indices || to !in trackItems.indices) return
+        val playlist = viewModel.playlist as? Playlist ?: return
+        if (showPinIfNeeded()) {
+            viewModel.refresh()
+            return
+        }
+        movePlaylistTrack(from, to)
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
+                playlist.move(from, to)
+            }
+            viewModel.refresh()
+        }
     }
 
     private fun toggleTrackSelection(position: Int, forceSelected: Boolean = false) {
@@ -912,55 +951,169 @@ private fun HeaderMediaTrackList(
     onLongClick: (Int, MediaLibraryItem) -> Unit,
     onImageClick: (Int, MediaLibraryItem) -> Unit,
     onMoreClick: (Int, MediaLibraryItem) -> Unit,
-    onMainActionClick: (Int, MediaLibraryItem) -> Unit
+    onMainActionClick: (Int, MediaLibraryItem) -> Unit,
+    onMoveFinished: (Int, Int) -> Unit
 ) {
     val colors = VLCThemeDefaults.colors
-    LazyColumn(
+    val listState = rememberLazyListState()
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(colors.backgroundDefault)
-            .padding(bottom = 64.composeDp)
     ) {
-        itemsIndexed(
-            items = tracks,
-            key = { index, item -> "${item.itemType}-${item.id}-$index-$uiVersion" }
-        ) { position, item ->
-            val media = item as? MediaWrapper
-            val selected = selectedPositions.contains(position)
-            val isCurrent = currentMedia == item
-            val isPresent = media?.isPresent ?: true
-            if (!isPlaylist && media != null) {
-                HeaderAlbumTrackRow(
-                    media = media,
-                    position = position,
-                    selected = selected,
-                    inSelectionMode = inSelectionMode,
-                    isCurrent = isCurrent,
-                    playing = playing,
-                    forceNoTrackNumbers = forceNoTrackNumbers,
-                    showSelectedIcon = selected,
-                    onClick = { onClick(position, item) },
-                    onLongClick = { onLongClick(position, item) },
-                    onMoreClick = { onMoreClick(position, item) }
-                )
-            } else {
-                HeaderMediaTrackRow(
-                    item = item,
-                    position = position,
-                    selected = selected,
-                    inSelectionMode = inSelectionMode,
-                    isCurrent = isCurrent,
-                    playing = playing,
-                    isPresent = isPresent,
-                    onClick = { onClick(position, item) },
-                    onLongClick = { onLongClick(position, item) },
-                    onImageClick = { onImageClick(position, item) },
-                    onMoreClick = { onMoreClick(position, item) },
-                    onMainActionClick = { onMainActionClick(position, item) }
-                )
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 64.composeDp)
+        ) {
+            itemsIndexed(
+                items = tracks,
+                key = { index, item -> "${item.itemType}-${item.id}-$index-$uiVersion" }
+            ) { position, item ->
+                val media = item as? MediaWrapper
+                val selected = selectedPositions.contains(position)
+                val isCurrent = currentMedia == item
+                val isPresent = media?.isPresent ?: true
+                if (!isPlaylist && media != null) {
+                    HeaderAlbumTrackRow(
+                        media = media,
+                        position = position,
+                        selected = selected,
+                        inSelectionMode = inSelectionMode,
+                        isCurrent = isCurrent,
+                        playing = playing,
+                        forceNoTrackNumbers = forceNoTrackNumbers,
+                        showSelectedIcon = selected,
+                        onClick = { onClick(position, item) },
+                        onLongClick = { onLongClick(position, item) },
+                        onMoreClick = { onMoreClick(position, item) }
+                    )
+                } else {
+                    HeaderMediaTrackRow(
+                        item = item,
+                        position = position,
+                        selected = selected,
+                        inSelectionMode = inSelectionMode,
+                        isPlaylist = isPlaylist,
+                        itemCount = tracks.size,
+                        listState = listState,
+                        isCurrent = isCurrent,
+                        playing = playing,
+                        isPresent = isPresent,
+                        onClick = { onClick(position, item) },
+                        onLongClick = { onLongClick(position, item) },
+                        onImageClick = { onImageClick(position, item) },
+                        onMoreClick = { onMoreClick(position, item) },
+                        onMainActionClick = { onMainActionClick(position, item) },
+                        onMoveFinished = onMoveFinished
+                    )
+                }
             }
         }
+        HeaderMediaScrollThumb(
+            listState = listState,
+            itemCount = tracks.size,
+            modifier = Modifier.align(Alignment.CenterEnd)
+        )
     }
+}
+
+@Composable
+private fun HeaderMediaScrollThumb(
+    listState: LazyListState,
+    itemCount: Int,
+    modifier: Modifier = Modifier
+) {
+    if (itemCount <= 20) return
+    val scope = rememberCoroutineScope()
+    val colors = VLCThemeDefaults.colors
+    var trackHeight by remember { mutableIntStateOf(0) }
+    val visibleItems = listState.layoutInfo.visibleItemsInfo.size.coerceAtLeast(1)
+    val thumbFraction = (visibleItems.toFloat() / itemCount.toFloat()).coerceIn(0.08f, 1f)
+    val scrollFraction = if (itemCount <= 1) {
+        0f
+    } else {
+        (listState.firstVisibleItemIndex.toFloat() / (itemCount - 1).toFloat()).coerceIn(0f, 1f)
+    }
+
+    BoxWithConstraints(
+        modifier = modifier
+            .width(24.composeDp)
+            .fillMaxSize()
+            .onSizeChanged { trackHeight = it.height }
+            .pointerInput(itemCount, trackHeight) {
+                detectDragGestures { change, _ ->
+                    change.consume()
+                    if (trackHeight <= 0) return@detectDragGestures
+                    val fraction = (change.position.y / trackHeight.toFloat()).coerceIn(0f, 1f)
+                    val target = ((itemCount - 1) * fraction).roundToInt().coerceIn(0, itemCount - 1)
+                    scope.launch { listState.scrollToItem(target) }
+                }
+            },
+        contentAlignment = Alignment.TopCenter
+    ) {
+        val maxHeight = constraints.maxHeight.toFloat().coerceAtLeast(1f)
+        val thumbHeight = max(36f, maxHeight * thumbFraction)
+        val thumbOffset = (maxHeight - thumbHeight) * scrollFraction
+        val thumbHeightDp = with(LocalDensity.current) { thumbHeight.toDp() }
+        Box(
+            modifier = Modifier
+                .graphicsLayer {
+                    translationY = thumbOffset
+                }
+                .width(4.composeDp)
+                .height(thumbHeightDp)
+                .clip(RoundedCornerShape(2.composeDp))
+                .background(colors.listSubtitle.copy(alpha = 0.42f))
+        )
+    }
+}
+
+@Composable
+private fun HeaderPlaylistDragHandle(
+    position: Int,
+    itemCount: Int,
+    listState: LazyListState,
+    onMoveFinished: (Int, Int) -> Unit
+) {
+    var originalPosition by remember(position) { mutableIntStateOf(position) }
+    var dragOffset by remember(position) { mutableStateOf(0f) }
+    Icon(
+        painter = painterResource(R.drawable.ic_move_media),
+        contentDescription = stringResource(R.string.move_up),
+        tint = VLCThemeDefaults.colors.listSubtitle,
+        modifier = Modifier
+            .graphicsLayer {
+                translationY = dragOffset
+            }
+            .pointerInput(position, listState) {
+                detectDragGesturesAfterLongPress(
+                    onDragStart = {
+                        originalPosition = position
+                        dragOffset = 0f
+                    },
+                    onDragEnd = {
+                        val rowHeight = listState.layoutInfo.visibleItemsInfo
+                            .firstOrNull { it.index == originalPosition }
+                            ?.size
+                            ?.toFloat()
+                            ?.coerceAtLeast(1f)
+                            ?: 64f
+                        val target = (originalPosition + (dragOffset / rowHeight).roundToInt()).coerceIn(0, itemCount - 1)
+                        onMoveFinished(originalPosition, target)
+                        dragOffset = 0f
+                    },
+                    onDragCancel = {
+                        dragOffset = 0f
+                    },
+                    onDrag = { change, dragAmount ->
+                        change.consume()
+                        dragOffset += dragAmount.y
+                    }
+                )
+            }
+    )
 }
 
 @Composable
@@ -969,6 +1122,9 @@ private fun HeaderMediaTrackRow(
     position: Int,
     selected: Boolean,
     inSelectionMode: Boolean,
+    isPlaylist: Boolean,
+    itemCount: Int,
+    listState: LazyListState,
     isCurrent: Boolean,
     playing: Boolean,
     isPresent: Boolean,
@@ -976,7 +1132,8 @@ private fun HeaderMediaTrackRow(
     onLongClick: () -> Unit,
     onImageClick: () -> Unit,
     onMoreClick: () -> Unit,
-    onMainActionClick: () -> Unit
+    onMainActionClick: () -> Unit,
+    onMoveFinished: (Int, Int) -> Unit
 ) {
     val context = LocalContext.current
     val colors = VLCThemeDefaults.colors
@@ -999,7 +1156,16 @@ private fun HeaderMediaTrackRow(
         badgeContent = {
             HeaderAudioBadges(item = item, isPresent = isPresent)
         },
-        primaryActionContent = if (isPresent && !inSelectionMode) {
+        primaryActionContent = if (isPlaylist && !inSelectionMode) {
+            {
+                HeaderPlaylistDragHandle(
+                    position = position,
+                    itemCount = itemCount,
+                    listState = listState,
+                    onMoveFinished = onMoveFinished
+                )
+            }
+        } else if (isPresent && !inSelectionMode) {
             {
                 Icon(
                     painter = painterResource(R.drawable.ic_play),
