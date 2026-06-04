@@ -1,6 +1,6 @@
 /*
  * ************************************************************************
- *  VideoInfoOverlayView.kt
+ *  VideoInfoOverlayHost.kt
  * *************************************************************************
  * Copyright © 2026 VLC authors and VideoLAN
  *
@@ -22,8 +22,6 @@
 
 package org.videolan.vlc.gui.view
 
-import android.content.Context
-import android.util.AttributeSet
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -40,25 +38,29 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.videolan.vlc.R
-import org.videolan.vlc.compose.interop.VLCAbstractComposeWidget
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.compose.theme.VLCTheme
 
 /**
  * Compose replacement for the former transient video info XML overlay. The
- * delegate owns timing and fade-out; this view only renders text state.
+ * delegate owns timing and fade-out; this host only renders text state.
  */
-class VideoInfoOverlayView @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : VLCAbstractComposeWidget(context, attrs, defStyleAttr) {
+internal fun VLCComposeView.installVideoInfoOverlayHost() {
+    val host = VideoInfoOverlayHost()
+    setTag(R.id.player_info_stub, host)
+    setContent {
+        VLCTheme {
+            host.Content()
+        }
+    }
+}
 
+internal fun VLCComposeView.videoInfoOverlayHost(): VideoInfoOverlayHost =
+    getTag(R.id.player_info_stub) as? VideoInfoOverlayHost ?: error("Missing video info overlay host")
+
+internal class VideoInfoOverlayHost {
     private var text by mutableStateOf("")
     private var subText by mutableStateOf("")
-
-    init {
-        isClickable = false
-        isFocusable = false
-    }
 
     fun updateInfo(text: String, subText: String) {
         this.text = text
@@ -66,7 +68,7 @@ class VideoInfoOverlayView @JvmOverloads constructor(
     }
 
     @Composable
-    override fun WidgetContent() {
+    fun Content() {
         Column(
             modifier = Modifier.background(
                 color = colorResource(R.color.playerbackground),

@@ -96,10 +96,10 @@ import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.showVideoTrack
 import org.videolan.vlc.gui.helpers.hf.checkPIN
 import org.videolan.vlc.gui.view.VideoHudRightOverlayView
-import org.videolan.vlc.gui.view.VideoInfoOverlayView
 import org.videolan.vlc.gui.view.VideoVerticalProgressOverlayView
 import org.videolan.vlc.gui.view.abRepeatMarkerContainerHost
 import org.videolan.vlc.gui.view.videoHudSeekJumpLabelHost
+import org.videolan.vlc.gui.view.videoInfoOverlayHost
 import org.videolan.vlc.isVLC4
 import org.videolan.vlc.manageAbRepeatStep
 import org.videolan.vlc.media.MediaUtils
@@ -326,8 +326,8 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
     fun showInfo(text: String, duration: Int, subText:String = "") {
         if (player.isInPictureInPictureMode) return
         initInfoOverlay()
-        val infoOverlay = overlayInfo as? VideoInfoOverlayView ?: return
-        infoOverlay.updateInfo(text, subText)
+        val infoOverlay = overlayInfo as? VLCComposeView ?: return
+        infoOverlay.videoInfoOverlayHost().updateInfo(text, subText)
         infoOverlay.setVisible()
         player.handler.removeMessages(VideoPlayerActivity.FADE_OUT_INFO)
         player.handler.sendEmptyMessageDelayed(VideoPlayerActivity.FADE_OUT_INFO, duration.toLong())
@@ -348,7 +348,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
     fun initInfoOverlay() {
         if (overlayInfo != null) return
-        val infoOverlay = player.findViewById<VideoInfoOverlayView>(R.id.player_info_stub) ?: return
+        val infoOverlay = player.findViewById<VLCComposeView>(R.id.player_info_stub) ?: return
         info = infoOverlay
         overlayInfo = infoOverlay
     }
