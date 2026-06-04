@@ -73,7 +73,6 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -111,6 +110,7 @@ import org.videolan.vlc.gui.SecondaryActivity
 import org.videolan.vlc.gui.browser.KEY_JUMP_TO
 import org.videolan.vlc.gui.browser.KEY_MEDIA
 import org.videolan.vlc.gui.dialogs.CURRENT_SORT
+import org.videolan.vlc.gui.dialogs.ComposeMaterialBottomSheetHost
 import org.videolan.vlc.gui.dialogs.CtxActionReceiver
 import org.videolan.vlc.gui.dialogs.DEFAULT_ACTIONS
 import org.videolan.vlc.gui.dialogs.DISPLAY_IN_CARDS
@@ -531,9 +531,9 @@ class AudioScreenController(private val activity: MainActivity) : DefaultLifecyc
     private fun showRenameDialog(item: MediaLibraryItem, onRename: (String) -> Unit) {
         if (activity.showPinIfNeeded()) return
         val dialog = if (Settings.showTvUi) {
-            BottomSheetDialog(activity, R.style.Theme_VLC_Black_BottomSheet)
+            ComposeMaterialBottomSheetHost(activity)
         } else {
-            BottomSheetDialog(activity)
+            ComposeMaterialBottomSheetHost(activity)
         }
         var newName by mutableStateOf(TextFieldValue(item.title.orEmpty()))
         val rootView = ComposeView(activity).apply {

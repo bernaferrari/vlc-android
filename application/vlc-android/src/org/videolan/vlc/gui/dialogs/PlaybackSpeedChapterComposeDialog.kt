@@ -79,7 +79,7 @@ fun ComponentActivity.showSelectChapterComposeDialog(onDismiss: (() -> Unit)? = 
 private class PlaybackSpeedComposeDialog(
     activity: ComponentActivity,
     onDismiss: (() -> Unit)? = null
-) : PlaybackComposeBottomSheetDialog(activity = activity, onDismiss = onDismiss) {
+) : PlaybackComposeSheetDialog(activity = activity, onDismiss = onDismiss) {
     private val settings: SharedPreferences = Settings.getInstance(activity)
     private val forVideo: Boolean
         get() = PlaylistManager.showAudioPlayer.value == false
@@ -294,7 +294,7 @@ private class PlaybackSpeedComposeDialog(
 private class SelectChapterComposeDialog(
     activity: ComponentActivity,
     onDismiss: (() -> Unit)? = null
-) : PlaybackComposeBottomSheetDialog(activity = activity, onDismiss = onDismiss) {
+) : PlaybackComposeSheetDialog(activity = activity, onDismiss = onDismiss) {
     private var chapters by mutableStateOf<List<ChapterItem>>(emptyList())
     private var selectedIndex by mutableStateOf(0)
 

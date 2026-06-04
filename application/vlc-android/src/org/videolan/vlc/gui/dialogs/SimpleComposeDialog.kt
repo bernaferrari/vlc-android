@@ -4,7 +4,9 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.graphics.Bitmap
+import android.view.View
 import android.view.ViewGroup
+import android.view.Window
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,11 +14,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,6 +32,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import org.videolan.vlc.compose.theme.VLCTheme
 
 class ComposeMaterialDialogHandle internal constructor(
@@ -42,6 +49,74 @@ class ComposeMaterialDialogHandle internal constructor(
         visible.value = false
         parent.removeView(composeView)
         onDismiss?.invoke()
+    }
+}
+
+class ComposeMaterialBottomSheetHandle internal constructor(
+    private val parent: ViewGroup,
+    private val composeView: ComposeView,
+    private val visible: MutableState<Boolean>,
+    private val onDismiss: (() -> Unit)? = null
+) {
+    val isShowing: Boolean
+        get() = visible.value
+
+    fun dismiss() {
+        if (!visible.value) return
+        visible.value = false
+        parent.removeView(composeView)
+        onDismiss?.invoke()
+    }
+
+    internal fun composeView(): ComposeView = composeView
+}
+
+internal class ComposeMaterialBottomSheetHost(private val activity: Activity) {
+    private var contentView: View? = null
+    private var handle: ComposeMaterialBottomSheetHandle? = null
+    private var onShow: (() -> Unit)? = null
+    private var onDismiss: (() -> Unit)? = null
+
+    val isShowing: Boolean
+        get() = handle?.isShowing == true
+
+    val window: Window?
+        get() = null
+
+    fun setContentView(view: View) {
+        contentView = view
+    }
+
+    fun setCancelable(cancelable: Boolean) = Unit
+
+    fun setCanceledOnTouchOutside(cancel: Boolean) = Unit
+
+    fun setOnDismissListener(listener: () -> Unit) {
+        onDismiss = listener
+    }
+
+    fun setOnShowListener(listener: () -> Unit) {
+        onShow = listener
+    }
+
+    fun <T : View> findViewById(id: Int): T? = null
+
+    fun show() {
+        if (isShowing) return
+        val view = requireNotNull(contentView) { "Bottom sheet content must be set before show()" }
+        handle = activity.showMaterialBottomSheet(
+            onDismiss = {
+                onDismiss?.invoke()
+                handle = null
+            }
+        ) {
+            AndroidView(factory = { view })
+        }
+        onShow?.invoke()
+    }
+
+    fun dismiss() {
+        handle?.dismiss()
     }
 }
 
@@ -66,6 +141,44 @@ internal fun Context.showMaterialDialog(
     composeView.setContent {
         VLCTheme {
             if (visible.value) content(handle)
+        }
+    }
+    parent.addView(
+        composeView,
+        ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+    )
+    return handle
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+internal fun Context.showMaterialBottomSheet(
+    onDismiss: (() -> Unit)? = null,
+    content: @Composable (ComposeMaterialBottomSheetHandle) -> Unit
+): ComposeMaterialBottomSheetHandle {
+    val activity = requireNotNull(findActivity()) { "Material Compose bottom sheets require an Activity context" }
+    val parent = activity.window.decorView as ViewGroup
+    val visible = mutableStateOf(true)
+    lateinit var handle: ComposeMaterialBottomSheetHandle
+    val composeView = ComposeView(activity).apply {
+        isFocusable = true
+        isFocusableInTouchMode = true
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+    }
+    handle = ComposeMaterialBottomSheetHandle(parent, composeView, visible, onDismiss)
+    composeView.setContent {
+        VLCTheme {
+            if (visible.value) {
+                val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+                LaunchedEffect(Unit) {
+                    composeView.requestFocus()
+                }
+                ModalBottomSheet(
+                    onDismissRequest = { handle.dismiss() },
+                    sheetState = sheetState
+                ) {
+                    content(handle)
+                }
+            }
         }
     }
     parent.addView(

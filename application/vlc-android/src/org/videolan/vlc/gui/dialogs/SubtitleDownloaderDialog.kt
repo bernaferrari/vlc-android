@@ -67,8 +67,6 @@ import androidx.databinding.Observable
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -108,9 +106,9 @@ private class SubtitleDownloaderComposeDialog(
         SubtitlesModel.Factory(activity, mediaUri, mediaTitle)
     )[mediaUri.path!!, SubtitlesModel::class.java]
     private val dialog = if (Settings.showTvUi) {
-        BottomSheetDialog(activity, R.style.Theme_VLC_Black_BottomSheet)
+        ComposeMaterialBottomSheetHost(activity)
     } else {
-        BottomSheetDialog(activity)
+        ComposeMaterialBottomSheetHost(activity)
     }
     private val modeState = mutableStateOf(SubDownloadDialogState.Download)
     private val resultsState = mutableStateOf<List<SubtitleItem>>(emptyList())
@@ -374,11 +372,6 @@ private class SubtitleDownloaderComposeDialog(
             activity.resources.getDimensionPixelSize(R.dimen.default_context_width),
             ViewGroup.LayoutParams.MATCH_PARENT
         )
-        dialog.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)?.let { bottomSheet ->
-            val behavior = BottomSheetBehavior.from(bottomSheet)
-            behavior.state = BottomSheetBehavior.STATE_EXPANDED
-            if (AndroidDevices.isChromeBook) behavior.isDraggable = false
-        }
         dialog.findViewById<View>(R.id.touch_outside)?.isFocusable = false
         dialog.findViewById<View>(R.id.touch_outside)?.isFocusableInTouchMode = false
         rootView?.let { view ->

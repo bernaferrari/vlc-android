@@ -64,8 +64,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.resources.AndroidDevices
@@ -135,9 +133,9 @@ private class ContextSheetComposeDialog(
     private val menuItems: List<CtxMenuItem>
 ) {
     private val dialog = if (Settings.showTvUi) {
-        BottomSheetDialog(activity, R.style.Theme_VLC_Black_BottomSheet)
+        ComposeMaterialBottomSheetHost(activity)
     } else {
-        BottomSheetDialog(activity)
+        ComposeMaterialBottomSheetHost(activity)
     }
     private var rootView: ComposeView? = null
 
@@ -184,11 +182,6 @@ private class ContextSheetComposeDialog(
             view.isFocusableInTouchMode = true
             view.requestFocus()
             if (activity.isTalkbackIsEnabled()) view.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED)
-        }
-        dialog.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)?.let { bottomSheet ->
-            val behavior = BottomSheetBehavior.from(bottomSheet)
-            behavior.state = BottomSheetBehavior.STATE_EXPANDED
-            if (AndroidDevices.isChromeBook) behavior.isDraggable = false
         }
     }
 }

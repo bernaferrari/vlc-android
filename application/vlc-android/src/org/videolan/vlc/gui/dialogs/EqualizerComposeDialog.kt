@@ -23,8 +23,6 @@ import androidx.core.content.edit
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -74,9 +72,9 @@ private class EqualizerComposeDialog(
     )[EqualizerViewModel::class.java]
 
     private val dialog = if (Settings.showTvUi) {
-        BottomSheetDialog(activity, R.style.Theme_VLC_Black_BottomSheet)
+        ComposeMaterialBottomSheetHost(activity)
     } else {
-        BottomSheetDialog(activity)
+        ComposeMaterialBottomSheetHost(activity)
     }
 
     private var rootView: ComposeView? = null
@@ -180,11 +178,6 @@ private class EqualizerComposeDialog(
             activity.resources.getDimensionPixelSize(R.dimen.default_context_width),
             ViewGroup.LayoutParams.MATCH_PARENT
         )
-        dialog.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)?.let { bottomSheet ->
-            val behavior = BottomSheetBehavior.from(bottomSheet)
-            behavior.state = BottomSheetBehavior.STATE_EXPANDED
-            if (AndroidDevices.isChromeBook) behavior.isDraggable = false
-        }
         rootView?.let { view ->
             if (AndroidDevices.isTv) {
                 val overscan = activity.resources.getDimensionPixelSize(org.videolan.resources.R.dimen.tv_overscan_vertical)

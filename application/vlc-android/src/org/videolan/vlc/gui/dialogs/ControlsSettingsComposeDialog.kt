@@ -4,7 +4,6 @@ import android.media.AudioManager
 import android.os.Build
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -40,8 +39,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.getSystemService
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import org.videolan.libvlc.util.AndroidUtil
 import org.videolan.resources.AndroidDevices
 import org.videolan.tools.ENABLE_BRIGHTNESS_GESTURE
@@ -106,9 +103,9 @@ private class ControlsSettingsComposeDialog(
 ) {
     private val settings = Settings.getInstance(activity)
     private val dialog = if (Settings.showTvUi) {
-        BottomSheetDialog(activity, R.style.Theme_VLC_Black_BottomSheet)
+        ComposeMaterialBottomSheetHost(activity)
     } else {
-        BottomSheetDialog(activity)
+        ComposeMaterialBottomSheetHost(activity)
     }
     private var rootView: ComposeView? = null
 
@@ -142,12 +139,6 @@ private class ControlsSettingsComposeDialog(
             view.isFocusable = true
             view.isFocusableInTouchMode = true
             view.requestFocus()
-        }
-        dialog.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)?.let { bottomSheet ->
-            val behavior = BottomSheetBehavior.from(bottomSheet)
-            behavior.state = BottomSheetBehavior.STATE_EXPANDED
-            behavior.skipCollapsed = mode == ControlsSettingsMode.Video
-            if (AndroidDevices.isChromeBook) behavior.isDraggable = false
         }
     }
 

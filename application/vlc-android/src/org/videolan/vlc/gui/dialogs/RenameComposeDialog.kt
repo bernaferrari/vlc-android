@@ -13,8 +13,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.resources.AndroidDevices
@@ -43,9 +41,9 @@ private class RenameComposeDialog(
     private val onRenamed: (MediaLibraryItem, String) -> Unit
 ) {
     private val dialog = if (Settings.showTvUi) {
-        BottomSheetDialog(activity, R.style.Theme_VLC_Black_BottomSheet)
+        ComposeMaterialBottomSheetHost(activity)
     } else {
-        BottomSheetDialog(activity)
+        ComposeMaterialBottomSheetHost(activity)
     }
     private val name = if (renameFile && media is MediaWrapper) media.fileName else media.title
     private var newName by mutableStateOf(initialNameFieldValue(name, renameFile))
@@ -90,11 +88,6 @@ private class RenameComposeDialog(
         val softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE or
                 WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE
         dialog.window?.setSoftInputMode(softInputMode)
-        dialog.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)?.let { bottomSheet ->
-            val behavior = BottomSheetBehavior.from(bottomSheet)
-            behavior.state = BottomSheetBehavior.STATE_EXPANDED
-            if (AndroidDevices.isChromeBook) behavior.isDraggable = false
-        }
         dialog.findViewById<View>(R.id.touch_outside)?.isFocusable = false
         dialog.findViewById<View>(R.id.touch_outside)?.isFocusableInTouchMode = false
         rootView?.let { view ->

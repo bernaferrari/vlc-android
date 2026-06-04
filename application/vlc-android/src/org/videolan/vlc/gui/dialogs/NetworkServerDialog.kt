@@ -43,8 +43,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.launch
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.resources.AndroidDevices
@@ -116,9 +114,9 @@ private class NetworkServerComposeDialog(
         editingUri?.port?.takeIf { it != -1 }?.toString() ?: getPortForProtocol(initialProtocol)
     )
     private val dialog = if (Settings.showTvUi) {
-        BottomSheetDialog(activity, R.style.Theme_VLC_Black_BottomSheet)
+        ComposeMaterialBottomSheetHost(activity)
     } else {
-        BottomSheetDialog(activity)
+        ComposeMaterialBottomSheetHost(activity)
     }
     private var rootView: ComposeView? = null
 
@@ -197,11 +195,6 @@ private class NetworkServerComposeDialog(
             activity.resources.getDimensionPixelSize(R.dimen.default_context_width),
             ViewGroup.LayoutParams.MATCH_PARENT
         )
-        dialog.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)?.let { bottomSheet ->
-            val behavior = BottomSheetBehavior.from(bottomSheet)
-            behavior.state = BottomSheetBehavior.STATE_EXPANDED
-            if (AndroidDevices.isChromeBook) behavior.isDraggable = false
-        }
         dialog.findViewById<View>(R.id.touch_outside)?.isFocusable = false
         dialog.findViewById<View>(R.id.touch_outside)?.isFocusableInTouchMode = false
         rootView?.let { view ->

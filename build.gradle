@@ -19,6 +19,7 @@ buildscript {
 
 plugins {
     id 'com.google.devtools.ksp' version '2.1.20-1.0.32' apply false
+    id 'nl.littlerobots.version-catalog-update' version '1.1.0'
 }
 
 allprojects {
@@ -38,6 +39,12 @@ allprojects {
             jvmTarget = JavaVersion.VERSION_1_8.toString()
             freeCompilerArgs += ['-opt-in=kotlin.RequiresOptIn']
         }
+    }
+}
+
+versionCatalogUpdate {
+    keep {
+        keepUnusedVersions = true
     }
 }
 

@@ -2,41 +2,30 @@ package org.videolan.vlc.gui.dialogs
 
 import android.view.KeyEvent
 import android.view.View
-import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
 import android.view.inputmethod.BaseInputConnection
-import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.videolan.resources.AndroidDevices
-import org.videolan.tools.Settings
 import org.videolan.vlc.PlaybackService
-import org.videolan.vlc.R
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.gui.dialogs.PlaybackRemoteControl.shouldInterceptRemote
 import org.videolan.vlc.gui.video.VideoPlayerActivity.Companion.videoRemoteFlow
 import org.videolan.vlc.util.EmptyPBSCallback
 
-internal abstract class PlaybackComposeBottomSheetDialog(
+internal abstract class PlaybackComposeSheetDialog(
     protected val activity: ComponentActivity,
     private val onDismiss: (() -> Unit)? = null,
     private val dismissOnServiceEnded: Boolean = true,
     private val dismissOnPlaybackEnded: Boolean = true,
     private val allowRemote: Boolean = true
 ) : PlaybackService.Callback by EmptyPBSCallback {
-    private val dialog = if (Settings.showTvUi) {
-        BottomSheetDialog(activity, R.style.Theme_VLC_Black_BottomSheet)
-    } else {
-        BottomSheetDialog(activity)
-    }
     private var rootView: ComposeView? = null
+    private var bottomSheet: ComposeMaterialBottomSheetHandle? = null
     private var serviceJob: Job? = null
     private var remoteJob: Job? = null
 
@@ -44,26 +33,19 @@ internal abstract class PlaybackComposeBottomSheetDialog(
         private set
 
     fun show() {
-        rootView = ComposeView(activity).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
-                VLCTheme {
-                    Content()
-                }
+        bottomSheet = activity.showMaterialBottomSheet(onDismiss = ::cleanup) { handle ->
+            rootView = handle.composeView()
+            VLCTheme {
+                Content()
             }
         }
-        dialog.setCancelable(true)
-        dialog.setCanceledOnTouchOutside(true)
-        dialog.setContentView(rootView!!)
-        dialog.setOnShowListener { configureBottomSheet() }
-        dialog.setOnDismissListener { cleanup() }
-        dialog.show()
+        configureBottomSheet()
         startServiceTracking()
         if (allowRemote) startRemoteSupport()
     }
 
     protected fun dismiss() {
-        dialog.dismiss()
+        bottomSheet?.dismiss()
     }
 
     override fun update() {
@@ -133,18 +115,11 @@ internal abstract class PlaybackComposeBottomSheetDialog(
         service?.removeCallback(this)
         service = null
         rootView = null
+        bottomSheet = null
         onDismiss?.invoke()
     }
 
     private fun configureBottomSheet() {
-        dialog.window?.setLayout(
-            activity.resources.getDimensionPixelSize(R.dimen.default_context_width),
-            ViewGroup.LayoutParams.MATCH_PARENT
-        )
-        dialog.findViewById<View>(R.id.touch_outside)?.apply {
-            isFocusable = false
-            isFocusableInTouchMode = false
-        }
         rootView?.let { view ->
             if (AndroidDevices.isTv) {
                 val overscan = activity.resources.getDimensionPixelSize(org.videolan.resources.R.dimen.tv_overscan_vertical)
@@ -154,11 +129,6 @@ internal abstract class PlaybackComposeBottomSheetDialog(
             view.isFocusableInTouchMode = true
             view.requestFocus()
             view.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED)
-        }
-        dialog.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)?.let { bottomSheet ->
-            val behavior = BottomSheetBehavior.from(bottomSheet)
-            behavior.state = BottomSheetBehavior.STATE_EXPANDED
-            if (AndroidDevices.isChromeBook) behavior.isDraggable = false
         }
     }
 }

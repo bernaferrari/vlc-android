@@ -85,7 +85,7 @@ private class PlaybackTimePickerComposeDialog(
     private val mode: TimePickerMode,
     private val forDefault: Boolean = false,
     onDismiss: (() -> Unit)? = null
-) : PlaybackComposeBottomSheetDialog(
+) : PlaybackComposeSheetDialog(
     activity = activity,
     onDismiss = onDismiss,
     dismissOnServiceEnded = mode != TimePickerMode.SleepTimer || !forDefault,

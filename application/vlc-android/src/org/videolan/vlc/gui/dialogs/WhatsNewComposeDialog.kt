@@ -18,8 +18,6 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.launch
 import org.videolan.resources.AndroidDevices
 import org.videolan.tools.KEY_SHOW_WHATS_NEW
@@ -45,9 +43,9 @@ fun AppCompatActivity.showWhatsNewComposeDialog() {
 private class WhatsNewComposeDialog(private val activity: AppCompatActivity) {
     private val settings = Settings.getInstance(activity)
     private val dialog = if (Settings.showTvUi) {
-        BottomSheetDialog(activity, R.style.Theme_VLC_Black_BottomSheet)
+        ComposeMaterialBottomSheetHost(activity)
     } else {
-        BottomSheetDialog(activity)
+        ComposeMaterialBottomSheetHost(activity)
     }
     private var rootView: ComposeView? = null
     private var neverShowAgain by mutableStateOf(!settings.getBoolean(KEY_SHOW_WHATS_NEW, true))
@@ -91,11 +89,6 @@ private class WhatsNewComposeDialog(private val activity: AppCompatActivity) {
             activity.resources.getDimensionPixelSize(R.dimen.default_context_width),
             ViewGroup.LayoutParams.MATCH_PARENT
         )
-        dialog.findViewById<FrameLayout>(com.google.android.material.R.id.design_bottom_sheet)?.let { bottomSheet ->
-            val behavior = BottomSheetBehavior.from(bottomSheet)
-            behavior.state = BottomSheetBehavior.STATE_EXPANDED
-            if (AndroidDevices.isChromeBook) behavior.isDraggable = false
-        }
         dialog.findViewById<View>(R.id.touch_outside)?.isFocusable = false
         dialog.findViewById<View>(R.id.touch_outside)?.isFocusableInTouchMode = false
         rootView?.let { view ->

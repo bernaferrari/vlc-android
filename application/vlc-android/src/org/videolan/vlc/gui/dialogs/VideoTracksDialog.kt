@@ -95,7 +95,7 @@ private class VideoTracksComposeDialog(
     activity: ComponentActivity,
     private val menuListener: (VideoTracksDialog.VideoTrackOption) -> Unit,
     private val trackSelectionListener: (String, VideoTracksDialog.TrackType) -> Unit
-) : PlaybackComposeBottomSheetDialog(activity = activity, allowRemote = true) {
+) : PlaybackComposeSheetDialog(activity = activity, allowRemote = true) {
 
     private var sections by mutableStateOf(defaultSections())
 
