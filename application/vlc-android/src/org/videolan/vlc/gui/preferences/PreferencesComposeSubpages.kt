@@ -200,10 +200,10 @@ private data class SubpagePreferenceOption(
  * Compose replacement for the phone preference XML screens:
  * preferences_ui.xml, preferences_video.xml, preferences_audio.xml, preferences_subtitles.xml,
  * preferences_casting.xml, preferences_parental_control.xml, preferences_remote_access.xml,
- * preferences_android_auto.xml, preferences_adv.xml, and preferences_optional.xml.
+ * preferences_android_auto.xml, and preferences_adv.xml.
  *
- * Those XML files stay parseable by PreferenceParser for search metadata while this screen owns
- * the active phone rendering path.
+ * Those XML files stay parseable by PreferenceParser for search metadata where needed while this
+ * screen owns the active phone rendering path, including Optional Features.
  */
 @Composable
 internal fun PreferencesComposeSubpageScreen(
