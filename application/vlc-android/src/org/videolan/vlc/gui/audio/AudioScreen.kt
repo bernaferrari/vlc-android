@@ -25,33 +25,25 @@ package org.videolan.vlc.gui.audio
 import android.content.Intent
 import android.view.Menu
 import android.view.MenuItem
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -59,14 +51,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -98,10 +93,13 @@ import org.videolan.tools.Settings
 import org.videolan.tools.putSingle
 import org.videolan.tools.retrieveParent
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.components.VLCBrowserItemCard
+import org.videolan.vlc.compose.components.VLCBrowserItemRow
 import org.videolan.vlc.compose.components.VLCEmptyState
 import org.videolan.vlc.compose.components.VLCRenameDialogContent
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.gui.compose.VlcMediaImage
 import org.videolan.vlc.gui.HeaderMediaListActivity
 import org.videolan.vlc.gui.HeaderMediaListActivity.Companion.ARTIST_FROM_ALBUM
 import org.videolan.vlc.gui.InfoActivity
@@ -969,30 +967,32 @@ private fun AudioScreenContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AudioTabs(tabs: List<String>, selectedTab: Int, onTabSelected: (Int) -> Unit) {
     val colors = VLCThemeDefaults.colors
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(colors.headerBackground)
-            .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 8.dp, vertical = 6.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    PrimaryScrollableTabRow(
+        selectedTabIndex = selectedTab.coerceIn(0, (tabs.size - 1).coerceAtLeast(0)),
+        containerColor = colors.backgroundDefault,
+        contentColor = colors.primary,
+        edgePadding = 12.dp
     ) {
         tabs.forEachIndexed { index, title ->
             val selected = selectedTab == index
-            TextButton(
+            Tab(
+                selected = selected,
                 onClick = { onTabSelected(index) },
-                modifier = Modifier.background(if (selected) colors.subtleSelection else colors.headerBackground, RoundedCornerShape(4.dp))
-            ) {
-                Text(
-                    text = title,
-                    color = if (selected) colors.primary else colors.listTitle,
-                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                    maxLines = 1
-                )
-            }
+                text = {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                        maxLines = 1
+                    )
+                },
+                selectedContentColor = colors.primary,
+                unselectedContentColor = colors.listSubtitle
+            )
         }
     }
 }
@@ -1012,31 +1012,24 @@ private fun AudioGridOrList(
         when {
             loading && items.isEmpty() -> VLCEmptyState(loading = true, text = stringResource(R.string.loading))
             items.isEmpty() -> VLCEmptyState(loading = false, text = emptyText)
-            displayInCards -> LazyColumn(
+            displayInCards -> LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = 176.dp),
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(8.dp)
+                contentPadding = PaddingValues(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                itemsIndexed(
-                    items.chunked(2),
-                    key = { rowIndex, row -> "$rowIndex-${row.joinToString { "${it.itemType}-${it.id}-${it.title}" }}" }
-                ) { rowIndex, row ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        row.forEachIndexed { columnIndex, item ->
-                            val index = rowIndex * 2 + columnIndex
-                            AudioCard(
-                                item = item,
-                                modifier = Modifier.weight(1f),
-                                onClick = { onClick(index, item) },
-                                onMoreClick = { onMoreClick(index, item) },
-                                onMainActionClick = { onMainActionClick(index, item) }
-                            )
-                        }
-                        if (row.size == 1) Spacer(modifier = Modifier.weight(1f))
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
+                itemsIndexed(items, key = { index, item -> "$index-${item.itemType}-${item.id}-${item.title}" }) { index, item ->
+                    AudioCard(
+                        item = item,
+                        onClick = { onClick(index, item) },
+                        onMoreClick = { onMoreClick(index, item) },
+                        onMainActionClick = { onMainActionClick(index, item) }
+                    )
                 }
             }
-            else -> LazyColumn(
+            else -> LazyVerticalGrid(
+                columns = GridCells.Fixed(1),
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(vertical = 8.dp)
             ) {
@@ -1053,7 +1046,6 @@ private fun AudioGridOrList(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun AudioRow(
     item: MediaLibraryItem,
@@ -1062,26 +1054,28 @@ private fun AudioRow(
     onMainActionClick: () -> Unit
 ) {
     val colors = VLCThemeDefaults.colors
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .combinedClickable(onClick = onClick, onLongClick = onMoreClick)
-            .padding(start = 16.dp, end = 4.dp, top = 10.dp, bottom = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        AudioIcon(item)
-        Spacer(modifier = Modifier.width(16.dp))
-        AudioTexts(item = item, modifier = Modifier.weight(1f))
-        IconButton(onClick = onMainActionClick) {
+    val haptics = LocalHapticFeedback.current
+    VLCBrowserItemRow(
+        title = item.title.orEmpty(),
+        subtitle = audioSubtitle(item),
+        modifier = Modifier.padding(horizontal = 4.dp),
+        onClick = onClick,
+        onLongClick = {
+            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+            onMoreClick()
+        },
+        artworkContent = { AudioArtwork(item = item, size = 48.dp, fallbackSize = 28.dp) },
+        primaryActionContent = {
             Icon(painterResource(R.drawable.ic_play), contentDescription = stringResource(R.string.play), tint = colors.primary)
-        }
-        IconButton(onClick = onMoreClick) {
+        },
+        onPrimaryActionClick = onMainActionClick,
+        moreActionContent = {
             Icon(painterResource(R.drawable.ic_more), contentDescription = stringResource(R.string.more), tint = colors.listSubtitle)
-        }
-    }
+        },
+        onMoreClick = onMoreClick
+    )
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun AudioCard(
     item: MediaLibraryItem,
@@ -1091,68 +1085,39 @@ private fun AudioCard(
     onMainActionClick: () -> Unit
 ) {
     val colors = VLCThemeDefaults.colors
-    Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(6.dp))
-            .background(colors.backgroundDefaultDarker)
-            .border(1.dp, colors.listSubtitle.copy(alpha = 0.18f), RoundedCornerShape(6.dp))
-            .combinedClickable(onClick = onClick, onLongClick = onMoreClick)
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            AudioIcon(item, large = true)
-            Spacer(modifier = Modifier.weight(1f))
-            IconButton(onClick = onMainActionClick, modifier = Modifier.size(36.dp)) {
-                Icon(painterResource(R.drawable.ic_play), contentDescription = stringResource(R.string.play), tint = colors.primary)
-            }
-            IconButton(onClick = onMoreClick, modifier = Modifier.size(36.dp)) {
-                Icon(painterResource(R.drawable.ic_more), contentDescription = stringResource(R.string.more), tint = colors.listSubtitle)
-            }
-        }
-        AudioTexts(item = item)
-    }
+    val haptics = LocalHapticFeedback.current
+    VLCBrowserItemCard(
+        title = item.title.orEmpty(),
+        subtitle = audioSubtitle(item),
+        modifier = modifier,
+        onClick = onClick,
+        onLongClick = {
+            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+            onMoreClick()
+        },
+        artworkContent = { AudioArtwork(item = item, size = 56.dp, fallbackSize = 32.dp) },
+        primaryActionContent = {
+            Icon(painterResource(R.drawable.ic_play), contentDescription = stringResource(R.string.play), tint = colors.primary)
+        },
+        onPrimaryActionClick = onMainActionClick,
+        moreActionContent = {
+            Icon(painterResource(R.drawable.ic_more), contentDescription = stringResource(R.string.more), tint = colors.listSubtitle)
+        },
+        onMoreClick = onMoreClick
+    )
 }
 
 @Composable
-private fun AudioTexts(item: MediaLibraryItem, modifier: Modifier = Modifier) {
-    val colors = VLCThemeDefaults.colors
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(
-            text = item.title.orEmpty(),
-            color = colors.listTitle,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Medium,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
-        )
-        Text(
-            text = audioSubtitle(item),
-            color = colors.listSubtitle,
-            style = MaterialTheme.typography.bodySmall,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-    }
-}
-
-@Composable
-private fun AudioIcon(item: MediaLibraryItem, large: Boolean = false) {
-    val colors = VLCThemeDefaults.colors
-    Box(
-        modifier = Modifier
-            .size(if (large) 48.dp else 40.dp)
-            .clip(RoundedCornerShape(4.dp))
-            .background(colors.backgroundDefault),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            painter = painterResource(audioIcon(item)),
-            contentDescription = null,
-            modifier = Modifier.size(if (large) 32.dp else 28.dp),
-            tint = colors.primary
-        )
-    }
+private fun AudioArtwork(item: MediaLibraryItem, size: Dp, fallbackSize: Dp) {
+    VlcMediaImage(
+        item = item,
+        width = size,
+        fallbackPainter = painterResource(audioIcon(item)),
+        fallbackModifier = Modifier.size(fallbackSize),
+        fallbackColorFilter = ColorFilter.tint(VLCThemeDefaults.colors.primary),
+        contentScale = ContentScale.Crop,
+        modifier = Modifier.fillMaxSize()
+    )
 }
 
 @Composable

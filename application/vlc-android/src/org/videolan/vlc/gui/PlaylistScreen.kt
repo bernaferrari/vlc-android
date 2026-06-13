@@ -30,16 +30,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed as gridItemsIndexed
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -48,6 +47,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
@@ -75,6 +78,7 @@ import org.videolan.vlc.compose.components.VLCBrowserItemCard
 import org.videolan.vlc.compose.components.VLCBrowserItemRow
 import org.videolan.vlc.compose.components.VLCEmptyState
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.gui.compose.VlcMediaImage
 import org.videolan.vlc.gui.dialogs.CURRENT_SORT
 import org.videolan.vlc.gui.dialogs.DISPLAY_IN_CARDS
 import org.videolan.vlc.gui.dialogs.ONLY_FAVS
@@ -470,8 +474,7 @@ private fun PlaylistList(
             .background(VLCThemeDefaults.colors.backgroundDefault),
         contentPadding = PaddingValues(vertical = 8.dp)
     ) {
-        items(playlists, key = { "${it.itemType}-${it.id}-${it.title}" }) { item ->
-            val index = playlists.indexOf(item)
+        itemsIndexed(playlists, key = { index, item -> "${item.itemType}-${item.id}-${item.title}-$index" }) { index, item ->
             PlaylistRow(
                 item = item,
                 selected = selectedPositions.contains(index),
@@ -493,29 +496,24 @@ private fun PlaylistCardGrid(
     onMoreClicked: (Int, MediaLibraryItem) -> Unit,
     onMainActionClicked: (Int, MediaLibraryItem) -> Unit
 ) {
-    LazyColumn(
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = 176.dp),
         modifier = Modifier
             .fillMaxSize()
             .background(VLCThemeDefaults.colors.backgroundDefault),
-        contentPadding = PaddingValues(8.dp)
+        contentPadding = PaddingValues(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        items(playlists.chunked(2), key = { row -> row.joinToString { "${it.id}-${it.title}" } }) { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                row.forEach { item ->
-                    val index = playlists.indexOf(item)
-                    PlaylistCard(
-                        item = item,
-                        selected = selectedPositions.contains(index),
-                        modifier = Modifier.weight(1f),
-                        onClick = { onPlaylistClicked(index, item) },
-                        onLongClick = { onPlaylistLongClicked(index, item) },
-                        onMoreClick = { onMoreClicked(index, item) },
-                        onMainActionClick = { onMainActionClicked(index, item) }
-                    )
-                }
-                if (row.size == 1) Spacer(modifier = Modifier.weight(1f))
-            }
-            Spacer(modifier = Modifier.height(8.dp))
+        gridItemsIndexed(playlists, key = { index, item -> "${item.itemType}-${item.id}-${item.title}-$index" }) { index, item ->
+            PlaylistCard(
+                item = item,
+                selected = selectedPositions.contains(index),
+                onClick = { onPlaylistClicked(index, item) },
+                onLongClick = { onPlaylistLongClicked(index, item) },
+                onMoreClick = { onMoreClicked(index, item) },
+                onMainActionClick = { onMainActionClicked(index, item) }
+            )
         }
     }
 }
@@ -530,14 +528,18 @@ private fun PlaylistRow(
     onMainActionClick: () -> Unit
 ) {
     val colors = VLCThemeDefaults.colors
+    val haptics = LocalHapticFeedback.current
     VLCBrowserItemRow(
         title = item.title.orEmpty(),
         subtitle = stringResource(R.plurals.track_quantity, item.tracksCount, item.tracksCount),
         selected = selected,
         onClick = onClick,
-        onLongClick = onLongClick,
+        onLongClick = {
+            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+            onLongClick()
+        },
         artworkContent = {
-            PlaylistIconContent(size = 28.dp)
+            PlaylistArtwork(item = item, fallbackSize = 28.dp)
         },
         primaryActionContent = {
             Icon(
@@ -569,15 +571,19 @@ private fun PlaylistCard(
     onMainActionClick: () -> Unit
 ) {
     val colors = VLCThemeDefaults.colors
+    val haptics = LocalHapticFeedback.current
     VLCBrowserItemCard(
         title = item.title.orEmpty(),
         subtitle = stringResource(R.plurals.track_quantity, item.tracksCount, item.tracksCount),
         selected = selected,
         modifier = modifier,
         onClick = onClick,
-        onLongClick = onLongClick,
+        onLongClick = {
+            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+            onLongClick()
+        },
         artworkContent = {
-            PlaylistIconContent(size = 32.dp)
+            PlaylistArtwork(item = item, fallbackSize = 32.dp)
         },
         primaryActionContent = {
             Icon(
@@ -599,11 +605,14 @@ private fun PlaylistCard(
 }
 
 @Composable
-private fun PlaylistIconContent(size: Dp) {
-    Icon(
-        painter = painterResource(R.drawable.ic_playlist),
-        contentDescription = null,
-        modifier = Modifier.size(size),
-        tint = VLCThemeDefaults.colors.primary
+private fun PlaylistArtwork(item: MediaLibraryItem, fallbackSize: Dp) {
+    VlcMediaImage(
+        item = item,
+        width = 56.dp,
+        fallbackPainter = painterResource(R.drawable.ic_playlist),
+        fallbackModifier = Modifier.size(fallbackSize),
+        fallbackColorFilter = ColorFilter.tint(VLCThemeDefaults.colors.primary),
+        contentScale = ContentScale.Crop,
+        modifier = Modifier.fillMaxSize()
     )
 }

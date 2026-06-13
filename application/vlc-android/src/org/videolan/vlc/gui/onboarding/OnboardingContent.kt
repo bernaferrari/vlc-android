@@ -4,6 +4,15 @@ import android.content.res.Configuration
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -27,14 +36,17 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -48,6 +60,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.videolan.resources.AndroidDevices
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.theme.VLCMotion
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
 @Composable
@@ -76,26 +89,55 @@ fun OnboardingContent(
                 .windowInsetsPadding(WindowInsets.safeDrawing)
                 .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 16.dp)
         ) {
+            val progress by animateFloatAsState(
+                targetValue = step.onboardingProgress,
+                animationSpec = tween(VLCMotion.DurationLong, easing = VLCMotion.Emphasized),
+                label = "onboardingProgress"
+            )
+            LinearProgressIndicator(
+                progress = { progress },
+                color = colors.primary,
+                trackColor = colors.fontDefault.copy(alpha = 0.16f),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(MaterialTheme.shapes.small)
+            )
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
             ) {
-                OnboardingStepContent(
-                    step = step,
-                    permissionType = permissionType,
-                    scanStorages = scanStorages,
-                    theme = theme,
-                    onPermissionTypeSelected = onPermissionTypeSelected,
-                    onGrantPermission = onGrantPermission,
-                    onScanStoragesChanged = onScanStoragesChanged,
-                    onCustomizeScan = onCustomizeScan,
-                    onThemeSelected = onThemeSelected,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState())
-                )
+                AnimatedContent(
+                    targetState = step,
+                    transitionSpec = {
+                        val forward = targetState.ordinal >= initialState.ordinal
+                        val direction = if (forward) 1 else -1
+                        (slideInHorizontally(
+                            tween(VLCMotion.DurationMedium, easing = VLCMotion.EmphasizedDecelerate)
+                        ) { width -> direction * width / 4 } + fadeIn(tween(VLCMotion.DurationMedium))) togetherWith
+                            (slideOutHorizontally(
+                                tween(VLCMotion.DurationMedium, easing = VLCMotion.EmphasizedAccelerate)
+                            ) { width -> -direction * width / 4 } + fadeOut(tween(VLCMotion.DurationShort)))
+                    },
+                    label = "onboardingStep"
+                ) { animatedStep ->
+                    OnboardingStepContent(
+                        step = animatedStep,
+                        permissionType = permissionType,
+                        scanStorages = scanStorages,
+                        theme = theme,
+                        onPermissionTypeSelected = onPermissionTypeSelected,
+                        onGrantPermission = onGrantPermission,
+                        onScanStoragesChanged = onScanStoragesChanged,
+                        onCustomizeScan = onCustomizeScan,
+                        onThemeSelected = onThemeSelected,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .verticalScroll(rememberScrollState())
+                    )
+                }
             }
             Row(
                 horizontalArrangement = Arrangement.End,
@@ -113,7 +155,7 @@ fun OnboardingContent(
                     onClick = onNext,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = colors.primary,
-                        contentColor = Color.White
+                        contentColor = colors.onPrimary
                     )
                 ) {
                     Text(stringResource(if (step == OnboardingStep.THEME) R.string.done else R.string.next))
@@ -265,7 +307,7 @@ private fun ScanningStep(
             enabled = scanStorages,
             colors = ButtonDefaults.buttonColors(
                 containerColor = VLCThemeDefaults.colors.primary,
-                contentColor = Color.White
+                contentColor = VLCThemeDefaults.colors.onPrimary
             ),
             modifier = Modifier.padding(top = 32.dp)
         ) {
@@ -299,7 +341,7 @@ private fun NoPermissionStep(
             onClick = onGrantPermission,
             colors = ButtonDefaults.buttonColors(
                 containerColor = VLCThemeDefaults.colors.primary,
-                contentColor = Color.White
+                contentColor = VLCThemeDefaults.colors.onPrimary
             ),
             modifier = Modifier.padding(top = 32.dp)
         ) {
@@ -422,13 +464,28 @@ private fun SelectableIconOption(
     onClick: () -> Unit
 ) {
     val colors = VLCThemeDefaults.colors
+    val scale by animateFloatAsState(
+        targetValue = if (selected) 1f else 0.84f,
+        animationSpec = tween(VLCMotion.DurationMedium, easing = VLCMotion.EmphasizedDecelerate),
+        label = "optionScale"
+    )
+    val container by animateColorAsState(
+        targetValue = if (selected) colors.primary.copy(alpha = 0.16f) else Color.Transparent,
+        animationSpec = tween(VLCMotion.DurationShort),
+        label = "optionContainer"
+    )
+    val borderColor by animateColorAsState(
+        targetValue = if (selected) colors.primary else colors.fontDefault.copy(alpha = 0.24f),
+        animationSpec = tween(VLCMotion.DurationShort),
+        label = "optionBorder"
+    )
     Surface(
-        color = if (selected) Color.White.copy(alpha = 0.15f) else Color.Transparent,
-        border = if (selected) BorderStroke(1.dp, Color.White.copy(alpha = 0.5f)) else null,
-        shape = MaterialTheme.shapes.medium,
+        color = container,
+        border = BorderStroke(if (selected) 2.dp else 1.dp, borderColor),
+        shape = MaterialTheme.shapes.large,
         modifier = Modifier
-            .padding(horizontal = 4.dp)
-            .scale(if (selected) 1f else 0.82f)
+            .padding(horizontal = 6.dp)
+            .scale(scale)
             .selectable(
                 selected = selected,
                 role = Role.RadioButton,
@@ -441,7 +498,7 @@ private fun SelectableIconOption(
             colorFilter = when {
                 !tintSelectedOnly -> null
                 selected -> ColorFilter.tint(colors.primary)
-                else -> ColorFilter.tint(Color.White)
+                else -> ColorFilter.tint(colors.fontDefault.copy(alpha = 0.6f))
             },
             modifier = Modifier
                 .padding(16.dp)
@@ -449,6 +506,21 @@ private fun SelectableIconOption(
         )
     }
 }
+
+/**
+ * Monotonic progress for the onboarding journey. The flow branches (permission
+ * outcomes skip steps), but it always advances toward and completes at THEME, so
+ * the indicator never moves backwards on a normal path.
+ */
+private val OnboardingStep.onboardingProgress: Float
+    get() = when (this) {
+        OnboardingStep.WELCOME -> 0.16f
+        OnboardingStep.ASK_PERMISSION -> 0.33f
+        OnboardingStep.NO_PERMISSION -> 0.5f
+        OnboardingStep.SCAN -> 0.66f
+        OnboardingStep.NOTIFICATION_PERMISSION -> 0.83f
+        OnboardingStep.THEME -> 1f
+    }
 
 @StringRes
 private fun permissionDescriptionRes(permissionType: PermissionType) = when (permissionType) {

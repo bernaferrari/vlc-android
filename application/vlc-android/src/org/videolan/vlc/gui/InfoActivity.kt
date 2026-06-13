@@ -17,6 +17,7 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,10 +29,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -48,6 +49,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -429,50 +431,64 @@ private fun InfoScreen(
                     )
                 }
             }
-            state.length?.let { length ->
+            val hasLength = state.length != null
+            val hasSize = state.showFileSize && state.sizeTitleText.isNotEmpty() && state.sizeValueText.isNotEmpty()
+            val hasExtra = state.extraTitleText.isNotEmpty() && state.extraValueText.isNotEmpty()
+            if (hasLength || hasSize || hasExtra) {
                 item {
-                    InfoMetaRow(
-                        icon = R.drawable.ic_duration,
-                        title = strings.length,
-                        value = Tools.millisToString(length),
-                        contentDescription = TalkbackUtil.millisToString(pathAdapterListener.currentContext(), length)
-                    )
-                }
-            }
-            if (state.showFileSize && state.sizeTitleText.isNotEmpty() && state.sizeValueText.isNotEmpty()) {
-                item {
-                    InfoMetaRow(
-                        icon = state.sizeIcon,
-                        title = state.sizeTitleText,
-                        value = state.sizeValueText
-                    )
-                }
-            }
-            if (state.extraTitleText.isNotEmpty() && state.extraValueText.isNotEmpty()) {
-                item {
-                    InfoMetaRow(
-                        icon = state.extraIcon,
-                        title = state.extraTitleText,
-                        value = state.extraValueText
-                    )
-                }
-            }
-            if (state.item?.itemType == MediaLibraryItem.TYPE_MEDIA) {
-                items(trackRows) { row ->
-                    VLCInfoItem(
-                        title = row.title,
-                        subtitle = row.subtitle,
-                        leadingContent = {
-                            Text(
-                                text = row.leadingText,
-                                color = VLCThemeDefaults.colors.fontAudioLight,
-                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                    InfoSectionCard {
+                        var first = true
+                        if (hasLength) {
+                            InfoMetaRow(
+                                icon = R.drawable.ic_duration,
+                                title = strings.length,
+                                value = Tools.millisToString(state.length!!),
+                                contentDescription = TalkbackUtil.millisToString(pathAdapterListener.currentContext(), state.length)
                             )
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
-                    )
+                            first = false
+                        }
+                        if (hasSize) {
+                            if (!first) InfoRowDivider()
+                            InfoMetaRow(
+                                icon = state.sizeIcon,
+                                title = state.sizeTitleText,
+                                value = state.sizeValueText
+                            )
+                            first = false
+                        }
+                        if (hasExtra) {
+                            if (!first) InfoRowDivider()
+                            InfoMetaRow(
+                                icon = state.extraIcon,
+                                title = state.extraTitleText,
+                                value = state.extraValueText
+                            )
+                        }
+                    }
+                }
+            }
+            if (state.item?.itemType == MediaLibraryItem.TYPE_MEDIA && trackRows.isNotEmpty()) {
+                item { InfoSectionHeader(text = stringResource(R.string.tracks)) }
+                item {
+                    InfoSectionCard {
+                        trackRows.forEachIndexed { index, row ->
+                            if (index > 0) InfoRowDivider()
+                            VLCInfoItem(
+                                title = row.title,
+                                subtitle = row.subtitle,
+                                leadingContent = {
+                                    Text(
+                                        text = row.leadingText,
+                                        color = VLCThemeDefaults.colors.primary,
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                                    )
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp)
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -696,6 +712,37 @@ private fun InfoMetaRow(
             )
         }
     }
+}
+
+@Composable
+private fun InfoSectionCard(content: @Composable ColumnScope.() -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .clip(MaterialTheme.shapes.large)
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .padding(vertical = 4.dp),
+        content = content
+    )
+}
+
+@Composable
+private fun InfoSectionHeader(text: String) {
+    Text(
+        text = text,
+        color = VLCThemeDefaults.colors.primary,
+        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+        modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 2.dp)
+    )
+}
+
+@Composable
+private fun InfoRowDivider() {
+    HorizontalDivider(
+        color = VLCThemeDefaults.colors.defaultDivider,
+        modifier = Modifier.padding(start = 58.dp, end = 16.dp)
+    )
 }
 
 private data class InfoUiState(

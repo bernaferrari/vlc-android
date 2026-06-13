@@ -63,6 +63,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -86,6 +88,7 @@ import org.videolan.tools.copy
 import org.videolan.tools.retrieveParent
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.gui.compose.VlcMediaImage
 import org.videolan.vlc.gui.browser.KEY_JUMP_TO
 import org.videolan.vlc.gui.browser.KEY_MEDIA
 import org.videolan.vlc.gui.dialogs.CtxActionReceiver
@@ -684,11 +687,14 @@ private fun HistoryArt(media: MediaWrapper, modifier: Modifier = Modifier) {
             .background(colors.backgroundDefaultDarker),
         contentAlignment = Alignment.Center
     ) {
-        Icon(
-            painter = painterResource(if (media.type == MediaWrapper.TYPE_VIDEO) R.drawable.ic_video_big else R.drawable.ic_song_big),
-            contentDescription = null,
-            tint = colors.fontLight,
-            modifier = Modifier.size(38.dp)
+        VlcMediaImage(
+            item = media,
+            width = 156.dp,
+            fallbackPainter = painterResource(if (media.type == MediaWrapper.TYPE_VIDEO) R.drawable.ic_video_big else R.drawable.ic_song_big),
+            fallbackModifier = Modifier.size(38.dp),
+            fallbackColorFilter = ColorFilter.tint(colors.fontLight),
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
         )
         HistoryBadge(media = media, modifier = Modifier.align(Alignment.BottomStart))
     }

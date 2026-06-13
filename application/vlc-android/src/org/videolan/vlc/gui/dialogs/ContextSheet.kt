@@ -35,6 +35,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -42,6 +43,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -207,6 +209,11 @@ private fun ContextSheetContent(
                     title = title,
                     media = media
                 )
+                HorizontalDivider(
+                    color = colors.defaultDivider,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
             }
             items(menuItems) { item ->
                 ContextActionRow(
@@ -276,8 +283,8 @@ private fun ContextCover(media: MediaLibraryItem) {
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .size(48.dp)
-            .clip(RoundedCornerShape(4.dp))
-            .background(colors.backgroundDefaultDarker)
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
     ) {
         VlcMediaImage(
             item = media,
@@ -300,6 +307,17 @@ private fun ContextActionRow(
 ) {
     val colors = VLCThemeDefaults.colors
     var focused by remember { mutableStateOf(false) }
+    val destructive = item.id in DESTRUCTIVE_OPTIONS
+    val iconTint = when {
+        focused -> colors.primary
+        destructive -> colors.error
+        else -> colors.fontDefault
+    }
+    val textColor = when {
+        focused -> colors.primary
+        destructive -> colors.error
+        else -> colors.listTitle
+    }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(24.dp),
@@ -315,7 +333,7 @@ private fun ContextActionRow(
             Icon(
                 painter = painterResource(item.icon),
                 contentDescription = null,
-                tint = if (focused) colors.primary else colors.fontDefault,
+                tint = iconTint,
                 modifier = Modifier.size(24.dp)
             )
         } else {
@@ -323,7 +341,7 @@ private fun ContextActionRow(
         }
         Text(
             text = item.title,
-            color = if (focused) colors.primary else colors.listTitle,
+            color = textColor,
             style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -331,6 +349,9 @@ private fun ContextActionRow(
         )
     }
 }
+
+/** Actions that destroy or hide content - surfaced in the error color so they stand apart. */
+private val DESTRUCTIVE_OPTIONS = setOf(CTX_DELETE, CTX_CUSTOM_REMOVE, CTX_BAN_FOLDER)
 
 private val MediaLibraryItem.contextArtwork: String?
     get() = when (this) {

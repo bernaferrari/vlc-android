@@ -17,7 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -89,6 +89,7 @@ fun VLCSearchScreen(
     modifier: Modifier = Modifier,
     backIconContent: @Composable () -> Unit = { DefaultSearchIconPlaceholder() },
     clearIconContent: @Composable () -> Unit = { DefaultSearchIconPlaceholder() },
+    emptyIconContent: @Composable () -> Unit = { DefaultSearchIconPlaceholder() },
     thumbnailContent: @Composable (sectionIndex: Int, rowIndex: Int, row: VLCSearchResultRow) -> Unit = { _, _, row ->
         SearchThumbnail(
             width = if (row.thumbnailWide) SearchResultThumbnailWideWidth else SearchResultThumbnailSquareSize,
@@ -120,16 +121,29 @@ fun VLCSearchScreen(
                 )
 
                 if (showEmpty) {
-                    Box(
+                    Column(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(24.dp),
-                        contentAlignment = Alignment.Center
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
+                        Box(
+                            modifier = Modifier
+                                .size(112.dp)
+                                .background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CompositionLocalProvider(LocalContentColor provides colors.fontLight) {
+                                emptyIconContent()
+                            }
+                        }
+                        Spacer(Modifier.height(20.dp))
                         Text(
                             text = emptyText,
-                            color = colors.fontLight,
-                            style = MaterialTheme.typography.bodyLarge
+                            color = colors.fontDefault,
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
                         )
                     }
                 } else {
@@ -235,36 +249,69 @@ private fun SearchResults(
 
     LazyColumn(
         modifier = modifier.background(VLCThemeDefaults.colors.backgroundDefault),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 16.dp, bottom = 24.dp)
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 8.dp, bottom = 24.dp)
     ) {
         visibleSections.forEachIndexed { sectionIndex, section ->
-            if (sectionIndex > 0) {
-                item(key = "divider-${section.title}") {
-                    SectionDivider()
+            item(key = "title-${section.title}") {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 6.dp)
+                ) {
+                    Text(
+                        text = section.title,
+                        color = VLCThemeDefaults.colors.primary,
+                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = section.rows.size.toString(),
+                        color = VLCThemeDefaults.colors.fontLight,
+                        style = MaterialTheme.typography.labelMedium
+                    )
                 }
             }
 
-            item(key = "title-${section.title}") {
-                Text(
-                    text = section.title,
-                    color = VLCThemeDefaults.colors.primary,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 8.dp)
-                )
-            }
-
-            itemsIndexed(
-                items = section.rows,
-                key = { rowIndex, row -> "${sectionIndex}-${rowIndex}-${row.id}" }
-            ) { rowIndex, row ->
-                SearchResultRow(
-                    row = row,
-                    onClick = { onResultClick(sectionIndex, rowIndex) },
-                    thumbnailContent = { thumbnailContent(sectionIndex, rowIndex, row) }
-                )
+            item(key = "section-${section.title}") {
+                SearchSectionCard {
+                    section.rows.forEachIndexed { rowIndex, row ->
+                        if (rowIndex > 0) SearchRowDivider()
+                        SearchResultRow(
+                            row = row,
+                            onClick = { onResultClick(sectionIndex, rowIndex) },
+                            thumbnailContent = { thumbnailContent(sectionIndex, rowIndex, row) }
+                        )
+                    }
+                }
             }
         }
     }
+}
+
+@Composable
+private fun SearchSectionCard(content: @Composable () -> Unit) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 2.dp),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        contentColor = VLCThemeDefaults.colors.fontDefault
+    ) {
+        Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+            content()
+        }
+    }
+}
+
+@Composable
+private fun SearchRowDivider() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 76.dp, end = 12.dp)
+            .height(1.dp)
+            .background(VLCThemeDefaults.colors.defaultDivider)
+    )
 }
 
 @Composable
@@ -283,7 +330,7 @@ private fun SearchResultRow(
             .fillMaxWidth()
             .heightIn(min = thumbnailHeight + 16.dp)
             .clickable(role = Role.Button, onClick = onClick)
-            .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 8.dp),
+            .padding(start = 12.dp, top = 8.dp, end = 12.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -330,7 +377,7 @@ private fun SearchThumbnail(width: Dp, height: Dp) {
         modifier = Modifier
             .width(width)
             .height(height)
-            .background(colors.backgroundDefaultDarker, RoundedCornerShape(4.dp)),
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest, RoundedCornerShape(8.dp)),
         contentAlignment = Alignment.Center
     ) {
         Box(
@@ -344,17 +391,6 @@ private fun SearchThumbnail(width: Dp, height: Dp) {
 private val SearchResultThumbnailSquareSize = 48.dp
 private val SearchResultThumbnailWideWidth = 100.dp
 private val SearchResultThumbnailWideHeight = 56.dp
-
-@Composable
-private fun SectionDivider() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 16.dp, bottom = 4.dp)
-            .height(1.dp)
-            .background(VLCThemeDefaults.colors.defaultDivider)
-    )
-}
 
 @Composable
 private fun DefaultSearchIconPlaceholder() {

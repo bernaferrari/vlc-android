@@ -18,7 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
@@ -137,17 +137,24 @@ fun VLCAboutScreen(
                 ) {
                     Box(
                         modifier = Modifier
+                            .padding(top = 16.dp)
                             .size(128.dp)
-                            .padding(top = 8.dp),
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh),
                         contentAlignment = Alignment.Center
                     ) {
-                        logoContent()
+                        Box(
+                            modifier = Modifier.size(88.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            logoContent()
+                        }
                     }
 
                     Text(
                         text = appName,
                         color = colors.aboutTextPrimary,
-                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Black),
+                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black),
                         textAlign = TextAlign.Center,
                         modifier = Modifier
                             .padding(top = 16.dp)
@@ -175,31 +182,39 @@ fun VLCAboutScreen(
 
                     Spacer(Modifier.height(16.dp))
 
-                    AboutActionRow(
-                        title = websiteTitle,
-                        iconContent = websiteIconContent,
-                        onClick = onOpenWebsite
-                    )
-                    AboutActionRow(
-                        title = feedbackTitle,
-                        iconContent = feedbackIconContent,
-                        onClick = onSendFeedback
-                    )
-                    AboutActionRow(
-                        title = sourcesTitle,
-                        iconContent = sourcesIconContent,
-                        onClick = onOpenSources
-                    )
-                    AboutActionRow(
-                        title = librariesTitle,
-                        iconContent = librariesIconContent,
-                        onClick = onOpenLibraries
-                    )
-                    AboutActionRow(
-                        title = authorsTitle,
-                        iconContent = authorsIconContent,
-                        onClick = onOpenAuthors
-                    )
+                    AboutActionGroup(
+                        modifier = Modifier.widthIn(max = 600.dp)
+                    ) {
+                        AboutActionRow(
+                            title = websiteTitle,
+                            iconContent = websiteIconContent,
+                            onClick = onOpenWebsite
+                        )
+                        AboutRowDivider()
+                        AboutActionRow(
+                            title = feedbackTitle,
+                            iconContent = feedbackIconContent,
+                            onClick = onSendFeedback
+                        )
+                        AboutRowDivider()
+                        AboutActionRow(
+                            title = sourcesTitle,
+                            iconContent = sourcesIconContent,
+                            onClick = onOpenSources
+                        )
+                        AboutRowDivider()
+                        AboutActionRow(
+                            title = librariesTitle,
+                            iconContent = librariesIconContent,
+                            onClick = onOpenLibraries
+                        )
+                        AboutRowDivider()
+                        AboutActionRow(
+                            title = authorsTitle,
+                            iconContent = authorsIconContent,
+                            onClick = onOpenAuthors
+                        )
+                    }
 
                     AboutLicenseCard(
                         copyright = copyright,
@@ -252,11 +267,11 @@ private fun AboutVersionCard(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(4.dp))
+            .clip(MaterialTheme.shapes.medium)
             .clickable(role = Role.Button, onClick = onClick)
             .focusable(),
-        shape = RoundedCornerShape(4.dp),
-        color = colors.backgroundDefaultDarker,
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceContainer,
         contentColor = colors.fontDefault
     ) {
         Row(
@@ -287,6 +302,34 @@ private fun AboutVersionCard(
 }
 
 @Composable
+private fun AboutActionGroup(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        contentColor = VLCThemeDefaults.colors.fontDefault
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            content()
+        }
+    }
+}
+
+@Composable
+private fun AboutRowDivider() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 68.dp)
+            .height(1.dp)
+            .background(VLCThemeDefaults.colors.defaultDivider)
+    )
+}
+
+@Composable
 private fun AboutActionRow(
     title: String,
     iconContent: @Composable () -> Unit,
@@ -298,31 +341,38 @@ private fun AboutActionRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .widthIn(max = 600.dp)
-            .heightIn(min = 52.dp)
-            .clip(RoundedCornerShape(4.dp))
+            .heightIn(min = 60.dp)
             .clickable(role = Role.Button, onClick = onClick)
             .focusable()
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
-            modifier = Modifier.size(24.dp),
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest),
             contentAlignment = Alignment.Center
         ) {
-            CompositionLocalProvider(LocalContentColor provides colors.fontDefault) {
-                iconContent()
+            Box(
+                modifier = Modifier.size(24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CompositionLocalProvider(LocalContentColor provides colors.primary) {
+                    iconContent()
+                }
             }
         }
 
-        Spacer(Modifier.width(24.dp))
+        Spacer(Modifier.width(16.dp))
 
         Text(
             text = title,
             color = colors.fontDefault,
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
         )
     }
 }
@@ -339,11 +389,11 @@ private fun AboutLicenseCard(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(4.dp))
+            .clip(MaterialTheme.shapes.medium)
             .clickable(role = Role.Button, onClick = onClick)
             .focusable(),
-        shape = RoundedCornerShape(4.dp),
-        color = colors.backgroundDefaultDarker,
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceContainer,
         contentColor = colors.fontDefault
     ) {
         Column(

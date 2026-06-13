@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -256,12 +255,12 @@ private fun FeedbackActionCard(
         modifier = modifier
             .fillMaxWidth()
             .widthIn(max = 600.dp)
-            .clip(RoundedCornerShape(4.dp))
+            .clip(MaterialTheme.shapes.medium)
             .clickable(role = Role.Button, onClick = onClick)
             .focusable(),
-        shape = RoundedCornerShape(4.dp),
+        shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(
-            containerColor = colors.cardBackground,
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
             contentColor = colors.fontDefault
         )
     ) {
@@ -469,9 +468,9 @@ private fun FeedbackTypeSelector(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(4.dp))
+                .clip(MaterialTheme.shapes.small)
                 .clickable(role = Role.Button) { expanded = true }
-                .background(colors.backgroundDefaultDarker)
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                 .padding(horizontal = 16.dp, vertical = 10.dp)
         ) {
             Text(
@@ -538,7 +537,7 @@ private fun WarningBox(text: String) {
         style = MaterialTheme.typography.bodySmall,
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(4.dp))
+            .clip(MaterialTheme.shapes.small)
             .background(colors.primaryFocus)
             .padding(8.dp)
     )

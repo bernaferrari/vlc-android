@@ -1,5 +1,7 @@
 package org.videolan.vlc.compose.theme
 
+import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.Easing
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -295,10 +297,53 @@ object VLCThemeDefaults {
 }
 
 // ============================================================
-// Typography (VLC flavor - matches usages of sans-serif-black, medium titles in styles)
+// Typography - Material 3 Expressive type scale
+// ------------------------------------------------------------
+// Full M3 scale with expressive weights: display/headline lean bold, titles use
+// a strong weight (carrying over VLC's sans-serif-black accent for the largest
+// title), body/label tuned for on-screen legibility (line height + tracking per
+// the Material 3 reading specs). No baked-in colors - color comes from the
+// content color of the surface, so dark/light both stay legible.
 // ============================================================
 val VLCTypography = Typography(
-    // Titles / headers often use black weight in VLC (see Tooltip, About.Title, VLC.CtxTitle)
+    displayLarge = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Bold,
+        fontSize = 57.sp,
+        lineHeight = 64.sp,
+        letterSpacing = (-0.25).sp,
+    ),
+    displayMedium = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Bold,
+        fontSize = 45.sp,
+        lineHeight = 52.sp,
+    ),
+    displaySmall = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Bold,
+        fontSize = 36.sp,
+        lineHeight = 44.sp,
+    ),
+    headlineLarge = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Bold,
+        fontSize = 32.sp,
+        lineHeight = 40.sp,
+    ),
+    headlineMedium = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Bold,
+        fontSize = 28.sp,
+        lineHeight = 36.sp,
+    ),
+    headlineSmall = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 24.sp,
+        lineHeight = 32.sp,
+    ),
+    // Largest title keeps VLC's signature black weight for brand continuity.
     titleLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Black,
@@ -307,68 +352,180 @@ val VLCTypography = Typography(
     ),
     titleMedium = TextStyle(
         fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.Medium,
+        fontWeight = FontWeight.SemiBold,
         fontSize = 16.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.15.sp,
     ),
-    // Body / list items
+    titleSmall = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Medium,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.1.sp,
+    ),
     bodyLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.5.sp,
     ),
     bodyMedium = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.25.sp,
     ),
-    // Subtitles / secondary (font_light style)
     bodySmall = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Normal,
         fontSize = 12.sp,
-        color = Grey700, // will be overridden by explicit usage of our tokens
+        lineHeight = 16.sp,
+        letterSpacing = 0.4.sp,
+    ),
+    labelLarge = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.1.sp,
     ),
     labelMedium = TextStyle(
         fontFamily = FontFamily.SansSerif,
         fontWeight = FontWeight.Medium,
         fontSize = 12.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.5.sp,
+    ),
+    labelSmall = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Medium,
+        fontSize = 11.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.5.sp,
     ),
 )
 
-// Basic shapes (4dp cards from VLCCardView + VLCCardView.NoShadow in styles.xml:805)
+// ============================================================
+// Shapes - Material 3 Expressive (generous, rounded corner family)
+// Expressive leans into larger radii; component defaults map onto these tokens
+// (chips/text fields -> small, cards -> medium, sheets/dialogs -> large/xl).
+// ============================================================
 val VLCShapes = Shapes(
-    extraSmall = RoundedCornerShape(4.dp), // matches VLCCardView corner radius in styles.xml
-    small = RoundedCornerShape(4.dp),
-    medium = RoundedCornerShape(8.dp),
+    extraSmall = RoundedCornerShape(8.dp),
+    small = RoundedCornerShape(12.dp),
+    medium = RoundedCornerShape(16.dp),
+    large = RoundedCornerShape(24.dp),
+    extraLarge = RoundedCornerShape(32.dp),
 )
 
-// Helper to build M3 ColorScheme from our richer VLCColorScheme
+// ============================================================
+// Motion - Material 3 Expressive motion tokens
+// Spring-forward, slightly springy easings + standard durations. Components and
+// screens should reach for these instead of ad-hoc tween values so motion feels
+// consistent across the app.
+// ============================================================
+object VLCMotion {
+    // Durations (ms)
+    const val DurationShort = 150
+    const val DurationMedium = 300
+    const val DurationLong = 450
+    const val DurationExtraLong = 600
+
+    // M3 emphasized easing set - the expressive default for most transitions.
+    val Emphasized: Easing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
+    val EmphasizedDecelerate: Easing = CubicBezierEasing(0.05f, 0.7f, 0.1f, 1f)
+    val EmphasizedAccelerate: Easing = CubicBezierEasing(0.3f, 0f, 0.8f, 0.15f)
+    val Standard: Easing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
+}
+
+// ============================================================
+// Full M3 ColorScheme - every role wired from the VLC palette so stock Material
+// components (Slider, Switch, Chip, tonal buttons, navigation, sheets) render
+// on-brand instead of falling back to the default purple baseline. Surface
+// container hierarchy is tuned for comfortable reading (no harsh pure-black/white
+// contrast jumps in either theme).
+// ============================================================
 private fun buildColorScheme(vlc: VLCColorScheme, dark: Boolean) =
     if (dark) {
         darkColorScheme(
             primary = vlc.primary,
             onPrimary = vlc.onPrimary,
+            primaryContainer = Color(0xFF5C3500),
+            onPrimaryContainer = Orange100,
+            inversePrimary = Orange800,
             secondary = vlc.secondary,
             onSecondary = vlc.onSecondary,
+            secondaryContainer = Grey850,
+            onSecondaryContainer = Grey50,
+            tertiary = Orange300,
+            onTertiary = Black,
+            tertiaryContainer = Color(0xFF4A3000),
+            onTertiaryContainer = Orange100,
             background = vlc.backgroundDefault,
             onBackground = vlc.fontDefault,
             surface = vlc.backgroundDefault,
             onSurface = vlc.fontDefault,
+            surfaceVariant = Grey875,
+            onSurfaceVariant = Grey400,
+            surfaceTint = vlc.primary,
+            inverseSurface = Grey100,
+            inverseOnSurface = Grey900,
+            surfaceBright = Color(0xFF393939),
+            surfaceDim = DarkBackground,
+            surfaceContainerLowest = Color(0xFF0E0E0E),
+            surfaceContainerLow = Color(0xFF1C1C1C),
+            surfaceContainer = Color(0xFF202020),
+            surfaceContainerHigh = Grey875,
+            surfaceContainerHighest = Color(0xFF353535),
+            outline = Grey600,
+            outlineVariant = Color(0xFF3A3A3A),
             error = vlc.error,
             onError = vlc.onError,
+            errorContainer = Color(0xFF5C0000),
+            onErrorContainer = Color(0xFFFFDAD6),
+            scrim = Black,
         )
     } else {
         lightColorScheme(
             primary = vlc.primary,
             onPrimary = vlc.onPrimary,
+            primaryContainer = Orange100,
+            onPrimaryContainer = Color(0xFF4D2600),
+            inversePrimary = Orange300,
             secondary = vlc.secondary,
             onSecondary = vlc.onSecondary,
+            secondaryContainer = Orange50,
+            onSecondaryContainer = Color(0xFF4D2600),
+            tertiary = Orange700,
+            onTertiary = White,
+            tertiaryContainer = Orange50,
+            onTertiaryContainer = Color(0xFF4D2600),
             background = vlc.backgroundDefault,
             onBackground = vlc.fontDefault,
             surface = vlc.backgroundDefault,
             onSurface = vlc.fontDefault,
+            surfaceVariant = Grey200,
+            onSurfaceVariant = Grey700,
+            surfaceTint = vlc.primary,
+            inverseSurface = Grey900,
+            inverseOnSurface = Grey100,
+            surfaceBright = White,
+            surfaceDim = Grey300,
+            surfaceContainerLowest = White,
+            surfaceContainerLow = Grey50,
+            surfaceContainer = Grey100,
+            surfaceContainerHigh = Grey200,
+            surfaceContainerHighest = Grey300,
+            outline = Grey500,
+            outlineVariant = Grey300,
             error = vlc.error,
             onError = vlc.onError,
+            errorContainer = Color(0xFFFFDAD6),
+            onErrorContainer = Color(0xFF410002),
+            scrim = Black,
         )
     }
 

@@ -1,6 +1,8 @@
 package org.videolan.vlc.compose.components
 
 import android.content.res.Configuration
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -24,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,6 +39,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import org.videolan.vlc.compose.theme.VLCMotion
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
@@ -74,10 +78,16 @@ fun VLCBrowserItemRow(
 ) {
     VLCTheme {
         val colors = VLCThemeDefaults.colors
+        val selectionBackground by animateColorAsState(
+            targetValue = if (selected) colors.subtleSelection else Color.Transparent,
+            animationSpec = tween(VLCMotion.DurationShort, easing = VLCMotion.Standard),
+            label = "rowSelection"
+        )
         val rowModifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 64.dp)
-            .background(if (selected) colors.subtleSelection else colors.backgroundDefault)
+            .heightIn(min = 68.dp)
+            .clip(MaterialTheme.shapes.medium)
+            .background(selectionBackground)
             .then(if (contentDescription != null) Modifier.semantics { this.contentDescription = contentDescription } else Modifier)
             .combinedClickable(
                 enabled = enabled,
@@ -85,14 +95,14 @@ fun VLCBrowserItemRow(
                 onClick = onClick,
                 onLongClick = onLongClick
             )
-            .padding(start = 16.dp, end = 4.dp, top = 10.dp, bottom = 10.dp)
+            .padding(start = 12.dp, end = 4.dp, top = 8.dp, bottom = 8.dp)
 
         Row(
             modifier = rowModifier,
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (showArtwork) {
-                BrowserArtwork(size = 40.dp, content = artworkContent)
+                BrowserArtwork(size = 48.dp, content = artworkContent)
                 Spacer(modifier = Modifier.width(16.dp))
             }
             BrowserItemTexts(
@@ -149,11 +159,16 @@ fun VLCBrowserItemCard(
 ) {
     VLCTheme {
         val colors = VLCThemeDefaults.colors
+        val borderColor by animateColorAsState(
+            targetValue = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+            animationSpec = tween(VLCMotion.DurationShort, easing = VLCMotion.Standard),
+            label = "cardBorder"
+        )
         Column(
             modifier = modifier
-                .clip(RoundedCornerShape(6.dp))
-                .background(if (selected) colors.subtleSelection else colors.backgroundDefaultDarker)
-                .border(1.dp, colors.listSubtitle.copy(alpha = 0.18f), RoundedCornerShape(6.dp))
+                .clip(MaterialTheme.shapes.medium)
+                .background(if (selected) colors.subtleSelection else MaterialTheme.colorScheme.surfaceContainer)
+                .border(if (selected) 2.dp else 1.dp, borderColor, MaterialTheme.shapes.medium)
                 .then(if (contentDescription != null) Modifier.semantics { this.contentDescription = contentDescription } else Modifier)
                 .combinedClickable(
                     enabled = enabled,
@@ -165,7 +180,7 @@ fun VLCBrowserItemCard(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                BrowserArtwork(size = 48.dp, content = artworkContent)
+                BrowserArtwork(size = 56.dp, content = artworkContent)
                 Spacer(modifier = Modifier.width(8.dp))
                 Row(
                     modifier = Modifier.weight(1f),
@@ -201,8 +216,8 @@ private fun BrowserArtwork(
     Box(
         modifier = Modifier
             .size(size)
-            .clip(RoundedCornerShape(4.dp))
-            .background(VLCThemeDefaults.colors.backgroundDefault),
+            .clip(MaterialTheme.shapes.small)
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest),
         contentAlignment = Alignment.Center,
         content = content
     )
