@@ -31,30 +31,32 @@ import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -63,6 +65,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
@@ -345,6 +351,7 @@ private class DisplaySettingsComposeDialog(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DisplaySettingsContent(
     title: String,
@@ -382,94 +389,81 @@ private fun DisplaySettingsContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(vertical = 16.dp)
+                .padding(bottom = 28.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
                 text = title,
-                color = colors.primary,
+                color = colors.fontDefault,
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+                modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 2.dp)
             )
-            displayInCards?.let {
-                ActionSettingRow(
-                    title = if (it) R.string.display_in_list else R.string.display_in_grid,
-                    icon = if (it) R.drawable.ic_view_list else R.drawable.ic_view_grid,
-                    onClick = onDisplayModeClicked
+            displayInCards?.let { inCards ->
+                DisplayModeSelector(
+                    inCards = inCards,
+                    onModeSelected = { wantCards -> if (wantCards != inCards) onDisplayModeClicked() }
                 )
             }
-            showAllArtists?.let {
-                ToggleSettingRow(
-                    title = R.string.artists_show_all_title,
-                    icon = R.drawable.ic_sort_artist,
-                    checked = it,
-                    onCheckedChange = onShowAllArtistsChanged
-                )
+            val optionRows = buildList<@Composable () -> Unit> {
+                showAllArtists?.let { value ->
+                    add { SwitchSettingRow(R.string.artists_show_all_title, R.drawable.ic_sort_artist, value, onShowAllArtistsChanged) }
+                }
+                showOnlyMultimediaFiles?.let { value ->
+                    add { SwitchSettingRow(R.string.browser_show_all_title, R.drawable.ic_multimedia, value, onShowOnlyMultimediaFilesChanged) }
+                }
+                showTrackNumbers?.let { value ->
+                    add { SwitchSettingRow(R.string.albums_show_track_numbers, R.drawable.ic_sort_track, value, onShowTrackNumbersChanged) }
+                }
+                showHiddenFiles?.let { value ->
+                    add { SwitchSettingRow(R.string.browser_show_hidden_files_title, R.drawable.ic_hidden, value, onShowHiddenFilesChanged) }
+                }
+                onlyFavs?.let { value ->
+                    add { SwitchSettingRow(R.string.show_only_favs, R.drawable.ic_favorite, value, onOnlyFavsChanged) }
+                }
+                selectedVideoGroup?.let { group ->
+                    add {
+                        EnumSettingRow(
+                            title = R.string.video_min_group_length_title,
+                            icon = R.drawable.ic_group_display,
+                            options = DisplaySettingsDialog.VideoGroup.entries.toList(),
+                            selected = group,
+                            optionText = { option -> option.toString() },
+                            onOptionSelected = onVideoGroupChanged
+                        )
+                    }
+                }
+                if (defaultPlaybackActions.isNotEmpty() && selectedDefaultAction != null) {
+                    add {
+                        EnumSettingRow(
+                            title = R.string.default_playback_action,
+                            icon = R.drawable.ic_play,
+                            options = defaultPlaybackActions,
+                            selected = selectedDefaultAction,
+                            optionText = { option -> option.toString() },
+                            onOptionSelected = onDefaultActionChanged,
+                            subtitle = defaultActionType
+                        )
+                    }
+                }
             }
-            showOnlyMultimediaFiles?.let {
-                ToggleSettingRow(
-                    title = R.string.browser_show_all_title,
-                    icon = R.drawable.ic_multimedia,
-                    checked = it,
-                    onCheckedChange = onShowOnlyMultimediaFilesChanged
-                )
-            }
-            showTrackNumbers?.let {
-                ToggleSettingRow(
-                    title = R.string.albums_show_track_numbers,
-                    icon = R.drawable.ic_sort_track,
-                    checked = it,
-                    onCheckedChange = onShowTrackNumbersChanged
-                )
-            }
-            showHiddenFiles?.let {
-                ToggleSettingRow(
-                    title = R.string.browser_show_hidden_files_title,
-                    icon = R.drawable.ic_hidden,
-                    checked = it,
-                    onCheckedChange = onShowHiddenFilesChanged
-                )
-            }
-            onlyFavs?.let {
-                ToggleSettingRow(
-                    title = R.string.show_only_favs,
-                    icon = R.drawable.ic_favorite,
-                    checked = it,
-                    onCheckedChange = onOnlyFavsChanged
-                )
-            }
-            selectedVideoGroup?.let {
-                EnumSettingRow(
-                    title = R.string.video_min_group_length_title,
-                    subtitle = null,
-                    icon = R.drawable.ic_group_display,
-                    options = DisplaySettingsDialog.VideoGroup.entries.toList(),
-                    selected = it,
-                    optionText = { option -> option.toString() },
-                    onOptionSelected = onVideoGroupChanged
-                )
-            }
-            if (defaultPlaybackActions.isNotEmpty() && selectedDefaultAction != null) {
-                EnumSettingRow(
-                    title = R.string.default_playback_action,
-                    subtitle = defaultActionType,
-                    icon = R.drawable.ic_play,
-                    options = defaultPlaybackActions,
-                    selected = selectedDefaultAction,
-                    optionText = { option -> option.toString() },
-                    onOptionSelected = onDefaultActionChanged
-                )
-            }
+            SettingsCard(rows = optionRows)
             if (sorts.isNotEmpty()) {
                 SectionTitle(text = R.string.sortby)
-                sorts.forEach { sort ->
-                    SortSettingRow(
-                        sort = sort,
-                        currentSort = currentSort,
-                        currentSortDesc = currentSortDesc,
-                        enabled = !sortLocked,
-                        onSortChanged = onSortChanged
-                    )
+                val sortRows = sorts.map { sort ->
+                    @Composable {
+                        SortSettingRow(
+                            sort = sort,
+                            currentSort = currentSort,
+                            currentSortDesc = currentSortDesc,
+                            enabled = !sortLocked,
+                            onSortChanged = onSortChanged
+                        )
+                    }
                 }
+                SettingsCard(
+                    rows = sortRows,
+                    modifier = Modifier.alpha(if (sortLocked) 0.6f else 1f)
+                )
             }
         }
     }
@@ -481,104 +475,187 @@ private fun SectionTitle(@StringRes text: Int) {
     Text(
         text = AppContextProvider.appContext.getString(text),
         color = colors.primary,
-        style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 18.dp, bottom = 6.dp)
+        style = MaterialTheme.typography.titleSmall,
+        modifier = Modifier.padding(start = 28.dp, end = 24.dp, top = 6.dp, bottom = 0.dp)
     )
 }
 
+/** List/Grid switch rendered as an M3 segmented control - the most legible way to surface a binary view mode. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ActionSettingRow(
-    @StringRes title: Int,
-    @DrawableRes icon: Int,
-    onClick: () -> Unit
+private fun DisplayModeSelector(
+    inCards: Boolean,
+    onModeSelected: (Boolean) -> Unit
 ) {
-    SettingRowFrame(
-        onClick = onClick,
-        leadingContent = {
-            SettingIcon(icon = icon)
-        },
-        textContent = {
-            SettingText(title = title)
-        },
-        trailingContent = {}
+    SingleChoiceSegmentedButtonRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    ) {
+        SegmentedButton(
+            selected = !inCards,
+            onClick = { onModeSelected(false) },
+            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+            icon = {
+                Icon(
+                    painter = painterResource(R.drawable.ic_view_list),
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+            },
+            label = {
+                Text(
+                    text = AppContextProvider.appContext.getString(R.string.display_in_list),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        )
+        SegmentedButton(
+            selected = inCards,
+            onClick = { onModeSelected(true) },
+            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+            icon = {
+                Icon(
+                    painter = painterResource(R.drawable.ic_view_grid),
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+            },
+            label = {
+                Text(
+                    text = AppContextProvider.appContext.getString(R.string.display_in_grid),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        )
+    }
+}
+
+/** Groups related rows inside a single rounded, tonal container with hairline inset dividers between them. */
+@Composable
+private fun SettingsCard(
+    rows: List<@Composable () -> Unit>,
+    modifier: Modifier = Modifier
+) {
+    if (rows.isEmpty()) return
+    val colors = VLCThemeDefaults.colors
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .clip(MaterialTheme.shapes.large)
+            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+    ) {
+        rows.forEachIndexed { index, row ->
+            if (index > 0) {
+                HorizontalDivider(
+                    color = colors.defaultDivider,
+                    modifier = Modifier.padding(start = 60.dp)
+                )
+            }
+            row()
+        }
+    }
+}
+
+@Composable
+private fun SettingRow(
+    enabled: Boolean = true,
+    onClick: (() -> Unit)? = null,
+    role: Role? = null,
+    containerColor: Color = Color.Unspecified,
+    content: @Composable RowScope.() -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(20.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (containerColor.isSpecified) Modifier.background(containerColor) else Modifier)
+            .then(if (onClick != null) Modifier.clickable(enabled = enabled, role = role, onClick = onClick) else Modifier)
+            .heightIn(min = 60.dp)
+            .padding(horizontal = 20.dp, vertical = 10.dp),
+        content = content
     )
 }
 
 @Composable
-private fun ToggleSettingRow(
+private fun SwitchSettingRow(
     @StringRes title: Int,
     @DrawableRes icon: Int,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
-    SettingRowFrame(
+    SettingRow(
         onClick = { onCheckedChange(!checked) },
-        role = Role.Checkbox,
-        leadingContent = {
-            SettingIcon(icon = icon)
-        },
-        textContent = {
-            SettingText(title = title)
-        },
-        trailingContent = {
-            Checkbox(
-                checked = checked,
-                onCheckedChange = onCheckedChange
-            )
-        }
-    )
+        role = Role.Switch
+    ) {
+        SettingIcon(icon = icon)
+        SettingText(title = title, modifier = Modifier.weight(1f))
+        Switch(checked = checked, onCheckedChange = onCheckedChange)
+    }
 }
 
 @Composable
 private fun <T> EnumSettingRow(
     @StringRes title: Int,
-    subtitle: String?,
     @DrawableRes icon: Int,
     options: List<T>,
     selected: T,
     optionText: (T) -> String,
-    onOptionSelected: (T) -> Unit
+    onOptionSelected: (T) -> Unit,
+    subtitle: String? = null
 ) {
+    val colors = VLCThemeDefaults.colors
     var expanded by remember(title, selected) { mutableStateOf(false) }
-    SettingRowFrame(
-        onClick = { expanded = true },
-        leadingContent = {
-            SettingIcon(icon = icon)
-        },
-        textContent = {
-            SettingText(
-                title = title,
-                subtitle = subtitle ?: optionText(selected)
-            )
-        },
-        trailingContent = {
-            Box(modifier = Modifier.width(156.dp)) {
-                TextButton(
-                    onClick = { expanded = true },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = optionText(selected),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+    SettingRow(onClick = { expanded = true }) {
+        SettingIcon(icon = icon)
+        SettingText(
+            title = title,
+            subtitle = subtitle,
+            modifier = Modifier.weight(1f)
+        )
+        Box {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = optionText(selected),
+                    color = colors.primary,
+                    style = MaterialTheme.typography.labelLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.widthIn(max = 128.dp)
+                )
+                Icon(
+                    painter = painterResource(R.drawable.ic_collapse_arrow),
+                    contentDescription = null,
+                    tint = colors.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                options.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(optionText(option)) },
+                        onClick = {
+                            expanded = false
+                            onOptionSelected(option)
+                        }
                     )
-                }
-                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                    options.forEach { option ->
-                        DropdownMenuItem(
-                            text = { Text(optionText(option)) },
-                            onClick = {
-                                expanded = false
-                                onOptionSelected(option)
-                            }
-                        )
-                    }
                 }
             }
         }
-    )
+    }
 }
 
+/**
+ * One sort criterion as a single selectable row. The active sort is washed in the accent tint and
+ * shows a direction arrow + label; tapping it flips ascending/descending, tapping another switches to it.
+ */
 @Composable
 private fun SortSettingRow(
     sort: Int,
@@ -587,125 +664,71 @@ private fun SortSettingRow(
     enabled: Boolean,
     onSortChanged: (Int, Boolean) -> Unit
 ) {
+    val colors = VLCThemeDefaults.colors
     val metadata = sortMetadata(sort)
-    val selectedSort = sort == currentSort || currentSort == Medialibrary.SORT_DEFAULT && sort == Medialibrary.SORT_ALPHA
-    SettingRowFrame(
+    val selected = sort == currentSort || (currentSort == Medialibrary.SORT_DEFAULT && sort == Medialibrary.SORT_ALPHA)
+    SettingRow(
         enabled = enabled,
-        onClick = null,
-        leadingContent = {
-            SettingIcon(icon = metadata.icon, enabled = enabled)
-        },
-        textContent = {
-            SettingText(title = metadata.title, enabled = enabled)
-        },
-        trailingContent = {
-            Column(
-                modifier = Modifier.width(144.dp)
-            ) {
-                SortDirectionButton(
-                    text = metadata.ascending,
-                    selected = selectedSort && !currentSortDesc,
-                    enabled = enabled,
-                    onClick = { onSortChanged(sort, false) }
-                )
-                SortDirectionButton(
-                    text = metadata.descending,
-                    selected = selectedSort && currentSortDesc,
-                    enabled = enabled,
-                    onClick = { onSortChanged(sort, true) }
-                )
-            }
-        }
-    )
-}
-
-@Composable
-private fun SortDirectionButton(
-    @StringRes text: Int,
-    selected: Boolean,
-    enabled: Boolean,
-    onClick: () -> Unit
-) {
-    val colors = VLCThemeDefaults.colors
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .selectable(
-                selected = selected,
-                enabled = enabled,
-                role = Role.RadioButton,
-                onClick = onClick
+        role = Role.Button,
+        containerColor = if (selected) colors.primaryFocus else Color.Unspecified,
+        onClick = { if (selected) onSortChanged(sort, !currentSortDesc) else onSortChanged(sort, false) }
+    ) {
+        SettingIcon(icon = metadata.icon, enabled = enabled, selected = selected)
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = AppContextProvider.appContext.getString(metadata.title),
+                color = when {
+                    !enabled -> colors.fontDisabled
+                    selected -> colors.primary
+                    else -> colors.fontDefault
+                },
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+                ),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
-            .padding(horizontal = 8.dp, vertical = 6.dp)
-            .alpha(if (enabled) 1f else 0.6f)
-    ) {
-        RadioButton(
-            selected = selected,
-            enabled = enabled,
-            onClick = onClick
-        )
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(
-            text = AppContextProvider.appContext.getString(text),
-            color = when {
-                !enabled -> colors.fontDisabled
-                selected -> colors.primary
-                else -> colors.fontDefault
-            },
-            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-    }
-}
-
-@Composable
-private fun SettingRowFrame(
-    enabled: Boolean = true,
-    onClick: (() -> Unit)?,
-    role: Role? = null,
-    leadingContent: @Composable () -> Unit,
-    textContent: @Composable () -> Unit,
-    trailingContent: @Composable () -> Unit
-) {
-    val colors = VLCThemeDefaults.colors
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .then(if (onClick != null) Modifier.clickable(enabled = enabled, role = role) { onClick() } else Modifier)
-            .focusable(enabled)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(24.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 24.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
-        ) {
-            leadingContent()
-            Box(modifier = Modifier.weight(1f)) {
-                textContent()
+            if (selected) {
+                Text(
+                    text = AppContextProvider.appContext.getString(
+                        if (currentSortDesc) metadata.descending else metadata.ascending
+                    ),
+                    color = if (enabled) colors.fontLight else colors.fontDisabled,
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
             }
-            trailingContent()
         }
-        HorizontalDivider(
-            color = colors.defaultDivider,
-            modifier = Modifier.padding(start = 72.dp)
-        )
+        if (selected) {
+            Icon(
+                painter = painterResource(R.drawable.ic_collapse_arrow),
+                contentDescription = null,
+                tint = if (enabled) colors.primary else colors.fontDisabled,
+                modifier = Modifier
+                    .size(24.dp)
+                    .rotate(if (currentSortDesc) 0f else 180f)
+            )
+        }
     }
 }
 
 @Composable
 private fun SettingIcon(
     @DrawableRes icon: Int,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    selected: Boolean = false
 ) {
     val colors = VLCThemeDefaults.colors
     Icon(
         painter = painterResource(icon),
         contentDescription = null,
-        tint = if (enabled) colors.primary else colors.fontDisabled,
+        tint = when {
+            !enabled -> colors.fontDisabled
+            selected -> colors.primary
+            else -> colors.fontDefault
+        },
         modifier = Modifier.size(24.dp)
     )
 }
@@ -713,11 +736,12 @@ private fun SettingIcon(
 @Composable
 private fun SettingText(
     @StringRes title: Int,
+    modifier: Modifier = Modifier,
     subtitle: String? = null,
     enabled: Boolean = true
 ) {
     val colors = VLCThemeDefaults.colors
-    Column {
+    Column(modifier = modifier) {
         Text(
             text = AppContextProvider.appContext.getString(title),
             color = if (enabled) colors.fontDefault else colors.fontDisabled,
