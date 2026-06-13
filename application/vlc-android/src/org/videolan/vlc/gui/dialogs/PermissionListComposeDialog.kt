@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -393,14 +392,14 @@ private fun PermissionListComposeDialogContent(
                 if (warningTarget != null && state.warningText != null) {
                     Text(
                         text = state.warningText,
-                        color = colors.fontDefault,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier
                             .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp)
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.error.copy(alpha = 0.25f))
-                            .padding(12.dp)
+                            .clip(MaterialTheme.shapes.medium)
+                            .background(MaterialTheme.colorScheme.errorContainer)
+                            .padding(16.dp)
                     )
                 }
             }
@@ -430,7 +429,7 @@ private fun SimplePermissionRow(
             .padding(start = 16.dp, top = 8.dp, end = 16.dp)
             .fillMaxWidth()
             .heightIn(min = 48.dp)
-            .clip(RoundedCornerShape(4.dp))
+            .clip(MaterialTheme.shapes.small)
             .selectable(selected = false, role = Role.Button, onClick = onClick)
             .padding(horizontal = 8.dp)
     ) {
@@ -457,8 +456,8 @@ private fun FileAccessExplanation(state: PermissionListState) {
         modifier = Modifier
             .padding(start = 16.dp, top = 8.dp, end = 16.dp)
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .background(VLCThemeDefaults.colors.backgroundDefaultDarker)
+            .clip(MaterialTheme.shapes.medium)
+            .background(MaterialTheme.colorScheme.surfaceContainerLow)
             .padding(16.dp)
     ) {
         Image(
@@ -491,8 +490,8 @@ private fun PermissionOptionRow(
             .padding(start = 16.dp, top = 4.dp, end = 16.dp)
             .fillMaxWidth()
             .heightIn(min = 48.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(if (warning) MaterialTheme.colorScheme.error.copy(alpha = 0.25f) else Color.Transparent)
+            .clip(MaterialTheme.shapes.medium)
+            .background(if (warning) MaterialTheme.colorScheme.errorContainer else Color.Transparent)
             .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
             .padding(start = 8.dp, end = 4.dp)
     ) {

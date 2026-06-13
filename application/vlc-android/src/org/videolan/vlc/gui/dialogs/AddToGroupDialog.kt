@@ -45,7 +45,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -348,15 +347,15 @@ private fun AddToGroupThumbnail(item: MediaLibraryItem) {
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .size(48.dp)
-            .clip(RoundedCornerShape(4.dp))
-            .background(colors.backgroundDefaultDarker)
+            .clip(MaterialTheme.shapes.medium)
+            .background(if (item is DummyItem) colors.primary.copy(alpha = 0.16f) else MaterialTheme.colorScheme.surfaceContainerHighest)
     ) {
         if (item is DummyItem) {
             Icon(
                 painter = painterResource(R.drawable.ic_add_to_group),
                 contentDescription = null,
                 tint = colors.primary,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(28.dp)
             )
         } else {
             VlcMediaImage(

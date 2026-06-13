@@ -2,7 +2,6 @@ package org.videolan.vlc.gui.dialogs
 
 import android.content.SharedPreferences
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,7 +17,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -39,6 +37,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -276,14 +275,15 @@ private class PlaybackSpeedComposeDialog(
                 if (isSchemeStreaming(service?.currentMediaLocation) && rate > 1F) {
                     Text(
                         text = activity.getString(R.string.warning_stream_speed),
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 16.dp)
-                            .background(colors.primary, RoundedCornerShape(4.dp))
-                            .padding(8.dp)
+                            .clip(MaterialTheme.shapes.medium)
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                            .padding(12.dp)
                     )
                 }
             }
@@ -372,13 +372,15 @@ private fun PresetSpeedButton(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .height(48.dp)
-            .border(1.dp, colors.defaultDivider, RoundedCornerShape(4.dp))
+            .clip(MaterialTheme.shapes.small)
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
             .clickable(onClick = onClick)
             .focusable()
     ) {
         Text(
             text = label,
             color = colors.fontDefault,
+            style = MaterialTheme.typography.labelLarge,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,
@@ -417,7 +419,8 @@ private fun ChapterRow(
         modifier = Modifier
             .fillMaxWidth()
             .height(48.dp)
-            .background(if (selected) colors.subtleSelection else Color.Transparent)
+            .clip(MaterialTheme.shapes.medium)
+            .background(if (selected) colors.primary.copy(alpha = 0.10f) else Color.Transparent)
             .clickable(onClick = onClick)
             .focusable()
             .padding(horizontal = 16.dp)
