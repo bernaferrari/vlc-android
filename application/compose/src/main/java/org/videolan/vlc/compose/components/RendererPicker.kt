@@ -16,7 +16,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -24,7 +23,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -86,16 +84,10 @@ fun VLCRendererPickerDialogContent(
                             .heightIn(max = 360.dp)
                             .verticalScroll(rememberScrollState())
                             .padding(horizontal = 16.dp)
-                            .clip(MaterialTheme.shapes.large)
-                            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                            .vlcSettingsCard()
                     ) {
                         renderers.forEachIndexed { index, item ->
-                            if (index > 0) {
-                                HorizontalDivider(
-                                    color = colors.defaultDivider,
-                                    modifier = Modifier.padding(start = 80.dp)
-                                )
-                            }
+                            if (index > 0) VLCSettingsCardDivider()
                             RendererPickerRow(
                                 item = item,
                                 onClick = { onRendererSelected(item) },
@@ -139,26 +131,18 @@ private fun RendererPickerRow(
     icon: @Composable (VLCRendererUiItem, Color?) -> Unit
 ) {
     val colors = VLCThemeDefaults.colors
-    val chipColor = if (item.isSelected) colors.primary else MaterialTheme.colorScheme.surfaceContainerHighest
-    val iconTint = if (item.isSelected) colors.onPrimary else colors.fontDefault
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .then(if (item.isSelected) Modifier.background(colors.primary.copy(alpha = 0.08f)) else Modifier)
+            .vlcSelectionWash(item.isSelected)
             .clickable(onClick = onClick)
             .heightIn(min = 60.dp)
             .padding(horizontal = 20.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(MaterialTheme.shapes.medium)
-                .background(chipColor),
-            contentAlignment = Alignment.Center
-        ) {
-            icon(item, iconTint)
+        VLCIconChip(selected = item.isSelected) { tint ->
+            icon(item, tint)
         }
         Text(
             text = item.displayName,

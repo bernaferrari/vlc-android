@@ -82,6 +82,7 @@ import org.videolan.resources.opensubtitles.OpenSubtitleClient
 import org.videolan.resources.opensubtitles.OpenSubtitleRepository
 import org.videolan.tools.Settings
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.components.VLCIconChip
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.helpers.UiTools.deleteSubtitleDialog
@@ -1041,18 +1042,11 @@ private fun RowActionIcon(
     @StringRes contentDescription: Int,
     accent: Boolean
 ) {
-    val colors = VLCThemeDefaults.colors
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .size(40.dp)
-            .clip(MaterialTheme.shapes.medium)
-            .background(if (accent) colors.primary else MaterialTheme.colorScheme.surfaceContainerHighest)
-    ) {
+    VLCIconChip(selected = accent) { tint ->
         Icon(
             painter = painterResource(icon),
             contentDescription = stringResource(contentDescription),
-            tint = if (accent) colors.onPrimary else colors.fontDefault,
+            tint = tint,
             modifier = Modifier.size(22.dp)
         )
     }

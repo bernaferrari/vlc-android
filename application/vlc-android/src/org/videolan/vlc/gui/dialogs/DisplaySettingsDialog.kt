@@ -48,7 +48,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
@@ -65,7 +64,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.isSpecified
@@ -88,6 +86,8 @@ import org.videolan.resources.GROUP_VIDEOS_NAME
 import org.videolan.resources.GROUP_VIDEOS_NONE
 import org.videolan.tools.Settings
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.components.VLCIconChip
+import org.videolan.vlc.compose.components.VLCSettingsCard
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.helpers.DefaultPlaybackAction
@@ -539,25 +539,7 @@ private fun SettingsCard(
     rows: List<@Composable () -> Unit>,
     modifier: Modifier = Modifier
 ) {
-    if (rows.isEmpty()) return
-    val colors = VLCThemeDefaults.colors
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .clip(MaterialTheme.shapes.large)
-            .background(MaterialTheme.colorScheme.surfaceContainerLow)
-    ) {
-        rows.forEachIndexed { index, row ->
-            if (index > 0) {
-                HorizontalDivider(
-                    color = colors.defaultDivider,
-                    modifier = Modifier.padding(start = 80.dp)
-                )
-            }
-            row()
-        }
-    }
+    VLCSettingsCard(rows = rows, modifier = modifier.padding(horizontal = 16.dp))
 }
 
 @Composable
@@ -724,27 +706,11 @@ private fun SettingIcon(
     enabled: Boolean = true,
     selected: Boolean = false
 ) {
-    val colors = VLCThemeDefaults.colors
-    val containerColor = when {
-        selected -> colors.primary
-        else -> MaterialTheme.colorScheme.surfaceContainerHighest
-    }
-    val iconTint = when {
-        !enabled -> colors.fontDisabled
-        selected -> colors.onPrimary
-        else -> colors.fontDefault
-    }
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .size(40.dp)
-            .clip(MaterialTheme.shapes.medium)
-            .background(containerColor.copy(alpha = if (enabled) 1f else 0.5f))
-    ) {
+    VLCIconChip(selected = selected, enabled = enabled) { tint ->
         Icon(
             painter = painterResource(icon),
             contentDescription = null,
-            tint = iconTint,
+            tint = tint,
             modifier = Modifier.size(22.dp)
         )
     }

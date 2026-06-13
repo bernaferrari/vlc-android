@@ -27,8 +27,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
 import android.widget.FrameLayout
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,13 +40,12 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -62,8 +59,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -93,6 +88,10 @@ import org.videolan.tools.Settings
 import org.videolan.tools.isStarted
 import org.videolan.tools.putSingle
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.components.VLCIconChip
+import org.videolan.vlc.compose.components.VLCSettingsCardDivider
+import org.videolan.vlc.compose.components.vlcSelectionWash
+import org.videolan.vlc.compose.components.vlcSettingsCard
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
@@ -629,8 +628,7 @@ private fun ExistingPlaylistSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
-                .clip(MaterialTheme.shapes.large)
-                .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                .vlcSettingsCard()
                 .clickable(enabled = !isLoading, role = Role.Switch) { onReplaceCheckedChanged(!replaceChecked) }
                 .padding(start = 20.dp, top = 12.dp, end = 20.dp, bottom = 12.dp)
         ) {
@@ -653,8 +651,7 @@ private fun ExistingPlaylistSection(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
                 .heightIn(min = 96.dp, max = 420.dp)
-                .clip(MaterialTheme.shapes.large)
-                .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                .vlcSettingsCard()
         ) {
             if (!isLoading && playlists.isEmpty()) {
                 Text(
@@ -667,12 +664,7 @@ private fun ExistingPlaylistSection(
             } else {
                 LazyColumn(modifier = Modifier.fillMaxWidth()) {
                     itemsIndexed(playlists, key = { _, it -> it.id }) { index, playlist ->
-                        if (index > 0) {
-                            HorizontalDivider(
-                                color = colors.defaultDivider,
-                                modifier = Modifier.padding(start = 80.dp)
-                            )
-                        }
+                        if (index > 0) VLCSettingsCardDivider()
                         PlaylistRow(
                             playlist = playlist,
                             selected = selectedPlaylistIds.contains(playlist.id),
@@ -694,17 +686,12 @@ private fun PlaylistRow(
     onClick: () -> Unit
 ) {
     val colors = VLCThemeDefaults.colors
-    val chipColor by animateColorAsState(
-        targetValue = if (selected) colors.primary else MaterialTheme.colorScheme.surfaceContainerHighest,
-        label = "playlistChip"
-    )
-    val iconTint = if (selected) colors.onPrimary else colors.fontDefault
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(20.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .then(if (selected) Modifier.background(colors.primary.copy(alpha = 0.08f)) else Modifier)
+            .vlcSelectionWash(selected)
             .toggleable(
                 value = selected,
                 enabled = enabled,
@@ -714,17 +701,14 @@ private fun PlaylistRow(
             .heightIn(min = 60.dp)
             .padding(horizontal = 20.dp, vertical = 10.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(RoundedCornerShape(if (selected) 20.dp else 14.dp))
-                .background(chipColor),
-            contentAlignment = Alignment.Center
-        ) {
+        VLCIconChip(
+            selected = selected,
+            shape = if (selected) CircleShape else MaterialTheme.shapes.medium
+        ) { tint ->
             Icon(
                 painter = painterResource(if (selected) R.drawable.ic_check else R.drawable.ic_playlist),
                 contentDescription = null,
-                tint = iconTint,
+                tint = tint,
                 modifier = Modifier.size(22.dp)
             )
         }
