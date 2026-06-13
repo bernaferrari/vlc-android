@@ -537,7 +537,6 @@ private fun ConstraintLayout.addAudioOverlays(landscape: Boolean) {
     })
     addView(composeView(R.id.bookmarks_background).apply {
         id = R.id.bookmarks_background
-        setBackgroundFromAttr(R.attr.bookmark_background)
         isClickable = true
         isFocusable = false
         visibility = View.GONE

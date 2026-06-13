@@ -1,5 +1,6 @@
 package org.videolan.vlc.gui.view
 
+import android.util.TypedValue
 import android.view.View
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -33,6 +34,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -40,6 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import org.videolan.medialibrary.interfaces.media.Bookmark
 import org.videolan.tools.Settings
 import org.videolan.tools.setGone
@@ -254,6 +258,7 @@ fun VLCBookmarksPanelContent(
     onBookmarkDeleteClick: (Bookmark) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val backgroundColor = bookmarkBackgroundColor()
     val density = LocalDensity.current
     val addBookmarkFocusRequester = remember { FocusRequester() }
 
@@ -263,7 +268,11 @@ fun VLCBookmarksPanelContent(
         }
     }
 
-    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+    BoxWithConstraints(
+        modifier = modifier
+            .fillMaxSize()
+            .background(backgroundColor)
+    ) {
         val controlsBottomPadding = controlsBottomPadding(
             progressTopPx = progressTopPx,
             progressTop = density.run { progressTopPx.toDp() },
@@ -310,6 +319,16 @@ fun VLCBookmarksPanelContent(
             )
         }
     }
+}
+
+@Composable
+private fun bookmarkBackgroundColor(): Color {
+    val context = LocalContext.current
+    val typedValue = TypedValue()
+    if (!context.theme.resolveAttribute(R.attr.bookmark_background, typedValue, true)) {
+        return Color.Transparent
+    }
+    return Color(if (typedValue.resourceId != 0) ContextCompat.getColor(context, typedValue.resourceId) else typedValue.data)
 }
 
 private fun controlsBottomPadding(progressTopPx: Float, progressTop: Dp, maxHeight: Dp): Dp {

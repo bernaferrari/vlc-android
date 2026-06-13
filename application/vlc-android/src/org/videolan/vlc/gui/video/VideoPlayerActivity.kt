@@ -45,8 +45,6 @@ import android.os.Looper
 import android.os.Message
 import android.os.Parcelable
 import android.os.PowerManager
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.DisplayMetrics
 import android.util.Log
 import android.util.Rational
@@ -60,13 +58,8 @@ import android.view.View
 import android.view.View.OnClickListener
 import android.view.View.OnLongClickListener
 import android.view.WindowManager
-import android.view.animation.Animation
-import android.view.animation.AnimationSet
-import android.view.animation.DecelerateInterpolator
-import android.view.animation.RotateAnimation
 import android.view.inputmethod.BaseInputConnection
 import android.widget.FrameLayout
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
@@ -194,6 +187,9 @@ import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
 import org.videolan.vlc.gui.helpers.hf.StoragePermissionsDelegate
 import org.videolan.vlc.gui.view.PlayerTimelineSeekBarHost
+import org.videolan.vlc.gui.view.VideoLoadingOverlayHost
+import org.videolan.vlc.gui.view.videoLoadingOverlayHost
+import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.interfaces.IPlaybackSettingsController
 import org.videolan.vlc.media.PlaylistManager
 import org.videolan.vlc.media.ResumeStatus
@@ -230,7 +226,7 @@ import java.util.Date
 import kotlin.math.roundToInt
 
 
-open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, OnClickListener, OnLongClickListener, StoragePermissionsDelegate.CustomActionController, TextWatcher, IDialogManager, KeycodeListener {
+open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, OnClickListener, OnLongClickListener, StoragePermissionsDelegate.CustomActionController, IDialogManager, KeycodeListener {
 
     var hasPhysicalNotch: Boolean = false
     private var subtitlesExtraPath: String? = null
@@ -256,7 +252,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     internal var isLoading: Boolean = false
         private set
     private var isPlaying = false
-    private var loadingImageView: ImageView? = null
+    private var loadingOverlayHost: VideoLoadingOverlayHost? = null
     var enableCloneMode: Boolean = false
     lateinit var orientationMode: PlayerOrientationMode
 
@@ -539,8 +535,6 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         overlayDelegate.closeButton = findViewById(R.id.close_button)
         overlayDelegate.hingeArrowRight = findViewById(R.id.hinge_go_right)
         overlayDelegate.hingeArrowLeft = findViewById(R.id.hinge_go_left)
-        overlayDelegate.playlistSearchText.editText?.addTextChangedListener(this)
-
         overlayDelegate.playerUiContainer = findViewById(R.id.player_ui_container)
 
         val screenOrientationSetting = Integer.valueOf(settings.getString(SCREEN_ORIENTATION, "99" /*SCREEN ORIENTATION SENSOR*/)!!)
@@ -557,7 +551,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         videoLayout = findViewById(R.id.video_layout)
 
         /* Loading view */
-        loadingImageView = findViewById(R.id.player_overlay_loading)
+        loadingOverlayHost = findViewById<VLCComposeView>(R.id.player_overlay_loading).videoLoadingOverlayHost()
         overlayDelegate.dimStatusBar(true)
         handler.sendEmptyMessageDelayed(LOADING_ANIMATION, LOADING_ANIMATION_DELAY.toLong())
 
@@ -699,23 +693,6 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     }
 
     override fun dialogCanceled(dialog: Dialog?) = Unit
-
-    override fun afterTextChanged(s: Editable?) {
-    }
-
-    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-    }
-
-    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-
-        if (s == null) return
-        val length = s.length
-        if (length > 0) {
-            playlistModel?.filter(s)
-        } else {
-            playlistModel?.filter(null)
-        }
-    }
 
     override fun onResume() {
         overridePendingTransition(0, 0)
@@ -2424,14 +2401,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     private fun startLoading() {
         if (isLoading) return
         isLoading = true
-        val anim = AnimationSet(true)
-        val rotate = RotateAnimation(0f, 360f, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f)
-        rotate.duration = 800
-        rotate.interpolator = DecelerateInterpolator()
-        rotate.repeatCount = RotateAnimation.INFINITE
-        anim.addAnimation(rotate)
-        loadingImageView.setVisible()
-        loadingImageView?.startAnimation(anim)
+        loadingOverlayHost?.show()
     }
 
     /**
@@ -2441,8 +2411,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         handler.removeMessages(LOADING_ANIMATION)
         if (!isLoading) return
         isLoading = false
-        loadingImageView.setInvisible()
-        loadingImageView?.clearAnimation()
+        loadingOverlayHost?.hide()
     }
 
     fun onClickDismissTips(@Suppress("UNUSED_PARAMETER") v: View) {

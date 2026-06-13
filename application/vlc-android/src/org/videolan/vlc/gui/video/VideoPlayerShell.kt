@@ -23,30 +23,39 @@
 package org.videolan.vlc.gui.video
 
 import android.content.Context
-import android.content.res.ColorStateList
-import android.text.InputType
-import android.view.ContextThemeWrapper
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.EditorInfo
-import android.widget.EditText
 import android.widget.FrameLayout
-import android.widget.ImageButton
-import android.widget.ImageView
+import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp as composeDp
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
-import com.google.android.material.textfield.TextInputLayout
 import org.videolan.libvlc.util.VLCVideoLayout
 import org.videolan.tools.dp
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.compose.theme.VLCTheme
+import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.view.createVideoHudOverlay
 import org.videolan.vlc.gui.view.installPlayerOptionsPanelHost
 import org.videolan.vlc.gui.view.installVideoHudRightOverlayHost
 import org.videolan.vlc.gui.view.installVideoDelayOverlayHost
 import org.videolan.vlc.gui.view.installVideoInfoOverlayHost
+import org.videolan.vlc.gui.view.installVideoLoadingOverlayHost
 import org.videolan.vlc.gui.view.installVideoOrientationOverlayHost
+import org.videolan.vlc.gui.view.installVideoPlaylistSearchHost
 import org.videolan.vlc.gui.view.installVideoResizeOverlayHost
 import org.videolan.vlc.gui.view.installVideoScreenshotOverlayHost
 import org.videolan.vlc.gui.view.installVideoSeekOverlayHost
@@ -75,16 +84,8 @@ private fun Context.createPrimaryVideoPlayerShell() = createVideoPlayerRoot().ap
         leftMargin = resources.getDimensionPixelSize(R.dimen.tv_overscan_horizontal)
         bottomMargin = resources.getDimensionPixelSize(R.dimen.default_margin)
     })
-    addView(View(context).apply {
-        id = R.id.hud_background
-        setBackgroundResource(R.drawable.gradient_hud_player)
-        visibility = View.GONE
-    }, FrameLayout.LayoutParams(matchParent, 130.dp, Gravity.BOTTOM))
-    addView(View(context).apply {
-        id = R.id.hud_right_background
-        setBackgroundResource(R.drawable.gradient_title_player)
-        visibility = View.GONE
-    }, FrameLayout.LayoutParams(matchParent, 150.dp))
+    addView(gradientDrawableHost(R.id.hud_background, R.drawable.gradient_hud_player), FrameLayout.LayoutParams(matchParent, 130.dp, Gravity.BOTTOM))
+    addView(gradientDrawableHost(R.id.hud_right_background, R.drawable.gradient_title_player), FrameLayout.LayoutParams(matchParent, 150.dp))
     addView(primaryUiContainer(), matchFrame())
     addView(videoPlaylistContainer(primary = true), FrameLayout.LayoutParams(matchParent, matchParent, Gravity.CENTER_HORIZONTAL))
     addView(optionsPanel(), matchFrame())
@@ -121,16 +122,13 @@ private fun Context.createRemoteVideoPlayerShell() = createVideoPlayerRoot().app
     addView(FrameLayout(context).apply {
         id = R.id.player_overlay_background
         fitsSystemWindows = true
-        addView(ImageView(context).apply {
-            id = R.id.renderer_background_cone
-            setImageResource(R.drawable.ic_renderer_background_cone)
-        }, frameWrap(Gravity.CENTER))
+        addView(staticIconHost(R.id.renderer_background_cone, R.drawable.ic_renderer_background_cone, tint = false, sizeDp = null), frameWrap(Gravity.CENTER))
         addView(infoOverlay(), frameWrap(Gravity.CENTER) {
             bottomMargin = resources.getDimensionPixelSize(R.dimen.default_margin)
         })
         addView(FrameLayout(context).apply {
             id = R.id.player_ui_container
-            addView(loadingView(wrap = true), frameWrap(Gravity.CENTER))
+            addView(loadingView(), frameWrap(Gravity.CENTER))
         }, matchFrame())
         addView(VLCComposeView(context).apply {
             id = R.id.delay_container
@@ -192,7 +190,7 @@ private fun Context.primaryUiContainer() = FrameLayout(this).apply {
         visibility = View.GONE
         installVideoTipsHost()
     }, matchFrame())
-    addView(loadingView(wrap = false), FrameLayout.LayoutParams(80.dp, 80.dp, Gravity.CENTER))
+    addView(loadingView(), FrameLayout.LayoutParams(80.dp, 80.dp, Gravity.CENTER))
     addView(infoOverlay(), frameWrap(Gravity.CENTER) {
         bottomMargin = resources.getDimensionPixelSize(R.dimen.default_margin)
     })
@@ -229,11 +227,22 @@ private fun Context.verticalOverlay(id: Int) = VLCComposeView(this).apply {
     installVideoVerticalProgressOverlayHost()
 }
 
-private fun Context.loadingView(wrap: Boolean) = ImageView(this).apply {
+private fun Context.loadingView() = VLCComposeView(this).apply {
     id = R.id.player_overlay_loading
-    setImageResource(R.drawable.ic_cone_o)
-    visibility = View.INVISIBLE
-    if (!wrap) scaleType = ImageView.ScaleType.FIT_CENTER
+    installVideoLoadingOverlayHost()
+}
+
+private fun Context.gradientDrawableHost(id: Int, drawable: Int) = VLCComposeView(this).apply {
+    this.id = id
+    visibility = View.GONE
+    setContent {
+        Image(
+                painter = painterResource(drawable),
+                contentDescription = null,
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier.fillMaxSize()
+        )
+    }
 }
 
 private fun Context.infoOverlay() = VLCComposeView(this).apply {
@@ -250,13 +259,30 @@ private fun Context.hudRightOverlay() = VLCComposeView(this).apply {
     installVideoHudRightOverlayHost()
 }
 
-private fun Context.hingeArrow(id: Int, icon: Int) = ImageView(this).apply {
+private fun Context.hingeArrow(id: Int, icon: Int) = staticIconHost(id, icon, tint = true, sizeDp = 48).apply {
     this.id = id
-    setImageResource(icon)
     isClickable = true
     isFocusable = true
     background = selectableItemBackgroundBorderless()
     visibility = View.GONE
+}
+
+private fun Context.staticIconHost(id: Int, icon: Int, tint: Boolean, sizeDp: Int?) = VLCComposeView(this).apply {
+    this.id = id
+    setContent {
+        VLCTheme {
+            Box(
+                    modifier = sizeDp?.let { Modifier.size(it.composeDp) } ?: Modifier,
+                    contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                        painter = painterResource(icon),
+                        contentDescription = null,
+                        tint = if (tint) VLCThemeDefaults.colors.playerIconColor else androidx.compose.ui.graphics.Color.Unspecified
+                )
+            }
+        }
+    }
 }
 
 private fun Context.optionsPanel() = VLCComposeView(this).apply {
@@ -271,30 +297,28 @@ private fun Context.optionsPanel() = VLCComposeView(this).apply {
 private fun Context.videoPlaylistContainer(primary: Boolean) = ConstraintLayout(this).apply {
     id = R.id.video_playlist_container
     maxWidth = 480.dp
-    setBackgroundColor(ContextCompat.getColor(context, R.color.playerbackground))
     visibility = View.GONE
 
-    val closeButton = ImageButton(context).apply {
-        id = R.id.close_button
-        setImageResource(R.drawable.ic_close_small)
-        background = selectableItemBackgroundBorderless()
-        contentDescription = getString(R.string.close)
-        setPadding(8.dp, 8.dp, 8.dp, 8.dp)
-    }
+    val background = playlistBackground()
+    val closeButton = playlistCloseButton()
     val searchText = playlistSearchText()
     val playlist = VLCComposeView(context).apply {
         id = R.id.video_playlist
         clipToPadding = false
         isFocusable = true
-        nextFocusUpId = R.id.playlist_search_edittext
+        nextFocusUpId = R.id.playlist_search_text
         descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
     }
 
+    addView(background, constraintLayout(matchConstraint, matchConstraint) {
+        startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+        endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+        topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+        bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+    })
+
     if (primary) {
-        val header = View(context).apply {
-            id = R.id.video_playlist_header
-            setBackgroundColor(ContextCompat.getColor(context, R.color.playerbackground))
-        }
+        val header = playlistHeaderBackground()
         addView(header, constraintLayout(matchConstraint, 56.dp) {
             startToStart = ConstraintLayout.LayoutParams.PARENT_ID
             endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
@@ -345,22 +369,56 @@ private fun Context.videoPlaylistContainer(primary: Boolean) = ConstraintLayout(
     }
 }
 
-private fun Context.playlistSearchText() = TextInputLayout(
-    ContextThemeWrapper(this, R.style.Widget_MaterialComponents_TextInputLayout_OutlinedBox_Dense)
-).apply {
+private fun Context.playlistBackground() = VLCComposeView(this).apply {
+    setContent {
+        Box(
+                modifier = Modifier
+                        .fillMaxSize()
+                        .background(colorResource(R.color.playerbackground))
+        )
+    }
+}
+
+private fun Context.playlistSearchText() = VLCComposeView(this).apply {
     id = R.id.playlist_search_text
     visibility = View.VISIBLE
-    boxStrokeColor = ContextCompat.getColor(context, R.color.grey200)
-    hintTextColor = ColorStateList.valueOf(ContextCompat.getColor(context, R.color.grey200))
     setPadding(8.dp, 0, 8.dp, 0)
-    addView(EditText(context).apply {
-        id = R.id.playlist_search_edittext
-        isFocusable = true
-        hint = getString(R.string.search_hint)
-        imeOptions = EditorInfo.IME_ACTION_SEARCH
-        inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_FILTER
-        nextFocusDownId = R.id.video_playlist
-    }, ViewGroup.LayoutParams(matchParent, wrapContent))
+    isFocusable = true
+    nextFocusDownId = R.id.video_playlist
+    installVideoPlaylistSearchHost(getString(R.string.search_hint))
+}
+
+private fun Context.playlistCloseButton() = VLCComposeView(this).apply {
+    id = R.id.close_button
+    background = selectableItemBackgroundBorderless()
+    contentDescription = getString(R.string.close)
+    setContent {
+        VLCTheme {
+            Box(
+                    modifier = Modifier
+                            .size(48.composeDp)
+                            .padding(8.composeDp),
+                    contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                        painter = painterResource(R.drawable.ic_close_small),
+                        contentDescription = null,
+                        tint = VLCThemeDefaults.colors.playerIconColor
+                )
+            }
+        }
+    }
+}
+
+private fun Context.playlistHeaderBackground() = VLCComposeView(this).apply {
+    id = R.id.video_playlist_header
+    setContent {
+        Box(
+                modifier = Modifier
+                        .fillMaxSize()
+                        .background(colorResource(R.color.playerbackground))
+        )
+    }
 }
 
 private fun Context.selectableItemBackgroundBorderless() = run {

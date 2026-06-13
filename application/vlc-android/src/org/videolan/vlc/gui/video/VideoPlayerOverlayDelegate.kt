@@ -38,7 +38,6 @@ import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.animation.AnimationUtils
 import android.widget.FrameLayout
-import android.widget.ImageView
 import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,7 +50,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.window.layout.FoldingFeature
-import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -102,6 +100,7 @@ import org.videolan.vlc.gui.view.swipeToUnlockHost
 import org.videolan.vlc.gui.view.videoHudRightOverlayHost
 import org.videolan.vlc.gui.view.videoHudSeekJumpLabelHost
 import org.videolan.vlc.gui.view.videoInfoOverlayHost
+import org.videolan.vlc.gui.view.videoPlaylistSearchHost
 import org.videolan.vlc.gui.view.videoStatsOverlayHost
 import org.videolan.vlc.gui.view.videoTimelineTimeLabelHost
 import org.videolan.vlc.gui.view.videoVerticalProgressOverlayHost
@@ -164,10 +163,10 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
     private var orientationLockedBeforeLock: Boolean = false
     lateinit var closeButton: View
     lateinit var playlistContainer: View
-    var hingeArrowRight: ImageView? = null
-    var hingeArrowLeft: ImageView? = null
+    var hingeArrowRight: View? = null
+    var hingeArrowLeft: View? = null
     lateinit var playlist: VLCComposeView
-    lateinit var playlistSearchText: TextInputLayout
+    lateinit var playlistSearchText: VLCComposeView
     private var playlistQueueInitialized = false
     private var playlistItems by mutableStateOf<List<MediaWrapper>>(emptyList())
     private var playlistCurrentIndex by mutableStateOf(-1)
@@ -958,6 +957,9 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
                 filteringState.observe(player) { playlistFiltering = it }
             }
         }
+        playlistSearchText.videoPlaylistSearchHost().setOnQueryChangeListener { query ->
+            player.playlistModel?.filter(query.takeIf { it.isNotEmpty() })
+        }
         if (player.service?.hasPlaylist() == true) {
             if (::hudRightOverlay.isInitialized) hudRightHost().setPlaylistVisible(true)
             if (::hudBinding.isInitialized) {
@@ -990,7 +992,10 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
         playlistContainer.setVisible()
         requestPlaylistSelection(player.playlistModel?.currentMediaPosition ?: playlistCurrentIndex)
         player.update()
-        if (player.isTalkbackIsEnabled()) playlistSearchText.editText?.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED)
+        if (player.isTalkbackIsEnabled()) {
+            playlistSearchText.sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_FOCUSED)
+        }
+        playlistSearchText.videoPlaylistSearchHost().requestSearchFocus()
     }
 
     fun showControls(show: Boolean) {
@@ -1085,7 +1090,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
             showControls(false)
             player.isShowing = false
             dimStatusBar(true)
-            playlistSearchText.editText?.setText("")
+            playlistSearchText.videoPlaylistSearchHost().setQuery("")
         } else if (!fromUser) {
             /*
              * Try to hide the Nav Bar again.

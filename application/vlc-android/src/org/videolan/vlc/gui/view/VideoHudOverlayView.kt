@@ -24,16 +24,12 @@ package org.videolan.vlc.gui.view
 
 import android.content.Context
 import android.util.AttributeSet
-import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Space
-import androidx.annotation.AttrRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.IdRes
 import androidx.annotation.StringRes
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.content.ContextCompat
 import org.videolan.tools.dp
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.interop.VLCComposeView
@@ -46,7 +42,6 @@ import org.videolan.vlc.compose.interop.VLCComposeView
 internal fun Context.createVideoHudOverlay(): ConstraintLayout =
     ConstraintLayout(this).apply {
         id = R.id.progress_overlay
-        setBackgroundColor(ContextCompat.getColor(context, R.color.transparent))
         visibility = View.INVISIBLE
         addHudChildren(
             smallSideMargin = resources.getDimensionPixelSize(R.dimen.small_margins_sides),
@@ -60,7 +55,6 @@ private fun ConstraintLayout.addHudChildren(
 ) {
         addView(VLCComposeView(context).apply {
             id = R.id.stats_container
-            setBackgroundResource(R.drawable.rounded_corners)
             visibility = View.GONE
             installVideoStatsOverlayHost()
         }, hudLayout(0, 0) {
@@ -124,7 +118,6 @@ private fun ConstraintLayout.addHudChildren(
 
         addView(VLCComposeView(context).apply {
             id = R.id.bookmarks_background
-            setBackgroundFromAttr(R.attr.bookmark_background)
             fitsSystemWindows = true
             isFocusable = false
             visibility = View.GONE
@@ -212,9 +205,7 @@ private fun ConstraintLayout.addHudChildren(
             marginStart = smallSideMargin
         })
 
-        addView(Space(context).apply {
-            id = R.id.player_space_left
-        }, hudLayout(0, WRAP_CONTENT) {
+        addView(spacerHost(R.id.player_space_left), hudLayout(0, WRAP_CONTENT) {
             topToTop = R.id.playlist_previous
             bottomToBottom = R.id.playlist_previous
             startToEnd = R.id.orientation_toggle
@@ -301,9 +292,7 @@ private fun ConstraintLayout.addHudChildren(
             marginStart = largeCenterMargin
         })
 
-        addView(Space(context).apply {
-            id = R.id.player_space_right
-        }, hudLayout(0, WRAP_CONTENT) {
+        addView(spacerHost(R.id.player_space_right), hudLayout(0, WRAP_CONTENT) {
             topToTop = R.id.playlist_next
             bottomToBottom = R.id.playlist_next
             startToEnd = R.id.playlist_next
@@ -354,7 +343,6 @@ private fun ConstraintLayout.hudIconButton(
     longClickable: Boolean = false
 ) = VLCComposeView(context).apply {
     this.id = id
-    setBackgroundFromAttr(android.R.attr.selectableItemBackgroundBorderless)
     isClickable = true
     isFocusable = true
     isLongClickable = longClickable
@@ -382,22 +370,17 @@ private fun ConstraintLayout.seekJumpLabel(@IdRes id: Int) = VLCComposeView(cont
     installVideoHudSeekJumpLabelHost()
 }
 
+private fun ConstraintLayout.spacerHost(@IdRes id: Int) = VLCComposeView(context).apply {
+    this.id = id
+    setContent {}
+}
+
 private fun hudLayout(
     width: Int = WRAP_CONTENT,
     height: Int = WRAP_CONTENT,
     block: ConstraintLayout.LayoutParams.() -> Unit
 ): ConstraintLayout.LayoutParams {
     return ConstraintLayout.LayoutParams(width, height).apply(block)
-}
-
-private fun View.setBackgroundFromAttr(@AttrRes attr: Int) {
-    val typedValue = TypedValue()
-    if (!context.theme.resolveAttribute(attr, typedValue, true)) return
-    if (typedValue.resourceId != 0) {
-        setBackgroundResource(typedValue.resourceId)
-    } else {
-        setBackgroundColor(typedValue.data)
-    }
 }
 
 private const val PARENT_ID = ConstraintLayout.LayoutParams.PARENT_ID

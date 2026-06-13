@@ -34,7 +34,6 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.SurfaceView
 import android.view.View
-import android.widget.ImageView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.NotificationCompat
 import androidx.core.view.GestureDetectorCompat
@@ -58,6 +57,9 @@ import org.videolan.vlc.R
 import org.videolan.vlc.gui.helpers.MISC_CHANNEL_ID
 import org.videolan.vlc.gui.view.PopupLayoutController
 import org.videolan.vlc.gui.view.createPopupLayoutHost
+import org.videolan.vlc.compose.interop.VLCComposeView
+import org.videolan.vlc.gui.view.installPopupIconHost
+import org.videolan.vlc.gui.view.popupIconHost
 import org.videolan.vlc.isVLC4
 import org.videolan.vlc.util.getPendingIntent
 import kotlin.math.absoluteValue
@@ -67,9 +69,9 @@ class PopupManager(private val service: PlaybackService) : PlaybackService.Callb
 
     private var rootView: ConstraintLayout? = null
     private var popupController: PopupLayoutController? = null
-    private lateinit var expandButton: ImageView
-    private lateinit var closeButton: ImageView
-    private lateinit var playPauseButton: ImageView
+    private lateinit var expandButton: VLCComposeView
+    private lateinit var closeButton: VLCComposeView
+    private lateinit var playPauseButton: VLCComposeView
     private val alwaysOn: Boolean = Settings.getInstance(service).getBoolean(POPUP_KEEPSCREEN, false)
     var observer: Observer<Boolean> = Observer {
         if (!it) {
@@ -141,10 +143,10 @@ class PopupManager(private val service: PlaybackService) : PlaybackService.Callb
                 topToTop = ConstraintLayout.LayoutParams.PARENT_ID
             })
 
-            val close = ImageView(context).apply {
+            val close = VLCComposeView(context).apply {
                 id = R.id.popup_close
                 visibility = View.GONE
-                setImageResource(R.drawable.ic_popup_close_w)
+                installPopupIconHost(R.drawable.ic_popup_close_w)
             }
             addView(close, ConstraintLayout.LayoutParams(
                     ConstraintLayout.LayoutParams.WRAP_CONTENT,
@@ -154,10 +156,10 @@ class PopupManager(private val service: PlaybackService) : PlaybackService.Callb
                 topToTop = ConstraintLayout.LayoutParams.PARENT_ID
             })
 
-            val expand = ImageView(context).apply {
+            val expand = VLCComposeView(context).apply {
                 id = R.id.popup_expand
                 visibility = View.GONE
-                setImageResource(R.drawable.ic_popup_fullscreen)
+                installPopupIconHost(R.drawable.ic_popup_fullscreen)
             }
             addView(expand, ConstraintLayout.LayoutParams(
                     ConstraintLayout.LayoutParams.WRAP_CONTENT,
@@ -167,11 +169,10 @@ class PopupManager(private val service: PlaybackService) : PlaybackService.Callb
                 topToTop = ConstraintLayout.LayoutParams.PARENT_ID
             })
 
-            val playPause = ImageView(context).apply {
+            val playPause = VLCComposeView(context).apply {
                 id = R.id.video_play_pause
-                scaleType = ImageView.ScaleType.CENTER
                 visibility = View.GONE
-                setImageResource(R.drawable.ic_popup_pause)
+                installPopupIconHost(R.drawable.ic_popup_pause)
             }
             addView(playPause, ConstraintLayout.LayoutParams(
                     ConstraintLayout.LayoutParams.WRAP_CONTENT,
@@ -288,14 +289,14 @@ class PopupManager(private val service: PlaybackService) : PlaybackService.Callb
             MediaPlayer.Event.Playing -> {
                 rootView?.let { view ->
                     if (!alwaysOn) view.keepScreenOn = true
-                    playPauseButton.setImageResource(R.drawable.ic_popup_pause)
+                    playPauseButton.popupIconHost().setIcon(R.drawable.ic_popup_pause)
                 }
                 showNotification()
             }
             MediaPlayer.Event.Paused -> {
                 rootView?.let { view ->
                     if (!alwaysOn) view.keepScreenOn = false
-                    playPauseButton.setImageResource(R.drawable.ic_popup_play)
+                    playPauseButton.popupIconHost().setIcon(R.drawable.ic_popup_play)
                 }
                 showNotification()
             }
@@ -374,7 +375,7 @@ class PopupManager(private val service: PlaybackService) : PlaybackService.Callb
         service.setVideoTrackEnabled(true)
         if (service.hasMedia()) {
             service.flush()
-            playPauseButton.setImageResource(if (service.isPlaying) R.drawable.ic_popup_pause else R.drawable.ic_popup_play)
+            playPauseButton.popupIconHost().setIcon(if (service.isPlaying) R.drawable.ic_popup_pause else R.drawable.ic_popup_play)
         } else
             service.playIndex(service.currentMediaPosition)
         showNotification()
