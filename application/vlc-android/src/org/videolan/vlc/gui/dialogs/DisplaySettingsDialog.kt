@@ -552,7 +552,7 @@ private fun SettingsCard(
             if (index > 0) {
                 HorizontalDivider(
                     color = colors.defaultDivider,
-                    modifier = Modifier.padding(start = 60.dp)
+                    modifier = Modifier.padding(start = 80.dp)
                 )
             }
             row()
@@ -670,7 +670,7 @@ private fun SortSettingRow(
     SettingRow(
         enabled = enabled,
         role = Role.Button,
-        containerColor = if (selected) colors.primaryFocus else Color.Unspecified,
+        containerColor = if (selected) colors.primary.copy(alpha = 0.08f) else Color.Unspecified,
         onClick = { if (selected) onSortChanged(sort, !currentSortDesc) else onSortChanged(sort, false) }
     ) {
         SettingIcon(icon = metadata.icon, enabled = enabled, selected = selected)
@@ -714,6 +714,10 @@ private fun SortSettingRow(
     }
 }
 
+/**
+ * Leading icon rendered inside a rounded tonal chip. The active sort morphs the chip to a filled
+ * accent fill - the expressive cue that makes the current selection read instantly.
+ */
 @Composable
 private fun SettingIcon(
     @DrawableRes icon: Int,
@@ -721,16 +725,29 @@ private fun SettingIcon(
     selected: Boolean = false
 ) {
     val colors = VLCThemeDefaults.colors
-    Icon(
-        painter = painterResource(icon),
-        contentDescription = null,
-        tint = when {
-            !enabled -> colors.fontDisabled
-            selected -> colors.primary
-            else -> colors.fontDefault
-        },
-        modifier = Modifier.size(24.dp)
-    )
+    val containerColor = when {
+        selected -> colors.primary
+        else -> MaterialTheme.colorScheme.surfaceContainerHighest
+    }
+    val iconTint = when {
+        !enabled -> colors.fontDisabled
+        selected -> colors.onPrimary
+        else -> colors.fontDefault
+    }
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(40.dp)
+            .clip(MaterialTheme.shapes.medium)
+            .background(containerColor.copy(alpha = if (enabled) 1f else 0.5f))
+    ) {
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = null,
+            tint = iconTint,
+            modifier = Modifier.size(22.dp)
+        )
+    }
 }
 
 @Composable
