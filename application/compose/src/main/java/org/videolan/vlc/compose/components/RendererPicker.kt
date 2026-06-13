@@ -3,6 +3,7 @@ package org.videolan.vlc.compose.components
 import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,18 +12,22 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.theme.VLCTheme
@@ -36,8 +41,9 @@ data class VLCRendererUiItem(
 )
 
 /**
- * Compose renderer picker content. The app module owns RendererItem mapping,
- * icon resources, and playback side effects.
+ * Material 3 Expressive renderer picker. Devices are grouped into a single rounded tonal card; the
+ * connected device morphs its icon chip to a filled accent fill. The app module owns RendererItem
+ * mapping, icon resources, and playback side effects.
  */
 @Composable
 fun VLCRendererPickerDialogContent(
@@ -53,41 +59,58 @@ fun VLCRendererPickerDialogContent(
     VLCTheme {
         val colors = VLCThemeDefaults.colors
         Surface(
-            modifier = modifier.widthIn(min = 384.dp),
+            modifier = modifier.widthIn(min = 320.dp, max = 420.dp),
             color = colors.backgroundDefault,
-            contentColor = colors.fontDefault
+            contentColor = colors.fontDefault,
+            shape = MaterialTheme.shapes.extraLarge
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(colors.backgroundDefault)
+                    .padding(vertical = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
                     text = title,
                     color = colors.fontDefault,
                     style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(horizontal = 24.dp)
                 )
 
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 360.dp)
-                        .padding(bottom = 16.dp)
-                ) {
-                    items(renderers, key = { it.id }) { item ->
-                        RendererPickerRow(
-                            item = item,
-                            onClick = { onRendererSelected(item) },
-                            icon = rendererIcon
-                        )
+                if (renderers.isEmpty()) {
+                    ScanningState()
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 360.dp)
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 16.dp)
+                            .clip(MaterialTheme.shapes.large)
+                            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                    ) {
+                        renderers.forEachIndexed { index, item ->
+                            if (index > 0) {
+                                HorizontalDivider(
+                                    color = colors.defaultDivider,
+                                    modifier = Modifier.padding(start = 80.dp)
+                                )
+                            }
+                            RendererPickerRow(
+                                item = item,
+                                onClick = { onRendererSelected(item) },
+                                icon = rendererIcon
+                            )
+                        }
                     }
                 }
 
                 if (showDisconnect) {
-                    TextButton(
+                    OutlinedButton(
                         onClick = onDisconnect,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp)
                     ) {
                         Text(disconnectText)
                     }
@@ -98,33 +121,54 @@ fun VLCRendererPickerDialogContent(
 }
 
 @Composable
+private fun ScanningState() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 28.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator(strokeWidth = 3.dp)
+    }
+}
+
+@Composable
 private fun RendererPickerRow(
     item: VLCRendererUiItem,
     onClick: () -> Unit,
     icon: @Composable (VLCRendererUiItem, Color?) -> Unit
 ) {
     val colors = VLCThemeDefaults.colors
-    val selectedTint = if (item.isSelected) colors.primary else null
+    val chipColor = if (item.isSelected) colors.primary else MaterialTheme.colorScheme.surfaceContainerHighest
+    val iconTint = if (item.isSelected) colors.onPrimary else colors.fontDefault
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .then(if (item.isSelected) Modifier.background(colors.primary.copy(alpha = 0.08f)) else Modifier)
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .heightIn(min = 60.dp)
+            .padding(horizontal = 20.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         Box(
-            modifier = Modifier.size(32.dp),
+            modifier = Modifier
+                .size(40.dp)
+                .clip(MaterialTheme.shapes.medium)
+                .background(chipColor),
             contentAlignment = Alignment.Center
         ) {
-            icon(item, selectedTint)
+            icon(item, iconTint)
         }
         Text(
             text = item.displayName,
-            color = selectedTint ?: colors.fontDefault,
+            color = if (item.isSelected) colors.primary else colors.fontDefault,
             style = MaterialTheme.typography.bodyLarge.copy(
-                fontWeight = if (item.isSelected) FontWeight.Medium else FontWeight.Normal
+                fontWeight = if (item.isSelected) FontWeight.SemiBold else FontWeight.Normal
             ),
-            modifier = Modifier.padding(start = 16.dp)
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
         )
     }
 }

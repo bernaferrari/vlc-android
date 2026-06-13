@@ -68,6 +68,7 @@ private class RenderersComposeDialog(
 
     private fun setupContent() {
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
         rootView = ComposeView(activity).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
             setContent {
@@ -97,7 +98,7 @@ private class RenderersComposeDialog(
                                 else R.drawable.ic_dialog_unknown
                             ),
                             contentDescription = null,
-                            modifier = Modifier.size(32.dp),
+                            modifier = Modifier.size(22.dp),
                             tint = tint ?: Color.Unspecified
                         )
                     }
