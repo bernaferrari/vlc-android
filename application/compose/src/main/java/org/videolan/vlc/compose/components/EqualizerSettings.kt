@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,7 +20,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -566,13 +566,12 @@ private fun EqualizerOverwriteCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp),
-        shape = RoundedCornerShape(4.dp),
-        color = colors.cardBackground,
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
         tonalElevation = 0.dp,
-        shadowElevation = 0.dp,
-        border = androidx.compose.foundation.BorderStroke(1.dp, colors.cardBorder)
+        shadowElevation = 0.dp
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column(modifier = Modifier.padding(20.dp)) {
             Text(
                 text = state.warning,
                 color = colors.fontDefault,
@@ -584,6 +583,7 @@ private fun EqualizerOverwriteCard(
                 label = { Text(state.label) },
                 singleLine = true,
                 isError = state.error != null,
+                shape = MaterialTheme.shapes.medium,
                 supportingText = state.error?.let { error -> { Text(error) } },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -593,13 +593,12 @@ private fun EqualizerOverwriteCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 16.dp),
-                horizontalArrangement = Arrangement.End
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
             ) {
                 TextButton(onClick = onCancel) {
                     Text(strings.cancel)
                 }
-                Spacer(Modifier.width(8.dp))
-                TextButton(
+                Button(
                     onClick = onConfirm,
                     enabled = state.confirmEnabled
                 ) {
@@ -674,6 +673,7 @@ private fun EqualizerEditorSheet(
                 text = strings.enableEqualizer,
                 checked = state.equalizerEnabled,
                 onCheckedChange = onEqualizerEnabledChange,
+                tonal = true,
                 modifier = Modifier.padding(top = 8.dp)
             )
         }
@@ -709,13 +709,12 @@ private fun EqualizerEditorSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 16.dp),
-                shape = RoundedCornerShape(4.dp),
-                color = colors.cardBackground,
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
                 tonalElevation = 0.dp,
-                shadowElevation = 0.dp,
-                border = androidx.compose.foundation.BorderStroke(1.dp, colors.cardBorder)
+                shadowElevation = 0.dp
             ) {
-                Column(modifier = Modifier.padding(12.dp)) {
+                Column(modifier = Modifier.padding(20.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -847,15 +846,24 @@ private fun EqualizerSwitchRow(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    tonal: Boolean = false
 ) {
     val colors = VLCThemeDefaults.colors
 
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 48.dp)
-            .clickable(enabled = enabled, role = Role.Switch) { onCheckedChange(!checked) },
+            .then(
+                if (tonal) {
+                    Modifier
+                        .clip(MaterialTheme.shapes.large)
+                        .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                } else Modifier
+            )
+            .heightIn(min = if (tonal) 60.dp else 48.dp)
+            .clickable(enabled = enabled, role = Role.Switch) { onCheckedChange(!checked) }
+            .then(if (tonal) Modifier.padding(horizontal = 20.dp, vertical = 10.dp) else Modifier),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
