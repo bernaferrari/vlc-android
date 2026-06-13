@@ -14,6 +14,7 @@ import androidx.activity.ComponentActivity
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -33,10 +34,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -52,6 +55,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -520,9 +524,10 @@ private fun SubtitleHeader(
     val colors = VLCThemeDefaults.colors
     Row(
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 8.dp)
+            .padding(start = 24.dp, end = 12.dp)
     ) {
         Text(
             text = stringResource(R.string.download_subtitles),
@@ -530,20 +535,44 @@ private fun SubtitleHeader(
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.weight(1f)
         )
-        IconButton(onClick = { onModeSelected(SubDownloadDialogState.History) }) {
-            Icon(
-                painter = painterResource(R.drawable.ic_history),
-                contentDescription = stringResource(R.string.talkback_subtitle_history),
-                tint = if (mode == SubDownloadDialogState.History) colors.primary else colors.fontDefault
-            )
-        }
-        IconButton(onClick = { onModeSelected(SubDownloadDialogState.Login) }) {
-            Icon(
-                painter = painterResource(R.drawable.ic_account),
-                contentDescription = stringResource(R.string.login),
-                tint = if (mode == SubDownloadDialogState.Login) colors.primary else colors.fontDefault
-            )
-        }
+        ModeActionIcon(
+            icon = R.drawable.ic_history,
+            contentDescription = stringResource(R.string.talkback_subtitle_history),
+            selected = mode == SubDownloadDialogState.History,
+            onClick = { onModeSelected(SubDownloadDialogState.History) }
+        )
+        ModeActionIcon(
+            icon = R.drawable.ic_account,
+            contentDescription = stringResource(R.string.login),
+            selected = mode == SubDownloadDialogState.Login,
+            onClick = { onModeSelected(SubDownloadDialogState.Login) }
+        )
+    }
+}
+
+/** Header mode toggle (history / login). Selecting one washes it in a tonal accent chip. */
+@Composable
+private fun ModeActionIcon(
+    @DrawableRes icon: Int,
+    contentDescription: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    val colors = VLCThemeDefaults.colors
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(44.dp)
+            .clip(MaterialTheme.shapes.medium)
+            .background(if (selected) colors.primary.copy(alpha = 0.14f) else androidx.compose.ui.graphics.Color.Transparent)
+            .clickable(onClick = onClick)
+    ) {
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = contentDescription,
+            tint = if (selected) colors.primary else colors.fontDefault,
+            modifier = Modifier.size(22.dp)
+        )
     }
 }
 
@@ -633,12 +662,13 @@ private fun SearchDescriptionCard(
 ) {
     val colors = VLCThemeDefaults.colors
     Surface(
-        color = colors.backgroundDefaultDarker,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        shape = MaterialTheme.shapes.large,
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = 16.dp, top = 24.dp, end = 16.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(start = 20.dp, top = 12.dp, end = 12.dp, bottom = 16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = resultDescription,
@@ -707,6 +737,7 @@ private fun SearchEditFields(
             onValueChange = onSearchNameChanged,
             label = { Text(stringResource(R.string.subtitle_search_name_hint)) },
             singleLine = true,
+            shape = MaterialTheme.shapes.medium,
             modifier = Modifier.fillMaxWidth()
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -715,6 +746,7 @@ private fun SearchEditFields(
                 onValueChange = onSearchSeasonChanged,
                 label = { Text(stringResource(R.string.subtitle_search_season_hint)) },
                 singleLine = true,
+                shape = MaterialTheme.shapes.medium,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.weight(1f)
             )
@@ -723,6 +755,7 @@ private fun SearchEditFields(
                 onValueChange = onSearchEpisodeChanged,
                 label = { Text(stringResource(R.string.subtitle_search_episode_hint)) },
                 singleLine = true,
+                shape = MaterialTheme.shapes.medium,
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Done
@@ -757,8 +790,11 @@ private fun SearchEditFields(
             )
         }
         Row(
-            horizontalArrangement = Arrangement.End,
-            modifier = Modifier.fillMaxWidth()
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp)
         ) {
             TextButton(onClick = onReset) {
                 Text(stringResource(R.string.reset))
@@ -766,7 +802,7 @@ private fun SearchEditFields(
             TextButton(onClick = onCancelEdit) {
                 Text(stringResource(R.string.cancel))
             }
-            TextButton(
+            Button(
                 onClick = {
                     focusManager.clearFocus()
                     onSearch()
@@ -881,7 +917,7 @@ private fun SubtitleList(
                     style = MaterialTheme.typography.bodyMedium
                 )
                 if (inError) {
-                    TextButton(onClick = onRetry, modifier = Modifier.padding(top = 8.dp)) {
+                    FilledTonalButton(onClick = onRetry, modifier = Modifier.padding(top = 12.dp)) {
                         Text(stringResource(R.string.retry))
                     }
                 }
@@ -980,27 +1016,46 @@ private fun SubtitleRow(
                 }
             }
         }
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(12.dp))
         when (item.state) {
-            State.Downloading -> CircularProgressIndicator(modifier = Modifier.size(28.dp))
-            State.Downloaded -> RowActionIcon(icon = R.drawable.ic_done, contentDescription = R.string.downloaded)
-            State.NotDownloaded -> RowActionIcon(icon = R.drawable.ic_download_subtitles, contentDescription = R.string.not_downloaded)
+            State.Downloading -> Box(
+                modifier = Modifier.size(40.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.5.dp)
+            }
+            State.Downloaded -> RowActionIcon(icon = R.drawable.ic_done, contentDescription = R.string.downloaded, accent = true)
+            State.NotDownloaded -> RowActionIcon(icon = R.drawable.ic_download_subtitles, contentDescription = R.string.not_downloaded, accent = false)
         }
     }
-    HorizontalDivider()
+    HorizontalDivider(
+        color = colors.defaultDivider,
+        modifier = Modifier.padding(start = 16.dp)
+    )
 }
 
+/** Trailing state affordance. Downloaded items get a filled accent chip; others a neutral tonal chip. */
 @Composable
 private fun RowActionIcon(
     @DrawableRes icon: Int,
-    @StringRes contentDescription: Int
+    @StringRes contentDescription: Int,
+    accent: Boolean
 ) {
-    Icon(
-        painter = painterResource(icon),
-        contentDescription = stringResource(contentDescription),
-        tint = VLCThemeDefaults.colors.fontDefault,
-        modifier = Modifier.size(32.dp)
-    )
+    val colors = VLCThemeDefaults.colors
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(40.dp)
+            .clip(MaterialTheme.shapes.medium)
+            .background(if (accent) colors.primary else MaterialTheme.colorScheme.surfaceContainerHighest)
+    ) {
+        Icon(
+            painter = painterResource(icon),
+            contentDescription = stringResource(contentDescription),
+            tint = if (accent) colors.onPrimary else colors.fontDefault,
+            modifier = Modifier.size(22.dp)
+        )
+    }
 }
 
 @Composable
@@ -1077,6 +1132,7 @@ private fun LoginModeContent(
                 onValueChange = onUsernameChanged,
                 label = { Text(stringResource(R.string.open_subtitles_username)) },
                 singleLine = true,
+                shape = MaterialTheme.shapes.medium,
                 modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
@@ -1084,31 +1140,45 @@ private fun LoginModeContent(
                 onValueChange = onPasswordChanged,
                 label = { Text(stringResource(R.string.open_subtitles_password)) },
                 singleLine = true,
+                shape = MaterialTheme.shapes.medium,
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth()
             )
         }
         val errorMessage = user.errorMessage
         if (!errorMessage.isNullOrEmpty()) {
-            Surface(color = colors.backgroundDefaultDarker) {
+            Surface(
+                color = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                shape = MaterialTheme.shapes.medium,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text(
                     text = errorMessage,
-                    color = colors.error,
-                    modifier = Modifier.padding(12.dp)
+                    modifier = Modifier.padding(16.dp)
                 )
             }
         }
         Row(
-            horizontalArrangement = Arrangement.End,
-            modifier = Modifier.fillMaxWidth()
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp)
         ) {
             if (!user.logged) {
                 TextButton(onClick = onRegisterClicked) {
                     Text(stringResource(R.string.open_subtitles_register))
                 }
             }
-            TextButton(onClick = onLoginClicked) {
-                Text(stringResource(if (user.logged) R.string.open_subtitles_log_out else R.string.login))
+            if (user.logged) {
+                FilledTonalButton(onClick = onLoginClicked) {
+                    Text(stringResource(R.string.open_subtitles_log_out))
+                }
+            } else {
+                Button(onClick = onLoginClicked) {
+                    Text(stringResource(R.string.login))
+                }
             }
         }
     }
