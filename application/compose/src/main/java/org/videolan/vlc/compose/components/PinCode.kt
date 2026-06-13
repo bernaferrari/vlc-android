@@ -271,17 +271,21 @@ private fun PinBoxes(pin: String, modifier: Modifier = Modifier) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             repeat(4) { index ->
+                val filled = pin.length > index
                 Box(
                     modifier = Modifier
                         .size(tileSize)
-                        .background(colors.backgroundDefaultDarker, RoundedCornerShape(4.dp)),
+                        .background(
+                            color = if (filled) colors.primary.copy(alpha = 0.16f) else MaterialTheme.colorScheme.surfaceContainerHigh,
+                            shape = RoundedCornerShape(16.dp)
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = if (pin.length > index) "*" else "",
+                        text = if (filled) "●" else "",
                         color = colors.primary,
                         style = MaterialTheme.typography.titleLarge.copy(
-                            fontSize = 30.sp,
+                            fontSize = 24.sp,
                             fontWeight = FontWeight.Medium,
                             textAlign = TextAlign.Center
                         )
