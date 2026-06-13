@@ -45,7 +45,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -2021,14 +2020,14 @@ private fun BrowserItemIcon(item: MediaLibraryItem, large: Boolean = false) {
     Box(
         modifier = Modifier
             .size(artworkSize)
-            .clip(RoundedCornerShape(4.dp))
-            .background(colors.backgroundDefault),
+            .clip(MaterialTheme.shapes.medium)
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest),
         contentAlignment = Alignment.Center
     ) {
         Icon(
             painter = painterResource(icon),
             contentDescription = null,
-            modifier = Modifier.size(if (large) 32.dp else 28.dp),
+            modifier = Modifier.size(if (large) 28.dp else 24.dp),
             tint = colors.primary
         )
     }

@@ -79,7 +79,7 @@ fun VLCBrowserItemRow(
     VLCTheme {
         val colors = VLCThemeDefaults.colors
         val selectionBackground by animateColorAsState(
-            targetValue = if (selected) colors.subtleSelection else Color.Transparent,
+            targetValue = if (selected) colors.primary.copy(alpha = 0.10f) else Color.Transparent,
             animationSpec = tween(VLCMotion.DurationShort, easing = VLCMotion.Standard),
             label = "rowSelection"
         )
@@ -167,7 +167,7 @@ fun VLCBrowserItemCard(
         Column(
             modifier = modifier
                 .clip(MaterialTheme.shapes.medium)
-                .background(if (selected) colors.subtleSelection else MaterialTheme.colorScheme.surfaceContainer)
+                .background(if (selected) colors.primary.copy(alpha = 0.10f) else MaterialTheme.colorScheme.surfaceContainer)
                 .border(if (selected) 2.dp else 1.dp, borderColor, MaterialTheme.shapes.medium)
                 .then(if (contentDescription != null) Modifier.semantics { this.contentDescription = contentDescription } else Modifier)
                 .combinedClickable(
