@@ -27,27 +27,29 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
 import android.widget.FrameLayout
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -60,9 +62,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -470,7 +475,8 @@ private fun SavePlaylistContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .widthIn(min = 300.dp)
-                .padding(vertical = 16.dp)
+                .padding(top = 8.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             CreatePlaylistSection(
                 playlistName = playlistName,
@@ -483,8 +489,7 @@ private fun SavePlaylistContent(
                 ReplacePlaylistConfirmation(
                     confirmation = replaceConfirmation,
                     onCancel = onCancelReplace,
-                    onConfirm = onConfirmReplace,
-                    modifier = Modifier.padding(top = 16.dp)
+                    onConfirm = onConfirmReplace
                 )
             } else {
                 ExistingPlaylistSection(
@@ -496,12 +501,13 @@ private fun SavePlaylistContent(
                     onPlaylistClicked = onPlaylistClicked,
                     onReplaceCheckedChanged = onReplaceCheckedChanged
                 )
-                TextButton(
+                Button(
                     onClick = onSave,
                     enabled = !isLoading && selectedPlaylistIds.isNotEmpty(),
                     modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .padding(top = 8.dp)
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                        .heightIn(min = 52.dp)
                 ) {
                     Text(stringResource(saveButtonText))
                 }
@@ -523,20 +529,18 @@ private fun CreatePlaylistSection(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
             text = stringResource(R.string.create_new_playlist),
             color = colors.fontDefault,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold
+            style = MaterialTheme.typography.titleLarge
         )
         Row(
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)
+            modifier = Modifier.fillMaxWidth()
         ) {
             OutlinedTextField(
                 value = playlistName,
@@ -545,6 +549,7 @@ private fun CreatePlaylistSection(
                 isError = playlistNameError != null,
                 supportingText = playlistNameError?.let { { Text(it) } },
                 singleLine = true,
+                shape = MaterialTheme.shapes.medium,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                 keyboardActions = KeyboardActions(onSend = {
                     focusManager.clearFocus()
@@ -552,15 +557,25 @@ private fun CreatePlaylistSection(
                 }),
                 modifier = Modifier.weight(1f)
             )
-            TextButton(
+            FilledTonalButton(
                 onClick = {
                     focusManager.clearFocus()
                     onCreatePlaylist()
                 },
                 enabled = !isLoading,
-                modifier = Modifier.padding(top = 8.dp)
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .heightIn(min = 52.dp)
             ) {
-                Text(stringResource(R.string.create))
+                Icon(
+                    painter = painterResource(R.drawable.ic_add),
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Text(
+                    text = stringResource(R.string.create),
+                    modifier = Modifier.padding(start = 6.dp)
+                )
             }
         }
     }
@@ -578,61 +593,68 @@ private fun ExistingPlaylistSection(
 ) {
     val colors = VLCThemeDefaults.colors
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 24.dp)
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 24.dp)
         ) {
-            Text(
-                text = if (selectedPlaylistIds.isEmpty()) {
-                    stringResource(R.string.add_to_existing_playlist)
-                } else {
-                    stringResource(R.string.selection_count, selectedPlaylistIds.size)
-                },
-                color = colors.fontDefault,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.weight(1f)
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = if (selectedPlaylistIds.isEmpty()) {
+                        stringResource(R.string.add_to_existing_playlist)
+                    } else {
+                        stringResource(R.string.selection_count, selectedPlaylistIds.size)
+                    },
+                    color = colors.fontDefault,
+                    style = MaterialTheme.typography.titleLarge
+                )
+                if (!isLoading && filesText.isNotEmpty()) {
+                    Text(
+                        text = filesText,
+                        color = colors.fontLight,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
+            }
             if (isLoading) CircularProgressIndicator(modifier = Modifier.size(28.dp))
         }
-        if (!isLoading && filesText.isNotEmpty()) {
-            Text(
-                text = filesText,
-                color = colors.fontLight,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(start = 16.dp, top = 2.dp, end = 16.dp)
-            )
-        }
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(enabled = !isLoading) { onReplaceCheckedChanged(!replaceChecked) }
-                .padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 12.dp)
+                .padding(horizontal = 16.dp)
+                .clip(MaterialTheme.shapes.large)
+                .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                .clickable(enabled = !isLoading, role = Role.Switch) { onReplaceCheckedChanged(!replaceChecked) }
+                .padding(start = 20.dp, top = 12.dp, end = 20.dp, bottom = 12.dp)
         ) {
-            Text(
-                text = stringResource(R.string.replace_playlist),
-                color = colors.fontDefault,
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.weight(1f)
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.replace_playlist),
+                    color = colors.fontDefault,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
             Switch(
                 checked = replaceChecked,
                 enabled = !isLoading,
                 onCheckedChange = onReplaceCheckedChanged
             )
         }
-        HorizontalDivider()
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(horizontal = 16.dp)
                 .heightIn(min = 96.dp, max = 420.dp)
+                .clip(MaterialTheme.shapes.large)
+                .background(MaterialTheme.colorScheme.surfaceContainerLow)
         ) {
             if (!isLoading && playlists.isEmpty()) {
                 Text(
@@ -644,7 +666,13 @@ private fun ExistingPlaylistSection(
                 )
             } else {
                 LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                    items(playlists, key = { it.id }) { playlist ->
+                    itemsIndexed(playlists, key = { _, it -> it.id }) { index, playlist ->
+                        if (index > 0) {
+                            HorizontalDivider(
+                                color = colors.defaultDivider,
+                                modifier = Modifier.padding(start = 80.dp)
+                            )
+                        }
                         PlaylistRow(
                             playlist = playlist,
                             selected = selectedPlaylistIds.contains(playlist.id),
@@ -666,23 +694,47 @@ private fun PlaylistRow(
     onClick: () -> Unit
 ) {
     val colors = VLCThemeDefaults.colors
+    val chipColor by animateColorAsState(
+        targetValue = if (selected) colors.primary else MaterialTheme.colorScheme.surfaceContainerHighest,
+        label = "playlistChip"
+    )
+    val iconTint = if (selected) colors.onPrimary else colors.fontDefault
     Row(
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(20.dp),
         modifier = Modifier
             .fillMaxWidth()
+            .then(if (selected) Modifier.background(colors.primary.copy(alpha = 0.08f)) else Modifier)
             .toggleable(
                 value = selected,
                 enabled = enabled,
                 role = Role.Checkbox,
                 onValueChange = { onClick() }
             )
-            .padding(horizontal = 16.dp, vertical = 10.dp)
+            .heightIn(min = 60.dp)
+            .padding(horizontal = 20.dp, vertical = 10.dp)
     ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(if (selected) 20.dp else 14.dp))
+                .background(chipColor),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(if (selected) R.drawable.ic_check else R.drawable.ic_playlist),
+                contentDescription = null,
+                tint = iconTint,
+                modifier = Modifier.size(22.dp)
+            )
+        }
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = playlist.title,
-                color = colors.fontDefault,
-                style = MaterialTheme.typography.bodyLarge,
+                color = if (selected) colors.primary else colors.fontDefault,
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+                ),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -697,12 +749,6 @@ private fun PlaylistRow(
                 )
             }
         }
-        Spacer(modifier = Modifier.width(16.dp))
-        Checkbox(
-            checked = selected,
-            enabled = enabled,
-            onCheckedChange = { onClick() }
-        )
     }
 }
 
@@ -715,24 +761,31 @@ private fun ReplacePlaylistConfirmation(
 ) {
     val colors = VLCThemeDefaults.colors
     Surface(
-        color = colors.backgroundDefaultDarker,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
         contentColor = colors.fontDefault,
-        modifier = modifier.fillMaxWidth()
+        shape = MaterialTheme.shapes.large,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(16.dp)
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
                 text = stringResource(R.string.confirm_replace_playlist, confirmation.playlist.title),
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.weight(1f)
+                style = MaterialTheme.typography.bodyLarge
             )
-            TextButton(onClick = onCancel) {
-                Text(stringResource(R.string.cancel))
-            }
-            TextButton(onClick = { onConfirm(confirmation) }) {
-                Text(stringResource(R.string.ok))
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                TextButton(onClick = onCancel) {
+                    Text(stringResource(R.string.cancel))
+                }
+                Button(onClick = { onConfirm(confirmation) }) {
+                    Text(stringResource(R.string.ok))
+                }
             }
         }
     }
