@@ -132,7 +132,7 @@ private fun OTPDigits(
                 Box(
                     modifier = Modifier
                         .size(tileSize)
-                        .background(tileColor, RoundedCornerShape(8.dp)),
+                        .background(tileColor, RoundedCornerShape(16.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -140,7 +140,7 @@ private fun OTPDigits(
                         color = digitColor,
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontSize = digitTextSize,
-                            fontWeight = FontWeight.Normal,
+                            fontWeight = FontWeight.Medium,
                             textAlign = TextAlign.Center
                         )
                     )
