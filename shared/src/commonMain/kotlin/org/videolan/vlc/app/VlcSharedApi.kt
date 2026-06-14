@@ -1,22 +1,22 @@
 package org.videolan.vlc.app
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
 import org.videolan.tools.VlcPreferences
-import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.MediaType
 import org.videolan.vlc.platform.PlatformInfoProvider
+import org.videolan.vlc.repository.MediaRepository
 
 /**
  * Public API surface for iOS / Swift consumption.
  *
- * This class is exported in the VLCShared framework and can be called
- * directly from Swift code:
+ * Resolves dependencies from [VlcKoin]. The app must call the platform
+ * initializer (VlcKmpInitializer on Android, startKoin on iOS) before use.
  *
  * ```swift
  * let api = VlcSharedApi()
  * print(api.platformInfo())
- * api.getMediaCount(type: .video) { count in ... }
  * ```
  */
 class VlcSharedApi {
@@ -29,35 +29,26 @@ class VlcSharedApi {
 
     fun appVersion(): String = "KMP v1.0"
 
-    fun isInitialized(): Boolean = VlcApp.isInitialized
+    fun isInitialized(): Boolean = VlcKoin.isStarted
 
     /**
-     * Returns the number of media items of the given type (suspend,
-     * must be called from a coroutine).
+     * Returns the number of media items of the given type (suspend).
      */
     suspend fun getMediaCount(type: MediaType = MediaType.ALL): Int {
-        return if (VlcApp.isInitialized) {
-            VlcApp.container.mediaRepository.count(type)
-        } else 0
-    }
-
-    /**
-     * Synchronous version of [getMediaCount] for Swift convenience.
-     * Returns 0 if not yet initialized.
-     */
-    fun getMediaCountSync(): Int {
-        // Non-suspending convenience for simple checks.
-        // For real data access, use the suspending version from coroutines.
-        return 0
+        return try {
+            VlcKoin.get().get<MediaRepository>().count(type)
+        } catch (_: Exception) {
+            0
+        }
     }
 
     /**
      * Get preference value as a Flow for reactive UI.
      */
     fun booleanPreferenceFlow(key: String, default: Boolean): Flow<Boolean> {
-        return if (VlcApp.isInitialized) {
-            VlcApp.container.preferences.getBooleanFlow(key, default)
-        } else {
+        return try {
+            VlcKoin.get().get<VlcPreferences>().getBooleanFlow(key, default)
+        } catch (_: Exception) {
             flowOf(default)
         }
     }
@@ -66,8 +57,10 @@ class VlcSharedApi {
      * Set a boolean preference (suspend).
      */
     suspend fun setBooleanPreference(key: String, value: Boolean) {
-        if (VlcApp.isInitialized) {
-            VlcApp.container.preferences.putBoolean(key, value)
+        try {
+            VlcKoin.get().get<VlcPreferences>().putBoolean(key, value)
+        } catch (_: Exception) {
+            // Koin not started yet
         }
     }
 }

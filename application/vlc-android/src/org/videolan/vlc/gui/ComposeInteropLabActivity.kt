@@ -319,30 +319,30 @@ fun ComposeInteropLabContent() {
             actions = listOf(
                 VLCVideoQuickAction(
                     id = R.id.orientation_quick_action,
-                    icon = R.drawable.ic_player_lock_landscape,
+                    iconContent = { androidx.compose.foundation.layout.Box(Modifier.size(18.dp)) },
                     contentDescription = "Orientation locked"
                 ),
                 VLCVideoQuickAction(
                     id = R.id.playback_speed_quick_action,
-                    icon = R.drawable.ic_speed_all,
+                    iconContent = { androidx.compose.foundation.layout.Box(Modifier.size(18.dp)) },
                     text = "1.25x",
                     contentDescription = "Playback speed 1.25x"
                 ),
                 VLCVideoQuickAction(
                     id = R.id.sleep_quick_action,
-                    icon = R.drawable.ic_sleep,
+                    iconContent = { androidx.compose.foundation.layout.Box(Modifier.size(18.dp)) },
                     text = "12:55 AM",
                     contentDescription = "Sleep timer 12:55 AM"
                 ),
                 VLCVideoQuickAction(
                     id = R.id.spu_delay_quick_action,
-                    icon = R.drawable.ic_subtitles,
+                    iconContent = { androidx.compose.foundation.layout.Box(Modifier.size(18.dp)) },
                     text = "+300 ms",
                     contentDescription = "Subtitle delay plus 300 milliseconds"
                 ),
                 VLCVideoQuickAction(
                     id = R.id.audio_delay_quick_action,
-                    icon = R.drawable.ic_player_volume,
+                    iconContent = { androidx.compose.foundation.layout.Box(Modifier.size(18.dp)) },
                     text = "-200 ms",
                     contentDescription = "Audio delay minus 200 milliseconds"
                 )

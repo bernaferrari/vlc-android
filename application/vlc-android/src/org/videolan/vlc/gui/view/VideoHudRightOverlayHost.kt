@@ -260,7 +260,7 @@ internal class VideoHudRightOverlayHost(context: Context) {
                 .map { action ->
                     VLCVideoQuickAction(
                         id = action.id,
-                        icon = action.icon,
+                        iconContent = { Icon(painterResource(action.icon), null, tint = androidx.compose.ui.graphics.Color.White, modifier = Modifier.size(18.dp)) },
                         text = action.text,
                         contentDescription = action.contentDescription
                     )

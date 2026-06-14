@@ -7,7 +7,7 @@
  *
  *   commonMain
  *     ├── commonJvmMain          (JVM: java.io, synchronized, DecimalFormat)
- *     │   ├── androidMain        (Android: Context, DataStore delegate)
+ *     │   ├── androidMain        (Android: Context, DataStore delegate, Koin-Android)
  *     │   └── jvmMain            (Desktop JVM: Okio DataStore)
  *     └── iosMain                (iOS: darwin, darwinLog)
  *         ├── iosArm64Main
@@ -15,10 +15,15 @@
  *
  * Package is `org.videolan` (sub-packages match original modules) so that
  * existing imports across the Android codebase resolve without changes.
+ *
+ * All dependency versions are tracked in gradle/libs.versions.toml.
  */
 plugins {
     kotlin("multiplatform")
     id("com.android.library")
+    id("org.jetbrains.compose")
+    id("org.jetbrains.kotlin.plugin.compose")
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -30,26 +35,22 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 
 kotlin {
 
     androidTarget {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "1.8"
-            }
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
         }
     }
 
     jvm {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "1.8"
-            }
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
         }
     }
 
@@ -69,23 +70,35 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
+                api(libs.kotlinx.coroutines.core)
                 // KMP DataStore — provides DataStore<Preferences> for all targets
-                api("androidx.datastore:datastore-preferences-core:1.1.1")
-                api("androidx.datastore:datastore-core-okio:1.1.1")
-                api("com.squareup.okio:okio:3.9.0")
+                api(libs.androidx.datastore.preferences.core)
+                api(libs.androidx.datastore.core.okio)
+                api(libs.okio)
+                // Koin — dependency injection for KMP
+                api(libs.koin.core)
+                // Compose Multiplatform — shared UI across all targets
+                api(compose.runtime)
+                api(compose.foundation)
+                api(compose.material3)
+                api(compose.ui)
+                api(compose.components.resources)
             }
         }
 
         // ── JVM intermediate (shared between android and jvm) ──
         val commonJvmMain by creating {
             dependsOn(commonMain.get())
+            dependencies {
+                api(libs.koin.annotations)
+            }
         }
 
         androidMain {
             dependsOn(commonJvmMain)
             dependencies {
-                implementation("androidx.datastore:datastore-preferences:1.1.1")
+                implementation(libs.androidx.datastore.preferences)
+                api(libs.koin.android)
             }
         }
 
@@ -101,4 +114,17 @@ kotlin {
         iosArm64Main { dependsOn(iosMain) }
         iosSimulatorArm64Main { dependsOn(iosMain) }
     }
+}
+
+// Override the root build.gradle's allprojects JVM 1.8 — we use 17 in :shared.
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
+}
+
+// Koin compiler — compile-time verification of module bindings via KSP.
+dependencies {
+    add("kspAndroid", libs.koin.ksp.compiler)
+    add("kspJvm", libs.koin.ksp.compiler)
 }

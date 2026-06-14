@@ -59,6 +59,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp as composeDp
 import androidx.appcompat.app.AppCompatActivity
@@ -959,7 +960,7 @@ class AudioPlayer(
         binding.backgroundView.setContent {
             VLCTheme {
                 VLCAudioPlayerBackground(
-                        bitmap = audioBackgroundState.bitmap,
+                        bitmap = audioBackgroundState.bitmap?.asImageBitmap(),
                         overlayColor = audioBackgroundState.overlayColor
                 )
             }
@@ -1667,7 +1668,7 @@ class AudioPlayer(
 
     private fun showPlaylistContext(position: Int, item: MediaWrapper) {
         if (position !in playlistItems.indices) return
-        val flags = FlagSet(ContextOption::class.java).apply {
+        val flags = FlagSet(ContextOption.entries.toList()).apply {
             addAll(CTX_GO_TO_FOLDER, CTX_INFORMATION, CTX_REMOVE_FROM_PLAYLIST, CTX_STOP_AFTER_THIS)
             if (item.uri?.scheme != "content") addAll(CTX_ADD_TO_PLAYLIST, CTX_SET_RINGTONE, CTX_SHARE)
             if (item.album != null) add(CTX_GO_TO_ALBUM)
@@ -1703,7 +1704,7 @@ class AudioPlayer(
                     target = VLCAudioMediaSwitchTarget.Previous,
                     title = service.titlePrev.orEmpty(),
                     artist = service.artistPrev.orEmpty(),
-                    cover = previousCover
+                    cover = previousCover?.asImageBitmap()
             )
         }
 
@@ -1713,7 +1714,7 @@ class AudioPlayer(
                     target = VLCAudioMediaSwitchTarget.Current,
                     title = if (!chapter.isNullOrEmpty()) chapter else service.title.orEmpty(),
                     artist = if (!chapter.isNullOrEmpty()) service.title.orEmpty() else service.artist.orEmpty(),
-                    cover = currentCover
+                    cover = currentCover?.asImageBitmap()
             )
         }
 
@@ -1722,7 +1723,7 @@ class AudioPlayer(
                     target = VLCAudioMediaSwitchTarget.Next,
                     title = service.titleNext.orEmpty(),
                     artist = service.artistNext.orEmpty(),
-                    cover = nextCover
+                    cover = nextCover?.asImageBitmap()
             )
         }
 
@@ -1765,7 +1766,7 @@ class AudioPlayer(
                     title = service.titlePrev.orEmpty(),
                     subtitle = TextUtils.separatedString(service.artistPrev, service.albumPrev),
                     trackInfo = previousTrackInfo,
-                    cover = previousCover,
+                    cover = previousCover?.asImageBitmap(),
                     showChapterButtons = false
             )
         }
@@ -1782,7 +1783,7 @@ class AudioPlayer(
                         TextUtils.separatedString(service.artist, service.album)
                     },
                     trackInfo = currentTrackInfo,
-                    cover = currentCover,
+                    cover = currentCover?.asImageBitmap(),
                     showChapterButtons = hasChapters && settings.getBoolean(KEY_AUDIO_SHOW_CHAPTER_BUTTONS, true)
             )
         }
@@ -1793,7 +1794,7 @@ class AudioPlayer(
                     title = service.titleNext.orEmpty(),
                     subtitle = TextUtils.separatedString(service.artistNext, service.albumNext),
                     trackInfo = nextTrackInfo,
-                    cover = nextCover,
+                    cover = nextCover?.asImageBitmap(),
                     showChapterButtons = false
             )
         }

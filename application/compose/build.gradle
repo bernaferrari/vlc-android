@@ -41,6 +41,8 @@ android {
 }
 
 dependencies {
+    api project(':shared')
+
     def composeBom = platform("androidx.compose:compose-bom:$rootProject.ext.composeBomVersion")
     implementation composeBom
 

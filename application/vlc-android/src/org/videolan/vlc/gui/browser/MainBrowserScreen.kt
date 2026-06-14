@@ -430,7 +430,7 @@ class MainBrowserScreenController(
         val media = item.asMediaWrapper() ?: return
         activity.lifecycleScope.launch {
             if (media.uri.scheme == "content" || media.uri.scheme == OTG_SCHEME) return@launch
-            val flags = FlagSet(ContextOption::class.java).apply {
+            val flags = FlagSet(ContextOption.entries.toList()).apply {
                 val isEmpty = section.model?.isFolderEmpty(media) != false
                 if (!isEmpty) add(CTX_PLAY)
                 val isFileBrowser = section.isFile && media.uri.scheme == "file"
@@ -685,7 +685,7 @@ class SecondaryStorageBrowserScreenController(
     private fun onMoreClicked(sectionItems: List<MediaLibraryItem>, position: Int, item: MediaLibraryItem) {
         if (!isCustomDirectory(item)) return
         contextItems = sectionItems
-        showContext(activity, this, position, item, FlagSet(ContextOption::class.java).apply { add(CTX_CUSTOM_REMOVE) })
+        showContext(activity, this, position, item, FlagSet(ContextOption.entries.toList()).apply { add(CTX_CUSTOM_REMOVE) })
     }
 
     override fun onCtxAction(position: Int, option: ContextOption) {
@@ -1121,7 +1121,7 @@ class SecondaryFileBrowserScreenController(
         val media = item.asMediaWrapper() ?: return
         activity.lifecycleScope.launch {
             if (media.uri.scheme == "content" || media.uri.scheme == OTG_SCHEME) return@launch
-            val flags = FlagSet(ContextOption::class.java).apply {
+            val flags = FlagSet(ContextOption.entries.toList()).apply {
                 add(CTX_RENAME)
                 if (isLocalFileBrowser) {
                     add(CTX_DELETE)

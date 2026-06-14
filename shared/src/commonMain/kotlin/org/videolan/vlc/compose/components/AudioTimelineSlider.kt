@@ -1,0 +1,69 @@
+package org.videolan.vlc.compose.components
+
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import kotlin.math.roundToInt
+import org.videolan.vlc.compose.theme.VLCTheme
+import org.videolan.vlc.compose.theme.VLCThemeDefaults
+
+/**
+ * Compose equivalent of the audio/video full-player timeline seekbars:
+ *   - application/vlc-android/res/layout/audio_player.xml @id/timeline
+ *   - application/vlc-android/res/layout-land/audio_player.xml @id/timeline
+ *   - application/vlc-android/src/org/videolan/vlc/gui/view/VideoHudOverlayView.kt @id/player_overlay_seekbar
+ *
+ * Direct Compose hosts and the remaining video HUD bridge keep the existing
+ * max/progress and drag callback contracts while this leaf owns the visual
+ * track/thumb rendering.
+ */
+@Composable
+fun VLCAudioTimelineSlider(
+    progress: Int,
+    max: Int,
+    contentDescription: String?,
+    onUserProgressChange: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    onUserDragStarted: () -> Unit = {},
+    onUserDragStopped: () -> Unit = {}
+) {
+    VLCTheme {
+        val colors = VLCThemeDefaults.colors
+        val safeMax = max.coerceAtLeast(1)
+        val safeProgress = progress.coerceIn(0, safeMax)
+        var tracking by remember { mutableStateOf(false) }
+
+        Slider(
+            value = safeProgress.toFloat(),
+            onValueChange = { value ->
+                if (!tracking) {
+                    tracking = true
+                    onUserDragStarted()
+                }
+                onUserProgressChange(value.roundToInt().coerceIn(0, safeMax))
+            },
+            onValueChangeFinished = {
+                if (tracking) {
+                    tracking = false
+                    onUserDragStopped()
+                }
+            },
+            valueRange = 0f..safeMax.toFloat(),
+            colors = SliderDefaults.colors(
+                thumbColor = colors.primary,
+                activeTrackColor = colors.primary,
+                inactiveTrackColor = colors.audioSeekTrack
+            ),
+            modifier = modifier.semantics {
+                if (contentDescription != null) this.contentDescription = contentDescription
+            }
+        )
+    }
+}

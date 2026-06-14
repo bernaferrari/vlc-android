@@ -242,7 +242,7 @@ class MoreScreenController(private val activity: MainActivity) : CtxActionReceiv
             openStreamsScreen()
             return
         }
-        val flags = FlagSet(ContextOption::class.java).apply {
+        val flags = FlagSet(ContextOption.entries.toList()).apply {
             addAll(CTX_ADD_SHORTCUT, CTX_ADD_TO_PLAYLIST, CTX_APPEND, CTX_COPY, CTX_DELETE, CTX_RENAME)
         }
         showContext(activity, this, position, media, flags)

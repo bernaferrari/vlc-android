@@ -1895,7 +1895,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     }
 
     fun showPlaylistContext(position: Int, item: MediaWrapper) {
-        val flags = FlagSet(ContextOption::class.java).apply {
+        val flags = FlagSet(ContextOption.entries.toList()).apply {
             addAll(CTX_REMOVE_FROM_PLAYLIST, CTX_STOP_AFTER_THIS)
             if (item.uri?.scheme != "content") addAll(CTX_ADD_TO_PLAYLIST, CTX_SHARE)
             if (item.album != null) add(CTX_GO_TO_ALBUM)
