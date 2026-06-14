@@ -27,6 +27,7 @@ android {
 }
 
 dependencies {
+    api project(':shared')
     api "androidx.appcompat:appcompat:$rootProject.ext.appCompatVersion"
     implementation "androidx.lifecycle:lifecycle-process:$rootProject.ext.lifecycleVersion"
     implementation "androidx.preference:preference-ktx:$androidxPreferencesVersion"

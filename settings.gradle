@@ -25,6 +25,7 @@ if (file('libvlcjni/libvlc').isDirectory()) {
     include ':libvlcjni:libvlc'
 }
 include ':medialibrary'
+include ':shared'
 include ':application:tools', ':application:resources', ':application:compose', ':application:mediadb', ':application:app', ':application:live-plot-graph', ':application:television', ':application:donations', ':application:remote-access-server'
 include ':application:vlc-android'
 include ':application:moviepedia'
