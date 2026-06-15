@@ -5,6 +5,7 @@ import android.os.Build
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.ComponentActivity
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,7 +19,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
@@ -33,9 +33,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.content.getSystemService
@@ -468,10 +470,10 @@ private fun CategoryHeader(text: String) {
     Text(
         text = text,
         color = colors.primary,
-        style = MaterialTheme.typography.titleMedium,
+        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 18.dp, bottom = 6.dp)
+            .padding(start = 6.dp, top = 20.dp, bottom = 8.dp)
     )
 }
 
@@ -483,12 +485,14 @@ private fun PreferenceRowFrame(
     trailingContent: @Composable () -> Unit,
     textContent: @Composable () -> Unit
 ) {
-    val colors = VLCThemeDefaults.colors
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(vertical = 3.dp)
+            .clip(MaterialTheme.shapes.large)
+            .background(MaterialTheme.colorScheme.surfaceContainerLow)
             .then(if (onClick != null) Modifier.clickable(enabled = enabled, role = role) { onClick() } else Modifier)
-            .padding(vertical = 8.dp)
+            .padding(horizontal = 14.dp, vertical = 12.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -500,10 +504,6 @@ private fun PreferenceRowFrame(
             }
             trailingContent()
         }
-        HorizontalDivider(
-            color = colors.defaultDivider,
-            modifier = Modifier.padding(top = 8.dp)
-        )
     }
 }
 
@@ -641,11 +641,13 @@ private fun SliderPreferenceRow(
     enabled: Boolean = true
 ) {
     var current by remember(title, value) { mutableStateOf(value.coerceIn(min, max)) }
-    val colors = VLCThemeDefaults.colors
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(vertical = 3.dp)
+            .clip(MaterialTheme.shapes.large)
+            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .padding(horizontal = 14.dp, vertical = 12.dp)
     ) {
         PreferenceText(
             title = title,
@@ -661,7 +663,6 @@ private fun SliderPreferenceRow(
             enabled = enabled,
             modifier = Modifier.fillMaxWidth()
         )
-        HorizontalDivider(color = colors.defaultDivider)
     }
 }
 

@@ -1,6 +1,7 @@
 package org.videolan.vlc.gui.dialogs
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -31,6 +32,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
@@ -213,28 +215,35 @@ private class PlaybackTimePickerComposeDialog(
                 Text(
                     text = activity.getString(if (mode == TimePickerMode.JumpToTime) R.string.jump_to_time else R.string.sleep_in),
                     color = colors.fontDefault,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    modifier = Modifier.padding(bottom = 12.dp)
                 )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
+                Surface(
+                    shape = MaterialTheme.shapes.large,
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    contentColor = colors.fontDefault,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(
-                        text = parsedTime.formatted,
-                        color = colors.fontDefault,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .weight(1f)
-                            .heightIn(min = 40.dp)
-                    )
-                    IconButton(onClick = ::deleteLastNumber) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_backspace),
-                            contentDescription = activity.getString(R.string.clear),
-                            tint = colors.fontDefault
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(start = 20.dp, top = 8.dp, end = 8.dp, bottom = 8.dp)
+                    ) {
+                        Text(
+                            text = parsedTime.formatted,
+                            color = if (parsedTime.formatted.isBlank()) colors.fontLight else colors.fontDefault,
+                            fontSize = 30.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .weight(1f)
+                                .heightIn(min = 44.dp)
                         )
+                        IconButton(onClick = ::deleteLastNumber) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_backspace),
+                                contentDescription = activity.getString(R.string.clear),
+                                tint = colors.fontLight
+                            )
+                        }
                     }
                 }
                 TimeKeypad(
@@ -293,9 +302,10 @@ private fun TimeKeypad(
     )
     rows.forEachIndexed { rowIndex, row ->
         Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = if (rowIndex == 0) 8.dp else 0.dp)
+                .padding(top = 8.dp)
         ) {
             row.forEachIndexed { columnIndex, key ->
                 TimeKeyButton(
@@ -318,17 +328,23 @@ private fun RowScope.TimeKeyButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    TextButton(
+    val colors = VLCThemeDefaults.colors
+    Surface(
         onClick = onClick,
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        contentColor = colors.fontDefault,
         modifier = modifier
             .weight(1f)
-            .height(44.dp)
+            .height(54.dp)
     ) {
-        Text(
-            text = label,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold
-        )
+        Box(contentAlignment = Alignment.Center) {
+            Text(
+                text = label,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }
 
@@ -338,19 +354,27 @@ private fun CheckboxRow(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
+    val colors = VLCThemeDefaults.colors
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
+            .padding(top = 8.dp)
+            .clip(MaterialTheme.shapes.medium)
             .toggleable(
                 value = checked,
                 role = Role.Checkbox,
                 onValueChange = onCheckedChange
             )
-            .padding(top = 8.dp)
+            .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
         Checkbox(checked = checked, onCheckedChange = null)
-        Text(text = text)
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = text,
+            color = colors.fontDefault,
+            modifier = Modifier.weight(1f)
+        )
     }
 }
 

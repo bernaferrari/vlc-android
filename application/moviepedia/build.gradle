@@ -49,6 +49,7 @@ android {
 }
 
 dependencies {
+    implementation project(':shared')
     implementation project(':application:tools')
     implementation project(':application:vlc-android')
     implementation project(':application:compose')

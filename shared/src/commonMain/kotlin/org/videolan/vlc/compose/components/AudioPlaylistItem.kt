@@ -81,6 +81,15 @@ fun VLCAudioPlaylistItem(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                    .clip(MaterialTheme.shapes.large)
+                    .then(
+                        if (current) {
+                            Modifier.background(VLCThemeDefaults.colors.primary.copy(alpha = 0.14f))
+                        } else {
+                            Modifier
+                        }
+                    )
                     .clickable(role = Role.Button, onClick = onClick)
                     .semantics { this.contentDescription = contentDescription }
                     .padding(start = 8.dp)
@@ -110,7 +119,7 @@ fun VLCAudioPlaylistItem(
                 ) {
                     Text(
                         text = title,
-                        color = VLCThemeDefaults.colors.fontDefault,
+                        color = if (current) VLCThemeDefaults.colors.primary else VLCThemeDefaults.colors.fontDefault,
                         style = MaterialTheme.typography.bodyLarge.copy(
                             fontSize = 16.sp,
                             fontWeight = if (current) FontWeight.Bold else FontWeight.Normal

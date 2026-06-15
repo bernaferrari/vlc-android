@@ -62,8 +62,11 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import org.videolan.vlc.compose.components.VLCIconChip
+import org.videolan.vlc.compose.components.VLCSettingsCardDivider
 import androidx.core.net.toUri
 import androidx.lifecycle.Observer
 import kotlinx.coroutines.Dispatchers
@@ -323,7 +326,7 @@ private fun FilePickerScreen(
                                 pickerType = pickerType,
                                 onClick = { onItemClick(item) }
                             )
-                            HorizontalDivider(color = colors.defaultDivider)
+                            VLCSettingsCardDivider(startInset = 72.dp)
                         }
                     }
                 }
@@ -347,19 +350,20 @@ private fun FilePickerRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .padding(horizontal = 16.dp, vertical = 10.dp)
     ) {
-        Icon(
-            painter = painterResource(filePickerIcon(isDirectory, pickerType)),
-            contentDescription = null,
-            tint = if (isDirectory) colors.primary else colors.fontLight,
-            modifier = Modifier.size(28.dp)
-        )
+        VLCIconChip(selected = isDirectory) {
+            Icon(
+                painter = painterResource(filePickerIcon(isDirectory, pickerType)),
+                contentDescription = null,
+                modifier = Modifier.size(22.dp)
+            )
+        }
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = item.title.takeUnless { it.isNullOrBlank() } ?: media?.uri?.lastPathSegment.orEmpty(),
                 color = colors.listTitle,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )

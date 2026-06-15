@@ -69,6 +69,7 @@ dependencies {
     api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$rootProject.ext.kotlinx_version"
     api "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.ext.kotlinx_version"
 
+    api project(':shared')
     api project(':application:tools')
     if (localLibVlc != null) {
         devApi localLibVlc

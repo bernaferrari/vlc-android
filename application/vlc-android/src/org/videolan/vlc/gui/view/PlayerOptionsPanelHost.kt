@@ -157,12 +157,12 @@ fun VLCPlayerOptionsPanelContent(
                 .align(Alignment.CenterEnd)
                 .shadow(
                     elevation = 8.dp,
-                    shape = RoundedCornerShape(topStart = 4.dp, bottomStart = 4.dp),
+                    shape = RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp),
                     clip = false
                 )
                 .background(
                     color = VLCThemeDefaults.colors.backgroundDefault,
-                    shape = RoundedCornerShape(topStart = 4.dp, bottomStart = 4.dp)
+                    shape = RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp)
                 )
                 .padding(vertical = 16.dp)
         ) {

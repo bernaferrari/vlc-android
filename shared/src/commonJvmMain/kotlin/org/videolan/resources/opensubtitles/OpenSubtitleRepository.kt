@@ -55,7 +55,9 @@ class OpenSubtitleRepository(private val openSubtitleService: IOpenSubtitleServi
 
     companion object {
         // To ensure the instance can be overridden in tests.
-        var instance = lazy { OpenSubtitleRepository(OpenSubtitleClient.instance) }
-        fun getInstance() = instance.value
+        // Platform code must set [instance] at startup (see OpenSubtitleService.kt on Android).
+        var instance: Lazy<OpenSubtitleRepository>? = null
+        fun getInstance(): OpenSubtitleRepository =
+            instance?.value ?: error("OpenSubtitleRepository.instance not initialized")
     }
 }

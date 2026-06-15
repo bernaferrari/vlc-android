@@ -92,6 +92,8 @@ kotlin {
             dependencies {
                 api(libs.koin.annotations)
                 api(libs.moshi)
+                api(libs.retrofit)
+                api("com.squareup.retrofit2:converter-moshi:${libs.versions.retrofit.get()}")
             }
         }
 

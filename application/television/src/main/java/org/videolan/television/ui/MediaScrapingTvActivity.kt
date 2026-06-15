@@ -283,7 +283,7 @@ private fun SearchIcon(drawable: Int) {
 private fun MediaScrapingResultThumbnail(item: ResolverMedia?) {
     val context = LocalContext.current
     val languages = remember(context) { context.getLocaleLanguages() }
-    val imageUri = remember(item, languages) { item?.imageUri(languages) }
+    val imageUri = remember(item, languages) { item?.imageUri(languages)?.let { android.net.Uri.parse(it.asString()) } }
     val bitmap by remoteBitmap(imageUri)
 
     val poster = bitmap

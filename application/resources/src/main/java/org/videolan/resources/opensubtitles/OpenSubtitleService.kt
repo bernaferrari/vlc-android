@@ -104,5 +104,9 @@ interface OpenSubtitleClient {
         val instance: IOpenSubtitleService by lazy { buildClient() }
         var authorizationToken:String = ""
         var userDomain:String? = null
+
+        init {
+            OpenSubtitleRepository.instance = lazy { OpenSubtitleRepository(instance) }
+        }
     }
 }

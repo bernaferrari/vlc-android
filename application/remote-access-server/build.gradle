@@ -60,6 +60,7 @@ android {
 
 dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+    api project(':shared')
     devImplementation project(':application:remote-access-client')
     debugImplementation project(':application:remote-access-client')
     releaseImplementation "org.videolan.android:remote-access:$rootProject.ext.remoteAccessVersion"

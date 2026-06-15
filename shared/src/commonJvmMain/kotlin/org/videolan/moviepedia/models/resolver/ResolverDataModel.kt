@@ -24,7 +24,7 @@
 
 package org.videolan.moviepedia.models.resolver
 
-import android.net.Uri
+import org.videolan.vlc.net.VlcUri
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -65,8 +65,8 @@ abstract class ResolverMedia {
     abstract fun season(): Int?
     abstract fun episode(): Int?
     abstract fun year(): String?
-    abstract fun imageUri(languages: List<String>): Uri?
-    abstract fun backdropUri(languages: List<String>): Uri?
+    abstract fun imageUri(languages: List<String>): VlcUri?
+    abstract fun backdropUri(languages: List<String>): VlcUri?
     abstract fun getBackdrops(languages: List<String>): List<ResolverImage>?
     abstract fun getPosters(languages: List<String>): List<ResolverImage>?
     abstract fun getImageUriFromPath(path: String): String

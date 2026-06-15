@@ -1,8 +1,8 @@
 /*
  * ************************************************************************
- *  WSAuthTicket.kt
+ *  OpensubtitleUser.kt
  * *************************************************************************
- * Copyright © 2023 VLC authors and VideoLAN
+ * Copyright © 2024 VLC authors and VideoLAN
  * Author: Nicolas POMEPUY
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,9 +22,15 @@
  *
  */
 
-package org.videolan.vlc.remoteaccessserver.websockets
+package org.videolan.resources.opensubtitles
 
-data class WSAuthTicket(
-            val id: String,
-            val expiration:Long
-)
+import org.videolan.resources.opensubtitles.OpenSubtitleAccount
+
+data class OpenSubtitlesUser(
+    val logged: Boolean = false,
+    val account: OpenSubtitleAccount? = null,
+    val username: String = "",
+    val errorMessage: String? = null
+) {
+    fun isVip()  = account?.user?.vip == true
+}

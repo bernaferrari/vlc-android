@@ -24,12 +24,12 @@
 
 package org.videolan.moviepedia.models.identify
 
-import androidx.core.net.toUri
 import com.squareup.moshi.Json
 import org.videolan.moviepedia.models.resolver.ResolverImage
 import org.videolan.moviepedia.models.resolver.ResolverMedia
 import org.videolan.moviepedia.models.resolver.ResolverMediaType
 import org.videolan.moviepedia.models.resolver.ResolverResult
+import org.videolan.vlc.net.VlcUri
 import org.videolan.vlc.util.TextUtils
 import java.text.SimpleDateFormat
 import java.util.*
@@ -174,7 +174,7 @@ fun MoviepediaMedia.retrievePosters(languages: List<String>) = images?.posters?.
 })
 
 fun MoviepediaMedia.retrieveImageUri(languages: List<String>) = getPosters(languages)?.firstOrNull()?.let {
-    "${imageEndpoint}img${it.path()}".toUri()
+    VlcUri.parse("${imageEndpoint}img${it.path()}")
 }
 
 fun MoviepediaMedia.retrieveBackdrops(languages: List<String>) = images?.backdrops?.sortedWith(Comparator { p0, p1 ->
@@ -182,7 +182,7 @@ fun MoviepediaMedia.retrieveBackdrops(languages: List<String>) = images?.backdro
 })
 
 fun MoviepediaMedia.getBackdropUri(languages: List<String>) = getBackdrops(languages)?.firstOrNull()?.let {
-    "${imageEndpoint}img${it.path()}".toUri()
+    VlcUri.parse("${imageEndpoint}img${it.path()}")
 }
 
 fun MoviepediaMedia.retrieveImageUriFromPath(path: String) = imageEndpoint + "img" + path

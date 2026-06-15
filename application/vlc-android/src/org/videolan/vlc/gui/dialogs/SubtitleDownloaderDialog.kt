@@ -74,9 +74,9 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import main.java.org.videolan.resources.opensubtitles.OpenSubtitlesLimit
-import main.java.org.videolan.resources.opensubtitles.OpenSubtitlesUser
-import main.java.org.videolan.resources.opensubtitles.OpenSubtitlesUtils
+import org.videolan.resources.opensubtitles.OpenSubtitlesLimit
+import org.videolan.resources.opensubtitles.OpenSubtitlesUser
+import org.videolan.resources.opensubtitles.OpenSubtitlesUtils
 import org.videolan.resources.AndroidDevices
 import org.videolan.resources.opensubtitles.OpenSubtitleClient
 import org.videolan.resources.opensubtitles.OpenSubtitleRepository

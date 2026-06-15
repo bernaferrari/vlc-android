@@ -22,7 +22,7 @@
  *
  */
 
-package main.java.org.videolan.resources.opensubtitles
+package org.videolan.resources.opensubtitles
 
 import android.content.SharedPreferences
 import com.squareup.moshi.JsonAdapter

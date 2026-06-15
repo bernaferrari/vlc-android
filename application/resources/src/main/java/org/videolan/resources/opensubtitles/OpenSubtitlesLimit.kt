@@ -22,7 +22,7 @@
  *
  */
 
-package main.java.org.videolan.resources.opensubtitles
+package org.videolan.resources.opensubtitles
 
 import android.content.Context
 import android.text.format.DateFormat
