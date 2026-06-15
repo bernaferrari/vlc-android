@@ -152,7 +152,7 @@ class TVActivity : BaseTvActivity() {
 
     private fun showStreamContext(position: Int) {
         val media = streamsModel?.dataset?.get(position) ?: return
-        val flags = FlagSet(ContextOption::class.java).apply {
+        val flags = FlagSet(ContextOption.entries.toList()).apply {
             addAll(CTX_ADD_SHORTCUT, CTX_ADD_TO_PLAYLIST, CTX_APPEND, CTX_COPY, CTX_DELETE, CTX_RENAME)
         }
         showContext(this, object : CtxActionReceiver {

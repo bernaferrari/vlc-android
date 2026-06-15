@@ -21,13 +21,16 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.ui.text.font.FontWeight
+import org.videolan.vlc.compose.components.VLCIconChip
+import org.videolan.vlc.compose.components.VLCSettingsCardDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -91,14 +94,15 @@ fun StreamPanelContent(
                     keyboardActions = KeyboardActions(onGo = { onSubmit() }),
                     modifier = Modifier.weight(1f)
                 )
-                IconButton(
+                FilledIconButton(
                     onClick = onSubmit,
-                    modifier = Modifier.padding(start = 8.dp)
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .size(52.dp)
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_send),
-                        contentDescription = stringResource(R.string.play_button),
-                        tint = colors.fontDefault
+                        contentDescription = stringResource(R.string.play_button)
                     )
                 }
             }
@@ -175,13 +179,21 @@ private fun StreamHistoryItem(
                     onClick = onClick,
                     onLongClick = onLongClick
                 )
-                .padding(start = 16.dp, top = 8.dp, end = 4.dp, bottom = 8.dp)
+                .padding(start = 12.dp, top = 8.dp, end = 4.dp, bottom = 8.dp)
         ) {
+            VLCIconChip {
+                Icon(
+                    painter = painterResource(R.drawable.ic_stream_big),
+                    contentDescription = null,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = decode(stream.title),
                     color = colors.fontDefault,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -199,12 +211,12 @@ private fun StreamHistoryItem(
                 Icon(
                     painter = painterResource(R.drawable.ic_more),
                     contentDescription = stringResource(R.string.more_actions),
-                    tint = colors.fontDefault,
+                    tint = colors.fontLight,
                     modifier = Modifier.size(24.dp)
                 )
             }
         }
-        if (showDivider) HorizontalDivider()
+        if (showDivider) VLCSettingsCardDivider(startInset = 68.dp)
     }
 }
 

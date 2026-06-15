@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -27,8 +27,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
@@ -41,6 +41,10 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
  * This composable owns the complete visible screen: toolbar, close action, and
  * author rows. It lets AuthorsActivity retire the XML row/layout pair as part of
  * the full Compose migration.
+ *
+ * Material 3 Expressive redesign: a contacts-style roster — each contributor sits in
+ * a tonal accent avatar disc (their initial, or the supplied icon) with an inset
+ * hairline divider between rows, replacing the former flat icon + wide-gap rows.
  */
 @Composable
 fun VLCAuthorsScreen(
@@ -50,7 +54,7 @@ fun VLCAuthorsScreen(
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
     closeIconContent: @Composable () -> Unit = { DefaultAuthorsIconPlaceholder() },
-    authorIconContent: @Composable () -> Unit = { DefaultAuthorsIconPlaceholder() }
+    authorIconContent: (@Composable () -> Unit)? = null
 ) {
     VLCTheme {
         val colors = VLCThemeDefaults.colors
@@ -88,13 +92,16 @@ fun VLCAuthorsScreen(
                 }
 
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 54.dp)
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                    contentPadding = PaddingValues(top = 4.dp, bottom = 54.dp)
                 ) {
-                    items(authors) { author ->
+                    itemsIndexed(authors) { index, author ->
                         AuthorRow(
                             author = author,
-                            authorIconContent = authorIconContent
+                            authorIconContent = authorIconContent,
+                            showDivider = index > 0
                         )
                     }
                 }
@@ -106,37 +113,57 @@ fun VLCAuthorsScreen(
 @Composable
 private fun AuthorRow(
     author: String,
-    authorIconContent: @Composable () -> Unit,
+    authorIconContent: (@Composable () -> Unit)?,
+    showDivider: Boolean,
     modifier: Modifier = Modifier
 ) {
     val colors = VLCThemeDefaults.colors
 
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = 48.dp)
-            .focusable()
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier.size(24.dp),
-            contentAlignment = Alignment.Center
+    Column(modifier = modifier.fillMaxWidth()) {
+        if (showDivider) VLCSettingsCardDivider(startInset = 56.dp)
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 56.dp)
+                .focusable()
+                .padding(vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            CompositionLocalProvider(LocalContentColor provides colors.fontDefault) {
-                authorIconContent()
-            }
+            AuthorAvatar(author = author, authorIconContent = authorIconContent)
+
+            Spacer(Modifier.width(16.dp))
+
+            Text(
+                text = author,
+                color = colors.fontDefault,
+                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
-
-        Spacer(Modifier.width(32.dp))
-
-        Text(
-            text = author,
-            color = colors.fontDefault,
-            style = MaterialTheme.typography.bodyLarge.copy(fontSize = 16.sp)
-        )
     }
 }
+
+@Composable
+private fun AuthorAvatar(
+    author: String,
+    authorIconContent: (@Composable () -> Unit)?
+) {
+    VLCIconChip {
+        if (authorIconContent != null) {
+            authorIconContent()
+        } else {
+            Text(
+                text = author.firstInitial(),
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+            )
+        }
+    }
+}
+
+private fun String.firstInitial(): String =
+    trim().firstOrNull { it.isLetterOrDigit() }?.uppercase() ?: "?"
 
 @Composable
 private fun DefaultAuthorsIconPlaceholder() {

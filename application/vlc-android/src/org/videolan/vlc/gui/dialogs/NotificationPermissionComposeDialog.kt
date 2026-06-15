@@ -59,8 +59,7 @@ private class NotificationPermissionComposeDialog(private val activity: Componen
                         Icon(
                             painter = painterResource(R.drawable.ic_permission_notification),
                             contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = Color.Unspecified
+                            modifier = Modifier.size(40.dp)
                         )
                     }
                 )

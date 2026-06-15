@@ -96,8 +96,7 @@ private class UpdateComposeDialog(
                         Icon(
                             painter = painterResource(R.drawable.ic_update),
                             contentDescription = null,
-                            modifier = Modifier.size(24.dp),
-                            tint = Color.Unspecified
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 )

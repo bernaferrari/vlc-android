@@ -29,19 +29,21 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -52,7 +54,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -63,6 +65,10 @@ import androidx.compose.ui.unit.dp
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
 import org.videolan.vlc.VlcMigrationHelper
+import org.videolan.vlc.compose.components.VLCIconChip
+import org.videolan.vlc.compose.components.VLCSettingsCardDivider
+import org.videolan.vlc.compose.components.vlcSelectionWash
+import org.videolan.vlc.compose.components.vlcSettingsCard
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.getDisableTrack
 import org.videolan.vlc.gui.dialogs.adapters.VlcTrack
@@ -236,25 +242,29 @@ private fun VideoTracksContent(
         modifier = Modifier.fillMaxWidth()
     ) {
         LazyColumn(
-            contentPadding = PaddingValues(vertical = 12.dp),
+            contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = 620.dp)
         ) {
-            itemsIndexed(sections, key = { _, item -> item.trackType.name }) { index, section ->
+            item(key = "handle") {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = Modifier
+                            .padding(bottom = 4.dp)
+                            .size(width = 32.dp, height = 4.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(colors.defaultDivider)
+                    )
+                }
+            }
+            itemsIndexed(sections, key = { _, item -> item.trackType.name }) { _, section ->
                 TrackSection(
                     section = section,
                     onTrackSelected = { onTrackSelected(section, it) },
                     onOptionSelected = onOptionSelected
                 )
-                if (index != sections.lastIndex) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(1.dp)
-                            .background(colors.defaultDivider)
-                    )
-                }
             }
         }
     }
@@ -268,33 +278,50 @@ private fun TrackSection(
 ) {
     val colors = VLCThemeDefaults.colors
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = section.title,
-            color = colors.fontDefault,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 8.dp)
-        )
-        section.options.forEach { option ->
-            TrackOptionRow(option = option, onClick = { onOptionSelected(option.option) })
-        }
-        if (section.tracks.isEmpty()) {
-            Text(
-                text = section.emptyText ?: stringResource(R.string.no_track),
-                color = colors.fontLight,
-                style = MaterialTheme.typography.bodyMedium,
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(start = 8.dp, top = 4.dp, bottom = 8.dp)
+        ) {
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp)
+                    .size(8.dp)
+                    .clip(CircleShape)
+                    .background(colors.primary)
             )
-        } else {
-            section.tracks.forEach { track ->
-                TrackRow(
-                    track = track,
-                    selected = track.getId() == section.selectedTrackId,
-                    trackTypePrefix = section.talkbackTitle,
-                    onClick = { onTrackSelected(track) }
+            Spacer(Modifier.width(10.dp))
+            Text(
+                text = section.title,
+                color = colors.primary,
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+            )
+        }
+
+        Column(modifier = Modifier.fillMaxWidth().vlcSettingsCard()) {
+            val hasOptions = section.options.isNotEmpty()
+            section.options.forEachIndexed { index, option ->
+                if (index > 0) VLCSettingsCardDivider(startInset = 64.dp)
+                TrackOptionRow(option = option, onClick = { onOptionSelected(option.option) })
+            }
+            if (section.tracks.isEmpty()) {
+                if (hasOptions) VLCSettingsCardDivider(startInset = 16.dp)
+                Text(
+                    text = section.emptyText ?: stringResource(R.string.no_track),
+                    color = colors.fontLight,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 16.dp)
                 )
+            } else {
+                section.tracks.forEachIndexed { index, track ->
+                    if (index > 0 || hasOptions) VLCSettingsCardDivider(startInset = 64.dp)
+                    TrackRow(
+                        track = track,
+                        selected = track.getId() == section.selectedTrackId,
+                        trackTypePrefix = section.talkbackTitle,
+                        onClick = { onTrackSelected(track) }
+                    )
+                }
             }
         }
     }
@@ -310,22 +337,23 @@ private fun TrackOptionRow(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .height(48.dp)
+            .heightIn(min = 56.dp)
             .clickable(onClick = onClick)
             .focusable()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
-        Icon(
-            painter = painterResource(option.icon),
-            contentDescription = null,
-            tint = Color.Unspecified,
-            modifier = Modifier.size(24.dp)
-        )
+        VLCIconChip {
+            Icon(
+                painter = painterResource(option.icon),
+                contentDescription = null,
+                modifier = Modifier.size(22.dp)
+            )
+        }
         Spacer(modifier = Modifier.width(16.dp))
         Text(
             text = option.title,
             color = colors.fontDefault,
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -347,27 +375,33 @@ private fun TrackRow(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 50.dp)
+            .heightIn(min = 56.dp)
             .clickable(onClick = onClick)
             .focusable()
             .semantics { contentDescription = description }
-            .padding(horizontal = 16.dp)
+            .vlcSelectionWash(selected)
+            .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
-        if (selected) {
-            Icon(
-                painter = painterResource(R.drawable.ic_delay_done),
-                contentDescription = null,
-                tint = colors.fontDefault,
-                modifier = Modifier.size(24.dp)
-            )
-        } else {
-            Spacer(modifier = Modifier.size(24.dp))
+        Box(
+            modifier = Modifier.size(40.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            if (selected) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_delay_done),
+                    contentDescription = null,
+                    tint = colors.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
         }
         Spacer(modifier = Modifier.width(16.dp))
         Text(
             text = trackName,
-            color = if (selected) colors.fontDefault else colors.fontLight,
-            style = MaterialTheme.typography.bodyLarge,
+            color = if (selected) colors.primary else colors.fontDefault,
+            style = MaterialTheme.typography.bodyLarge.copy(
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+            ),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f)

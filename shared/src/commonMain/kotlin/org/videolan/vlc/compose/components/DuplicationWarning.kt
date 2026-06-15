@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
@@ -56,25 +57,32 @@ fun VLCDuplicationWarningDialogContent(
                     .fillMaxWidth()
                     .background(colors.backgroundDefault)
                     .verticalScroll(rememberScrollState())
-                    .padding(start = 16.dp, top = 8.dp, end = 8.dp, bottom = 16.dp)
+                    .padding(24.dp)
             ) {
                 Text(
                     text = title,
                     color = colors.fontDefault,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(end = 8.dp)
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    modifier = Modifier.fillMaxWidth()
                 )
 
-                Text(
-                    text = message,
-                    color = colors.fontDefault,
-                    style = MaterialTheme.typography.bodyMedium,
+                Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 8.dp, end = 8.dp)
-                )
+                        .padding(top = 16.dp),
+                    shape = MaterialTheme.shapes.large,
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    contentColor = colors.fontDefault
+                ) {
+                    Text(
+                        text = message,
+                        color = colors.fontDefault,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 14.dp)
+                    )
+                }
 
                 DuplicationWarningActions(
                     cancelText = cancelText,
@@ -87,7 +95,7 @@ fun VLCDuplicationWarningDialogContent(
                     onAddNew = onAddNew,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 32.dp)
+                        .padding(top = 24.dp)
                 )
             }
         }

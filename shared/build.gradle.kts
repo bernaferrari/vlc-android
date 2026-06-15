@@ -91,6 +91,7 @@ kotlin {
             dependsOn(commonMain.get())
             dependencies {
                 api(libs.koin.annotations)
+                api(libs.moshi)
             }
         }
 

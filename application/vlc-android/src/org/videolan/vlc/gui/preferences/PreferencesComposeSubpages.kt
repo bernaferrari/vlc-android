@@ -45,6 +45,8 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.draw.clip
+import org.videolan.vlc.compose.components.vlcSelectionWash
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -259,7 +261,7 @@ internal fun PreferencesComposeSubpageScreen(
             LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 32.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 when (destination) {
                     PreferencesRootDestination.Ui -> item {
@@ -2081,8 +2083,10 @@ private fun IntSliderPreferenceRow(
     Column(
             modifier = Modifier
                     .fillMaxWidth()
-                    .background(if (highlighted) VLCThemeDefaults.colors.subtleSelection else VLCThemeDefaults.colors.backgroundDefault)
-                    .padding(top = 10.dp)
+                    .clip(MaterialTheme.shapes.large)
+                    .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                    .vlcSelectionWash(highlighted)
+                    .padding(horizontal = 14.dp, vertical = 12.dp)
     ) {
         Box(modifier = Modifier.padding(horizontal = 8.dp)) {
             PreferenceText(
@@ -2103,10 +2107,6 @@ private fun IntSliderPreferenceRow(
                 valueRange = valueRange,
                 modifier = Modifier.padding(horizontal = 8.dp)
         )
-        HorizontalDivider(
-                color = VLCThemeDefaults.colors.defaultDivider,
-                modifier = Modifier.padding(top = 4.dp)
-        )
     }
 }
 
@@ -2126,8 +2126,10 @@ private fun StaticPreferenceRow(
     Column(
             modifier = Modifier
                     .fillMaxWidth()
-                    .background(if (highlighted) VLCThemeDefaults.colors.subtleSelection else VLCThemeDefaults.colors.backgroundDefault)
-                    .padding(top = 10.dp)
+                    .clip(MaterialTheme.shapes.large)
+                    .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                    .vlcSelectionWash(highlighted)
+                    .padding(horizontal = 14.dp, vertical = 12.dp)
     ) {
         Box(modifier = Modifier.padding(horizontal = 8.dp)) {
             PreferenceText(
@@ -2136,10 +2138,6 @@ private fun StaticPreferenceRow(
                     enabled = true
             )
         }
-        HorizontalDivider(
-                color = VLCThemeDefaults.colors.defaultDivider,
-                modifier = Modifier.padding(top = 10.dp)
-        )
     }
 }
 
@@ -2250,8 +2248,10 @@ private fun SliderPreferenceRow(
     Column(
             modifier = Modifier
                     .fillMaxWidth()
-                    .background(if (highlighted) VLCThemeDefaults.colors.subtleSelection else VLCThemeDefaults.colors.backgroundDefault)
-                    .padding(top = 10.dp)
+                    .clip(MaterialTheme.shapes.large)
+                    .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                    .vlcSelectionWash(highlighted)
+                    .padding(horizontal = 14.dp, vertical = 12.dp)
     ) {
         Box(modifier = Modifier.padding(horizontal = 8.dp)) {
             PreferenceText(
@@ -2271,10 +2271,6 @@ private fun SliderPreferenceRow(
                 },
                 valueRange = valueRange,
                 modifier = Modifier.padding(horizontal = 8.dp)
-        )
-        HorizontalDivider(
-                color = VLCThemeDefaults.colors.defaultDivider,
-                modifier = Modifier.padding(top = 4.dp)
         )
     }
 }

@@ -13,16 +13,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
@@ -33,6 +38,10 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
  *
  * The app module owns result delivery back to the active preferences host. This content
  * keeps the warning icon, title, message, and OK/Cancel action surface.
+ *
+ * Material 3 Expressive redesign: a caution-toned hero icon disc leads the title and the
+ * message is lifted into a soft tonal callout, replacing the former flat icon-beside-title
+ * row with a fixed 72dp gap before the buttons.
  */
 @Composable
 fun VLCPreferenceChangeWarningDialogContent(
@@ -57,7 +66,7 @@ fun VLCPreferenceChangeWarningDialogContent(
                     .fillMaxWidth()
                     .background(colors.backgroundDefault)
                     .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
+                    .padding(24.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -65,28 +74,38 @@ fun VLCPreferenceChangeWarningDialogContent(
                 ) {
                     if (iconContent != null) {
                         Box(
-                            modifier = Modifier.size(54.dp),
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.tertiaryContainer),
                             contentAlignment = Alignment.Center
                         ) {
-                            iconContent()
+                            CompositionLocalProvider(
+                                LocalContentColor provides MaterialTheme.colorScheme.onTertiaryContainer
+                            ) {
+                                Box(
+                                    modifier = Modifier.size(28.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    iconContent()
+                                }
+                            }
                         }
                         Spacer(Modifier.width(16.dp))
                     }
                     Text(
                         text = title,
                         color = colors.fontDefault,
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                         modifier = Modifier.weight(1f)
                     )
                 }
 
-                Text(
+                VLCMessageCallout(
                     text = message,
-                    color = colors.fontDefault,
-                    style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 24.dp)
+                        .padding(top = 20.dp)
                 )
 
                 PreferenceChangeWarningActions(
@@ -96,7 +115,7 @@ fun VLCPreferenceChangeWarningDialogContent(
                     onCancel = onCancel,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 72.dp)
+                        .padding(top = 24.dp)
                 )
             }
         }
@@ -130,7 +149,7 @@ private fun PreferenceChangeWarningActions(
 private fun PreviewWarningIcon() {
     Box(
         modifier = Modifier
-            .size(54.dp)
+            .size(26.dp)
             .background(Color.Gray)
     )
 }

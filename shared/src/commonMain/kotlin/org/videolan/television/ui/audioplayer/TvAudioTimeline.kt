@@ -29,14 +29,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.components.VLCAudioTimelineSlider
 
-internal data class TvAudioTimelineState(
+data class TvAudioTimelineState(
     val progress: Int = 0,
     val max: Int = 100,
     val contentDescription: String = ""
 )
 
 @Composable
-internal fun TvAudioTimeline(
+fun TvAudioTimeline(
     state: TvAudioTimelineState,
     onUserDragStarted: () -> Unit,
     onUserProgressChange: (Int) -> Unit,

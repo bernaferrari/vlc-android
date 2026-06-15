@@ -27,13 +27,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.components.VLCBookmarkMarkers
 
-internal data class TvAudioBookmarkMarkersState(
+data class TvAudioBookmarkMarkersState(
     val visible: Boolean = false,
     val markerFractions: List<Float> = emptyList()
 )
 
 @Composable
-internal fun TvAudioBookmarkMarkers(
+fun TvAudioBookmarkMarkers(
     state: TvAudioBookmarkMarkersState,
     modifier: Modifier = Modifier
 ) {

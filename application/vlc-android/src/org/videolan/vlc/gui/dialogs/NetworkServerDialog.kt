@@ -7,21 +7,27 @@ import android.view.accessibility.AccessibilityEvent
 import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.annotation.StringRes
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -34,8 +40,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -252,27 +261,44 @@ private fun NetworkServerContent(
             Text(
                 text = stringResource(R.string.server_add_title),
                 color = colors.fontDefault,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
             )
-            Text(
-                text = url,
-                color = colors.fontDefault,
-                style = MaterialTheme.typography.bodyLarge,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+            Surface(
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.surfaceContainer,
+                contentColor = colors.fontDefault,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp)
-            )
-            HorizontalDivider(modifier = Modifier.padding(top = 4.dp, bottom = 8.dp))
+                    .padding(horizontal = 16.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_link),
+                        contentDescription = null,
+                        tint = colors.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        text = url,
+                        color = colors.fontDefault,
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
+                    .padding(start = 16.dp, top = 16.dp, end = 16.dp)
             ) {
                 ProtocolDropdown(
                     protocols = protocols,
@@ -338,7 +364,7 @@ private fun NetworkServerContent(
                 TextButton(onClick = onCancel) {
                     Text(stringResource(R.string.cancel))
                 }
-                TextButton(
+                Button(
                     onClick = onSave,
                     enabled = address.isNotEmpty(),
                     modifier = Modifier.padding(start = 8.dp)
@@ -357,16 +383,34 @@ private fun ProtocolDropdown(
     onProtocolSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = VLCThemeDefaults.colors
     var expanded by remember(selectedProtocol) { mutableStateOf(false) }
     Box(modifier = modifier) {
-        TextButton(
-            onClick = { expanded = true },
-            modifier = Modifier.fillMaxWidth()
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(MaterialTheme.shapes.small)
+                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                .clickable { expanded = true }
+                .heightIn(min = 56.dp)
+                .padding(horizontal = 16.dp)
         ) {
             Text(
                 text = selectedProtocol,
+                color = colors.fontDefault,
+                style = MaterialTheme.typography.bodyLarge,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
+            Icon(
+                painter = painterResource(R.drawable.ic_chevron_right),
+                contentDescription = null,
+                tint = colors.fontLight,
+                modifier = Modifier
+                    .size(20.dp)
+                    .rotate(90f)
             )
         }
         DropdownMenu(

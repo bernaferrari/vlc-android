@@ -76,7 +76,7 @@ class TVSearchProvider : ContentProvider() {
                             mlIds.add(mlId)
                             val media = medialibrary.getMedia(mlId)
                             val thumbnail = mediaMetadataWithImages.metadata.currentBackdrop
-                            matrixCursor.addRow(arrayOf(media.id, "media_${media.id}", mediaMetadataWithImages.metadata.title, mediaMetadataWithImages.subtitle(), thumbnail, mediaMetadataWithImages.metadata.getYear(), media.length))
+                            matrixCursor.addRow(arrayOf<Any>(media.id, "media_${media.id}", mediaMetadataWithImages.metadata.title, mediaMetadataWithImages.subtitle(), thumbnail, mediaMetadataWithImages.metadata.getYear(), media.length))
                         }
                                 ?: if (mediaMetadataWithImages.metadata.type == MediaMetadataType.TV_SHOW) {
                                     val provider = org.videolan.moviepedia.provider.MediaScrapingTvshowProvider(context)
@@ -86,7 +86,7 @@ class TVSearchProvider : ContentProvider() {
                                     provider.getFirstResumableEpisode(medialibrary, mediaMetadataEpisodes)?.let { firstResumableEpisode ->
                                         val media = medialibrary.getMedia(firstResumableEpisode.metadata.mlId!!)
                                         val thumbnail = mediaMetadataWithImages.metadata.currentBackdrop
-                                        matrixCursor.addRow(arrayOf(media.id, "${CONTENT_RESUME}${mediaMetadataWithImages.metadata.moviepediaId}", mediaMetadataWithImages.metadata.title, context.getString(R.string.resume_episode, firstResumableEpisode.tvEpisodeSubtitle()), thumbnail, firstResumableEpisode.metadata.getYear(), media.length))
+                                        matrixCursor.addRow(arrayOf<Any>(media.id, "${CONTENT_RESUME}${mediaMetadataWithImages.metadata.moviepediaId}", mediaMetadataWithImages.metadata.title, context.getString(R.string.resume_episode, firstResumableEpisode.tvEpisodeSubtitle()), thumbnail, firstResumableEpisode.metadata.getYear(), media.length))
                                     }
 
 
@@ -97,7 +97,7 @@ class TVSearchProvider : ContentProvider() {
                                             mlIds.add(mlId)
                                             val media = medialibrary.getMedia(mlId)
                                             val thumbnail = mediaMetadataWithImages.metadata.currentBackdrop
-                                            matrixCursor.addRow(arrayOf(media.id, "${CONTENT_EPISODE}${mediaMetadataWithImages.metadata.moviepediaId}", mediaMetadataWithImages.metadata.title, mediaMetadataWithImages.subtitle(), thumbnail, mediaMetadataWithImages.metadata.getYear(), media.length))
+                                            matrixCursor.addRow(arrayOf<Any>(media.id, "${CONTENT_EPISODE}${mediaMetadataWithImages.metadata.moviepediaId}", mediaMetadataWithImages.metadata.title, mediaMetadataWithImages.subtitle(), thumbnail, mediaMetadataWithImages.metadata.getYear(), media.length))
                                         }
                                     }
                                 }
@@ -111,7 +111,7 @@ class TVSearchProvider : ContentProvider() {
                     it.forEach { media ->
                         val thumbnail = if (media.artworkMrl != null) getFileUri(media.artworkMrl) else ""
                         if (BuildConfig.DEBUG) Log.d(this::class.java.simpleName, "Adding artist ${media.title}")
-                        matrixCursor.addRow(arrayOf(media.id, "artist_${media.id}", media.title, media.description, thumbnail, "", -1))
+                        matrixCursor.addRow(arrayOf<Any>(media.id, "artist_${media.id}", media.title, media.description, thumbnail, "", -1))
                     }
 
                 }
@@ -119,7 +119,7 @@ class TVSearchProvider : ContentProvider() {
                     it.forEach { media ->
                         val thumbnail = if (media.artworkMrl != null) getFileUri(media.artworkMrl) else ""
                         if (BuildConfig.DEBUG) Log.d(this::class.java.simpleName, "Adding album ${media.title}")
-                        matrixCursor.addRow(arrayOf(media.id, "album_${media.id}", media.title, media.description, thumbnail, media.releaseYear, media.duration))
+                        matrixCursor.addRow(arrayOf<Any>(media.id, "album_${media.id}", media.title, media.description, thumbnail, media.releaseYear, media.duration))
                     }
 
                 }
@@ -128,7 +128,7 @@ class TVSearchProvider : ContentProvider() {
                         if (mlIds.contains(media.id)) return@forEach
                         val thumbnail = if (media.artworkURL != null) getFileUri(media.artworkURL) else media.getThumb()
                         if (BuildConfig.DEBUG) Log.d(this::class.java.simpleName, "Adding video ${media.title}")
-                        matrixCursor.addRow(arrayOf(media.id, "media_${media.id}", media.title, media.description, thumbnail, media.date, media.length))
+                        matrixCursor.addRow(arrayOf<Any>(media.id, "media_${media.id}", media.title, media.description, thumbnail, media.date, media.length))
                     }
 
                 }
@@ -136,7 +136,7 @@ class TVSearchProvider : ContentProvider() {
                     it.forEach { media ->
                         val thumbnail = if (media.artworkURL != null) getFileUri(media.artworkURL) else media.getThumb()
                         if (BuildConfig.DEBUG) Log.d(this::class.java.simpleName, "Adding track ${media.title}")
-                        matrixCursor.addRow(arrayOf(media.id, "media_${media.id}", media.title, media.description, thumbnail, media.releaseYear, media.length))
+                        matrixCursor.addRow(arrayOf<Any>(media.id, "media_${media.id}", media.title, media.description, thumbnail, media.releaseYear, media.length))
                     }
 
                 }

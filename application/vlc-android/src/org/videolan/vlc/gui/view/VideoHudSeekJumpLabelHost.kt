@@ -22,16 +22,14 @@
 
 package org.videolan.vlc.gui.view
 
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.interop.VLCComposeView
 import org.videolan.vlc.compose.theme.VLCTheme
+import org.videolan.vlc.compose.components.VLCSeekJumpLabel
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
 /**
@@ -61,11 +59,6 @@ internal class VideoHudSeekJumpLabelHost {
 
     @Composable
     fun Content() {
-        Text(
-            text = label,
-            color = VLCThemeDefaults.colors.playerIconColor,
-            fontSize = 8.sp,
-            fontWeight = FontWeight.Bold
-        )
+        VLCSeekJumpLabel(text = label)
     }
 }

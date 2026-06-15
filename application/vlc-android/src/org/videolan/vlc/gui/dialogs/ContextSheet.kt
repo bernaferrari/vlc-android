@@ -30,20 +30,18 @@ import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -73,6 +71,9 @@ import org.videolan.tools.Settings
 import org.videolan.tools.isStarted
 import org.videolan.vlc.R
 import org.videolan.vlc.VlcMigrationHelper
+import org.videolan.vlc.compose.components.VLCSettingsCardDivider
+import org.videolan.vlc.compose.components.vlcSelectionWash
+import org.videolan.vlc.compose.components.vlcSettingsCard
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.compose.VlcMediaImage
@@ -201,25 +202,30 @@ private fun ContextSheetContent(
         contentColor = colors.fontDefault,
         modifier = Modifier.fillMaxWidth()
     ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxWidth()
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 24.dp)
         ) {
-            item {
-                ContextSheetHeader(
-                    title = title,
-                    media = media
-                )
-                HorizontalDivider(
-                    color = colors.defaultDivider,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-            }
-            items(menuItems) { item ->
-                ContextActionRow(
-                    item = item,
-                    onClick = { onItemSelected(item) }
-                )
+            ContextSheetHeader(
+                title = title,
+                media = media
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp)
+                    .vlcSettingsCard()
+            ) {
+                menuItems.forEachIndexed { index, item ->
+                    if (index > 0) VLCSettingsCardDivider(startInset = 68.dp)
+                    ContextActionRow(
+                        item = item,
+                        onClick = { onItemSelected(item) }
+                    )
+                }
             }
         }
     }
@@ -230,47 +236,36 @@ private fun ContextSheetHeader(
     title: String,
     media: MediaLibraryItem?
 ) {
+    val colors = VLCThemeDefaults.colors
     val coverMedia = media?.takeIf { it.contextArtwork?.isNotBlank() == true }
-    if (coverMedia != null) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        // Drag handle for a modern bottom-sheet feel.
+        Box(
+            modifier = Modifier
+                .padding(top = 12.dp, bottom = 4.dp)
+                .align(Alignment.CenterHorizontally)
+                .size(width = 32.dp, height = 4.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(colors.defaultDivider)
+        )
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(horizontal = 20.dp, vertical = 12.dp)
                 .heightIn(min = 56.dp)
         ) {
-            ContextCover(media = coverMedia)
+            if (coverMedia != null) {
+                ContextCover(media = coverMedia)
+                Spacer(Modifier.width(16.dp))
+            }
             Text(
                 text = title,
-                color = VLCThemeDefaults.colors.fontDefault,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 18.sp
-                ),
+                color = colors.fontDefault,
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 16.dp)
-            )
-        }
-    } else {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 56.dp)
-                .padding(horizontal = 16.dp)
-        ) {
-            Text(
-                text = title,
-                color = VLCThemeDefaults.colors.fontDefault,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 18.sp
-                ),
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
+                modifier = Modifier.weight(1f)
             )
         }
     }
@@ -282,20 +277,20 @@ private fun ContextCover(media: MediaLibraryItem) {
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .size(48.dp)
-            .clip(RoundedCornerShape(8.dp))
+            .size(52.dp)
+            .clip(MaterialTheme.shapes.medium)
             .background(MaterialTheme.colorScheme.surfaceContainerHighest)
     ) {
         VlcMediaImage(
             item = media,
-            width = 48.dp,
+            width = 52.dp,
             fallbackPainter = painterResource(contextCoverIcon(media)),
             fallbackModifier = Modifier.size(32.dp),
             fallbackColorFilter = ColorFilter.tint(colors.fontDefault),
             contentScale = ContentScale.Crop,
             fallbackContentScale = ContentScale.Fit,
             reloadKey = media.contextArtwork,
-            modifier = Modifier.size(48.dp)
+            modifier = Modifier.size(52.dp)
         )
     }
 }
@@ -308,6 +303,10 @@ private fun ContextActionRow(
     val colors = VLCThemeDefaults.colors
     var focused by remember { mutableStateOf(false) }
     val destructive = item.id in DESTRUCTIVE_OPTIONS
+    val chipContainer = when {
+        destructive -> colors.error.copy(alpha = 0.12f)
+        else -> MaterialTheme.colorScheme.surfaceContainerHighest
+    }
     val iconTint = when {
         focused -> colors.primary
         destructive -> colors.error
@@ -320,29 +319,39 @@ private fun ContextActionRow(
     }
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(24.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 48.dp)
+            .heightIn(min = 56.dp)
             .clickable(onClick = onClick)
             .onFocusChanged { focused = it.isFocused }
             .focusable()
-            .padding(start = 24.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+            .vlcSelectionWash(focused)
+            .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
-        if (item.icon != 0) {
-            Icon(
-                painter = painterResource(item.icon),
-                contentDescription = null,
-                tint = iconTint,
-                modifier = Modifier.size(24.dp)
-            )
-        } else {
-            Spacer(modifier = Modifier.width(24.dp))
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(40.dp)
+                .clip(MaterialTheme.shapes.medium)
+                .background(chipContainer)
+        ) {
+            if (item.icon != 0) {
+                Icon(
+                    painter = painterResource(item.icon),
+                    contentDescription = null,
+                    tint = iconTint,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
         }
+        Spacer(Modifier.width(16.dp))
         Text(
             text = item.title,
             color = textColor,
-            style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.Medium,
+                fontSize = 16.sp
+            ),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f)

@@ -799,7 +799,7 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), ActionMode.
             }
             CTX_ADD_SHORTCUT -> lifecycleScope.launch { createShortcut(media) }
             CTX_GO_TO_ARTIST -> lifecycleScope.launch(Dispatchers.IO) {
-                val artist = if (media is Album) media.retrieveAlbumArtist() else (media as MediaWrapper).artist
+                val artist = media.artist
                 val i = Intent(this@HeaderMediaListActivity, SecondaryActivity::class.java)
                 i.putExtra(SecondaryActivity.KEY_DESTINATION, SecondaryActivity.ALBUMS_SONGS)
                 i.putExtra(TAG_ITEM, artist)

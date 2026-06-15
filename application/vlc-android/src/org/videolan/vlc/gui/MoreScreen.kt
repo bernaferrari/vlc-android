@@ -473,48 +473,70 @@ private fun MoreScreenContent(
 
 @Composable
 private fun MoreTopButton(text: String, icon: Int, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    OutlinedButton(onClick = onClick, modifier = modifier.height(48.dp)) {
-        Icon(
-            painter = painterResource(icon),
-            contentDescription = null,
-            modifier = Modifier.size(22.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(text = text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+    val colors = VLCThemeDefaults.colors
+    Surface(
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        contentColor = colors.fontDefault,
+        modifier = modifier
+            .height(56.dp)
+            .clip(MaterialTheme.shapes.large)
+            .clickable(role = Role.Button, onClick = onClick)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)
+        ) {
+            Icon(
+                painter = painterResource(icon),
+                contentDescription = null,
+                tint = colors.primary,
+                modifier = Modifier.size(22.dp)
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(
+                text = text,
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
     }
 }
 
 @Composable
 private fun MoreDonationCard(onClick: () -> Unit) {
-    val colors = VLCThemeDefaults.colors
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
+    Surface(
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .background(colors.primary)
+            .clip(MaterialTheme.shapes.large)
             .clickable(onClick = onClick)
-            .padding(16.dp)
     ) {
-        Icon(
-            painter = painterResource(R.drawable.ic_donate),
-            contentDescription = null,
-            tint = androidx.compose.ui.graphics.Color.White,
-            modifier = Modifier.size(32.dp)
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Column {
-            Text(
-                text = stringResource(R.string.donate),
-                color = androidx.compose.ui.graphics.Color.White,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_donate),
+                contentDescription = null,
+                modifier = Modifier.size(32.dp)
             )
-            Text(
-                text = stringResource(R.string.donate_desc),
-                color = androidx.compose.ui.graphics.Color.White,
-                style = MaterialTheme.typography.bodySmall
-            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Column {
+                Text(
+                    text = stringResource(R.string.donate),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = stringResource(R.string.donate_desc),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
         }
     }
 }
@@ -534,22 +556,21 @@ private fun MoreSection(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(6.dp))
+                .clip(MaterialTheme.shapes.medium)
                 .clickable(onClick = onOpen)
                 .padding(vertical = 4.dp)
         ) {
             Icon(
                 painter = painterResource(icon),
                 contentDescription = null,
-                tint = colors.fontDefault,
+                tint = colors.primary,
                 modifier = Modifier.size(24.dp)
             )
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(modifier = Modifier.width(12.dp))
             Text(
                 text = title,
                 color = colors.fontDefault,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                 modifier = Modifier.weight(1f)
             )
             IconButton(onClick = onOpen) {
@@ -586,9 +607,8 @@ private fun StreamCard(
         modifier = Modifier
             .width(184.dp)
             .height(132.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(colors.cardBackground)
-            .border(1.dp, colors.defaultDivider, RoundedCornerShape(8.dp))
+            .clip(MaterialTheme.shapes.large)
+            .background(MaterialTheme.colorScheme.surfaceContainer)
             .combinedClickable(role = Role.Button, onClick = onClick, onLongClick = onLongClick)
             .padding(12.dp)
     ) {
@@ -596,7 +616,7 @@ private fun StreamCard(
             Icon(
                 painter = painterResource(if (isDummy) R.drawable.ic_stream_add else R.drawable.ic_stream_big),
                 contentDescription = null,
-                tint = colors.fontDefault,
+                tint = colors.primary,
                 modifier = Modifier.size(28.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
@@ -644,9 +664,9 @@ private fun HistoryCard(
     Column(
         modifier = Modifier
             .width(156.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(if (selected) colors.subtleSelection else colors.cardBackground)
-            .border(if (selected) 2.dp else 1.dp, if (selected) colors.primary else colors.defaultDivider, RoundedCornerShape(8.dp))
+            .clip(MaterialTheme.shapes.large)
+            .background(if (selected) colors.subtleSelection else MaterialTheme.colorScheme.surfaceContainer)
+            .then(if (selected) Modifier.border(2.dp, colors.primary, MaterialTheme.shapes.large) else Modifier)
             .combinedClickable(role = Role.Button, onClick = onClick, onLongClick = onLongClick)
             .padding(8.dp)
     ) {
@@ -683,7 +703,7 @@ private fun HistoryArt(media: MediaWrapper, modifier: Modifier = Modifier) {
     val colors = VLCThemeDefaults.colors
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(6.dp))
+            .clip(MaterialTheme.shapes.medium)
             .background(colors.backgroundDefaultDarker),
         contentAlignment = Alignment.Center
     ) {

@@ -66,8 +66,7 @@ private class ConfirmPreferenceChangeComposeDialog(
                         Icon(
                             painter = painterResource(R.drawable.ic_warning),
                             contentDescription = null,
-                            modifier = Modifier.size(54.dp),
-                            tint = Color.Unspecified
+                            modifier = Modifier.size(28.dp)
                         )
                     }
                 )

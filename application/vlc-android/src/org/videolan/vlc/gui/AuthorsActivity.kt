@@ -50,13 +50,6 @@ class AuthorsActivity : BaseActivity() {
                                 contentDescription = null,
                                 modifier = Modifier.size(24.dp)
                             )
-                        },
-                        authorIconContent = {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_author),
-                                contentDescription = null,
-                                modifier = Modifier.size(24.dp)
-                            )
                         }
                     )
                 }

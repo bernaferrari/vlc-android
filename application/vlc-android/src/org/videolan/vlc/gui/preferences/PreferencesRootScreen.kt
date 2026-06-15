@@ -53,6 +53,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.res.painterResource
@@ -71,6 +72,8 @@ import org.videolan.tools.PLAYBACK_HISTORY
 import org.videolan.tools.SCREEN_ORIENTATION
 import org.videolan.tools.VIDEO_RESUME_PLAYBACK
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.components.VLCIconChip
+import org.videolan.vlc.compose.components.vlcSelectionWash
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
@@ -103,7 +106,7 @@ internal fun PreferencesRootScreen(
             LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 32.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 item {
                     PreferenceCategoryHeader(title = stringResource(R.string.medialibrary))
@@ -435,11 +438,10 @@ internal fun PreferenceCategoryHeader(title: String) {
     Text(
             text = title,
             color = VLCThemeDefaults.colors.audioBrowserSeparator,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 18.dp, bottom = 6.dp)
+                    .padding(start = 6.dp, top = 20.dp, bottom = 8.dp)
     )
 }
 
@@ -458,14 +460,15 @@ internal fun NavigationPreferenceRow(
             enabled = enabled,
             role = Role.Button,
             onClick = onClick,
-            leadingContent = icon?.let {
+            leadingContent = icon?.let { iconRes ->
                 {
-                    Icon(
-                            painter = painterResource(it),
-                            contentDescription = null,
-                            tint = VLCThemeDefaults.colors.fontDefault,
-                            modifier = Modifier.size(24.dp)
-                    )
+                    VLCIconChip(enabled = enabled) {
+                        Icon(
+                                painter = painterResource(iconRes),
+                                contentDescription = null,
+                                modifier = Modifier.size(22.dp)
+                        )
+                    }
                 }
             },
             textContent = {
@@ -476,10 +479,11 @@ internal fun NavigationPreferenceRow(
                 )
             },
             trailingContent = {
-                Text(
-                        text = ">",
-                        color = VLCThemeDefaults.colors.fontLight,
-                        style = MaterialTheme.typography.bodyLarge
+                Icon(
+                        painter = painterResource(R.drawable.ic_chevron_right),
+                        contentDescription = null,
+                        tint = VLCThemeDefaults.colors.fontLight,
+                        modifier = Modifier.size(24.dp)
                 )
             }
     )
@@ -605,30 +609,22 @@ internal fun PreferenceRowFrame(
         trailingContent: @Composable () -> Unit
 ) {
     val colors = VLCThemeDefaults.colors
-    Column(
+    Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
                     .fillMaxWidth()
-                    .background(if (highlighted) colors.subtleSelection else colors.backgroundDefault)
+                    .clip(MaterialTheme.shapes.large)
+                    .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                    .vlcSelectionWash(highlighted)
                     .clickable(enabled = enabled, role = role, onClick = onClick)
-                    .padding(top = 10.dp)
+                    .padding(horizontal = 14.dp, vertical = 14.dp)
     ) {
-        Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp)
-        ) {
-            leadingContent?.invoke()
-            Box(modifier = Modifier.weight(1f)) {
-                textContent()
-            }
-            trailingContent()
+        leadingContent?.invoke()
+        Box(modifier = Modifier.weight(1f)) {
+            textContent()
         }
-        HorizontalDivider(
-                color = colors.defaultDivider,
-                modifier = Modifier.padding(top = 10.dp)
-        )
+        trailingContent()
     }
 }
 

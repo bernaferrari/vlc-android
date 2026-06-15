@@ -38,18 +38,18 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-internal data class TvAudioTrackInfoState(
+data class TvAudioTrackInfoState(
     val title: String = "",
     val artist: String = ""
 )
 
-internal data class TvAudioProgressLabelsState(
+data class TvAudioProgressLabelsState(
     val elapsed: String = "",
     val length: String = ""
 )
 
 @Composable
-internal fun TvAudioTrackInfo(
+fun TvAudioTrackInfo(
     state: TvAudioTrackInfoState,
     modifier: Modifier = Modifier
 ) {
@@ -82,7 +82,7 @@ internal fun TvAudioTrackInfo(
 }
 
 @Composable
-internal fun TvAudioProgressLabels(
+fun TvAudioProgressLabels(
     state: TvAudioProgressLabelsState,
     modifier: Modifier = Modifier
 ) {

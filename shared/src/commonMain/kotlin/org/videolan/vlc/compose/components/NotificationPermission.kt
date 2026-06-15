@@ -4,12 +4,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -22,6 +21,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.theme.VLCTheme
@@ -34,6 +35,10 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
  * The app module owns the BottomSheetDialog host, settings persistence, and
  * Android notification permission request. This content only renders the prompt
  * and exposes the positive action.
+ *
+ * Material 3 Expressive redesign: a centered hero — a large accent icon disc above
+ * a centered title, with the explanation in a soft tonal callout and a full-width
+ * filled action, replacing the former icon-jammed-beside-title flat layout.
  */
 @Composable
 fun VLCNotificationPermissionDialogContent(
@@ -56,50 +61,66 @@ fun VLCNotificationPermissionDialogContent(
                     .fillMaxWidth()
                     .background(colors.backgroundDefault)
                     .verticalScroll(rememberScrollState())
-                    .padding(start = 8.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
+                    .padding(start = 24.dp, top = 24.dp, end = 24.dp, bottom = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                Box(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center
                 ) {
-                    CompositionLocalProvider(LocalContentColor provides colors.fontDefault) {
+                    CompositionLocalProvider(
+                        LocalContentColor provides MaterialTheme.colorScheme.onPrimaryContainer
+                    ) {
                         Box(
-                            modifier = Modifier.size(64.dp),
+                            modifier = Modifier.size(40.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             iconContent()
                         }
                     }
-                    Text(
-                        text = title,
-                        color = colors.fontDefault,
-                        style = MaterialTheme.typography.titleLarge,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(start = 16.dp, end = 16.dp)
-                    )
                 }
 
                 Text(
-                    text = explanation,
+                    text = title,
                     color = colors.fontDefault,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                    textAlign = TextAlign.Center,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 8.dp, top = 16.dp)
+                        .padding(top = 20.dp)
                 )
 
-                Row(
+                Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 24.dp),
-                    horizontalArrangement = Arrangement.End
+                        .padding(top = 16.dp),
+                    shape = MaterialTheme.shapes.large,
+                    color = MaterialTheme.colorScheme.surfaceContainer,
+                    contentColor = colors.fontDefault
                 ) {
-                    Button(onClick = onOk) {
-                        Text(okText)
-                    }
+                    Text(
+                        text = explanation,
+                        color = colors.fontDefault,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 16.dp)
+                    )
+                }
+
+                Button(
+                    onClick = onOk,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 24.dp)
+                ) {
+                    Text(okText)
                 }
             }
         }
@@ -108,9 +129,9 @@ fun VLCNotificationPermissionDialogContent(
 
 @Composable
 private fun NotificationIconPlaceholder() {
-    Spacer(
+    Box(
         modifier = Modifier
-            .size(56.dp)
+            .size(36.dp)
             .clip(RoundedCornerShape(4.dp))
             .background(LocalContentColor.current.copy(alpha = 0.24f))
     )

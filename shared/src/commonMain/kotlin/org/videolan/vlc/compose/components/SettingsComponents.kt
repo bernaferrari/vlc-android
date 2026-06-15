@@ -87,6 +87,36 @@ fun Modifier.vlcSettingsCard(shape: Shape = MaterialTheme.shapes.large): Modifie
         .clip(shape)
         .background(MaterialTheme.colorScheme.surfaceContainerLow)
 
+/**
+ * A soft tonal callout for a block of explanatory or cautionary dialog text. Shared by the
+ * confirmation / warning sheets so their messages read as one family rather than loose
+ * paragraphs floating on the dialog background.
+ */
+@Composable
+fun VLCMessageCallout(
+    text: String,
+    modifier: Modifier = Modifier,
+    containerColor: Color = Color.Unspecified,
+    contentColor: Color = Color.Unspecified
+) {
+    val resolvedContainer = if (containerColor.isSpecified) containerColor
+        else MaterialTheme.colorScheme.surfaceContainer
+    val resolvedContent = if (contentColor.isSpecified) contentColor
+        else VLCThemeDefaults.colors.fontDefault
+    androidx.compose.material3.Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.large,
+        color = resolvedContainer,
+        contentColor = resolvedContent
+    ) {
+        androidx.compose.material3.Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)
+        )
+    }
+}
+
 /** A soft accent wash applied to a selected row inside a grouping card. */
 @Composable
 fun Modifier.vlcSelectionWash(selected: Boolean): Modifier =

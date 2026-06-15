@@ -13,19 +13,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
@@ -36,6 +40,10 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
  *
  * The app module owns platform actions such as opening the browser, requesting
  * unknown-sources permissions, persisting settings, and running AutoUpdate.
+ *
+ * Material 3 Expressive redesign: an accent icon disc leads the title; the proposed
+ * nightly build sits in a labeled tonal "version" card; the never-ask-again toggle
+ * reads as a tappable row; the install/browse actions anchor the bottom.
  */
 @Composable
 fun VLCUpdateDialogContent(
@@ -66,7 +74,7 @@ fun VLCUpdateDialogContent(
                     .fillMaxWidth()
                     .background(colors.backgroundDefault)
                     .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
+                    .padding(24.dp)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -74,17 +82,29 @@ fun VLCUpdateDialogContent(
                 ) {
                     if (iconContent != null) {
                         Box(
-                            modifier = Modifier.size(24.dp),
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primaryContainer),
                             contentAlignment = Alignment.Center
                         ) {
-                            iconContent()
+                            CompositionLocalProvider(
+                                LocalContentColor provides MaterialTheme.colorScheme.onPrimaryContainer
+                            ) {
+                                Box(
+                                    modifier = Modifier.size(24.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    iconContent()
+                                }
+                            }
                         }
                         Spacer(Modifier.width(16.dp))
                     }
                     Text(
                         text = title,
                         color = colors.fontDefault,
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -93,7 +113,7 @@ fun VLCUpdateDialogContent(
                     LinearProgressIndicator(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 4.dp)
+                            .padding(top = 16.dp)
                     )
                 }
 
@@ -104,26 +124,20 @@ fun VLCUpdateDialogContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp)
-                        .padding(8.dp)
                 )
 
-                Text(
-                    text = nightlyVersion,
-                    color = colors.fontDefault,
-                    style = MaterialTheme.typography.bodyMedium,
+                VersionCard(
+                    version = nightlyVersion,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 8.dp)
-                        .clip(MaterialTheme.shapes.medium)
-                        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                        .padding(16.dp)
+                        .padding(top = 16.dp)
                 )
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 32.dp)
+                        .padding(top = 16.dp)
                 ) {
                     Checkbox(
                         checked = neverAskAgain,
@@ -148,6 +162,41 @@ fun VLCUpdateDialogContent(
                         .padding(top = 16.dp)
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun VersionCard(
+    version: String,
+    modifier: Modifier = Modifier
+) {
+    val colors = VLCThemeDefaults.colors
+    Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        contentColor = colors.fontDefault
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .clip(CircleShape)
+                    .background(colors.primary)
+            )
+            Spacer(Modifier.width(12.dp))
+            Text(
+                text = version,
+                color = colors.fontDefault,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }
