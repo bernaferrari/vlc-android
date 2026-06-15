@@ -26,52 +26,22 @@ package org.videolan.vlc.util
 
 import android.content.Context
 import org.videolan.vlc.R
+import org.videolan.vlc.util.VlcTextUtils
 
 object TextUtils {
 
-    /**
-     * Common string separator used in the whole app
-     */
-    const val SEPARATOR = '·'
+    const val SEPARATOR = VlcTextUtils.SEPARATOR
+    const val EN_DASH = VlcTextUtils.EN_DASH
 
-    /**
-     * En-dash separator used for ranges
-     */
-    const val EN_DASH = '–'
-
-    /**
-     * Create a string separated by the common [SEPARATOR]
-     *
-     * @param pieces the strings to join
-     * @return a string containing all the [pieces] if they are not blanked, separated by the [SEPARATOR]
-     */
     @JvmName("separatedStringArgs")
-    fun separatedString(vararg pieces: String?) = separatedString(this.SEPARATOR, arrayOf(*pieces))
+    fun separatedString(vararg pieces: String?) = VlcTextUtils.separatedString(arrayOf(*pieces))
 
-    /**
-     * Create a string separated by the common [SEPARATOR]
-     *
-     * @param pieces the strings to join in an [Array]
-     * @return a string containing all the [pieces] if they are not blanked, separated by the [SEPARATOR]
-     */
-    fun separatedString(pieces: Array<String?>) = separatedString(this.SEPARATOR, pieces)
+    fun separatedString(pieces: Array<String?>) = VlcTextUtils.separatedString(pieces)
 
-    /**
-     * Create a string separated by a custom [separator]
-     *
-     * @param pieces the strings to join
-     * @return a string containing all the [pieces] if they are not blanked, separated by [separator]
-     */
-    @JvmName("separatedStringArgs")
-    fun separatedString(separator: Char, vararg pieces: String?) = separatedString(separator, arrayOf(*pieces))
+    @JvmName("separatedStringArgsSeparator")
+    fun separatedString(separator: Char, vararg pieces: String?) = VlcTextUtils.separatedString(separator, arrayOf(*pieces))
 
-    /**
-     * Create a string separated by a custom [separator]
-     *
-     * @param pieces the strings to join in an [Array]
-     * @return a string containing all the [pieces] if they are not blanked, separated by [separator]
-     */
-    fun separatedString(separator: Char, pieces: Array<String?>) = pieces.filter { it?.isNotBlank() == true }.joinToString(separator = " $separator ")
+    fun separatedString(separator: Char, pieces: Array<String?>) = VlcTextUtils.separatedString(separator, pieces)
 
     /**
      * Format the chapter title.
