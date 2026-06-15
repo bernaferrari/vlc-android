@@ -76,6 +76,7 @@ static def getPublicApiKey(project) {
 
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
+    implementation project(':shared')
     implementation project(':application:tools')
 
     implementation "androidx.core:core-ktx:$rootProject.ext.androidxCoreVersion"
