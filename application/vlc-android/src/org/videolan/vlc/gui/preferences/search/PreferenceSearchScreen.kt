@@ -280,7 +280,7 @@ private fun PreferenceSearchResultRow(
         Column(
                 modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 72.dp, top = 8.dp, end = 8.dp, bottom = 8.dp)
+                        .padding(start = 20.dp, top = 10.dp, end = 16.dp, bottom = 10.dp)
         ) {
             Text(
                     text = title.highlightedSearchText(query),
@@ -307,7 +307,7 @@ private fun PreferenceSearchResultRow(
         }
         HorizontalDivider(
                 color = colors.defaultDivider,
-                modifier = Modifier.padding(start = 72.dp)
+                modifier = Modifier.padding(start = 20.dp)
         )
     }
 }

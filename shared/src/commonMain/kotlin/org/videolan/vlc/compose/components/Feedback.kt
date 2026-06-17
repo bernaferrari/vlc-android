@@ -266,17 +266,10 @@ private fun FeedbackActionCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
+                    .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier.size(24.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CompositionLocalProvider(LocalContentColor provides colors.fontDefault) {
-                        iconContent()
-                    }
-                }
+                VLCIconChip { iconContent() }
 
                 Spacer(Modifier.width(16.dp))
 

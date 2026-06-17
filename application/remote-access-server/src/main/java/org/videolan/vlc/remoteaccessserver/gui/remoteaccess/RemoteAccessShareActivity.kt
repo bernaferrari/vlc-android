@@ -29,7 +29,9 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.View
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -39,10 +41,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -67,6 +70,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -269,13 +274,14 @@ private fun RemoteAccessStatusCard(
     onToggleServer: () -> Unit
 ) {
     val colors = VLCThemeDefaults.colors
+    val started = serverStatus == ServerStatus.STARTED
     Card(
-        colors = CardDefaults.cardColors(containerColor = colors.cardBackground),
-        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        shape = MaterialTheme.shapes.large,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             SectionTitle(text = stringResource(R.string.remote_access_status))
@@ -283,6 +289,13 @@ private fun RemoteAccessStatusCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                Box(
+                    modifier = Modifier
+                        .size(10.dp)
+                        .clip(CircleShape)
+                        .background(statusColor(serverStatus, colors))
+                )
+                Spacer(Modifier.width(10.dp))
                 Text(
                     text = stringResource(statusText(serverStatus)),
                     color = colors.fontDefault,
@@ -292,17 +305,32 @@ private fun RemoteAccessStatusCard(
                 Spacer(Modifier.width(12.dp))
                 Button(
                     onClick = onToggleServer,
-                    enabled = serverStatus == ServerStatus.STARTED || serverStatus == ServerStatus.STOPPED,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colors.primary,
-                        contentColor = colors.onPrimary
-                    )
+                    enabled = started || serverStatus == ServerStatus.STOPPED,
+                    shape = MaterialTheme.shapes.large,
+                    colors = if (started) {
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                    } else {
+                        ButtonDefaults.buttonColors(
+                            containerColor = colors.primary,
+                            contentColor = colors.onPrimary
+                        )
+                    }
                 ) {
-                    Text(stringResource(if (serverStatus == ServerStatus.STARTED) R.string.stop else R.string.start))
+                    Text(stringResource(if (started) R.string.stop else R.string.start))
                 }
             }
         }
     }
+}
+
+private fun statusColor(status: ServerStatus, colors: org.videolan.vlc.compose.theme.VLCColorScheme): Color = when (status) {
+    ServerStatus.STARTED -> Color(0xFF4CAF50)
+    ServerStatus.ERROR -> colors.error
+    ServerStatus.CONNECTING, ServerStatus.STOPPING -> colors.primary
+    ServerStatus.STOPPED, ServerStatus.NOT_INIT -> colors.fontLight
 }
 
 @Composable
@@ -314,8 +342,8 @@ private fun RemoteAccessLinkRow(
 ) {
     val colors = VLCThemeDefaults.colors
     Card(
-        colors = CardDefaults.cardColors(containerColor = colors.backgroundDefaultDarker),
-        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        shape = MaterialTheme.shapes.medium,
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(

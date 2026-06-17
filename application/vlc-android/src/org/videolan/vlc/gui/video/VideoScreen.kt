@@ -38,11 +38,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryScrollableTabRow
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -1240,30 +1242,33 @@ private fun VideoScreenContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun VideoTabs(selectedTab: Int, onTabSelected: (Int) -> Unit) {
     val colors = VLCThemeDefaults.colors
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(colors.headerBackground)
-            .padding(horizontal = 8.dp, vertical = 6.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    val tabs = listOf(stringResource(R.string.videos), stringResource(R.string.playlists))
+    PrimaryScrollableTabRow(
+        selectedTabIndex = selectedTab.coerceIn(0, (tabs.size - 1).coerceAtLeast(0)),
+        containerColor = colors.backgroundDefault,
+        contentColor = colors.primary,
+        edgePadding = 12.dp
     ) {
-        listOf(stringResource(R.string.videos), stringResource(R.string.playlists)).forEachIndexed { index, title ->
+        tabs.forEachIndexed { index, title ->
             val selected = selectedTab == index
-            TextButton(
+            Tab(
+                selected = selected,
                 onClick = { onTabSelected(index) },
-                modifier = Modifier
-                    .weight(1f)
-                    .background(if (selected) colors.subtleSelection else colors.headerBackground, RoundedCornerShape(4.dp))
-            ) {
-                Text(
-                    text = title,
-                    color = if (selected) colors.primary else colors.listTitle,
-                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
-                )
-            }
+                text = {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                        maxLines = 1
+                    )
+                },
+                selectedContentColor = colors.primary,
+                unselectedContentColor = colors.listSubtitle
+            )
         }
     }
 }

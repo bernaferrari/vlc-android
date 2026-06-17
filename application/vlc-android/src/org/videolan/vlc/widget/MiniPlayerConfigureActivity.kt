@@ -58,7 +58,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
@@ -450,7 +451,11 @@ private fun WidgetConfigureContent(
             }
         }
 
-        OutlinedCard(shape = RoundedCornerShape(8.dp), modifier = Modifier.fillMaxWidth()) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+            shape = MaterialTheme.shapes.large,
+            modifier = Modifier.fillMaxWidth()
+        ) {
             SwitchRow(
                 title = stringResource(R.string.widget_preview),
                 subtitle = stringResource(R.string.playing),
@@ -466,7 +471,11 @@ private fun WidgetConfigureContent(
             fontWeight = FontWeight.SemiBold
         )
 
-        OutlinedCard(shape = RoundedCornerShape(8.dp), modifier = Modifier.fillMaxWidth()) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+            shape = MaterialTheme.shapes.large,
+            modifier = Modifier.fillMaxWidth()
+        ) {
             CycleRow(
                 title = stringResource(R.string.widget_theme),
                 value = themeOptions.labelFor(widget.theme),
