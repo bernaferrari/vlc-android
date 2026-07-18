@@ -207,6 +207,84 @@ class AndroidPlaybackService(
         observers.remove(observer)
     }
 
+    override fun append(items: List<MediaItem>) {
+        val pm = manager() ?: return
+        if (items.isEmpty()) return
+        pm.launch {
+            pm.append(items.map { it.toMediaWrapper() })
+            syncPlaylistFromHost()
+        }
+    }
+
+    override fun insertNext(items: List<MediaItem>) {
+        val pm = manager() ?: return
+        if (items.isEmpty()) return
+        pm.insertNext(items.map { it.toMediaWrapper() })
+        syncPlaylistFromHost()
+    }
+
+    override fun moveItem(from: Int, to: Int) {
+        manager()?.moveItem(from, to)
+        syncPlaylistFromHost()
+    }
+
+    override fun removeAt(index: Int) {
+        manager()?.remove(index)
+        syncPlaylistFromHost()
+    }
+
+    override fun removeByUri(uri: String) {
+        manager()?.removeLocation(uri)
+        syncPlaylistFromHost()
+    }
+
+    override fun clearQueue() {
+        manager()?.stop()
+        _playlist.value = Playlist(0, "Current")
+        observers.forEach { it.onPlaylistChanged(_playlist.value) }
+    }
+
+    override fun setStopAfterThis() {
+        val pm = manager() ?: return
+        pm.stopAfter = pm.currentIndex
+    }
+
+    override fun clearStopAfter() {
+        manager()?.stopAfter = -1
+    }
+
+    override fun toggleABRepeat() {
+        manager()?.toggleABRepeat()
+    }
+
+    override fun setABRepeatValue(timeMs: Long) {
+        val pm = manager() ?: return
+        pm.setABRepeatValue(pm.getCurrentMedia(), timeMs)
+    }
+
+    override fun resetABRepeat() {
+        manager()?.resetABRepeatValues(manager()?.getCurrentMedia())
+    }
+
+    override fun clearABRepeat() {
+        manager()?.clearABRepeat()
+    }
+
+    private fun syncPlaylistFromHost() {
+        val pm = manager() ?: return
+        val items = pm.getMediaList().map { it.toMediaItem() }
+        _playlist.value = Playlist(
+            id = 0,
+            name = "Current",
+            items = items,
+            currentIndex = pm.currentIndex.coerceAtLeast(0),
+            shuffle = pm.shuffling,
+            repeatMode = repeatModeFromHost(),
+        )
+        observers.forEach { it.onPlaylistChanged(_playlist.value) }
+    }
+
+
     /**
      * Called by the platform to push native playback updates into shared state.
      */

@@ -110,6 +110,18 @@ class PlaybackController(
     fun startRendererDiscovery() = renderers.startDiscovery()
     fun stopRendererDiscovery() = renderers.stopDiscovery()
     fun selectRenderer(id: String?) = renderers.selectRenderer(id)
+    fun append(items: List<MediaItem>) = service.append(items)
+    fun insertNext(items: List<MediaItem>) = service.insertNext(items)
+    fun insertAt(index: Int, item: MediaItem) = service.insertAt(index, item)
+    fun moveItem(from: Int, to: Int) = service.moveItem(from, to)
+    fun removeAt(index: Int) = service.removeAt(index)
+    fun removeByUri(uri: String) = service.removeByUri(uri)
+    fun clearQueue() = service.clearQueue()
+    fun setStopAfterThis() = service.setStopAfterThis()
+    fun toggleABRepeat() = service.toggleABRepeat()
+    fun setABRepeatValue(timeMs: Long) = service.setABRepeatValue(timeMs)
+    fun clearABRepeat() = service.clearABRepeat()
+
 
     fun addObserver(observer: PlaybackObserver) = service.addObserver(observer)
     fun removeObserver(observer: PlaybackObserver) = service.removeObserver(observer)

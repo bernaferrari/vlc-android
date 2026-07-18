@@ -1,6 +1,7 @@
 package org.videolan.vlc.player
 
 import kotlinx.coroutines.flow.Flow
+import org.videolan.vlc.model.ABRepeat
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.Playlist
 import org.videolan.vlc.model.Progress
@@ -19,10 +20,6 @@ sealed class PlaybackState {
     data class Ended(val item: MediaItem) : PlaybackState()
 }
 
-/**
- * Observer interface for playback events.
- * Platforms can wrap this to feed native callbacks into shared logic.
- */
 interface PlaybackObserver {
     fun onStateChanged(state: PlaybackState)
     fun onProgressChanged(progress: Progress)
@@ -30,14 +27,10 @@ interface PlaybackObserver {
 }
 
 /**
- * Playback service contract — the core player controller interface.
+ * Core player + queue controller (KMP PlaylistManager surface).
  *
- * Each platform implements this to bridge to its native player engine:
- *   - Android: wraps libVLC MediaPlayer + PlaylistManager
- *   - iOS: will wrap VLCKitMediaPlayer
- *
- * Shared UI code (Compose Multiplatform) and business logic interact only
- * with this interface, never with platform-specific player APIs.
+ * Platforms implement via [PlaylistEngine] + decode backend, or bridge to
+ * legacy Android PlaylistManager.
  */
 interface PlaybackService {
     val state: Flow<PlaybackState>
@@ -61,4 +54,21 @@ interface PlaybackService {
     fun getRate(): Float
     fun addObserver(observer: PlaybackObserver)
     fun removeObserver(observer: PlaybackObserver)
+
+    // Queue mutations — ported from PlaylistManager
+    fun append(items: List<MediaItem>) {}
+    fun insertNext(items: List<MediaItem>) {}
+    fun insertAt(index: Int, item: MediaItem) {}
+    fun moveItem(from: Int, to: Int) {}
+    fun removeAt(index: Int) {}
+    fun removeByUri(uri: String) {}
+    fun clearQueue() {}
+    fun setStopAfterThis() {}
+    fun clearStopAfter() {}
+
+    // A/B repeat
+    fun toggleABRepeat() {}
+    fun setABRepeatValue(timeMs: Long) {}
+    fun resetABRepeat() {}
+    fun clearABRepeat() {}
 }

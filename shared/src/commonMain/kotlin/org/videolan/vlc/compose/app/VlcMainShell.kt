@@ -217,50 +217,89 @@ fun VlcMainShell(
                     SettingsOnlyPane(modifier = contentMod, vm = settingsVm)
                 }
                 else -> when (currentTab) {
-                    MainTab.VIDEO -> MediaListPane(
-                        modifier = contentMod,
-                        state = videoVm.state.collectAsState().value,
-                        onQuery = videoVm::setQuery,
-                        onPlay = {
-                            videoVm.play(it)
-                            showPlayer = true
-                        },
-                        onPlayAll = {
-                            videoVm.playAll()
-                            showPlayer = true
-                        },
-                        emptyLabel = "No videos",
-                    )
-                    MainTab.AUDIO -> MediaListPane(
-                        modifier = contentMod,
-                        state = audioVm.state.collectAsState().value,
-                        onQuery = audioVm::setQuery,
-                        onPlay = {
-                            audioVm.play(it)
-                            showPlayer = true
-                        },
-                        onPlayAll = {
-                            audioVm.playAll()
-                            showPlayer = true
-                        },
-                        emptyLabel = "No audio",
-                    )
-                    MainTab.BROWSER -> BrowserPane(
-                        modifier = contentMod,
-                        vm = browserVm,
-                        onPlay = {
-                            browserVm.play(it)
-                            showPlayer = true
-                        },
-                    )
-                    MainTab.PLAYLISTS -> PlaylistsPane(
-                        modifier = contentMod,
-                        vm = playlistsVm,
-                        onPlay = {
-                            playlistsVm.playPlaylist(it)
-                            showPlayer = true
-                        },
-                    )
+                    MainTab.VIDEO -> {
+                        val st = videoVm.state.collectAsState().value
+                        RichMediaListPane(
+                            state = st,
+                            title = "Videos",
+                            emptyLabel = "No videos",
+                            onQuery = videoVm::setQuery,
+                            onPlay = { videoVm.play(it); showPlayer = true },
+                            onPlayAll = { videoVm.playAll(); showPlayer = true },
+                            onPlayNext = videoVm::playNext,
+                            onAppend = videoVm::append,
+                            onToggleSelect = videoVm::toggleSelect,
+                            onSelectAll = videoVm::selectAll,
+                            onClearSelection = videoVm::clearSelection,
+                            onSetViewMode = videoVm::setViewMode,
+                            onSetSort = videoVm::setSort,
+                            onCtx = videoVm::handleCtx,
+                            modifier = contentMod,
+                        )
+                    }
+                    MainTab.AUDIO -> {
+                        val st = audioVm.state.collectAsState().value
+                        val sec = audioVm.section.collectAsState().value
+                        Column(contentMod) {
+                            SectionTabs(
+                                tabs = listOf("Tracks", "Artists", "Albums"),
+                                selected = sec.ordinal,
+                                onSelect = {
+                                    audioVm.setSection(org.videolan.vlc.viewmodel.AudioSection.entries[it])
+                                },
+                            )
+                            RichMediaListPane(
+                                state = st,
+                                title = "Audio",
+                                emptyLabel = "No audio",
+                                sections = st.sections,
+                                onQuery = audioVm::setQuery,
+                                onPlay = { audioVm.play(it); showPlayer = true },
+                                onPlayAll = { audioVm.playAll(); showPlayer = true },
+                                onPlayNext = audioVm::playNext,
+                                onAppend = audioVm::append,
+                                onToggleSelect = audioVm::toggleSelect,
+                                onSelectAll = audioVm::selectAll,
+                                onClearSelection = audioVm::clearSelection,
+                                onSetViewMode = audioVm::setViewMode,
+                                onSetSort = audioVm::setSort,
+                                onCtx = audioVm::handleCtx,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        }
+                    }
+                    MainTab.BROWSER -> {
+                        val st = browserVm.state.collectAsState().value
+                        BrowserRichPane(
+                            folders = st.folders,
+                            media = st.media,
+                            title = st.currentFolder?.title ?: "Storage",
+                            loading = st.loading,
+                            canGoUp = st.stack.isNotEmpty(),
+                            onUp = { browserVm.goUp() },
+                            onOpenFolder = browserVm::openFolder,
+                            onPlay = { browserVm.play(it); showPlayer = true },
+                            onPlayNext = browserVm::playNext,
+                            onAppend = browserVm::append,
+                            modifier = contentMod,
+                        )
+                    }
+                    MainTab.PLAYLISTS -> {
+                        val st = playlistsVm.state.collectAsState().value
+                        PlaylistsRichPane(
+                            playlists = st.playlists,
+                            loading = st.loading,
+                            detailItems = st.openItems,
+                            detailName = st.openPlaylistName,
+                            onCreate = playlistsVm::create,
+                            onOpen = playlistsVm::openPlaylist,
+                            onPlay = { playlistsVm.playPlaylist(it); showPlayer = true },
+                            onDelete = playlistsVm::delete,
+                            onPlayItem = { playlistsVm.playItem(it); showPlayer = true },
+                            onBack = playlistsVm::closeDetail,
+                            modifier = contentMod,
+                        )
+                    }
                     MainTab.MORE -> MorePane(
                         modifier = contentMod,
                         vm = moreVm,
@@ -270,7 +309,7 @@ fun VlcMainShell(
                         },
                         onOpenRemote = onOpenRemoteClient,
                         onPlayHistory = { entry ->
-                            playerVm.play(entry.item)
+                            moreVm.playHistory(entry)
                             showPlayer = true
                         },
                     )
@@ -463,6 +502,15 @@ private fun MorePane(
                 Text("History", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 TextButton(onClick = vm::clearHistory) { Text("Clear") }
             }
+        }
+        item {
+            Text("Streams", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        }
+        items(state.streams, key = { "s:${it.id}:${it.uri}" }) { item ->
+            MediaRow(item) { vm.playStream(item) }
+        }
+        if (state.streams.isEmpty()) {
+            item { Text("No streams", color = colors.fontLight) }
         }
         items(state.history, key = { "h:${it.item.id}:${it.playedAt}" }) { entry ->
             MediaRow(entry.item) { onPlayHistory(entry) }
