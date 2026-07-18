@@ -52,6 +52,8 @@ import org.videolan.tools.Settings
 import org.videolan.tools.localBroadcastManager
 import org.videolan.tools.markBidi
 import org.videolan.vlc.PlaybackService
+import org.videolan.vlc.player.PlaybackController
+import org.videolan.vlc.model.MediaItem as SharedMediaItem
 import org.videolan.vlc.R
 import org.videolan.vlc.gui.AudioPlayerContainerActivity
 import org.videolan.vlc.gui.DialogActivity
@@ -76,6 +78,16 @@ private const val TAG = "VLC/MediaUtils"
 private typealias MediaContentResolver = SimpleArrayMap<String, IMediaContentResolver>
 
 object MediaUtils {
+    /**
+     * Shared/KMP play entry — prefer this from new Compose/shared code.
+     * Falls back silently if Koin/PlaybackController is not ready.
+     * Existing openMedia* APIs still use PlaylistManager via PlaybackService host.
+     */
+    @JvmStatic
+    fun playViaController(item: SharedMediaItem, queue: List<SharedMediaItem> = emptyList()) {
+        PlaybackController.getOrNull()?.play(item, queue)
+    }
+
     fun getSubs(activity: ComponentActivity, media: MediaWrapper) {
         activity.showSubtitleDownloaderComposeDialog(media.uri, media.title)
     }

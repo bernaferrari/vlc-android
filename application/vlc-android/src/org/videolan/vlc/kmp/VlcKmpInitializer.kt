@@ -23,6 +23,11 @@ import org.videolan.vlc.app.sharedModule
 import org.videolan.vlc.media.PlaylistManager
 import org.videolan.vlc.player.PlaybackService
 import org.videolan.vlc.repository.MediaRepository
+import org.videolan.vlc.platform.RendererBridge
+import org.videolan.vlc.platform.PipController
+import org.videolan.vlc.platform.MediaSessionBridge
+import org.videolan.vlc.repository.HistoryRepository
+import org.videolan.vlc.repository.PlaylistRepository
 
 /**
  * Initializes the Koin DI graph on Android, wiring the shared KMP
@@ -67,7 +72,12 @@ object VlcKmpInitializer {
             val androidAppModule = module {
                 single { medialibrary }
                 single<MediaRepository> { AndroidMediaRepository(get()) }
+                single<PlaylistRepository> { AndroidPlaylistRepository(get()) }
+                single<HistoryRepository> { AndroidHistoryRepository(get()) }
                 single<PlaybackService> { AndroidPlaybackService(managerProvider) }
+                single<MediaSessionBridge> { AndroidMediaSessionBridge(appContext) }
+                single<PipController> { AndroidPipController() }
+                single<RendererBridge> { AndroidRendererBridge() }
             }
 
             if (GlobalContext.getOrNull() == null) {

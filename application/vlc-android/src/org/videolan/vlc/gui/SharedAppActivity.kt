@@ -7,7 +7,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import org.videolan.vlc.compose.app.VlcSharedApp
+import org.videolan.vlc.compose.app.VlcMainShell
 import org.videolan.vlc.kmp.VlcKmpInitializer
 
 /**
@@ -31,7 +31,7 @@ class SharedAppActivity : BaseActivity() {
         root = ComposeView(this).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                VlcSharedApp(title = getString(org.videolan.vlc.R.string.app_name))
+                VlcMainShell(title = getString(org.videolan.vlc.R.string.app_name))
             }
         }
         setContentView(root)

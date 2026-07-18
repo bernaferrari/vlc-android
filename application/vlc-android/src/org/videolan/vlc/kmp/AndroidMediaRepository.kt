@@ -8,7 +8,9 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import org.videolan.medialibrary.interfaces.Medialibrary
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
+import org.videolan.resources.AndroidDevices
 import org.videolan.tools.Settings
+import org.videolan.vlc.model.MediaFolder
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.MediaType
 import org.videolan.vlc.repository.MediaRepository
@@ -142,39 +144,29 @@ class AndroidMediaRepository(
         }
     }.flowOn(Dispatchers.IO)
 
-    /**
-     * Convert an Android MediaWrapper to the common MediaItem.
-     */
-    private fun MediaWrapper.toMediaItem(): MediaItem {
-        return MediaItem(
-            id = this.id,
-            title = this.title ?: "",
-            uri = this.uri?.toString() ?: "",
-            type = when (this.type) {
-                MediaWrapper.TYPE_VIDEO -> MediaType.VIDEO
-                MediaWrapper.TYPE_AUDIO -> MediaType.AUDIO
-                MediaWrapper.TYPE_STREAM -> MediaType.STREAM
-                MediaWrapper.TYPE_DIR -> MediaType.DIR
-                MediaWrapper.TYPE_SUBTITLE -> MediaType.SUBTITLE
-                MediaWrapper.TYPE_PLAYLIST -> MediaType.PLAYLIST
-                MediaWrapper.TYPE_GROUP -> MediaType.GROUP
-                else -> MediaType.ALL
-            },
-            duration = this.length,
-            artist = this.artistName,
-            album = this.albumName,
-            albumArtist = this.albumArtistName,
-            genre = this.genre,
-            year = this.releaseYear,
-            trackNumber = this.trackNumber,
-            discNumber = this.discNumber,
-            artworkUri = this.artworkURL,
-            width = this.width,
-            height = this.height,
-            lastModified = this.lastModified,
-            rating = this.rating?.toFloatOrNull() ?: 0f,
-            playedCount = this.playCount.toInt(),
-            lastPlayed = this.seen,
-        )
+
+    override fun observeFolders(parentId: Long?): Flow<List<MediaFolder>> = callbackFlow {
+        val folders = if (parentId == null) {
+            AndroidDevices.externalStorageDirectories.map { path ->
+                MediaFolder(
+                    id = path.hashCode().toLong(),
+                    title = path.substringAfterLast('/').ifBlank { path },
+                    path = path,
+                    uri = "file://$path",
+                    isRoot = true,
+                )
+            }
+        } else emptyList()
+        trySend(folders)
+        awaitClose { }
+    }.flowOn(Dispatchers.IO)
+
+    override fun observeFolderMedia(folderId: Long): Flow<List<MediaItem>> = mediaCallbackFlow {
+        val roots = AndroidDevices.externalStorageDirectories
+        val root = roots.firstOrNull { it.hashCode().toLong() == folderId }
+        if (root == null) emptyList()
+        else queryMedia(MediaType.ALL).filter { it.uri.contains(root) }
     }
+
+
 }

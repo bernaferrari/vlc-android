@@ -4,32 +4,22 @@
  * **************************************************************************
  *  Copyright © 2018-2019 VLC authors and VideoLAN
  *  Author: Geoffrey Métais
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
  *  ***************************************************************************
  */
 
 package org.videolan.vlc.gui.helpers
 
 import android.app.Activity
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.content.edit
@@ -39,11 +29,15 @@ import com.google.android.material.appbar.AppBarLayout
 import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.resources.EXTRA_FOR_ESPRESSO
 import org.videolan.resources.EXTRA_TARGET
+import org.videolan.resources.REMOTE_ACCESS_CLIENT_ACTIVITY
 import org.videolan.resources.util.parcelableList
 import org.videolan.tools.KEY_NAVIGATION_ID
+import org.videolan.tools.KEY_USE_SHARED_MAIN_SHELL
 import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.R
+import org.videolan.vlc.app.VlcKoin
+import org.videolan.vlc.compose.app.VlcMainShell
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.gui.MainActivity
 import org.videolan.vlc.gui.MainNavChromeState
@@ -52,10 +46,13 @@ import org.videolan.vlc.gui.PlaylistScreenController
 import org.videolan.vlc.gui.audio.AudioScreenController
 import org.videolan.vlc.gui.browser.MainBrowserScreenController
 import org.videolan.vlc.gui.helpers.UiTools.isTablet
+import org.videolan.vlc.gui.preferences.PreferencesActivity
 import org.videolan.vlc.gui.video.VideoScreenController
+import org.videolan.vlc.kmp.AndroidPipController
+import org.videolan.vlc.kmp.VlcKmpInitializer
+import org.videolan.vlc.platform.PipController
 import org.videolan.vlc.util.getScreenWidth
-
-private const val TAG = "Navigator"
+import org.videolan.vlc.viewmodel.MainTab
 
 class Navigator : DefaultLifecycleObserver, INavigator {
 
@@ -63,11 +60,15 @@ class Navigator : DefaultLifecycleObserver, INavigator {
     override var currentDestinationId: Int = 0
     private lateinit var activity: MainActivity
     private lateinit var settings: SharedPreferences
-    /** Bottom bar + rail Compose hosts (R.id.navigation / R.id.navigation_rail). */
     override lateinit var navigationViews: List<View>
     override lateinit var appbarLayout: AppBarLayout
     private var navChrome: MainNavChromeState? = null
     private var forExpresso: ArrayList<MediaLibraryItem>? = null
+
+    private var useSharedShell: Boolean = true
+    private var sharedShellAttached = false
+    private var sharedTab by mutableStateOf(MainTab.VIDEO)
+
     private var moreController: MoreScreenController? = null
     private var mainBrowserController: MainBrowserScreenController? = null
     private var playlistController: PlaylistScreenController? = null
@@ -86,30 +87,98 @@ class Navigator : DefaultLifecycleObserver, INavigator {
         )
         appbarLayout = findViewById(R.id.appbar)
         navChrome = mainNavChromeState
-        navChrome?.onDestinationSelected = { id ->
-            onDestinationSelected(id)
+        navChrome?.onDestinationSelected = { id -> onDestinationSelected(id) }
+        useSharedShell = settings.getBoolean(KEY_USE_SHARED_MAIN_SHELL, true)
+        if (!VlcKmpInitializer.isInitialized) {
+            VlcKmpInitializer.initialize(applicationContext)
+        }
+        runCatching {
+            (VlcKoin.get().get<PipController>() as? AndroidPipController)?.attachActivity(this)
         }
     }
 
     override fun onStart(owner: LifecycleOwner) {
-        if (!currentIdIsExtension()) {
-            showScreen(
-                if (currentDestinationId != 0) currentDestinationId
-                else settings.getInt(KEY_NAVIGATION_ID, defaultDestinationId)
-            )
+        if (currentIdIsExtension()) return
+        val initialId = if (currentDestinationId != 0) currentDestinationId
+        else settings.getInt(KEY_NAVIGATION_ID, defaultDestinationId)
+        if (useSharedShell) {
+            sharedTab = tabForNavId(initialId)
+            attachSharedShell()
+            updateCheckedItem(initialId)
+            currentDestinationId = initialId
+        } else {
+            showScreen(initialId)
         }
     }
 
-    override fun onStop(owner: LifecycleOwner) {
-        // Selection is driven by Compose state; nothing to detach.
-    }
+    override fun onStop(owner: LifecycleOwner) {}
 
     private fun onDestinationSelected(id: Int): Boolean {
         appbarLayout.setExpanded(true, true)
-        if (currentDestinationId == id) return false
+        if (currentDestinationId == id && !useSharedShell) return false
         activity.slideDownAudioPlayer()
-        showScreen(id)
+        if (useSharedShell) {
+            sharedTab = tabForNavId(id)
+            updateCheckedItem(id)
+            currentDestinationId = id
+        } else {
+            showScreen(id)
+        }
         return true
+    }
+
+    private fun tabForNavId(id: Int): MainTab = when (id) {
+        R.id.nav_audio -> MainTab.AUDIO
+        R.id.nav_directories -> MainTab.BROWSER
+        R.id.nav_playlists -> MainTab.PLAYLISTS
+        R.id.nav_more -> MainTab.MORE
+        else -> MainTab.VIDEO
+    }
+
+    private fun attachSharedShell() {
+        if (sharedShellAttached) return
+        val container = activity.findViewById<ViewGroup>(R.id.content_placeholder)
+        container.removeAllViews()
+        container.addView(
+            ComposeView(activity).apply {
+                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+                setContent {
+                    VLCTheme {
+                        // Controlled by Android bottom chrome — hide internal bar.
+                        VlcMainShell(
+                            tab = sharedTab,
+                            onTabChange = { t ->
+                                sharedTab = t
+                                val id = when (t) {
+                                    MainTab.VIDEO -> R.id.nav_video
+                                    MainTab.AUDIO -> R.id.nav_audio
+                                    MainTab.BROWSER -> R.id.nav_directories
+                                    MainTab.PLAYLISTS -> R.id.nav_playlists
+                                    MainTab.MORE -> R.id.nav_more
+                                }
+                                updateCheckedItem(id)
+                                currentDestinationId = id
+                            },
+                            showBottomBar = false,
+                            title = activity.getString(R.string.app_name),
+                            onOpenSettings = {
+                                activity.startActivity(Intent(activity, PreferencesActivity::class.java))
+                            },
+                            onOpenRemoteClient = {
+                                activity.startActivity(
+                                    Intent().setClassName(activity, REMOTE_ACCESS_CLIENT_ACTIVITY)
+                                )
+                            },
+                        )
+                    }
+                }
+            },
+            ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        )
+        sharedShellAttached = true
     }
 
     private fun showScreen(id: Int) {
@@ -181,9 +250,7 @@ class Navigator : DefaultLifecycleObserver, INavigator {
             ComposeView(activity).apply {
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
                 setContent {
-                    VLCTheme {
-                        content()
-                    }
+                    VLCTheme { content() }
                 }
             },
             ViewGroup.LayoutParams(
@@ -208,12 +275,11 @@ class Navigator : DefaultLifecycleObserver, INavigator {
         activity.findViewById<ViewGroup>(R.id.content_placeholder).removeAllViews()
     }
 
-    override fun currentIdIsExtension() = idIsExtension(currentDestinationId)
-
-    private fun idIsExtension(id: Int) = id in 1..100
+    override fun currentIdIsExtension() = currentDestinationId in 1..100
 
     override fun reloadPreferences() {
         currentDestinationId = settings.getInt(KEY_NAVIGATION_ID, defaultDestinationId)
+        useSharedShell = settings.getBoolean(KEY_USE_SHARED_MAIN_SHELL, true)
     }
 
     override fun configurationChanged(size: Int) {
@@ -234,32 +300,22 @@ class Navigator : DefaultLifecycleObserver, INavigator {
     }
 
     override fun refreshCurrentScreen(): Boolean {
+        if (useSharedShell) {
+            // StateFlows refresh from repositories automatically.
+            return true
+        }
         return when (currentDestinationId) {
-            R.id.nav_more -> {
-                moreController?.refresh()
-                true
-            }
-            R.id.nav_directories -> {
-                mainBrowserController?.refresh()
-                true
-            }
-            R.id.nav_playlists -> {
-                playlistController?.refresh()
-                true
-            }
-            R.id.nav_video -> {
-                videoController?.refresh()
-                true
-            }
-            R.id.nav_audio -> {
-                audioController?.refresh()
-                true
-            }
+            R.id.nav_more -> { moreController?.refresh(); true }
+            R.id.nav_directories -> { mainBrowserController?.refresh(); true }
+            R.id.nav_playlists -> { playlistController?.refresh(); true }
+            R.id.nav_video -> { videoController?.refresh(); true }
+            R.id.nav_audio -> { audioController?.refresh(); true }
             else -> false
         }
     }
 
     override fun prepareCurrentScreenOptions(menu: Menu) {
+        if (useSharedShell) return
         if (currentDestinationId == R.id.nav_directories) mainBrowserController?.prepareOptionsMenu(menu)
         if (currentDestinationId == R.id.nav_playlists) playlistController?.prepareOptionsMenu(menu)
         if (currentDestinationId == R.id.nav_video) videoController?.prepareOptionsMenu(menu)
@@ -267,6 +323,7 @@ class Navigator : DefaultLifecycleObserver, INavigator {
     }
 
     override fun onCurrentScreenOptionsItemSelected(item: MenuItem): Boolean {
+        if (useSharedShell) return false
         return when (currentDestinationId) {
             R.id.nav_directories -> mainBrowserController?.onOptionsItemSelected(item) == true
             R.id.nav_playlists -> playlistController?.onOptionsItemSelected(item) == true
