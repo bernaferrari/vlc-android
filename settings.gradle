@@ -17,7 +17,9 @@ plugins {
 def vlcMajorVersion = hasProperty('forceVlc4') && getProperty('forceVlc4') ? 4 : 3
 
 android {
-    minSdk = vlcMajorVersion == 3 ? 17 : 23
+    // Shared KMP + DataStore/Compose require API 23+. Historical VLC 3 floor was 17
+    // (NDK 21); the Android app/library minSdk is now 23 for both VLC 3 and 4.
+    minSdk = 23
     targetSdk = 36
     compileSdk = 36 // Dockers: 3.0=36 / 4.0=36
     buildToolsVersion = '36.0.0'

@@ -46,6 +46,7 @@ import org.videolan.resources.AndroidDevices
 import org.videolan.resources.AppContextProvider
 import org.videolan.resources.VLCInstance
 import org.videolan.resources.util.startRemoteAccess
+import org.videolan.medialibrary.interfaces.Medialibrary
 import org.videolan.tools.AppScope
 import org.videolan.tools.KEY_ENABLE_REMOTE_ACCESS
 import org.videolan.tools.KEY_INCOGNITO
@@ -59,6 +60,7 @@ import org.videolan.vlc.util.DialogDelegate
 import org.videolan.vlc.util.NetworkConnectionManager
 import org.videolan.vlc.util.VersionMigration
 import org.videolan.vlc.widget.MiniPlayerAppWidgetProvider
+import org.videolan.vlc.kmp.VlcKmpInitializer
 
 interface AppDelegate {
     val appContextProvider : AppContextProvider
@@ -125,6 +127,9 @@ class AppSetupDelegate : AppDelegate,
     private fun Context.backgroundInit() = AppScope.launch outerLaunch@ {
         VersionMigration.migrateVersion(this@backgroundInit)
         Settings.initPostMigration(this@backgroundInit)
+        // KMP DI: Preferences/DataStore can start immediately; ML-backed repos
+        // tolerate an uninitiated Medialibrary and refresh via MediaCb once ready.
+        initializeKmp(this@backgroundInit)
         launch(Dispatchers.IO) innerLaunch@ {
             if (!VLCInstance.testCompatibleCPU(AppContextProvider.appContext)) return@innerLaunch
             Dialog.setCallbacks(VLCInstance.getInstance(this@backgroundInit), DialogDelegate)
@@ -136,6 +141,31 @@ class AppSetupDelegate : AppDelegate,
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             NetworkConnectionManager.start(AppContextProvider.appContext)
         }
+    }
 
+    /**
+     * Starts shared Koin graph once per process. If medialibrary is not yet
+     * initiated, register a one-shot ready listener and initialize then.
+     */
+    private fun initializeKmp(context: Context) {
+        if (VlcKmpInitializer.isInitialized) return
+        val ml = Medialibrary.getInstance()
+        if (ml.isInitiated) {
+            VlcKmpInitializer.initialize(context, ml)
+            return
+        }
+        val listener = object : Medialibrary.OnMedialibraryReadyListener {
+            override fun onMedialibraryReady() {
+                ml.removeOnMedialibraryReadyListener(this)
+                if (!VlcKmpInitializer.isInitialized) {
+                    VlcKmpInitializer.initialize(context, ml)
+                }
+            }
+            override fun onMedialibraryIdle() {}
+        }
+        ml.addOnMedialibraryReadyListener(listener)
+        // Also attempt immediately so DataStore prefs bind even before first scan.
+        // AndroidMediaRepository no-ops cleanly when !isInitiated.
+        VlcKmpInitializer.initialize(context, ml)
     }
 }

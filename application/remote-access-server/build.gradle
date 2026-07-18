@@ -7,10 +7,6 @@ plugins {
 android {
     namespace = 'org.videolan.vlc.remoteaccessserver'
 
-    dataBinding {
-        enabled = true
-    }
-
     defaultConfig {
         multiDexEnabled = true
 
@@ -39,21 +35,20 @@ android {
         assets.srcDirs = ['assets']
     }
 
-    sourceSets.main {
-        assets.srcDirs = ['assets']
-    }
-
+    // Java/Kotlin 17 — matches root allprojects + :shared. Root afterEvaluate also
+    // enforces this; keep module-level explicit for clarity.
     compileOptions {
         coreLibraryDesugaringEnabled = true
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
     buildFeatures {
         buildConfig = true
         compose = true
+        // No dataBinding — module is Compose + Ktor only (no XML layout bindings).
     }
 
 }

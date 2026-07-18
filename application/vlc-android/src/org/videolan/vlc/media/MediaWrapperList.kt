@@ -25,7 +25,7 @@ import java.util.*
 
 class MediaWrapperList {
 
-    /* TODO: add locking */
+    // Instance monitor is the list lock; PlaylistManager shares it via synchronized(mediaList).
     private val internalList = ArrayList<MediaWrapper>()
     private val eventListenerList = ArrayList<EventListener>()
     private var videoCount = 0

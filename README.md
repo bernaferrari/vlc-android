@@ -1,11 +1,11 @@
 # VLC for Android
 
-This is the official **Android** port of [VLC](https://videolan.org/vlc/).
+This is the official **Android** port of [VLC](https://videolan.org/vlc/), with an in-progress Kotlin Multiplatform (KMP) shared layer and a Compose Multiplatform UI stack.
 
-VLC on Android plays all the same files as the classical version of VLC, and features a media database
-for Audio and Video files and stream.
+VLC on Android plays all the same files as the classical version of VLC, and features a media database for Audio and Video files and stream.
 
 - [Project Structure](#project-structure)
+- [minSdk policy](#minsdk-policy)
 - [LibVLC](#libvlc)
 - [License](#license)
 - [Build](#build)
@@ -19,13 +19,53 @@ for Audio and Video files and stream.
 
 ## Project Structure
 
-Here are the current folders of vlc-android project:
+```
+vlc-android/
+├── shared/                         # KMP module (commonMain + android/jvm/ios)
+│   ├── domain models, repositories, preferences (DataStore)
+│   ├── Compose Multiplatform UI components + theme
+│   └── expect/actual platform bridges
+├── application/                    # Android app modules
+│   ├── app/                        # Application shell + merged manifest
+│   ├── vlc-android/                # Phone UI hosts, PlaybackService, KMP adapters
+│   ├── compose/                    # Thin Android interop shim (VLCComposeView)
+│   ├── television/                 # Android TV UI
+│   ├── remote-access-server/       # On-device Ktor remote access
+│   ├── remote-access-client/       # Packaged web client assets (release from Maven)
+│   ├── tools/, resources/, mediadb/, moviepedia/, donations/, live-plot-graph/
+│   └── …
+├── ios/                            # SwiftUI skeleton consuming VLCShared.framework
+├── medialibrary/                   # Medialibrary JNI / gradle module
+├── libvlcjni/ (optional checkout)  # LibVLC gradle module; VLC sources under vlc/
+├── buildsystem/                    # Build scripts, CI, maven publication
+└── settings.gradle
+```
 
-- extension-api : Application extensions SDK (not released yet)
-- application : Android application source code, organized by modules.
-- buildsystem : Build scripts, CI and maven publication configuration
-- libvlc : LibVLC gradle module, VLC source code will be cloned in `vlc/` at root level.
-- medialibrary : Medialibrary gradle module
+### Current architecture (ground truth)
+
+| Area | Status |
+|------|--------|
+| Phone UI | Full Jetpack Compose / Compose-hosted screens (no phone Fragments / layout XML left in the active path) |
+| Shared UI components | Live in `:shared` (`org.videolan.vlc.compose.*`) via Compose Multiplatform |
+| `:application:compose` | **Interop shim only** — `VLCComposeView` for embedding Compose in residual Android View hosts. Components do **not** live here. |
+| KMP `:shared` | commonMain models, DataStore preferences, repository/playback contracts, CMP UI; android/jvm/ios actuals |
+| Android KMP adapters | `application/vlc-android/.../kmp/` (`AndroidMediaRepository`, `AndroidPlaybackService`, `VlcKmpInitializer`) — wiring in progress |
+| iOS | Skeleton SwiftUI app in `ios/`; builds against `VLCShared.framework`. No full VLCKit player yet. DI uses Koin (`VlcKoin` / `VlcSharedApi`), not a `VlcAppContainer` type. |
+| Remote access | `:application:remote-access-server` (Ktor + Compose share UI) |
+| Permanent native islands | LibVLC video surface, medialibrary JNI, some system/widget/TV edges |
+
+More detail: `application/compose/README.md` (Android interop shim) and `ios/README.md` (KMP / iOS skeleton).
+
+## minSdk policy
+
+| Surface | minSdk | Notes |
+|---------|--------|--------|
+| Project default (`settings.gradle`) | **23** | Required by DataStore 1.2.x, modern AndroidX, Compose |
+| `:shared` Android target | **23** | Same floor — avoids manifest merger failures |
+| `vlcBundle` app variant | **30** | Store bundle floor |
+| VLC 3 **native** NDK | NDK 21 | Still used when `vlcMajorVersion == 3` for ABI/native API 17-era toolchains; **Java/Kotlin app code is min 23** |
+
+Optional NDK path: set `android.ndkPath` (and optionally `android.ndkFullVersion`) in `local.properties`. Root ext property is `toolchainNdkPath`.
 
 ## LibVLC
 
@@ -58,7 +98,7 @@ VLC engine *(LibVLC)* for Android is licensed under [LGPLv2](libvlc/COPYING.LIB)
 
 ## Build
 
-Native libraries are published on bintray. So you can:
+Native libraries are published on Maven. So you can:
 
 - Build the application and get libraries via gradle dependencies (JVM build only)
 - Build the whole app (LibVLC + Medialibrary + Application)
@@ -66,11 +106,26 @@ Native libraries are published on bintray. So you can:
 
 ### Build Application
 
-VLC-Android build relies on gradle build modes :
+VLC-Android build relies on gradle build modes:
 
-- `Release` & `Debug` will get LibVLC and Medialibrary from Bintray, and build application source code only.
+- `Release` & `Debug` will get LibVLC and Medialibrary from Maven, and build application source code only.
 - `SignedRelease` also, but it will allow you to sign application apk with a local keystore.
-- `Dev` will build build LibVLC, Medialibrary, and then build the application with these binaries. (via build scripts only)
+- `Dev` will build LibVLC, Medialibrary, and then build the application with these binaries. (via build scripts only)
+
+Focused gates used during Compose/KMP work:
+
+```bash
+# Shared KMP Android compile
+./gradlew :shared:compileDebugKotlinAndroid --no-daemon --console=plain
+
+# Phone app Kotlin + interop shim
+./gradlew :application:compose:build :application:vlc-android:compileDebugKotlin --no-daemon --console=plain
+
+# Manifest merge (minSdk / DataStore sanity)
+./gradlew :application:app:processDebugMainManifest --no-daemon --console=plain
+```
+
+Force VLC 4 dependency line: `-PforceVlc4`.
 
 ### Build LibVLC
 
@@ -87,7 +142,7 @@ On Debian/Ubuntu, install the required dependencies:
 ```bash
 sudo apt install automake ant autopoint cmake build-essential libtool-bin \
     patch pkg-config protobuf-compiler ragel subversion unzip git \
-    openjdk-8-jre openjdk-8-jdk flex python wget
+    openjdk-17-jre openjdk-17-jdk flex python3 wget
 ```
 
 Setup the build environment:

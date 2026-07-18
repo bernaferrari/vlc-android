@@ -99,7 +99,8 @@ object FileUtils {
      * Convert file:// uri from real path to emulated FS path.
      */
     fun convertLocalUri(uri: Uri): Uri {
-        return if (uri.scheme != "file" || !uri.path!!.startsWith("/sdcard")) uri else uri.toString().replace("/sdcard", AndroidDevices.EXTERNAL_PUBLIC_DIRECTORY).toUri()
+        val path = uri.path ?: return uri
+        return if (uri.scheme != "file" || !path.startsWith("/sdcard")) uri else uri.toString().replace("/sdcard", AndroidDevices.EXTERNAL_PUBLIC_DIRECTORY).toUri()
     }
 
     @WorkerThread
@@ -264,7 +265,8 @@ object FileUtils {
 
     @WorkerThread
     fun deleteFile(uri: Uri): Boolean {
-        if (isExternalStorageManager() || !VlcMigrationHelper.isLolliPopOrLater || uri.path!!.startsWith(AndroidDevices.EXTERNAL_PUBLIC_DIRECTORY)) return deleteFile(uri.path)
+        val path = uri.path ?: return false
+        if (isExternalStorageManager() || !VlcMigrationHelper.isLolliPopOrLater || path.startsWith(AndroidDevices.EXTERNAL_PUBLIC_DIRECTORY)) return deleteFile(path)
         val docFile = findFile(uri)
         if (docFile != null)
             try {
@@ -435,17 +437,20 @@ object FileUtils {
                         CloseableUtils.close(os)
                         CloseableUtils.close(cursor)
                     }
-                } else if (data.host == "com.amaze.filemanager" && data.path != null) {
-                    uri = data.path!!.replace("/storage_root", "file://").toUri()
+                } else if (data.host == "com.amaze.filemanager") {
+                    val rawPath = data.path ?: return null
+                    uri = rawPath.replace("/storage_root", "file://").toUri()
                     uri.let {
-                        if (it.path != null && !File(it.path!!).canRead())
+                        val p = it.path
+                        if (p != null && !File(p).canRead())
                             uri = getFileDescriptorFromUri(data)
                     }
                 } else if (data.authority == "media") {
                     uri = MediaUtils.getContentMediaUri(data)
                 } else if (data.authority == ctx.getString(R.string.tv_provider_authority)) {
                     val medialibrary = Medialibrary.getInstance()
-                    val media = medialibrary.getMedia(data.lastPathSegment!!.toLong())
+                    val mediaId = data.lastPathSegment?.toLongOrNull() ?: return null
+                    val media = medialibrary.getMedia(mediaId) ?: return null
                     uri = media.uri
                 } else {
                     uri = MediaUtils.getContentMediaUri(data)

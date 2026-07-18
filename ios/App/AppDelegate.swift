@@ -45,7 +45,7 @@ final class VLCAppState: ObservableObject {
         // 1. Create IosVlcDataStoreFactory() and VlcPreferences(dataStore)
         // 2. Create platform-specific MediaRepository impl (VLCKit medialibrary)
         // 3. Create platform-specific PlaybackService impl (VLCKit MediaPlayer)
-        // 4. Build and init VlcAppContainer
+        // 4. startKoin with iOS modules (VlcKoin) — there is no VlcAppContainer type
         //
         // For now, just demonstrate the API surface is accessible.
         Task {

@@ -69,18 +69,25 @@ class NetworkProvider(context: Context, dataset: LiveDataset<MediaLibraryItem>, 
     }
 
     override fun refresh() {
-        val list by lazy(LazyThreadSafetyMode.NONE) { getList(url!!) }
+        val currentUrl = url
         when {
-            url == null -> {
+            currentUrl == null -> {
                 browseRoot()
             }
-            list !== null -> {
-                dataset.value = list as MutableList<MediaLibraryItem>
-                removeList(url)
-                parseSubDirectories()
-                computeHeaders(list as MutableList<MediaLibraryItem>)
+            else -> {
+                val list by lazy(LazyThreadSafetyMode.NONE) { getList(currentUrl) }
+                val prefetched = list
+                if (prefetched !== null) {
+                    @Suppress("UNCHECKED_CAST")
+                    dataset.value = prefetched as MutableList<MediaLibraryItem>
+                    removeList(currentUrl)
+                    parseSubDirectories()
+                    @Suppress("UNCHECKED_CAST")
+                    computeHeaders(prefetched as MutableList<MediaLibraryItem>)
+                } else {
+                    super.refresh()
+                }
             }
-            else -> super.refresh()
         }
 
     }

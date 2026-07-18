@@ -22,7 +22,6 @@ package org.videolan.resources.util
 
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import android.os.Environment
 import android.text.format.DateFormat
 import android.util.Log
 import org.videolan.resources.AppContextProvider
@@ -65,14 +64,17 @@ class VLCCrashHandler : UncaughtExceptionHandler {
             val result = StringWriter()
             val printWriter = PrintWriter(result)
 
-            // Inject some info about android version and the device, since google can't provide them in the developer console
+            // Inject coarse device info useful for triage. Avoid Build.FINGERPRINT —
+            // it is a stable device identifier and unnecessarily expands crash-log PII.
             val trace = ex.stackTrace
-            val trace2 = arrayOfNulls<StackTraceElement>(trace.size + if (watermark.isNotEmpty()) 4  else 3)
+            val extra = if (watermark.isNotEmpty()) 3 else 2
+            val trace2 = arrayOfNulls<StackTraceElement>(trace.size + extra)
             System.arraycopy(trace, 0, trace2, 0, trace.size)
             trace2[trace.size + 0] = StackTraceElement("Android", "MODEL", android.os.Build.MODEL, -1)
             trace2[trace.size + 1] = StackTraceElement("Android", "VERSION", android.os.Build.VERSION.RELEASE, -1)
-            trace2[trace.size + 2] = StackTraceElement("Android", "FINGERPRINT", android.os.Build.FINGERPRINT, -1)
-           if (watermark.isNotEmpty()) trace2[trace.size + 3] = StackTraceElement("VLC", "Watermark", watermark, -1)
+            if (watermark.isNotEmpty()) {
+                trace2[trace.size + 2] = StackTraceElement("VLC", "Watermark", watermark, -1)
+            }
             ex.stackTrace = trace2
 
             ex.printStackTrace(printWriter)
@@ -81,10 +83,13 @@ class VLCCrashHandler : UncaughtExceptionHandler {
             Log.e(TAG, stacktrace)
             Settings.getInstance(AppContextProvider.appContext).putSingle(KEY_LAST_SESSION_CRASHED, true)
 
-            // Save the log on SD card if available
-            if (Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED) {
-                writeLog(stacktrace, AppContextProvider.appContext.getExternalFilesDir(null)!!.absolutePath + "/vlc_crash")
-                writeLogcat(AppContextProvider.appContext.getExternalFilesDir(null)!!.absolutePath + "/vlc_logcat")
+            // Prefer app-private storage (no extra permission / not world-readable).
+            val crashDir = AppContextProvider.appContext.getExternalFilesDir(null)
+                ?: AppContextProvider.appContext.filesDir
+            if (crashDir != null) {
+                val base = crashDir.absolutePath
+                writeLog(stacktrace, "$base/vlc_crash")
+                writeLogcat("$base/vlc_logcat")
             }
             return ex
         }

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Network security policy for VLC Android (compose-knn1).
+
+  Product requirement: VLC plays user-supplied media URLs, including plain
+  http:// streams (IPTV playlists, LAN servers, camera feeds, etc.). A deny-by-
+  default cleartext policy would break core playback for those sources, so
+  cleartext remains permitted at the base config.
+
+  This XML is the single source of truth (preferred over android:usesCleartextTraffic
+  on the <application> tag). Remote-access server TLS and cookie/session hardening
+  are separate concerns under application/remote-access-server/.
+
+  Residual risk: any cleartext http:// request the app or LibVLC issues is allowed.
+  Prefer https when the source supports it. Nightly AutoUpdate still hits
+  http://artifacts.videolan.org intentionally.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

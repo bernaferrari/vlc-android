@@ -303,6 +303,74 @@ object SecretGenerator {
     }
 
     /**
+     * Encrypts [plaintext] with the Android Keystore AES key and returns a self-contained
+     * payload of the form `base64(iv):base64(ciphertext)`. Safe for multiple independent
+     * values (unlike [encryptData], which stores a single global IV).
+     */
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+    fun encryptSealed(context: Context, plaintext: String): String {
+        initKeys(context)
+        val cipher: Cipher
+        val iv: ByteArray
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            cipher = Cipher.getInstance(AES_MODE_M_OR_GREATER)
+            iv = generateRandomBytes()
+            cipher.init(Cipher.ENCRYPT_MODE, secretKeyAPIMorGreater, GCMParameterSpec(128, iv))
+        } else {
+            cipher = Cipher.getInstance(AES_MODE_LESS_THAN_M, CIPHER_PROVIDER_NAME_ENCRYPTION_DECRYPTION_AES)
+            try {
+                cipher.init(Cipher.ENCRYPT_MODE, getSecretKeyApiLessThanM(context))
+            } catch (e: InvalidKeyException) {
+                removeKeys(context)
+                throw e
+            } catch (e: IOException) {
+                removeKeys(context)
+                throw e
+            } catch (e: IllegalArgumentException) {
+                removeKeys(context)
+                throw e
+            }
+            // ECB has no IV; store an empty placeholder so the sealed format stays uniform.
+            iv = ByteArray(0)
+        }
+        val encodedBytes = cipher.doFinal(plaintext.toByteArray(Charsets.UTF_8))
+        val ivB64 = Base64.encodeToString(iv, Base64.NO_WRAP)
+        val ctB64 = Base64.encodeToString(encodedBytes, Base64.NO_WRAP)
+        return "$ivB64:$ctB64"
+    }
+
+    /**
+     * Decrypts a payload previously produced by [encryptSealed].
+     */
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+    fun decryptSealed(context: Context, sealed: String): String {
+        initKeys(context)
+        val parts = sealed.split(':', limit = 2)
+        if (parts.size != 2) throw IllegalArgumentException("Malformed sealed payload")
+        val iv = Base64.decode(parts[0], Base64.NO_WRAP)
+        val encryptedDecodedData = Base64.decode(parts[1], Base64.NO_WRAP)
+        val c: Cipher
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                c = Cipher.getInstance(AES_MODE_M_OR_GREATER)
+                c.init(Cipher.DECRYPT_MODE, secretKeyAPIMorGreater, GCMParameterSpec(128, iv))
+            } else {
+                c = Cipher.getInstance(AES_MODE_LESS_THAN_M, CIPHER_PROVIDER_NAME_ENCRYPTION_DECRYPTION_AES)
+                c.init(Cipher.DECRYPT_MODE, getSecretKeyApiLessThanM(context))
+            }
+        } catch (e: InvalidKeyException) {
+            removeKeys(context)
+            throw e
+        } catch (e: IOException) {
+            removeKeys(context)
+            throw e
+        }
+        val decodedBytes = c.doFinal(encryptedDecodedData)
+        return String(decodedBytes, Charsets.UTF_8)
+    }
+
+
+    /**
      * Generates a random string between 32 and 48 chars
      *
      * @return a random string

@@ -41,6 +41,7 @@ import android.util.LruCache
 import androidx.annotation.DrawableRes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 import org.videolan.libvlc.FactoryManager
 import org.videolan.libvlc.interfaces.IMedia
 import org.videolan.libvlc.interfaces.IMediaFactory
@@ -72,6 +73,12 @@ import kotlin.math.max
 private const val TAG = "VLC/ArtworkProvider"
 private const val MIME_TYPE_IMAGE_WEBP = "image/webp"
 private const val ENABLE_TRACING = false
+// ContentProvider.openFile is a synchronous binder API, so some blocking is unavoidable.
+// Bound the work: limited parallelism avoids stampeding the medialibrary, and timeouts
+// prevent a single slow thumbnail/ML call from ANRing the caller forever.
+private const val ARTWORK_TIMEOUT_MS = 8_000L
+private val ArtworkDispatcher = Dispatchers.IO.limitedParallelism(4)
+
 
 /**
  * This content provider enables callers to retrieve cover artwork cataloged by the VLC Medialibrary.
@@ -109,6 +116,18 @@ private const val ENABLE_TRACING = false
 class ArtworkProvider : ContentProvider() {
 
     private lateinit var ctx: Context
+
+    private fun <T> artworkBlocking(block: suspend () -> T): T? {
+        return try {
+            runBlocking(ArtworkDispatcher) {
+                withTimeoutOrNull(ARTWORK_TIMEOUT_MS) { block() }
+            }
+        } catch (e: Exception) {
+            if (ENABLE_TRACING) Log.e(TAG, "artworkBlocking failed", e)
+            null
+        }
+    }
+
 
     override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor? {
         val callingUid = Binder.getCallingUid()
@@ -156,11 +175,11 @@ class ArtworkProvider : ContentProvider() {
         val width = 512
         if (path == null) return null
         val image = getOrPutImage(path) {
-            runBlocking(Dispatchers.IO) {
+            artworkBlocking {
                 var bitmap = AudioUtil.readCoverBitmap(path, width)
                 if (bitmap != null) bitmap = padSquare(bitmap)
                 if (bitmap == null) bitmap = ctx.getBitmapFromDrawable(R.drawable.ic_no_media, width, width)
-                return@runBlocking BitmapUtil.encodeImage(bitmap, ENABLE_TRACING){
+                BitmapUtil.encodeImage(bitmap, ENABLE_TRACING) {
                     getTimestamp()
                 }
             }
@@ -177,7 +196,7 @@ class ArtworkProvider : ContentProvider() {
      * AA performs caching.
      */
     private fun getCategoryImage(context: Context, category: String, id: Long, forRemote:Boolean = false, bigVariant:Boolean = true): ParcelFileDescriptor {
-        val mw: MediaLibraryItem? = runBlocking(Dispatchers.IO) {
+        val mw: MediaLibraryItem? = artworkBlocking {
             when (category) {
                 ALBUM -> context.getFromMl { getAlbum(id) }
                 ARTIST -> context.getFromMl { getArtist(id) }
@@ -190,10 +209,10 @@ class ArtworkProvider : ContentProvider() {
                 val file = File(filePath)
                 if (file.exists()) return@getCategoryImage ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
             }
-            runBlocking(Dispatchers.IO) {
+            artworkBlocking {
                 var bitmap = ThumbnailsProvider.obtainBitmap(mw, 256)
                 if (bitmap != null) bitmap = padSquare(bitmap)
-                return@runBlocking BitmapUtil.encodeImage(bitmap, ENABLE_TRACING) {
+                BitmapUtil.encodeImage(bitmap, ENABLE_TRACING) {
                     getTimestamp()
                 }
             }?.let { return@getCategoryImage getPFDFromByteArray(it) }
@@ -232,7 +251,7 @@ class ArtworkProvider : ContentProvider() {
         val width = 512
         val height169 = 540
         val width169 = 960
-        val mw: MediaLibraryItem? = runBlocking(Dispatchers.IO) { ctx.getFromMl { getMedia(mediaId) } }
+        val mw: MediaLibraryItem? = artworkBlocking { ctx.getFromMl { getMedia(mediaId) } }
         mw?.let {
             if (!mw.artworkMrl.isNullOrEmpty()) {
                 val filePath = Uri.decode(mw.artworkMrl).removeFileScheme()
@@ -247,7 +266,7 @@ class ArtworkProvider : ContentProvider() {
         if (nonTransparent) key += "_nonTransparent"
         if (fallbackIcon != null) key += fallbackIcon.toString()
         val image = getOrPutImage(key) {
-            runBlocking(Dispatchers.IO) {
+            artworkBlocking {
                 var bitmap = if (mw != null) ThumbnailsProvider.obtainBitmap(mw, width) else null
                 if (bitmap == null) bitmap = readEmbeddedArtwork(mw, width)
                 if (padSquare && bitmap != null) bitmap = padSquare(bitmap)
@@ -263,7 +282,7 @@ class ArtworkProvider : ContentProvider() {
                     }
                 }
                 if (nonTransparent) bitmap = removeTransparency(bitmap)
-                return@runBlocking BitmapUtil.encodeImage(bitmap, ENABLE_TRACING) {
+                BitmapUtil.encodeImage(bitmap, ENABLE_TRACING) {
                     getTimestamp()
                 }
             }
@@ -280,13 +299,12 @@ class ArtworkProvider : ContentProvider() {
      * @return a ParcelFileDescriptor containing the genre image
      */
     private fun getGenreImage(ctx: Context, id: Long, @DrawableRes fallbackIcon: Int? = null): ParcelFileDescriptor? {
-        val bitmap = runBlocking(Dispatchers.IO) {
+        val bitmap = artworkBlocking {
             val tracks = ctx.getFromMl { getGenre(id)?.albums?.flatMap { it.tracks.toList() } }
             val cover = tracks?.let {
-
                 ThumbnailsProvider.getPlaylistOrGenreImage("genre:${id}_256", tracks, 256)
             }
-            return@runBlocking when {
+            when {
                 cover != null -> cover
                 else -> ctx.getBitmapFromDrawable(fallbackIcon ?: R.drawable.ic_auto_genre)
             }
@@ -303,13 +321,12 @@ class ArtworkProvider : ContentProvider() {
      * @return a ParcelFileDescriptor containing the playlist image
      */
     private fun getPlaylistImage(ctx: Context, id: Long, @DrawableRes fallbackIcon: Int? = null): ParcelFileDescriptor? {
-        val bitmap = runBlocking(Dispatchers.IO) {
+        val bitmap = artworkBlocking {
             val tracks = ctx.getFromMl { getPlaylist(id, true, false)?.tracks?.toList() }
             val cover = tracks?.let {
-
                 ThumbnailsProvider.getPlaylistOrGenreImage("playlist:${id}_256", tracks, 256)
             }
-            return@runBlocking when {
+            when {
                 cover != null -> cover
                 else -> ctx.getBitmapFromDrawable(fallbackIcon ?: R.drawable.ic_auto_playlist)
             }
@@ -318,7 +335,7 @@ class ArtworkProvider : ContentProvider() {
     }
 
     private fun getPlayAllImage(ctx: Context, type: String, id: Long, shuffle: Boolean): ParcelFileDescriptor {
-        val bitmap = runBlocking(Dispatchers.IO) {
+        val bitmap = artworkBlocking {
             val tracks = when (type) {
                 GENRE -> ctx.getFromMl { getGenre(id)?.albums?.flatMap { it.tracks.toList() } }
                 ARTIST -> ctx.getFromMl { getArtist(id)?.tracks?.toList() }
@@ -334,7 +351,7 @@ class ArtworkProvider : ContentProvider() {
                 val key = if (shuffle) "${type}_shuffle" else type
                 ThumbnailsProvider.getPlaylistOrGenreImage("${key}:${id}_256", tracks, 256, iconAddition)
             }
-            return@runBlocking when {
+            when {
                 cover != null -> cover
                 type == PLAYLIST -> ctx.getBitmapFromDrawable(R.drawable.ic_auto_playlist_unknown)
                 else -> ctx.getBitmapFromDrawable(R.drawable.ic_auto_playall)
@@ -344,32 +361,33 @@ class ArtworkProvider : ContentProvider() {
     }
 
     private fun getHistory(ctx: Context): ByteArray? {
-        return runBlocking(Dispatchers.IO) {
+        return artworkBlocking {
             /* Last Played */
             val lastMediaPlayed = ctx.getFromMl { history(Medialibrary.HISTORY_TYPE_LOCAL)?.toList()?.filter { MediaSessionBrowser.isMediaAudio(it) } }
             if (!lastMediaPlayed.isNullOrEmpty()) {
-                return@runBlocking getHomeImage(ctx, HISTORY, lastMediaPlayed.toTypedArray())
+                getHomeImage(ctx, HISTORY, lastMediaPlayed.toTypedArray())
+            } else {
+                null
             }
-            null
         }
     }
 
     private fun getShuffleAll(ctx: Context): ByteArray? {
-        return runBlocking(Dispatchers.IO) {
+        return artworkBlocking {
             /* Shuffle All */
             val audioCount = ctx.getFromMl { audioCount }
             /* Show cover art from the whole library */
             val offset = SecureRandom().nextInt((audioCount - MediaSessionBrowser.MAX_COVER_ART_ITEMS).coerceAtLeast(1))
             val list = ctx.getFromMl { getPagedAudio(Medialibrary.SORT_ALPHA, false, false, false, MediaSessionBrowser.MAX_COVER_ART_ITEMS, offset) }
-            return@runBlocking getHomeImage(ctx, SHUFFLE_ALL, list)
+            getHomeImage(ctx, SHUFFLE_ALL, list)
         }
     }
 
     private fun getLastAdded(ctx: Context): ByteArray? {
-        return runBlocking(Dispatchers.IO) {
+        return artworkBlocking {
             /* Last Added */
             val recentAudio = ctx.getFromMl { getPagedAudio(Medialibrary.SORT_INSERTIONDATE, true, false, false, MediaSessionBrowser.MAX_HISTORY_SIZE, 0) }
-            return@runBlocking getHomeImage(ctx, LAST_ADDED, recentAudio)
+            getHomeImage(ctx, LAST_ADDED, recentAudio)
         }
     }
 

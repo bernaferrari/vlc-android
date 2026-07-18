@@ -45,12 +45,12 @@ class OpenSubtitleRepository(private val openSubtitleService: IOpenSubtitleServi
         return openSubtitleService.queryDownloadUrl(DownloadLinkBody(fileId))
     }
 
-    fun login(username: String, password: String): Response<OpenSubtitleAccount> {
-        return openSubtitleService.login(LoginBody(username, password)).execute()
+    suspend fun login(username: String, password: String): Response<OpenSubtitleAccount> {
+        return openSubtitleService.login(LoginBody(username, password))
     }
 
-    fun userInfo(): Response<UserInfo> {
-        return openSubtitleService.userInfo().execute()
+    suspend fun userInfo(): Response<UserInfo> {
+        return openSubtitleService.userInfo()
     }
 
     companion object {

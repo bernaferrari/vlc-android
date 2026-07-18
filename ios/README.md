@@ -1,191 +1,108 @@
-# VLC KMP Architecture
+# VLC KMP / iOS skeleton
 
-This document describes the Kotlin Multiplatform (KMP) architecture for the VLC Android/iOS project.
+Kotlin Multiplatform shared code for VLC Android (and a future iOS app), plus a minimal SwiftUI host.
 
-## Module Structure
+## Layout
 
 ```
 vlc-android/
 ├── shared/                          # KMP shared module
 │   ├── build.gradle.kts
 │   └── src/
-│       ├── commonMain/              # Pure Kotlin — compiles everywhere
-│       │   ├── kotlin/org/videolan/tools/
-│       │   │   ├── PreferenceKeys.kt    # ~150 preference key constants
-│       │   │   ├── VlcPreferences.kt    # DataStore<Preferences> wrapper
-│       │   │   ├── Strings.kt           # String utils (expect/actual)
-│       │   │   ├── PathUtils.kt         # Path sanitization
-│       │   │   └── Helpers.kt           # coerceInOrDefault
+│       ├── commonMain/              # Pure Kotlin + Compose Multiplatform UI
+│       │   ├── kotlin/org/videolan/tools/     # Prefs keys, VlcPreferences (DataStore), utils
 │       │   ├── kotlin/org/videolan/vlc/
-│       │   │   ├── model/
-│       │   │   │   └── MediaModels.kt       # MediaItem, Playlist, Progress, enums
-│       │   │   ├── player/
-│       │   │   │   └── PlaybackContract.kt  # PlaybackService interface
-│       │   │   ├── repository/
-│       │   │   │   └── Repositories.kt      # MediaRepository, PlaylistRepository
-│       │   │   ├── platform/
-│       │   │   │   └── Platform.kt          # Platform info, VlcLogger (expect/actual)
-│       │   │   ├── util/
-│       │   │   │   ├── FlagSet.kt           # Bitmask flag set
-│       │   │   │   ├── PlaybackAction.kt    # Playback capabilities enum
-│       │   │   │   └── ContextOption.kt     # Context menu flags
-│       │   │   ├── remoteaccessserver/
-│       │   │   │   ├── ServerStatus.kt      # Remote access server status enum
-│       │   │   │   └── websockets/WSProtocol.kt # WebSocket protocol types
-│       │   │   └── app/
-│       │   │       ├── VlcAppContainer.kt   # DI container
-│       │   │       └── VlcSharedApi.kt      # Swift-facing API
-│       │
+│       │   │   ├── model/, player/, repository/, platform/, util/
+│       │   │   ├── compose/components/, compose/theme/, compose/interop/
+│       │   │   ├── app/   # VlcKoin, VlcModule, SharedModule, VlcSharedApi
+│       │   │   └── remoteaccessserver/        # Protocol types
+│       │   └── composeResources/
 │       ├── commonJvmMain/           # JVM-shared (Android + Desktop)
-│       │   └── kotlin/org/videolan/tools/
-│       │       ├── SingletonHolder.kt
-│       │       ├── CloseableUtils.kt
-│       │       ├── CoroutineContextProvider.kt
-│       │       ├── DependencyProvider.kt
-│       │       ├── IOScopedObject.kt
-│       │       ├── Logcat.kt
-│       │       └── StringsJvm.kt        # JVM actual for Strings expect
-│       │
-│       ├── androidMain/             # Android-specific
-│       │   ├── kotlin/org/videolan/tools/
-│       │   │   └── AndroidVlcDataStoreFactory.kt
-│       │   └── kotlin/org/videolan/vlc/platform/
-│       │       └── Platform.kt          # Android actual
-│       │
-│       ├── jvmMain/                 # Desktop JVM-specific
-│       │   └── kotlin/org/videolan/tools/
-│       │       ├── JvmVlcDataStoreFactory.kt
-│       │       └── Platform.kt (in vlc.platform)
-│       │
-│       └── iosMain/                 # iOS-specific
-│           ├── kotlin/org/videolan/tools/
-│           │   ├── StringsIos.kt        # iOS actual for Strings expect
-│           │   └── IosVlcDataStoreFactory.kt
-│           └── kotlin/org/videolan/vlc/platform/
-│               └── Platform.kt          # iOS actual
+│       ├── androidMain/             # Android DataStore factory, platform actuals
+│       ├── jvmMain/                 # Desktop JVM DataStore factory
+│       └── iosMain/                 # iOS DataStore factory, platform actuals
 │
-├── application/                     # Android app modules (unchanged)
-│   ├── tools/                       # Depends on :shared (api)
-│   ├── resources/
+├── application/                     # Android app modules
+│   ├── compose/                     # Android-only VLCComposeView interop shim
 │   ├── vlc-android/
-│   │   └── src/org/videolan/vlc/kmp/  # KMP integration adapters
-│   │       ├── AndroidMediaRepository.kt   # MediaRepository impl
-│   │       ├── AndroidPlaybackService.kt   # PlaybackService impl
-│   │       └── VlcKmpInitializer.kt        # DI container setup
-│   └── ...
+│   │   └── …/kmp/                   # AndroidMediaRepository, AndroidPlaybackService, VlcKmpInitializer
+│   └── …
 │
-├── ios/                             # iOS Xcode project (skeleton)
-│   ├── App/
-│   │   └── AppDelegate.swift        # SwiftUI app consuming VLCShared
-│   ├── setup.sh                     # Project generation script
-│   └── README.md
+├── ios/                             # Xcode / SwiftUI skeleton
+│   ├── App/AppDelegate.swift        # VLCiOSApp + VlcSharedApi demo
+│   ├── setup.sh
+│   └── README.md                    # this file
 │
 └── settings.gradle
 ```
 
-## Build Targets
+## Build targets (`:shared`)
 
-| Target | Purpose | Status |
+| Target | Purpose | Notes |
 |--------|---------|--------|
-| `:shared:compileDebugKotlinAndroid` | Android library | Working |
-| `:shared:compileKotlinJvm` | Desktop JVM | Working |
-| `:shared:compileKotlinIosArm64` | iOS device (arm64) | Working |
-| `:shared:compileKotlinIosX64` | iOS simulator (x86) | Working |
-| `:shared:compileKotlinIosSimulatorArm64` | iOS simulator (Apple Silicon) | Working |
-| `:shared:linkDebugFrameworkIosSimulatorArm64` | VLCShared.framework | Working |
+| `:shared:compileDebugKotlinAndroid` | Android library | Primary CI path |
+| `:shared:compileKotlinJvm` | Desktop JVM | Okio DataStore |
+| `:shared:compileKotlinIosArm64` | iOS device | |
+| `:shared:compileKotlinIosSimulatorArm64` | iOS simulator (Apple Silicon) | |
+| `:shared:linkDebugFrameworkIosSimulatorArm64` | `VLCShared.framework` | Consumed by `ios/` |
 
-## What's Shared
+There is **no** `iosX64` target in the current `shared/build.gradle.kts` (Apple Silicon–only simulators).
 
-### Domain Models (commonMain)
-- `MediaItem` — platform-agnostic media metadata (title, uri, type, duration, artist, etc.)
-- `Playlist` — playlist with shuffle/repeat/next/previous logic
-- `Progress` — playback position
-- `MediaType`, `RepeatMode`, `ResumeStatus`, `ABRepeat`, `DelayValues` — enums and value types
+## What’s shared
 
-### Contracts/Interfaces (commonMain)
-- `MediaRepository` — media library access (Flow-based, no LiveData)
-- `PlaylistRepository` — playlist CRUD
-- `HistoryRepository` — playback history
-- `PlaybackService` — playback control (play, pause, seek, shuffle, repeat, volume)
-- `PlaybackState` — sealed class for playback state machine
+### Domain / contracts (`commonMain`)
+- Models: `MediaItem`, `Playlist`, `Progress`, playback enums
+- `MediaRepository`, `PlaylistRepository`, `HistoryRepository`, `PlaybackService` contracts
+- `VlcPreferences` + `PreferenceKeys` (DataStore, not Android `SharedPreferences`)
+- Remote-access protocol types (`ServerStatus`, websocket messages, …)
+- Compose Multiplatform UI components and theme (phone UI source of truth)
 
-### Utilities (commonMain)
-- `VlcPreferences` — DataStore-backed preference wrapper (replaces SharedPreferences in shared code)
-- `PreferenceKeys` — all ~150 VLC preference key constants
-- `FlagSet` — platform-agnostic bitmask (replaced java.util.EnumSet)
-- `PlaybackAction`, `ContextOption` — enums with flag operations
-- String utilities (path sanitization, obfuscation, formatting)
+### DI / Swift API
+- **Koin** via `VlcKoin` / platform `VlcModule` — not a `VlcAppContainer` type
+- `VlcSharedApi` — small Swift-facing façade (`platformInfo()`, `getMediaCount`, preference helpers)
+- App must start Koin before use (`VlcKmpInitializer` on Android; iOS still needs a real `startKoin` hook)
 
-### Protocol Types (commonMain)
-- `ServerStatus`, `WSIncomingMessage`, `IncomingMessageType`, `WSAuthTicket` — remote access server protocol
+### Preferences
+Platform factories:
+- Android: `AndroidVlcDataStoreFactory`
+- JVM: `JvmVlcDataStoreFactory`
+- iOS: `IosVlcDataStoreFactory`
 
-## Preferences: DataStore (not SharedPreferences)
+Legacy Android `org.videolan.tools.Settings` (SharedPreferences) still powers many hot paths; migration is incremental (`compose-88fh`).
 
-The shared module uses Jetpack DataStore (`datastore-preferences-core`) instead of
-SharedPreferences. This gives us:
+## Android integration
 
-1. **Flow-first API** — `getBooleanFlow(key, default)` returns a `Flow<T>` for reactive UI
-2. **Coroutine-based** — reads/writes are `suspend`, no main-thread blocking
-3. **KMP-compatible** — works on Android, JVM, and iOS via the `datastore-core-okio` artifact
-4. **Platform-specific storage** — each target provides its own factory:
-   - Android: `AndroidVlcDataStoreFactory(context)` — uses `preferencesDataStore` delegate
-   - JVM: `JvmVlcDataStoreFactory(directory)` — uses `OkioStorage` + `FileSystem.SYSTEM`
-   - iOS: `IosVlcDataStoreFactory()` — stores in app Documents directory
+- Adapters under `application/vlc-android/src/org/videolan/vlc/kmp/`
+- UI components are **not** in `:application:compose` (that module is only `VLCComposeView`)
+- Project **minSdk 23** (DataStore 1.2.x / Compose); see root README
 
-### Migration Path
+## iOS integration (current reality)
 
-The existing `Settings` singleton (SharedPreferences-based) continues to work unchanged.
-New code should use `VlcApp.container.preferences` instead. Migration of existing call sites
-can happen incrementally.
+`ios/App/AppDelegate.swift` is a **skeleton**:
 
-## Android Integration
+1. Imports `VLCShared` and constructs `VlcSharedApi()`
+2. Shows `platformInfo()` / placeholder media counts in SwiftUI
+3. Comments still mention a future `VlcAppContainer` — **that type does not exist**; use Koin + `VlcSharedApi`
+4. No VLCKit medialibrary/player wiring yet
+5. CMP UI lives in `:shared` commonMain; the iOS app does **not** host those composables yet (SwiftUI shell only)
 
-The `:application:vlc-android` module has KMP adapters in `org.videolan.vlc.kmp`:
-
-- `VlcKmpInitializer.initialize(context, medialibrary, playlistManager)` — call in Application.onCreate()
-- `AndroidMediaRepository` — bridges MediaRepository to JNI medialibrary
-- `AndroidPlaybackService` — bridges PlaybackService to PlaylistManager
-
-After initialization, shared code accesses everything via `VlcApp.container`.
-
-## iOS Integration
-
-The iOS app skeleton is in `ios/`. It's a SwiftUI app that:
-
-1. Consumes the `VLCShared.framework` (built by the :shared module)
-2. Calls `VlcSharedApi().platformInfo()` to verify KMP integration
-3. Has placeholders for VLCKit integration (media library + player)
-
-### To set up the iOS project:
+### Setup
 
 ```bash
 cd ios/
 ./setup.sh
-# Or manually: see ios/setup.sh output for Xcode instructions
+# Follow script output for Xcode + framework link steps
 ```
 
-### Next steps for iOS:
-1. Wire VLCKit medialibrary → `MediaRepository` implementation
-2. Wire VLCKit `VLCMediaPlayer` → `PlaybackService` implementation
-3. Build the UI in SwiftUI using the shared domain models
-4. Full playback screen with controls
-5. Media library browser
-6. Playlist management
+### Next steps (iOS)
+1. Start Koin from Swift with iOS modules + real repository/player adapters
+2. Wire VLCKit medialibrary → `MediaRepository`
+3. Wire VLCKit `VLCMediaPlayer` → `PlaybackService`
+4. Either embed Compose Multiplatform UI from `VLCShared` or keep SwiftUI and call shared domain APIs only
+5. Library browser + playlist management
 
-## Design Decisions
+## Design notes
 
-### Why not Compose Multiplatform for UI?
-The existing Android UI is deeply tied to Fragments, Activities, XML layouts, TV/Leanback,
-and widgets. Compose Multiplatform is viable for new screens but not a full migration.
-
-### Why custom FlagSet instead of kotlin.enums.EnumSet?
-`java.util.EnumSet` is JVM-only. The custom `FlagSet` uses a `Long` bitmask and works on
-all platforms with identical semantics.
-
-### Why DataStore instead of SharedPreferences?
-SharedPreferences is Android-only and synchronous. DataStore provides:
-- Async, Flow-based access from common code
-- No main-thread blocking
-- KMP support across Android/iOS/JVM
-- Transactional writes
-```
+- **Compose Multiplatform in `:shared`**: phone UI components already live here; Android hosts them through activities/interop. iOS UI strategy (CMP vs SwiftUI) is still open.
+- **FlagSet**: custom bitmask instead of JVM-only `EnumSet`.
+- **DataStore**: Flow/coroutine prefs for common code; minSdk 23 on Android because of androidx.datastore 1.2.x.

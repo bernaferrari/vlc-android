@@ -182,6 +182,13 @@ fun Route.setupRouting(appContext: Context, scope: CoroutineScope) {
     }
     //Verify the code and inject the cookie if valid
     post("/verify-code") {
+        val remoteIp = call.request.origin.remoteAddress
+        // Enforce lockout / rate limit before doing any crypto work.
+        if (isFlooding(appContext, remoteIp, recordFailure = false)) {
+            Log.w(TAG, "Too many requests from $remoteIp")
+            call.respond(HttpStatusCode.TooManyRequests)
+            return@post
+        }
         val formParameters = try {
             call.receiveParameters()
         } catch (e: Exception) {
@@ -193,16 +200,18 @@ fun Route.setupRouting(appContext: Context, scope: CoroutineScope) {
             return@post
         }
         if (RemoteAccessOTP.verifyCode(appContext, idString)) {
-            //verification is OK
-            RemoteAccessSession.injectCookie(call, settings)
+            //verification is OK — clear failure streak for this IP
+            clearFlooding(remoteIp)
+            RemoteAccessSession.injectCookie(call, settings, appContext)
             scope.launch {
                 RemoteAccessUtils.otpFlow.emit(null)
             }
             call.respondRedirect("/")
             return@post
         }
-        if (isFlooding(appContext, call.request.origin.remoteAddress)) {
-            Log.w(TAG, "Too many requests from ${call.request.origin.remoteAddress}")
+        // Failed verification: record attempt and maybe lock out.
+        if (isFlooding(appContext, remoteIp, recordFailure = true)) {
+            Log.w(TAG, "OTP lockout for $remoteIp")
             call.respond(HttpStatusCode.TooManyRequests)
             return@post
         }
@@ -1508,22 +1517,75 @@ fun Route.setupRouting(appContext: Context, scope: CoroutineScope) {
     }
 }
 
-val attempts:ArrayList<Pair<String, Long>> = arrayListOf()
-private suspend fun isFlooding(appContext: Context, ip:String): Boolean {
+/**
+ * Per-IP OTP failure tracker.
+ * Lockout after [MAX_FAILURES_PER_WINDOW] failures inside [FAILURE_WINDOW_MS].
+ */
+private val otpFailures: ArrayList<Pair<String, Long>> = arrayListOf()
+private val otpLockouts: HashMap<String, Long> = HashMap()
+
+private const val MAX_FAILURES_PER_WINDOW = 5
+private const val FAILURE_WINDOW_MS = 10 * 60_000L
+private const val LOCKOUT_MS = 15 * 60_000L
+private const val MAX_PER_MINUTE = 8
+private const val MAX_PER_SECOND = 1
+
+/**
+ * @param recordFailure when true, records a failed attempt for [ip]
+ * @return true if the caller should reject the request (locked out / rate limited)
+ */
+private suspend fun isFlooding(appContext: Context, ip: String, recordFailure: Boolean): Boolean {
     val now = System.currentTimeMillis()
-    attempts.add(Pair(ip, now))
-    attempts.removeIf { System.currentTimeMillis() - it.second > 3_600_000L }
-    val nbAttemptsBySec = attempts.filter { it.first == ip && it.second > now - 1_000L }.size
-    if (nbAttemptsBySec > 1) {
-        delay((nbAttemptsBySec - 1) * 500L)
+    synchronized(otpFailures) {
+        // Drop stale lockouts and failures.
+        otpLockouts.entries.removeAll { now - it.value >= LOCKOUT_MS }
+        otpFailures.removeIf { now - it.second > FAILURE_WINDOW_MS }
+
+        val lockoutStarted = otpLockouts[ip]
+        if (lockoutStarted != null && now - lockoutStarted < LOCKOUT_MS) {
+            return true
+        }
+
+        if (recordFailure) {
+            otpFailures.add(Pair(ip, now))
+        }
+
+        val failuresInWindow = otpFailures.count { it.first == ip }
+        if (failuresInWindow >= MAX_FAILURES_PER_WINDOW) {
+            otpLockouts[ip] = now
+        }
     }
-    val nbAttemptsByMin = attempts.filter { it.first == ip && it.second > now - 60_000L }.size
-    if (nbAttemptsByMin > 10) {
+
+    // Outside the lock for suspend work.
+    val failuresInWindow = synchronized(otpFailures) { otpFailures.count { it.first == ip } }
+    if (failuresInWindow >= MAX_FAILURES_PER_WINDOW) {
         RemoteAccessOTP.removeAllCodes(appContext)
-        delay((nbAttemptsByMin - 10) * 2_000L)
+        return true
     }
-    val nbAttempts = attempts.filter { it.first == ip }.size
-    return nbAttempts > 20
+
+    val nbAttemptsBySec = synchronized(otpFailures) {
+        otpFailures.count { it.first == ip && it.second > now - 1_000L }
+    }
+    if (nbAttemptsBySec > MAX_PER_SECOND) {
+        delay((nbAttemptsBySec - MAX_PER_SECOND) * 500L)
+        return true
+    }
+    val nbAttemptsByMin = synchronized(otpFailures) {
+        otpFailures.count { it.first == ip && it.second > now - 60_000L }
+    }
+    if (nbAttemptsByMin > MAX_PER_MINUTE) {
+        RemoteAccessOTP.removeAllCodes(appContext)
+        delay((nbAttemptsByMin - MAX_PER_MINUTE) * 1_000L)
+        return true
+    }
+    return false
+}
+
+private fun clearFlooding(ip: String) {
+    synchronized(otpFailures) {
+        otpFailures.removeAll { it.first == ip }
+        otpLockouts.remove(ip)
+    }
 }
 
 /**

@@ -108,8 +108,6 @@ import org.videolan.resources.AppContextProvider
 import org.videolan.resources.VLCInstance
 import org.videolan.tools.AppScope
 import org.videolan.tools.KEYSTORE_PASSWORD
-import org.videolan.tools.KEY_COOKIE_ENCRYPT_KEY
-import org.videolan.tools.KEY_COOKIE_SIGN_KEY
 import org.videolan.tools.KEY_REMOTE_ACCESS_LAST_STATE_STOPPED
 import org.videolan.tools.REMOTE_ACCESS_NETWORK_BROWSER_CONTENT
 import org.videolan.tools.Settings
@@ -120,6 +118,7 @@ import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.PlaybackService.Companion.playerSleepTime
 import org.videolan.vlc.gui.DialogActivity
 import org.videolan.vlc.media.PlaylistManager
+import org.videolan.vlc.remoteaccessserver.ssl.RemoteAccessSecureStore
 import org.videolan.vlc.remoteaccessserver.ssl.SecretGenerator
 import org.videolan.vlc.remoteaccessserver.websockets.RemoteAccessWebSockets
 import org.videolan.vlc.remoteaccessserver.websockets.RemoteAccessWebSockets.setupWebSockets
@@ -553,17 +552,10 @@ class RemoteAccessServer(private val context: Context) : PlaybackService.Callbac
 
                 install(Sessions) {
 
-                    //get the encryption / signing keys and generate them if they don't exist
-                    var encryptKey = settings.getString(KEY_COOKIE_ENCRYPT_KEY, "") ?: ""
-                    if (encryptKey.isBlank()) {
-                        encryptKey = SecretGenerator.generateRandomAlphanumericString(32)
-                        settings.putSingle(KEY_COOKIE_ENCRYPT_KEY, encryptKey)
-                    }
-                    var signkey = settings.getString(KEY_COOKIE_SIGN_KEY, "") ?: ""
-                    if (signkey.isBlank()) {
-                        signkey = SecretGenerator.generateRandomAlphanumericString(32)
-                        settings.putSingle(KEY_COOKIE_SIGN_KEY, signkey)
-                    }
+                    // Cookie transform keys are sealed under the Android Keystore.
+                    // Never persist plaintext encrypt/sign material in Settings.
+                    val encryptKey = RemoteAccessSecureStore.getOrCreateCookieEncryptKey(context, settings)
+                    val signkey = RemoteAccessSecureStore.getOrCreateCookieSignKey(context, settings)
 
                     cookie<UserSession>("user_session", directorySessionStorage(File("${context.filesDir.path}/server/cache"), true)) {
                         cookie.maxAgeInSeconds = RemoteAccessSession.maxAge
@@ -628,7 +620,10 @@ class RemoteAccessServer(private val context: Context) : PlaybackService.Callbac
                     allowMethod(HttpMethod.Get)
                     allowHeader(HttpHeaders.AccessControlAllowOrigin)
                     allowHeader(HttpHeaders.ContentType)
-                    anyHost()
+                    allowHeader(HttpHeaders.Cookie)
+                    allowCredentials = true
+                    // Reflective allow for same-device / LAN origins only — not anyHost().
+                    allowOrigins { origin -> isAllowedRemoteAccessOrigin(origin) }
                 }
                 install(PartialContent)
                 install(AutoHeadResponse)
@@ -1049,6 +1044,74 @@ class RemoteAccessServer(private val context: Context) : PlaybackService.Callbac
          */
         fun getServerFiles(context:Context): String {
             return "${context.filesDir.path}/server/"
+        }
+
+        /**
+         * Whether a browser [origin] may talk to the remote-access server.
+         * Allows loopback and RFC1918 / link-local LAN hosts only — never the public Internet.
+         */
+        fun isAllowedRemoteAccessOrigin(origin: String): Boolean {
+            if (origin.isBlank()) return false
+            return try {
+                // Pure string parse so host-side unit tests don't need android.net.Uri.
+                val schemeEnd = origin.indexOf("://")
+                if (schemeEnd <= 0) return false
+                val scheme = origin.substring(0, schemeEnd).lowercase(Locale.US)
+                if (scheme != "http" && scheme != "https") return false
+                var rest = origin.substring(schemeEnd + 3)
+                // Strip path / query / fragment
+                val slash = rest.indexOf('/')
+                if (slash >= 0) rest = rest.substring(0, slash)
+                val q = rest.indexOf('?')
+                if (q >= 0) rest = rest.substring(0, q)
+                val hash = rest.indexOf('#')
+                if (hash >= 0) rest = rest.substring(0, hash)
+                // Strip userinfo
+                val at = rest.lastIndexOf('@')
+                if (at >= 0) rest = rest.substring(at + 1)
+                val host = when {
+                    rest.startsWith('[') -> {
+                        val end = rest.indexOf(']')
+                        if (end <= 1) return false
+                        rest.substring(1, end)
+                    }
+                    else -> rest.substringBefore(':')
+                }.lowercase(Locale.US)
+                if (host.isBlank()) return false
+                isLocalOrPrivateHost(host)
+            } catch (_: Exception) {
+                false
+            }
+        }
+
+        /**
+         * True for loopback, link-local, and private (RFC1918) hostnames / literals.
+         */
+        fun isLocalOrPrivateHost(host: String): Boolean {
+            val h = host.trim().lowercase(Locale.US).removePrefix("[").removeSuffix("]")
+            if (h == "localhost" || h == "127.0.0.1" || h == "::1" || h == "0.0.0.0") return true
+            // IPv4 dotted quad
+            val parts = h.split('.')
+            if (parts.size == 4 && parts.all { it.toIntOrNull() != null }) {
+                val a = parts[0].toInt()
+                val b = parts[1].toInt()
+                if (a == 10) return true                          // 10.0.0.0/8
+                if (a == 127) return true                         // loopback
+                if (a == 192 && b == 168) return true             // 192.168.0.0/16
+                if (a == 169 && b == 254) return true             // link-local
+                if (a == 172 && b in 16..31) return true          // 172.16.0.0/12
+                return false
+            }
+            // IPv6 unique-local (fc00::/7) and link-local (fe80::/10)
+            if (h.contains(':')) {
+                if (h == "::1") return true
+                if (h.startsWith("fc") || h.startsWith("fd")) return true
+                if (h.startsWith("fe8") || h.startsWith("fe9") ||
+                    h.startsWith("fea") || h.startsWith("feb")) return true
+            }
+            // .local mDNS names on LAN
+            if (h.endsWith(".local")) return true
+            return false
         }
     }
 

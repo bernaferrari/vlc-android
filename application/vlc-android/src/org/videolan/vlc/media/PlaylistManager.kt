@@ -132,11 +132,15 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
     var currentIndex = -1
         set(value) {
             field = value
+            // getMedia is @Synchronized on mediaList; safe if already holding that lock.
             currentPlayedMedia.postValue(mediaList.getMedia(value))
         }
     private var nextIndex = -1
     private var prevIndex = -1
     private var previous = Stack<Int>()
+
+    /** Shared monitor with [mediaList] so indices never tear relative to list mutations. */
+    private inline fun <T> withListLock(block: () -> T): T = synchronized(mediaList) { block() }
     var stopAfter = -1
     var shuffling: Boolean = false
         set(value) {
@@ -367,18 +371,24 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
         mediaList.getMedia(currentIndex)?.let {
             if (it.type == MediaWrapper.TYPE_VIDEO || it.isPodcast) saveMediaMeta()
         }
-        val size = mediaList.size()
-        if (force || repeating.value != PlaybackStateCompat.REPEAT_MODE_ONE) {
-            previous.push(currentIndex)
-            currentIndex = nextIndex
-            if (size == 0 || currentIndex < 0 || currentIndex >= size) {
-                Log.w(TAG, "Warning: invalid next index, aborted !")
-                stop()
-                return
+        val indexToPlay = withListLock {
+            val size = mediaList.size()
+            if (force || repeating.value != PlaybackStateCompat.REPEAT_MODE_ONE) {
+                previous.push(currentIndex)
+                currentIndex = nextIndex
+                if (size == 0 || currentIndex < 0 || currentIndex >= size) {
+                    Log.w(TAG, "Warning: invalid next index, aborted !")
+                    return@withListLock null
+                }
+                videoBackground = videoBackground || (!player.isVideoPlaying() && player.canSwitchToVideo())
             }
-            videoBackground = videoBackground || (!player.isVideoPlaying() && player.canSwitchToVideo())
+            currentIndex
         }
-        launch { playIndex(currentIndex) }
+        if (indexToPlay == null) {
+            stop()
+            return
+        }
+        launch { playIndex(indexToPlay) }
     }
 
     fun restart() {
@@ -426,15 +436,21 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
         mediaList.getMedia(currentIndex)?.let { if (it.type == MediaWrapper.TYPE_VIDEO) saveMediaMeta() }
         if (hasPrevious() &&
                 ((force || !player.seekable || (player.getCurrentTime() < PREVIOUS_LIMIT_DELAY) || (lastPrevious != -1L && System.currentTimeMillis() - lastPrevious < PREVIOUS_LIMIT_DELAY)))) {
-            val size = mediaList.size()
-            currentIndex = prevIndex
-            if (previous.size > 0) previous.pop()
-            if (size == 0 || prevIndex < 0 || currentIndex >= size) {
-                Log.w(TAG, "Warning: invalid previous index, aborted !")
+            val indexToPlay = withListLock {
+                val size = mediaList.size()
+                currentIndex = prevIndex
+                if (previous.size > 0) previous.pop()
+                if (size == 0 || prevIndex < 0 || currentIndex >= size) {
+                    Log.w(TAG, "Warning: invalid previous index, aborted !")
+                    return@withListLock null
+                }
+                currentIndex
+            }
+            if (indexToPlay == null) {
                 player.stop()
                 return
             }
-            launch { playIndex(currentIndex) }
+            launch { playIndex(indexToPlay) }
             lastPrevious = -1L
         } else {
             player.setPosition(0F)
@@ -481,18 +497,21 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
 
     suspend fun playIndex(index: Int, flags: Int = 0, forceResume:Boolean = false, forceRestart:Boolean = false) {
         videoBackground = videoBackground || (!player.isVideoPlaying() && player.canSwitchToVideo())
-        if (mediaList.size() == 0) {
-            Log.w(TAG, "Warning: empty media list, nothing to play !")
-            return
-        }
-        currentIndex = if (isValidPosition(index)) {
-            index
-        } else {
-            Log.w(TAG, "Warning: index $index out of bounds")
-            0
-        }
-
-        val mw = mediaList.getMedia(index) ?: return
+        val mw = withListLock {
+            if (mediaList.size() == 0) {
+                Log.w(TAG, "Warning: empty media list, nothing to play !")
+                return@withListLock null
+            }
+            if (isValidPosition(index)) {
+                currentIndex = index
+                mediaList.getMedia(currentIndex)
+            } else {
+                Log.w(TAG, "Warning: index $index out of bounds")
+                currentIndex = 0
+                // Match historical behavior: leave currentIndex at 0 and abort playback start.
+                null
+            }
+        } ?: return
         val mediaFromMl = medialibrary.getMedia(mw.uri)
         if (mediaFromMl != null)
             mw.time = mediaFromMl.time
@@ -627,14 +646,15 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
         player.setVideoTrackEnabled(enabled)
     }
 
-    fun hasPrevious() = prevIndex != -1
+    fun hasPrevious() = withListLock { prevIndex != -1 }
 
-    fun hasNext() = nextIndex != -1
+    fun hasNext() = withListLock { nextIndex != -1 }
 
     @MainThread
     override fun onItemAdded(index: Int, mrl: String) {
         if (BuildConfig.DEBUG) Log.i(TAG, "CustomMediaListItemAdded")
-        if (currentIndex >= index && !expanding) ++currentIndex
+        // Invoked under mediaList's monitor via MediaWrapperList.signalEventListeners.
+        currentIndex = PlaylistIndexHelper.adjustCurrentOnAdd(currentIndex, index, expanding)
         addUpdateActor.trySend(Unit)
     }
 
@@ -650,8 +670,9 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
     @MainThread
     override fun onItemRemoved(index: Int, mrl: String) {
         if (BuildConfig.DEBUG) Log.i(TAG, "CustomMediaListItemDeleted")
-        val currentRemoved = currentIndex == index
-        if (currentIndex >= index && !expanding) --currentIndex
+        // Invoked under mediaList's monitor via MediaWrapperList.signalEventListeners.
+        val (newIndex, currentRemoved) = PlaylistIndexHelper.adjustCurrentOnRemove(currentIndex, index, expanding)
+        currentIndex = newIndex
         launch {
             determinePrevAndNextIndices()
             if (currentRemoved && !expanding) {
@@ -849,15 +870,8 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
 
     override fun onItemMoved(indexBefore: Int, indexAfter: Int, mrl: String) {
         if (BuildConfig.DEBUG) Log.i(TAG, "CustomMediaListItemMoved")
-        when (currentIndex) {
-            indexBefore -> {
-                currentIndex = indexAfter
-                if (indexAfter > indexBefore)
-                    --currentIndex
-            }
-            in indexAfter until indexBefore -> ++currentIndex
-            in (indexBefore + 1) until indexAfter -> --currentIndex
-        }
+        // Invoked under mediaList's monitor via MediaWrapperList.signalEventListeners.
+        currentIndex = PlaylistIndexHelper.adjustCurrentOnMove(currentIndex, indexBefore, indexAfter)
 
         // If we are in random mode, we completely reset the stored previous track
         // as their indices changed.
@@ -867,53 +881,65 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
 
     private suspend fun determinePrevAndNextIndices(expand: Boolean = false) {
         val media = getCurrentMedia()
-        if (expand && media !== null) {
+        val expandedNext = if (expand && media !== null) {
             expanding = true
-            nextIndex = expand(media.type == MediaWrapper.TYPE_STREAM, media.hasFlag(MediaWrapper.MEDIA_NO_PARSE))
-            expanding = false
+            try {
+                // expand mutates the list (remove/insert) and must not run under withListLock
+                // because it suspends for parsing; listeners still adjust indices via the list lock.
+                expand(media.type == MediaWrapper.TYPE_STREAM, media.hasFlag(MediaWrapper.MEDIA_NO_PARSE))
+            } finally {
+                expanding = false
+            }
         } else {
-            nextIndex = -1
+            -1
         }
-        prevIndex = -1
 
-        if (nextIndex == -1) {
-            // No subitems; play the next item.
-            val size = mediaList.size()
-            shuffling = shuffling and (size > 2)
+        withListLock {
+            nextIndex = expandedNext
+            prevIndex = -1
 
-            if (shuffling) {
-                if (!previous.isEmpty()) {
-                    prevIndex = previous.peek()
-                    while (!isValidPosition(prevIndex)) {
-                        previous.removeAt(previous.size - 1)
-                        if (previous.isEmpty()) {
-                            prevIndex = -1
-                            break
-                        }
+            if (nextIndex == -1) {
+                // No subitems; play the next item.
+                val size = mediaList.size()
+                shuffling = shuffling and (size > 2)
+
+                if (shuffling) {
+                    if (!previous.isEmpty()) {
                         prevIndex = previous.peek()
+                        while (!isValidPosition(prevIndex)) {
+                            previous.removeAt(previous.size - 1)
+                            if (previous.isEmpty()) {
+                                prevIndex = -1
+                                break
+                            }
+                            prevIndex = previous.peek()
+                        }
                     }
-                }
-                // If we've played all songs already in shuffle, then either
-                // reshuffle or stop (depending on RepeatType).
-                if (previous.size + 1 == size) {
-                    if (repeating.value == PlaybackStateCompat.REPEAT_MODE_NONE) {
-                        nextIndex = -1
-                        return
-                    } else {
-                        previous.clear()
+                    // If we've played all songs already in shuffle, then either
+                    // reshuffle or stop (depending on RepeatType).
+                    if (previous.size + 1 == size) {
+                        if (repeating.value == PlaybackStateCompat.REPEAT_MODE_NONE) {
+                            nextIndex = -1
+                            return@withListLock
+                        } else {
+                            previous.clear()
+                        }
                     }
-                }
-                // Find a new index not in previous.
-                do {
-                    nextIndex = random.nextInt(size)
-                } while (nextIndex == currentIndex || previous.contains(nextIndex))
-            } else {
-                // normal playback
-                if (currentIndex > 0) prevIndex = currentIndex - 1
-                nextIndex = when {
-                    currentIndex + 1 < size -> currentIndex + 1
-                    repeating.value == PlaybackStateCompat.REPEAT_MODE_NONE -> -1
-                    else -> 0
+                    // Find a new index not in previous.
+                    if (size > 0) {
+                        do {
+                            nextIndex = random.nextInt(size)
+                        } while (nextIndex == currentIndex || previous.contains(nextIndex))
+                    }
+                } else {
+                    // normal playback
+                    val (prev, next) = PlaylistIndexHelper.determineSequentialPrevNext(
+                        currentIndex,
+                        size,
+                        repeating.value != PlaybackStateCompat.REPEAT_MODE_NONE
+                    )
+                    prevIndex = prev
+                    nextIndex = next
                 }
             }
         }

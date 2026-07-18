@@ -31,7 +31,9 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        minSdk = 17
+        // DataStore 1.2.x / modern AndroidX require API 23+. VLC 3 native still
+        // builds with NDK 21, but the app/shared JVM floor is 23 for both VLC 3 and 4.
+        minSdk = 23
     }
 
     compileOptions {

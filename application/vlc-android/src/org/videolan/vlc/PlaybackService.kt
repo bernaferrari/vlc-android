@@ -829,6 +829,9 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
 
     @OptIn(ObsoleteCoroutinesApi::class)
     private fun setupScope() {
+        // onCreate and onStartCommand both reach here; create the actor only once
+        // so repeated start commands cannot leak duplicate consumers.
+        if (::cbActor.isInitialized) return
         cbActor = lifecycleScope.actor(capacity = Channel.UNLIMITED) {
             for (update in channel) when (update) {
                 CbUpdate -> for (callback in callbacks) callback.update()

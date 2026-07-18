@@ -1,6 +1,6 @@
 package org.videolan.resources.opensubtitles
 
-import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -23,11 +23,9 @@ interface IOpenSubtitleService {
     suspend fun queryDownloadUrl( @Body downloadLinkBody: DownloadLinkBody): DownloadLink
 
     @POST("login")
-    fun login( @Body loginBody: LoginBody): Call<OpenSubtitleAccount>
+    suspend fun login(@Body loginBody: LoginBody): Response<OpenSubtitleAccount>
 
     @GET("infos/user")
-    fun userInfo(): Call<UserInfo>
+    suspend fun userInfo(): Response<UserInfo>
 
 }
-
-

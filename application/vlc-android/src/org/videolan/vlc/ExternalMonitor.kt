@@ -184,5 +184,5 @@ fun containsDevice(devices: Array<String>, device: String): Boolean {
 }
 
 sealed class DeviceAction
-class MediaMounted(val uri : Uri, val path : String = uri.path!!, val uuid : String = uri.lastPathSegment!!) : DeviceAction()
-class MediaUnmounted(val uri : Uri, val path : String = uri.path!!, val uuid : String = uri.lastPathSegment!!) : DeviceAction()
+class MediaMounted(val uri : Uri, val path : String = uri.path.orEmpty(), val uuid : String = uri.lastPathSegment.orEmpty()) : DeviceAction()
+class MediaUnmounted(val uri : Uri, val path : String = uri.path.orEmpty(), val uuid : String = uri.lastPathSegment.orEmpty()) : DeviceAction()

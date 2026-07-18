@@ -177,9 +177,10 @@ abstract class BrowserProvider(val context: Context, val dataset: LiveDataset<Me
                 parseSubDirectories()
             }
             !list.isNullOrEmpty() -> {
-                dataset.value = list ?: return
+                val prefetched = list ?: return
+                dataset.value = prefetched
                 prefetchLists.remove(url)
-                computeHeaders(list!!)
+                computeHeaders(prefetched)
                 parseSubDirectories()
             }
             else -> browse(url)
