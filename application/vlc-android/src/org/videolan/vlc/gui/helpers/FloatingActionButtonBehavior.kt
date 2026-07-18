@@ -32,7 +32,6 @@ import android.widget.FrameLayout
 import androidx.annotation.Keep
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.widget.NestedScrollView
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
@@ -63,7 +62,7 @@ class FloatingActionButtonBehavior(context: Context, attrs: AttributeSet?) : Flo
         }
 
         return (dependency.id == R.id.audio_player_container
-                || dependency is BottomNavigationView
+                || dependency.id == R.id.navigation
                 || dependency is Snackbar.SnackbarLayout
                 || dependency is NestedScrollView)
     }

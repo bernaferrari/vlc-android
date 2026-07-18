@@ -93,6 +93,9 @@ class MainActivity : ContentActivity(),
     var refreshing: Boolean = false
     private lateinit var mediaLibrary: Medialibrary
     private var scanNeeded = false
+    /** Compose bottom/rail selection host for [MainNavChrome]. */
+    var mainNavChromeState: MainNavChromeState? = null
+
     private lateinit var toolbarIcon: ImageView
 
     override fun getSnackAnchorView(overAudioPlayer:Boolean): View? {

@@ -24,6 +24,7 @@ data class PlayerUiState(
     val error: String? = null,
 )
 
+/** Prefer constructing with Koin [org.videolan.vlc.player.PlaybackController] service. */
 class PlayerViewModel(
     private val playback: PlaybackService = runCatching {
         VlcKoin.get().get<PlaybackService>()

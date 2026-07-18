@@ -31,6 +31,9 @@ import org.videolan.vlc.PlaybackService as AndroidPlaybackHost
  * [PlaylistManager] only exists while the Android [AndroidPlaybackHost] is alive,
  * so it is resolved lazily via [playlistManagerProvider] (defaults to the live service).
  *
+ * Prefer [org.videolan.vlc.player.PlaybackController] from UI/shared code.
+ * This adapter is the only Android type allowed to touch PlaylistManager.
+ *
  * State/progress: observes [PlaylistManager.playingState] / [PlaylistManager.currentPlayedMedia]
  * and the active player progress LiveData when a manager is available. Full MediaPlayer event
  * parity is partial — ended/error paths still rely on host service lifecycle.

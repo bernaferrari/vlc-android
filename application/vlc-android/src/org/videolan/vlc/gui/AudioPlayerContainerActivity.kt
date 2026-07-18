@@ -49,13 +49,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.appbar.AppBarLayout
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPSED
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_HIDDEN
 import com.google.android.material.bottomsheet.BottomSheetBehavior.from
-import com.google.android.material.navigationrail.NavigationRailView
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import kotlinx.coroutines.MainScope
@@ -118,11 +116,11 @@ private const val AUDIO_PLAYER_STATE = "audio_player_state"
 open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, SchedulerCallback, PlayerOptionsDelegateCallback {
 
     private lateinit var onBackPressedCallback: OnBackPressedCallback
-    private var bottomBar: BottomNavigationView? = null
+    private var bottomBar: View? = null
     lateinit var appBarLayout: AppBarLayout
     protected lateinit var toolbar: Toolbar
     private var tabLayout: TabLayout? = null
-    private var navigationRail: NavigationRailView? = null
+    private var navigationRail: View? = null
     lateinit var audioPlayer: AudioPlayer
     private lateinit var audioPlayerContainer: FrameLayout
     lateinit var playerBehavior: PlayerBehavior<*>
@@ -211,7 +209,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
                     if (isTablet()) bottomMargin = insets.bottom
                     topMargin = insets.top
                     topInset = insets.top
-                    val bottomNavigationView = findViewById<BottomNavigationView?>(R.id.navigation)
+                    val bottomNavigationView = findViewById<View?>(R.id.navigation)
                     bottomNavigationView?.setPadding(bottomNavigationView.paddingLeft, bottomNavigationView.paddingTop, bottomNavigationView.paddingRight, insets.bottom)
                     bottomInset = insets.bottom
                     if (::audioPlayer.isInitialized) audioPlayer.setBottomMargin()

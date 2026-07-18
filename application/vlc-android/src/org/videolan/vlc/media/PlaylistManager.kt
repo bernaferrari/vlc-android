@@ -108,6 +108,8 @@ private const val PLAYLIST_AUDIO_REPEAT_MODE_KEY = "audio_repeat_mode"
 private const val PLAYLIST_VIDEO_REPEAT_MODE_KEY = "video_repeat_mode"
 
 class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventListener, IMedia.EventListener, CoroutineScope {
+    // NOTE: New shared/UI code must use org.videolan.vlc.player.PlaybackController
+    // (→ AndroidPlaybackService) instead of calling PlaylistManager directly.
     private var endReachedFor: String? = null
     override val coroutineContext = Dispatchers.Main.immediate + SupervisorJob()
 

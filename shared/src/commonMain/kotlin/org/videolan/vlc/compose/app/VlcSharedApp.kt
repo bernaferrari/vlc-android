@@ -44,6 +44,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import org.videolan.vlc.compose.player.VideoSurfaceWithHud
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.model.MediaItem
@@ -273,83 +274,37 @@ private fun PlayerPane(
 ) {
     val state by vm.state.collectAsState()
     val colors = VLCThemeDefaults.colors
-    Column(
-        modifier = modifier.padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+    VideoSurfaceWithHud(
+        title = state.title.ifBlank { "Nothing playing" },
+        subtitle = state.subtitle,
+        playing = state.playing,
+        progress = state.progress,
+        shuffle = state.shuffle,
+        repeatMode = state.repeatMode,
+        onTogglePlay = vm::togglePlayPause,
+        onSeek = vm::seekTo,
+        onNext = vm::next,
+        onPrevious = vm::previous,
+        onToggleShuffle = vm::toggleShuffle,
+        onCycleRepeat = vm::cycleRepeat,
+        modifier = modifier,
     ) {
-        Spacer(modifier = Modifier.height(12.dp))
+        // Artwork / placeholder surface (platform video view attaches above this on iOS/Android hosts)
         Box(
             modifier = Modifier
-                .size(220.dp)
-                .clip(RoundedCornerShape(24.dp))
+                .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surfaceContainerHighest),
             contentAlignment = Alignment.Center,
         ) {
-            Text("♪", style = MaterialTheme.typography.displayLarge, color = colors.primary)
-        }
-        Text(
-            state.title.ifBlank { "Nothing playing" },
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-        if (state.subtitle.isNotBlank()) {
-            Text(state.subtitle, color = colors.fontLight, style = MaterialTheme.typography.bodyMedium)
-        }
-        state.error?.let {
-            Text(it, color = MaterialTheme.colorScheme.error)
-        }
-        val length = state.progress.length.coerceAtLeast(1L)
-        Slider(
-            value = state.progress.time.toFloat().coerceIn(0f, length.toFloat()),
-            onValueChange = { vm.seekTo(it.toLong()) },
-            valueRange = 0f..length.toFloat(),
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(formatTime(state.progress.time), style = MaterialTheme.typography.labelMedium)
-            Text(formatTime(state.progress.length), style = MaterialTheme.typography.labelMedium)
-        }
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            TextButton(onClick = vm::toggleShuffle) {
-                Text(if (state.shuffle) "Shuffle*" else "Shuffle")
-            }
-            TextButton(onClick = vm::previous) { Text("Prev") }
-            Surface(
-                shape = RoundedCornerShape(50),
+            Text(
+                if (state.hasMedia) "♪" else "—",
+                style = MaterialTheme.typography.displayLarge,
                 color = colors.primary,
-                modifier = Modifier
-                    .size(72.dp)
-                    .clickable(onClick = vm::togglePlayPause),
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    Text(
-                        if (state.playing) "Pause" else "Play",
-                        color = colors.onPrimary,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
-            }
-            TextButton(onClick = vm::next) { Text("Next") }
-            TextButton(onClick = vm::cycleRepeat) {
-                Text(
-                    when (state.repeatMode) {
-                        RepeatMode.NONE -> "Rep"
-                        RepeatMode.ALL -> "RepA"
-                        RepeatMode.ONE -> "Rep1"
-                    }
-                )
+            )
+            state.error?.let {
+                Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp))
             }
         }
-        TextButton(onClick = vm::stop) { Text("Stop") }
     }
 }
 

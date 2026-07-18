@@ -1,14 +1,12 @@
 //
 //  VlcKitBackend.swift
 //
-//  Template bridge from shared IosPlaybackService → MobileVLCKit.
-//  Enable once MobileVLCKit is linked in the Xcode project:
-//    1. SPM/CocoaPods: MobileVLCKit
-//    2. Uncomment the VLCKit code paths below
-//    3. On launch: IosPlaybackService.shared.setBackend(backend: VlcKitBackend())
+//  Bridge from shared IosPlaybackService → MobileVLCKit.
+//  Linked via SPM (see ios/project.yml). Auto-attached from App launch.
 //
 
 import Foundation
+import UIKit
 import VLCShared
 
 #if canImport(MobileVLCKit)
@@ -17,24 +15,56 @@ import MobileVLCKit
 
 /// Swift implementation of the Kotlin `VlcKitPlayerBackend` interface.
 final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
+    static let shared = VlcKitBackend()
+
     private var listener: VlcKitPlayerBackendListener?
+    /// Host view VLCKit draws video into (optional; audio-only still works).
+    weak var drawableView: UIView?
 
 #if canImport(MobileVLCKit)
     private var player: VLCMediaPlayer?
 #endif
 
+    private override init() {
+        super.init()
+    }
+
+    /// Attach a UIView / UIViewController.view as the VLCKit drawable surface.
+    func attachDrawable(_ view: UIView?) {
+        drawableView = view
+#if canImport(MobileVLCKit)
+        if let view {
+            player?.drawable = view
+        }
+#endif
+    }
+
     func play(uri: String, title: String?) {
 #if canImport(MobileVLCKit)
         if player == nil {
-            player = VLCMediaPlayer()
-            player?.delegate = self
+            let p = VLCMediaPlayer()
+            p.delegate = self
+            if let drawableView {
+                p.drawable = drawableView
+            }
+            player = p
         }
-        guard let url = URL(string: uri) ?? URL(fileURLWithPath: uri) as URL? else {
+        let url: URL?
+        if uri.hasPrefix("/") {
+            url = URL(fileURLWithPath: uri)
+        } else {
+            url = URL(string: uri) ?? URL(fileURLWithPath: uri)
+        }
+        guard let url else {
             listener?.onError(message: "Invalid URI: \(uri)")
             return
         }
         let media = VLCMedia(url: url)
-        if let title { media.addOption(":meta-title=\(title)") }
+        if let title, !title.isEmpty {
+            media.addOption(":meta-title=\(title)")
+        }
+        // Prefer hardware decode when available
+        media.addOption(":avcodec-hw=any")
         player?.media = media
         player?.play()
 #else
@@ -67,19 +97,26 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
 
     func seekTo(positionMs: Int64) {
 #if canImport(MobileVLCKit)
-        guard let player, player.isSeekable else { return }
-        let length = player.media?.length.intValue ?? 0
+        guard let player, player.isSeekable else {
+            listener?.onTimeChanged(timeMs: positionMs, lengthMs: 0)
+            return
+        }
+        let length = Int64(player.media?.length.intValue ?? 0)
         if length > 0 {
             player.position = Float(positionMs) / Float(length)
+        } else {
+            player.time = VLCTime(number: NSNumber(value: positionMs))
         }
-#endif
+        listener?.onTimeChanged(timeMs: positionMs, lengthMs: length)
+#else
         listener?.onTimeChanged(timeMs: positionMs, lengthMs: 0)
+#endif
     }
 
     func setVolume(volume: Int32) {
 #if canImport(MobileVLCKit)
         // VLCKit audio.volume is 0...200
-        player?.audio?.volume = volume
+        player?.audio?.volume = Int(volume)
 #endif
     }
 
@@ -97,9 +134,18 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
 #if canImport(MobileVLCKit)
         player?.stop()
         player?.delegate = nil
+        player?.drawable = nil
         player = nil
 #endif
         listener = nil
+    }
+
+    var isVlcKitLinked: Bool {
+#if canImport(MobileVLCKit)
+        true
+#else
+        false
+#endif
     }
 }
 

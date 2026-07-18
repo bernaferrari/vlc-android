@@ -129,3 +129,27 @@ iOS now hosts the **same** `VlcSharedApp` as Android (`Library` / `Player` / `Se
 
 Android lab entry: **More → VLC Shared** (`SharedAppActivity`).
 
+## Production iOS path (this tree)
+
+### One-shot setup
+```bash
+./ios/setup.sh          # builds VLCShared frameworks + xcodegen
+open ios/VLC-iOS.xcodeproj
+```
+
+### What is wired
+1. **MobileVLCKit (SPM)** — `ios/project.yml` packages.MobileVLCKit
+2. **Real decode** — `AppDelegate` → `IosPlaybackService.shared.setBackend(VlcKitBackend.shared)`
+3. **Drawable** — `ComposeSharedRoot` attaches host view as VLCKit drawable
+4. **Library intake**
+   - Documents/Caches recursive scan (`MediaImporter.rescanLocalFolders`)
+   - Files picker (multi-select audiovisual types)
+   - Photos picker (PHPicker videos)
+   - "Open in VLC" URL handoff
+5. **UI** — same `VlcSharedApp` CMP shell as Android (`MainViewController`)
+
+### Verify decode
+- First Xcode open resolves SPM (network).
+- Run on Simulator; seed demo or import a file; play.
+- Without SPM resolved, `#if canImport(MobileVLCKit)` falls back to state-only demo mode.
+

@@ -28,6 +28,7 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.view.ViewGroup
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -35,8 +36,6 @@ import androidx.core.content.edit
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.google.android.material.appbar.AppBarLayout
-import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.navigation.NavigationBarView
 import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.resources.EXTRA_FOR_ESPRESSO
 import org.videolan.resources.EXTRA_TARGET
@@ -45,26 +44,29 @@ import org.videolan.tools.KEY_NAVIGATION_ID
 import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.gui.MainActivity
+import org.videolan.vlc.gui.MainNavChromeState
 import org.videolan.vlc.gui.MoreScreenController
 import org.videolan.vlc.gui.PlaylistScreenController
 import org.videolan.vlc.gui.audio.AudioScreenController
 import org.videolan.vlc.gui.browser.MainBrowserScreenController
-import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.gui.helpers.UiTools.isTablet
 import org.videolan.vlc.gui.video.VideoScreenController
 import org.videolan.vlc.util.getScreenWidth
 
 private const val TAG = "Navigator"
 
-class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObserver, INavigator {
+class Navigator : DefaultLifecycleObserver, INavigator {
 
     private val defaultDestinationId = R.id.nav_video
     override var currentDestinationId: Int = 0
     private lateinit var activity: MainActivity
     private lateinit var settings: SharedPreferences
-    override lateinit var navigationView: List<NavigationBarView>
+    /** Bottom bar + rail Compose hosts (R.id.navigation / R.id.navigation_rail). */
+    override lateinit var navigationViews: List<View>
     override lateinit var appbarLayout: AppBarLayout
+    private var navChrome: MainNavChromeState? = null
     private var forExpresso: ArrayList<MediaLibraryItem>? = null
     private var moreController: MoreScreenController? = null
     private var mainBrowserController: MainBrowserScreenController? = null
@@ -72,24 +74,42 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
     private var videoController: VideoScreenController? = null
     private var audioController: AudioScreenController? = null
 
-
     override fun MainActivity.setupNavigation(state: Bundle?) {
         activity = this
         this@Navigator.settings = settings
         forExpresso = intent.parcelableList(EXTRA_FOR_ESPRESSO)
         currentDestinationId = intent.getIntExtra(EXTRA_TARGET, 0)
         lifecycle.addObserver(this@Navigator)
-        navigationView = listOf(findViewById(R.id.navigation), findViewById(R.id.navigation_rail))
+        navigationViews = listOf(
+            findViewById(R.id.navigation),
+            findViewById(R.id.navigation_rail),
+        )
         appbarLayout = findViewById(R.id.appbar)
+        navChrome = mainNavChromeState
+        navChrome?.onDestinationSelected = { id ->
+            onDestinationSelected(id)
+        }
     }
 
     override fun onStart(owner: LifecycleOwner) {
-        if (!currentIdIsExtension()) showScreen(if (currentDestinationId != 0) currentDestinationId else settings.getInt(KEY_NAVIGATION_ID, defaultDestinationId))
-        navigationView.forEach { it.setOnItemSelectedListener(this) }
+        if (!currentIdIsExtension()) {
+            showScreen(
+                if (currentDestinationId != 0) currentDestinationId
+                else settings.getInt(KEY_NAVIGATION_ID, defaultDestinationId)
+            )
+        }
     }
 
     override fun onStop(owner: LifecycleOwner) {
-        navigationView.forEach { it.setOnItemSelectedListener(null) }
+        // Selection is driven by Compose state; nothing to detach.
+    }
+
+    private fun onDestinationSelected(id: Int): Boolean {
+        appbarLayout.setExpanded(true, true)
+        if (currentDestinationId == id) return false
+        activity.slideDownAudioPlayer()
+        showScreen(id)
+        return true
     }
 
     private fun showScreen(id: Int) {
@@ -105,21 +125,8 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
 
     private fun showMoreScreen() {
         clearComposeScreenIfNeeded()
-
         val controller = moreController ?: MoreScreenController(activity).also { moreController = it }
-        val container = activity.findViewById<ViewGroup>(R.id.content_placeholder)
-        container.removeAllViews()
-        container.addView(
-            ComposeView(activity).apply {
-                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-                setContent {
-                    VLCTheme {
-                        controller.Content()
-                    }
-                }
-            },
-            ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-        )
+        attachCompose(controller::Content)
         controller.onVisible()
         updateCheckedItem(R.id.nav_more)
         activity.invalidateOptionsMenu()
@@ -128,21 +135,9 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
 
     private fun showMainBrowserScreen() {
         clearComposeScreenIfNeeded()
-
-        val controller = mainBrowserController ?: MainBrowserScreenController(activity, forExpresso).also { mainBrowserController = it }
-        val container = activity.findViewById<ViewGroup>(R.id.content_placeholder)
-        container.removeAllViews()
-        container.addView(
-            ComposeView(activity).apply {
-                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-                setContent {
-                    VLCTheme {
-                        controller.Content()
-                    }
-                }
-            },
-            ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-        )
+        val controller = mainBrowserController
+            ?: MainBrowserScreenController(activity, forExpresso).also { mainBrowserController = it }
+        attachCompose(controller::Content)
         controller.onVisible()
         updateCheckedItem(R.id.nav_directories)
         activity.invalidateOptionsMenu()
@@ -151,21 +146,8 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
 
     private fun showPlaylistScreen() {
         clearComposeScreenIfNeeded()
-
         val controller = playlistController ?: PlaylistScreenController(activity).also { playlistController = it }
-        val container = activity.findViewById<ViewGroup>(R.id.content_placeholder)
-        container.removeAllViews()
-        container.addView(
-            ComposeView(activity).apply {
-                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-                setContent {
-                    VLCTheme {
-                        controller.Content()
-                    }
-                }
-            },
-            ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-        )
+        attachCompose(controller::Content)
         controller.onVisible()
         updateCheckedItem(R.id.nav_playlists)
         activity.invalidateOptionsMenu()
@@ -174,21 +156,8 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
 
     private fun showVideoScreen() {
         clearComposeScreenIfNeeded()
-
         val controller = videoController ?: VideoScreenController(activity).also { videoController = it }
-        val container = activity.findViewById<ViewGroup>(R.id.content_placeholder)
-        container.removeAllViews()
-        container.addView(
-            ComposeView(activity).apply {
-                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-                setContent {
-                    VLCTheme {
-                        controller.Content()
-                    }
-                }
-            },
-            ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-        )
+        attachCompose(controller::Content)
         controller.onVisible()
         updateCheckedItem(R.id.nav_video)
         currentDestinationId = R.id.nav_video
@@ -197,8 +166,15 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
 
     private fun showAudioScreen() {
         clearComposeScreenIfNeeded()
-
         val controller = audioController ?: AudioScreenController(activity).also { audioController = it }
+        attachCompose(controller::Content)
+        controller.onVisible()
+        updateCheckedItem(R.id.nav_audio)
+        currentDestinationId = R.id.nav_audio
+        activity.invalidateOptionsMenu()
+    }
+
+    private fun attachCompose(content: @androidx.compose.runtime.Composable () -> Unit) {
         val container = activity.findViewById<ViewGroup>(R.id.content_placeholder)
         container.removeAllViews()
         container.addView(
@@ -206,20 +182,24 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
                 setContent {
                     VLCTheme {
-                        controller.Content()
+                        content()
                     }
                 }
             },
-            ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
         )
-        controller.onVisible()
-        updateCheckedItem(R.id.nav_audio)
-        currentDestinationId = R.id.nav_audio
-        activity.invalidateOptionsMenu()
     }
 
     private fun clearComposeScreenIfNeeded() {
-        if (currentDestinationId != R.id.nav_more && currentDestinationId != R.id.nav_directories && currentDestinationId != R.id.nav_playlists && currentDestinationId != R.id.nav_video && currentDestinationId != R.id.nav_audio) return
+        if (currentDestinationId != R.id.nav_more &&
+            currentDestinationId != R.id.nav_directories &&
+            currentDestinationId != R.id.nav_playlists &&
+            currentDestinationId != R.id.nav_video &&
+            currentDestinationId != R.id.nav_audio
+        ) return
         moreController?.onHidden()
         mainBrowserController?.onHidden()
         playlistController?.onHidden()
@@ -237,31 +217,20 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
     }
 
     override fun configurationChanged(size: Int) {
-        navigationView.forEach {
-            when (it) {
-                is BottomNavigationView -> if (activity.isTablet()) it.setGone() else it.setVisible()
-                else -> if (!activity.isTablet()) it.setGone() else it.setVisible()
-            }
+        val bottom = activity.findViewById<View>(R.id.navigation)
+        val rail = activity.findViewById<View>(R.id.navigation_rail)
+        if (activity.isTablet()) {
+            bottom.setGone()
+            rail.setVisible()
+        } else {
+            bottom.setVisible()
+            rail.setGone()
         }
     }
 
     override fun getContentWidth(activity: Activity): Int {
         val screenWidth = activity.getScreenWidth()
         return screenWidth - activity.resources.getDimension(R.dimen.navigation_margin).toInt()
-    }
-
-    override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        val id = item.itemId
-
-        appbarLayout.setExpanded(true, true)
-
-        if (currentDestinationId == id) { /* Already selected */
-            return false
-        } else {
-            activity.slideDownAudioPlayer()
-            showScreen(id)
-        }
-        return true
     }
 
     override fun refreshCurrentScreen(): Boolean {
@@ -307,27 +276,14 @@ class Navigator : NavigationBarView.OnItemSelectedListener, DefaultLifecycleObse
         }
     }
 
-    private fun currentIdIsComposeScreen() = currentDestinationId == R.id.nav_more || currentDestinationId == R.id.nav_directories || currentDestinationId == R.id.nav_playlists || currentDestinationId == R.id.nav_video || currentDestinationId == R.id.nav_audio
-
-
     private fun updateCheckedItem(id: Int) {
-        val currentId = currentDestinationId
-        navigationView.forEach {
-            val target = it.menu.findItem(id)
-            if (id != it.selectedItemId && target != null) {
-                val current = it.menu.findItem(currentId)
-                if (current != null) current.isChecked = false
-                target.isChecked = true
-                /* Save the tab status in pref */
-                settings.edit { putInt(KEY_NAVIGATION_ID, id) }
-            }
-        }
+        navChrome?.select(id, notify = false)
+        settings.edit { putInt(KEY_NAVIGATION_ID, id) }
     }
-
 }
 
 interface INavigator {
-    var navigationView: List<NavigationBarView>
+    var navigationViews: List<View>
     var appbarLayout: AppBarLayout
     var currentDestinationId: Int
 

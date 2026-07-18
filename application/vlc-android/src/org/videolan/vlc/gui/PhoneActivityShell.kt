@@ -27,7 +27,6 @@ import android.content.res.ColorStateList
 import android.os.Build
 import android.util.TypedValue
 import android.view.Gravity
-import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.view.ContextThemeWrapper
@@ -40,9 +39,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.MaterialToolbar
-import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.navigation.NavigationBarView
-import com.google.android.material.navigationrail.NavigationRailView
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import org.videolan.tools.dp
@@ -55,18 +51,18 @@ import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.view.installScanProgressHost
 
 internal fun MainActivity.createMainActivityShell(): View {
+    val navState = MainNavChromeState()
+    mainNavChromeState = navState
+
     val root = CoordinatorLayout(this).apply {
         id = R.id.coordinator
         layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
     }
 
-    val navigationRail = NavigationRailView(this).apply {
-        id = R.id.navigation_rail
-        labelVisibilityMode = NavigationBarView.LABEL_VISIBILITY_LABELED
-        elevation = 4.dp.toFloat()
-        menu.clear()
-        addPhoneNavigationItems(menu)
-        addHeaderView(createShellFab(large = true))
+    // Compose navigation rail (tablet) — same R.id for layout margins / visibility.
+    val navigationRail = createComposeNavRail(navState) {
+        // FAB on rail: open browser / add — same intent as legacy shell fab.
+        findViewById<View>(R.id.fab)?.performClick()
     }
     root.addView(
         navigationRail,
@@ -112,22 +108,13 @@ internal fun MainActivity.createMainActivityShell(): View {
         }
     )
 
-    val bottomNavigation = BottomNavigationView(this).apply {
-        id = R.id.navigation
-        setBackgroundResource(resolveResourceAttr(R.attr.bottom_navigation_background))
-        elevation = 16.dp.toFloat()
-        itemIconTintList = ContextCompat.getColorStateList(context, R.color.bottom_navigation_selector)
-        itemRippleColor = ColorStateList.valueOf(resolveColorAttr(R.attr.bottom_navigation_focus))
-        itemTextColor = ContextCompat.getColorStateList(context, R.color.bottom_navigation_selector)
-        labelVisibilityMode = NavigationBarView.LABEL_VISIBILITY_LABELED
-        menu.clear()
-        addPhoneNavigationItems(menu)
-    }
+    // Compose bottom navigation (phone) — Material3 NavigationBar inside ComposeView.
+    val bottomNavigation = createComposeBottomNav(navState)
     root.addView(
         bottomNavigation,
         CoordinatorLayout.LayoutParams(CoordinatorLayout.LayoutParams.MATCH_PARENT, CoordinatorLayout.LayoutParams.WRAP_CONTENT).apply {
             gravity = Gravity.BOTTOM
-            behavior = BottomNavigationBehavior<BottomNavigationView>(this@createMainActivityShell, null)
+            behavior = BottomNavigationBehavior<View>(this@createMainActivityShell, null)
             insetEdge = Gravity.BOTTOM
         }
     )
@@ -137,13 +124,6 @@ internal fun MainActivity.createMainActivityShell(): View {
     return root
 }
 
-private fun addPhoneNavigationItems(menu: Menu) {
-    menu.add(Menu.NONE, R.id.nav_video, 0, R.string.video).setIcon(R.drawable.ic_video)
-    menu.add(Menu.NONE, R.id.nav_audio, 1, R.string.audio).setIcon(R.drawable.ic_menu_audio)
-    menu.add(Menu.NONE, R.id.nav_directories, 2, R.string.browse).setIcon(R.drawable.ic_folder)
-    menu.add(Menu.NONE, R.id.nav_playlists, 3, R.string.playlists).setIcon(R.drawable.ic_playlist)
-    menu.add(Menu.NONE, R.id.nav_more, 4, R.string.more).setIcon(R.drawable.ic_nav_more)
-}
 
 internal fun SecondaryActivity.createSecondaryActivityShell(): View {
     val root = FrameLayout(this).apply {
