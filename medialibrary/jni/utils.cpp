@@ -11,7 +11,7 @@ mediaToMediaWrapper(JNIEnv* env, fields *fields, medialibrary::MediaPtr const& m
     const std::vector<medialibrary::FilePtr> files = mediaPtr->files();
     if (files.empty())
         return {};
-    //TODO get track, audio & spu track numbers
+    // Track numbers + last audio/spu selection come from mediaPtr metadata below.
     jint type;
     switch (mediaPtr->type()) {
     case medialibrary::IMedia::Type::Audio:

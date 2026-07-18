@@ -59,6 +59,11 @@ import org.videolan.vlc.util.Permissions.canReadStorage
 import videolan.org.commontools.LiveEvent
 import kotlin.coroutines.resume
 
+/**
+ * Host-fragment-free storage permission entry points used by onboarding and
+ * library start. Prefer [askStoragePermission] / [getStoragePermission] over
+ * calling [org.videolan.vlc.util.Permissions] dialogs directly from UI code.
+ */
 class StoragePermissionsDelegate private constructor() {
 
     interface CustomActionController {

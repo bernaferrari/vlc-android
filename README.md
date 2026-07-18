@@ -31,7 +31,7 @@ vlc-android/
 │   ├── compose/                    # Thin Android interop shim (VLCComposeView)
 │   ├── television/                 # Android TV UI
 │   ├── remote-access-server/       # On-device Ktor remote access
-│   ├── remote-access-client/       # Packaged web client assets (release from Maven)
+│   ├── remote-access-client/       # Web UI assets + Kotlin HTTP client API
 │   ├── tools/, resources/, mediadb/, moviepedia/, donations/, live-plot-graph/
 │   └── …
 ├── ios/                            # SwiftUI skeleton consuming VLCShared.framework
@@ -49,9 +49,9 @@ vlc-android/
 | Shared UI components | Live in `:shared` (`org.videolan.vlc.compose.*`) via Compose Multiplatform |
 | `:application:compose` | **Interop shim only** — `VLCComposeView` for embedding Compose in residual Android View hosts. Components do **not** live here. |
 | KMP `:shared` | commonMain models, DataStore preferences, repository/playback contracts, CMP UI; android/jvm/ios actuals |
-| Android KMP adapters | `application/vlc-android/.../kmp/` (`AndroidMediaRepository`, `AndroidPlaybackService`, `VlcKmpInitializer`) — wiring in progress |
+| Android KMP adapters | `application/vlc-android/.../kmp/` wired at app startup; Settings dual-writes to DataStore |
 | iOS | Skeleton SwiftUI app in `ios/`; builds against `VLCShared.framework`. No full VLCKit player yet. DI uses Koin (`VlcKoin` / `VlcSharedApi`), not a `VlcAppContainer` type. |
-| Remote access | `:application:remote-access-server` (Ktor + Compose share UI) |
+| Remote access | Server (Ktor) + client module (web assets + `RemoteAccessClient` HTTP API) |
 | Permanent native islands | LibVLC video surface, medialibrary JNI, some system/widget/TV edges |
 
 More detail: `application/compose/README.md` (Android interop shim) and `ios/README.md` (KMP / iOS skeleton).
@@ -125,7 +125,30 @@ Focused gates used during Compose/KMP work:
 ./gradlew :application:app:processDebugMainManifest --no-daemon --console=plain
 ```
 
-Force VLC 4 dependency line: `-PforceVlc4`.
+### VLC 3 vs VLC 4 dependency matrix
+
+The major version is chosen once in `settings.gradle` (`gradle.ext.vlcMajorVersion`) and consumed from root `build.gradle` `ext`:
+
+| | Default (VLC **4**) | Legacy (`-PforceVlc3`) |
+|---|---|---|
+| App `minSdk` | 23 | 23 |
+| LibVLC / versionName | 4.0 EAP / preview | 3.7.1 |
+| Medialibrary artifact | `…-vlc4` suffix | plain |
+| NDK (native modules) | 28.x | 21.x (API 17-era toolchains) |
+| Source sets | `vlc4/src` | `vlc3/src` |
+
+`vlc3/src` and `vlc4/src` under `application/vlc-android`, `application/resources`, and `medialibrary` encode **real libVLC ABI differences** (track selection APIs) and are not dead duplicates.
+
+```bash
+# Default = VLC 4
+./gradlew :application:app:assembleDebug
+
+# Legacy VLC 3 dependency line
+./gradlew :application:app:assembleDebug -PforceVlc3
+
+# -PforceVlc4 remains accepted as an explicit no-op (default is already 4)
+./gradlew :application:app:assembleDebug -PforceVlc4
+```
 
 ### Build LibVLC
 

@@ -36,6 +36,7 @@ import org.videolan.medialibrary.interfaces.media.MediaWrapper;
 
 import java.util.Locale;
 
+// Natives are registered dynamically from JNI_OnLoad (not static-linked); lint is a false positive.
 @SuppressWarnings("JniMissingFunction")
 public class MediaWrapperImpl extends MediaWrapper {
     public final static String TAG = "VLC/MediaWrapperImpl";

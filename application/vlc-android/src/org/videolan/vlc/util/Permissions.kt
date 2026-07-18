@@ -72,6 +72,9 @@ object Permissions {
 
     var sAlertDialog: ComposeMaterialDialogHandle? = null
 
+    /** Permission check cache TTL — avoid binder spam from hot UI paths. */
+    private const val CACHE_TTL_MS = 5_000L
+
     var cache = mutableMapOf<PermissionType, Pair<Long, Boolean>>()
 
     /*
@@ -106,9 +109,12 @@ object Permissions {
         cache.clear()
     }
 
+    private fun isPermissionGranted(context: Context, permission: String): Boolean =
+        ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
+
     private fun getFromCache (context: Context, permissionType: PermissionType) : Boolean {
         cache[permissionType]?.let {
-            if (it.first < System.currentTimeMillis() - 5000L) {
+            if (it.first < System.currentTimeMillis() - CACHE_TTL_MS) {
                 cache.remove(permissionType)
             } else {
                 return it.second
@@ -127,10 +133,7 @@ object Permissions {
         }
         val result =  !AndroidUtil.isMarshMallowOrLater ||
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) isExternalStorageManager() || isAnyFileFinePermissionGranted(context)
-                else ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.READ_EXTERNAL_STORAGE
-                ) == PackageManager.PERMISSION_GRANTED || isExternalStorageManager()
+                else isPermissionGranted(context, Manifest.permission.READ_EXTERNAL_STORAGE) || isExternalStorageManager()
         cache.put(PermissionType.STORAGE, Pair(System.currentTimeMillis(), result))
         return result
     }
@@ -139,85 +142,50 @@ object Permissions {
         if (!skipCache) {
             return getFromCache(context, PermissionType.VIDEO)
         }
-        val result =  Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU &&
-                (ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.READ_EXTERNAL_STORAGE
-                ) == PackageManager.PERMISSION_GRANTED || isExternalStorageManager()) ||
-                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && (ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.READ_MEDIA_VIDEO
-                ) == PackageManager.PERMISSION_GRANTED || isExternalStorageManager()))
+        val result = hasLegacyOrScopedMediaAccess(context, Manifest.permission.READ_MEDIA_VIDEO)
         cache.put(PermissionType.VIDEO, Pair(System.currentTimeMillis(), result))
         return result
-
     }
 
     fun canReadAudios(context: Context, skipCache: Boolean = false): Boolean {
         if (!skipCache) {
             return getFromCache(context, PermissionType.AUDIO)
         }
-        val result =  Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU &&
-                (ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.READ_EXTERNAL_STORAGE
-                ) == PackageManager.PERMISSION_GRANTED || isExternalStorageManager()) ||
-                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && (ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.READ_MEDIA_AUDIO
-                ) == PackageManager.PERMISSION_GRANTED || isExternalStorageManager()))
+        val result = hasLegacyOrScopedMediaAccess(context, Manifest.permission.READ_MEDIA_AUDIO)
         cache.put(PermissionType.AUDIO, Pair(System.currentTimeMillis(), result))
         return result
-
     }
 
-    fun hasAudioPermission(context: Context) = (
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.READ_MEDIA_AUDIO
-            ) == PackageManager.PERMISSION_GRANTED
-            )
-    fun hasVideoPermission(context: Context) = (
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.READ_MEDIA_VIDEO
-            ) == PackageManager.PERMISSION_GRANTED
-            )
+    /**
+     * Pre-Tiramisu: READ_EXTERNAL_STORAGE or all-files access.
+     * Tiramisu+: the specific READ_MEDIA_* grant or all-files access.
+     */
+    private fun hasLegacyOrScopedMediaAccess(context: Context, mediaPermission: String): Boolean {
+        if (isExternalStorageManager()) return true
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            isPermissionGranted(context, mediaPermission)
+        } else {
+            isPermissionGranted(context, Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+    }
 
-    fun hasAnyFileFineAccess(context: Context) = canReadStorage(context) || (
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.READ_MEDIA_AUDIO
-            ) == PackageManager.PERMISSION_GRANTED
-            ||
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.READ_MEDIA_VIDEO
-            ) == PackageManager.PERMISSION_GRANTED
-            ||
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.READ_MEDIA_IMAGES
-            ) == PackageManager.PERMISSION_GRANTED
-        )
+    fun hasAudioPermission(context: Context) =
+        isPermissionGranted(context, Manifest.permission.READ_MEDIA_AUDIO)
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    private fun isAnyFileFinePermissionGranted(context: Context) = (
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.READ_MEDIA_AUDIO
-            ) == PackageManager.PERMISSION_GRANTED ||
-                    ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.READ_MEDIA_VIDEO
-                    ) == PackageManager.PERMISSION_GRANTED ||
-                    ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.READ_MEDIA_IMAGES
-                    ) == PackageManager.PERMISSION_GRANTED
-            )
+    fun hasVideoPermission(context: Context) =
+        isPermissionGranted(context, Manifest.permission.READ_MEDIA_VIDEO)
 
-    fun canSendNotifications(context: Context) = Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2 || ContextCompat.checkSelfPermission(context, "android.permission.POST_NOTIFICATIONS") == PackageManager.PERMISSION_GRANTED
+    fun hasAnyFileFineAccess(context: Context) = canReadStorage(context) || isAnyFileFinePermissionGranted(context)
+
+    private fun isAnyFileFinePermissionGranted(context: Context) =
+        isPermissionGranted(context, Manifest.permission.READ_MEDIA_AUDIO) ||
+            isPermissionGranted(context, Manifest.permission.READ_MEDIA_VIDEO) ||
+            isPermissionGranted(context, Manifest.permission.READ_MEDIA_IMAGES)
+
+    fun canSendNotifications(context: Context) =
+        Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2 ||
+            isPermissionGranted(context, "android.permission.POST_NOTIFICATIONS")
+
 
     /**
      * Check if the app has a complete access to the files especially on Android 11

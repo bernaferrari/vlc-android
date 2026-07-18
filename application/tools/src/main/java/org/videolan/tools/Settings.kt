@@ -7,10 +7,12 @@ import android.os.Build
 import androidx.core.content.edit
 import androidx.lifecycle.MutableLiveData
 import androidx.preference.PreferenceManager
+import kotlinx.coroutines.launch
 import org.videolan.tools.Settings.audioControlsChangeListener
 import org.videolan.tools.Settings.init
 import org.videolan.tools.Settings.initPostMigration
 import java.io.File
+import java.util.concurrent.atomic.AtomicReference
 
 object Settings : SingletonHolder<SharedPreferences, Context>({ init(it.applicationContext) }) {
 
@@ -40,6 +42,47 @@ object Settings : SingletonHolder<SharedPreferences, Context>({ init(it.applicat
     lateinit var device : DeviceInfo
         private set
 
+    /**
+     * Optional DataStore bridge for dual-write. Set once KMP/DataStore is ready
+     * so SharedPreferences hot paths stay authoritative while VlcPreferences stays in sync.
+     */
+    private val dataStoreBridge = AtomicReference<VlcPreferences?>(null)
+
+    fun attachDataStoreBridge(prefs: VlcPreferences?) {
+        dataStoreBridge.set(prefs)
+    }
+
+    /**
+     * Mirror the in-memory Settings cache into [VlcSettings] so shared/KMP code
+     * sees the same values without waiting for an async DataStore load.
+     */
+    fun hydrateVlcSettingsCache() {
+        VlcSettings.hydrateFromLegacy(
+            firstRun = firstRun,
+            showVideoThumbs = showVideoThumbs,
+            tvUI = tvUI,
+            listTitleEllipsize = listTitleEllipsize,
+            overrideTvUI = overrideTvUI,
+            videoHudDelay = videoHudDelay,
+            includeMissing = includeMissing,
+            showHeaders = showHeaders,
+            showAudioTrackInfo = showAudioTrackInfo,
+            videoJumpDelay = videoJumpDelay,
+            videoLongJumpDelay = videoLongJumpDelay,
+            videoDoubleTapJumpDelay = videoDoubleTapJumpDelay,
+            audioJumpDelay = audioJumpDelay,
+            audioLongJumpDelay = audioLongJumpDelay,
+            audioShowTrackNumbers = audioShowTrackNumbers.value == true,
+            showHiddenFiles = showHiddenFiles,
+            showTrackNumber = showTrackNumber,
+            tvFoldersFirst = tvFoldersFirst,
+            incognitoMode = incognitoMode,
+            safeMode = safeMode,
+            remoteAccessEnabled = remoteAccessEnabled.value == true,
+            fastplaySpeed = fastplaySpeed,
+        )
+    }
+
     fun init(context: Context) : SharedPreferences{
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         showVideoThumbs = prefs.getBoolean(SHOW_VIDEO_THUMBNAILS, true)
@@ -62,6 +105,7 @@ object Settings : SingletonHolder<SharedPreferences, Context>({ init(it.applicat
         incognitoMode = prefs.getBoolean(KEY_INCOGNITO, false)
         safeMode = prefs.getBoolean(KEY_SAFE_MODE, false) && prefs.getString(KEY_SAFE_MODE_PIN, "")?.isNotBlank() == true
         remoteAccessEnabled.postValue(prefs.getBoolean(KEY_ENABLE_REMOTE_ACCESS, false))
+        hydrateVlcSettingsCache()
         return prefs
     }
 
@@ -114,6 +158,21 @@ object Settings : SingletonHolder<SharedPreferences, Context>({ init(it.applicat
 
     val showTvUi : Boolean
         get() = !overrideTvUI && device.isTv || tvUI
+
+    internal fun dualWriteToDataStore(key: String, value: Any) {
+        val bridge = dataStoreBridge.get() ?: return
+        val normalized: Any = when (value) {
+            is List<*> -> value.filterIsInstance<String>().toSet()
+            else -> value
+        }
+        AppScope.launch {
+            try {
+                bridge.put(key, normalized)
+            } catch (_: Exception) {
+                // Best-effort mirror; SharedPreferences remains authoritative.
+            }
+        }
+    }
 }
 
 class DeviceInfo(context: Context) {
@@ -136,6 +195,8 @@ fun SharedPreferences.putSingle(key: String, value: Any) {
         is Set<*> -> edit { putStringSet(key, value.toSet() as Set<String>) }
         else -> throw IllegalArgumentException("value $value class is invalid!")
     }
+    // Dual-write to DataStore when the KMP bridge is attached (best-effort async).
+    Settings.dualWriteToDataStore(key, value)
 }
 
 fun deleteSharedPreferences(context: Context, name: String): Boolean {

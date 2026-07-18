@@ -18,8 +18,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
  * **************************************************************************
- *
- *
  */
 
 plugins {
@@ -56,29 +54,26 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
 
+    // Web UI package (optional submodule). Server copies assets/dist at runtime.
     task webCopy(type: Copy) {
         from 'remoteaccess/dist'
         into 'assets/dist'
+        // Allow missing dist during pure-Kotlin client builds.
+        onlyIf { file('remoteaccess/dist').exists() }
     }
 
     sourceSets.main {
         assets.srcDirs = ['assets']
     }
 
-    sourceSets.main {
-        assets.srcDirs = ['assets']
-    }
-
-    // Make per-variant version code
     libraryVariants.all { variant ->
-        //Custom APK name
         variant.outputs.each { output ->
             if (output.outputFileName != null && output.outputFileName.endsWith('.aar')) {
                 output.outputFileName = "vlc-android-remote-access-${library_version}.aar"
@@ -90,24 +85,22 @@ android {
 preBuild.dependsOn(webCopy)
 
 def remoteAccessVersion() {
-    def code = new ByteArrayOutputStream()
     try {
-        File remoteAccessPackage = file("remoteaccess/package.json")
-        if (remoteAccessPackage.exists()) {
-            remoteAccessPackage.readLines().each {
-                if (it.contains('"version"')) {
-                    code = it.split("\"")[3]
-                    return
-                }
-            }
+        File pkg = file("remoteaccess/package.json")
+        if (pkg.exists()) {
+            def match = pkg.readLines().find { it.contains('"version"') }
+            if (match != null) return match.split("\"")[3]
         }
-    } catch (Exception e) {
+    } catch (Exception ignored) {
     }
     return "unknown"
 }
 
-
 dependencies {
+    api project(':shared')
+    implementation "io.ktor:ktor-client-core:$rootProject.ext.ktorVersion"
+    implementation "io.ktor:ktor-client-okhttp:$rootProject.ext.ktorVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$rootProject.ext.kotlinx_version"
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'

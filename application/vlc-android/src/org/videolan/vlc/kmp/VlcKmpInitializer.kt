@@ -1,12 +1,19 @@
 package org.videolan.vlc.kmp
 
 import android.content.Context
+import android.content.SharedPreferences
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.GlobalContext
 import org.koin.core.context.loadKoinModules
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
 import org.videolan.medialibrary.interfaces.Medialibrary
+import org.videolan.tools.AppScope
+import org.videolan.tools.Settings
+import org.videolan.tools.VlcPreferences
+import org.videolan.tools.VlcSettings
 import org.videolan.vlc.PlaybackService as AndroidPlaybackHost
 import org.videolan.vlc.app.VlcKoin
 import org.videolan.vlc.app.platformModule
@@ -71,6 +78,68 @@ object VlcKmpInitializer {
             }
 
             VlcKoin.set(GlobalContext.get())
+            wireSettingsBridge(appContext)
+        }
+    }
+
+    /**
+     * Attach SharedPreferences → DataStore dual-write and seed DataStore once
+     * from the legacy prefs so VlcSettings/VlcPreferences stay aligned.
+     */
+    private fun wireSettingsBridge(appContext: Context) {
+        val koin = GlobalContext.getOrNull() ?: return
+        val vlcPrefs = runCatching { koin.get<VlcPreferences>() }.getOrNull() ?: return
+        Settings.attachDataStoreBridge(vlcPrefs)
+        Settings.hydrateVlcSettingsCache()
+        AppScope.launch(Dispatchers.IO) {
+            try {
+                seedDataStoreFromSharedPreferences(
+                    Settings.getInstance(appContext),
+                    vlcPrefs
+                )
+                VlcSettings.load(vlcPrefs)
+                VlcSettings.loadPostMigration(vlcPrefs)
+            } catch (_: Exception) {
+                // SharedPreferences remains the Android source of truth.
+            }
+        }
+    }
+
+    private suspend fun seedDataStoreFromSharedPreferences(
+        shared: SharedPreferences,
+        vlcPrefs: VlcPreferences
+    ) {
+        // Only seed keys that VlcSettings cares about; avoid dumping entire prefs.
+        val keys = listOf(
+            org.videolan.tools.SHOW_VIDEO_THUMBNAILS,
+            org.videolan.tools.PREF_TV_UI,
+            org.videolan.tools.LIST_TITLE_ELLIPSIZE,
+            org.videolan.tools.VIDEO_HUD_TIMEOUT,
+            org.videolan.tools.KEY_INCLUDE_MISSING,
+            org.videolan.tools.KEY_SHOW_HEADERS,
+            org.videolan.tools.KEY_SHOW_TRACK_INFO,
+            org.videolan.tools.KEY_VIDEO_JUMP_DELAY,
+            org.videolan.tools.KEY_VIDEO_LONG_JUMP_DELAY,
+            org.videolan.tools.KEY_VIDEO_DOUBLE_TAP_JUMP_DELAY,
+            org.videolan.tools.KEY_AUDIO_JUMP_DELAY,
+            org.videolan.tools.KEY_AUDIO_LONG_JUMP_DELAY,
+            org.videolan.tools.KEY_AUDIO_SHOW_TRACK_NUMBERS,
+            org.videolan.tools.BROWSER_SHOW_HIDDEN_FILES,
+            org.videolan.tools.ALBUMS_SHOW_TRACK_NUMBER,
+            org.videolan.tools.TV_FOLDERS_FIRST,
+            org.videolan.tools.KEY_INCOGNITO,
+            org.videolan.tools.KEY_SAFE_MODE,
+            org.videolan.tools.KEY_ENABLE_REMOTE_ACCESS,
+            org.videolan.tools.FASTPLAY_SPEED,
+        )
+        for (key in keys) {
+            if (!shared.contains(key)) continue
+            val value = shared.all[key] ?: continue
+            when (value) {
+                is Boolean, is Int, is Long, is Float, is String -> vlcPrefs.put(key, value)
+                is Set<*> -> @Suppress("UNCHECKED_CAST")
+                vlcPrefs.put(key, value as Set<String>)
+            }
         }
     }
 

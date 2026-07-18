@@ -85,6 +85,58 @@ object VlcSettings {
         get() = !overrideTvUI.value && (platformInfo?.isTv == true || tvUI.value)
 
     /**
+     * Copy values from the Android SharedPreferences-backed Settings cache.
+     * Used so shared code sees the same state immediately, before DataStore is seeded.
+     */
+    fun hydrateFromLegacy(
+        firstRun: Boolean,
+        showVideoThumbs: Boolean,
+        tvUI: Boolean,
+        listTitleEllipsize: Int,
+        overrideTvUI: Boolean,
+        videoHudDelay: Int,
+        includeMissing: Boolean,
+        showHeaders: Boolean,
+        showAudioTrackInfo: Boolean,
+        videoJumpDelay: Int,
+        videoLongJumpDelay: Int,
+        videoDoubleTapJumpDelay: Int,
+        audioJumpDelay: Int,
+        audioLongJumpDelay: Int,
+        audioShowTrackNumbers: Boolean,
+        showHiddenFiles: Boolean,
+        showTrackNumber: Boolean,
+        tvFoldersFirst: Boolean,
+        incognitoMode: Boolean,
+        safeMode: Boolean,
+        remoteAccessEnabled: Boolean,
+        fastplaySpeed: Float,
+    ) {
+        _firstRun.value = firstRun
+        _showVideoThumbs.value = showVideoThumbs
+        _tvUI.value = tvUI
+        _listTitleEllipsize.value = listTitleEllipsize
+        _overrideTvUI.value = overrideTvUI
+        _videoHudDelay.value = videoHudDelay
+        _includeMissing.value = includeMissing
+        _showHeaders.value = showHeaders
+        _showAudioTrackInfo.value = showAudioTrackInfo
+        _videoJumpDelay.value = videoJumpDelay
+        _videoLongJumpDelay.value = videoLongJumpDelay
+        _videoDoubleTapJumpDelay.value = videoDoubleTapJumpDelay
+        _audioJumpDelay.value = audioJumpDelay
+        _audioLongJumpDelay.value = audioLongJumpDelay
+        _audioShowTrackNumbers.value = audioShowTrackNumbers
+        _showHiddenFiles.value = showHiddenFiles
+        _showTrackNumber.value = showTrackNumber
+        _tvFoldersFirst.value = tvFoldersFirst
+        _incognitoMode.value = incognitoMode
+        _safeMode.value = safeMode
+        _remoteAccessEnabled.value = remoteAccessEnabled
+        _fastplaySpeed.value = fastplaySpeed
+    }
+
+    /**
      * Hydrate all cached settings from [VlcPreferences].
      * Must be called once at startup (e.g. from Application.onCreate).
      *

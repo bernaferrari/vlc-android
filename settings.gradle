@@ -14,7 +14,17 @@ plugins {
     id("com.android.settings") version '8.13.2'
 }
 
-def vlcMajorVersion = hasProperty('forceVlc4') && getProperty('forceVlc4') ? 4 : 3
+// Single source of truth for the VLC major-version matrix.
+// Default is VLC 4 (Compose/KMP/minSdk 23 path). Pass -PforceVlc3 to build the
+// legacy VLC 3 dependency line (still needs NDK 21 for native modules).
+// Module source sets under vlc3/src vs vlc4/src encode real libVLC ABI differences
+// (track APIs) and must remain separate.
+def vlcMajorVersion = hasProperty('forceVlc3') && getProperty('forceVlc3') ? 3 : 4
+// Keep forceVlc4 as a no-op alias for older docs/CI (default is already 4).
+if (hasProperty('forceVlc4') && getProperty('forceVlc4')) {
+    vlcMajorVersion = 4
+}
+gradle.ext.vlcMajorVersion = vlcMajorVersion
 
 android {
     // Shared KMP + DataStore/Compose require API 23+. Historical VLC 3 floor was 17
