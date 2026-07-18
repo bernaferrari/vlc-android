@@ -131,6 +131,20 @@ object VlcKmpInitializer {
             org.videolan.tools.KEY_SAFE_MODE,
             org.videolan.tools.KEY_ENABLE_REMOTE_ACCESS,
             org.videolan.tools.FASTPLAY_SPEED,
+            org.videolan.tools.AUDIO_RESUME_PLAYBACK,
+            org.videolan.tools.VIDEO_RESUME_PLAYBACK,
+            org.videolan.tools.PLAYBACK_HISTORY,
+            org.videolan.tools.KEY_AUDIO_FORCE_SHUFFLE,
+            org.videolan.tools.KEY_SAVE_INDIVIDUAL_AUDIO_DELAY,
+            org.videolan.tools.KEY_ENABLE_HEADSET_DETECTION,
+            org.videolan.tools.KEY_ENABLE_PLAY_ON_HEADSET_INSERTION,
+            org.videolan.tools.KEY_ALWAYS_FAST_SEEK,
+            org.videolan.tools.LOCKSCREEN_COVER,
+            org.videolan.tools.RESTORE_BACKGROUND_VIDEO,
+            org.videolan.tools.SHOW_REMAINING_TIME,
+            org.videolan.tools.KEY_VIDEO_APP_SWITCH,
+            org.videolan.tools.KEY_PLAYBACK_SPEED_AUDIO_GLOBAL,
+            org.videolan.tools.KEY_PLAYBACK_SPEED_VIDEO_GLOBAL,
         )
         for (key in keys) {
             if (!shared.contains(key)) continue

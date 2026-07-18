@@ -77,6 +77,7 @@ import org.videolan.tools.POSITION_IN_SONG
 import org.videolan.tools.SLEEP_TIMER_DEFAULT_INTERVAL
 import org.videolan.tools.SLEEP_TIMER_DEFAULT_RESET_INTERACTION
 import org.videolan.tools.SLEEP_TIMER_DEFAULT_WAIT
+import org.videolan.tools.HotPlaybackSettings
 import org.videolan.tools.Settings
 import org.videolan.tools.VIDEO_PAUSED
 import org.videolan.tools.VIDEO_RESUME_PLAYBACK
@@ -288,12 +289,12 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
             service.onMediaListChanged()
             service.showNotification()
         }
-        if (settings.getBoolean(KEY_AUDIO_FORCE_SHUFFLE, false) && getCurrentMedia()?.type == MediaWrapper.TYPE_AUDIO && !shuffling && canShuffle()) shuffle()
-        if (settings.getLong(SLEEP_TIMER_DEFAULT_INTERVAL, -1L) != -1L) {
-            service.waitForMediaEnd = settings.getBoolean(SLEEP_TIMER_DEFAULT_WAIT, false)
-            service.resetOnInteraction = settings.getBoolean(SLEEP_TIMER_DEFAULT_RESET_INTERACTION, false)
+        if (HotPlaybackSettings.audioForceShuffle && getCurrentMedia()?.type == MediaWrapper.TYPE_AUDIO && !shuffling && canShuffle()) shuffle()
+        if (HotPlaybackSettings.sleepTimerDefaultInterval != -1L) {
+            service.waitForMediaEnd = HotPlaybackSettings.sleepTimerDefaultWait
+            service.resetOnInteraction = HotPlaybackSettings.sleepTimerDefaultResetInteraction
             val sleepTime = Calendar.getInstance()
-            sleepTime.timeInMillis += settings.getLong(SLEEP_TIMER_DEFAULT_INTERVAL, -1L)
+            sleepTime.timeInMillis += HotPlaybackSettings.sleepTimerDefaultInterval
             sleepTime.set(Calendar.SECOND, 0)
             service.setSleepTimer(sleepTime)
         }
@@ -696,7 +697,7 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
         val titleIdx = player.getTitleIdx()
         val currentMedia = getCurrentMedia() ?: return@outerLaunch
         if (currentMedia.uri.scheme.isSchemeFD()) return@outerLaunch
-        if (Settings.getInstance(AppContextProvider.appContext).getBoolean(KEY_INCOGNITO, false)) return@outerLaunch
+        if (Settings.incognitoMode) return@outerLaunch
         //Save progress
         val time = player.mediaplayer.time
         val length = player.getLength()
@@ -752,7 +753,7 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
     fun setAudioDelay(delay: Long) {
         if (!player.setAudioDelay(delay)) return
         val media = getCurrentMedia() ?: return
-        if (media.id != 0L && settings.getBoolean(KEY_SAVE_INDIVIDUAL_AUDIO_DELAY, true)) {
+        if (media.id != 0L && HotPlaybackSettings.saveIndividualAudioDelay) {
             launch(Dispatchers.IO) { media.setLongMeta(MediaWrapper.META_AUDIODELAY, player.getAudioDelay()) }
         }
     }
@@ -766,13 +767,13 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
     private fun loadMediaMeta(media: MediaWrapper) {
         if (player.canSwitchToVideo()) {
             val savedDelay = media.getMetaLong(MediaWrapper.META_AUDIODELAY)
-            val globalDelay = Settings.getInstance(AppContextProvider.appContext).getLong(AUDIO_DELAY_GLOBAL, 0L)
+            val globalDelay = HotPlaybackSettings.audioDelayGlobal
             if (savedDelay == 0L && globalDelay != 0L) {
                 player.setAudioDelay(globalDelay)
-            } else if (settings.getBoolean(KEY_SAVE_INDIVIDUAL_AUDIO_DELAY, true)) {
+            } else if (HotPlaybackSettings.saveIndividualAudioDelay) {
                 player.setAudioDelay(savedDelay)
             }
-            val abStart = if (settings.getBoolean(PLAYBACK_HISTORY, true))  media.getMetaLong(MediaWrapper.META_AB_REPEAT_START) else 0L
+            val abStart = if (HotPlaybackSettings.playbackHistory)  media.getMetaLong(MediaWrapper.META_AB_REPEAT_START) else 0L
             if (abStart != 0L) {
                 abRepeatOn.value = true
                 val abStop = media.getMetaLong(MediaWrapper.META_AB_REPEAT_STOP)
@@ -790,7 +791,7 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
      * @param media
      */
     fun restoreSpeed(media: MediaWrapper) {
-        val incognitoMode = settings.getBoolean(KEY_INCOGNITO, false)
+        val incognitoMode = Settings.incognitoMode
         val playbackSpeedModeAll = settings.getBoolean(if (player.isVideoPlaying()) KEY_PLAYBACK_SPEED_VIDEO_GLOBAL else KEY_PLAYBACK_SPEED_AUDIO_GLOBAL, false)
         val playbackRate = when {
             incognitoMode && playbackSpeedModeAll -> settings.getFloat(if (player.isVideoPlaying()) KEY_INCOGNITO_PLAYBACK_SPEED_VIDEO_GLOBAL_VALUE else KEY_INCOGNITO_PLAYBACK_SPEED_AUDIO_GLOBAL_VALUE, 1.0f)
@@ -809,7 +810,7 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
 
     @Synchronized
     fun saveCurrentMedia(forceVideo:Boolean = false) {
-        if (settings.getBoolean(KEY_INCOGNITO, false)) return
+        if (Settings.incognitoMode) return
         val media = getCurrentMedia() ?: return
         val isAudio = isAudioList() || forceVideo
         settings.putSingle(KEY_CURRENT_MEDIA_IS_AUDIO, isAudio)
@@ -822,8 +823,8 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
             }
             return
         }
-        val saveAudioPlayQueue = settings.getBoolean(AUDIO_RESUME_PLAYBACK, true)
-        val saveVideoPlayQueue = settings.getBoolean(VIDEO_RESUME_PLAYBACK, true)
+        val saveAudioPlayQueue = HotPlaybackSettings.audioResumePlayback
+        val saveVideoPlayQueue = HotPlaybackSettings.videoResumePlayback
         if (!isAudio && saveVideoPlayQueue) {
             settings.putSingle(KEY_CURRENT_MEDIA_RESUME, media.location)
             // !player.isVideoPlaying means that there are no view attached, but if the media is a
@@ -845,7 +846,7 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
     }
 
     suspend fun saveMediaList(forceVideo:Boolean = false) {
-        if (settings.getBoolean(KEY_INCOGNITO, false)) return
+        if (Settings.incognitoMode) return
         val currentMedia = getCurrentMedia() ?: return
         if (currentMedia.uri.scheme.isSchemeFD()) return
         val locations = StringBuilder()
@@ -855,12 +856,12 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
             for (mw in list) locations.append(" ").append(mw.uri.toString())
             //We save a concatenated String because putStringSet is APIv11.
             if (isAudio) {
-                if (settings.getBoolean(AUDIO_RESUME_PLAYBACK, true)) {
+                if (HotPlaybackSettings.audioResumePlayback) {
                     settings.putSingle(KEY_MEDIA_LAST_PLAYLIST_RESUME, locations.toString().trim())
                     settings.putSingle(KEY_AUDIO_LAST_PLAYLIST, locations.toString().trim())
                 }
             } else {
-                if (settings.getBoolean(VIDEO_RESUME_PLAYBACK, true)) {
+                if (HotPlaybackSettings.videoResumePlayback) {
                     settings.putSingle(KEY_MEDIA_LAST_PLAYLIST_RESUME, locations.toString().trim())
                     settings.putSingle(KEY_MEDIA_LAST_PLAYLIST, locations.toString().trim())
                 }
@@ -1048,7 +1049,7 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
 
     @Synchronized
     private fun savePosition(reset: Boolean = false, video: Boolean = false) {
-        if (settings.getBoolean(KEY_INCOGNITO, false)) return
+        if (Settings.incognitoMode) return
         if (!hasMedia()) return
         settings.edit {
             val audio = !video && isAudioList()
@@ -1061,7 +1062,7 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
             //we reached the end. The next proposed media should be the first of the list
             if (reset) {
                 val media = getMediaList()[0]
-                if(audio && settings.getBoolean(AUDIO_RESUME_PLAYBACK, true)) putString(KEY_CURRENT_AUDIO, media.location)
+                if(audio && HotPlaybackSettings.audioResumePlayback) putString(KEY_CURRENT_AUDIO, media.location)
             }
         }
     }
@@ -1088,7 +1089,7 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
         }
         mediaList.addEventListener(this)
         addUpdateActor.trySend(Unit)
-        if (settings.getBoolean(KEY_AUDIO_FORCE_SHUFFLE, false) && getCurrentMedia()?.type == MediaWrapper.TYPE_AUDIO  && !shuffling && canShuffle()) shuffle()
+        if (HotPlaybackSettings.audioForceShuffle && getCurrentMedia()?.type == MediaWrapper.TYPE_AUDIO  && !shuffling && canShuffle()) shuffle()
     }
 
     /**
@@ -1145,7 +1146,7 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
                 value.stop = time
             }
         }
-        if (settings.getBoolean(PLAYBACK_HISTORY, true)) {
+        if (HotPlaybackSettings.playbackHistory) {
             media?.setLongMeta(MediaWrapper.META_AB_REPEAT_START, value.start)
             media?.setLongMeta(MediaWrapper.META_AB_REPEAT_STOP, value.stop)
         }
@@ -1325,9 +1326,9 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
     }
 
     private suspend fun savePlaycount(mw: MediaWrapper) {
-        if (Settings.getInstance(AppContextProvider.appContext).getBoolean(KEY_INCOGNITO, false)) return
+        if (Settings.incognitoMode) return
         var currentMedia = mw
-        if (settings.getBoolean(PLAYBACK_HISTORY, true) && !mw.uri.scheme.isSchemeFD()) withContext(Dispatchers.IO) {
+        if (HotPlaybackSettings.playbackHistory && !mw.uri.scheme.isSchemeFD()) withContext(Dispatchers.IO) {
             var id = mw.id
             if (id == 0L) {
                 var internalMedia = medialibrary.findMedia(mw)

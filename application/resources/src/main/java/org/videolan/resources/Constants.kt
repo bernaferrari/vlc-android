@@ -232,6 +232,7 @@ const val MEDIAPARSING_SERVICE = "org.videolan.vlc.MediaParsingService"
 const val TV_ONBOARDING_ACTIVITY = "org.videolan.television.ui.OnboardingActivity"
 const val REMOTE_ACCESS_SERVICE = "org.videolan.vlc.remoteaccessserver.RemoteAccessService"
 const val REMOTE_ACCESS_ONBOARDING = "org.videolan.vlc.remoteaccessserver.gui.remoteaccess.onboarding.RemoteAccessOnboardingActivity"
+const val REMOTE_ACCESS_CLIENT_ACTIVITY = "org.videolan.vlc.remoteaccessserver.gui.remoteaccess.RemoteAccessClientActivity"
 
 const val ROOM_DATABASE = "/vlc_database.zip"
 const val EXPORT_SETTINGS_FILE = "/vlc_exported_settings.json"

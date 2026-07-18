@@ -106,3 +106,12 @@ cd ios/
 - **Compose Multiplatform in `:shared`**: phone UI components already live here; Android hosts them through activities/interop. iOS UI strategy (CMP vs SwiftUI) is still open.
 - **FlagSet**: custom bitmask instead of JVM-only `EnumSet`.
 - **DataStore**: Flow/coroutine prefs for common code; minSdk 23 on Android because of androidx.datastore 1.2.x.
+
+
+## VLCKit integration
+
+1. `IosKoinBootstrap.start()` from app launch.
+2. Implement/attach `VlcKitBackend` (`ios/App/VlcKitBackend.swift`) once MobileVLCKit is linked:
+   `IosPlaybackService.shared.setBackend(backend: VlcKitBackend())`
+3. Seed library via `VlcSharedApi.replaceLibrary` or `IosMediaRepository.shared.replaceAll`.
+4. Control playback through `VlcSharedApi.playFirst` / pause / resume.

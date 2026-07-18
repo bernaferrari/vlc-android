@@ -2,10 +2,8 @@
 //  AppDelegate.swift
 //  VLC-iOS
 //
-//  KMP skeleton app consuming the VLCShared framework.
-//  This is a minimal SwiftUI app that demonstrates calling into the shared
-//  Kotlin module from Swift. The actual VLC iOS player will be built on top
-//  of this foundation.
+//  SwiftUI shell consuming VLCShared. Wire VLCKit by implementing VlcKitPlayerBackend
+//  and calling IosPlaybackService.shared.setBackend(...).
 //
 
 import SwiftUI
@@ -19,121 +17,111 @@ struct VLCiOSApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(appState)
-                .onAppear {
-                    appState.initialize()
+                .task {
+                    await appState.initialize()
                 }
         }
     }
 }
 
-/// App-level state bridging Kotlin/VLCShared and SwiftUI.
 @MainActor
 final class VLCAppState: ObservableObject {
     @Published var platformInfo: String = ""
     @Published var mediaCount: Int = 0
     @Published var isInitialized: Bool = false
-    @Published var videos: [String] = []
-    @Published var playlists: [String] = []
+    @Published var titles: [String] = []
+    @Published var status: String = "Starting…"
+    @Published var lastError: String?
 
     private let api = VlcSharedApi()
 
-    func initialize() {
+    func initialize() async {
+        IosKoinBootstrap.shared.start()
+        // Optional: attach VLCKit when linked — see VlcKitBackend.swift
+        // IosPlaybackService.shared.setBackend(backend: VlcKitBackend())
         platformInfo = api.platformInfo()
         isInitialized = api.isInitialized()
+        status = isInitialized ? "KMP ready" : "KMP not started"
+        await refreshLibrary()
+    }
 
-        // In the full app, this is where we'd:
-        // 1. Create IosVlcDataStoreFactory() and VlcPreferences(dataStore)
-        // 2. Create platform-specific MediaRepository impl (VLCKit medialibrary)
-        // 3. Create platform-specific PlaybackService impl (VLCKit MediaPlayer)
-        // 4. startKoin with iOS modules (VlcKoin) — there is no VlcAppContainer type
-        //
-        // For now, just demonstrate the API surface is accessible.
-        Task {
-            mediaCount = await api.getMediaCount(type: MediaType.all)
+    func refreshLibrary() async {
+        mediaCount = Int(api.getMediaCount(type: .all))
+        // listMediaTitles is async in Kotlin; from Swift use async bridge
+        do {
+            titles = try await api.listMediaTitles(type: .all, limit: 50) as? [String] ?? []
+        } catch {
+            // Fallback: count only
+            titles = []
+            lastError = error.localizedDescription
         }
+        status = mediaCount == 0
+            ? "Library empty — load demo or attach scanner"
+            : "\(mediaCount) items"
     }
 
-    func playFirstVideo() {
-        // Placeholder — in the full app, this calls:
-        // VlcApp.shared.container.playbackService.play(item, playlist)
-        // which bridges to VLCKit's VLCMediaPlayer
-        print("Play action triggered — wire to VLCKit PlaybackService")
+    func seedDemoLibrary() async {
+        api.seedDemoLibrary()
+        await refreshLibrary()
+        status = "Demo library loaded (decode needs VLCKit backend)"
     }
+
+    func playFirst() async {
+        let ok = api.playFirst(type: .all)
+        status = ok ? "Play requested" : "Nothing to play — seed library first"
+    }
+
+    func pause() { api.pause() }
+    func resume() { api.resume() }
+    func stop() { api.stop() }
 }
 
-/// Main content view — a simple dashboard showing KMP integration status.
 struct ContentView: View {
     @EnvironmentObject var appState: VLCAppState
 
     var body: some View {
-        NavigationView {
-            VStack(spacing: 24) {
-                // KMP integration status
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("VLC KMP")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-
-                    InfoRow(label: "Platform", value: appState.platformInfo)
-                    InfoRow(label: "KMP Initialized", value: appState.isInitialized ? "Yes" : "No")
-                    InfoRow(label: "Media Count", value: "\(appState.mediaCount)")
+        NavigationStack {
+            List {
+                Section("KMP") {
+                    LabeledContent("Platform", value: appState.platformInfo)
+                    LabeledContent("Initialized", value: appState.isInitialized ? "Yes" : "No")
+                    LabeledContent("Status", value: appState.status)
                 }
-                .padding()
-                .background(Color(.secondarySystemBackground))
-                .cornerRadius(12)
-
-                // Placeholder for media library
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Library")
-                        .font(.headline)
-                    Text("Media library integration pending.")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                    Text("Wire VLCKit medialibrary → MediaRepository")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding()
-                .background(Color(.secondarySystemBackground))
-                .cornerRadius(12)
-
-                // Placeholder for playback
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Playback")
-                        .font(.headline)
-                    Text("Player integration pending.")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                    Button("Play (placeholder)") {
-                        appState.playFirstVideo()
+                Section("Library (\(appState.mediaCount))") {
+                    if appState.titles.isEmpty {
+                        Text("No media yet")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(appState.titles, id: \.self) { title in
+                            Text(title)
+                        }
                     }
-                    .buttonStyle(.borderedProminent)
+                    Button("Load demo library") {
+                        Task { await appState.seedDemoLibrary() }
+                    }
+                    Button("Refresh") {
+                        Task { await appState.refreshLibrary() }
+                    }
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding()
-                .background(Color(.secondarySystemBackground))
-                .cornerRadius(12)
-
-                Spacer()
+                Section("Playback") {
+                    Text("Attach VLCKit via IosPlaybackService.shared.setBackend(…)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    HStack {
+                        Button("Play") { Task { await appState.playFirst() } }
+                            .buttonStyle(.borderedProminent)
+                        Button("Pause") { appState.pause() }
+                        Button("Resume") { appState.resume() }
+                        Button("Stop") { appState.stop() }
+                    }
+                }
+                if let err = appState.lastError {
+                    Section("Error") {
+                        Text(err).foregroundStyle(.red)
+                    }
+                }
             }
-            .padding()
             .navigationTitle("VLC")
-        }
-    }
-}
-
-struct InfoRow: View {
-    let label: String
-    let value: String
-
-    var body: some View {
-        HStack {
-            Text(label)
-                .foregroundColor(.secondary)
-            Spacer()
-            Text(value)
-                .fontWeight(.medium)
         }
     }
 }

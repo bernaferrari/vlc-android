@@ -102,6 +102,7 @@ import org.videolan.tools.PREF_PLAYLIST_TIPS_SHOWN
 import org.videolan.tools.PREF_RESTORE_VIDEO_TIPS_SHOWN
 import org.videolan.tools.RESTORE_BACKGROUND_VIDEO
 import org.videolan.tools.SHOW_REMAINING_TIME
+import org.videolan.tools.HotPlaybackSettings
 import org.videolan.tools.Settings
 import org.videolan.tools.copy
 import org.videolan.tools.dp
@@ -1599,7 +1600,7 @@ class AudioPlayer(
         onStateChanged(playerState)
         showRemainingTime = Settings.getInstance(requireContext()).getBoolean(SHOW_REMAINING_TIME, false)
         val restoreVideoTipCount = settings.getInt(PREF_RESTORE_VIDEO_TIPS_SHOWN, 0)
-        val forceRestoreVideo = settings.getBoolean(RESTORE_BACKGROUND_VIDEO, false)
+        val forceRestoreVideo = HotPlaybackSettings.restoreBackgroundVideo
         playlistModel.service?.let {
             if (!it.isVideoPlaying && it.videoTracksCount > 0)
                 if ( !forceRestoreVideo && restoreVideoTipCount < 4) {

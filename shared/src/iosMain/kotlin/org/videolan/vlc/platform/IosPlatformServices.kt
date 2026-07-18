@@ -1,10 +1,13 @@
 package org.videolan.vlc.platform
 
+import platform.Foundation.NSCachesDirectory
+import platform.Foundation.NSDocumentDirectory
+import platform.Foundation.NSFileManager
+import platform.Foundation.NSURL
+import platform.Foundation.NSUserDomainMask
+
 /**
  * iOS implementation of [PlatformServices].
- *
- * Provides basic platform services. String resources should be loaded
- * from the Compose MP resource system or an iOS bundle.
  */
 class IosPlatformServices(
     override val packageName: String = "org.videolan.vlc"
@@ -12,22 +15,16 @@ class IosPlatformServices(
 
     override fun getString(key: String): String = key
 
-    override fun getString(key: String, vararg args: Any): String = key
+    override fun getString(key: String, vararg args: Any): String =
+        if (args.isEmpty()) key else key + args.joinToString(prefix = "(", postfix = ")")
 
-    override val filesDir: String =
-        NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, true).firstOrNull() ?: ""
+    override val filesDir: String = pathFor(NSDocumentDirectory)
 
-    override val cacheDir: String =
-        NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, true).firstOrNull() ?: ""
+    override val cacheDir: String = pathFor(NSCachesDirectory)
+
+    private fun pathFor(directory: ULong): String {
+        val urls = NSFileManager.defaultManager.URLsForDirectory(directory, NSUserDomainMask)
+        val url = urls.firstOrNull() as? NSURL
+        return url?.path ?: ""
+    }
 }
-
-// iOS Foundation imports via Kotlin/Native interop
-private val NSDocumentDirectory: ULong = 9u
-private val NSCachesDirectory: ULong = 13u
-private val NSUserDomainMask: ULong = 1u
-
-private fun NSSearchPathForDirectoriesInDomains(
-    directory: ULong,
-    domainMask: ULong,
-    expandTilde: Boolean
-): List<String> = emptyList()

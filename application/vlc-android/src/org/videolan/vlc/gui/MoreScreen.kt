@@ -83,6 +83,8 @@ import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.resources.ACTIVITY_RESULT_PREFERENCES
 import org.videolan.resources.TAG_ITEM
 import org.videolan.tools.PLAYBACK_HISTORY
+import org.videolan.resources.REMOTE_ACCESS_CLIENT_ACTIVITY
+import org.videolan.tools.HotPlaybackSettings
 import org.videolan.tools.Settings
 import org.videolan.tools.copy
 import org.videolan.tools.retrieveParent
@@ -133,7 +135,7 @@ class MoreScreenController(private val activity: MainActivity) : CtxActionReceiv
     private var historyLoading by mutableStateOf(false)
     private var streamsLoading by mutableStateOf(false)
     private var selectedHistoryPositions by mutableStateOf<Set<Int>>(emptySet())
-    private var playbackHistoryEnabled by mutableStateOf(settings.getBoolean(PLAYBACK_HISTORY, true))
+    private var playbackHistoryEnabled by mutableStateOf(HotPlaybackSettings.playbackHistory)
     private var historyActionMode: ActionMode? = null
 
     init {
@@ -157,7 +159,7 @@ class MoreScreenController(private val activity: MainActivity) : CtxActionReceiv
     }
 
     fun onVisible() {
-        playbackHistoryEnabled = settings.getBoolean(PLAYBACK_HISTORY, true)
+        playbackHistoryEnabled = HotPlaybackSettings.playbackHistory
         activity.title = activity.getString(R.string.more)
         hideFloatingActionButtons()
         activity.setTabLayoutVisibility(false)
@@ -170,7 +172,7 @@ class MoreScreenController(private val activity: MainActivity) : CtxActionReceiv
     }
 
     fun refresh() {
-        playbackHistoryEnabled = settings.getBoolean(PLAYBACK_HISTORY, true)
+        playbackHistoryEnabled = HotPlaybackSettings.playbackHistory
         historyModel.refresh()
         streamsModel.refresh()
     }
@@ -194,6 +196,9 @@ class MoreScreenController(private val activity: MainActivity) : CtxActionReceiv
             playbackHistoryEnabled = playbackHistoryEnabled,
             onSettingsClicked = {
                 activity.startActivityForResult(Intent(activity, PreferencesActivity::class.java), ACTIVITY_RESULT_PREFERENCES)
+            },
+            onRemoteClientClicked = {
+                activity.startActivity(Intent().setClassName(activity, REMOTE_ACCESS_CLIENT_ACTIVITY))
             },
             onAboutClicked = {
                 activity.startActivity(Intent(activity, AboutActivity::class.java))
@@ -376,6 +381,7 @@ private fun MoreScreenContent(
     selectedHistoryPositions: Set<Int>,
     playbackHistoryEnabled: Boolean,
     onSettingsClicked: () -> Unit,
+    onRemoteClientClicked: () -> Unit,
     onAboutClicked: () -> Unit,
     onDonateClicked: () -> Unit,
     onOpenStreams: () -> Unit,
@@ -413,6 +419,14 @@ private fun MoreScreenContent(
                         modifier = Modifier.weight(1f)
                     )
                 }
+            }
+            item {
+                MoreTopButton(
+                    text = stringResource(R.string.remote_access_client_entry),
+                    icon = R.drawable.ic_more_stream,
+                    onClick = onRemoteClientClicked,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
             if (showDonationCard) item {
                 MoreDonationCard(onClick = onDonateClicked)

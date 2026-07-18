@@ -158,6 +158,7 @@ import org.videolan.tools.LOCKSCREEN_COVER
 import org.videolan.tools.POSITION_IN_AUDIO_LIST
 import org.videolan.tools.POSITION_IN_SONG
 import org.videolan.tools.SHOW_SEEK_IN_COMPACT_NOTIFICATION
+import org.videolan.tools.HotPlaybackSettings
 import org.videolan.tools.Settings
 import org.videolan.tools.formatRateString
 import org.videolan.tools.getContextWithLocale
@@ -309,7 +310,7 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
                 Intent.ACTION_HEADSET_PLUG -> if (detectHeadset && state != 0) {
                     if (BuildConfig.DEBUG) Log.i(TAG, "Headset Inserted.")
                     headsetInserted = true
-                    if (wasPlaying && playlistManager.hasCurrentMedia() && settings.getBoolean(KEY_ENABLE_PLAY_ON_HEADSET_INSERTION, false))
+                    if (wasPlaying && playlistManager.hasCurrentMedia() && HotPlaybackSettings.enablePlayOnHeadsetInsertion)
                         play()
                 }
             }/*
@@ -756,7 +757,7 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
             }
         }
 
-        detectHeadset = settings.getBoolean(KEY_ENABLE_HEADSET_DETECTION, true)
+        detectHeadset = HotPlaybackSettings.enableHeadsetDetection
 
         // Make sure the audio player will acquire a wake-lock while playing. If we don't do
         // that, the CPU might go to sleep while the song is playing, causing playback to stop.
@@ -900,7 +901,7 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
     }
 
     override fun onTaskRemoved(rootIntent: Intent) {
-        if (settings.getBoolean(KEY_AUDIO_TASK_REMOVED, false)) stop()
+        if (HotPlaybackSettings.audioTaskRemoved) stop()
     }
 
     override fun onDestroy() {
@@ -909,7 +910,7 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
         PlaylistManager.playingState.value = false
         super.onDestroy()
         browserCallback.removeCallbacks()
-        if (!settings.getBoolean(AUDIO_RESUME_PLAYBACK, true)) (getSystemService(NOTIFICATION_SERVICE)as NotificationManager).cancel(NotificationIds.PLAYBACK.id)
+        if (!HotPlaybackSettings.audioResumePlayback) (getSystemService(NOTIFICATION_SERVICE)as NotificationManager).cancel(NotificationIds.PLAYBACK.id)
         if (this::mediaSession.isInitialized) mediaSession.release()
         //Call it once mediaSession is null, to not publish playback state
         stop(systemExit = true)
@@ -980,7 +981,7 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
     }
 
     fun setTime(time: Long, fast: Boolean = false) {
-        val shouldFast = fast || (!playlistManager.isBenchmark && settings.getBoolean(KEY_ALWAYS_FAST_SEEK, false))
+        val shouldFast = fast || (!playlistManager.isBenchmark && HotPlaybackSettings.alwaysFastSeek)
         playlistManager.player.setTime(time, shouldFast)
         publishState(time)
     }
@@ -1026,8 +1027,8 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
         }
         val mw = playlistManager.getCurrentMedia()
         if (mw != null) {
-            val coverOnLockscreen = settings.getBoolean(LOCKSCREEN_COVER, true)
-            val seekInCompactView = settings.getBoolean(SHOW_SEEK_IN_COMPACT_NOTIFICATION, false)
+            val coverOnLockscreen = HotPlaybackSettings.lockscreenCover
+            val seekInCompactView = HotPlaybackSettings.showSeekInCompactNotification
             val playing = isPlaying
             val sessionToken = mediaSession.sessionToken
             val ctx = this@PlaybackService
@@ -1163,7 +1164,7 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
         val bob = withContext(Dispatchers.Default) {
             val carMode = isCarMode()
             val title = media.nowPlaying ?: media.title
-            val coverOnLockscreen = settings.getBoolean(LOCKSCREEN_COVER, true)
+            val coverOnLockscreen = HotPlaybackSettings.lockscreenCover
             val bob = MediaMetadataCompat.Builder().apply {
                 putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
                 putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, MediaSessionBrowser.generateMediaId(media))
@@ -1177,7 +1178,7 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
             if (carMode) {
                 val speedStr = buildString {
                     append(speed.formatRateString())
-                    if (settings.getBoolean(KEY_PLAYBACK_SPEED_AUDIO_GLOBAL, false))
+                    if (HotPlaybackSettings.playbackSpeedAudioGlobal)
                         append(" (${getString(R.string.playback_speed_all_tracks)})")
                     else
                         append(" (${getString(R.string.playback_speed_this_track)})")
@@ -1451,7 +1452,7 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
             // not only audio
             // If playback in background isn't enabled, then only audio should be played whether the
             // last media played is audio or not
-            val videoPlaybackInBackground = settings.getString(KEY_VIDEO_APP_SWITCH, "0") == "1"
+            val videoPlaybackInBackground = HotPlaybackSettings.videoAppSwitch == "1"
             val lastMediaPlayedIsAudio = settings.getBoolean(KEY_CURRENT_MEDIA_IS_AUDIO, false)
 
             val playlistType = if (lastMediaPlayedIsAudio || !videoPlaybackInBackground)
