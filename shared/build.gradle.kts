@@ -83,6 +83,7 @@ kotlin {
                 api(compose.runtime)
                 api(compose.foundation)
                 api(compose.material3)
+                api(compose.animation)
                 api(compose.ui)
                 api(compose.components.resources)
             }
@@ -104,6 +105,8 @@ kotlin {
             dependencies {
                 implementation(libs.androidx.datastore.preferences)
                 api(libs.koin.android)
+                implementation(compose.uiTooling)
+                implementation(compose.preview)
             }
         }
 
@@ -118,6 +121,13 @@ kotlin {
 
         iosArm64Main { dependsOn(iosMain) }
         iosSimulatorArm64Main { dependsOn(iosMain) }
+
+        commonTest {
+            dependencies {
+                implementation(kotlin("test"))
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
+            }
+        }
     }
 }
 

@@ -115,3 +115,17 @@ cd ios/
    `IosPlaybackService.shared.setBackend(backend: VlcKitBackend())`
 3. Seed library via `VlcSharedApi.replaceLibrary` or `IosMediaRepository.shared.replaceAll`.
 4. Control playback through `VlcSharedApi.playFirst` / pause / resume.
+
+## Compose Multiplatform shell
+
+iOS now hosts the **same** `VlcSharedApp` as Android (`Library` / `Player` / `Settings`):
+
+- Kotlin entry: `MainViewController()` in `shared/.../compose/app/MainViewController.kt`
+- Swift host: `ComposeSharedRoot` in `ios/App/AppDelegate.swift`
+- ViewModels: `LibraryViewModel`, `PlayerViewModel`, `SettingsViewModel` (commonMain)
+- Empty library auto-seeds demo streams; Documents folder is scanned for media
+- Real decode still requires linking MobileVLCKit and:
+  `IosPlaybackService.shared.setBackend(VlcKitBackend())`
+
+Android lab entry: **More → VLC Shared** (`SharedAppActivity`).
+

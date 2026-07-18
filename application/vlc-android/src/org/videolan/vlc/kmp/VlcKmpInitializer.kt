@@ -12,6 +12,8 @@ import org.koin.dsl.module
 import org.videolan.medialibrary.interfaces.Medialibrary
 import org.videolan.tools.AppScope
 import org.videolan.tools.Settings
+import org.videolan.tools.SettingsWriteBridge
+import org.videolan.tools.putSingle
 import org.videolan.tools.VlcPreferences
 import org.videolan.tools.VlcSettings
 import org.videolan.vlc.PlaybackService as AndroidPlaybackHost
@@ -91,6 +93,12 @@ object VlcKmpInitializer {
         val vlcPrefs = runCatching { koin.get<VlcPreferences>() }.getOrNull() ?: return
         Settings.attachDataStoreBridge(vlcPrefs)
         Settings.hydrateVlcSettingsCache()
+        SettingsWriteBridge.onBoolean = { key, value ->
+            try {
+                Settings.getInstance(appContext).putSingle(key, value)
+            } catch (_: Exception) {
+            }
+        }
         AppScope.launch(Dispatchers.IO) {
             try {
                 seedDataStoreFromSharedPreferences(

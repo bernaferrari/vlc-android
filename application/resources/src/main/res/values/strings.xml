@@ -523,6 +523,8 @@
     <string name="remote_access">Remote access</string>
 
     <string name="remote_access_client_title">Connect to VLC</string>
+    <string name="shared_app_entry">VLC Shared</string>
+    <string name="shared_app_entry_blurb">Multiplatform library, player, and settings shell</string>
     <string name="remote_access_client_blurb">Control another device running VLC remote access on your network. Enter the HTTPS URL shown on the host, request an OTP, then load the library or send playback commands.</string>
     <string name="remote_access_client_url">Server URL</string>
     <string name="remote_access_client_connect">Connect</string>

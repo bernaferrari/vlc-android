@@ -2,27 +2,46 @@
 //  AppDelegate.swift
 //  VLC-iOS
 //
-//  SwiftUI shell consuming VLCShared. Wire VLCKit by implementing VlcKitPlayerBackend
-//  and calling IosPlaybackService.shared.setBackend(...).
+//  Hosts the shared Compose Multiplatform shell (same VlcSharedApp as Android).
+//  Wire real decode via VlcKitBackend + IosPlaybackService.shared.setBackend.
 //
 
 import SwiftUI
+import UIKit
 import VLCShared
 
 @main
 struct VLCiOSApp: App {
-    @StateObject private var appState = VLCAppState()
+    init() {
+        // Attach VLCKit backend before Compose shell starts when the pod/SPM is linked.
+        Self.attachVlcKitIfAvailable()
+    }
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environmentObject(appState)
-                .task {
-                    await appState.initialize()
-                }
+            ComposeSharedRoot()
+                .ignoresSafeArea()
         }
     }
+
+    private static func attachVlcKitIfAvailable() {
+        #if canImport(MobileVLCKit)
+        IosKoinBootstrap.shared.start()
+        IosPlaybackService.shared.setBackend(backend: VlcKitBackend())
+        #endif
+    }
 }
+
+/// UIKit bridge to Kotlin `MainViewController()` — full CMP library/player/settings.
+struct ComposeSharedRoot: UIViewControllerRepresentable {
+    func makeUIViewController(context: Context) -> UIViewController {
+        return MainViewControllerKt.MainViewController()
+    }
+
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+}
+
+// MARK: - Optional Swift API lab (VlcSharedApi)
 
 @MainActor
 final class VLCAppState: ObservableObject {
@@ -37,8 +56,9 @@ final class VLCAppState: ObservableObject {
 
     func initialize() async {
         IosKoinBootstrap.shared.start()
-        // Optional: attach VLCKit when linked — see VlcKitBackend.swift
-        // IosPlaybackService.shared.setBackend(backend: VlcKitBackend())
+        #if canImport(MobileVLCKit)
+        IosPlaybackService.shared.setBackend(backend: VlcKitBackend())
+        #endif
         platformInfo = api.platformInfo()
         isInitialized = api.isInitialized()
         status = isInitialized ? "KMP ready" : "KMP not started"
@@ -47,11 +67,9 @@ final class VLCAppState: ObservableObject {
 
     func refreshLibrary() async {
         mediaCount = Int(api.getMediaCount(type: .all))
-        // listMediaTitles is async in Kotlin; from Swift use async bridge
         do {
             titles = try await api.listMediaTitles(type: .all, limit: 50) as? [String] ?? []
         } catch {
-            // Fallback: count only
             titles = []
             lastError = error.localizedDescription
         }
@@ -63,7 +81,7 @@ final class VLCAppState: ObservableObject {
     func seedDemoLibrary() async {
         api.seedDemoLibrary()
         await refreshLibrary()
-        status = "Demo library loaded (decode needs VLCKit backend)"
+        status = "Demo library loaded"
     }
 
     func playFirst() async {
@@ -74,54 +92,4 @@ final class VLCAppState: ObservableObject {
     func pause() { api.pause() }
     func resume() { api.resume() }
     func stop() { api.stop() }
-}
-
-struct ContentView: View {
-    @EnvironmentObject var appState: VLCAppState
-
-    var body: some View {
-        NavigationStack {
-            List {
-                Section("KMP") {
-                    LabeledContent("Platform", value: appState.platformInfo)
-                    LabeledContent("Initialized", value: appState.isInitialized ? "Yes" : "No")
-                    LabeledContent("Status", value: appState.status)
-                }
-                Section("Library (\(appState.mediaCount))") {
-                    if appState.titles.isEmpty {
-                        Text("No media yet")
-                            .foregroundStyle(.secondary)
-                    } else {
-                        ForEach(appState.titles, id: \.self) { title in
-                            Text(title)
-                        }
-                    }
-                    Button("Load demo library") {
-                        Task { await appState.seedDemoLibrary() }
-                    }
-                    Button("Refresh") {
-                        Task { await appState.refreshLibrary() }
-                    }
-                }
-                Section("Playback") {
-                    Text("Attach VLCKit via IosPlaybackService.shared.setBackend(…)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    HStack {
-                        Button("Play") { Task { await appState.playFirst() } }
-                            .buttonStyle(.borderedProminent)
-                        Button("Pause") { appState.pause() }
-                        Button("Resume") { appState.resume() }
-                        Button("Stop") { appState.stop() }
-                    }
-                }
-                if let err = appState.lastError {
-                    Section("Error") {
-                        Text(err).foregroundStyle(.red)
-                    }
-                }
-            }
-            .navigationTitle("VLC")
-        }
-    }
 }

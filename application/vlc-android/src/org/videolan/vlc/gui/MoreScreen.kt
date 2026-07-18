@@ -84,6 +84,7 @@ import org.videolan.resources.ACTIVITY_RESULT_PREFERENCES
 import org.videolan.resources.TAG_ITEM
 import org.videolan.tools.PLAYBACK_HISTORY
 import org.videolan.resources.REMOTE_ACCESS_CLIENT_ACTIVITY
+import org.videolan.resources.SHARED_APP_ACTIVITY
 import org.videolan.tools.HotPlaybackSettings
 import org.videolan.tools.Settings
 import org.videolan.tools.copy
@@ -199,6 +200,9 @@ class MoreScreenController(private val activity: MainActivity) : CtxActionReceiv
             },
             onRemoteClientClicked = {
                 activity.startActivity(Intent().setClassName(activity, REMOTE_ACCESS_CLIENT_ACTIVITY))
+            },
+            onSharedAppClicked = {
+                activity.startActivity(Intent().setClassName(activity, SHARED_APP_ACTIVITY))
             },
             onAboutClicked = {
                 activity.startActivity(Intent(activity, AboutActivity::class.java))
@@ -382,6 +386,7 @@ private fun MoreScreenContent(
     playbackHistoryEnabled: Boolean,
     onSettingsClicked: () -> Unit,
     onRemoteClientClicked: () -> Unit,
+    onSharedAppClicked: () -> Unit,
     onAboutClicked: () -> Unit,
     onDonateClicked: () -> Unit,
     onOpenStreams: () -> Unit,
@@ -425,6 +430,14 @@ private fun MoreScreenContent(
                     text = stringResource(R.string.remote_access_client_entry),
                     icon = R.drawable.ic_more_stream,
                     onClick = onRemoteClientClicked,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            item {
+                MoreTopButton(
+                    text = stringResource(R.string.shared_app_entry),
+                    icon = R.drawable.ic_more_preferences,
+                    onClick = onSharedAppClicked,
                     modifier = Modifier.fillMaxWidth()
                 )
             }

@@ -984,6 +984,9 @@
             android:windowSoftInputMode="adjustPan"/>
         <activity
             android:name=".gui.AboutActivity"
+            android:exported="false" />
+        <activity
+            android:name=".gui.SharedAppActivity"
             android:theme="@style/Theme.VLC"/>
         <activity
             android:name=".gui.HeaderMediaListActivity"

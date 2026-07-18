@@ -1,5 +1,6 @@
 package org.videolan.vlc.app
 
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -17,12 +18,52 @@ import org.videolan.vlc.repository.MediaRepository
  * repo.replaceAll(items)
  * ```
  */
+@OptIn(ExperimentalForeignApi::class)
 class IosMediaRepository : MediaRepository, IosMediaRepositoryMarker {
+
+    init {
+        // Best-effort Documents scan so library is non-empty without demo seed.
+        runCatching { scanDocumentsFolder() }
+    }
+
+    private fun scanDocumentsFolder() {
+        val docs = platform.Foundation.NSSearchPathForDirectoriesInDomains(
+            platform.Foundation.NSDocumentDirectory,
+            platform.Foundation.NSUserDomainMask,
+            true
+        ).firstOrNull() as? String ?: return
+        val fm = platform.Foundation.NSFileManager.defaultManager
+        val urls = fm.contentsOfDirectoryAtPath(docs, error = null) as? List<*> ?: return
+        var id = 10_000L
+        val found = mutableListOf<org.videolan.vlc.model.MediaItem>()
+        for (nameAny in urls) {
+            val name = nameAny as? String ?: continue
+            val lower = name.lowercase()
+            val type = when {
+                lower.endsWith(".mp4") || lower.endsWith(".mkv") || lower.endsWith(".mov") || lower.endsWith(".avi") ->
+                    org.videolan.vlc.model.MediaType.VIDEO
+                lower.endsWith(".mp3") || lower.endsWith(".flac") || lower.endsWith(".m4a") || lower.endsWith(".aac") || lower.endsWith(".wav") ->
+                    org.videolan.vlc.model.MediaType.AUDIO
+                else -> continue
+            }
+            found += org.videolan.vlc.model.MediaItem(
+                id = id++,
+                title = name.substringBeforeLast('.'),
+                uri = "file://$docs/$name",
+                type = type,
+            )
+        }
+        if (found.isNotEmpty()) replaceAll(found)
+    }
+
 
     private val items = MutableStateFlow<List<MediaItem>>(emptyList())
     private val recent = MutableStateFlow<List<MediaItem>>(emptyList())
 
     override fun replaceAllPublic(media: List<MediaItem>) = replaceAll(media)
+
+    /** Non-suspend library snapshot for shell bootstrap. */
+    fun snapshot(): List<MediaItem> = items.value
 
     /** Replace the entire library snapshot (main-thread safe). */
     fun replaceAll(media: List<MediaItem>) {
