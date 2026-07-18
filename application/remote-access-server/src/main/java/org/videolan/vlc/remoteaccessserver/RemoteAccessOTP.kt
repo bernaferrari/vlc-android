@@ -24,11 +24,12 @@
 
 package org.videolan.vlc.remoteaccessserver
 
+import org.videolan.resources.NotificationIds
+
 import android.content.Context
 import androidx.core.app.NotificationManagerCompat
 import org.videolan.tools.Settings
 import org.videolan.vlc.gui.helpers.NotificationHelper
-import org.videolan.vlc.gui.helpers.REMOTE_ACCESS_CODE_ID
 import org.videolan.vlc.remoteaccessserver.ssl.RemoteAccessSecureStore
 import org.videolan.vlc.remoteaccessserver.ssl.SecretGenerator
 import org.videolan.vlc.remoteaccessserver.utils.CypherUtils
@@ -95,7 +96,7 @@ object RemoteAccessOTP {
             val legacyOk = CypherUtils.constantTimeEquals(legacy, proof)
             if (hmacOk || legacyOk) {
                 with(NotificationManagerCompat.from(appContext)) {
-                    cancel(REMOTE_ACCESS_CODE_ID)
+                    cancel(NotificationIds.REMOTE_ACCESS_OTP.id)
                 }
                 codes.remove(otp)
                 return true
@@ -119,7 +120,7 @@ object RemoteAccessOTP {
         val notification = NotificationHelper.createRemoteAccessOtpNotification(appContext, code.code)
         with(NotificationManagerCompat.from(appContext)) {
             // notificationId is a unique int for each notification that you must define
-            notify(REMOTE_ACCESS_CODE_ID, notification)
+            notify(NotificationIds.REMOTE_ACCESS_OTP.id, notification)
         }
         return code
     }
@@ -141,14 +142,14 @@ object RemoteAccessOTP {
     fun removeCode(appContext: Context, code: String) {
         codes.removeAll { code == it.code }
         with(NotificationManagerCompat.from(appContext)) {
-            cancel(REMOTE_ACCESS_CODE_ID)
+            cancel(NotificationIds.REMOTE_ACCESS_OTP.id)
         }
     }
 
     suspend fun removeAllCodes(appContext: Context) {
         codes.clear()
         with(NotificationManagerCompat.from(appContext)) {
-            cancel(REMOTE_ACCESS_CODE_ID)
+            cancel(NotificationIds.REMOTE_ACCESS_OTP.id)
         }
         RemoteAccessUtils.otpFlow.emit(null)
     }

@@ -22,6 +22,8 @@
  */
 package org.videolan.vlc
 
+import org.videolan.resources.NotificationIds
+
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.app.ForegroundServiceStartNotAllowedException
@@ -247,7 +249,7 @@ class MediaParsingService : LifecycleService(), DevicesDiscoveryCb {
     private fun forceForeground() {
         val notification = NotificationHelper.createScanNotification(applicationContext, getString(R.string.loading_medialibrary), scanPaused, -1, -1)
         try {
-            startForegroundCompat(43, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+            startForegroundCompat(NotificationIds.MEDIA_PARSING, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
         } catch (e: Exception) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && e is ForegroundServiceStartNotAllowedException) {
                 Log.w("MediaParsingService", "ForegroundServiceStartNotAllowedException caught!")
@@ -429,7 +431,7 @@ class MediaParsingService : LifecycleService(), DevicesDiscoveryCb {
                 try {
                     val notification = NotificationHelper.createScanNotification(applicationContext, progressText, scanPaused, scheduled, done)
                     try {
-                        startForegroundCompat(43, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+                        startForegroundCompat(NotificationIds.MEDIA_PARSING, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
                     } catch (e: Exception) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && e is ForegroundServiceStartNotAllowedException) {
                             Log.w("MediaParsingService", "ForegroundServiceStartNotAllowedException caught!")

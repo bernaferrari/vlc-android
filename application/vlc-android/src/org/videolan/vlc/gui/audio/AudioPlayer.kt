@@ -28,6 +28,7 @@ import android.content.res.Resources
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
+import android.os.PowerManager
 import android.os.Handler
 import android.os.Looper
 import android.os.Vibrator
@@ -113,6 +114,7 @@ import org.videolan.tools.retrieveParent
 import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.PlaybackService
+import org.videolan.vlc.VlcMigrationHelper
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.components.VLCAudioCoverMediaSwitcher
 import org.videolan.vlc.compose.components.VLCAudioCoverMediaSwitcherItem
@@ -1587,6 +1589,12 @@ class AudioPlayer(
         }
     }
 
+    private val isInteractive: Boolean
+        get() {
+            val pm = requireContext().getSystemService(PowerManager::class.java) ?: return true
+            return if (VlcMigrationHelper.isLolliPopOrLater) pm.isInteractive else @Suppress("DEPRECATION") pm.isScreenOn
+        }
+
     fun onResume() {
         onStateChanged(playerState)
         showRemainingTime = Settings.getInstance(requireContext()).getBoolean(SHOW_REMAINING_TIME, false)
@@ -1597,7 +1605,7 @@ class AudioPlayer(
                 if ( !forceRestoreVideo && restoreVideoTipCount < 4) {
                     showResumeVideoHint()
                     settings.putSingle(PREF_RESTORE_VIDEO_TIPS_SHOWN, restoreVideoTipCount + 1)
-                } else if (forceRestoreVideo && !PlaylistManager.playingAsAudio) {
+                } else if (forceRestoreVideo && !PlaylistManager.playingAsAudio && isInteractive) {
                     onResumeToVideoClick()
                 }
         }

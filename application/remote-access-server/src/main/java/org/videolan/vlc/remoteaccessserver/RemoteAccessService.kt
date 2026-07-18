@@ -19,6 +19,8 @@
 
 package org.videolan.vlc.remoteaccessserver
 
+import org.videolan.resources.NotificationIds
+
 import android.annotation.SuppressLint
 import android.app.ForegroundServiceStartNotAllowedException
 import android.content.BroadcastReceiver
@@ -157,7 +159,7 @@ class RemoteAccessService : LifecycleService(), CoroutineScope by MainScope() {
         val started = ::server.isInitialized && server.serverStatus.value == ServerStatus.STARTED
         val notification = NotificationHelper.createRemoteAccessNotification(applicationContext, contentString, started)
         try {
-            startForegroundCompat(44, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+            startForegroundCompat(NotificationIds.REMOTE_ACCESS, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
         } catch (e: Exception) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && e is ForegroundServiceStartNotAllowedException) {
                 Log.w("RemoteAccessService", "ForegroundServiceStartNotAllowedException caught!")

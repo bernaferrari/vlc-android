@@ -1,5 +1,7 @@
 package org.videolan.resources.util
 
+import org.videolan.resources.NotificationIds
+
 import android.annotation.SuppressLint
 import android.app.Application
 import android.app.ForegroundServiceStartNotAllowedException
@@ -205,11 +207,11 @@ fun Service.stopForegroundCompat(removeNotification:Boolean = true) = when {
  * @param notification the notification to display
  * @param foregroundServiceType the foreground service type, needed for API >= 33
  */
-fun Service.startForegroundCompat(id:Int, notification:Notification, foregroundServiceType: Int) {
+fun Service.startForegroundCompat(serviceNotificationId: NotificationIds, notification: Notification, foregroundServiceType: Int) {
     if (SDK_INT >= Build.VERSION_CODES.Q)
-        startForeground(id, notification, foregroundServiceType)
+        startForeground(serviceNotificationId.id, notification, foregroundServiceType)
     else
-        startForeground(id, notification)
+        startForeground(serviceNotificationId.id, notification)
 }
 
 /**
