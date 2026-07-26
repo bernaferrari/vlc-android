@@ -101,6 +101,34 @@ fun VlcMainShell(
         var showPlayer by remember { mutableStateOf(false) }
         var showSettings by remember { mutableStateOf(false) }
         val playerState by playerVm.state.collectAsState()
+        val videoState by videoVm.state.collectAsState()
+        val audioState by audioVm.state.collectAsState()
+        val audioSection by audioVm.section.collectAsState()
+        val browserState by browserVm.state.collectAsState()
+        val playlistsState by playlistsVm.state.collectAsState()
+        val backTarget = shellBackTarget(
+            showOverlay = showPlayer || showSettings,
+            hasPlaylistDetail = playlistsState.openPlaylistId != null,
+            hasBrowserFolder = browserState.stack.isNotEmpty(),
+            hasAudioEntity = audioState.openedEntityTitle != null,
+            hasVideoContainer = videoState.containerId != null,
+        )
+
+        fun navigateBack() {
+            when (backTarget) {
+                ShellBackTarget.OVERLAY -> {
+                    showPlayer = false
+                    showSettings = false
+                }
+                ShellBackTarget.PLAYLIST_DETAIL -> playlistsVm.closeDetail()
+                ShellBackTarget.BROWSER_FOLDER -> browserVm.goUp()
+                ShellBackTarget.AUDIO_ENTITY -> audioVm.closeEntity()
+                ShellBackTarget.VIDEO_CONTAINER -> videoVm.closeContainer()
+                null -> Unit
+            }
+        }
+
+        HandleShellBackPress(enabled = backTarget != null, onBack = ::navigateBack)
 
         Scaffold(
             modifier = modifier.fillMaxSize(),
@@ -124,11 +152,8 @@ fun VlcMainShell(
                         )
                     },
                     actions = {
-                        if (showPlayer || showSettings) {
-                            TextButton(onClick = {
-                                showPlayer = false
-                                showSettings = false
-                            }) { Text(ShellStrings.back()) }
+                        if (backTarget != null) {
+                            TextButton(onClick = ::navigateBack) { Text(ShellStrings.back()) }
                         }
                     }
                 )
@@ -137,8 +162,7 @@ fun VlcMainShell(
                 if (!showPlayer && !showSettings) {
                     when (currentTab) {
                         MainTab.VIDEO -> {
-                            val st = videoVm.state.collectAsState().value
-                            if (st.count > 0 || st.items.isNotEmpty()) {
+                            if (videoState.count > 0 || videoState.items.isNotEmpty()) {
                                 FloatingActionButton(onClick = {
                                     videoVm.playAll()
                                     showPlayer = true
@@ -146,9 +170,7 @@ fun VlcMainShell(
                             }
                         }
                         MainTab.AUDIO -> {
-                            val sec = audioVm.section.collectAsState().value
-                            val st = audioVm.state.collectAsState().value
-                            if (sec == AudioSection.TRACKS && st.count > 1) {
+                            if (audioSection == AudioSection.TRACKS && audioState.count > 1) {
                                 FloatingActionButton(onClick = {
                                     audioVm.shuffleAll()
                                     showPlayer = true
@@ -242,14 +264,14 @@ fun VlcMainShell(
                 }
                 else -> when (currentTab) {
                     MainTab.VIDEO -> {
-                        val st = videoVm.state.collectAsState().value
                         RichMediaListPane(
-                            state = st,
+                            state = videoState,
                             title = "Videos",
                             emptyLabel = "No videos",
                             pagingFlow = videoVm.pagingFlow,
-                            groups = st.groups,
+                            groups = videoState.groups,
                             onQuery = videoVm::setQuery,
+                            onRetry = videoVm::refresh,
                             onPlay = { videoVm.play(it); showPlayer = true },
                             onPlayAll = { videoVm.playAll(); showPlayer = true },
                             onPlayNext = videoVm::playNext,
@@ -296,36 +318,35 @@ fun VlcMainShell(
                         )
                     }
                     MainTab.AUDIO -> {
-                        val st = audioVm.state.collectAsState().value
-                        val sec = audioVm.section.collectAsState().value
                         Column(contentMod) {
-                            if (st.openedEntityTitle == null) {
+                            if (audioState.openedEntityTitle == null) {
                                 SectionTabs(
                                     tabs = listOf("Tracks", "Artists", "Albums", "Genres", "Playlists"),
-                                    selected = sec.ordinal,
+                                    selected = audioSection.ordinal,
                                     onSelect = {
                                         audioVm.setSection(org.videolan.vlc.viewmodel.AudioSection.entries[it])
                                     },
                                 )
                             }
                             RichMediaListPane(
-                                state = st,
+                                state = audioState,
                                 title = "Audio",
                                 emptyLabel = "No audio",
-                                sections = st.sections,
-                                pagingFlow = if (sec == org.videolan.vlc.viewmodel.AudioSection.TRACKS &&
-                                    st.openedEntityTitle == null
+                                sections = audioState.sections,
+                                pagingFlow = if (audioSection == org.videolan.vlc.viewmodel.AudioSection.TRACKS &&
+                                    audioState.openedEntityTitle == null
                                 ) {
                                     audioVm.pagingFlow
                                 } else {
                                     null
                                 },
                                 onQuery = audioVm::setQuery,
+                                onRetry = audioVm::refresh,
                                 onPlay = { item ->
                                     val isEntityUri = item.uri.startsWith("artist://") ||
                                         item.uri.startsWith("album://") ||
                                         item.uri.startsWith("genre://")
-                                    if (isEntityUri && sec != org.videolan.vlc.viewmodel.AudioSection.TRACKS) {
+                                    if (isEntityUri && audioSection != org.videolan.vlc.viewmodel.AudioSection.TRACKS) {
                                         audioVm.openAudioEntityFromItem(item)
                                     } else {
                                         audioVm.play(item)
@@ -379,10 +400,10 @@ fun VlcMainShell(
                         }
                     }
                     MainTab.BROWSER -> {
-                        val st = browserVm.state.collectAsState().value
                         BrowserRichPane(
-                            state = st,
+                            state = browserState,
                             onUp = { browserVm.goUp() },
+                            onRetry = browserVm::refresh,
                             onOpenFolder = { folder ->
                                 val target = folder.uri.ifBlank { folder.path }
                                 if (
@@ -410,9 +431,8 @@ fun VlcMainShell(
                         )
                     }
                     MainTab.PLAYLISTS -> {
-                        val st = playlistsVm.state.collectAsState().value
                         PlaylistsRichPane(
-                            state = st,
+                            state = playlistsState,
                             onCreate = playlistsVm::create,
                             onOpen = playlistsVm::openPlaylist,
                             onPlay = { playlistsVm.playPlaylist(it); showPlayer = true },
@@ -431,6 +451,7 @@ fun VlcMainShell(
                             onMoveTrackUp = playlistsVm::moveTrackUp,
                             onMoveTrackDown = playlistsVm::moveTrackDown,
                             onBack = playlistsVm::closeDetail,
+                            onRetry = playlistsVm::refresh,
                             modifier = contentMod,
                         )
                     }

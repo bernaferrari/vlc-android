@@ -535,6 +535,7 @@ class VideoListViewModel(
     }
 
     fun refresh() {
+        _state.update { it.copy(loading = true, error = null) }
         if (_state.value.groupingMode.isGrouped() &&
             _state.value.containerKind == ContainerKind.NONE
         ) {
@@ -988,6 +989,7 @@ class AudioListViewModel(
     }
 
     fun refresh() {
+        _state.update { it.copy(loading = true, error = null) }
         rebuildQuery()
         refreshCurrent()
     }
@@ -1438,6 +1440,16 @@ class BrowserViewModel(
         refreshCurrentUriListing()
     }
 
+    fun refresh() {
+        _state.update { it.copy(loading = true, error = null) }
+        val folder = _state.value.currentFolder
+        when {
+            folder == null -> observeRoot()
+            isUriBrowseTarget(folder) -> browseUri(folder)
+            else -> observeFolder(folder.id)
+        }
+    }
+
     private fun refreshCurrentUriListing() {
         val folder = _state.value.currentFolder ?: return
         if (!isUriBrowseTarget(folder)) return
@@ -1522,6 +1534,7 @@ class PlaylistsViewModel(
     val state: StateFlow<PlaylistsUiState> = _state.asStateFlow()
 
     private val filterFlow = MutableStateFlow(Filter(onlyFavorites = false, desc = false, query = ""))
+    private var job: Job? = null
 
     val pagingFlow: Flow<PagingData<PlaylistInfo>> = filterFlow
         .flatMapLatest { f ->
@@ -1565,7 +1578,8 @@ class PlaylistsViewModel(
     }
 
     private fun observeList() {
-        launch {
+        job?.cancel()
+        job = launch {
             combine(
                 repo.observePlaylists(),
                 filterFlow,
@@ -1583,6 +1597,11 @@ class PlaylistsViewModel(
                     _state.update { it.copy(playlists = list, loading = false, error = null) }
                 }
         }
+    }
+
+    fun refresh() {
+        _state.update { it.copy(loading = true, error = null) }
+        observeList()
     }
 
     fun setQuery(q: String) {

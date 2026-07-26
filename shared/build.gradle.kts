@@ -106,6 +106,7 @@ kotlin {
         androidMain {
             dependsOn(commonJvmMain)
             dependencies {
+                implementation(libs.androidx.activity.compose)
                 implementation(libs.androidx.datastore.preferences)
                 api(libs.koin.android)
                 implementation(compose.uiTooling)

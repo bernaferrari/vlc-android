@@ -22,6 +22,7 @@ import vlc_android.shared.generated.resources.ok
 import vlc_android.shared.generated.resources.play
 import vlc_android.shared.generated.resources.play_all
 import vlc_android.shared.generated.resources.remove
+import vlc_android.shared.generated.resources.retry
 import vlc_android.shared.generated.resources.search
 import vlc_android.shared.generated.resources.select
 import vlc_android.shared.generated.resources.set_song
@@ -41,6 +42,7 @@ object ShellStrings {
     @Composable fun insertNext(): String = stringResource(Res.string.insert_next)
     @Composable fun delete(): String = stringResource(Res.string.delete)
     @Composable fun remove(): String = stringResource(Res.string.remove)
+    @Composable fun retry(): String = stringResource(Res.string.retry)
     @Composable fun search(): String = stringResource(Res.string.search)
     @Composable fun history(): String = stringResource(Res.string.history)
     @Composable fun favorites(): String = stringResource(Res.string.favorites)

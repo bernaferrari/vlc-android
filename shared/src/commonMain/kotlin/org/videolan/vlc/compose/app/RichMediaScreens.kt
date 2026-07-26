@@ -107,6 +107,7 @@ fun RichMediaListPane(
     onDefaultAction: (String) -> Unit = {},
     defaultActionOptions: List<String> = listOf("PLAY", "PLAY_ALL", "ADD_TO_QUEUE", "INSERT_NEXT"),
     modifier: Modifier = Modifier,
+    onRetry: () -> Unit = {},
 ) {
     val colors = VLCThemeDefaults.colors
     var showDisplaySettings by remember { mutableStateOf(false) }
@@ -249,8 +250,8 @@ fun RichMediaListPane(
         if (state.loading) {
             LinearProgressIndicator(progress = { 0f }, modifier = Modifier.fillMaxWidth())
         }
-        state.error?.let {
-            Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(8.dp))
+        state.error?.let { error ->
+            RetryMessage(error = error, onRetry = onRetry)
         }
 
         val countLabel = when {
@@ -719,6 +720,7 @@ fun BrowserRichPane(
     onShowHiddenFiles: (Boolean) -> Unit = {},
     onShowOnlyMultimedia: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier,
+    onRetry: () -> Unit = {},
 ) {
     val colors = VLCThemeDefaults.colors
     val atRoot = state.currentFolder == null
@@ -770,8 +772,8 @@ fun BrowserRichPane(
             )
         }
         if (state.loading) LinearProgressIndicator(progress = { 0f }, modifier = Modifier.fillMaxWidth())
-        state.error?.let {
-            Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(8.dp))
+        state.error?.let { error ->
+            RetryMessage(error = error, onRetry = onRetry)
         }
         LazyColumn(
             contentPadding = PaddingValues(bottom = 24.dp),
@@ -952,6 +954,7 @@ fun PlaylistsRichPane(
     onMoveTrackDown: (Int) -> Unit = {},
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    onRetry: () -> Unit = {},
 ) {
     var newName by remember { mutableStateOf("") }
     var renameTarget by remember { mutableStateOf<PlaylistInfo?>(null) }
@@ -1055,6 +1058,9 @@ fun PlaylistsRichPane(
                 progress = { 0f },
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             )
+        }
+        state.error?.let { error ->
+            RetryMessage(error = error, onRetry = onRetry)
         }
 
         if (state.viewMode == ViewMode.GRID) {
