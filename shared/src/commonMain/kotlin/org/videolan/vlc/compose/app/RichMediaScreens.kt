@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -50,6 +51,8 @@ import kotlinx.coroutines.flow.Flow
 import org.videolan.vlc.compose.artwork.MediaArtwork
 import org.videolan.vlc.compose.components.DisplaySettingsSheet
 import org.videolan.vlc.compose.components.DisplaySettingsState
+import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.repository.MediaSort
 import org.videolan.vlc.viewmodel.toMediaSort
 import org.videolan.vlc.viewmodel.toSortMode
@@ -142,14 +145,24 @@ fun RichMediaListPane(
                 if (state.selection.isNotEmpty()) {
                     TextButton(onClick = onPlaySelection) { Text(ShellStrings.play()) }
                     TextButton(onClick = onAppendSelection) { Text(ShellStrings.append()) }
-                    TextButton(onClick = { onFavoriteSelection(true) }) { Text("★") }
+                    TextButton(onClick = { onFavoriteSelection(true) }) {
+                        Icon(
+                            icon = MaterialSymbols.Filled.Star,
+                            contentDescription = ShellStrings.favorites(),
+                        )
+                    }
                     TextButton(onClick = onClearSelection) {
                         Text("${ShellStrings.clear()} (${state.selection.size})")
                     }
                 } else {
                     TextButton(onClick = onSelectAll) { Text(ShellStrings.select()) }
                     TextButton(onClick = onToggleFavorites) {
-                        Text(if (state.onlyFavorites) "★ ${ShellStrings.favorites()}" else "☆ ${ShellStrings.favorites()}")
+                        Icon(
+                            icon = if (state.onlyFavorites) MaterialSymbols.Filled.Star else MaterialSymbols.Outlined.Star,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Text(ShellStrings.favorites())
                     }
                     TextButton(onClick = {
                         onSetViewMode(if (state.viewMode == ViewMode.LIST) ViewMode.GRID else ViewMode.LIST)
@@ -526,7 +539,7 @@ private fun MediaListRow(
             },
             onLongClick = { onToggleSelect(item) },
             artworkContent = { MediaArtworkSlot(item) },
-            moreActionContent = { Text("⋮") },
+            moreActionContent = { Icon(MaterialSymbols.Filled.MoreVert, contentDescription = null) },
             onMoreClick = { menu = true },
         )
         MediaContextMenu(
@@ -644,7 +657,7 @@ fun MediaGridCard(
             MediaArtwork(item = item, size = 96.dp)
             Box(Modifier.align(Alignment.TopEnd)) {
                 TextButton(onClick = { menu = true }, modifier = Modifier.padding(0.dp)) {
-                    Text("⋮")
+                    Icon(MaterialSymbols.Filled.MoreVert, contentDescription = null)
                 }
                 MediaContextMenu(
                     expanded = menu,
@@ -833,11 +846,19 @@ fun BrowserRichPane(
             }
             items(state.folders, key = { "f:${it.id}:${it.path}" }) { folder ->
                 VLCBrowserItemRow(
-                    title = folder.title + if (folder.isFavorite) " ★" else "",
+                    title = folder.title,
                     subtitle = if (folder.childCount > 0) "${folder.childCount} items" else "Folder",
                     onClick = { onOpenFolder(folder) },
                     artworkContent = {
-                        Text("DIR", color = colors.primary, fontWeight = FontWeight.Bold)
+                        if (folder.isFavorite) {
+                            Icon(
+                                icon = MaterialSymbols.Filled.Star,
+                                contentDescription = ShellStrings.favorites(),
+                                tint = colors.primary,
+                            )
+                        } else {
+                            Text("DIR", color = colors.primary, fontWeight = FontWeight.Bold)
+                        }
                     },
                 )
             }
@@ -905,7 +926,7 @@ private fun BrowserMediaRow(
             onClick = { if (selecting) onToggleSelect(item) else onPlay(item) },
             onLongClick = { onToggleSelect(item) },
             artworkContent = { MediaArtworkSlot(item) },
-            moreActionContent = { Text("⋮") },
+            moreActionContent = { Icon(MaterialSymbols.Filled.MoreVert, contentDescription = null) },
             onMoreClick = { menu = true },
         )
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
@@ -931,7 +952,7 @@ private fun PlaylistTrackRow(
             subtitle = item.artist,
             onClick = { onPlay(item) },
             artworkContent = { MediaArtworkSlot(item) },
-            moreActionContent = { Text("⋮") },
+            moreActionContent = { Icon(MaterialSymbols.Filled.MoreVert, contentDescription = null) },
             onMoreClick = { menu = true },
         )
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
@@ -1030,7 +1051,12 @@ fun PlaylistsRichPane(
         ) {
             Row {
                 TextButton(onClick = onToggleFavorites) {
-                    Text(if (state.onlyFavorites) "★ ${ShellStrings.favorites()}" else "☆ ${ShellStrings.favorites()}")
+                    Icon(
+                        icon = if (state.onlyFavorites) MaterialSymbols.Filled.Star else MaterialSymbols.Outlined.Star,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Text(ShellStrings.favorites())
                 }
                 TextButton(onClick = onToggleSortDesc) {
                     Text(if (state.sortDesc) "A-Z ↓" else "A-Z ↑")
@@ -1118,7 +1144,7 @@ fun PlaylistsRichPane(
                     var menu by remember { mutableStateOf(false) }
                     Box {
                         VLCBrowserItemRow(
-                            title = (if (pl.isFavorite) "★ " else "") + pl.name,
+                            title = pl.name,
                             subtitle = "${pl.itemCount} items",
                             selected = pl.id in state.selection,
                             onClick = {
@@ -1127,15 +1153,23 @@ fun PlaylistsRichPane(
                             },
                             onLongClick = { onToggleSelect(pl.id) },
                             artworkContent = {
-                                Text(
-                                    "PLS",
-                                    color = VLCThemeDefaults.colors.primary,
-                                    fontWeight = FontWeight.Bold,
-                                )
+                                if (pl.isFavorite) {
+                                    Icon(
+                                        MaterialSymbols.Filled.Star,
+                                        contentDescription = ShellStrings.favorites(),
+                                        tint = VLCThemeDefaults.colors.primary,
+                                    )
+                                } else {
+                                    Text(
+                                        "PLS",
+                                        color = VLCThemeDefaults.colors.primary,
+                                        fontWeight = FontWeight.Bold,
+                                    )
+                                }
                             },
-                            moreActionContent = { Text("⋮") },
+                            moreActionContent = { Icon(MaterialSymbols.Filled.MoreVert, contentDescription = null) },
                             onMoreClick = { menu = true },
-                            primaryActionContent = { Text("▶") },
+                            primaryActionContent = { Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = ShellStrings.play()) },
                             onPrimaryActionClick = { onPlay(pl) },
                         )
                         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
@@ -1206,13 +1240,19 @@ private fun PlaylistCard(
                 .background(MaterialTheme.colorScheme.surfaceContainerHighest),
             contentAlignment = Alignment.Center,
         ) {
-            Text(
-                if (playlist.isFavorite) "★" else "PLS",
-                color = colors.primary,
-                fontWeight = FontWeight.Bold,
-            )
+            if (playlist.isFavorite) {
+                Icon(
+                    icon = MaterialSymbols.Filled.Star,
+                    contentDescription = ShellStrings.favorites(),
+                    tint = colors.primary,
+                )
+            } else {
+                Text("PLS", color = colors.primary, fontWeight = FontWeight.Bold)
+            }
             Box(Modifier.align(Alignment.TopEnd)) {
-                TextButton(onClick = { menu = true }) { Text("⋮") }
+                TextButton(onClick = { menu = true }) {
+                    Icon(MaterialSymbols.Filled.MoreVert, contentDescription = null)
+                }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                     DropdownMenuItem(text = { Text("Play") }, onClick = { menu = false; onPlay() })
                     DropdownMenuItem(text = { Text("Shuffle") }, onClick = { menu = false; onShuffle() })

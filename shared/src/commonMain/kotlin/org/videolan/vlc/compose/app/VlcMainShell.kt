@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,12 +14,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.adaptive.navigationsuite.ExperimentalMaterial3AdaptiveNavigationSuiteApi
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -35,6 +37,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialIcon
+import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.model.MediaFolder
@@ -61,7 +66,7 @@ import org.videolan.vlc.viewmodel.AudioSection
  * their own responsive content. A future list-detail layout can reuse these
  * typed routes without changing their serialized form.
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveNavigationSuiteApi::class)
 @Composable
 fun VlcMainShell(
     modifier: Modifier = Modifier,
@@ -211,113 +216,106 @@ fun VlcMainShell(
 
         HandleShellBackPress(enabled = canNavigateBack, onBack = ::navigateBack)
 
-        Scaffold(
-            modifier = modifier.fillMaxSize(),
-            containerColor = colors.backgroundDefault,
-            topBar = {
-                TopAppBar(
-                    title = {
-                        Text(
-                            when {
-                                showPlayer -> "Now Playing"
-                                showSettings -> ShellStrings.settings()
-                                else -> when (currentTab) {
-                                    MainTab.VIDEO -> "$title · Video"
-                                    MainTab.AUDIO -> "$title · Audio"
-                                    MainTab.BROWSER -> "$title · Browse"
-                                    MainTab.PLAYLISTS -> "$title · Playlists"
-                                    MainTab.MORE -> "$title · More"
-                                }
-                            },
-                            fontWeight = FontWeight.Bold,
-                        )
-                    },
-                    actions = {
-                        if (canNavigateBack) {
-                            TextButton(onClick = ::navigateBack) { Text(ShellStrings.back()) }
-                        }
-                    }
-                )
-            },
-            floatingActionButton = {
-                if (!showPlayer && !showSettings) {
-                    when (currentTab) {
-                        MainTab.VIDEO -> {
-                            if (videoState.count > 0 || videoState.items.isNotEmpty()) {
-                                FloatingActionButton(onClick = {
-                                    videoVm.playAll()
-                                    openPlayer()
-                                }) { Text("▶") }
-                            }
-                        }
-                        MainTab.AUDIO -> {
-                            if (audioSection == AudioSection.TRACKS && audioState.count > 1) {
-                                FloatingActionButton(onClick = {
-                                    audioVm.shuffleAll()
-                                    openPlayer()
-                                }) { Text("⇝") }
-                            }
-                        }
-                        else -> Unit
-                    }
-                }
-            },
-            bottomBar = {
-                if (showBottomBar && !showPlayer && !showSettings) {
-                    Column {
-                        if (playerState.hasMedia) {
-                            MiniBar(
-                                title = playerState.title.ifBlank { "Not playing" },
-                                subtitle = playerState.subtitle,
-                                playing = playerState.playing,
-                                onExpand = ::openPlayer,
-                                onToggle = playerVm::togglePlayPause,
+        VlcAdaptiveNavigationSuite(
+            modifier = modifier,
+            enabled = showBottomBar && !showPlayer && !showSettings,
+            navigationSuiteItems = {
+                MainTab.entries.forEach { t ->
+                    item(
+                        selected = currentTab == t,
+                        onClick = { selectTab(t) },
+                        icon = {
+                            Icon(
+                                icon = t.navigationIcon(selected = currentTab == t),
+                                contentDescription = t.displayName(),
                             )
-                        }
-                        NavigationBar {
-                            MainTab.entries.forEach { t ->
-                                NavigationBarItem(
-                                    selected = currentTab == t,
-                                    onClick = {
-                                        selectTab(t)
-                                    },
-                                    icon = {
-                                        Text(
-                                            when (t) {
-                                                MainTab.VIDEO -> "Vid"
-                                                MainTab.AUDIO -> "Aud"
-                                                MainTab.BROWSER -> "Dir"
-                                                MainTab.PLAYLISTS -> "Pls"
-                                                MainTab.MORE -> "More"
-                                            }
-                                        )
-                                    },
-                                    label = {
-                                        Text(
-                                            when (t) {
-                                                MainTab.VIDEO -> "Video"
-                                                MainTab.AUDIO -> "Audio"
-                                                MainTab.BROWSER -> "Browse"
-                                                MainTab.PLAYLISTS -> "Playlists"
-                                                MainTab.MORE -> "More"
-                                            }
-                                        )
-                                    },
-                                )
+                        },
+                        label = { Text(t.displayName()) },
+                    )
+                }
+            },
+        ) {
+            Scaffold(
+                modifier = Modifier.fillMaxSize(),
+                containerColor = colors.backgroundDefault,
+                topBar = {
+                    TopAppBar(
+                        title = {
+                            Text(
+                                when {
+                                    showPlayer -> "Now Playing"
+                                    showSettings -> ShellStrings.settings()
+                                    else -> "$title · ${currentTab.displayName()}"
+                                },
+                                fontWeight = FontWeight.Bold,
+                            )
+                        },
+                        actions = {
+                            if (canNavigateBack) {
+                                TextButton(onClick = ::navigateBack) {
+                                    Icon(
+                                        icon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
+                                        contentDescription = null,
+                                    )
+                                    Text(ShellStrings.back())
+                                }
                             }
                         }
+                    )
+                },
+                floatingActionButton = {
+                    if (!showPlayer && !showSettings) {
+                        when (currentTab) {
+                            MainTab.VIDEO -> {
+                                if (videoState.count > 0 || videoState.items.isNotEmpty()) {
+                                    FloatingActionButton(onClick = {
+                                        videoVm.playAll()
+                                        openPlayer()
+                                    }) {
+                                        Icon(
+                                            icon = MaterialSymbols.Filled.PlayArrow,
+                                            contentDescription = ShellStrings.playAll(),
+                                        )
+                                    }
+                                }
+                            }
+                            MainTab.AUDIO -> {
+                                if (audioSection == AudioSection.TRACKS && audioState.count > 1) {
+                                    FloatingActionButton(onClick = {
+                                        audioVm.shuffleAll()
+                                        openPlayer()
+                                    }) {
+                                        Icon(
+                                            icon = MaterialSymbols.Filled.Shuffle,
+                                            contentDescription = "Shuffle all",
+                                        )
+                                    }
+                                }
+                            }
+                            else -> Unit
+                        }
                     }
-                }
-            }
-        ) { padding ->
-            val contentMod = Modifier.padding(padding).fillMaxSize()
-            NavDisplay(
-                backStack = backStack,
-                modifier = contentMod,
-                entryDecorators = listOf(
-                    rememberSaveableStateHolderNavEntryDecorator(),
-                ),
-                entryProvider = entryProvider {
+                },
+                bottomBar = {
+                    if (showBottomBar && !showPlayer && !showSettings && playerState.hasMedia) {
+                        MiniBar(
+                            title = playerState.title.ifBlank { "Not playing" },
+                            subtitle = playerState.subtitle,
+                            playing = playerState.playing,
+                            onExpand = ::openPlayer,
+                            onToggle = playerVm::togglePlayPause,
+                        )
+                    }
+                },
+            ) { padding ->
+                val contentMod = Modifier.padding(padding).fillMaxSize()
+                NavDisplay(
+                    backStack = backStack,
+                    modifier = contentMod,
+                    entryDecorators = listOf(
+                        rememberSaveableStateHolderNavEntryDecorator(),
+                    ),
+                    entryProvider = entryProvider {
                     entry<VideoRoute> {
                         VideoDestination(
                             modifier = Modifier.fillMaxSize(),
@@ -443,8 +441,68 @@ fun VlcMainShell(
                 },
             )
         }
+        }
     }
 }
+
+/**
+ * QuietGuard's adaptive navigation behavior, shared by every VlcMainShell host.
+ *
+ * NavigationSuiteScaffold switches automatically between a bottom bar on compact screens and a
+ * rail on wider ones. Its layout assumes finite constraints, while ComposeViewport can issue a
+ * transient unbounded probe on Wasm; rendering nothing for that probe prevents an overflow before
+ * the real viewport measure arrives. See https://youtrack.jetbrains.com/issue/CMP-8543.
+ */
+@OptIn(ExperimentalMaterial3AdaptiveNavigationSuiteApi::class)
+@Composable
+private fun VlcAdaptiveNavigationSuite(
+    modifier: Modifier,
+    enabled: Boolean,
+    navigationSuiteItems: NavigationSuiteScope.() -> Unit,
+    content: @Composable () -> Unit,
+) {
+    if (!enabled) {
+        Box(modifier.fillMaxSize()) { content() }
+        return
+    }
+
+    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        if (
+            constraints.hasBoundedWidth &&
+                constraints.hasBoundedHeight &&
+                constraints.maxWidth > 0 &&
+                constraints.maxHeight > 0
+        ) {
+            NavigationSuiteScaffold(
+                navigationSuiteItems = navigationSuiteItems,
+                modifier = Modifier.fillMaxSize(),
+                content = content,
+            )
+        }
+    }
+}
+
+private fun MainTab.displayName(): String =
+    when (this) {
+        MainTab.VIDEO -> "Video"
+        MainTab.AUDIO -> "Audio"
+        MainTab.BROWSER -> "Browse"
+        MainTab.PLAYLISTS -> "Playlists"
+        MainTab.MORE -> "More"
+    }
+
+private fun MainTab.navigationIcon(selected: Boolean): MaterialIcon =
+    when (this) {
+        MainTab.VIDEO ->
+            if (selected) MaterialSymbols.Filled.VideoLibrary else MaterialSymbols.Outlined.VideoLibrary
+        MainTab.AUDIO ->
+            if (selected) MaterialSymbols.Filled.MusicNote else MaterialSymbols.Outlined.MusicNote
+        MainTab.BROWSER ->
+            if (selected) MaterialSymbols.Filled.Folder else MaterialSymbols.Outlined.Folder
+        MainTab.PLAYLISTS ->
+            if (selected) MaterialSymbols.Filled.QueueMusic else MaterialSymbols.Outlined.QueueMusic
+        MainTab.MORE -> MaterialSymbols.Filled.MoreVert
+    }
 
 
 @Composable

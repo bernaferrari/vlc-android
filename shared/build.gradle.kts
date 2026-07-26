@@ -98,6 +98,8 @@ kotlin {
                 api(compose.components.resources)
                 // Navigation 3 is available for Android, iOS, JVM, and Wasm on Compose 1.10+.
                 api(libs.jetbrains.navigation3.ui)
+                // Uses a bottom bar on compact layouts and a navigation rail on wider hosts.
+                api(libs.compose.adaptive.navigation.suite)
                 // Paging 3 — KMP common + Compose Multiplatform integration
                 api(libs.androidx.paging.common)
                 api(libs.androidx.paging.compose)

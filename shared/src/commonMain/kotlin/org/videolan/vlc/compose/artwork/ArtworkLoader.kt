@@ -21,6 +21,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.model.MediaItem
 
@@ -106,11 +108,10 @@ fun MediaArtworkUri(
             fallback()
         }
         if (favorite) {
-            Text(
-                "★",
-                color = VLCThemeDefaults.colors.primary,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
+            Icon(
+                icon = MaterialSymbols.Filled.Star,
+                contentDescription = null,
+                tint = VLCThemeDefaults.colors.primary,
                 modifier = Modifier.align(Alignment.TopEnd),
             )
         }
@@ -120,17 +121,24 @@ fun MediaArtworkUri(
 @Composable
 fun DefaultArtworkFallback(item: MediaItem) {
     val colors = VLCThemeDefaults.colors
-    Text(
-        when {
-            item.isFavorite && item.artworkUri.isNullOrBlank() -> "★"
-            item.isVideo -> "VID"
-            item.isAudio -> "AUD"
-            item.isStream -> "URL"
-            item.isDirectory -> "DIR"
-            else -> "•"
-        },
-        color = colors.primary,
-        fontWeight = FontWeight.Bold,
-        style = MaterialTheme.typography.labelMedium,
-    )
+    if (item.isFavorite && item.artworkUri.isNullOrBlank()) {
+        Icon(
+            icon = MaterialSymbols.Filled.Star,
+            contentDescription = null,
+            tint = colors.primary,
+        )
+    } else {
+        Text(
+            when {
+                item.isVideo -> "VID"
+                item.isAudio -> "AUD"
+                item.isStream -> "URL"
+                item.isDirectory -> "DIR"
+                else -> "•"
+            },
+            color = colors.primary,
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.labelMedium,
+        )
+    }
 }

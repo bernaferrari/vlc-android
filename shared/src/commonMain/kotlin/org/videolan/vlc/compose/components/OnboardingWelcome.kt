@@ -14,6 +14,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
@@ -93,10 +95,11 @@ private fun DefaultOnboardingLogo() {
         modifier = Modifier.size(96.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            "▶",
-            style = MaterialTheme.typography.displayMedium,
-            color = VLCThemeDefaults.colors.primary
+        Icon(
+            icon = MaterialSymbols.Filled.PlayArrow,
+            contentDescription = null,
+            modifier = Modifier.size(72.dp),
+            tint = VLCThemeDefaults.colors.primary,
         )
     }
 }
