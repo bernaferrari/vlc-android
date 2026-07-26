@@ -5,19 +5,17 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
@@ -41,18 +39,17 @@ import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.player.VideoSurfaceWithHud
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
-import org.videolan.vlc.model.MediaFolder
 import org.videolan.vlc.model.MediaItem
-import org.videolan.vlc.model.PlaylistInfo
 import org.videolan.vlc.viewmodel.AudioListViewModel
 import org.videolan.vlc.viewmodel.BrowserViewModel
 import org.videolan.vlc.viewmodel.MainTab
-import org.videolan.vlc.viewmodel.MediaListUiState
 import org.videolan.vlc.viewmodel.MoreHubViewModel
 import org.videolan.vlc.viewmodel.PlayerViewModel
 import org.videolan.vlc.viewmodel.PlaylistsViewModel
 import org.videolan.vlc.viewmodel.SettingsViewModel
 import org.videolan.vlc.viewmodel.VideoListViewModel
+import org.videolan.vlc.viewmodel.AudioSection
+import org.videolan.vlc.util.ContextOption
 
 /**
  * Multiplatform main shell — Video / Audio / Browser / Playlists / More.
@@ -80,6 +77,7 @@ fun VlcMainShell(
     title: String = "VLC",
     onOpenSettings: (() -> Unit)? = null,
     onOpenRemoteClient: (() -> Unit)? = null,
+    hostCallbacks: ShellHostCallbacks = ShellHostCallbacks.NoOp,
 ) {
     DisposableEffect(videoVm, audioVm, browserVm, playlistsVm, moreVm, playerVm, settingsVm) {
         onDispose {
@@ -113,7 +111,7 @@ fun VlcMainShell(
                         Text(
                             when {
                                 showPlayer -> "Now Playing"
-                                showSettings -> "Settings"
+                                showSettings -> ShellStrings.settings()
                                 else -> when (currentTab) {
                                     MainTab.VIDEO -> "$title · Video"
                                     MainTab.AUDIO -> "$title · Audio"
@@ -130,10 +128,36 @@ fun VlcMainShell(
                             TextButton(onClick = {
                                 showPlayer = false
                                 showSettings = false
-                            }) { Text("Back") }
+                            }) { Text(ShellStrings.back()) }
                         }
                     }
                 )
+            },
+            floatingActionButton = {
+                if (!showPlayer && !showSettings) {
+                    when (currentTab) {
+                        MainTab.VIDEO -> {
+                            val st = videoVm.state.collectAsState().value
+                            if (st.count > 0 || st.items.isNotEmpty()) {
+                                FloatingActionButton(onClick = {
+                                    videoVm.playAll()
+                                    showPlayer = true
+                                }) { Text("▶") }
+                            }
+                        }
+                        MainTab.AUDIO -> {
+                            val sec = audioVm.section.collectAsState().value
+                            val st = audioVm.state.collectAsState().value
+                            if (sec == AudioSection.TRACKS && st.count > 1) {
+                                FloatingActionButton(onClick = {
+                                    audioVm.shuffleAll()
+                                    showPlayer = true
+                                }) { Text("⇝") }
+                            }
+                        }
+                        else -> Unit
+                    }
+                }
             },
             bottomBar = {
                 if (showBottomBar && !showPlayer && !showSettings) {
@@ -223,6 +247,8 @@ fun VlcMainShell(
                             state = st,
                             title = "Videos",
                             emptyLabel = "No videos",
+                            pagingFlow = videoVm.pagingFlow,
+                            groups = st.groups,
                             onQuery = videoVm::setQuery,
                             onPlay = { videoVm.play(it); showPlayer = true },
                             onPlayAll = { videoVm.playAll(); showPlayer = true },
@@ -231,9 +257,43 @@ fun VlcMainShell(
                             onToggleSelect = videoVm::toggleSelect,
                             onSelectAll = videoVm::selectAll,
                             onClearSelection = videoVm::clearSelection,
+                            onPlaySelection = {
+                                videoVm.playSelection()
+                                showPlayer = true
+                            },
+                            onAppendSelection = videoVm::appendSelection,
+                            onFavoriteSelection = videoVm::favoriteSelection,
                             onSetViewMode = videoVm::setViewMode,
                             onSetSort = videoVm::setSort,
-                            onCtx = videoVm::handleCtx,
+                            onToggleSortDesc = videoVm::toggleSortDesc,
+                            onToggleFavorites = videoVm::toggleOnlyFavorites,
+                            onCtx = { item, opt ->
+                                when (opt) {
+                                    ContextOption.CTX_INFORMATION,
+                                    ContextOption.CTX_SHARE,
+                                    ContextOption.CTX_DOWNLOAD_SUBTITLES,
+                                    ContextOption.CTX_ADD_SHORTCUT,
+                                    ContextOption.CTX_SET_RINGTONE,
+                                    ContextOption.CTX_BAN_FOLDER,
+                                    ContextOption.CTX_ADD_TO_PLAYLIST,
+                                    -> hostCallbacks.dispatch(item, opt)
+                                    else -> {
+                                        videoVm.handleCtx(item, opt)
+                                        if (opt == ContextOption.CTX_PLAY ||
+                                            opt == ContextOption.CTX_PLAY_ALL
+                                        ) {
+                                            showPlayer = true
+                                        }
+                                    }
+                                }
+                            },
+                            onOpenGroup = videoVm::openContainer,
+                            onCloseContainer = videoVm::closeContainer,
+                            onSetGroupingMode = videoVm::setGroupingMode,
+                            showGroupingToggle = true,
+                            showTrackNumbersToggle = true,
+                            onShowTrackNumbers = videoVm::setShowTrackNumbers,
+                            onDefaultAction = videoVm::setDefaultPlaybackAction,
                             modifier = contentMod,
                         )
                     }
@@ -241,29 +301,81 @@ fun VlcMainShell(
                         val st = audioVm.state.collectAsState().value
                         val sec = audioVm.section.collectAsState().value
                         Column(contentMod) {
-                            SectionTabs(
-                                tabs = listOf("Tracks", "Artists", "Albums"),
-                                selected = sec.ordinal,
-                                onSelect = {
-                                    audioVm.setSection(org.videolan.vlc.viewmodel.AudioSection.entries[it])
-                                },
-                            )
+                            if (st.openedEntityTitle == null) {
+                                SectionTabs(
+                                    tabs = listOf("Tracks", "Artists", "Albums", "Genres", "Playlists"),
+                                    selected = sec.ordinal,
+                                    onSelect = {
+                                        audioVm.setSection(org.videolan.vlc.viewmodel.AudioSection.entries[it])
+                                    },
+                                )
+                            }
                             RichMediaListPane(
                                 state = st,
                                 title = "Audio",
                                 emptyLabel = "No audio",
                                 sections = st.sections,
+                                pagingFlow = if (sec == org.videolan.vlc.viewmodel.AudioSection.TRACKS &&
+                                    st.openedEntityTitle == null
+                                ) {
+                                    audioVm.pagingFlow
+                                } else {
+                                    null
+                                },
                                 onQuery = audioVm::setQuery,
-                                onPlay = { audioVm.play(it); showPlayer = true },
+                                onPlay = { item ->
+                                    val isEntityUri = item.uri.startsWith("artist://") ||
+                                        item.uri.startsWith("album://") ||
+                                        item.uri.startsWith("genre://")
+                                    if (isEntityUri && sec != org.videolan.vlc.viewmodel.AudioSection.TRACKS) {
+                                        audioVm.openAudioEntityFromItem(item)
+                                    } else {
+                                        audioVm.play(item)
+                                        showPlayer = true
+                                    }
+                                },
                                 onPlayAll = { audioVm.playAll(); showPlayer = true },
                                 onPlayNext = audioVm::playNext,
                                 onAppend = audioVm::append,
                                 onToggleSelect = audioVm::toggleSelect,
                                 onSelectAll = audioVm::selectAll,
                                 onClearSelection = audioVm::clearSelection,
+                                onPlaySelection = {
+                                    audioVm.playSelection()
+                                    showPlayer = true
+                                },
+                                onAppendSelection = audioVm::appendSelection,
+                                onFavoriteSelection = audioVm::favoriteSelection,
                                 onSetViewMode = audioVm::setViewMode,
                                 onSetSort = audioVm::setSort,
-                                onCtx = audioVm::handleCtx,
+                                onToggleSortDesc = audioVm::toggleSortDesc,
+                                onToggleFavorites = audioVm::toggleOnlyFavorites,
+                                onCtx = { item, opt ->
+                                    when (opt) {
+                                        ContextOption.CTX_INFORMATION,
+                                        ContextOption.CTX_SHARE,
+                                        ContextOption.CTX_DOWNLOAD_SUBTITLES,
+                                        ContextOption.CTX_ADD_SHORTCUT,
+                                        ContextOption.CTX_SET_RINGTONE,
+                                        ContextOption.CTX_BAN_FOLDER,
+                                        ContextOption.CTX_ADD_TO_PLAYLIST,
+                                        -> hostCallbacks.dispatch(item, opt)
+                                        else -> {
+                                            audioVm.handleCtx(item, opt)
+                                            if (opt == ContextOption.CTX_PLAY ||
+                                                opt == ContextOption.CTX_PLAY_ALL
+                                            ) {
+                                                showPlayer = true
+                                            }
+                                        }
+                                    }
+                                },
+                                onCloseContainer = audioVm::closeEntity,
+                                showAllArtistsToggle = true,
+                                showTrackNumbersToggle = true,
+                                onShowAllArtists = audioVm::setShowAllArtists,
+                                onShowTrackNumbers = audioVm::setShowTrackNumbers,
+                                onDefaultAction = audioVm::setDefaultPlaybackAction,
                                 modifier = Modifier.fillMaxSize(),
                             )
                         }
@@ -271,31 +383,52 @@ fun VlcMainShell(
                     MainTab.BROWSER -> {
                         val st = browserVm.state.collectAsState().value
                         BrowserRichPane(
-                            folders = st.folders,
-                            media = st.media,
-                            title = st.currentFolder?.title ?: "Storage",
-                            loading = st.loading,
-                            canGoUp = st.stack.isNotEmpty(),
+                            state = st,
                             onUp = { browserVm.goUp() },
-                            onOpenFolder = browserVm::openFolder,
+                            onOpenFolder = { folder ->
+                                val target = folder.uri.ifBlank { folder.path }
+                                if (
+                                    target.equals("otg://", ignoreCase = true) ||
+                                    target.startsWith("otg://", ignoreCase = true)
+                                ) {
+                                    hostCallbacks.onRequestOtgRoot()
+                                }
+                                browserVm.openFolder(folder)
+                            },
                             onPlay = { browserVm.play(it); showPlayer = true },
                             onPlayNext = browserVm::playNext,
                             onAppend = browserVm::append,
+                            onToggleSelect = browserVm::toggleSelect,
+                            onClearSelection = browserVm::clearSelection,
+                            onPlaySelection = {
+                                browserVm.playSelection()
+                                showPlayer = true
+                            },
+                            onAppendSelection = browserVm::appendSelection,
                             modifier = contentMod,
                         )
                     }
                     MainTab.PLAYLISTS -> {
                         val st = playlistsVm.state.collectAsState().value
                         PlaylistsRichPane(
-                            playlists = st.playlists,
-                            loading = st.loading,
-                            detailItems = st.openItems,
-                            detailName = st.openPlaylistName,
+                            state = st,
                             onCreate = playlistsVm::create,
                             onOpen = playlistsVm::openPlaylist,
                             onPlay = { playlistsVm.playPlaylist(it); showPlayer = true },
+                            onShufflePlay = { playlistsVm.shufflePlay(it); showPlayer = true },
                             onDelete = playlistsVm::delete,
+                            onRename = playlistsVm::rename,
+                            onSetFavorite = playlistsVm::setFavorite,
+                            onToggleSelect = playlistsVm::toggleSelect,
+                            onClearSelection = playlistsVm::clearSelection,
+                            onDeleteSelection = playlistsVm::deleteSelection,
+                            onToggleFavorites = playlistsVm::toggleOnlyFavorites,
+                            onToggleSortDesc = playlistsVm::toggleSortDesc,
+                            onSetViewMode = playlistsVm::setViewMode,
                             onPlayItem = { playlistsVm.playItem(it); showPlayer = true },
+                            onRemoveTrack = playlistsVm::removeTrack,
+                            onMoveTrackUp = playlistsVm::moveTrackUp,
+                            onMoveTrackDown = playlistsVm::moveTrackDown,
                             onBack = playlistsVm::closeDetail,
                             modifier = contentMod,
                         )
@@ -308,6 +441,8 @@ fun VlcMainShell(
                             else showSettings = true
                         },
                         onOpenRemote = onOpenRemoteClient,
+                        onOpenAbout = hostCallbacks::onOpenAbout,
+                        onOpenDonate = hostCallbacks::onOpenDonate,
                         onPlayHistory = { entry ->
                             moreVm.playHistory(entry)
                             showPlayer = true
@@ -319,153 +454,6 @@ fun VlcMainShell(
     }
 }
 
-@Composable
-private fun MediaListPane(
-    modifier: Modifier,
-    state: MediaListUiState,
-    onQuery: (String) -> Unit,
-    onPlay: (MediaItem) -> Unit,
-    onPlayAll: () -> Unit,
-    emptyLabel: String,
-) {
-    val colors = VLCThemeDefaults.colors
-    Column(modifier.padding(horizontal = 16.dp)) {
-        OutlinedTextField(
-            value = state.query,
-            onValueChange = onQuery,
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-            singleLine = true,
-            label = { Text("Search") },
-        )
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("${state.count} items", color = colors.fontLight, style = MaterialTheme.typography.labelMedium)
-            if (state.items.isNotEmpty()) {
-                TextButton(onClick = onPlayAll) { Text("Play all") }
-            }
-        }
-        if (state.loading) LinearProgressIndicator(progress = { 0f }, modifier = Modifier.fillMaxWidth())
-        state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-        if (!state.loading && state.items.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(emptyLabel, color = colors.fontLight)
-            }
-        } else {
-            LazyColumn(
-                contentPadding = PaddingValues(bottom = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                items(state.items, key = { "${it.id}:${it.uri}" }) { item ->
-                    MediaRow(item) { onPlay(item) }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun BrowserPane(
-    modifier: Modifier,
-    vm: BrowserViewModel,
-    onPlay: (MediaItem) -> Unit,
-) {
-    val state by vm.state.collectAsState()
-    val colors = VLCThemeDefaults.colors
-    Column(modifier.padding(horizontal = 16.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (state.stack.isNotEmpty()) {
-                TextButton(onClick = { vm.goUp() }) { Text("Up") }
-            }
-            Text(
-                state.currentFolder?.title ?: "Storage",
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(start = 8.dp),
-            )
-        }
-        if (state.loading) LinearProgressIndicator(progress = { 0f }, modifier = Modifier.fillMaxWidth())
-        state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-        LazyColumn(
-            contentPadding = PaddingValues(bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            items(state.folders, key = { "f:${it.id}:${it.path}" }) { folder ->
-                FolderRow(folder) { vm.openFolder(folder) }
-            }
-            items(state.media, key = { "m:${it.id}:${it.uri}" }) { item ->
-                MediaRow(item) { onPlay(item) }
-            }
-            if (!state.loading && state.folders.isEmpty() && state.media.isEmpty()) {
-                item {
-                    Text(
-                        "No folders yet — add storage or import media",
-                        color = colors.fontLight,
-                        modifier = Modifier.padding(24.dp),
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun PlaylistsPane(
-    modifier: Modifier,
-    vm: PlaylistsViewModel,
-    onPlay: (PlaylistInfo) -> Unit,
-) {
-    val state by vm.state.collectAsState()
-    var newName by remember { mutableStateOf("") }
-    Column(modifier.padding(16.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            OutlinedTextField(
-                value = newName,
-                onValueChange = { newName = it },
-                modifier = Modifier.weight(1f),
-                singleLine = true,
-                label = { Text("New playlist") },
-            )
-            TextButton(
-                onClick = {
-                    if (newName.isNotBlank()) {
-                        vm.create(newName.trim())
-                        newName = ""
-                    }
-                }
-            ) { Text("Add") }
-        }
-        if (state.loading) LinearProgressIndicator(progress = { 0f }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
-        LazyColumn(
-            contentPadding = PaddingValues(vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            items(state.playlists, key = { it.id }) { pl ->
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .clip(MaterialTheme.shapes.medium)
-                        .clickable { onPlay(pl) }
-                        .padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(pl.name, fontWeight = FontWeight.Medium)
-                        Text("${pl.itemCount} items", style = MaterialTheme.typography.bodySmall)
-                    }
-                    TextButton(onClick = { vm.delete(pl.id) }) { Text("Del") }
-                }
-            }
-            if (!state.loading && state.playlists.isEmpty()) {
-                item { Text("No playlists", modifier = Modifier.padding(24.dp)) }
-            }
-        }
-    }
-}
 
 @Composable
 private fun MorePane(
@@ -473,10 +461,14 @@ private fun MorePane(
     vm: MoreHubViewModel,
     onOpenSettings: () -> Unit,
     onOpenRemote: (() -> Unit)?,
+    onOpenAbout: () -> Unit = {},
+    onOpenDonate: () -> Unit = {},
     onPlayHistory: (org.videolan.vlc.model.HistoryEntry) -> Unit,
 ) {
     val state by vm.state.collectAsState()
     val colors = VLCThemeDefaults.colors
+    var renameStreamId by remember { mutableStateOf<Long?>(null) }
+    var renameStreamText by remember { mutableStateOf("") }
     LazyColumn(
         modifier = modifier.padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -487,33 +479,116 @@ private fun MorePane(
                 Text(state.platformName, color = colors.fontLight, style = MaterialTheme.typography.bodySmall)
             }
         }
+        item { MoreAction(ShellStrings.settings(), onOpenSettings) }
         item {
-            MoreAction("Settings", onOpenSettings)
+            MoreAction(ShellStrings.about(), onOpenAbout)
+        }
+        item {
+            MoreAction("Donate", onOpenDonate)
         }
         if (onOpenRemote != null) {
-            item { MoreAction("Connect to VLC", onOpenRemote) }
+            item { MoreAction("Remote", onOpenRemote) }
         }
+
+        item {
+            Text("Streams", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        }
+        if (renameStreamId != null) {
+            item {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(
+                        value = renameStreamText,
+                        onValueChange = { renameStreamText = it },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        label = { Text("Rename stream") },
+                    )
+                    TextButton(onClick = {
+                        val id = renameStreamId
+                        if (id != null && renameStreamText.isNotBlank()) {
+                            vm.renameStream(id, renameStreamText.trim())
+                        }
+                        renameStreamId = null
+                        renameStreamText = ""
+                    }) { Text("Save") }
+                    TextButton(onClick = {
+                        renameStreamId = null
+                        renameStreamText = ""
+                    }) { Text(ShellStrings.cancel()) }
+                }
+            }
+        }
+        items(state.streams, key = { "s:${it.id}:${it.uri}" }) { item ->
+            Row(
+                Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(Modifier.weight(1f)) {
+                    MediaRow(item) { vm.playStream(item) }
+                }
+                if (state.hasStreamRepository) {
+                    TextButton(onClick = {
+                        renameStreamId = item.id
+                        renameStreamText = item.title
+                    }) { Text("Ren") }
+                    TextButton(onClick = { vm.deleteStream(item.id) }) { Text("Del") }
+                }
+            }
+        }
+        if (state.streams.isEmpty()) {
+            item { Text("No streams", color = colors.fontLight) }
+        }
+
         item {
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("History", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                TextButton(onClick = vm::clearHistory) { Text("Clear") }
+                Text(ShellStrings.history(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Row {
+                    if (state.historySelection.isNotEmpty()) {
+                        TextButton(onClick = vm::removeSelectedHistory) {
+                            Text("${ShellStrings.remove()} (${state.historySelection.size})")
+                        }
+                        TextButton(onClick = vm::clearHistorySelection) { Text(ShellStrings.clear()) }
+                    }
+                    TextButton(onClick = vm::clearHistory) { Text(ShellStrings.clear()) }
+                }
             }
         }
-        item {
-            Text("Streams", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-        }
-        items(state.streams, key = { "s:${it.id}:${it.uri}" }) { item ->
-            MediaRow(item) { vm.playStream(item) }
-        }
-        if (state.streams.isEmpty()) {
-            item { Text("No streams", color = colors.fontLight) }
-        }
         items(state.history, key = { "h:${it.item.id}:${it.playedAt}" }) { entry ->
-            MediaRow(entry.item) { onPlayHistory(entry) }
+            val key = "${entry.item.id}:${entry.playedAt}:${entry.item.uri}"
+            val selected = key in state.historySelection
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(MaterialTheme.shapes.medium)
+                    .background(
+                        if (selected) colors.primary.copy(alpha = 0.12f)
+                        else MaterialTheme.colorScheme.surfaceContainerHigh,
+                    )
+                    .clickable { onPlayHistory(entry) }
+                    .padding(horizontal = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(Modifier.weight(1f)) {
+                    MediaRow(entry.item) { onPlayHistory(entry) }
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    if (!entry.item.present) {
+                        Text("missing", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall)
+                    } else {
+                        Text("present", color = colors.fontLight, style = MaterialTheme.typography.labelSmall)
+                    }
+                    Row {
+                        TextButton(onClick = { vm.toggleHistorySelect(entry) }) {
+                            Text(if (selected) "✓" else "Sel")
+                        }
+                        TextButton(onClick = { vm.moveUp(entry) }) { Text("↑") }
+                    }
+                }
+            }
         }
         if (!state.loading && state.history.isEmpty()) {
             item { Text("No recent media", color = colors.fontLight) }
@@ -616,26 +691,6 @@ private fun MediaRow(item: MediaItem, onClick: () -> Unit) {
     }
 }
 
-@Composable
-private fun FolderRow(folder: MediaFolder, onClick: () -> Unit) {
-    val colors = VLCThemeDefaults.colors
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.medium)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text("DIR", color = colors.primary, fontWeight = FontWeight.Bold, modifier = Modifier.width(40.dp))
-        Column {
-            Text(folder.title, fontWeight = FontWeight.Medium, color = colors.listTitle)
-            if (folder.childCount > 0) {
-                Text("${folder.childCount} items", style = MaterialTheme.typography.bodySmall, color = colors.fontLight)
-            }
-        }
-    }
-}
 
 @Composable
 private fun MiniBar(
@@ -660,6 +715,6 @@ private fun MiniBar(
                 Text(subtitle, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall, color = colors.fontLight)
             }
         }
-        TextButton(onClick = onToggle) { Text(if (playing) "Pause" else "Play") }
+        TextButton(onClick = onToggle) { Text(if (playing) "Pause" else ShellStrings.play()) }
     }
 }

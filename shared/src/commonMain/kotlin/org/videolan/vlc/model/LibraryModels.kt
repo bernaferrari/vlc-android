@@ -10,7 +10,17 @@ data class MediaFolder(
     val uri: String = path,
     val childCount: Int = 0,
     val isRoot: Boolean = false,
+    val isFavorite: Boolean = false,
+    val kind: FolderKind = FolderKind.STORAGE,
 )
+
+enum class FolderKind {
+    STORAGE,
+    FAVORITE,
+    NETWORK,
+    VIDEO_GROUP,
+    MEDIA_FOLDER,
+}
 
 /**
  * Named playlist summary for list UIs (items loaded on demand).
@@ -21,6 +31,7 @@ data class PlaylistInfo(
     val itemCount: Int = 0,
     val artworkUri: String? = null,
     val duration: Long = 0L,
+    val isFavorite: Boolean = false,
 )
 
 /**

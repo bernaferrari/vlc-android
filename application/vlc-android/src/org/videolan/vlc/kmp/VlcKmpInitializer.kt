@@ -28,6 +28,8 @@ import org.videolan.vlc.platform.PipController
 import org.videolan.vlc.platform.MediaSessionBridge
 import org.videolan.vlc.repository.HistoryRepository
 import org.videolan.vlc.repository.PlaylistRepository
+import org.videolan.vlc.repository.StreamRepository
+import org.videolan.vlc.compose.artwork.ArtworkLoaderHolder
 
 /**
  * Initializes the Koin DI graph on Android, wiring the shared KMP
@@ -71,14 +73,16 @@ object VlcKmpInitializer {
 
             val androidAppModule = module {
                 single { medialibrary }
-                single<MediaRepository> { AndroidMediaRepository(get()) }
+                single<MediaRepository> { AndroidMediaRepository(get(), appContext) }
                 single<PlaylistRepository> { AndroidPlaylistRepository(get()) }
                 single<HistoryRepository> { AndroidHistoryRepository(get()) }
+                single<StreamRepository> { AndroidStreamRepository(get()) }
                 single<PlaybackService> { AndroidPlaybackService(managerProvider) }
                 single<MediaSessionBridge> { AndroidMediaSessionBridge(appContext) }
                 single<PipController> { AndroidPipController() }
                 single<RendererBridge> { AndroidRendererBridge() }
             }
+
 
             if (GlobalContext.getOrNull() == null) {
                 startKoin {
@@ -90,6 +94,7 @@ object VlcKmpInitializer {
             }
 
             VlcKoin.set(GlobalContext.get())
+            ArtworkLoaderHolder.install(AndroidArtworkLoader(appContext))
             wireSettingsBridge(appContext)
         }
     }
@@ -104,6 +109,18 @@ object VlcKmpInitializer {
         Settings.attachDataStoreBridge(vlcPrefs)
         Settings.hydrateVlcSettingsCache()
         SettingsWriteBridge.onBoolean = { key, value ->
+            try {
+                Settings.getInstance(appContext).putSingle(key, value)
+            } catch (_: Exception) {
+            }
+        }
+        SettingsWriteBridge.onString = { key, value ->
+            try {
+                Settings.getInstance(appContext).putSingle(key, value)
+            } catch (_: Exception) {
+            }
+        }
+        SettingsWriteBridge.onInt = { key, value ->
             try {
                 Settings.getInstance(appContext).putSingle(key, value)
             } catch (_: Exception) {
@@ -163,6 +180,11 @@ object VlcKmpInitializer {
             org.videolan.tools.KEY_VIDEO_APP_SWITCH,
             org.videolan.tools.KEY_PLAYBACK_SPEED_AUDIO_GLOBAL,
             org.videolan.tools.KEY_PLAYBACK_SPEED_VIDEO_GLOBAL,
+            org.videolan.tools.KEY_DEFAULT_PLAYBACK_ACTION_VIDEO,
+            org.videolan.tools.KEY_DEFAULT_PLAYBACK_ACTION_TRACK,
+            org.videolan.tools.KEY_DEFAULT_PLAYBACK_ACTION_PLAYLIST,
+            org.videolan.tools.KEY_ARTISTS_SHOW_ALL,
+            org.videolan.tools.BROWSER_SHOW_ONLY_MULTIMEDIA,
         )
         for (key in keys) {
             if (!shared.contains(key)) continue

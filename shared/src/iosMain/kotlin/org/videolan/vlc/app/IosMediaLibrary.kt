@@ -103,6 +103,21 @@ class IosMediaLibrary : MediaRepository, PlaylistRepository, HistoryRepository, 
 
     override suspend fun incrementPlayCount(id: Long) = markAsPlayed(id)
 
+    override suspend fun markAsUnplayed(id: Long) {
+        val item = getMedia(id) ?: return
+        upsert(item.copy(playedCount = 0, seen = 0L, lastPlayed = 0L))
+    }
+
+    override suspend fun setFavorite(id: Long, favorite: Boolean) {
+        // Satisfies both MediaRepository and PlaylistRepository.
+        val item = getMedia(id)
+        if (item != null) {
+            upsert(item.copy(isFavorite = favorite))
+            return
+        }
+        // Playlist favorite flag is not persisted in the in-memory iOS catalog yet.
+    }
+
     override fun observeFolders(parentId: Long?): Flow<List<MediaFolder>> =
         folders.map { all ->
             if (parentId == null) all.filter { it.isRoot }
@@ -133,6 +148,7 @@ class IosMediaLibrary : MediaRepository, PlaylistRepository, HistoryRepository, 
                     name = it.name,
                     itemCount = it.items.size,
                     duration = it.items.sumOf { m -> m.duration },
+                    isFavorite = false,
                 )
             }
         }

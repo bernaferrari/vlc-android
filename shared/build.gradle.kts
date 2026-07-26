@@ -86,6 +86,9 @@ kotlin {
                 api(compose.animation)
                 api(compose.ui)
                 api(compose.components.resources)
+                // Paging 3 — KMP common + Compose Multiplatform integration
+                api(libs.androidx.paging.common)
+                api(libs.androidx.paging.compose)
             }
         }
 

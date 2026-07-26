@@ -17,7 +17,13 @@ class StubPlaylistRepository : PlaylistRepository {
     override fun observePlaylists(): Flow<List<PlaylistInfo>> =
         playlists.map { map ->
             map.values.map {
-                PlaylistInfo(it.id, it.name, it.items.size, duration = it.items.sumOf { m -> m.duration })
+                PlaylistInfo(
+                    it.id,
+                    it.name,
+                    it.items.size,
+                    duration = it.items.sumOf { m -> m.duration },
+                    isFavorite = false,
+                )
             }
         }
 
@@ -41,6 +47,15 @@ class StubPlaylistRepository : PlaylistRepository {
         playlists.value = playlists.value + (playlistId to current.copy(items = current.items.filterNot { it.id in set }))
     }
 
+    override suspend fun moveInPlaylist(playlistId: Long, fromIndex: Int, toIndex: Int) {
+        val current = playlists.value[playlistId] ?: return
+        val items = current.items.toMutableList()
+        if (fromIndex !in items.indices || toIndex !in items.indices || fromIndex == toIndex) return
+        val moved = items.removeAt(fromIndex)
+        items.add(toIndex, moved)
+        playlists.value = playlists.value + (playlistId to current.copy(items = items))
+    }
+
     override suspend fun deletePlaylist(id: Long) {
         playlists.value = playlists.value - id
     }
@@ -49,6 +64,8 @@ class StubPlaylistRepository : PlaylistRepository {
         val current = playlists.value[id] ?: return
         playlists.value = playlists.value + (id to current.copy(name = name))
     }
+
+    override suspend fun setFavorite(id: Long, favorite: Boolean) {}
 }
 
 class StubHistoryRepository : HistoryRepository {
@@ -79,7 +96,9 @@ class StubMediaRepository : MediaRepository {
     override fun observeRecentlyPlayed(limit: Int): Flow<List<MediaItem>> = flow { emit(emptyList()) }
     override suspend fun count(type: MediaType): Int = 0
     override suspend fun markAsPlayed(id: Long) {}
+    override suspend fun markAsUnplayed(id: Long) {}
     override suspend fun incrementPlayCount(id: Long) {}
+    override suspend fun setFavorite(id: Long, favorite: Boolean) {}
     override fun observeFolders(parentId: Long?): Flow<List<MediaFolder>> = flow { emit(emptyList()) }
     override fun observeFolderMedia(folderId: Long): Flow<List<MediaItem>> = flow { emit(emptyList()) }
 }

@@ -119,6 +119,11 @@ data class MediaItem(
     val rating: Float = 0f,
     val playedCount: Int = 0,
     val lastPlayed: Long = 0L,
+    val isFavorite: Boolean = false,
+    val seen: Long = 0L,
+    val present: Boolean = true,
+    val fileName: String? = null,
+    val description: String? = null,
 ) {
     val isVideo: Boolean get() = type == MediaType.VIDEO
     val isAudio: Boolean get() = type == MediaType.AUDIO

@@ -241,6 +241,9 @@ const val KEY_INCLUDE_MISSING = "include_missing"
 //files
 const val BROWSER_SHOW_HIDDEN_FILES = "browser_show_hidden_files"
 const val BROWSER_SHOW_ONLY_MULTIMEDIA = "browser_show_only_multimedia"
+const val KEY_DEFAULT_PLAYBACK_ACTION_VIDEO = "default_playback_action_video"
+const val KEY_DEFAULT_PLAYBACK_ACTION_TRACK = "default_playback_action_track"
+const val KEY_DEFAULT_PLAYBACK_ACTION_PLAYLIST = "default_playback_action_playlist"
 const val BROWSER_DISPLAY_IN_CARDS = "browser_display_in_cards"
 
 // Albums

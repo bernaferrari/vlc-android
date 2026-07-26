@@ -1,5 +1,10 @@
 package org.videolan.vlc.kmp
 
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.PagingSource
+import androidx.paging.PagingState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -15,6 +20,8 @@ import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.Playlist
 import org.videolan.vlc.model.PlaylistInfo
 import org.videolan.vlc.repository.HistoryRepository
+import org.videolan.vlc.repository.MEDIA_PAGE_SIZE
+import org.videolan.vlc.repository.MediaSort
 import org.videolan.vlc.repository.PlaylistRepository
 
 class AndroidPlaylistRepository(
@@ -25,6 +32,52 @@ class AndroidPlaylistRepository(
         trySend(loadPlaylists())
         awaitClose { }
     }.flowOn(Dispatchers.IO)
+
+    override fun observePlaylistsPaged(
+        sort: MediaSort,
+        desc: Boolean,
+        onlyFavorites: Boolean,
+        query: String,
+    ): Flow<PagingData<PlaylistInfo>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = MEDIA_PAGE_SIZE,
+                enablePlaceholders = false,
+                initialLoadSize = MEDIA_PAGE_SIZE,
+            ),
+            pagingSourceFactory = {
+                object : PagingSource<Int, PlaylistInfo>() {
+                    override fun getRefreshKey(state: PagingState<Int, PlaylistInfo>): Int? {
+                        val anchor = state.anchorPosition ?: return null
+                        val page = state.closestPageToPosition(anchor) ?: return null
+                        return page.prevKey?.plus(state.config.pageSize)
+                            ?: page.nextKey?.minus(state.config.pageSize)?.coerceAtLeast(0)
+                    }
+
+                    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, PlaylistInfo> {
+                        return try {
+                            val offset = params.key ?: 0
+                            val loadSize = params.loadSize
+                            val data = withContext(Dispatchers.IO) {
+                                loadPagedPlaylists(sort, desc, onlyFavorites, query, loadSize, offset)
+                            }
+                            val total = withContext(Dispatchers.IO) {
+                                countPlaylists(query)
+                            }
+                            val nextOffset = offset + data.size
+                            LoadResult.Page(
+                                data = data,
+                                prevKey = if (offset <= 0) null else (offset - loadSize).coerceAtLeast(0),
+                                nextKey = if (data.isEmpty() || nextOffset >= total) null else nextOffset,
+                            )
+                        } catch (t: Throwable) {
+                            LoadResult.Error(t)
+                        }
+                    }
+                }
+            },
+        ).flow
+    }
 
     override suspend fun getPlaylist(id: Long): Playlist? = withContext(Dispatchers.IO) {
         if (!medialibrary.isInitiated) return@withContext null
@@ -46,7 +99,23 @@ class AndroidPlaylistRepository(
     }
 
     override suspend fun removeFromPlaylist(playlistId: Long, itemIds: List<Long>) = withContext(Dispatchers.IO) {
-        // Playlist.remove expects media index (Int) on this ML fork — skip precise remove.
+        if (itemIds.isEmpty()) return@withContext
+        val pl = medialibrary.getPlaylist(playlistId, false, false) ?: return@withContext
+        val tracks = pl.tracks ?: return@withContext
+        // Resolve media ids to playlist indices; remove high→low so earlier indices stay valid.
+        val indices = itemIds.mapNotNull { itemId ->
+            tracks.indexOfFirst { it.id == itemId }.takeIf { it >= 0 }
+        }.distinct().sortedDescending()
+        for (index in indices) {
+            runCatching { pl.remove(index) }
+        }
+        Unit
+    }
+
+    override suspend fun moveInPlaylist(playlistId: Long, fromIndex: Int, toIndex: Int) = withContext(Dispatchers.IO) {
+        if (fromIndex == toIndex || fromIndex < 0 || toIndex < 0) return@withContext
+        val pl = medialibrary.getPlaylist(playlistId, false, false) ?: return@withContext
+        runCatching { pl.move(fromIndex, toIndex) }
         Unit
     }
 
@@ -60,6 +129,11 @@ class AndroidPlaylistRepository(
     override suspend fun renamePlaylist(id: Long, name: String) = withContext(Dispatchers.IO) {
         val pl = medialibrary.getPlaylist(id, false, false) ?: return@withContext
         runCatching { (pl as MediaLibraryItem).setTitle(name) }
+        Unit
+    }
+
+    override suspend fun setFavorite(id: Long, favorite: Boolean) = withContext(Dispatchers.IO) {
+        medialibrary.getPlaylist(id, false, false)?.setFavorite(favorite)
         Unit
     }
 
@@ -78,16 +152,69 @@ class AndroidPlaylistRepository(
                 )
             }.getOrDefault(emptyArray())
         }
-        return list.map { pl ->
-            PlaylistInfo(
-                id = pl.id,
-                name = pl.title.orEmpty(),
-                itemCount = runCatching { pl.tracksCount }.getOrDefault(0),
-                artworkUri = runCatching { pl.artworkMrl }.getOrNull(),
-                duration = 0L,
-            )
+        return list.map { it.toPlaylistInfo() }
+    }
+
+    private fun loadPagedPlaylists(
+        sort: MediaSort,
+        desc: Boolean,
+        onlyFavorites: Boolean,
+        query: String,
+        loadSize: Int,
+        offset: Int,
+    ): List<PlaylistInfo> {
+        if (!medialibrary.isInitiated) return emptyList()
+        val mlSort = sort.toMlSort()
+        val q = query.trim()
+        val list: Array<out MlPlaylist> = if (q.isEmpty()) {
+            runCatching {
+                medialibrary.getPagedPlaylists(
+                    MlPlaylist.Type.All,
+                    mlSort,
+                    desc,
+                    Settings.includeMissing,
+                    onlyFavorites,
+                    loadSize,
+                    offset,
+                )
+            }.getOrDefault(emptyArray())
+        } else {
+            runCatching {
+                medialibrary.searchPlaylist(
+                    q,
+                    MlPlaylist.Type.All,
+                    mlSort,
+                    desc,
+                    Settings.includeMissing,
+                    onlyFavorites,
+                    loadSize,
+                    offset,
+                )
+            }.getOrDefault(emptyArray())
+        }
+        return list.map { it.toPlaylistInfo() }
+    }
+
+    private fun countPlaylists(query: String): Int {
+        if (!medialibrary.isInitiated) return 0
+        val q = query.trim()
+        return if (q.isEmpty()) {
+            runCatching { medialibrary.playlistsCount }.getOrElse {
+                runCatching { medialibrary.getPlaylistsCount() }.getOrDefault(0)
+            }
+        } else {
+            runCatching { medialibrary.getPlaylistsCount(q) }.getOrDefault(0)
         }
     }
+
+    private fun MlPlaylist.toPlaylistInfo(): PlaylistInfo = PlaylistInfo(
+        id = id,
+        name = title.orEmpty(),
+        itemCount = runCatching { tracksCount }.getOrDefault(0),
+        artworkUri = runCatching { artworkMrl }.getOrNull(),
+        duration = runCatching { duration }.getOrDefault(0L),
+        isFavorite = isFavorite,
+    )
 }
 
 class AndroidHistoryRepository(

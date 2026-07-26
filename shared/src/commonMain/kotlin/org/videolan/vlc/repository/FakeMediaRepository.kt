@@ -15,11 +15,11 @@ import org.videolan.vlc.player.PlaybackState
 /** Deterministic sample library for previews and unit tests. */
 object FakeCatalog {
     val items: List<MediaItem> = listOf(
-        MediaItem(1, "Sunset Drive", "file:///demo/sunset.mp3", MediaType.AUDIO, 210_000, "Nova", "Night Roads"),
-        MediaItem(2, "City Lights", "file:///demo/city.mp4", MediaType.VIDEO, 360_000, width = 1920, height = 1080),
-        MediaItem(3, "Deep Focus", "file:///demo/focus.mp3", MediaType.AUDIO, 480_000, "Ambient Lab", "Work"),
-        MediaItem(4, "Trailer", "file:///demo/trailer.mp4", MediaType.VIDEO, 120_000, width = 1280, height = 720),
-        MediaItem(5, "Podcast #12", "file:///demo/pod.mp3", MediaType.AUDIO, 3_600_000, "VLC Talk"),
+        MediaItem(1, "Sunset Drive", "file:///demo/sunset.mp3", MediaType.AUDIO, 210_000, "Nova", "Night Roads", isFavorite = true, fileName = "sunset.mp3"),
+        MediaItem(2, "City Lights", "file:///demo/city.mp4", MediaType.VIDEO, 360_000, width = 1920, height = 1080, seen = 1L, fileName = "city.mp4"),
+        MediaItem(3, "Deep Focus", "file:///demo/focus.mp3", MediaType.AUDIO, 480_000, "Ambient Lab", "Work", fileName = "focus.mp3"),
+        MediaItem(4, "Trailer", "file:///demo/trailer.mp4", MediaType.VIDEO, 120_000, width = 1280, height = 720, isFavorite = true, fileName = "trailer.mp4"),
+        MediaItem(5, "Podcast #12", "file:///demo/pod.mp3", MediaType.AUDIO, 3_600_000, "VLC Talk", fileName = "pod.mp3"),
     )
 }
 
@@ -55,10 +55,31 @@ class FakeMediaRepository(
 
     override suspend fun markAsPlayed(id: Long) {
         val item = getMedia(id) ?: return
-        recent.value = listOf(item) + recent.value.filterNot { it.id == id }
+        val updated = item.copy(
+            lastPlayed = item.lastPlayed.takeIf { it > 0 } ?: 1L,
+            playedCount = item.playedCount + 1,
+            seen = if (item.seen == 0L) 1L else item.seen,
+        )
+        items.value = items.value.map { if (it.id == id) updated else it }
+        recent.value = listOf(updated) + recent.value.filterNot { it.id == id }
+    }
+
+    override suspend fun markAsUnplayed(id: Long) {
+        items.value = items.value.map {
+            if (it.id == id) it.copy(playedCount = 0, seen = 0L, lastPlayed = 0L) else it
+        }
     }
 
     override suspend fun incrementPlayCount(id: Long) = markAsPlayed(id)
+
+    override suspend fun setFavorite(id: Long, favorite: Boolean) {
+        items.value = items.value.map {
+            if (it.id == id) it.copy(isFavorite = favorite) else it
+        }
+        recent.value = recent.value.map {
+            if (it.id == id) it.copy(isFavorite = favorite) else it
+        }
+    }
 }
 
 class FakePlaybackService : PlaybackService {

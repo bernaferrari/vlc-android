@@ -38,6 +38,7 @@ import org.videolan.tools.setVisible
 import org.videolan.vlc.R
 import org.videolan.vlc.app.VlcKoin
 import org.videolan.vlc.compose.app.VlcMainShell
+import org.videolan.vlc.kmp.AndroidShellHostCallbacks
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.gui.MainActivity
 import org.videolan.vlc.gui.MainNavChromeState
@@ -169,6 +170,7 @@ class Navigator : DefaultLifecycleObserver, INavigator {
                                     Intent().setClassName(activity, REMOTE_ACCESS_CLIENT_ACTIVITY)
                                 )
                             },
+                            hostCallbacks = AndroidShellHostCallbacks(activity),
                         )
                     }
                 }

@@ -34,5 +34,10 @@ internal fun MediaWrapper.toMediaItem(): MediaItem {
         rating = this.rating?.toFloatOrNull() ?: 0f,
         playedCount = this.playCount.toInt(),
         lastPlayed = this.seen,
+        isFavorite = this.isFavorite,
+        seen = this.seen,
+        present = this.isPresent,
+        fileName = this.fileName,
+        description = this.description?.takeIf { it.isNotBlank() },
     )
 }

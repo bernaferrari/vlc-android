@@ -38,7 +38,7 @@ abstract class VlcViewModel {
      * Supervisor-job scope that lives for the VM's lifetime.
      * Use [launch] to start coroutines that should be cancelled on [onCleared].
      */
-    private val viewModelScope: CoroutineScope = CoroutineScope(
+    protected val viewModelScope: CoroutineScope = CoroutineScope(
         SupervisorJob() + Dispatchers.Main
     )
 
