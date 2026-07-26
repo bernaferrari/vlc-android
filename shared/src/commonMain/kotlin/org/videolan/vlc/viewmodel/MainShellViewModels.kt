@@ -1357,6 +1357,31 @@ class BrowserViewModel(
         }
     }
 
+    /** Restores a saved Navigation 3 browser route without replaying each ancestor. */
+    fun restoreFolderStack(folders: List<MediaFolder>) {
+        if (folders == _state.value.stack) return
+        val folder = folders.lastOrNull()
+        if (folder == null) {
+            openRoot()
+            return
+        }
+        _state.update {
+            it.copy(
+                currentFolder = folder,
+                stack = folders,
+                loading = true,
+                favorites = emptyList(),
+                networkRoots = emptyList(),
+                selection = emptySet(),
+            )
+        }
+        if (isUriBrowseTarget(folder)) {
+            browseUri(folder)
+        } else {
+            observeFolder(folder.id)
+        }
+    }
+
     fun goUp(): Boolean {
         val stack = _state.value.stack
         if (stack.isEmpty()) return false

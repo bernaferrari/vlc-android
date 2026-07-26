@@ -25,21 +25,26 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.ui.NavDisplay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import org.videolan.vlc.compose.player.VideoSurfaceWithHud
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.model.MediaFolder
 import org.videolan.vlc.model.MediaItem
+import org.videolan.vlc.model.PlaylistInfo
 import org.videolan.vlc.viewmodel.AudioListViewModel
 import org.videolan.vlc.viewmodel.BrowserViewModel
 import org.videolan.vlc.viewmodel.MainTab
@@ -49,7 +54,6 @@ import org.videolan.vlc.viewmodel.PlaylistsViewModel
 import org.videolan.vlc.viewmodel.SettingsViewModel
 import org.videolan.vlc.viewmodel.VideoListViewModel
 import org.videolan.vlc.viewmodel.AudioSection
-import org.videolan.vlc.util.ContextOption
 
 /**
  * Multiplatform main shell — Video / Audio / Browser / Playlists / More.
@@ -57,6 +61,10 @@ import org.videolan.vlc.util.ContextOption
  * This is the shared product chrome for iOS and the Android main path
  * (when [useSharedMainShell] is enabled). Platform engines feed data via
  * [org.videolan.vlc.repository.MediaRepository] / [org.videolan.vlc.player.PlaybackController].
+ * Navigation remains intentionally single-pane on compact and wide hosts;
+ * Nav3 owns route restoration and back handling while feature panes provide
+ * their own responsive content. A future list-detail layout can reuse these
+ * typed routes without changing their serialized form.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,42 +101,120 @@ fun VlcMainShell(
 
     VLCTheme {
         val colors = VLCThemeDefaults.colors
-        var internalTab by remember { mutableStateOf(initialTab) }
-        val currentTab = tab ?: internalTab
-        fun selectTab(t: MainTab) {
-            if (onTabChange != null) onTabChange(t) else internalTab = t
+        val initialRoute = remember(initialTab) { initialTab.toVlcShellRoute() }
+        val backStack = rememberNavBackStack(vlcShellNavSavedStateConfiguration, initialRoute)
+        val currentRoute = backStack.lastOrNull() as? VlcShellRoute ?: initialRoute
+        val currentTab = backStack.filterIsInstance<VlcShellRoute>().activeTab()
+        val showPlayer = currentRoute == PlayerRoute
+        val showSettings = currentRoute == SettingsRoute
+
+        fun closeFeatureDetails() {
+            if (videoVm.state.value.containerId != null) videoVm.closeContainer()
+            if (audioVm.state.value.openedEntityTitle != null) audioVm.closeEntity()
+            if (browserVm.state.value.stack.isNotEmpty()) browserVm.openRoot()
+            if (playlistsVm.state.value.openPlaylistId != null) playlistsVm.closeDetail()
         }
-        var showPlayer by remember { mutableStateOf(false) }
-        var showSettings by remember { mutableStateOf(false) }
+
+        fun resetToTab(tab: MainTab) {
+            closeFeatureDetails()
+            backStack.clear()
+            backStack.add(tab.toVlcShellRoute())
+        }
+
+        fun openPlayer() {
+            if (!showPlayer) backStack.add(PlayerRoute)
+        }
+
+        fun popRoute() {
+            if (backStack.size > 1) backStack.removeAt(backStack.lastIndex)
+        }
+
+        fun openVideoContainer(folder: MediaFolder) {
+            videoVm.openContainer(folder)
+            backStack.add(folder.toVideoContainerRoute())
+        }
+
+        fun openAudioEntity(item: MediaItem) {
+            val route = item.toAudioEntityRoute() ?: return
+            audioVm.openAudioEntityFromItem(item)
+            backStack.add(route)
+        }
+
+        fun openBrowserFolder(folder: MediaFolder) {
+            val target = folder.uri.ifBlank { folder.path }
+            if (target.equals("otg://", ignoreCase = true) || target.startsWith("otg://", ignoreCase = true)) {
+                hostCallbacks.onRequestOtgRoot()
+            }
+            browserVm.openFolder(folder)
+            backStack.add(BrowserFolderRoute.from(browserVm.state.value.stack))
+        }
+
+        fun openPlaylist(info: PlaylistInfo) {
+            playlistsVm.openPlaylist(info)
+            backStack.add(PlaylistDetailRoute(id = info.id, name = info.name))
+        }
+
+        LaunchedEffect(tab) {
+            if (tab != null && currentTab != tab) resetToTab(tab)
+        }
+
+        fun selectTab(t: MainTab) {
+            if (onTabChange != null) onTabChange(t) else resetToTab(t)
+        }
         val playerState by playerVm.state.collectAsState()
         val videoState by videoVm.state.collectAsState()
         val audioState by audioVm.state.collectAsState()
         val audioSection by audioVm.section.collectAsState()
         val browserState by browserVm.state.collectAsState()
         val playlistsState by playlistsVm.state.collectAsState()
-        val backTarget = shellBackTarget(
-            showOverlay = showPlayer || showSettings,
+        val detailBackTarget = shellBackTarget(
+            showOverlay = false,
             hasPlaylistDetail = playlistsState.openPlaylistId != null,
             hasBrowserFolder = browserState.stack.isNotEmpty(),
             hasAudioEntity = audioState.openedEntityTitle != null,
             hasVideoContainer = videoState.containerId != null,
         )
+        val canNavigateBack = backStack.size > 1 || detailBackTarget != null
 
         fun navigateBack() {
-            when (backTarget) {
-                ShellBackTarget.OVERLAY -> {
-                    showPlayer = false
-                    showSettings = false
+            when (currentRoute) {
+                is VideoContainerRoute -> {
+                    videoVm.closeContainer()
+                    popRoute()
+                    return
                 }
+                is AudioEntityRoute -> {
+                    audioVm.closeEntity()
+                    popRoute()
+                    return
+                }
+                is BrowserFolderRoute -> {
+                    browserVm.goUp()
+                    popRoute()
+                    return
+                }
+                is PlaylistDetailRoute -> {
+                    playlistsVm.closeDetail()
+                    popRoute()
+                    return
+                }
+                else -> Unit
+            }
+            if (backStack.size > 1) {
+                popRoute()
+                return
+            }
+            when (detailBackTarget) {
                 ShellBackTarget.PLAYLIST_DETAIL -> playlistsVm.closeDetail()
                 ShellBackTarget.BROWSER_FOLDER -> browserVm.goUp()
                 ShellBackTarget.AUDIO_ENTITY -> audioVm.closeEntity()
                 ShellBackTarget.VIDEO_CONTAINER -> videoVm.closeContainer()
+                ShellBackTarget.OVERLAY -> Unit
                 null -> Unit
             }
         }
 
-        HandleShellBackPress(enabled = backTarget != null, onBack = ::navigateBack)
+        HandleShellBackPress(enabled = canNavigateBack, onBack = ::navigateBack)
 
         Scaffold(
             modifier = modifier.fillMaxSize(),
@@ -152,7 +238,7 @@ fun VlcMainShell(
                         )
                     },
                     actions = {
-                        if (backTarget != null) {
+                        if (canNavigateBack) {
                             TextButton(onClick = ::navigateBack) { Text(ShellStrings.back()) }
                         }
                     }
@@ -165,7 +251,7 @@ fun VlcMainShell(
                             if (videoState.count > 0 || videoState.items.isNotEmpty()) {
                                 FloatingActionButton(onClick = {
                                     videoVm.playAll()
-                                    showPlayer = true
+                                    openPlayer()
                                 }) { Text("▶") }
                             }
                         }
@@ -173,7 +259,7 @@ fun VlcMainShell(
                             if (audioSection == AudioSection.TRACKS && audioState.count > 1) {
                                 FloatingActionButton(onClick = {
                                     audioVm.shuffleAll()
-                                    showPlayer = true
+                                    openPlayer()
                                 }) { Text("⇝") }
                             }
                         }
@@ -189,7 +275,7 @@ fun VlcMainShell(
                                 title = playerState.title.ifBlank { "Not playing" },
                                 subtitle = playerState.subtitle,
                                 playing = playerState.playing,
-                                onExpand = { showPlayer = true },
+                                onExpand = ::openPlayer,
                                 onToggle = playerVm::togglePlayPause,
                             )
                         }
@@ -199,8 +285,6 @@ fun VlcMainShell(
                                     selected = currentTab == t,
                                     onClick = {
                                         selectTab(t)
-                                        showPlayer = false
-                                        showSettings = false
                                     },
                                     icon = {
                                         Text(
@@ -232,253 +316,141 @@ fun VlcMainShell(
             }
         ) { padding ->
             val contentMod = Modifier.padding(padding).fillMaxSize()
-            when {
-                showPlayer -> {
-                    VideoSurfaceWithHud(
-                        title = playerState.title,
-                        subtitle = playerState.subtitle,
-                        playing = playerState.playing,
-                        progress = playerState.progress,
-                        shuffle = playerState.shuffle,
-                        repeatMode = playerState.repeatMode,
-                        onTogglePlay = playerVm::togglePlayPause,
-                        onSeek = playerVm::seekTo,
-                        onNext = playerVm::next,
-                        onPrevious = playerVm::previous,
-                        onToggleShuffle = playerVm::toggleShuffle,
-                        onCycleRepeat = playerVm::cycleRepeat,
-                        onClose = { showPlayer = false },
-                        modifier = contentMod,
-                    ) {
-                        Box(
-                            Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerHighest),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text("♪", style = MaterialTheme.typography.displayLarge, color = colors.primary)
-                        }
-                    }
-                }
-                showSettings -> {
-                    // Reuse shared settings surface from VlcSharedApp pattern
-                    SettingsOnlyPane(modifier = contentMod, vm = settingsVm)
-                }
-                else -> when (currentTab) {
-                    MainTab.VIDEO -> {
-                        RichMediaListPane(
+            NavDisplay(
+                backStack = backStack,
+                modifier = contentMod,
+                entryProvider = entryProvider {
+                    entry<VideoRoute> {
+                        VideoDestination(
+                            modifier = Modifier.fillMaxSize(),
                             state = videoState,
-                            title = "Videos",
-                            emptyLabel = "No videos",
-                            pagingFlow = videoVm.pagingFlow,
-                            groups = videoState.groups,
-                            onQuery = videoVm::setQuery,
-                            onRetry = videoVm::refresh,
-                            onPlay = { videoVm.play(it); showPlayer = true },
-                            onPlayAll = { videoVm.playAll(); showPlayer = true },
-                            onPlayNext = videoVm::playNext,
-                            onAppend = videoVm::append,
-                            onToggleSelect = videoVm::toggleSelect,
-                            onSelectAll = videoVm::selectAll,
-                            onClearSelection = videoVm::clearSelection,
-                            onPlaySelection = {
-                                videoVm.playSelection()
-                                showPlayer = true
-                            },
-                            onAppendSelection = videoVm::appendSelection,
-                            onFavoriteSelection = videoVm::favoriteSelection,
-                            onSetViewMode = videoVm::setViewMode,
-                            onSetSort = videoVm::setSort,
-                            onToggleSortDesc = videoVm::toggleSortDesc,
-                            onToggleFavorites = videoVm::toggleOnlyFavorites,
-                            onCtx = { item, opt ->
-                                when (opt) {
-                                    ContextOption.CTX_INFORMATION,
-                                    ContextOption.CTX_SHARE,
-                                    ContextOption.CTX_DOWNLOAD_SUBTITLES,
-                                    ContextOption.CTX_ADD_SHORTCUT,
-                                    ContextOption.CTX_SET_RINGTONE,
-                                    ContextOption.CTX_BAN_FOLDER,
-                                    ContextOption.CTX_ADD_TO_PLAYLIST,
-                                    -> hostCallbacks.dispatch(item, opt)
-                                    else -> {
-                                        videoVm.handleCtx(item, opt)
-                                        if (opt == ContextOption.CTX_PLAY ||
-                                            opt == ContextOption.CTX_PLAY_ALL
-                                        ) {
-                                            showPlayer = true
-                                        }
-                                    }
-                                }
-                            },
-                            onOpenGroup = videoVm::openContainer,
-                            onCloseContainer = videoVm::closeContainer,
-                            onSetGroupingMode = videoVm::setGroupingMode,
-                            showGroupingToggle = true,
-                            onDefaultAction = videoVm::setDefaultPlaybackAction,
-                            modifier = contentMod,
+                            viewModel = videoVm,
+                            hostCallbacks = hostCallbacks,
+                            onOpenPlayer = ::openPlayer,
+                            onOpenContainer = ::openVideoContainer,
                         )
                     }
-                    MainTab.AUDIO -> {
-                        Column(contentMod) {
-                            if (audioState.openedEntityTitle == null) {
-                                SectionTabs(
-                                    tabs = listOf("Tracks", "Artists", "Albums", "Genres", "Playlists"),
-                                    selected = audioSection.ordinal,
-                                    onSelect = {
-                                        audioVm.setSection(org.videolan.vlc.viewmodel.AudioSection.entries[it])
-                                    },
-                                )
+                    entry<VideoContainerRoute> { route ->
+                        LaunchedEffect(route) {
+                            if (videoVm.state.value.containerId != route.id) {
+                                videoVm.openContainer(route.toMediaFolder())
                             }
-                            RichMediaListPane(
-                                state = audioState,
-                                title = "Audio",
-                                emptyLabel = "No audio",
-                                sections = audioState.sections,
-                                pagingFlow = if (audioSection == org.videolan.vlc.viewmodel.AudioSection.TRACKS &&
-                                    audioState.openedEntityTitle == null
-                                ) {
-                                    audioVm.pagingFlow
-                                } else {
-                                    null
-                                },
-                                onQuery = audioVm::setQuery,
-                                onRetry = audioVm::refresh,
-                                onPlay = { item ->
-                                    val isEntityUri = item.uri.startsWith("artist://") ||
-                                        item.uri.startsWith("album://") ||
-                                        item.uri.startsWith("genre://")
-                                    if (isEntityUri && audioSection != org.videolan.vlc.viewmodel.AudioSection.TRACKS) {
-                                        audioVm.openAudioEntityFromItem(item)
-                                    } else {
-                                        audioVm.play(item)
-                                        showPlayer = true
-                                    }
-                                },
-                                onPlayAll = { audioVm.playAll(); showPlayer = true },
-                                onPlayNext = audioVm::playNext,
-                                onAppend = audioVm::append,
-                                onToggleSelect = audioVm::toggleSelect,
-                                onSelectAll = audioVm::selectAll,
-                                onClearSelection = audioVm::clearSelection,
-                                onPlaySelection = {
-                                    audioVm.playSelection()
-                                    showPlayer = true
-                                },
-                                onAppendSelection = audioVm::appendSelection,
-                                onFavoriteSelection = audioVm::favoriteSelection,
-                                onSetViewMode = audioVm::setViewMode,
-                                onSetSort = audioVm::setSort,
-                                onToggleSortDesc = audioVm::toggleSortDesc,
-                                onToggleFavorites = audioVm::toggleOnlyFavorites,
-                                onCtx = { item, opt ->
-                                    when (opt) {
-                                        ContextOption.CTX_INFORMATION,
-                                        ContextOption.CTX_SHARE,
-                                        ContextOption.CTX_DOWNLOAD_SUBTITLES,
-                                        ContextOption.CTX_ADD_SHORTCUT,
-                                        ContextOption.CTX_SET_RINGTONE,
-                                        ContextOption.CTX_BAN_FOLDER,
-                                        ContextOption.CTX_ADD_TO_PLAYLIST,
-                                        -> hostCallbacks.dispatch(item, opt)
-                                        else -> {
-                                            audioVm.handleCtx(item, opt)
-                                            if (opt == ContextOption.CTX_PLAY ||
-                                                opt == ContextOption.CTX_PLAY_ALL
-                                            ) {
-                                                showPlayer = true
-                                            }
-                                        }
-                                    }
-                                },
-                                onCloseContainer = audioVm::closeEntity,
-                                showAllArtistsToggle = true,
-                                showTrackNumbersToggle = true,
-                                onShowAllArtists = audioVm::setShowAllArtists,
-                                onShowTrackNumbers = audioVm::setShowTrackNumbers,
-                                onDefaultAction = audioVm::setDefaultPlaybackAction,
-                                modifier = Modifier.fillMaxSize(),
-                            )
                         }
+                        VideoDestination(
+                            modifier = Modifier.fillMaxSize(),
+                            state = videoState,
+                            viewModel = videoVm,
+                            hostCallbacks = hostCallbacks,
+                            onOpenPlayer = ::openPlayer,
+                            onOpenContainer = ::openVideoContainer,
+                        )
                     }
-                    MainTab.BROWSER -> {
-                        BrowserRichPane(
+                    entry<AudioRoute> {
+                        AudioDestination(
+                            modifier = Modifier.fillMaxSize(),
+                            state = audioState,
+                            section = audioSection,
+                            viewModel = audioVm,
+                            hostCallbacks = hostCallbacks,
+                            onOpenPlayer = ::openPlayer,
+                            onOpenEntity = ::openAudioEntity,
+                        )
+                    }
+                    entry<AudioEntityRoute> { route ->
+                        LaunchedEffect(route) {
+                            if (audioVm.state.value.containerId != route.id) {
+                                audioVm.openAudioEntity(route.toAudioEntity())
+                            }
+                        }
+                        AudioDestination(
+                            modifier = Modifier.fillMaxSize(),
+                            state = audioState,
+                            section = audioSection,
+                            viewModel = audioVm,
+                            hostCallbacks = hostCallbacks,
+                            onOpenPlayer = ::openPlayer,
+                            onOpenEntity = ::openAudioEntity,
+                        )
+                    }
+                    entry<BrowserRoute> {
+                        BrowserDestination(
+                            modifier = Modifier.fillMaxSize(),
                             state = browserState,
-                            onUp = { browserVm.goUp() },
-                            onRetry = browserVm::refresh,
-                            onOpenFolder = { folder ->
-                                val target = folder.uri.ifBlank { folder.path }
-                                if (
-                                    target.equals("otg://", ignoreCase = true) ||
-                                    target.startsWith("otg://", ignoreCase = true)
-                                ) {
-                                    hostCallbacks.onRequestOtgRoot()
-                                }
-                                browserVm.openFolder(folder)
-                            },
-                            onPlay = { browserVm.play(it); showPlayer = true },
-                            onPlayNext = browserVm::playNext,
-                            onAppend = browserVm::append,
-                            onToggleSelect = browserVm::toggleSelect,
-                            onClearSelection = browserVm::clearSelection,
-                            onPlaySelection = {
-                                browserVm.playSelection()
-                                showPlayer = true
-                            },
-                            onAppendSelection = browserVm::appendSelection,
-                            onDefaultAction = browserVm::setDefaultPlaybackAction,
-                            onShowHiddenFiles = browserVm::setShowHiddenFiles,
-                            onShowOnlyMultimedia = browserVm::setShowOnlyMultimedia,
-                            modifier = contentMod,
+                            viewModel = browserVm,
+                            onOpenPlayer = ::openPlayer,
+                            onOpenFolder = ::openBrowserFolder,
                         )
                     }
-                    MainTab.PLAYLISTS -> {
-                        PlaylistsRichPane(
+                    entry<BrowserFolderRoute> { route ->
+                        LaunchedEffect(route) {
+                            browserVm.restoreFolderStack(route.toMediaFolders())
+                        }
+                        BrowserDestination(
+                            modifier = Modifier.fillMaxSize(),
+                            state = browserState,
+                            viewModel = browserVm,
+                            onOpenPlayer = ::openPlayer,
+                            onOpenFolder = ::openBrowserFolder,
+                        )
+                    }
+                    entry<PlaylistsRoute> {
+                        PlaylistsDestination(
+                            modifier = Modifier.fillMaxSize(),
                             state = playlistsState,
-                            onCreate = playlistsVm::create,
-                            onOpen = playlistsVm::openPlaylist,
-                            onPlay = { playlistsVm.playPlaylist(it); showPlayer = true },
-                            onShufflePlay = { playlistsVm.shufflePlay(it); showPlayer = true },
-                            onDelete = playlistsVm::delete,
-                            onRename = playlistsVm::rename,
-                            onSetFavorite = playlistsVm::setFavorite,
-                            onToggleSelect = playlistsVm::toggleSelect,
-                            onClearSelection = playlistsVm::clearSelection,
-                            onDeleteSelection = playlistsVm::deleteSelection,
-                            onToggleFavorites = playlistsVm::toggleOnlyFavorites,
-                            onToggleSortDesc = playlistsVm::toggleSortDesc,
-                            onSetViewMode = playlistsVm::setViewMode,
-                            onPlayItem = { playlistsVm.playItem(it); showPlayer = true },
-                            onRemoveTrack = playlistsVm::removeTrackAt,
-                            onMoveTrackUp = playlistsVm::moveTrackUp,
-                            onMoveTrackDown = playlistsVm::moveTrackDown,
-                            onBack = playlistsVm::closeDetail,
-                            onRetry = playlistsVm::refresh,
-                            modifier = contentMod,
+                            viewModel = playlistsVm,
+                            onOpenPlayer = ::openPlayer,
+                            onOpenPlaylist = ::openPlaylist,
                         )
                     }
-                    MainTab.MORE -> MorePane(
-                        modifier = contentMod,
-                        vm = moreVm,
-                        onOpenSettings = {
-                            if (onOpenSettings != null) onOpenSettings()
-                            else showSettings = true
-                        },
-                        onOpenRemote = onOpenRemoteClient,
-                        onOpenAbout = hostCallbacks::onOpenAbout,
-                        onOpenDonate = hostCallbacks::onOpenDonate,
-                        onPlayHistory = { entry ->
-                            moreVm.playHistory(entry)
-                            showPlayer = true
-                        },
-                    )
-                }
-            }
+                    entry<PlaylistDetailRoute> { route ->
+                        LaunchedEffect(route) {
+                            if (playlistsVm.state.value.openPlaylistId != route.id) {
+                                playlistsVm.openPlaylist(route.toPlaylistInfo())
+                            }
+                        }
+                        PlaylistsDestination(
+                            modifier = Modifier.fillMaxSize(),
+                            state = playlistsState,
+                            viewModel = playlistsVm,
+                            onOpenPlayer = ::openPlayer,
+                            onOpenPlaylist = ::openPlaylist,
+                        )
+                    }
+                    entry<MoreRoute> {
+                        MoreDestination(
+                            modifier = Modifier.fillMaxSize(),
+                            viewModel = moreVm,
+                            onOpenSettings = {
+                                if (onOpenSettings != null) onOpenSettings() else backStack.add(SettingsRoute)
+                            },
+                            onOpenRemote = onOpenRemoteClient,
+                            hostCallbacks = hostCallbacks,
+                            onOpenPlayer = ::openPlayer,
+                        )
+                    }
+                    entry<PlayerRoute> {
+                        PlayerDestination(
+                            modifier = Modifier.fillMaxSize(),
+                            state = playerState,
+                            viewModel = playerVm,
+                            onClose = ::popRoute,
+                        )
+                    }
+                    entry<SettingsRoute> {
+                        SettingsDestination(
+                            modifier = Modifier.fillMaxSize(),
+                            viewModel = settingsVm,
+                        )
+                    }
+                },
+            )
         }
     }
 }
 
 
 @Composable
-private fun MorePane(
+internal fun MorePane(
     modifier: Modifier,
     vm: MoreHubViewModel,
     onOpenSettings: () -> Unit,
@@ -639,7 +611,7 @@ private fun SurfaceRow(label: String, onClick: () -> Unit) {
 }
 
 @Composable
-private fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
+internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
     // Lightweight settings list — mirrors SettingsViewModel toggles
     val state by vm.state.collectAsState()
     LazyColumn(modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {

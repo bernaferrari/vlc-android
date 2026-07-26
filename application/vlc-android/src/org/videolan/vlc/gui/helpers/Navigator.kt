@@ -37,7 +37,7 @@ import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.R
 import org.videolan.vlc.app.VlcKoin
-import org.videolan.vlc.compose.app.VlcMainShell
+import org.videolan.vlc.compose.app.VlcKoinMainShell
 import org.videolan.vlc.kmp.AndroidShellHostCallbacks
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.gui.MainActivity
@@ -146,7 +146,7 @@ class Navigator : DefaultLifecycleObserver, INavigator {
                 setContent {
                     VLCTheme {
                         // Controlled by Android bottom chrome — hide internal bar.
-                        VlcMainShell(
+                        VlcKoinMainShell(
                             tab = sharedTab,
                             onTabChange = { t ->
                                 sharedTab = t

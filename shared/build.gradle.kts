@@ -1,3 +1,5 @@
+@file:OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+
 /*
  * Shared KMP module for VLC Android.
  *
@@ -23,6 +25,7 @@ plugins {
     id("com.android.library")
     id("org.jetbrains.compose")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.devtools.ksp")
 }
 
@@ -56,6 +59,11 @@ kotlin {
         }
     }
 
+    wasmJs {
+        browser()
+        useEsModules()
+    }
+
     // iOS targets (no x86 simulator — Apple Silicon only)
     listOf(
         iosArm64(),
@@ -79,6 +87,8 @@ kotlin {
                 api(libs.okio)
                 // Koin — dependency injection for KMP
                 api(libs.koin.core)
+                api(libs.koin.compose)
+                api(libs.kotlinx.serialization.core)
                 // Compose Multiplatform — shared UI across all targets
                 api(compose.runtime)
                 api(compose.foundation)
@@ -86,6 +96,8 @@ kotlin {
                 api(compose.animation)
                 api(compose.ui)
                 api(compose.components.resources)
+                // Navigation 3 is available for Android, iOS, JVM, and Wasm on Compose 1.10+.
+                api(libs.jetbrains.navigation3.ui)
                 // Paging 3 — KMP common + Compose Multiplatform integration
                 api(libs.androidx.paging.common)
                 api(libs.androidx.paging.compose)

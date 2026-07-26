@@ -7,7 +7,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import org.videolan.vlc.compose.app.VlcMainShell
+import org.videolan.vlc.compose.app.VlcKoinMainShell
 import org.videolan.vlc.kmp.AndroidShellHostCallbacks
 import org.videolan.vlc.kmp.VlcKmpInitializer
 
@@ -16,7 +16,7 @@ import org.videolan.vlc.kmp.VlcKmpInitializer
  * (Video / Audio / Browser / Playlists / More).
  * Launch from More → "VLC Shared" or deep link for QA.
  *
- * Uses the same [VlcMainShell] as iOS [org.videolan.vlc.compose.app.MainViewController].
+ * Uses the same [VlcKoinMainShell] as iOS [org.videolan.vlc.compose.app.MainViewController].
  */
 class SharedAppActivity : BaseActivity() {
 
@@ -34,7 +34,7 @@ class SharedAppActivity : BaseActivity() {
         root = ComposeView(this).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
-                VlcMainShell(
+                VlcKoinMainShell(
                     title = getString(org.videolan.vlc.R.string.app_name),
                     hostCallbacks = hostCallbacks,
                 )

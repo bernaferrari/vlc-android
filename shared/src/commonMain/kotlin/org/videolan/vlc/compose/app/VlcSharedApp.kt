@@ -7,14 +7,14 @@ import org.videolan.vlc.viewmodel.MainTab
 /**
  * Deprecated thin wrapper around [VlcMainShell].
  *
- * Prefer [VlcMainShell] directly (Android main path, iOS [MainViewController], previews).
+ * Prefer [VlcKoinMainShell] in a host and [VlcMainShell] in previews/tests.
  * Kept for binary/source compatibility with older lab callers.
  */
 @Deprecated(
-    message = "Use VlcMainShell instead",
+    message = "Use VlcKoinMainShell instead",
     replaceWith = ReplaceWith(
-        "VlcMainShell(modifier = modifier, title = title, hostCallbacks = hostCallbacks)",
-        "org.videolan.vlc.compose.app.VlcMainShell",
+        "VlcKoinMainShell(modifier = modifier, title = title, hostCallbacks = hostCallbacks)",
+        "org.videolan.vlc.compose.app.VlcKoinMainShell",
         "org.videolan.vlc.compose.app.ShellHostCallbacks",
     ),
 )
@@ -27,7 +27,7 @@ fun VlcSharedApp(
     onOpenSettings: (() -> Unit)? = null,
     onOpenRemoteClient: (() -> Unit)? = null,
 ) {
-    VlcMainShell(
+    VlcKoinMainShell(
         modifier = modifier,
         title = title,
         initialTab = initialTab,

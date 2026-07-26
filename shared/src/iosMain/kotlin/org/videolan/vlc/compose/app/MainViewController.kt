@@ -23,6 +23,6 @@ fun MainViewController(): UIViewController {
         VlcKoin.get().get<MediaSessionBridge>().activate()
     }
     return ComposeUIViewController {
-        VlcMainShell(title = "VLC")
+        VlcKoinMainShell(title = "VLC")
     }
 }
