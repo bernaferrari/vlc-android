@@ -255,7 +255,7 @@ fun RichMediaListPane(
         val countLabel = when {
             groups.isNotEmpty() -> "${groups.size} groups"
             usePaging -> {
-                val n = lazyPagingItems!!.itemCount
+                val n = lazyPagingItems.itemCount
                 if (n > 0) "$n+ items" else "${state.count} items"
             }
             else -> "${state.count} items"
@@ -301,7 +301,7 @@ fun RichMediaListPane(
             usePaging -> {
                 PagedMediaBody(
                     state = state,
-                    lazyPagingItems = lazyPagingItems!!,
+                    lazyPagingItems = lazyPagingItems,
                     emptyLabel = emptyLabel,
                     onPlay = onPlay,
                     onPlayNext = onPlayNext,
@@ -360,6 +360,7 @@ private fun PagedMediaBody(
                 MediaGridCard(
                     item = item,
                     selected = item.uri in state.selection,
+                    showTrackNumbers = state.showTrackNumbers,
                     onClick = {
                         if (state.selection.isNotEmpty()) onToggleSelect(item)
                         else onPlay(item)
@@ -385,6 +386,7 @@ private fun PagedMediaBody(
                     item = item,
                     selected = item.uri in state.selection,
                     selecting = state.selection.isNotEmpty(),
+                    showTrackNumbers = state.showTrackNumbers,
                     onPlay = onPlay,
                     onPlayNext = onPlayNext,
                     onAppend = onAppend,
@@ -432,6 +434,7 @@ private fun SnapshotMediaBody(
                     MediaGridCard(
                         item = item,
                         selected = item.uri in state.selection,
+                        showTrackNumbers = state.showTrackNumbers,
                         onClick = {
                             if (state.selection.isNotEmpty()) onToggleSelect(item)
                             else onPlay(item)
@@ -465,6 +468,7 @@ private fun SnapshotMediaBody(
                         item = item,
                         selected = item.uri in state.selection,
                         selecting = state.selection.isNotEmpty(),
+                        showTrackNumbers = state.showTrackNumbers,
                         onPlay = onPlay,
                         onPlayNext = onPlayNext,
                         onAppend = onAppend,
@@ -483,6 +487,7 @@ private fun MediaListRow(
     item: MediaItem,
     selected: Boolean,
     selecting: Boolean,
+    showTrackNumbers: Boolean,
     onPlay: (MediaItem) -> Unit,
     onPlayNext: (MediaItem) -> Unit,
     onAppend: (MediaItem) -> Unit,
@@ -490,10 +495,14 @@ private fun MediaListRow(
     onCtx: (MediaItem, ContextOption) -> Unit,
 ) {
     var menu by remember { mutableStateOf(false) }
+    val trackNumber = item.trackNumber.takeIf {
+        showTrackNumbers && item.isAudio && it > 0
+    }?.let { "#$it" }
     Box {
         VLCBrowserItemRow(
             title = item.displayTitle,
             subtitle = listOfNotNull(
+                trackNumber,
                 item.artist,
                 item.album,
                 item.description,
@@ -543,6 +552,19 @@ private fun MediaContextMenu(
         DropdownMenuItem(text = { Text("Play all") }, onClick = {
             onDismiss(); onCtx(item, ContextOption.CTX_PLAY_ALL)
         })
+        DropdownMenuItem(text = { Text(ShellStrings.addToPlaylist()) }, onClick = {
+            onDismiss(); onCtx(item, ContextOption.CTX_ADD_TO_PLAYLIST)
+        })
+        if (item.isVideo) {
+            DropdownMenuItem(text = { Text(ShellStrings.downloadSubtitles()) }, onClick = {
+                onDismiss(); onCtx(item, ContextOption.CTX_DOWNLOAD_SUBTITLES)
+            })
+        }
+        if (item.isAudio) {
+            DropdownMenuItem(text = { Text(ShellStrings.setRingtone()) }, onClick = {
+                onDismiss(); onCtx(item, ContextOption.CTX_SET_RINGTONE)
+            })
+        }
         if (item.isFavorite) {
             DropdownMenuItem(text = { Text("Remove favorite") }, onClick = {
                 onDismiss(); onCtx(item, ContextOption.CTX_FAV_REMOVE)
@@ -558,6 +580,9 @@ private fun MediaContextMenu(
         DropdownMenuItem(text = { Text("Mark unplayed") }, onClick = {
             onDismiss(); onCtx(item, ContextOption.CTX_MARK_AS_UNPLAYED)
         })
+        DropdownMenuItem(text = { Text(ShellStrings.share()) }, onClick = {
+            onDismiss(); onCtx(item, ContextOption.CTX_SHARE)
+        })
         DropdownMenuItem(text = { Text("Info") }, onClick = {
             onDismiss(); onCtx(item, ContextOption.CTX_INFORMATION)
         })
@@ -569,6 +594,7 @@ private fun MediaContextMenu(
 fun MediaGridCard(
     item: MediaItem,
     selected: Boolean,
+    showTrackNumbers: Boolean = false,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     onMore: () -> Unit,
@@ -618,7 +644,10 @@ fun MediaGridCard(
             modifier = Modifier.padding(top = 6.dp),
             style = MaterialTheme.typography.bodyMedium,
         )
-        val sub = listOfNotNull(item.artist, item.description, formatDuration(item.duration))
+        val trackNumber = item.trackNumber.takeIf {
+            showTrackNumbers && item.isAudio && it > 0
+        }?.let { "#$it" }
+        val sub = listOfNotNull(trackNumber, item.artist, item.description, formatDuration(item.duration))
             .filter { it.isNotBlank() }
             .joinToString(" · ")
         if (sub.isNotBlank()) {

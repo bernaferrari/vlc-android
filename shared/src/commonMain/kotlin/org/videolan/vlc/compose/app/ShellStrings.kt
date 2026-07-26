@@ -4,12 +4,14 @@ import androidx.compose.runtime.Composable
 import org.jetbrains.compose.resources.stringResource
 import vlc_android.shared.generated.resources.Res
 import vlc_android.shared.generated.resources.about
+import vlc_android.shared.generated.resources.add_to_playlist
 import vlc_android.shared.generated.resources.append
 import vlc_android.shared.generated.resources.back
 import vlc_android.shared.generated.resources.cancel
 import vlc_android.shared.generated.resources.clear
 import vlc_android.shared.generated.resources.delete
 import vlc_android.shared.generated.resources.display_settings
+import vlc_android.shared.generated.resources.download_subtitles
 import vlc_android.shared.generated.resources.favorites
 import vlc_android.shared.generated.resources.history
 import vlc_android.shared.generated.resources.info
@@ -22,7 +24,9 @@ import vlc_android.shared.generated.resources.play_all
 import vlc_android.shared.generated.resources.remove
 import vlc_android.shared.generated.resources.search
 import vlc_android.shared.generated.resources.select
+import vlc_android.shared.generated.resources.set_song
 import vlc_android.shared.generated.resources.settings
+import vlc_android.shared.generated.resources.share
 import vlc_android.shared.generated.resources.sortby
 
 /**
@@ -33,6 +37,7 @@ object ShellStrings {
     @Composable fun play(): String = stringResource(Res.string.play)
     @Composable fun playAll(): String = stringResource(Res.string.play_all)
     @Composable fun append(): String = stringResource(Res.string.append)
+    @Composable fun addToPlaylist(): String = stringResource(Res.string.add_to_playlist)
     @Composable fun insertNext(): String = stringResource(Res.string.insert_next)
     @Composable fun delete(): String = stringResource(Res.string.delete)
     @Composable fun remove(): String = stringResource(Res.string.remove)
@@ -42,6 +47,9 @@ object ShellStrings {
     @Composable fun settings(): String = stringResource(Res.string.settings)
     @Composable fun about(): String = stringResource(Res.string.about)
     @Composable fun info(): String = stringResource(Res.string.info)
+    @Composable fun share(): String = stringResource(Res.string.share)
+    @Composable fun downloadSubtitles(): String = stringResource(Res.string.download_subtitles)
+    @Composable fun setRingtone(): String = stringResource(Res.string.set_song)
     @Composable fun sortBy(): String = stringResource(Res.string.sortby)
     @Composable fun cancel(): String = stringResource(Res.string.cancel)
     @Composable fun ok(): String = stringResource(Res.string.ok)

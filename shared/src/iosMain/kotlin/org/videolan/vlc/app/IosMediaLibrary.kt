@@ -3,6 +3,7 @@ package org.videolan.vlc.app
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import org.videolan.vlc.model.HistoryEntry
 import org.videolan.vlc.model.MediaFolder
@@ -17,6 +18,7 @@ import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSSearchPathForDirectoriesInDomains
 import platform.Foundation.NSUserDomainMask
+import kotlin.time.Clock
 
 /**
  * Full in-process iOS media library: media catalog, folder tree, playlists, history.
@@ -29,6 +31,7 @@ class IosMediaLibrary : MediaRepository, PlaylistRepository, HistoryRepository, 
     private val folders = MutableStateFlow<List<MediaFolder>>(emptyList())
     private val folderMedia = MutableStateFlow<Map<Long, List<Long>>>(emptyMap()) // folderId -> media ids
     private val playlists = MutableStateFlow<Map<Long, Playlist>>(emptyMap())
+    private val favoritePlaylistIds = MutableStateFlow<Set<Long>>(emptySet())
     private val history = MutableStateFlow<List<HistoryEntry>>(emptyList())
     private var nextId = 10_000L
     private var nextFolderId = 1L
@@ -41,18 +44,20 @@ class IosMediaLibrary : MediaRepository, PlaylistRepository, HistoryRepository, 
 
     // --- MediaRepository ---
 
-    override fun replaceAllPublic(media: List<MediaItem>) = replaceAll(media)
+    override fun replaceAllPublic(items: List<MediaItem>) = replaceAll(items)
 
     fun snapshot(): List<MediaItem> = items.value
 
     fun replaceAll(media: List<MediaItem>) {
         items.value = media
+        nextId = maxOf(nextId, (media.maxOfOrNull { it.id } ?: 0L) + 1L)
         rebuildFolderIndex()
     }
 
     fun upsert(media: MediaItem) {
         val without = items.value.filterNot { it.uri == media.uri }
         items.value = without + media
+        nextId = maxOf(nextId, media.id + 1L)
         rebuildFolderIndex()
     }
 
@@ -115,7 +120,11 @@ class IosMediaLibrary : MediaRepository, PlaylistRepository, HistoryRepository, 
             upsert(item.copy(isFavorite = favorite))
             return
         }
-        // Playlist favorite flag is not persisted in the in-memory iOS catalog yet.
+        if (playlists.value.containsKey(id)) {
+            favoritePlaylistIds.value = favoritePlaylistIds.value.let { ids ->
+                if (favorite) ids + id else ids - id
+            }
+        }
     }
 
     override fun observeFolders(parentId: Long?): Flow<List<MediaFolder>> =
@@ -141,14 +150,14 @@ class IosMediaLibrary : MediaRepository, PlaylistRepository, HistoryRepository, 
     // --- PlaylistRepository ---
 
     override fun observePlaylists(): Flow<List<PlaylistInfo>> =
-        playlists.map { map ->
+        combine(playlists, favoritePlaylistIds) { map, favorites ->
             map.values.map {
                 PlaylistInfo(
                     id = it.id,
                     name = it.name,
                     itemCount = it.items.size,
                     duration = it.items.sumOf { m -> m.duration },
-                    isFavorite = false,
+                    isFavorite = it.id in favorites,
                 )
             }
         }
@@ -175,6 +184,7 @@ class IosMediaLibrary : MediaRepository, PlaylistRepository, HistoryRepository, 
 
     override suspend fun deletePlaylist(id: Long) {
         playlists.value = playlists.value - id
+        favoritePlaylistIds.value -= id
     }
 
     override suspend fun renamePlaylist(id: Long, name: String) {
@@ -284,7 +294,7 @@ class IosMediaLibrary : MediaRepository, PlaylistRepository, HistoryRepository, 
             else -> filter { it.type == type }
         }
 
-    private fun currentTimeMs(): Long = 0L // set by platform on play; history uses markAsPlayed timestamps
+    private fun currentTimeMs(): Long = Clock.System.now().toEpochMilliseconds()
 
     companion object {
         val shared: IosMediaLibrary by lazy { IosMediaLibrary() }

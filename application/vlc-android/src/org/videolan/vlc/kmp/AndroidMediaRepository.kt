@@ -88,7 +88,7 @@ class AndroidMediaRepository(
             return Pager(
                 config = pagingConfig(),
                 pagingSourceFactory = {
-                    ListPagingSource {
+                    ListPagingSource(registerInvalidation = ::registerMediaInvalidation) {
                         withContext(Dispatchers.IO) { loadMediaSnapshot(query) }
                     }
                 },
@@ -103,6 +103,7 @@ class AndroidMediaRepository(
                         loadPagedMedia(query, loadSize, offset)
                     },
                     totalCount = { countPagedMedia(query) },
+                    registerInvalidation = ::registerMediaInvalidation,
                 )
             },
         ).flow
@@ -386,6 +387,22 @@ class AndroidMediaRepository(
 
     private fun mediaCallbackFlow(query: () -> List<MediaItem>): Flow<List<MediaItem>> =
         libraryCallbackFlow(query)
+
+    /**
+     * Native paging queries are point-in-time snapshots.  Tie each PagingSource to
+     * medialibrary changes so favorite, scan and deletion operations refresh the
+     * visible Compose list instead of leaving it stale until the user changes a filter.
+     */
+    private fun registerMediaInvalidation(invalidate: () -> Unit): () -> Unit {
+        val callback = object : Medialibrary.MediaCb {
+            override fun onMediaAdded() = invalidate()
+            override fun onMediaModified() = invalidate()
+            override fun onMediaDeleted(id: LongArray?) = invalidate()
+            override fun onMediaConvertedToExternal(id: LongArray?) = invalidate()
+        }
+        medialibrary.addMediaCb(callback)
+        return { medialibrary.removeMediaCb(callback) }
+    }
 
     override fun observeFolders(parentId: Long?): Flow<List<MediaFolder>> {
         if (parentId != null) {
@@ -926,7 +943,14 @@ internal fun MediaSort.toMlSort(): Int = when (this) {
 private class OffsetMediaPagingSource(
     private val loadPage: (loadSize: Int, offset: Int) -> List<MediaItem>,
     private val totalCount: () -> Int,
+    registerInvalidation: ((invalidate: () -> Unit) -> (() -> Unit))? = null,
 ) : PagingSource<Int, MediaItem>() {
+
+    private val unregisterInvalidation = registerInvalidation?.invoke(::invalidate)
+
+    init {
+        registerInvalidatedCallback { unregisterInvalidation?.invoke() }
+    }
 
     override fun getRefreshKey(state: PagingState<Int, MediaItem>): Int? {
         val anchor = state.anchorPosition ?: return null

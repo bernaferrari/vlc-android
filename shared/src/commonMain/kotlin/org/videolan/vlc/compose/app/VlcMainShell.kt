@@ -291,8 +291,6 @@ fun VlcMainShell(
                             onCloseContainer = videoVm::closeContainer,
                             onSetGroupingMode = videoVm::setGroupingMode,
                             showGroupingToggle = true,
-                            showTrackNumbersToggle = true,
-                            onShowTrackNumbers = videoVm::setShowTrackNumbers,
                             onDefaultAction = videoVm::setDefaultPlaybackAction,
                             modifier = contentMod,
                         )

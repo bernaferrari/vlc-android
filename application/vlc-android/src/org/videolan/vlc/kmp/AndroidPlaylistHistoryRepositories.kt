@@ -29,8 +29,22 @@ class AndroidPlaylistRepository(
 ) : PlaylistRepository {
 
     override fun observePlaylists(): Flow<List<PlaylistInfo>> = callbackFlow {
-        trySend(loadPlaylists())
-        awaitClose { }
+        fun emitLatest() {
+            try {
+                trySend(loadPlaylists())
+            } catch (_: Exception) {
+                trySend(emptyList())
+            }
+        }
+
+        val callback = object : Medialibrary.PlaylistsCb {
+            override fun onPlaylistsAdded() = emitLatest()
+            override fun onPlaylistsModified() = emitLatest()
+            override fun onPlaylistsDeleted() = emitLatest()
+        }
+        medialibrary.addPlaylistCb(callback)
+        emitLatest()
+        awaitClose { medialibrary.removePlaylistCb(callback) }
     }.flowOn(Dispatchers.IO)
 
     override fun observePlaylistsPaged(
@@ -47,6 +61,12 @@ class AndroidPlaylistRepository(
             ),
             pagingSourceFactory = {
                 object : PagingSource<Int, PlaylistInfo>() {
+                    private val unregisterInvalidation = registerPlaylistInvalidation(::invalidate)
+
+                    init {
+                        registerInvalidatedCallback { unregisterInvalidation() }
+                    }
+
                     override fun getRefreshKey(state: PagingState<Int, PlaylistInfo>): Int? {
                         val anchor = state.anchorPosition ?: return null
                         val page = state.closestPageToPosition(anchor) ?: return null
@@ -155,6 +175,17 @@ class AndroidPlaylistRepository(
         return list.map { it.toPlaylistInfo() }
     }
 
+    /** Keep the native paging path in sync with playlist mutations. */
+    private fun registerPlaylistInvalidation(invalidate: () -> Unit): () -> Unit {
+        val callback = object : Medialibrary.PlaylistsCb {
+            override fun onPlaylistsAdded() = invalidate()
+            override fun onPlaylistsModified() = invalidate()
+            override fun onPlaylistsDeleted() = invalidate()
+        }
+        medialibrary.addPlaylistCb(callback)
+        return { medialibrary.removePlaylistCb(callback) }
+    }
+
     private fun loadPagedPlaylists(
         sort: MediaSort,
         desc: Boolean,
@@ -222,8 +253,20 @@ class AndroidHistoryRepository(
 ) : HistoryRepository {
 
     override fun observeHistory(limit: Int): Flow<List<HistoryEntry>> = callbackFlow {
-        trySend(load(limit))
-        awaitClose { }
+        fun emitLatest() {
+            try {
+                trySend(load(limit))
+            } catch (_: Exception) {
+                trySend(emptyList())
+            }
+        }
+
+        val callback = object : Medialibrary.HistoryCb {
+            override fun onHistoryModified() = emitLatest()
+        }
+        medialibrary.addHistoryCb(callback)
+        emitLatest()
+        awaitClose { medialibrary.removeHistoryCb(callback) }
     }.flowOn(Dispatchers.IO)
 
     override suspend fun addToHistory(item: MediaItem) = withContext(Dispatchers.IO) {
@@ -239,7 +282,13 @@ class AndroidHistoryRepository(
         Unit
     }
 
-    override suspend fun removeHistoryEntry(id: Long) = Unit
+    override suspend fun removeHistoryEntry(id: Long) = withContext(Dispatchers.IO) {
+        if (!medialibrary.isInitiated) return@withContext
+        medialibrary.history(Medialibrary.HISTORY_TYPE_LOCAL)
+            ?.firstOrNull { it.id == id }
+            ?.removeFromHistory()
+        Unit
+    }
 
     private fun load(limit: Int): List<HistoryEntry> {
         if (!medialibrary.isInitiated) return emptyList()

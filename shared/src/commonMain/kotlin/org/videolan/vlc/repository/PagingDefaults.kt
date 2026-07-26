@@ -97,8 +97,16 @@ internal fun sortMedia(items: List<MediaItem>, sort: MediaSort): List<MediaItem>
  * Used as the default for platforms without native paged ML queries.
  */
 class ListPagingSource<T : Any>(
+    /** Optional platform hook used to invalidate stale page snapshots. */
+    registerInvalidation: ((invalidate: () -> Unit) -> (() -> Unit))? = null,
     private val loader: suspend () -> List<T>,
 ) : PagingSource<Int, T>() {
+    private val unregisterInvalidation = registerInvalidation?.invoke(::invalidate)
+
+    init {
+        registerInvalidatedCallback { unregisterInvalidation?.invoke() }
+    }
+
     override fun getRefreshKey(state: PagingState<Int, T>): Int? {
         val anchor = state.anchorPosition ?: return null
         val page = state.closestPageToPosition(anchor) ?: return null

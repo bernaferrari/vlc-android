@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -40,7 +41,6 @@ object NoOpArtworkLoader : ArtworkLoader {
  * Compose entry points (keeps commonMain free of platform image frameworks).
  */
 object ArtworkLoaderHolder {
-    @Volatile
     var loader: ArtworkLoader = NoOpArtworkLoader
 
     fun install(loader: ArtworkLoader) {
@@ -78,13 +78,14 @@ fun MediaArtworkUri(
     fallback: @Composable () -> Unit,
 ) {
     val loader = ArtworkLoaderHolder.loader
-    var bitmap by remember(uri, size) { mutableStateOf<ImageBitmap?>(null) }
-    LaunchedEffect(uri, size, loader) {
+    val requestedWidthPx = with(LocalDensity.current) {
+        size.roundToPx().coerceIn(48, 512)
+    }
+    var bitmap by remember(uri, requestedWidthPx) { mutableStateOf<ImageBitmap?>(null) }
+    LaunchedEffect(uri, requestedWidthPx, loader) {
         bitmap = null
         if (!uri.isNullOrBlank()) {
-            // Approximate dp→px without android Density dependency: 2x is fine for list thumbs.
-            val px = (size.value * 2f).toInt().coerceIn(48, 512)
-            bitmap = runCatching { loader.loadBitmap(uri, px) }.getOrNull()
+            bitmap = runCatching { loader.loadBitmap(uri, requestedWidthPx) }.getOrNull()
         }
     }
     Box(
