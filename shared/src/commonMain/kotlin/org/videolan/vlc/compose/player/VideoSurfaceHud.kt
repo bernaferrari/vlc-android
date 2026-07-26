@@ -1,8 +1,5 @@
 package org.videolan.vlc.compose.player
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -18,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -38,6 +36,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.model.Progress
 import org.videolan.vlc.model.RepeatMode
 
@@ -87,12 +87,7 @@ fun VideoSurfaceWithHud(
             surface()
         }
 
-        AnimatedVisibility(
-            visible = hudVisible,
-            enter = fadeIn(),
-            exit = fadeOut(),
-            modifier = Modifier.fillMaxSize(),
-        ) {
+        if (hudVisible) {
             VideoHudOverlay(
                 title = title,
                 subtitle = subtitle,
@@ -147,7 +142,13 @@ fun VideoHudOverlay(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 if (onClose != null) {
-                    TextButton(onClick = onClose) { Text("Close", color = Color.White) }
+                    IconButton(onClick = onClose) {
+                        Icon(
+                            icon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Close player",
+                            tint = Color.White,
+                        )
+                    }
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -203,10 +204,20 @@ fun VideoHudOverlay(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                TextButton(onClick = onToggleShuffle) {
-                    Text(if (shuffle) "Shuffle*" else "Shuffle", color = Color.White)
+                IconButton(onClick = onToggleShuffle) {
+                    Icon(
+                        icon = MaterialSymbols.Filled.Shuffle,
+                        contentDescription = "Shuffle",
+                        tint = if (shuffle) colors.primary else Color.White,
+                    )
                 }
-                TextButton(onClick = onPrevious) { Text("Prev", color = Color.White) }
+                IconButton(onClick = onPrevious) {
+                    Icon(
+                        icon = MaterialSymbols.Filled.SkipPrevious,
+                        contentDescription = "Previous",
+                        tint = Color.White,
+                    )
+                }
                 Surface(
                     shape = CircleShape,
                     color = colors.primary,
@@ -216,22 +227,30 @@ fun VideoHudOverlay(
                         .clickable(onClick = onTogglePlay),
                 ) {
                     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                        Text(
-                            if (playing) "Pause" else "Play",
-                            color = colors.onPrimary,
-                            fontWeight = FontWeight.Bold,
+                        Icon(
+                            icon = if (playing) MaterialSymbols.Filled.Pause else MaterialSymbols.Filled.PlayArrow,
+                            contentDescription = if (playing) "Pause" else "Play",
+                            tint = colors.onPrimary,
+                            modifier = Modifier.size(32.dp),
                         )
                     }
                 }
-                TextButton(onClick = onNext) { Text("Next", color = Color.White) }
-                TextButton(onClick = onCycleRepeat) {
-                    Text(
-                        when (repeatMode) {
-                            RepeatMode.NONE -> "Rep"
-                            RepeatMode.ALL -> "RepA"
-                            RepeatMode.ONE -> "Rep1"
+                IconButton(onClick = onNext) {
+                    Icon(
+                        icon = MaterialSymbols.Filled.SkipNext,
+                        contentDescription = "Next",
+                        tint = Color.White,
+                    )
+                }
+                IconButton(onClick = onCycleRepeat) {
+                    Icon(
+                        icon = if (repeatMode == RepeatMode.ONE) MaterialSymbols.Filled.RepeatOne else MaterialSymbols.Filled.Repeat,
+                        contentDescription = when (repeatMode) {
+                            RepeatMode.NONE -> "Repeat off"
+                            RepeatMode.ALL -> "Repeat all"
+                            RepeatMode.ONE -> "Repeat one"
                         },
-                        color = Color.White,
+                        tint = if (repeatMode == RepeatMode.NONE) Color.White else colors.primary,
                     )
                 }
             }

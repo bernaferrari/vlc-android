@@ -1,19 +1,14 @@
 package org.videolan.vlc.compose.app
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -24,13 +19,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import org.videolan.vlc.compose.components.VLCBrowserItemRow
+import org.videolan.vlc.compose.components.VLCIconChip
+import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialIcon
+import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.model.HistoryEntry
-import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.viewmodel.MoreHubViewModel
 
 /** Feature-scoped More hub UI, including independent history/stream retry states. */
@@ -58,11 +55,11 @@ internal fun MorePane(
                 Text(state.platformName, color = colors.fontLight, style = MaterialTheme.typography.bodySmall)
             }
         }
-        item { MoreAction(ShellStrings.settings(), onOpenSettings) }
-        item { MoreAction(ShellStrings.about(), onOpenAbout) }
-        item { MoreAction("Donate", onOpenDonate) }
+        item { MoreAction(MaterialSymbols.Filled.Settings, ShellStrings.settings(), onOpenSettings) }
+        item { MoreAction(MaterialSymbols.Filled.Info, ShellStrings.about(), onOpenAbout) }
+        item { MoreAction(MaterialSymbols.Filled.Star, "Donate", onOpenDonate) }
         if (onOpenRemote != null) {
-            item { MoreAction("Remote", onOpenRemote) }
+            item { MoreAction(MaterialSymbols.Filled.Devices, "Remote", onOpenRemote) }
         }
 
         item { Text("Streams", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) }
@@ -75,6 +72,7 @@ internal fun MorePane(
                         modifier = Modifier.weight(1f),
                         singleLine = true,
                         label = { Text("Rename stream") },
+                        shape = MaterialTheme.shapes.extraLarge,
                     )
                     TextButton(onClick = {
                         val id = renameStreamId
@@ -92,16 +90,29 @@ internal fun MorePane(
             }
         }
         items(state.streams, key = { "s:${it.id}:${it.uri}" }) { stream ->
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.weight(1f)) { MediaRow(stream) { vm.playStream(stream) } }
-                if (state.hasStreamRepository) {
-                    TextButton(onClick = {
-                        renameStreamId = stream.id
-                        renameStreamText = stream.title
-                    }) { Text("Ren") }
-                    TextButton(onClick = { vm.deleteStream(stream.id) }) { Text("Del") }
-                }
-            }
+            VLCBrowserItemRow(
+                title = stream.title,
+                subtitle = stream.uri,
+                onClick = { vm.playStream(stream) },
+                artworkContent = {
+                    Icon(MaterialSymbols.Filled.Devices, contentDescription = null, tint = colors.primary)
+                },
+                primaryActionContent = if (state.hasStreamRepository) {
+                    { Icon(MaterialSymbols.Filled.Edit, contentDescription = "Rename stream") }
+                } else {
+                    null
+                },
+                onPrimaryActionClick = {
+                    renameStreamId = stream.id
+                    renameStreamText = stream.title
+                },
+                moreActionContent = if (state.hasStreamRepository) {
+                    { Icon(MaterialSymbols.Filled.Delete, contentDescription = "Delete stream") }
+                } else {
+                    null
+                },
+                onMoreClick = { vm.deleteStream(stream.id) },
+            )
         }
         if (state.streams.isEmpty() && !state.streamsLoading && state.streamsError == null) {
             item { Text("No streams", color = colors.fontLight) }
@@ -131,31 +142,37 @@ internal fun MorePane(
         items(state.history, key = { "h:${it.item.id}:${it.playedAt}" }) { entry ->
             val key = "${entry.item.id}:${entry.playedAt}:${entry.item.uri}"
             val selected = key in state.historySelection
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .clip(MaterialTheme.shapes.medium)
-                    .background(
-                        if (selected) colors.primary.copy(alpha = 0.12f)
-                        else MaterialTheme.colorScheme.surfaceContainerHigh,
+            VLCBrowserItemRow(
+                title = entry.item.displayTitle,
+                subtitle = listOfNotNull(entry.item.artist, entry.item.album).joinToString(" · ").ifBlank { null },
+                selected = selected,
+                onClick = { onPlayHistory(entry) },
+                artworkContent = {
+                    Icon(
+                        if (entry.item.isVideo) MaterialSymbols.Filled.VideoLibrary else MaterialSymbols.Filled.MusicNote,
+                        contentDescription = null,
+                        tint = colors.primary,
                     )
-                    .clickable { onPlayHistory(entry) }
-                    .padding(horizontal = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(Modifier.weight(1f)) { MediaRow(entry.item) { onPlayHistory(entry) } }
-                Column(horizontalAlignment = Alignment.End) {
-                    if (!entry.item.present) {
-                        Text("missing", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall)
-                    } else {
-                        Text("present", color = colors.fontLight, style = MaterialTheme.typography.labelSmall)
-                    }
-                    Row {
-                        TextButton(onClick = { vm.toggleHistorySelect(entry) }) { Text(if (selected) "✓" else "Sel") }
-                        TextButton(onClick = { vm.moveUp(entry) }) { Text("↑") }
-                    }
-                }
-            }
+                },
+                badgeContent = {
+                    Text(
+                        if (entry.item.present) "present" else "missing",
+                        color = if (entry.item.present) colors.fontLight else MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                },
+                primaryActionContent = {
+                    Icon(
+                        MaterialSymbols.Filled.CheckCircle,
+                        contentDescription = if (selected) "Selected" else "Select history entry",
+                    )
+                },
+                onPrimaryActionClick = { vm.toggleHistorySelect(entry) },
+                moreActionContent = {
+                    Icon(MaterialSymbols.Filled.ArrowUpward, contentDescription = "Move to top")
+                },
+                onMoreClick = { vm.moveUp(entry) },
+            )
         }
         state.historyError?.let { error ->
             item { RetryMessage(error = error, onRetry = vm::retryHistory) }
@@ -167,68 +184,27 @@ internal fun MorePane(
 }
 
 @Composable
-private fun MoreAction(label: String, onClick: () -> Unit) {
+private fun MoreAction(icon: MaterialIcon, label: String, onClick: () -> Unit) {
     val colors = VLCThemeDefaults.colors
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.medium)
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .clickable(onClick = onClick)
-            .padding(16.dp),
+    Surface(
+        onClick = onClick,
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
-        Text(label, color = colors.listTitle, fontWeight = FontWeight.Medium)
-    }
-}
-
-@Composable
-private fun MediaRow(item: MediaItem, onClick: () -> Unit) {
-    val colors = VLCThemeDefaults.colors
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.medium)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
-            Modifier
-                .size(48.dp)
-                .clip(MaterialTheme.shapes.small)
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest),
-            contentAlignment = Alignment.Center,
+        Row(
+            Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text(
-                when {
-                    item.isVideo -> "VID"
-                    item.isAudio -> "AUD"
-                    else -> "•"
-                },
-                style = MaterialTheme.typography.labelSmall,
-                color = colors.primary,
-                fontWeight = FontWeight.Bold,
-            )
-        }
-        Box(modifier = Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                item.displayTitle,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                color = colors.listTitle,
-                fontWeight = FontWeight.Medium,
-            )
-            val subtitle = listOfNotNull(item.artist, item.album).joinToString(" · ")
-            if (subtitle.isNotBlank()) {
-                Text(
-                    subtitle,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    color = colors.listSubtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                )
+            VLCIconChip(size = 44.dp) { tint ->
+                Icon(icon, contentDescription = null, tint = tint)
             }
+            Text(
+                label,
+                color = colors.listTitle,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
         }
     }
 }

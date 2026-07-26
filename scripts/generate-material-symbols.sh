@@ -12,7 +12,8 @@ readonly BASE_URL="https://fonts.gstatic.com/render/v1/Material+Symbols+Rounded/
 readonly PACKAGE_NAME="org.videolan.vlc.compose.icons"
 
 readonly FILLED_ICONS=(
-  video_library music_note folder queue_music more_vert play_arrow shuffle star arrow_back
+  video_library music_note folder queue_music more_vert play_arrow pause shuffle star arrow_back select_all grid_view view_list tune
+  skip_next skip_previous repeat repeat_one settings info edit delete history check_circle arrow_upward devices
 )
 
 readonly OUTLINED_ICONS=(

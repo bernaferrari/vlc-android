@@ -4,12 +4,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.player.VideoSurfaceWithHud
+import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.model.MediaFolder
 import org.videolan.vlc.model.MediaItem
@@ -238,7 +242,6 @@ internal fun PlayerDestination(
     viewModel: PlayerViewModel,
     onClose: () -> Unit,
 ) {
-    val colors = VLCThemeDefaults.colors
     VideoSurfaceWithHud(
         title = state.title,
         subtitle = state.subtitle,
@@ -259,7 +262,12 @@ internal fun PlayerDestination(
             Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerHighest),
             contentAlignment = Alignment.Center,
         ) {
-            Text("♪", style = MaterialTheme.typography.displayLarge, color = colors.primary)
+            Icon(
+                icon = MaterialSymbols.Filled.MusicNote,
+                contentDescription = null,
+                tint = VLCThemeDefaults.colors.primary,
+                modifier = Modifier.size(80.dp),
+            )
         }
     }
 }

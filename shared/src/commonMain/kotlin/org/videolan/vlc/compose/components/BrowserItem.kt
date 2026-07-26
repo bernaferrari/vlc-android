@@ -4,7 +4,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,7 +18,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -29,7 +27,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -37,8 +34,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCMotion
-import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
 /**
@@ -74,30 +72,34 @@ fun VLCBrowserItemRow(
     moreActionContent: (@Composable () -> Unit)? = null,
     onMoreClick: () -> Unit = {}
 ) {
-    VLCTheme {
-        val colors = VLCThemeDefaults.colors
-        val selectionBackground by animateColorAsState(
-            targetValue = if (selected) colors.primary.copy(alpha = 0.10f) else Color.Transparent,
-            animationSpec = tween(VLCMotion.DurationShort, easing = VLCMotion.Standard),
-            label = "rowSelection"
-        )
-        val rowModifier = modifier
+    val colors = VLCThemeDefaults.colors
+    val containerColor by animateColorAsState(
+        targetValue = if (selected) {
+            MaterialTheme.colorScheme.primaryContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerLow
+        },
+        animationSpec = tween(VLCMotion.DurationShort, easing = VLCMotion.Standard),
+        label = "rowContainer",
+    )
+    Surface(
+        modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 68.dp)
-            .clip(MaterialTheme.shapes.medium)
-            .background(selectionBackground)
+            .heightIn(min = 72.dp)
             .then(if (contentDescription != null) Modifier.semantics { this.contentDescription = contentDescription } else Modifier)
             .combinedClickable(
                 enabled = enabled,
                 role = Role.Button,
                 onClick = onClick,
-                onLongClick = onLongClick
-            )
-            .padding(start = 12.dp, end = 4.dp, top = 8.dp, bottom = 8.dp)
-
+                onLongClick = onLongClick,
+            ),
+        shape = MaterialTheme.shapes.large,
+        color = containerColor,
+        contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else colors.listTitle,
+    ) {
         Row(
-            modifier = rowModifier,
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.padding(start = 12.dp, end = 6.dp, top = 10.dp, bottom = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             if (showArtwork) {
                 BrowserArtwork(size = 48.dp, content = artworkContent)
@@ -108,21 +110,17 @@ fun VLCBrowserItemRow(
                 subtitle = subtitle,
                 titleMaxLines = titleMaxLines,
                 subtitleMaxLines = subtitleMaxLines,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                content = badgeContent
+                content = badgeContent,
             )
             primaryActionContent?.let { content ->
-                IconButton(onClick = onPrimaryActionClick) {
-                    content()
-                }
+                IconButton(onClick = onPrimaryActionClick) { content() }
             }
             moreActionContent?.let { content ->
-                IconButton(onClick = onMoreClick) {
-                    content()
-                }
+                IconButton(onClick = onMoreClick) { content() }
             }
         }
     }
@@ -155,31 +153,35 @@ fun VLCBrowserItemCard(
     moreActionContent: (@Composable () -> Unit)? = null,
     onMoreClick: () -> Unit = {}
 ) {
-    VLCTheme {
-        val colors = VLCThemeDefaults.colors
-        val borderColor by animateColorAsState(
-            targetValue = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
-            animationSpec = tween(VLCMotion.DurationShort, easing = VLCMotion.Standard),
-            label = "cardBorder"
-        )
+    val containerColor by animateColorAsState(
+        targetValue = if (selected) {
+            MaterialTheme.colorScheme.primaryContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceContainer
+        },
+        animationSpec = tween(VLCMotion.DurationShort, easing = VLCMotion.Standard),
+        label = "cardContainer",
+    )
+    Surface(
+        modifier = modifier
+            .then(if (contentDescription != null) Modifier.semantics { this.contentDescription = contentDescription } else Modifier)
+            .combinedClickable(
+                enabled = enabled,
+                role = Role.Button,
+                onClick = onClick,
+                onLongClick = onLongClick,
+            ),
+        shape = MaterialTheme.shapes.extraLarge,
+        color = containerColor,
+        contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+    ) {
         Column(
-            modifier = modifier
-                .clip(MaterialTheme.shapes.medium)
-                .background(if (selected) colors.primary.copy(alpha = 0.10f) else MaterialTheme.colorScheme.surfaceContainer)
-                .border(if (selected) 2.dp else 1.dp, borderColor, MaterialTheme.shapes.medium)
-                .then(if (contentDescription != null) Modifier.semantics { this.contentDescription = contentDescription } else Modifier)
-                .combinedClickable(
-                    enabled = enabled,
-                    role = Role.Button,
-                    onClick = onClick,
-                    onLongClick = onLongClick
-                )
-                .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                BrowserArtwork(size = 56.dp, content = artworkContent)
-                Spacer(modifier = Modifier.width(8.dp))
+                BrowserArtwork(size = 64.dp, content = artworkContent)
+                Spacer(modifier = Modifier.width(12.dp))
                 Row(
                     modifier = Modifier.weight(1f),
                     verticalAlignment = Alignment.CenterVertically,
@@ -214,7 +216,7 @@ private fun BrowserArtwork(
     Box(
         modifier = Modifier
             .size(size)
-            .clip(MaterialTheme.shapes.small)
+            .clip(MaterialTheme.shapes.medium)
             .background(MaterialTheme.colorScheme.surfaceContainerHighest),
         contentAlignment = Alignment.Center,
         content = content
@@ -253,11 +255,10 @@ private fun BrowserItemTexts(
 
 @Composable
 private fun DefaultBrowserArtworkContent() {
-    Text(
-        text = "*",
-        color = VLCThemeDefaults.colors.primary,
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.Bold
+    Icon(
+        icon = MaterialSymbols.Filled.VideoLibrary,
+        contentDescription = null,
+        tint = VLCThemeDefaults.colors.primary,
     )
 }
 

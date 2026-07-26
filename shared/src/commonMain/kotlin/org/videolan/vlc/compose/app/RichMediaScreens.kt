@@ -27,9 +27,12 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryScrollableTabRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -121,75 +124,73 @@ fun RichMediaListPane(
         groups.isEmpty() &&
         state.groupingMode == VideoGroupingMode.NONE
 
-    Column(modifier.padding(horizontal = 12.dp)) {
-        // Toolbar
+    Column(modifier.padding(horizontal = 16.dp)) {
+        // Keep the hierarchy deliberate: identity first, then a compact action strip.
         Row(
-            Modifier.fillMaxWidth().padding(vertical = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (state.containerTitle != null || state.openedEntityTitle != null) {
-                    TextButton(onClick = onCloseContainer) { Text(ShellStrings.back()) }
-                }
-                Text(
-                    state.openedEntityTitle ?: state.containerTitle ?: title,
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                if (state.openedEntityTitle != null) {
-                    TextButton(onClick = onPlayAll) { Text(ShellStrings.playAll()) }
+            if (state.containerTitle != null || state.openedEntityTitle != null) {
+                IconButton(onClick = onCloseContainer) {
+                    Icon(
+                        icon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = ShellStrings.back(),
+                    )
                 }
             }
-            Row {
-                if (state.selection.isNotEmpty()) {
-                    TextButton(onClick = onPlaySelection) { Text(ShellStrings.play()) }
-                    TextButton(onClick = onAppendSelection) { Text(ShellStrings.append()) }
-                    TextButton(onClick = { onFavoriteSelection(true) }) {
-                        Icon(
-                            icon = MaterialSymbols.Filled.Star,
-                            contentDescription = ShellStrings.favorites(),
-                        )
-                    }
-                    TextButton(onClick = onClearSelection) {
-                        Text("${ShellStrings.clear()} (${state.selection.size})")
-                    }
-                } else {
-                    TextButton(onClick = onSelectAll) { Text(ShellStrings.select()) }
-                    TextButton(onClick = onToggleFavorites) {
-                        Icon(
-                            icon = if (state.onlyFavorites) MaterialSymbols.Filled.Star else MaterialSymbols.Outlined.Star,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Text(ShellStrings.favorites())
-                    }
-                    TextButton(onClick = {
-                        onSetViewMode(if (state.viewMode == ViewMode.LIST) ViewMode.GRID else ViewMode.LIST)
-                    }) { Text(if (state.viewMode == ViewMode.LIST) "Grid" else "List") }
-                    TextButton(onClick = { showDisplaySettings = true }) { Text(ShellStrings.displaySettings()) }
-                    if (showGroupingToggle) {
-                        TextButton(
-                            onClick = {
-                                onSetGroupingMode(
-                                    when (state.groupingMode) {
-                                        VideoGroupingMode.NONE -> VideoGroupingMode.NAME
-                                        VideoGroupingMode.NAME -> VideoGroupingMode.FOLDER
-                                        VideoGroupingMode.FOLDER -> VideoGroupingMode.NONE
-                                    },
-                                )
-                            },
-                        ) {
-                            Text(
-                                when (state.groupingMode) {
-                                    VideoGroupingMode.NONE -> "Groups"
-                                    VideoGroupingMode.NAME -> "Folders"
-                                    VideoGroupingMode.FOLDER -> "Flat"
-                                },
-                            )
-                        }
-                    }
-                    TextButton(onClick = onPlayAll) { Text(ShellStrings.playAll()) }
+            Text(
+                state.openedEntityTitle ?: state.containerTitle ?: title,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.weight(1f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (state.selection.isNotEmpty()) {
+                FilledTonalIconButton(onClick = onPlaySelection) {
+                    Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = ShellStrings.play())
+                }
+                TextButton(onClick = onAppendSelection) { Text(ShellStrings.append()) }
+                IconButton(onClick = { onFavoriteSelection(true) }) {
+                    Icon(MaterialSymbols.Filled.Star, contentDescription = ShellStrings.favorites())
+                }
+                TextButton(onClick = onClearSelection) {
+                    Text("${ShellStrings.clear()} (${state.selection.size})")
+                }
+            } else {
+                IconButton(onClick = onSelectAll) {
+                    Icon(MaterialSymbols.Filled.SelectAll, contentDescription = ShellStrings.select())
+                }
+                IconButton(onClick = onToggleFavorites) {
+                    Icon(
+                        icon = if (state.onlyFavorites) MaterialSymbols.Filled.Star else MaterialSymbols.Outlined.Star,
+                        contentDescription = ShellStrings.favorites(),
+                    )
+                }
+                IconButton(onClick = {
+                    onSetViewMode(if (state.viewMode == ViewMode.LIST) ViewMode.GRID else ViewMode.LIST)
+                }) {
+                    Icon(
+                        icon = if (state.viewMode == ViewMode.LIST) MaterialSymbols.Filled.GridView else MaterialSymbols.Filled.ViewList,
+                        contentDescription = if (state.viewMode == ViewMode.LIST) "Grid view" else "List view",
+                    )
+                }
+                IconButton(onClick = { showDisplaySettings = true }) {
+                    Icon(MaterialSymbols.Filled.Tune, contentDescription = ShellStrings.displaySettings())
+                }
+                FilledTonalIconButton(onClick = onPlayAll) {
+                    Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = ShellStrings.playAll())
                 }
             }
         }
@@ -256,9 +257,10 @@ fun RichMediaListPane(
         androidx.compose.material3.OutlinedTextField(
             value = state.query,
             onValueChange = onQuery,
-            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+            modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
             singleLine = true,
             label = { Text(ShellStrings.search()) },
+            shape = MaterialTheme.shapes.extraLarge,
         )
 
         if (state.loading) {
@@ -287,7 +289,7 @@ fun RichMediaListPane(
             state.groupingMode != VideoGroupingMode.NONE && groups.isNotEmpty() -> {
                 LazyColumn(
                     contentPadding = PaddingValues(bottom = 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.fillMaxSize(),
                 ) {
                     items(groups, key = { "g:${it.id}:${it.path}" }) { folder ->
@@ -367,8 +369,8 @@ private fun PagedMediaBody(
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 140.dp),
             contentPadding = PaddingValues(bottom = 80.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxSize(),
         ) {
             items(lazyPagingItems.itemCount, key = { index ->
@@ -394,7 +396,7 @@ private fun PagedMediaBody(
     } else {
         LazyColumn(
             contentPadding = PaddingValues(bottom = 80.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxSize(),
         ) {
             items(lazyPagingItems.itemCount, key = { index ->
@@ -438,8 +440,8 @@ private fun SnapshotMediaBody(
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 140.dp),
             contentPadding = PaddingValues(bottom = 80.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxSize(),
         ) {
             displaySections.forEach { (section, items) ->
@@ -472,7 +474,7 @@ private fun SnapshotMediaBody(
     } else {
         LazyColumn(
             contentPadding = PaddingValues(bottom = 80.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxSize(),
         ) {
             displaySections.forEach { (section, items) ->
@@ -636,63 +638,63 @@ fun MediaGridCard(
 ) {
     val colors = VLCThemeDefaults.colors
     var menu by remember { mutableStateOf(false) }
-    Column(
-        Modifier
-            .clip(MaterialTheme.shapes.medium)
-            .background(
-                if (selected) colors.primary.copy(alpha = 0.12f)
-                else MaterialTheme.colorScheme.surfaceContainerHigh,
-            )
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
-            .padding(8.dp),
+    Surface(
+        modifier = Modifier.combinedClickable(onClick = onClick, onLongClick = onLongClick),
+        shape = MaterialTheme.shapes.extraLarge,
+        color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
+        contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
     ) {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(96.dp)
-                .clip(MaterialTheme.shapes.small)
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest),
-            contentAlignment = Alignment.Center,
-        ) {
-            MediaArtwork(item = item, size = 96.dp)
-            Box(Modifier.align(Alignment.TopEnd)) {
-                TextButton(onClick = { menu = true }, modifier = Modifier.padding(0.dp)) {
-                    Icon(MaterialSymbols.Filled.MoreVert, contentDescription = null)
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+                    .clip(MaterialTheme.shapes.large)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                contentAlignment = Alignment.Center,
+            ) {
+                MediaArtwork(item = item, size = 112.dp)
+                Box(Modifier.align(Alignment.TopEnd).padding(4.dp)) {
+                    FilledTonalIconButton(onClick = {
+                        menu = true
+                        onMore()
+                    }) {
+                        Icon(MaterialSymbols.Filled.MoreVert, contentDescription = "More options")
+                    }
+                    MediaContextMenu(
+                        expanded = menu,
+                        onDismiss = { menu = false },
+                        item = item,
+                        onPlay = { onClick() },
+                        onPlayNext = { media -> onCtx(media, ContextOption.CTX_PLAY_NEXT) },
+                        onAppend = { media -> onCtx(media, ContextOption.CTX_APPEND) },
+                        onCtx = onCtx,
+                        canHandleHostAction = canHandleHostAction,
+                    )
                 }
-                MediaContextMenu(
-                    expanded = menu,
-                    onDismiss = { menu = false },
-                    item = item,
-                    onPlay = { onClick() },
-                    onPlayNext = { media -> onCtx(media, ContextOption.CTX_PLAY_NEXT) },
-                    onAppend = { media -> onCtx(media, ContextOption.CTX_APPEND) },
-                    onCtx = onCtx,
-                    canHandleHostAction = canHandleHostAction,
+            }
+            Text(
+                item.displayTitle,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleSmall,
+            )
+            val trackNumber = item.trackNumber.takeIf {
+                showTrackNumbers && item.isAudio && it > 0
+            }?.let { "#$it" }
+            val sub = listOfNotNull(trackNumber, item.artist, item.description, formatDuration(item.duration))
+                .filter { it.isNotBlank() }
+                .joinToString(" · ")
+            if (sub.isNotBlank()) {
+                Text(
+                    sub,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = colors.fontLight,
                 )
             }
-        }
-        Text(
-            item.displayTitle,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(top = 6.dp),
-            style = MaterialTheme.typography.bodyMedium,
-        )
-        val trackNumber = item.trackNumber.takeIf {
-            showTrackNumbers && item.isAudio && it > 0
-        }?.let { "#$it" }
-        val sub = listOfNotNull(trackNumber, item.artist, item.description, formatDuration(item.duration))
-            .filter { it.isNotBlank() }
-            .joinToString(" · ")
-        if (sub.isNotBlank()) {
-            Text(
-                sub,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.labelSmall,
-                color = colors.fontLight,
-            )
         }
     }
 }

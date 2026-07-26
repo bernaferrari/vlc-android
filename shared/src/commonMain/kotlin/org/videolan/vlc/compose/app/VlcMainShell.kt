@@ -1,7 +1,12 @@
 package org.videolan.vlc.compose.app
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -12,12 +17,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.adaptive.navigationsuite.ExperimentalMaterial3AdaptiveNavigationSuiteApi
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScope
@@ -33,7 +40,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -42,6 +49,7 @@ import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.compose.theme.VLCMotion
 import org.videolan.vlc.model.MediaFolder
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.PlaylistInfo
@@ -107,6 +115,47 @@ fun VlcMainShell(
         val currentTab = backStack.filterIsInstance<VlcShellRoute>().activeTab()
         val showPlayer = currentRoute == PlayerRoute
         val showSettings = currentRoute == SettingsRoute
+        // Root destinations switch immediately: they are frequent mode changes, not a journey.
+        val rootTransitionMetadata = remember {
+            NavDisplay.transitionSpec {
+                ContentTransform(
+                    targetContentEnter = EnterTransition.None,
+                    initialContentExit = ExitTransition.None,
+                )
+            } + NavDisplay.popTransitionSpec {
+                ContentTransform(
+                    targetContentEnter = EnterTransition.None,
+                    initialContentExit = ExitTransition.None,
+                )
+            }
+        }
+        // Details move in from the right and leave to the right, so navigation is spatial rather
+        // than the default cross-fade that made the shell feel disconnected.
+        val detailTransitionMetadata = remember {
+            NavDisplay.transitionSpec {
+                ContentTransform(
+                    targetContentEnter = slideInHorizontally(
+                        animationSpec = tween(
+                            durationMillis = 220,
+                            easing = VLCMotion.EmphasizedDecelerate,
+                        ),
+                        initialOffsetX = { fullWidth -> fullWidth },
+                    ),
+                    initialContentExit = ExitTransition.None,
+                )
+            } + NavDisplay.popTransitionSpec {
+                ContentTransform(
+                    targetContentEnter = EnterTransition.None,
+                    initialContentExit = slideOutHorizontally(
+                        animationSpec = tween(
+                            durationMillis = 180,
+                            easing = VLCMotion.EmphasizedAccelerate,
+                        ),
+                        targetOffsetX = { fullWidth -> fullWidth },
+                    ),
+                )
+            }
+        }
 
         fun closeFeatureDetails() {
             if (videoVm.state.value.containerId != null) videoVm.closeContainer()
@@ -245,19 +294,22 @@ fun VlcMainShell(
                                 when {
                                     showPlayer -> "Now Playing"
                                     showSettings -> ShellStrings.settings()
-                                    else -> "$title · ${currentTab.displayName()}"
+                                    else -> title
                                 },
-                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.titleLarge,
                             )
                         },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = colors.backgroundDefault,
+                            titleContentColor = colors.fontDefault,
+                        ),
                         actions = {
                             if (canNavigateBack) {
-                                TextButton(onClick = ::navigateBack) {
+                                IconButton(onClick = ::navigateBack) {
                                     Icon(
                                         icon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = null,
+                                        contentDescription = ShellStrings.back(),
                                     )
-                                    Text(ShellStrings.back())
                                 }
                             }
                         }
@@ -316,7 +368,7 @@ fun VlcMainShell(
                         rememberSaveableStateHolderNavEntryDecorator(),
                     ),
                     entryProvider = entryProvider {
-                    entry<VideoRoute> {
+                    entry<VideoRoute>(metadata = rootTransitionMetadata) {
                         VideoDestination(
                             modifier = Modifier.fillMaxSize(),
                             state = videoState,
@@ -326,7 +378,7 @@ fun VlcMainShell(
                             onOpenContainer = ::openVideoContainer,
                         )
                     }
-                    entry<VideoContainerRoute> { route ->
+                    entry<VideoContainerRoute>(metadata = detailTransitionMetadata) { route ->
                         LaunchedEffect(route) {
                             if (videoVm.state.value.containerId != route.id) {
                                 videoVm.openContainer(route.toMediaFolder())
@@ -341,7 +393,7 @@ fun VlcMainShell(
                             onOpenContainer = ::openVideoContainer,
                         )
                     }
-                    entry<AudioRoute> {
+                    entry<AudioRoute>(metadata = rootTransitionMetadata) {
                         AudioDestination(
                             modifier = Modifier.fillMaxSize(),
                             state = audioState,
@@ -352,7 +404,7 @@ fun VlcMainShell(
                             onOpenEntity = ::openAudioEntity,
                         )
                     }
-                    entry<AudioEntityRoute> { route ->
+                    entry<AudioEntityRoute>(metadata = detailTransitionMetadata) { route ->
                         LaunchedEffect(route) {
                             if (audioVm.state.value.containerId != route.id) {
                                 audioVm.openAudioEntity(route.toAudioEntity())
@@ -368,7 +420,7 @@ fun VlcMainShell(
                             onOpenEntity = ::openAudioEntity,
                         )
                     }
-                    entry<BrowserRoute> {
+                    entry<BrowserRoute>(metadata = rootTransitionMetadata) {
                         BrowserDestination(
                             modifier = Modifier.fillMaxSize(),
                             state = browserState,
@@ -377,7 +429,7 @@ fun VlcMainShell(
                             onOpenFolder = ::openBrowserFolder,
                         )
                     }
-                    entry<BrowserFolderRoute> { route ->
+                    entry<BrowserFolderRoute>(metadata = detailTransitionMetadata) { route ->
                         LaunchedEffect(route) {
                             browserVm.restoreFolderStack(route.toMediaFolders())
                         }
@@ -389,7 +441,7 @@ fun VlcMainShell(
                             onOpenFolder = ::openBrowserFolder,
                         )
                     }
-                    entry<PlaylistsRoute> {
+                    entry<PlaylistsRoute>(metadata = rootTransitionMetadata) {
                         PlaylistsDestination(
                             modifier = Modifier.fillMaxSize(),
                             state = playlistsState,
@@ -398,7 +450,7 @@ fun VlcMainShell(
                             onOpenPlaylist = ::openPlaylist,
                         )
                     }
-                    entry<PlaylistDetailRoute> { route ->
+                    entry<PlaylistDetailRoute>(metadata = detailTransitionMetadata) { route ->
                         LaunchedEffect(route) {
                             if (playlistsVm.state.value.openPlaylistId != route.id) {
                                 playlistsVm.openPlaylist(route.toPlaylistInfo())
@@ -412,7 +464,7 @@ fun VlcMainShell(
                             onOpenPlaylist = ::openPlaylist,
                         )
                     }
-                    entry<MoreRoute> {
+                    entry<MoreRoute>(metadata = rootTransitionMetadata) {
                         MoreDestination(
                             modifier = Modifier.fillMaxSize(),
                             viewModel = moreVm,
@@ -424,7 +476,7 @@ fun VlcMainShell(
                             onOpenPlayer = ::openPlayer,
                         )
                     }
-                    entry<PlayerRoute> {
+                    entry<PlayerRoute>(metadata = detailTransitionMetadata) {
                         PlayerDestination(
                             modifier = Modifier.fillMaxSize(),
                             state = playerState,
@@ -432,7 +484,7 @@ fun VlcMainShell(
                             onClose = ::popRoute,
                         )
                     }
-                    entry<SettingsRoute> {
+                    entry<SettingsRoute>(metadata = detailTransitionMetadata) {
                         SettingsDestination(
                             modifier = Modifier.fillMaxSize(),
                             viewModel = settingsVm,
@@ -507,29 +559,59 @@ private fun MainTab.navigationIcon(selected: Boolean): MaterialIcon =
 
 @Composable
 internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
-    // Lightweight settings list — mirrors SettingsViewModel toggles
     val state by vm.state.collectAsState()
-    LazyColumn(modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        item { Text("Playback", fontWeight = FontWeight.Bold) }
-        item { ToggleRow("Resume audio", state.audioResume, vm::setAudioResume) }
-        item { ToggleRow("Resume video", state.videoResume, vm::setVideoResume) }
-        item { ToggleRow("Playback history", state.playbackHistory, vm::setPlaybackHistory) }
-        item { ToggleRow("Incognito", state.incognito, vm::setIncognito) }
-        item { Text("Library", fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 12.dp)) }
-        item { ToggleRow("Video thumbnails", state.showVideoThumbs, vm::setShowVideoThumbs) }
-        item { Text("Network", fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 12.dp)) }
-        item { ToggleRow("Remote access server", state.remoteAccess, vm::setRemoteAccess) }
+    LazyColumn(
+        modifier = modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        item {
+            SettingsGroup(title = "Playback") {
+                ToggleRow("Resume audio", state.audioResume, vm::setAudioResume)
+                ToggleRow("Resume video", state.videoResume, vm::setVideoResume)
+                ToggleRow("Playback history", state.playbackHistory, vm::setPlaybackHistory)
+                ToggleRow("Incognito", state.incognito, vm::setIncognito)
+            }
+        }
+        item {
+            SettingsGroup(title = "Library") {
+                ToggleRow("Video thumbnails", state.showVideoThumbs, vm::setShowVideoThumbs)
+            }
+        }
+        item {
+            SettingsGroup(title = "Network") {
+                ToggleRow("Remote access server", state.remoteAccess, vm::setRemoteAccess)
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettingsGroup(title: String, content: @Composable () -> Unit) {
+    Surface(
+        shape = MaterialTheme.shapes.extraLarge,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+    ) {
+        Column {
+            Text(
+                title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = VLCThemeDefaults.colors.primary,
+                modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 6.dp),
+            )
+            content()
+        }
     }
 }
 
 @Composable
 private fun ToggleRow(title: String, checked: Boolean, onChange: (Boolean) -> Unit) {
     Row(
-        Modifier.fillMaxWidth().padding(vertical = 6.dp),
+        Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, top = 6.dp, bottom = 6.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(title, modifier = Modifier.weight(1f))
+        Text(title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
         androidx.compose.material3.Switch(checked = checked, onCheckedChange = onChange)
     }
 }
@@ -543,20 +625,32 @@ private fun MiniBar(
     onToggle: () -> Unit,
 ) {
     val colors = VLCThemeDefaults.colors
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .background(colors.audioHeaderBackground)
-            .clickable(onClick = onExpand)
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        tonalElevation = 2.dp,
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis, fontWeight = FontWeight.Medium)
-            if (subtitle.isNotBlank()) {
-                Text(subtitle, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall, color = colors.fontLight)
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onExpand)
+                .padding(horizontal = 20.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleSmall)
+                if (subtitle.isNotBlank()) {
+                    Text(subtitle, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall, color = colors.fontLight)
+                }
+            }
+            IconButton(onClick = onToggle) {
+                Icon(
+                    icon = if (playing) MaterialSymbols.Filled.Pause else MaterialSymbols.Filled.PlayArrow,
+                    contentDescription = if (playing) "Pause" else ShellStrings.play(),
+                )
             }
         }
-        TextButton(onClick = onToggle) { Text(if (playing) "Pause" else ShellStrings.play()) }
     }
 }
