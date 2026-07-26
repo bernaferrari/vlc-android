@@ -132,6 +132,14 @@ class AndroidPlaylistRepository(
         Unit
     }
 
+    override suspend fun removeFromPlaylistAt(playlistId: Long, index: Int) = withContext(Dispatchers.IO) {
+        val pl = medialibrary.getPlaylist(playlistId, false, false) ?: return@withContext
+        val tracks = pl.tracks ?: return@withContext
+        if (index !in tracks.indices) return@withContext
+        runCatching { pl.remove(index) }
+        Unit
+    }
+
     override suspend fun moveInPlaylist(playlistId: Long, fromIndex: Int, toIndex: Int) = withContext(Dispatchers.IO) {
         if (fromIndex == toIndex || fromIndex < 0 || toIndex < 0) return@withContext
         val pl = medialibrary.getPlaylist(playlistId, false, false) ?: return@withContext

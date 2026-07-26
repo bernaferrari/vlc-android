@@ -403,6 +403,9 @@ fun VlcMainShell(
                                 showPlayer = true
                             },
                             onAppendSelection = browserVm::appendSelection,
+                            onDefaultAction = browserVm::setDefaultPlaybackAction,
+                            onShowHiddenFiles = browserVm::setShowHiddenFiles,
+                            onShowOnlyMultimedia = browserVm::setShowOnlyMultimedia,
                             modifier = contentMod,
                         )
                     }
@@ -424,7 +427,7 @@ fun VlcMainShell(
                             onToggleSortDesc = playlistsVm::toggleSortDesc,
                             onSetViewMode = playlistsVm::setViewMode,
                             onPlayItem = { playlistsVm.playItem(it); showPlayer = true },
-                            onRemoveTrack = playlistsVm::removeTrack,
+                            onRemoveTrack = playlistsVm::removeTrackAt,
                             onMoveTrackUp = playlistsVm::moveTrackUp,
                             onMoveTrackDown = playlistsVm::moveTrackDown,
                             onBack = playlistsVm::closeDetail,

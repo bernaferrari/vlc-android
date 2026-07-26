@@ -14,6 +14,6 @@ import org.videolan.vlc.player.PlaybackController
 val sharedModule: Module = module {
     single<VlcPreferences> { VlcPreferences(get()) }
 
-    // Thin façade — prefer this over Android PlaylistManager god-objects.
-    factory { PlaybackController(service = get()) }
+    // Playback/session/history ownership is app-wide; every screen must share one controller.
+    single { PlaybackController(service = get()) }
 }

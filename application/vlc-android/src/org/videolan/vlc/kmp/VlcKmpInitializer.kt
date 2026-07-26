@@ -64,7 +64,6 @@ object VlcKmpInitializer {
         if (initialized) return
         synchronized(this) {
             if (initialized) return
-            initialized = true
 
             val appContext = context.applicationContext
             val managerProvider: () -> PlaylistManager? = {
@@ -96,6 +95,7 @@ object VlcKmpInitializer {
             VlcKoin.set(GlobalContext.get())
             ArtworkLoaderHolder.install(AndroidArtworkLoader(appContext))
             wireSettingsBridge(appContext)
+            initialized = true
         }
     }
 
@@ -111,6 +111,9 @@ object VlcKmpInitializer {
         SettingsWriteBridge.onBoolean = { key, value ->
             try {
                 Settings.getInstance(appContext).putSingle(key, value)
+                if (key == org.videolan.tools.BROWSER_SHOW_HIDDEN_FILES) {
+                    Settings.showHiddenFiles = value
+                }
             } catch (_: Exception) {
             }
         }

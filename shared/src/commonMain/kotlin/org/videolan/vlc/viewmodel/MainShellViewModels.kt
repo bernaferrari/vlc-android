@@ -464,7 +464,6 @@ class VideoListViewModel(
         val list = _state.value.items
         val action = DefaultPlaybackAction.fromName(_state.value.defaultPlaybackAction)
         applyDefaultPlayback(action, item, list, player)
-        launchIo { runCatching { repo.markAsPlayed(item.id) } }
     }
     fun playAll() {
         val list = _state.value.items
@@ -844,7 +843,6 @@ class AudioListViewModel(
         }
         val action = DefaultPlaybackAction.fromName(_state.value.defaultPlaybackAction)
         applyDefaultPlayback(action, item, list, player)
-        launchIo { runCatching { repo.markAsPlayed(item.id) } }
     }
 
     fun playAll() {
@@ -1428,6 +1426,7 @@ class BrowserViewModel(
         launchIo {
             runCatching { prefs?.putBoolean(BROWSER_SHOW_HIDDEN_FILES, show) }
         }
+        refreshCurrentUriListing()
     }
 
     fun setShowOnlyMultimedia(only: Boolean) {
@@ -1436,6 +1435,14 @@ class BrowserViewModel(
         launchIo {
             runCatching { prefs?.putBoolean(BROWSER_SHOW_ONLY_MULTIMEDIA, only) }
         }
+        refreshCurrentUriListing()
+    }
+
+    private fun refreshCurrentUriListing() {
+        val folder = _state.value.currentFolder ?: return
+        if (!isUriBrowseTarget(folder)) return
+        _state.update { it.copy(loading = true, error = null) }
+        browseUri(folder)
     }
 
     private fun observeRoot() {
@@ -1638,9 +1645,10 @@ class PlaylistsViewModel(
         applyDefaultPlayback(action, item, items, player)
     }
 
-    fun removeTrack(item: MediaItem) = launchIo {
+    fun removeTrackAt(index: Int) = launchIo {
         val playlistId = _state.value.openPlaylistId ?: return@launchIo
-        runCatching { repo.removeFromPlaylist(playlistId, listOf(item.id)) }
+        if (index !in _state.value.openItems.indices) return@launchIo
+        runCatching { repo.removeFromPlaylistAt(playlistId, index) }
         val pl = runCatching { repo.getPlaylist(playlistId) }.getOrNull()
         _state.update { it.copy(openItems = pl?.items.orEmpty()) }
     }
@@ -1662,19 +1670,13 @@ class PlaylistsViewModel(
         }
     }
 
-    fun moveTrackUp(item: MediaItem) {
-        val idx = _state.value.openItems.indexOfFirst { it.id == item.id && it.uri == item.uri }
-            .takeIf { it >= 0 }
-            ?: _state.value.openItems.indexOfFirst { it.id == item.id }
-        if (idx > 0) moveTrack(idx, idx - 1)
+    fun moveTrackUp(index: Int) {
+        if (index > 0) moveTrack(index, index - 1)
     }
 
-    fun moveTrackDown(item: MediaItem) {
+    fun moveTrackDown(index: Int) {
         val items = _state.value.openItems
-        val idx = items.indexOfFirst { it.id == item.id && it.uri == item.uri }
-            .takeIf { it >= 0 }
-            ?: items.indexOfFirst { it.id == item.id }
-        if (idx >= 0 && idx < items.lastIndex) moveTrack(idx, idx + 1)
+        if (index in 0 until items.lastIndex) moveTrack(index, index + 1)
     }
     fun setDefaultPlaybackAction(name: String) {
         val action = DefaultPlaybackAction.fromName(name)

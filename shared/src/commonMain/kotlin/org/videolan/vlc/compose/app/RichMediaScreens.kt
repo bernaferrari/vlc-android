@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -714,10 +715,14 @@ fun BrowserRichPane(
     onClearSelection: () -> Unit = {},
     onPlaySelection: () -> Unit = {},
     onAppendSelection: () -> Unit = {},
+    onDefaultAction: (String) -> Unit = {},
+    onShowHiddenFiles: (Boolean) -> Unit = {},
+    onShowOnlyMultimedia: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val colors = VLCThemeDefaults.colors
     val atRoot = state.currentFolder == null
+    var showDisplaySettings by remember { mutableStateOf(false) }
     Column(modifier.padding(horizontal = 12.dp)) {
         Row(
             Modifier.fillMaxWidth(),
@@ -740,7 +745,29 @@ fun BrowserRichPane(
                         Text("${ShellStrings.clear()} (${state.selection.size})")
                     }
                 }
+            } else {
+                TextButton(onClick = { showDisplaySettings = true }) {
+                    Text(ShellStrings.displaySettings())
+                }
             }
+        }
+        if (showDisplaySettings) {
+            DisplaySettingsSheet(
+                state = DisplaySettingsState(
+                    showHiddenFiles = state.showHiddenFiles,
+                    showOnlyMultimedia = state.showOnlyMultimedia,
+                    defaultActionLabel = "Default action",
+                    defaultActionOptions = listOf("PLAY", "PLAY_ALL", "ADD_TO_QUEUE", "INSERT_NEXT"),
+                    selectedDefaultAction = state.defaultPlaybackAction,
+                    supportsViewMode = false,
+                    supportsFavorites = false,
+                    supportsSorting = false,
+                ),
+                onDismiss = { showDisplaySettings = false },
+                onDefaultAction = onDefaultAction,
+                onShowHiddenFiles = onShowHiddenFiles,
+                onShowOnlyMultimedia = onShowOnlyMultimedia,
+            )
         }
         if (state.loading) LinearProgressIndicator(progress = { 0f }, modifier = Modifier.fillMaxWidth())
         state.error?.let {
@@ -920,9 +947,9 @@ fun PlaylistsRichPane(
     onToggleSortDesc: () -> Unit = {},
     onSetViewMode: (ViewMode) -> Unit = {},
     onPlayItem: (MediaItem) -> Unit,
-    onRemoveTrack: (MediaItem) -> Unit = {},
-    onMoveTrackUp: (MediaItem) -> Unit = {},
-    onMoveTrackDown: (MediaItem) -> Unit = {},
+    onRemoveTrack: (Int) -> Unit = {},
+    onMoveTrackUp: (Int) -> Unit = {},
+    onMoveTrackDown: (Int) -> Unit = {},
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -941,13 +968,13 @@ fun PlaylistsRichPane(
                 Text(detailName, fontWeight = FontWeight.Bold)
             }
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(detailItems, key = { it.id }) { item ->
+                itemsIndexed(detailItems, key = { index, item -> "$index:${item.id}:${item.uri}" }) { index, item ->
                     PlaylistTrackRow(
                         item = item,
                         onPlay = onPlayItem,
-                        onRemove = onRemoveTrack,
-                        onMoveUp = onMoveTrackUp,
-                        onMoveDown = onMoveTrackDown,
+                        onRemove = { onRemoveTrack(index) },
+                        onMoveUp = { onMoveTrackUp(index) },
+                        onMoveDown = { onMoveTrackDown(index) },
                     )
                 }
                 if (detailItems.isEmpty()) {

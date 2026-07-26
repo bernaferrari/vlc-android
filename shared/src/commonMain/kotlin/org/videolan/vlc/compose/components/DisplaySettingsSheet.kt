@@ -33,6 +33,9 @@ data class DisplaySettingsState(
     val onlyFavorites: Boolean = false,
     val sort: MediaSort = MediaSort.TITLE,
     val sortDesc: Boolean = false,
+    val supportsViewMode: Boolean = true,
+    val supportsFavorites: Boolean = true,
+    val supportsSorting: Boolean = true,
     val showAllArtists: Boolean? = null,
     val showHiddenFiles: Boolean? = null,
     val showOnlyMultimedia: Boolean? = null,
@@ -92,23 +95,27 @@ fun DisplaySettingsSheet(
         ) {
             Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
 
-            Text("Layout", style = MaterialTheme.typography.titleSmall, color = colors.primary)
-            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                SegmentedButton(
-                    selected = state.viewMode == ViewMode.LIST,
-                    onClick = { onViewMode(ViewMode.LIST) },
-                    shape = SegmentedButtonDefaults.itemShape(0, 2),
-                    label = { Text("List") },
-                )
-                SegmentedButton(
-                    selected = state.viewMode == ViewMode.GRID,
-                    onClick = { onViewMode(ViewMode.GRID) },
-                    shape = SegmentedButtonDefaults.itemShape(1, 2),
-                    label = { Text("Grid") },
-                )
+            if (state.supportsViewMode) {
+                Text("Layout", style = MaterialTheme.typography.titleSmall, color = colors.primary)
+                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                    SegmentedButton(
+                        selected = state.viewMode == ViewMode.LIST,
+                        onClick = { onViewMode(ViewMode.LIST) },
+                        shape = SegmentedButtonDefaults.itemShape(0, 2),
+                        label = { Text("List") },
+                    )
+                    SegmentedButton(
+                        selected = state.viewMode == ViewMode.GRID,
+                        onClick = { onViewMode(ViewMode.GRID) },
+                        shape = SegmentedButtonDefaults.itemShape(1, 2),
+                        label = { Text("Grid") },
+                    )
+                }
             }
 
-            SwitchRow("Favorites only", state.onlyFavorites, onOnlyFavorites)
+            if (state.supportsFavorites) {
+                SwitchRow("Favorites only", state.onlyFavorites, onOnlyFavorites)
+            }
 
             state.showAllArtists?.let { SwitchRow("Show all artists", it, onShowAllArtists) }
             state.showTrackNumbers?.let { SwitchRow("Show track numbers", it, onShowTrackNumbers) }
@@ -149,30 +156,32 @@ fun DisplaySettingsSheet(
                 }
             }
 
-            Text("Sort", style = MaterialTheme.typography.titleSmall, color = colors.primary)
-            state.availableSorts.forEach { sort ->
-                val selected = sort == state.sort
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            if (selected) onSortDesc(!state.sortDesc) else onSort(sort)
-                        }
-                        .padding(vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Text(
-                        sort.name.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() },
-                        color = if (selected) colors.primary else colors.fontDefault,
-                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                    )
-                    if (selected) {
+            if (state.supportsSorting) {
+                Text("Sort", style = MaterialTheme.typography.titleSmall, color = colors.primary)
+                state.availableSorts.forEach { sort ->
+                    val selected = sort == state.sort
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                if (selected) onSortDesc(!state.sortDesc) else onSort(sort)
+                            }
+                            .padding(vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
                         Text(
-                            if (state.sortDesc) "Desc ▼" else "Asc ▲",
-                            color = colors.primary,
-                            style = MaterialTheme.typography.labelLarge,
+                            sort.name.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() },
+                            color = if (selected) colors.primary else colors.fontDefault,
+                            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
                         )
+                        if (selected) {
+                            Text(
+                                if (state.sortDesc) "Desc ▼" else "Asc ▲",
+                                color = colors.primary,
+                                style = MaterialTheme.typography.labelLarge,
+                            )
+                        }
                     }
                 }
             }

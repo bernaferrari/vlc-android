@@ -110,20 +110,20 @@ class ListPagingSource<T : Any>(
     override fun getRefreshKey(state: PagingState<Int, T>): Int? {
         val anchor = state.anchorPosition ?: return null
         val page = state.closestPageToPosition(anchor) ?: return null
-        return page.prevKey?.plus(1) ?: page.nextKey?.minus(1)
+        return page.prevKey?.plus(page.data.size) ?: page.nextKey?.minus(page.data.size)
     }
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, T> {
         return try {
-            val page = params.key ?: 0
+            val offset = params.key ?: 0
             val all = loader()
-            val from = (page * params.loadSize).coerceAtMost(all.size)
+            val from = offset.coerceAtMost(all.size)
             val to = (from + params.loadSize).coerceAtMost(all.size)
             val slice = if (from < to) all.subList(from, to) else emptyList()
             LoadResult.Page(
                 data = slice,
-                prevKey = if (page == 0) null else page - 1,
-                nextKey = if (to >= all.size) null else page + 1,
+                prevKey = if (from == 0) null else (from - params.loadSize).coerceAtLeast(0),
+                nextKey = if (to >= all.size) null else to,
             )
         } catch (t: Throwable) {
             LoadResult.Error(t)

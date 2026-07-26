@@ -179,6 +179,9 @@ interface PlaylistRepository {
 
     suspend fun removeFromPlaylist(playlistId: Long, itemIds: List<Long>)
 
+    /** Remove the track at a 0-based playlist position, preserving duplicate entries. */
+    suspend fun removeFromPlaylistAt(playlistId: Long, index: Int)
+
     /** Move track within playlist. Positions are 0-based indices in the playlist. */
     suspend fun moveInPlaylist(playlistId: Long, fromIndex: Int, toIndex: Int) {}
 

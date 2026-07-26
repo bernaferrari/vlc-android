@@ -47,6 +47,12 @@ class StubPlaylistRepository : PlaylistRepository {
         playlists.value = playlists.value + (playlistId to current.copy(items = current.items.filterNot { it.id in set }))
     }
 
+    override suspend fun removeFromPlaylistAt(playlistId: Long, index: Int) {
+        val current = playlists.value[playlistId] ?: return
+        if (index !in current.items.indices) return
+        playlists.value = playlists.value + (playlistId to current.copy(items = current.items.filterIndexed { i, _ -> i != index }))
+    }
+
     override suspend fun moveInPlaylist(playlistId: Long, fromIndex: Int, toIndex: Int) {
         val current = playlists.value[playlistId] ?: return
         val items = current.items.toMutableList()

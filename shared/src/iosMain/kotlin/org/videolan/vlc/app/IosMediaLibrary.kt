@@ -182,6 +182,21 @@ class IosMediaLibrary : MediaRepository, PlaylistRepository, HistoryRepository, 
         playlists.value = playlists.value + (playlistId to current.copy(items = current.items.filterNot { it.id in set }))
     }
 
+    override suspend fun removeFromPlaylistAt(playlistId: Long, index: Int) {
+        val current = playlists.value[playlistId] ?: return
+        if (index !in current.items.indices) return
+        playlists.value = playlists.value + (playlistId to current.copy(items = current.items.filterIndexed { i, _ -> i != index }))
+    }
+
+    override suspend fun moveInPlaylist(playlistId: Long, fromIndex: Int, toIndex: Int) {
+        val current = playlists.value[playlistId] ?: return
+        val reordered = current.items.toMutableList()
+        if (fromIndex !in reordered.indices || toIndex !in reordered.indices || fromIndex == toIndex) return
+        val moved = reordered.removeAt(fromIndex)
+        reordered.add(toIndex, moved)
+        playlists.value = playlists.value + (playlistId to current.copy(items = reordered))
+    }
+
     override suspend fun deletePlaylist(id: Long) {
         playlists.value = playlists.value - id
         favoritePlaylistIds.value -= id
