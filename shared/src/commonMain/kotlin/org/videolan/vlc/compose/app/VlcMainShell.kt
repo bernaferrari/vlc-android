@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -313,6 +314,9 @@ fun VlcMainShell(
             NavDisplay(
                 backStack = backStack,
                 modifier = contentMod,
+                entryDecorators = listOf(
+                    rememberSaveableStateHolderNavEntryDecorator(),
+                ),
                 entryProvider = entryProvider {
                     entry<VideoRoute> {
                         VideoDestination(
