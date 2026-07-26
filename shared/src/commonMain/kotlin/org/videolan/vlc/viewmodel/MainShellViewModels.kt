@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import org.videolan.vlc.app.VlcKoin
 import org.videolan.vlc.model.FolderKind
-import org.videolan.vlc.model.HistoryEntry
 import org.videolan.vlc.model.MediaFolder
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.MediaType
@@ -27,12 +26,10 @@ import org.videolan.vlc.player.PlaybackController
 import org.videolan.vlc.repository.AudioEntity
 import org.videolan.vlc.repository.AudioEntityKind
 import org.videolan.vlc.repository.ContainerKind
-import org.videolan.vlc.repository.HistoryRepository
 import org.videolan.vlc.repository.MediaQuery
 import org.videolan.vlc.repository.MediaRepository
 import org.videolan.vlc.repository.MediaSort
 import org.videolan.vlc.repository.PlaylistRepository
-import org.videolan.vlc.repository.StreamRepository
 import org.videolan.vlc.util.ContextOption
 import org.videolan.tools.ALBUMS_SHOW_TRACK_NUMBER
 import org.videolan.tools.BROWSER_SHOW_HIDDEN_FILES
@@ -115,26 +112,11 @@ data class PlaylistsUiState(
     val defaultPlaybackAction: String = DefaultPlaybackAction.PLAY.name,
 )
 
-data class MoreUiState(
-    val history: List<HistoryEntry> = emptyList(),
-    val platformName: String = "",
-    val loading: Boolean = true,
-    val streams: List<MediaItem> = emptyList(),
-    val historySelection: Set<String> = emptySet(),
-    val hasStreamRepository: Boolean = false,
-)
-
 private fun mediaRepo() = runCatching { VlcKoin.get().get<MediaRepository>() }
     .getOrElse { error("MediaRepository unavailable") }
 
 private fun playlistRepo() = runCatching { VlcKoin.get().get<PlaylistRepository>() }
     .getOrElse { error("PlaylistRepository unavailable") }
-
-private fun historyRepo() = runCatching { VlcKoin.get().get<HistoryRepository>() }
-    .getOrElse { error("HistoryRepository unavailable") }
-
-private fun streamRepoOrNull(): StreamRepository? =
-    runCatching { VlcKoin.get().get<StreamRepository>() }.getOrNull()
 
 private fun playback() = runCatching { PlaybackController.get() }
     .getOrElse { error("PlaybackController unavailable") }
@@ -232,7 +214,6 @@ private fun sectionByGenre(items: List<MediaItem>): List<Pair<String, List<Media
         .toList()
         .sortedBy { it.first.lowercase() }
 
-private fun historyKey(entry: HistoryEntry): String = "${entry.item.id}:${entry.playedAt}:${entry.item.uri}"
 private fun prefsOrNull(): VlcPreferences? =
     runCatching { VlcKoin.get().get<VlcPreferences>() }.getOrNull()
 
@@ -1760,87 +1741,5 @@ class PlaylistsViewModel(
         val ids = _state.value.selection.toList()
         ids.forEach { id -> runCatching { repo.deletePlaylist(id) } }
         _state.update { it.copy(selection = emptySet()) }
-    }
-}
-
-class MoreHubViewModel(
-    private val history: HistoryRepository = historyRepo(),
-    private val media: MediaRepository = mediaRepo(),
-    private val streamsRepo: StreamRepository? = streamRepoOrNull(),
-    private val player: PlaybackController = playback(),
-) : VlcViewModel() {
-    private val _state = MutableStateFlow(
-        MoreUiState(hasStreamRepository = streamsRepo != null),
-    )
-    val state: StateFlow<MoreUiState> = _state.asStateFlow()
-
-    init {
-        launch {
-            history.observeHistory(50)
-                .catch { _state.update { it.copy(loading = false) } }
-                .collectLatest { list ->
-                    _state.update { it.copy(history = list, loading = false) }
-                }
-        }
-        launch {
-            val flow = streamsRepo?.observeStreams() ?: media.observeMedia(MediaType.STREAM)
-            flow.catch { }
-                .collectLatest { list -> _state.update { it.copy(streams = list) } }
-        }
-        launch {
-            val info = runCatching {
-                org.videolan.vlc.platform.PlatformInfoProvider.current
-            }.getOrNull()
-            val name = info?.let { "${it.platform} ${it.osVersion}" }.orEmpty()
-            _state.update { it.copy(platformName = name) }
-        }
-    }
-
-    fun clearHistory() = launchIo {
-        runCatching { history.clearHistory() }
-        _state.update { it.copy(historySelection = emptySet()) }
-    }
-
-    fun playHistory(entry: HistoryEntry) = player.play(entry.item)
-    fun playStream(item: MediaItem) = player.play(item)
-
-    fun renameStream(id: Long, title: String) = launchIo {
-        if (title.isBlank()) return@launchIo
-        runCatching { streamsRepo?.renameStream(id, title.trim()) }
-    }
-
-    fun deleteStream(id: Long) = launchIo {
-        runCatching { streamsRepo?.deleteStream(id) }
-    }
-
-    fun addStream(title: String, uri: String) = launchIo {
-        runCatching { streamsRepo?.addStream(title, uri) }
-    }
-
-    fun moveUp(entry: HistoryEntry) = launchIo {
-        runCatching { history.moveUp(entry.item.id) }
-    }
-
-    fun removeHistory(entry: HistoryEntry) = launchIo {
-        runCatching { history.removeHistoryEntry(entry.item.id) }
-    }
-
-    fun toggleHistorySelect(entry: HistoryEntry) {
-        val key = historyKey(entry)
-        _state.update {
-            val sel = it.historySelection.toMutableSet()
-            if (!sel.add(key)) sel.remove(key)
-            it.copy(historySelection = sel)
-        }
-    }
-
-    fun clearHistorySelection() = _state.update { it.copy(historySelection = emptySet()) }
-
-    fun removeSelectedHistory() = launchIo {
-        val selected = _state.value.history.filter { historyKey(it) in _state.value.historySelection }
-        selected.forEach { entry ->
-            runCatching { history.removeHistoryEntry(entry.item.id) }
-        }
-        _state.update { it.copy(historySelection = emptySet()) }
     }
 }

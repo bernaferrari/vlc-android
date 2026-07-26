@@ -9,16 +9,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -28,9 +24,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
@@ -450,167 +444,6 @@ fun VlcMainShell(
 
 
 @Composable
-internal fun MorePane(
-    modifier: Modifier,
-    vm: MoreHubViewModel,
-    onOpenSettings: () -> Unit,
-    onOpenRemote: (() -> Unit)?,
-    onOpenAbout: () -> Unit = {},
-    onOpenDonate: () -> Unit = {},
-    onPlayHistory: (org.videolan.vlc.model.HistoryEntry) -> Unit,
-) {
-    val state by vm.state.collectAsState()
-    val colors = VLCThemeDefaults.colors
-    var renameStreamId by remember { mutableStateOf<Long?>(null) }
-    var renameStreamText by remember { mutableStateOf("") }
-    LazyColumn(
-        modifier = modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        item {
-            Text("VLC", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            if (state.platformName.isNotBlank()) {
-                Text(state.platformName, color = colors.fontLight, style = MaterialTheme.typography.bodySmall)
-            }
-        }
-        item { MoreAction(ShellStrings.settings(), onOpenSettings) }
-        item {
-            MoreAction(ShellStrings.about(), onOpenAbout)
-        }
-        item {
-            MoreAction("Donate", onOpenDonate)
-        }
-        if (onOpenRemote != null) {
-            item { MoreAction("Remote", onOpenRemote) }
-        }
-
-        item {
-            Text("Streams", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-        }
-        if (renameStreamId != null) {
-            item {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedTextField(
-                        value = renameStreamText,
-                        onValueChange = { renameStreamText = it },
-                        modifier = Modifier.weight(1f),
-                        singleLine = true,
-                        label = { Text("Rename stream") },
-                    )
-                    TextButton(onClick = {
-                        val id = renameStreamId
-                        if (id != null && renameStreamText.isNotBlank()) {
-                            vm.renameStream(id, renameStreamText.trim())
-                        }
-                        renameStreamId = null
-                        renameStreamText = ""
-                    }) { Text("Save") }
-                    TextButton(onClick = {
-                        renameStreamId = null
-                        renameStreamText = ""
-                    }) { Text(ShellStrings.cancel()) }
-                }
-            }
-        }
-        items(state.streams, key = { "s:${it.id}:${it.uri}" }) { item ->
-            Row(
-                Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(Modifier.weight(1f)) {
-                    MediaRow(item) { vm.playStream(item) }
-                }
-                if (state.hasStreamRepository) {
-                    TextButton(onClick = {
-                        renameStreamId = item.id
-                        renameStreamText = item.title
-                    }) { Text("Ren") }
-                    TextButton(onClick = { vm.deleteStream(item.id) }) { Text("Del") }
-                }
-            }
-        }
-        if (state.streams.isEmpty()) {
-            item { Text("No streams", color = colors.fontLight) }
-        }
-
-        item {
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(ShellStrings.history(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Row {
-                    if (state.historySelection.isNotEmpty()) {
-                        TextButton(onClick = vm::removeSelectedHistory) {
-                            Text("${ShellStrings.remove()} (${state.historySelection.size})")
-                        }
-                        TextButton(onClick = vm::clearHistorySelection) { Text(ShellStrings.clear()) }
-                    }
-                    TextButton(onClick = vm::clearHistory) { Text(ShellStrings.clear()) }
-                }
-            }
-        }
-        items(state.history, key = { "h:${it.item.id}:${it.playedAt}" }) { entry ->
-            val key = "${entry.item.id}:${entry.playedAt}:${entry.item.uri}"
-            val selected = key in state.historySelection
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .clip(MaterialTheme.shapes.medium)
-                    .background(
-                        if (selected) colors.primary.copy(alpha = 0.12f)
-                        else MaterialTheme.colorScheme.surfaceContainerHigh,
-                    )
-                    .clickable { onPlayHistory(entry) }
-                    .padding(horizontal = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(Modifier.weight(1f)) {
-                    MediaRow(entry.item) { onPlayHistory(entry) }
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    if (!entry.item.present) {
-                        Text("missing", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall)
-                    } else {
-                        Text("present", color = colors.fontLight, style = MaterialTheme.typography.labelSmall)
-                    }
-                    Row {
-                        TextButton(onClick = { vm.toggleHistorySelect(entry) }) {
-                            Text(if (selected) "✓" else "Sel")
-                        }
-                        TextButton(onClick = { vm.moveUp(entry) }) { Text("↑") }
-                    }
-                }
-            }
-        }
-        if (!state.loading && state.history.isEmpty()) {
-            item { Text("No recent media", color = colors.fontLight) }
-        }
-    }
-}
-
-@Composable
-private fun MoreAction(label: String, onClick: () -> Unit) {
-    SurfaceRow(label, onClick)
-}
-
-@Composable
-private fun SurfaceRow(label: String, onClick: () -> Unit) {
-    val colors = VLCThemeDefaults.colors
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.medium)
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .clickable(onClick = onClick)
-            .padding(16.dp),
-    ) {
-        Text(label, color = colors.listTitle, fontWeight = FontWeight.Medium)
-    }
-}
-
-@Composable
 internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
     // Lightweight settings list — mirrors SettingsViewModel toggles
     val state by vm.state.collectAsState()
@@ -638,53 +471,6 @@ private fun ToggleRow(title: String, checked: Boolean, onChange: (Boolean) -> Un
         androidx.compose.material3.Switch(checked = checked, onCheckedChange = onChange)
     }
 }
-
-@Composable
-private fun MediaRow(item: MediaItem, onClick: () -> Unit) {
-    val colors = VLCThemeDefaults.colors
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.medium)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
-            Modifier
-                .size(48.dp)
-                .clip(MaterialTheme.shapes.small)
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                when {
-                    item.isVideo -> "VID"
-                    item.isAudio -> "AUD"
-                    else -> "•"
-                },
-                style = MaterialTheme.typography.labelSmall,
-                color = colors.primary,
-                fontWeight = FontWeight.Bold,
-            )
-        }
-        Box(modifier = Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                item.displayTitle,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                color = colors.listTitle,
-                fontWeight = FontWeight.Medium,
-            )
-            val sub = listOfNotNull(item.artist, item.album).joinToString(" · ")
-            if (sub.isNotBlank()) {
-                Text(sub, maxLines = 1, overflow = TextOverflow.Ellipsis, color = colors.listSubtitle, style = MaterialTheme.typography.bodySmall)
-            }
-        }
-    }
-}
-
 
 @Composable
 private fun MiniBar(
