@@ -22,7 +22,9 @@ fun MainViewController(): UIViewController {
     runCatching {
         VlcKoin.get().get<MediaSessionBridge>().activate()
     }
+    var hostViewController: UIViewController? = null
+    val callbacks = IosShellHostCallbacks { hostViewController }
     return ComposeUIViewController {
-        VlcKoinMainShell(title = "VLC")
-    }
+        VlcKoinMainShell(title = "VLC", hostCallbacks = callbacks)
+    }.also { hostViewController = it }
 }

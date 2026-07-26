@@ -15,6 +15,8 @@ import org.videolan.vlc.util.ContextOption
 fun interface ShellHostCallbacks {
     fun onContextAction(item: MediaItem, option: ContextOption)
 
+    /** True only when this host can perform a platform-owned menu action. */
+    fun supportsContextAction(option: ContextOption): Boolean = false
     fun onOpenInfo(item: MediaItem) = Unit
     fun onShare(item: MediaItem) = Unit
     fun onDownloadSubtitles(item: MediaItem) = Unit

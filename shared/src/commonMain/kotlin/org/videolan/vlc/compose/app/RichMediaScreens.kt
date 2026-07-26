@@ -96,6 +96,7 @@ fun RichMediaListPane(
     onToggleSortDesc: () -> Unit = {},
     onToggleFavorites: () -> Unit = {},
     onCtx: (MediaItem, ContextOption) -> Unit = { _, _ -> },
+    canHandleHostAction: (ContextOption) -> Boolean = { false },
     onOpenGroup: (MediaFolder) -> Unit = {},
     onCloseContainer: () -> Unit = {},
     onSetGroupingMode: (VideoGroupingMode) -> Unit = {},
@@ -310,6 +311,7 @@ fun RichMediaListPane(
                     onAppend = onAppend,
                     onToggleSelect = onToggleSelect,
                     onCtx = onCtx,
+                    canHandleHostAction = canHandleHostAction,
                 )
             }
             !state.loading && state.items.isEmpty() && sections.isEmpty() -> {
@@ -324,6 +326,7 @@ fun RichMediaListPane(
                     onAppend = onAppend,
                     onToggleSelect = onToggleSelect,
                     onCtx = onCtx,
+                    canHandleHostAction = canHandleHostAction,
                 )
             }
         }
@@ -341,6 +344,7 @@ private fun PagedMediaBody(
     onAppend: (MediaItem) -> Unit,
     onToggleSelect: (MediaItem) -> Unit,
     onCtx: (MediaItem, ContextOption) -> Unit,
+    canHandleHostAction: (ContextOption) -> Boolean,
 ) {
     if (lazyPagingItems.itemCount == 0 && !state.loading) {
         VLCEmptyState(loading = false, text = emptyLabel, modifier = Modifier.fillMaxSize())
@@ -370,6 +374,7 @@ private fun PagedMediaBody(
                     onLongClick = { onToggleSelect(item) },
                     onMore = { /* card uses row menu in list mode */ },
                     onCtx = onCtx,
+                    canHandleHostAction = canHandleHostAction,
                 )
             }
         }
@@ -394,6 +399,7 @@ private fun PagedMediaBody(
                     onAppend = onAppend,
                     onToggleSelect = onToggleSelect,
                     onCtx = onCtx,
+                    canHandleHostAction = canHandleHostAction,
                 )
             }
         }
@@ -410,6 +416,7 @@ private fun SnapshotMediaBody(
     onAppend: (MediaItem) -> Unit,
     onToggleSelect: (MediaItem) -> Unit,
     onCtx: (MediaItem, ContextOption) -> Unit,
+    canHandleHostAction: (ContextOption) -> Boolean,
 ) {
     val colors = VLCThemeDefaults.colors
     val displaySections = if (sections.isNotEmpty()) sections else listOf("" to state.items)
@@ -444,6 +451,7 @@ private fun SnapshotMediaBody(
                         onLongClick = { onToggleSelect(item) },
                         onMore = {},
                         onCtx = onCtx,
+                        canHandleHostAction = canHandleHostAction,
                     )
                 }
             }
@@ -476,6 +484,7 @@ private fun SnapshotMediaBody(
                         onAppend = onAppend,
                         onToggleSelect = onToggleSelect,
                         onCtx = onCtx,
+                        canHandleHostAction = canHandleHostAction,
                     )
                 }
             }
@@ -495,6 +504,7 @@ private fun MediaListRow(
     onAppend: (MediaItem) -> Unit,
     onToggleSelect: (MediaItem) -> Unit,
     onCtx: (MediaItem, ContextOption) -> Unit,
+    canHandleHostAction: (ContextOption) -> Boolean,
 ) {
     var menu by remember { mutableStateOf(false) }
     val trackNumber = item.trackNumber.takeIf {
@@ -527,6 +537,7 @@ private fun MediaListRow(
             onPlayNext = onPlayNext,
             onAppend = onAppend,
             onCtx = onCtx,
+            canHandleHostAction = canHandleHostAction,
         )
     }
 }
@@ -540,6 +551,7 @@ private fun MediaContextMenu(
     onPlayNext: (MediaItem) -> Unit,
     onAppend: (MediaItem) -> Unit,
     onCtx: (MediaItem, ContextOption) -> Unit,
+    canHandleHostAction: (ContextOption) -> Boolean,
 ) {
     DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
         DropdownMenuItem(text = { Text("Play") }, onClick = {
@@ -554,15 +566,17 @@ private fun MediaContextMenu(
         DropdownMenuItem(text = { Text("Play all") }, onClick = {
             onDismiss(); onCtx(item, ContextOption.CTX_PLAY_ALL)
         })
-        DropdownMenuItem(text = { Text(ShellStrings.addToPlaylist()) }, onClick = {
-            onDismiss(); onCtx(item, ContextOption.CTX_ADD_TO_PLAYLIST)
-        })
-        if (item.isVideo) {
+        if (canHandleHostAction(ContextOption.CTX_ADD_TO_PLAYLIST)) {
+            DropdownMenuItem(text = { Text(ShellStrings.addToPlaylist()) }, onClick = {
+                onDismiss(); onCtx(item, ContextOption.CTX_ADD_TO_PLAYLIST)
+            })
+        }
+        if (item.isVideo && canHandleHostAction(ContextOption.CTX_DOWNLOAD_SUBTITLES)) {
             DropdownMenuItem(text = { Text(ShellStrings.downloadSubtitles()) }, onClick = {
                 onDismiss(); onCtx(item, ContextOption.CTX_DOWNLOAD_SUBTITLES)
             })
         }
-        if (item.isAudio) {
+        if (item.isAudio && canHandleHostAction(ContextOption.CTX_SET_RINGTONE)) {
             DropdownMenuItem(text = { Text(ShellStrings.setRingtone()) }, onClick = {
                 onDismiss(); onCtx(item, ContextOption.CTX_SET_RINGTONE)
             })
@@ -582,12 +596,16 @@ private fun MediaContextMenu(
         DropdownMenuItem(text = { Text("Mark unplayed") }, onClick = {
             onDismiss(); onCtx(item, ContextOption.CTX_MARK_AS_UNPLAYED)
         })
-        DropdownMenuItem(text = { Text(ShellStrings.share()) }, onClick = {
-            onDismiss(); onCtx(item, ContextOption.CTX_SHARE)
-        })
-        DropdownMenuItem(text = { Text("Info") }, onClick = {
-            onDismiss(); onCtx(item, ContextOption.CTX_INFORMATION)
-        })
+        if (canHandleHostAction(ContextOption.CTX_SHARE)) {
+            DropdownMenuItem(text = { Text(ShellStrings.share()) }, onClick = {
+                onDismiss(); onCtx(item, ContextOption.CTX_SHARE)
+            })
+        }
+        if (canHandleHostAction(ContextOption.CTX_INFORMATION)) {
+            DropdownMenuItem(text = { Text("Info") }, onClick = {
+                onDismiss(); onCtx(item, ContextOption.CTX_INFORMATION)
+            })
+        }
     }
 }
 
@@ -601,6 +619,7 @@ fun MediaGridCard(
     onLongClick: () -> Unit,
     onMore: () -> Unit,
     onCtx: (MediaItem, ContextOption) -> Unit = { _, _ -> },
+    canHandleHostAction: (ContextOption) -> Boolean = { false },
 ) {
     val colors = VLCThemeDefaults.colors
     var menu by remember { mutableStateOf(false) }
@@ -635,6 +654,7 @@ fun MediaGridCard(
                     onPlayNext = { media -> onCtx(media, ContextOption.CTX_PLAY_NEXT) },
                     onAppend = { media -> onCtx(media, ContextOption.CTX_APPEND) },
                     onCtx = onCtx,
+                    canHandleHostAction = canHandleHostAction,
                 )
             }
         }

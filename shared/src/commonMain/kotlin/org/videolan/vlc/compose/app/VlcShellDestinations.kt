@@ -59,6 +59,7 @@ internal fun VideoDestination(
         onSetSort = viewModel::setSort,
         onToggleSortDesc = viewModel::toggleSortDesc,
         onToggleFavorites = viewModel::toggleOnlyFavorites,
+        canHandleHostAction = hostCallbacks::supportsContextAction,
         onCtx = { item, option ->
             when (option) {
                 ContextOption.CTX_INFORMATION,
@@ -140,6 +141,7 @@ internal fun AudioDestination(
             onSetSort = viewModel::setSort,
             onToggleSortDesc = viewModel::toggleSortDesc,
             onToggleFavorites = viewModel::toggleOnlyFavorites,
+            canHandleHostAction = hostCallbacks::supportsContextAction,
             onCtx = { item, option ->
                 when (option) {
                     ContextOption.CTX_INFORMATION,

@@ -40,6 +40,8 @@ class AndroidShellHostCallbacks(
     private val medialibrary: Medialibrary = Medialibrary.getInstance(),
 ) : ShellHostCallbacks {
 
+    override fun supportsContextAction(option: ContextOption): Boolean = true
+
     override fun onContextAction(item: MediaItem, option: ContextOption) {
         // Typed callbacks below cover known options; remaining are no-ops.
         Log.d(TAG, "Unhandled context action $option for ${item.uri}")
