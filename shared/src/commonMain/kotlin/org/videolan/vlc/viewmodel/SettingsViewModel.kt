@@ -24,6 +24,9 @@ import org.videolan.vlc.platform.VlcPlatformCapabilities
 import org.videolan.vlc.platform.NoOpRemoteAccessServerController
 import org.videolan.vlc.platform.RemoteAccessServerController
 import org.videolan.vlc.platform.platformCapabilities
+import org.videolan.vlc.platform.AppLockController
+import org.videolan.vlc.platform.AppLockState
+import org.videolan.vlc.platform.NoOpAppLockController
 
 data class SettingsUiState(
     val showVideoThumbs: Boolean = true,
@@ -45,6 +48,7 @@ data class SettingsUiState(
     /** The common video HUD observes this live; Android and iOS therefore share its timeout. */
     val videoHudTimeoutSeconds: Int = 4,
     val platformLabel: String = "",
+    val appLock: AppLockState = AppLockState(),
 )
 
 /**
@@ -56,6 +60,7 @@ class SettingsViewModel(
     }.getOrNull(),
     private val capabilities: VlcPlatformCapabilities = platformCapabilities,
     private val remoteAccessServer: RemoteAccessServerController = NoOpRemoteAccessServerController,
+    private val appLock: AppLockController = NoOpAppLockController,
 ) : VlcViewModel() {
 
     private val _state = MutableStateFlow(
@@ -74,6 +79,7 @@ class SettingsViewModel(
             browseNetwork = VlcSettings.browseNetwork.value,
             supportsNetworkBrowsing = capabilities.networkBrowsing,
             videoHudTimeoutSeconds = VlcSettings.videoHudDelay.value.coerceIn(1, 10),
+            appLock = appLock.state.value,
         )
     )
     val state: StateFlow<SettingsUiState> = _state.asStateFlow()
@@ -113,6 +119,9 @@ class SettingsViewModel(
             VlcSettings.videoHudDelay.collect { seconds ->
                 _state.update { it.copy(videoHudTimeoutSeconds = seconds.coerceIn(1, 10)) }
             }
+        }
+        launch {
+            appLock.state.collect { lock -> _state.update { it.copy(appLock = lock) } }
         }
         if (capabilities.remoteAccessServer) {
             launch {
@@ -209,6 +218,10 @@ class SettingsViewModel(
             _state.update { it.copy(remoteAccess = value) }
         }
     }
+
+    fun enableAppLock() = launch { appLock.enable() }
+
+    fun disableAppLock() = launch { appLock.disable() }
 
     /** Keep the upstream 1–10 second range while avoiding an unusable instant-hide HUD. */
     fun setVideoHudTimeout(seconds: Int) {

@@ -6,6 +6,8 @@ import org.videolan.tools.VlcPreferences
 import org.videolan.vlc.player.PlaybackController
 import org.videolan.vlc.player.PlaybackService
 import org.videolan.vlc.platform.NoOpRemoteAccessServerController
+import org.videolan.vlc.platform.AppLockController
+import org.videolan.vlc.platform.NoOpAppLockController
 import org.videolan.vlc.platform.RemoteAccessServerController
 import org.videolan.vlc.repository.HistoryRepository
 import org.videolan.vlc.repository.MediaRepository
@@ -67,6 +69,7 @@ private val presentationModule: Module = module {
         SettingsViewModel(
             prefs = get(),
             remoteAccessServer = getOrNull<RemoteAccessServerController>() ?: NoOpRemoteAccessServerController,
+            appLock = getOrNull<AppLockController>() ?: NoOpAppLockController,
         )
     }
     factory {
