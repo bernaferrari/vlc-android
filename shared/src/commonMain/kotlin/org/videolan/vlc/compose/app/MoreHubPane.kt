@@ -62,6 +62,13 @@ internal fun MorePane(
         verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
         item {
+            Text(
+                ShellStrings.more(),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+            )
+        }
+        item {
             // The shell already owns the VLC title. Group these destinations as a
             // compact directory instead of repeating the brand in a second
             // oversized header and rendering each action as an isolated card.

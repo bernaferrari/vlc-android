@@ -298,16 +298,15 @@ fun VlcMainShell(
                 contentWindowInsets = WindowInsets(0, 0, 0, 0),
                 containerColor = colors.backgroundDefault,
                 topBar = {
-                    // The player owns its immersive, gesture-revealed HUD. A second shell bar
-                    // consumes vertical space and duplicates its close/title affordance.
-                    if (!showPlayer) {
+                    // Root destinations own their hierarchy (Videos, Audio, Browse, More).
+                    // A permanent "VLC" app bar above them duplicates that hierarchy and leaves
+                    // empty libraries with three unrelated headers. Only Settings needs shell
+                    // chrome while the player owns its immersive HUD.
+                    if (showSettings) {
                         TopAppBar(
                             title = {
                                 Text(
-                                    when {
-                                        showSettings -> ShellStrings.settings()
-                                        else -> title.ifBlank { ShellStrings.appName() }
-                                    },
+                                    ShellStrings.settings(),
                                     style = MaterialTheme.typography.titleLarge,
                                 )
                             },
@@ -316,21 +315,11 @@ fun VlcMainShell(
                                 titleContentColor = colors.fontDefault,
                             ),
                             actions = {
-                                if (!showSettings && hostCallbacks.supportsMediaImport()) {
-                                    IconButton(onClick = hostCallbacks::onImportMedia) {
-                                        Icon(
-                                            icon = MaterialSymbols.Filled.Add,
-                                            contentDescription = ShellStrings.importMedia(),
-                                        )
-                                    }
-                                }
-                                if (canNavigateBack) {
-                                    IconButton(onClick = ::navigateBack) {
-                                        Icon(
-                                            icon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
-                                            contentDescription = ShellStrings.back(),
-                                        )
-                                    }
+                                if (canNavigateBack) IconButton(onClick = ::navigateBack) {
+                                    Icon(
+                                        icon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
+                                        contentDescription = ShellStrings.back(),
+                                    )
                                 }
                             },
                         )
