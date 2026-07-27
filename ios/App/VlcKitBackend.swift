@@ -181,6 +181,40 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
 #endif
     }
 
+    func tracks() -> PlaybackTracks {
+#if canImport(MobileVLCKit)
+        guard let player else { return PlaybackTracks(audio: [], subtitles: []) }
+        return PlaybackTracks(
+            audio: makeTracks(
+                names: player.audioTrackNames,
+                indexes: player.audioTrackIndexes,
+                selected: Int(player.currentAudioTrackIndex)
+            ),
+            subtitles: makeTracks(
+                names: player.videoSubTitlesNames,
+                indexes: player.videoSubTitlesIndexes,
+                selected: Int(player.currentVideoSubTitleIndex)
+            )
+        )
+#else
+        return PlaybackTracks(audio: [], subtitles: [])
+#endif
+    }
+
+    func selectAudioTrack(id: String) {
+#if canImport(MobileVLCKit)
+        guard let trackID = Int32(id) else { return }
+        player?.currentAudioTrackIndex = trackID
+#endif
+    }
+
+    func selectSubtitleTrack(id: String) {
+#if canImport(MobileVLCKit)
+        guard let trackID = Int32(id) else { return }
+        player?.currentVideoSubTitleIndex = trackID
+#endif
+    }
+
     func setListener(listener: VlcKitPlayerBackendListener?) {
         self.listener = listener
     }
@@ -218,6 +252,14 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
     }
 
 #if canImport(MobileVLCKit)
+    private func makeTracks(names: NSArray, indexes: NSArray, selected: Int) -> [PlaybackTrack] {
+        let labels = names.compactMap { $0 as? String }
+        let ids = indexes.map { String(describing: $0) }
+        return zip(labels, ids).map { label, id in
+            PlaybackTrack(id: id, label: label, selected: Int(id) == selected)
+        }
+    }
+
     private func ensurePlayer() -> VLCMediaPlayer {
         if let player { return player }
         let player = VLCMediaPlayer()

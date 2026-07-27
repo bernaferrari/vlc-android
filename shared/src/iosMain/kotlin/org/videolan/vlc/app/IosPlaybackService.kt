@@ -10,6 +10,7 @@ import org.videolan.vlc.player.VideoScaleMode
 import org.videolan.vlc.player.PlaybackObserver
 import org.videolan.vlc.player.PlaybackService
 import org.videolan.vlc.player.PlaybackState
+import org.videolan.vlc.player.PlaybackTracks
 import org.videolan.vlc.player.PlayerBackend
 import org.videolan.vlc.player.PlaylistEngine
 import platform.Foundation.NSURL
@@ -35,6 +36,7 @@ class IosPlaybackService : PlaybackService {
     override val abRepeatEnabled: Flow<Boolean> get() = engine.abRepeatEnabled
     override val stopAfterCurrent: Flow<Boolean> get() = engine.stopAfterCurrent
     override val videoScaleMode: Flow<VideoScaleMode> get() = engine.videoScaleMode
+    override val tracks: Flow<PlaybackTracks> get() = engine.tracks
 
     /**
      * Accepts the legacy VlcKitPlayerBackend and adapts it to [PlayerBackend].
@@ -113,6 +115,8 @@ class IosPlaybackService : PlaybackService {
     override fun setRate(rate: Float) = engine.setRate(rate)
     override fun getRate(): Float = engine.getRate()
     override fun setVideoScaleMode(mode: VideoScaleMode) = engine.setVideoScaleMode(mode)
+    override fun selectAudioTrack(id: String) = engine.selectAudioTrack(id)
+    override fun selectSubtitleTrack(id: String) = engine.selectSubtitleTrack(id)
     override fun addObserver(observer: PlaybackObserver) = engine.addObserver(observer)
     override fun removeObserver(observer: PlaybackObserver) = engine.removeObserver(observer)
 
@@ -151,6 +155,9 @@ private class VlcKitPlayerBackendAdapter(
     override fun setRate(rate: Float) = kit.setRate(rate)
     override fun getRate(): Float = kit.getRate()
     override fun setVideoOutput(aspectRatio: String?, scale: Float) = kit.setVideoOutput(aspectRatio, scale)
+    override fun tracks(): PlaybackTracks = kit.tracks()
+    override fun selectAudioTrack(id: String) = kit.selectAudioTrack(id)
+    override fun selectSubtitleTrack(id: String) = kit.selectSubtitleTrack(id)
     override fun setListener(listener: PlayerBackend.Listener?) {
         if (listener == null) {
             kit.setListener(null)
@@ -187,6 +194,9 @@ interface VlcKitPlayerBackend {
     fun setRate(rate: Float)
     fun getRate(): Float
     fun setVideoOutput(aspectRatio: String?, scale: Float)
+    fun tracks(): PlaybackTracks
+    fun selectAudioTrack(id: String)
+    fun selectSubtitleTrack(id: String)
     fun setListener(listener: Listener?)
     /** Named to avoid colliding with Objective-C NSObject.release in Swift implementations. */
     fun dispose()

@@ -24,6 +24,8 @@ import org.videolan.vlc.model.RepeatMode
 import org.videolan.vlc.player.PlaybackObserver
 import org.videolan.vlc.player.PlaybackService
 import org.videolan.vlc.player.PlaybackState
+import org.videolan.vlc.player.PlaybackTrack
+import org.videolan.vlc.player.PlaybackTracks
 import org.videolan.vlc.player.VideoScaleMode
 import org.videolan.vlc.PlaybackService as AndroidPlaybackHost
 
@@ -72,6 +74,9 @@ class AndroidPlaybackService(
 
     private val _videoScaleMode = MutableStateFlow(VideoScaleMode.BEST_FIT)
     override val videoScaleMode: Flow<VideoScaleMode> = _videoScaleMode.asStateFlow()
+
+    private val _tracks = MutableStateFlow(PlaybackTracks())
+    override val tracks: Flow<PlaybackTracks> = _tracks.asStateFlow()
 
     private val observers = mutableListOf<PlaybackObserver>()
 
@@ -252,6 +257,16 @@ class AndroidPlaybackService(
         manager()?.player?.mediaplayer?.videoScale = mode.toAndroidScaleType()
     }
 
+    override fun selectAudioTrack(id: String) {
+        manager()?.player?.setAudioTrack(id)
+        refreshTracksFromHost()
+    }
+
+    override fun selectSubtitleTrack(id: String) {
+        manager()?.player?.setSpuTrack(id)
+        refreshTracksFromHost()
+    }
+
     override fun addObserver(observer: PlaybackObserver) {
         observers.add(observer)
     }
@@ -371,6 +386,7 @@ class AndroidPlaybackService(
 
     private fun pushStateFromHost(playing: Boolean, media: MediaWrapper? = PlaylistManager.currentPlayedMedia.value) {
         ensurePlayerProgressBound()
+        refreshTracksFromHost()
         val item = media?.toMediaItem() ?: currentItem()
         val progress = _progress.value
         val newState = when {
@@ -389,6 +405,31 @@ class AndroidPlaybackService(
     private fun currentItem(): MediaItem? =
         PlaylistManager.currentPlayedMedia.value?.toMediaItem()
             ?: _playlist.value.current
+
+    private fun refreshTracksFromHost() {
+        val player = manager()?.player ?: run {
+            _tracks.value = PlaybackTracks()
+            return
+        }
+        val selectedAudio = player.getAudioTrack()
+        val selectedSubtitle = player.getSpuTrack()
+        _tracks.value = PlaybackTracks(
+            audio = player.getAudioTracks().orEmpty().map { track ->
+                PlaybackTrack(
+                    id = track.getId(),
+                    label = track.getName().ifBlank { "Audio" },
+                    selected = track.getId() == selectedAudio,
+                )
+            },
+            subtitles = player.getSpuTracks().orEmpty().map { track ->
+                PlaybackTrack(
+                    id = track.getId(),
+                    label = track.getName().ifBlank { "Subtitle" },
+                    selected = track.getId() == selectedSubtitle,
+                )
+            },
+        )
+    }
 
     private fun repeatModeFromHost(): RepeatMode = when (PlaylistManager.repeating.value) {
         PlaybackStateCompat.REPEAT_MODE_ONE -> RepeatMode.ONE

@@ -132,6 +132,24 @@ class PlaylistEngineTest {
     }
 
     @Test
+    fun trackSelectionIsSharedAndRefreshesTheNativeSnapshot() {
+        val backend = RecordingBackend().apply {
+            availableTracks = PlaybackTracks(
+                audio = listOf(PlaybackTrack("1", "English", true), PlaybackTrack("2", "Spanish", false)),
+                subtitles = listOf(PlaybackTrack("-1", "Disabled", true), PlaybackTrack("5", "Portuguese", false)),
+            )
+        }
+        val engine = PlaylistEngine(backend)
+
+        engine.selectAudioTrack("2")
+        engine.selectSubtitleTrack("5")
+
+        assertEquals("2", backend.selectedAudioTrack)
+        assertEquals("5", backend.selectedSubtitleTrack)
+        assertEquals("English", engine.tracks.value.audio.first().label)
+    }
+
+    @Test
     fun restorePausedPreparesTheCurrentItemWithoutAutoPlay() {
         val backend = RecordingBackend()
         val engine = PlaylistEngine(backend)
@@ -157,6 +175,9 @@ class PlaylistEngineTest {
         var preparedPosition = -1L
         var reportedAspectRatio: String? = null
         var reportedScale = -1f
+        var availableTracks = PlaybackTracks()
+        var selectedAudioTrack: String? = null
+        var selectedSubtitleTrack: String? = null
 
         override fun playUri(uri: String, title: String?) = Unit
         override fun preparePaused(uri: String, title: String?, positionMs: Long): Boolean {
@@ -176,6 +197,9 @@ class PlaylistEngineTest {
             reportedAspectRatio = aspectRatio
             reportedScale = scale
         }
+        override fun tracks(): PlaybackTracks = availableTracks
+        override fun selectAudioTrack(id: String) { selectedAudioTrack = id }
+        override fun selectSubtitleTrack(id: String) { selectedSubtitleTrack = id }
         override fun setListener(listener: PlayerBackend.Listener?) = Unit
         override fun release() = Unit
     }

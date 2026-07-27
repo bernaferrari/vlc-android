@@ -250,6 +250,7 @@ internal fun PlayerDestination(
         abRepeatEnabled = state.abRepeatEnabled,
         stopAfterCurrent = state.stopAfterCurrent,
         videoScaleMode = state.videoScaleMode,
+        tracks = state.tracks,
         hasVideoOutput = state.hasVideoOutput,
         onTogglePlay = viewModel::togglePlayPause,
         onSeek = viewModel::seekTo,
@@ -267,6 +268,8 @@ internal fun PlayerDestination(
         onClearABRepeat = viewModel::clearABRepeat,
         onToggleStopAfterCurrent = viewModel::toggleStopAfterCurrent,
         onSetVideoScaleMode = viewModel::setVideoScaleMode,
+        onSelectAudioTrack = viewModel::selectAudioTrack,
+        onSelectSubtitleTrack = viewModel::selectSubtitleTrack,
         onClose = onClose,
         modifier = modifier,
     ) { chromeVisible -> playerSurface(state, chromeVisible) }

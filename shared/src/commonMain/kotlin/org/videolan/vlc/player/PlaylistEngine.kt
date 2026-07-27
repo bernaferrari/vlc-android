@@ -30,6 +30,9 @@ interface PlayerBackend {
     fun setRate(rate: Float)
     fun getRate(): Float
     fun setVideoOutput(aspectRatio: String?, scale: Float) {}
+    fun tracks(): PlaybackTracks = PlaybackTracks()
+    fun selectAudioTrack(id: String) {}
+    fun selectSubtitleTrack(id: String) {}
     fun setListener(listener: Listener?)
     fun release()
 
@@ -74,6 +77,9 @@ class PlaylistEngine(
     private val _videoScaleMode = MutableStateFlow(VideoScaleMode.BEST_FIT)
     override val videoScaleMode: StateFlow<VideoScaleMode> = _videoScaleMode.asStateFlow()
 
+    private val _tracks = MutableStateFlow(PlaybackTracks())
+    override val tracks: StateFlow<PlaybackTracks> = _tracks.asStateFlow()
+
     private val observers = mutableListOf<PlaybackObserver>()
     private val previousStack = ArrayDeque<Int>()
     private var expanding = false
@@ -95,8 +101,12 @@ class PlaylistEngine(
         backend?.setVolume(volume)
         backend?.setRate(rate)
         backend?.setVideoOutput(_videoScaleMode.value.nativeAspectRatio, _videoScaleMode.value.nativeScale)
+        refreshTracks()
         backend?.setListener(object : PlayerBackend.Listener {
-            override fun onPlaying() = pushPlaying()
+            override fun onPlaying() {
+                refreshTracks()
+                pushPlaying()
+            }
             override fun onPaused() = pushPaused()
             override fun onStopped() {
                 updateState(PlaybackState.Stopped(currentItem()))
@@ -245,6 +255,20 @@ class PlaylistEngine(
     override fun setVideoScaleMode(mode: VideoScaleMode) {
         _videoScaleMode.value = mode
         backend?.setVideoOutput(mode.nativeAspectRatio, mode.nativeScale)
+    }
+
+    override fun selectAudioTrack(id: String) {
+        backend?.selectAudioTrack(id)
+        refreshTracks()
+    }
+
+    override fun selectSubtitleTrack(id: String) {
+        backend?.selectSubtitleTrack(id)
+        refreshTracks()
+    }
+
+    private fun refreshTracks() {
+        _tracks.value = backend?.tracks() ?: PlaybackTracks()
     }
 
     override fun addObserver(observer: PlaybackObserver) {
@@ -403,6 +427,7 @@ class PlaylistEngine(
         }
         updateState(PlaybackState.Loading)
         clearABRepeat()
+        _tracks.value = PlaybackTracks()
         val b = backend
         if (b == null) {
             updateProgress(0L, item.duration.coerceAtLeast(0L))

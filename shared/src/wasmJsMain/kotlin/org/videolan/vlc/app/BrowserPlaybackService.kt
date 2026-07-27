@@ -14,6 +14,7 @@ import org.videolan.vlc.player.PlaybackObserver
 import org.videolan.vlc.player.PlaybackService
 import org.videolan.vlc.player.PlaybackState
 import org.videolan.vlc.player.VideoScaleMode
+import org.videolan.vlc.player.PlaybackTracks
 import org.w3c.dom.HTMLElement
 
 /**
@@ -30,6 +31,7 @@ internal class BrowserPlaybackService : PlaybackService {
     private val _abRepeatEnabled = MutableStateFlow(false)
     private val _stopAfterCurrent = MutableStateFlow(false)
     private val _videoScaleMode = MutableStateFlow(VideoScaleMode.BEST_FIT)
+    private val _tracks = MutableStateFlow(PlaybackTracks())
     private val observers = mutableSetOf<PlaybackObserver>()
     private var volume = 100
     private var rate = 1f
@@ -44,6 +46,7 @@ internal class BrowserPlaybackService : PlaybackService {
     override val abRepeatEnabled: Flow<Boolean> = _abRepeatEnabled.asStateFlow()
     override val stopAfterCurrent: Flow<Boolean> = _stopAfterCurrent.asStateFlow()
     override val videoScaleMode: Flow<VideoScaleMode> = _videoScaleMode.asStateFlow()
+    override val tracks: Flow<PlaybackTracks> = _tracks.asStateFlow()
 
     init {
         BrowserMediaElementHost.register(this)
