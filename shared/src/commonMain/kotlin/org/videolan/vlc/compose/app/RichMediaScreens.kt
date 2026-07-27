@@ -115,6 +115,8 @@ fun RichMediaListPane(
     onShowTrackNumbers: (Boolean) -> Unit = {},
     onDefaultAction: (String) -> Unit = {},
     defaultActionOptions: List<String> = listOf("PLAY", "PLAY_ALL", "ADD_TO_QUEUE", "INSERT_NEXT"),
+    emptyActionText: String? = null,
+    onEmptyAction: () -> Unit = {},
     modifier: Modifier = Modifier,
     onRetry: () -> Unit = {},
 ) {
@@ -125,6 +127,14 @@ fun RichMediaListPane(
         sections.isEmpty() &&
         groups.isEmpty() &&
         state.groupingMode == VideoGroupingMode.NONE
+    val emptyLibrary = !state.loading &&
+        state.query.isBlank() &&
+        !state.onlyFavorites &&
+        state.selection.isEmpty() &&
+        state.items.isEmpty() &&
+        sections.isEmpty() &&
+        groups.isEmpty() &&
+        (!usePaging || lazyPagingItems.itemCount == 0)
 
     Column(modifier.padding(horizontal = 16.dp)) {
         // Keep the hierarchy deliberate: identity first, then a compact action strip.
@@ -173,7 +183,7 @@ fun RichMediaListPane(
                     Text(ShellStrings.selectionCount(ShellStrings.clear(), state.selection.size))
                 }
             }
-        } else {
+        } else if (!emptyLibrary) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -263,14 +273,16 @@ fun RichMediaListPane(
             )
         }
 
-        androidx.compose.material3.OutlinedTextField(
-            value = state.query,
-            onValueChange = onQuery,
-            modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-            singleLine = true,
-            label = { Text(ShellStrings.search()) },
-            shape = MaterialTheme.shapes.extraLarge,
-        )
+        if (!emptyLibrary) {
+            androidx.compose.material3.OutlinedTextField(
+                value = state.query,
+                onValueChange = onQuery,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                singleLine = true,
+                label = { Text(ShellStrings.search()) },
+                shape = MaterialTheme.shapes.extraLarge,
+            )
+        }
 
         if (state.loading) {
             LinearProgressIndicator(progress = { 0f }, modifier = Modifier.fillMaxWidth())
@@ -279,24 +291,26 @@ fun RichMediaListPane(
             RetryMessage(error = error, onRetry = onRetry)
         }
 
-        val countLabel = when {
-            groups.isNotEmpty() -> ShellStrings.groupsCount(groups.size)
-            usePaging -> {
-                val n = lazyPagingItems.itemCount
-                if (n > 0) ShellStrings.itemsPlusCount(n) else ShellStrings.itemsCount(state.count)
+        if (!emptyLibrary) {
+            val countLabel = when {
+                groups.isNotEmpty() -> ShellStrings.groupsCount(groups.size)
+                usePaging -> {
+                    val n = lazyPagingItems.itemCount
+                    if (n > 0) ShellStrings.itemsPlusCount(n) else ShellStrings.itemsCount(state.count)
+                }
+                else -> ShellStrings.itemsCount(state.count)
             }
-            else -> ShellStrings.itemsCount(state.count)
+            Text(
+                if (state.selection.isNotEmpty()) {
+                    ShellStrings.selectedItemsSummary(countLabel, state.selection.size)
+                } else {
+                    countLabel
+                },
+                color = colors.fontLight,
+                style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.padding(bottom = 4.dp),
+            )
         }
-        Text(
-            if (state.selection.isNotEmpty()) {
-                ShellStrings.selectedItemsSummary(countLabel, state.selection.size)
-            } else {
-                countLabel
-            },
-            color = colors.fontLight,
-            style = MaterialTheme.typography.labelMedium,
-            modifier = Modifier.padding(bottom = 4.dp),
-        )
 
         when {
             state.groupingMode != VideoGroupingMode.NONE && groups.isNotEmpty() -> {
@@ -334,13 +348,21 @@ fun RichMediaListPane(
                 }
             }
             state.groupingMode != VideoGroupingMode.NONE && !state.loading && groups.isEmpty() -> {
-                VLCEmptyState(loading = false, text = emptyLabel, modifier = Modifier.fillMaxSize())
+                VLCEmptyState(
+                    loading = false,
+                    text = emptyLabel,
+                    modifier = Modifier.fillMaxSize(),
+                    actionText = emptyActionText,
+                    onActionClick = onEmptyAction,
+                )
             }
             usePaging -> {
                 PagedMediaBody(
                     state = state,
                     lazyPagingItems = lazyPagingItems,
                     emptyLabel = emptyLabel,
+                    emptyActionText = emptyActionText,
+                    onEmptyAction = onEmptyAction,
                     onPlay = onPlay,
                     onPlayNext = onPlayNext,
                     onAppend = onAppend,
@@ -350,7 +372,13 @@ fun RichMediaListPane(
                 )
             }
             !state.loading && state.items.isEmpty() && sections.isEmpty() -> {
-                VLCEmptyState(loading = false, text = emptyLabel, modifier = Modifier.fillMaxSize())
+                VLCEmptyState(
+                    loading = false,
+                    text = emptyLabel,
+                    modifier = Modifier.fillMaxSize(),
+                    actionText = emptyActionText,
+                    onActionClick = onEmptyAction,
+                )
             }
             else -> {
                 SnapshotMediaBody(
@@ -374,6 +402,8 @@ private fun PagedMediaBody(
     state: MediaListUiState,
     lazyPagingItems: LazyPagingItems<MediaItem>,
     emptyLabel: String,
+    emptyActionText: String?,
+    onEmptyAction: () -> Unit,
     onPlay: (MediaItem) -> Unit,
     onPlayNext: (MediaItem) -> Unit,
     onAppend: (MediaItem) -> Unit,
@@ -382,7 +412,13 @@ private fun PagedMediaBody(
     canHandleHostAction: (ContextOption) -> Boolean,
 ) {
     if (lazyPagingItems.itemCount == 0 && !state.loading) {
-        VLCEmptyState(loading = false, text = emptyLabel, modifier = Modifier.fillMaxSize())
+        VLCEmptyState(
+            loading = false,
+            text = emptyLabel,
+            modifier = Modifier.fillMaxSize(),
+            actionText = emptyActionText,
+            onActionClick = onEmptyAction,
+        )
         return
     }
     if (state.viewMode == ViewMode.GRID) {

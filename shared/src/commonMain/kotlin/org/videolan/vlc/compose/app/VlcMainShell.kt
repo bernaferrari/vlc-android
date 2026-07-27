@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -290,6 +291,11 @@ fun VlcMainShell(
         ) {
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
+                // NavigationSuiteScaffold owns the system/navigation insets for
+                // its compact bar and wide rail. Keeping this inner scaffold
+                // inset-free avoids a second invisible safe-area band between
+                // the shared content and adaptive navigation.
+                contentWindowInsets = WindowInsets(0, 0, 0, 0),
                 containerColor = colors.backgroundDefault,
                 topBar = {
                     // The player owns its immersive, gesture-revealed HUD. A second shell bar

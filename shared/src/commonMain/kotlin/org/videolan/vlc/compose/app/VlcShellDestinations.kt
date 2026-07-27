@@ -82,6 +82,8 @@ internal fun VideoDestination(
         onSetGroupingMode = viewModel::setGroupingMode,
         showGroupingToggle = true,
         onDefaultAction = viewModel::setDefaultPlaybackAction,
+        emptyActionText = ShellStrings.importMedia().takeIf { hostCallbacks.supportsMediaImport() },
+        onEmptyAction = hostCallbacks::onImportMedia,
         modifier = modifier,
     )
 }
@@ -168,6 +170,8 @@ internal fun AudioDestination(
             onShowAllArtists = viewModel::setShowAllArtists,
             onShowTrackNumbers = viewModel::setShowTrackNumbers,
             onDefaultAction = viewModel::setDefaultPlaybackAction,
+            emptyActionText = ShellStrings.importMedia().takeIf { hostCallbacks.supportsMediaImport() },
+            onEmptyAction = hostCallbacks::onImportMedia,
             modifier = Modifier.fillMaxSize(),
         )
     }

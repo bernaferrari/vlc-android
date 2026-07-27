@@ -1,12 +1,15 @@
 package org.videolan.vlc.compose.app
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -55,20 +58,30 @@ internal fun MorePane(
     var newStreamUri by remember { mutableStateOf("") }
     var streamAddressError by remember { mutableStateOf(false) }
     LazyColumn(
-        modifier = modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier.padding(horizontal = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(24.dp),
     ) {
         item {
-            Text(ShellStrings.appName(), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            if (state.platformName.isNotBlank()) {
-                Text(state.platformName, color = colors.fontLight, style = MaterialTheme.typography.bodySmall)
+            // The shell already owns the VLC title. Group these destinations as a
+            // compact directory instead of repeating the brand in a second
+            // oversized header and rendering each action as an isolated card.
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.extraLarge,
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+            ) {
+                Column {
+                    MoreAction(MaterialSymbols.Filled.Settings, ShellStrings.settings(), onOpenSettings)
+                    MoreActionDivider()
+                    MoreAction(MaterialSymbols.Filled.Info, ShellStrings.about(), onOpenAbout)
+                    MoreActionDivider()
+                    MoreAction(MaterialSymbols.Filled.Star, ShellStrings.donate(), onOpenDonate)
+                    if (onOpenRemote != null) {
+                        MoreActionDivider()
+                        MoreAction(MaterialSymbols.Filled.Devices, ShellStrings.remoteAccess(), onOpenRemote)
+                    }
+                }
             }
-        }
-        item { MoreAction(MaterialSymbols.Filled.Settings, ShellStrings.settings(), onOpenSettings) }
-        item { MoreAction(MaterialSymbols.Filled.Info, ShellStrings.about(), onOpenAbout) }
-        item { MoreAction(MaterialSymbols.Filled.Star, ShellStrings.donate(), onOpenDonate) }
-        if (onOpenRemote != null) {
-            item { MoreAction(MaterialSymbols.Filled.Devices, ShellStrings.remoteAccess(), onOpenRemote) }
         }
 
         item {
@@ -77,7 +90,7 @@ internal fun MorePane(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(ShellStrings.streams(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                MoreSectionTitle(ShellStrings.streams())
                 TextButton(onClick = {
                     addingStream = !addingStream
                     streamAddressError = false
@@ -220,7 +233,7 @@ internal fun MorePane(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(ShellStrings.history(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                MoreSectionTitle(ShellStrings.history())
                 Row {
                     if (state.historySelection.isNotEmpty()) {
                         TextButton(onClick = vm::removeSelectedHistory) {
@@ -279,25 +292,41 @@ internal fun MorePane(
 @Composable
 private fun MoreAction(icon: MaterialIcon, label: String, onClick: () -> Unit) {
     val colors = VLCThemeDefaults.colors
-    Surface(
-        onClick = onClick,
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = 64.dp)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Row(
-            Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            VLCIconChip(size = 44.dp) { tint ->
-                Icon(icon, contentDescription = null, tint = tint)
-            }
-            Text(
-                label,
-                color = colors.listTitle,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
+        VLCIconChip(size = 40.dp) { tint ->
+            Icon(icon, contentDescription = null, tint = tint)
         }
+        Text(
+            label,
+            color = colors.listTitle,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+        )
     }
+}
+
+@Composable
+private fun MoreActionDivider() {
+    HorizontalDivider(
+        modifier = Modifier.padding(start = 72.dp),
+        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f),
+    )
+}
+
+@Composable
+private fun MoreSectionTitle(title: String) {
+    Text(
+        title,
+        style = MaterialTheme.typography.titleSmall,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.primary,
+    )
 }

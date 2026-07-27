@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
@@ -60,34 +61,35 @@ fun VLCEmptyState(
 ) {
     VLCTheme {
         Box(
-            modifier = modifier.padding(if (compact) 16.dp else 24.dp),
+            modifier = modifier.padding(
+                horizontal = if (compact) 16.dp else 24.dp,
+                vertical = if (compact) 24.dp else 40.dp,
+            ),
             contentAlignment = Alignment.Center,
         ) {
-            Surface(
-                shape = MaterialTheme.shapes.extraLarge,
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
+            // An empty collection is a normal state, not an error dialog. Keep the
+            // surface clear so it feels like part of the library rather than a
+            // large gray card with a lone illustration in it.
+            Column(
+                modifier = Modifier.widthIn(max = 360.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
             ) {
-                Column(
-                    modifier = Modifier.padding(horizontal = 28.dp, vertical = 32.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                ) {
-                    when {
-                        loading -> LoadingIndicator(text = text)
-                        else -> {
-                            EmptyIcon(icon = icon)
-                            Spacer(modifier = Modifier.height(20.dp))
-                            Text(
-                                text = text,
-                                color = VLCThemeDefaults.colors.fontDefault,
-                                style = MaterialTheme.typography.titleMedium,
-                                textAlign = TextAlign.Center,
-                            )
-                            if (actionText != null) {
-                                Spacer(modifier = Modifier.height(20.dp))
-                                FilledTonalButton(onClick = onActionClick) {
-                                    Text(actionText)
-                                }
+                when {
+                    loading -> LoadingIndicator(text = text)
+                    else -> {
+                        EmptyIcon(icon = icon)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = text,
+                            color = VLCThemeDefaults.colors.fontDefault,
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center,
+                        )
+                        if (actionText != null) {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            FilledTonalButton(onClick = onActionClick) {
+                                Text(actionText)
                             }
                         }
                     }
@@ -143,28 +145,27 @@ private fun LoadingText(text: String) {
 
 @Composable
 private fun EmptyIcon(icon: Painter?) {
-    // Soft tonal disc behind the (optional) glyph so empty states read as
-    // intentional Material 3 surfaces rather than a stray gray circle.
-    Box(
-        modifier = Modifier
-            .size(112.dp)
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape),
-        contentAlignment = Alignment.Center
+    Surface(
+        modifier = Modifier.size(64.dp),
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {
+        Box(contentAlignment = Alignment.Center) {
         if (icon != null) {
             Image(
                 painter = icon,
                 contentDescription = null,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant),
-                modifier = Modifier.size(56.dp)
+                modifier = Modifier.size(28.dp),
             )
         } else {
             Icon(
                 icon = MaterialSymbols.Filled.VideoLibrary,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier.size(28.dp),
             )
+        }
         }
     }
 }
