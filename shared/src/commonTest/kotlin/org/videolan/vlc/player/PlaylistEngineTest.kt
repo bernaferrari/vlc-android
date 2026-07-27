@@ -157,6 +157,23 @@ class PlaylistEngineTest {
     }
 
     @Test
+    fun videoAdjustIsSharedOnlyWithACapableDecoder() {
+        val backend = RecordingBackend().apply {
+            availableVideoAdjust = PlaybackVideoAdjust(supported = true)
+        }
+        val engine = PlaylistEngine(backend)
+
+        engine.setVideoAdjustEnabled(true)
+        engine.setVideoAdjust(VideoAdjustParameter.HUE, 999f)
+        engine.resetVideoAdjust()
+
+        assertTrue(backend.videoAdjustWasEnabled)
+        assertEquals(180f, backend.reportedVideoAdjust[VideoAdjustParameter.HUE])
+        assertTrue(backend.videoAdjustWasReset)
+        assertTrue(engine.videoAdjust.value.supported)
+    }
+
+    @Test
     fun trackSelectionIsSharedAndRefreshesTheNativeSnapshot() {
         val backend = RecordingBackend().apply {
             availableTracks = PlaybackTracks(
@@ -257,11 +274,15 @@ class PlaylistEngineTest {
         var loadedSubtitleUri: String? = null
         var availableEqualizer = PlaybackEqualizer()
         var availableVideoCrop = PlaybackVideoCrop()
+        var availableVideoAdjust = PlaybackVideoAdjust()
         var equalizerWasEnabled = false
         var selectedEqualizerPreset: String? = null
         var reportedEqualizerPreamp = 0f
         val reportedEqualizerBands = mutableMapOf<Int, Float>()
         var reportedVideoCrop: VideoCropMode? = null
+        var videoAdjustWasEnabled = false
+        var videoAdjustWasReset = false
+        val reportedVideoAdjust = mutableMapOf<VideoAdjustParameter, Float>()
 
         override fun playUri(uri: String, title: String?) = Unit
         override fun preparePaused(uri: String, title: String?, positionMs: Long): Boolean {
@@ -300,6 +321,12 @@ class PlaylistEngineTest {
         }
         override fun videoCrop(): PlaybackVideoCrop = availableVideoCrop.copy(mode = reportedVideoCrop ?: availableVideoCrop.mode)
         override fun setVideoCrop(mode: VideoCropMode) { reportedVideoCrop = mode }
+        override fun videoAdjust(): PlaybackVideoAdjust = availableVideoAdjust
+        override fun setVideoAdjustEnabled(enabled: Boolean) { videoAdjustWasEnabled = enabled }
+        override fun setVideoAdjust(parameter: VideoAdjustParameter, value: Float) {
+            reportedVideoAdjust[parameter] = value
+        }
+        override fun resetVideoAdjust() { videoAdjustWasReset = true }
         override fun setListener(listener: PlayerBackend.Listener?) = Unit
         override fun release() = Unit
     }

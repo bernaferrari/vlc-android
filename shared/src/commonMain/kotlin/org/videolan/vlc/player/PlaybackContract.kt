@@ -47,6 +47,7 @@ interface PlaybackService {
     val chapters: Flow<PlaybackChapters> get() = flowOf(PlaybackChapters())
     val equalizer: Flow<PlaybackEqualizer> get() = flowOf(PlaybackEqualizer())
     val videoCrop: Flow<PlaybackVideoCrop> get() = flowOf(PlaybackVideoCrop())
+    val videoAdjust: Flow<PlaybackVideoAdjust> get() = flowOf(PlaybackVideoAdjust())
 
     fun play(item: MediaItem, playlist: List<MediaItem> = emptyList())
     fun playFromIndex(playlist: List<MediaItem>, index: Int)
@@ -77,6 +78,9 @@ interface PlaybackService {
     fun setEqualizerPreamp(preampDb: Float) {}
     fun setEqualizerBand(index: Int, amplificationDb: Float) {}
     fun setVideoCrop(mode: VideoCropMode) {}
+    fun setVideoAdjustEnabled(enabled: Boolean) {}
+    fun setVideoAdjust(parameter: VideoAdjustParameter, value: Float) {}
+    fun resetVideoAdjust() {}
     fun addObserver(observer: PlaybackObserver)
     fun removeObserver(observer: PlaybackObserver)
 

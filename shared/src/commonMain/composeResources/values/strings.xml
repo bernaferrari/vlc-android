@@ -301,6 +301,7 @@
     <string name="aspect_ratio">Aspect ratio</string>
     <string name="aspect_ratio_description">Tap to change the video aspect ratio</string>
     <string name="video_crop">Video crop</string>
+    <string name="video_adjust">Video adjustments</string>
     <string name="advanced_options">Advanced options</string>
     <string name="advanced_options_description">Such as the playback speed, repeat mode, …</string>
     <string name="tips_swipe">Swipe up or down</string>

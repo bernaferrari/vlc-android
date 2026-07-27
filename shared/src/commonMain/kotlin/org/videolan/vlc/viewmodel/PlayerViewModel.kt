@@ -22,6 +22,8 @@ import org.videolan.vlc.player.VideoScaleMode
 import org.videolan.vlc.player.PlaybackEqualizer
 import org.videolan.vlc.player.PlaybackVideoCrop
 import org.videolan.vlc.player.VideoCropMode
+import org.videolan.vlc.player.PlaybackVideoAdjust
+import org.videolan.vlc.player.VideoAdjustParameter
 import org.videolan.vlc.platform.RendererInfo
 
 data class PlayerUiState(
@@ -52,6 +54,7 @@ data class PlayerUiState(
     val selectedRendererId: String? = null,
     val equalizer: PlaybackEqualizer = PlaybackEqualizer(),
     val videoCrop: PlaybackVideoCrop = PlaybackVideoCrop(),
+    val videoAdjust: PlaybackVideoAdjust = PlaybackVideoAdjust(),
     val hasMedia: Boolean = false,
     /** True for known video and network streams, which may expose video after probing. */
     val hasVideoOutput: Boolean = false,
@@ -87,6 +90,11 @@ class PlayerViewModel(
         launch {
             playback.videoCrop.collect { videoCrop ->
                 _state.update { it.copy(videoCrop = videoCrop) }
+            }
+        }
+        launch {
+            playback.videoAdjust.collect { videoAdjust ->
+                _state.update { it.copy(videoAdjust = videoAdjust) }
             }
         }
         launch {
@@ -262,6 +270,13 @@ class PlayerViewModel(
         playback.setEqualizerBand(index, amplificationDb)
 
     fun setVideoCrop(mode: VideoCropMode) = playback.setVideoCrop(mode)
+
+    fun setVideoAdjustEnabled(enabled: Boolean) = playback.setVideoAdjustEnabled(enabled)
+
+    fun setVideoAdjust(parameter: VideoAdjustParameter, value: Float) =
+        playback.setVideoAdjust(parameter, value)
+
+    fun resetVideoAdjust() = playback.resetVideoAdjust()
 
     fun cycleRepeat() {
         val next = when (_state.value.repeatMode) {

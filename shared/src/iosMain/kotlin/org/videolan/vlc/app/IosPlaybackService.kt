@@ -17,6 +17,8 @@ import org.videolan.vlc.player.PlaybackChapters
 import org.videolan.vlc.player.PlaybackEqualizer
 import org.videolan.vlc.player.PlaybackVideoCrop
 import org.videolan.vlc.player.VideoCropMode
+import org.videolan.vlc.player.PlaybackVideoAdjust
+import org.videolan.vlc.player.VideoAdjustParameter
 import org.videolan.vlc.player.PlayerBackend
 import org.videolan.vlc.player.PlaylistEngine
 import platform.Foundation.NSURL
@@ -48,6 +50,7 @@ class IosPlaybackService : PlaybackService {
     override val chapters: Flow<PlaybackChapters> get() = engine.chapters
     override val equalizer: Flow<PlaybackEqualizer> get() = engine.equalizer
     override val videoCrop: Flow<PlaybackVideoCrop> get() = engine.videoCrop
+    override val videoAdjust: Flow<PlaybackVideoAdjust> get() = engine.videoAdjust
 
     /**
      * Accepts the legacy VlcKitPlayerBackend and adapts it to [PlayerBackend].
@@ -141,6 +144,10 @@ class IosPlaybackService : PlaybackService {
     override fun setEqualizerBand(index: Int, amplificationDb: Float) =
         engine.setEqualizerBand(index, amplificationDb)
     override fun setVideoCrop(mode: VideoCropMode) = engine.setVideoCrop(mode)
+    override fun setVideoAdjustEnabled(enabled: Boolean) = engine.setVideoAdjustEnabled(enabled)
+    override fun setVideoAdjust(parameter: VideoAdjustParameter, value: Float) =
+        engine.setVideoAdjust(parameter, value)
+    override fun resetVideoAdjust() = engine.resetVideoAdjust()
     override fun addObserver(observer: PlaybackObserver) = engine.addObserver(observer)
     override fun removeObserver(observer: PlaybackObserver) = engine.removeObserver(observer)
 
@@ -196,6 +203,11 @@ private class VlcKitPlayerBackendAdapter(
         kit.setEqualizerBand(index, amplificationDb)
     override fun videoCrop(): PlaybackVideoCrop = kit.videoCrop()
     override fun setVideoCrop(mode: VideoCropMode) = kit.setVideoCrop(mode)
+    override fun videoAdjust(): PlaybackVideoAdjust = kit.videoAdjust()
+    override fun setVideoAdjustEnabled(enabled: Boolean) = kit.setVideoAdjustEnabled(enabled)
+    override fun setVideoAdjust(parameter: VideoAdjustParameter, value: Float) =
+        kit.setVideoAdjust(parameter, value)
+    override fun resetVideoAdjust() = kit.resetVideoAdjust()
     override fun setListener(listener: PlayerBackend.Listener?) {
         if (listener == null) {
             kit.setListener(null)
@@ -248,6 +260,10 @@ interface VlcKitPlayerBackend {
     fun setEqualizerBand(index: Int, amplificationDb: Float)
     fun videoCrop(): PlaybackVideoCrop
     fun setVideoCrop(mode: VideoCropMode)
+    fun videoAdjust(): PlaybackVideoAdjust
+    fun setVideoAdjustEnabled(enabled: Boolean)
+    fun setVideoAdjust(parameter: VideoAdjustParameter, value: Float)
+    fun resetVideoAdjust()
     fun setListener(listener: Listener?)
     /** Named to avoid colliding with Objective-C NSObject.release in Swift implementations. */
     fun dispose()

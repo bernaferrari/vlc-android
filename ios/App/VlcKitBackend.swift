@@ -202,6 +202,57 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
 #endif
     }
 
+    func videoAdjust() -> PlaybackVideoAdjust {
+#if canImport(MobileVLCKit)
+        guard let filter = player?.adjustFilter else { return PlaybackVideoAdjust(supported: true) }
+        return PlaybackVideoAdjust(
+            supported: true,
+            enabled: filter.enabled,
+            brightness: filterFloat(filter.brightness, fallback: 1),
+            contrast: filterFloat(filter.contrast, fallback: 1),
+            hue: filterFloat(filter.hue, fallback: 0),
+            saturation: filterFloat(filter.saturation, fallback: 1),
+            gamma: filterFloat(filter.gamma, fallback: 1)
+        )
+#else
+        return PlaybackVideoAdjust()
+#endif
+    }
+
+    func setVideoAdjustEnabled(enabled: Bool) {
+#if canImport(MobileVLCKit)
+        player?.adjustFilter.enabled = enabled
+#endif
+    }
+
+    func setVideoAdjust(parameter: VideoAdjustParameter, value: Float) {
+#if canImport(MobileVLCKit)
+        guard let filter = player?.adjustFilter else { return }
+        let safe = min(parameter.maximum, max(parameter.minimum, value))
+        switch parameter {
+        case .brightness: filter.brightness.value = NSNumber(value: safe)
+        case .contrast: filter.contrast.value = NSNumber(value: safe)
+        case .hue: filter.hue.value = NSNumber(value: safe)
+        case .saturation: filter.saturation.value = NSNumber(value: safe)
+        case .gamma: filter.gamma.value = NSNumber(value: safe)
+        default: break
+        }
+        filter.enabled = true
+#endif
+    }
+
+    func resetVideoAdjust() {
+#if canImport(MobileVLCKit)
+        guard let filter = player?.adjustFilter else { return }
+        filter.brightness.value = NSNumber(value: 1)
+        filter.contrast.value = NSNumber(value: 1)
+        filter.hue.value = NSNumber(value: 0)
+        filter.saturation.value = NSNumber(value: 1)
+        filter.gamma.value = NSNumber(value: 1)
+        filter.enabled = false
+#endif
+    }
+
     func tracks() -> PlaybackTracks {
 #if canImport(MobileVLCKit)
         guard let player else { return PlaybackTracks(audio: [], subtitles: []) }
@@ -412,6 +463,12 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
     private func formatFrequency(_ frequency: Float) -> String {
         frequency >= 1_000 ? String(format: "%.1f kHz", frequency / 1_000) : String(format: "%.0f Hz", frequency)
     }
+
+#if canImport(MobileVLCKit)
+    private func filterFloat(_ parameter: VLCFilterParameter, fallback: Float) -> Float {
+        (parameter.value as? NSNumber)?.floatValue ?? fallback
+    }
+#endif
 
     private func makeMedia(uri: String, title: String?) -> VLCMedia? {
         let url: URL?

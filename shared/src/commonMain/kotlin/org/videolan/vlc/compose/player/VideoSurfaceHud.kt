@@ -47,6 +47,8 @@ import org.videolan.vlc.model.RepeatMode
 import org.videolan.vlc.player.VideoScaleMode
 import org.videolan.vlc.player.PlaybackVideoCrop
 import org.videolan.vlc.player.VideoCropMode
+import org.videolan.vlc.player.PlaybackVideoAdjust
+import org.videolan.vlc.player.VideoAdjustParameter
 import org.videolan.vlc.player.PlaybackTracks
 import org.videolan.vlc.player.PlaybackDelays
 import org.videolan.vlc.player.SleepTimerState
@@ -83,6 +85,7 @@ fun VideoSurfaceWithHud(
     stopAfterCurrent: Boolean = false,
     videoScaleMode: VideoScaleMode = VideoScaleMode.BEST_FIT,
     videoCrop: PlaybackVideoCrop = PlaybackVideoCrop(),
+    videoAdjust: PlaybackVideoAdjust = PlaybackVideoAdjust(),
     tracks: PlaybackTracks = PlaybackTracks(),
     delays: PlaybackDelays = PlaybackDelays(),
     sleepTimer: SleepTimerState = SleepTimerState(),
@@ -110,6 +113,9 @@ fun VideoSurfaceWithHud(
     onToggleStopAfterCurrent: () -> Unit = {},
     onSetVideoScaleMode: (VideoScaleMode) -> Unit = {},
     onSetVideoCrop: (VideoCropMode) -> Unit = {},
+    onSetVideoAdjustEnabled: (Boolean) -> Unit = {},
+    onSetVideoAdjust: (VideoAdjustParameter, Float) -> Unit = { _, _ -> },
+    onResetVideoAdjust: () -> Unit = {},
     onSelectAudioTrack: (String) -> Unit = {},
     onSelectSubtitleTrack: (String) -> Unit = {},
     onSetAudioDelay: (Long) -> Unit = {},
@@ -250,6 +256,7 @@ fun VideoSurfaceWithHud(
             stopAfterCurrent = stopAfterCurrent,
             videoScaleMode = videoScaleMode,
             videoCrop = videoCrop,
+            videoAdjust = videoAdjust,
             tracks = tracks,
             delays = delays,
             sleepTimer = sleepTimer,
@@ -270,6 +277,9 @@ fun VideoSurfaceWithHud(
             onToggleStopAfterCurrent = onToggleStopAfterCurrent,
             onSetVideoScaleMode = onSetVideoScaleMode,
             onSetVideoCrop = onSetVideoCrop,
+            onSetVideoAdjustEnabled = onSetVideoAdjustEnabled,
+            onSetVideoAdjust = onSetVideoAdjust,
+            onResetVideoAdjust = onResetVideoAdjust,
             onSelectAudioTrack = onSelectAudioTrack,
             onSelectSubtitleTrack = onSelectSubtitleTrack,
             onSetAudioDelay = onSetAudioDelay,

@@ -43,6 +43,8 @@ import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.player.VideoScaleMode
 import org.videolan.vlc.player.PlaybackVideoCrop
 import org.videolan.vlc.player.VideoCropMode
+import org.videolan.vlc.player.PlaybackVideoAdjust
+import org.videolan.vlc.player.VideoAdjustParameter
 import org.videolan.vlc.player.PlaybackTracks
 import org.videolan.vlc.player.PlaybackDelays
 import org.videolan.vlc.player.SleepTimerState
@@ -77,6 +79,7 @@ import vlc_android.shared.generated.resources.equalizer
 import vlc_android.shared.generated.resources.enable_equalizer
 import vlc_android.shared.generated.resources.preamp
 import vlc_android.shared.generated.resources.video_crop
+import vlc_android.shared.generated.resources.video_adjust
 
 private val PlaybackRatePresets = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f)
 
@@ -98,6 +101,7 @@ internal fun PlaybackOptionsSheet(
     stopAfterCurrent: Boolean,
     videoScaleMode: VideoScaleMode,
     videoCrop: PlaybackVideoCrop,
+    videoAdjust: PlaybackVideoAdjust,
     tracks: PlaybackTracks,
     delays: PlaybackDelays,
     sleepTimer: SleepTimerState,
@@ -115,6 +119,9 @@ internal fun PlaybackOptionsSheet(
     onToggleStopAfterCurrent: () -> Unit,
     onSetVideoScaleMode: (VideoScaleMode) -> Unit,
     onSetVideoCrop: (VideoCropMode) -> Unit,
+    onSetVideoAdjustEnabled: (Boolean) -> Unit,
+    onSetVideoAdjust: (VideoAdjustParameter, Float) -> Unit,
+    onResetVideoAdjust: () -> Unit,
     onSelectAudioTrack: (String) -> Unit,
     onSelectSubtitleTrack: (String) -> Unit,
     onSetAudioDelay: (Long) -> Unit,
@@ -292,6 +299,40 @@ internal fun PlaybackOptionsSheet(
                                 onClick = { onSetVideoCrop(mode) },
                                 label = { Text(mode.label) },
                             )
+                        }
+                    }
+                }
+                if (videoAdjust.supported) {
+                    HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            stringResource(Res.string.video_adjust),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Switch(checked = videoAdjust.enabled, onCheckedChange = onSetVideoAdjustEnabled)
+                    }
+                    if (videoAdjust.enabled) {
+                        VideoAdjustParameter.entries.forEach { parameter ->
+                            val value = videoAdjust.value(parameter)
+                            Text(
+                                "${parameter.label}  ${value.roundToInt()}",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            Slider(
+                                value = value.coerceIn(parameter.minimum, parameter.maximum),
+                                onValueChange = { onSetVideoAdjust(parameter, it) },
+                                valueRange = parameter.minimum..parameter.maximum,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                        TextButton(onClick = onResetVideoAdjust, modifier = Modifier.align(Alignment.End)) {
+                            Text(stringResource(Res.string.reset))
                         }
                     }
                 }

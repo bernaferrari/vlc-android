@@ -46,6 +46,10 @@ interface PlayerBackend {
     fun setEqualizerBand(index: Int, amplificationDb: Float) {}
     fun videoCrop(): PlaybackVideoCrop = PlaybackVideoCrop()
     fun setVideoCrop(mode: VideoCropMode) {}
+    fun videoAdjust(): PlaybackVideoAdjust = PlaybackVideoAdjust()
+    fun setVideoAdjustEnabled(enabled: Boolean) {}
+    fun setVideoAdjust(parameter: VideoAdjustParameter, value: Float) {}
+    fun resetVideoAdjust() {}
     fun setListener(listener: Listener?)
     fun release()
 
@@ -105,6 +109,9 @@ class PlaylistEngine(
     private val _videoCrop = MutableStateFlow(PlaybackVideoCrop())
     override val videoCrop: StateFlow<PlaybackVideoCrop> = _videoCrop.asStateFlow()
 
+    private val _videoAdjust = MutableStateFlow(PlaybackVideoAdjust())
+    override val videoAdjust: StateFlow<PlaybackVideoAdjust> = _videoAdjust.asStateFlow()
+
     private val sleepTimerController = SleepTimerController(
         isPlaying = { _state.value is PlaybackState.Playing },
         stopPlayback = ::stop,
@@ -137,6 +144,7 @@ class PlaylistEngine(
         refreshChapters()
         refreshEqualizer()
         refreshVideoCrop()
+        refreshVideoAdjust()
         backend?.setListener(object : PlayerBackend.Listener {
             override fun onPlaying() {
                 refreshTracks()
@@ -144,6 +152,7 @@ class PlaylistEngine(
                 refreshChapters()
                 refreshEqualizer()
                 refreshVideoCrop()
+                refreshVideoAdjust()
                 pushPlaying()
             }
             override fun onPaused() = pushPaused()
@@ -363,6 +372,36 @@ class PlaylistEngine(
         refreshVideoCrop()
     }
 
+    override fun setVideoAdjustEnabled(enabled: Boolean) {
+        val adjust = backend?.videoAdjust() ?: PlaybackVideoAdjust()
+        if (!adjust.supported) {
+            _videoAdjust.value = adjust
+            return
+        }
+        backend?.setVideoAdjustEnabled(enabled)
+        refreshVideoAdjust()
+    }
+
+    override fun setVideoAdjust(parameter: VideoAdjustParameter, value: Float) {
+        val adjust = backend?.videoAdjust() ?: PlaybackVideoAdjust()
+        if (!adjust.supported) {
+            _videoAdjust.value = adjust
+            return
+        }
+        backend?.setVideoAdjust(parameter, parameter.coerce(value))
+        refreshVideoAdjust()
+    }
+
+    override fun resetVideoAdjust() {
+        val adjust = backend?.videoAdjust() ?: PlaybackVideoAdjust()
+        if (!adjust.supported) {
+            _videoAdjust.value = adjust
+            return
+        }
+        backend?.resetVideoAdjust()
+        refreshVideoAdjust()
+    }
+
     private fun refreshTracks() {
         _tracks.value = backend?.tracks() ?: PlaybackTracks()
     }
@@ -381,6 +420,10 @@ class PlaylistEngine(
 
     private fun refreshVideoCrop() {
         _videoCrop.value = backend?.videoCrop() ?: PlaybackVideoCrop()
+    }
+
+    private fun refreshVideoAdjust() {
+        _videoAdjust.value = backend?.videoAdjust() ?: PlaybackVideoAdjust()
     }
 
     override fun addObserver(observer: PlaybackObserver) {
