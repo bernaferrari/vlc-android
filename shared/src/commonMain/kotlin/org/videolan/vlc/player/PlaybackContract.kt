@@ -39,6 +39,7 @@ interface PlaybackService {
     val currentPlaylist: Flow<Playlist>
     val abRepeat: Flow<ABRepeat> get() = flowOf(ABRepeat())
     val abRepeatEnabled: Flow<Boolean> get() = flowOf(false)
+    val stopAfterCurrent: Flow<Boolean> get() = flowOf(false)
 
     fun play(item: MediaItem, playlist: List<MediaItem> = emptyList())
     fun playFromIndex(playlist: List<MediaItem>, index: Int)

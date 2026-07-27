@@ -155,4 +155,20 @@ class PlayerViewModelTest {
         assertFalse(cleared.abRepeat.isActive)
         vm.onCleared()
     }
+
+    @Test
+    fun stopAfterCurrentIsObservableAndToggleableFromSharedUiState() = runTest {
+        val playback = FakePlaybackService()
+        val vm = PlayerViewModel(playback)
+        vm.play(FakeCatalog.items.first())
+
+        vm.toggleStopAfterCurrent()
+        runCurrent()
+        assertTrue(vm.state.value.stopAfterCurrent)
+
+        vm.toggleStopAfterCurrent()
+        runCurrent()
+        assertFalse(vm.state.value.stopAfterCurrent)
+        vm.onCleared()
+    }
 }

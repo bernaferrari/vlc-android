@@ -67,6 +67,9 @@ class PlaylistEngine(
     private val _abRepeatOn = MutableStateFlow(false)
     override val abRepeatEnabled: StateFlow<Boolean> = _abRepeatOn.asStateFlow()
 
+    private val _stopAfterCurrent = MutableStateFlow(false)
+    override val stopAfterCurrent: StateFlow<Boolean> = _stopAfterCurrent.asStateFlow()
+
     private val observers = mutableListOf<PlaybackObserver>()
     private val previousStack = ArrayDeque<Int>()
     private var expanding = false
@@ -109,7 +112,7 @@ class PlaylistEngine(
     fun restorePaused(playlist: Playlist, positionMs: Long): Boolean {
         if (playlist.items.isEmpty()) return false
         previousStack.clear()
-        stopAfterIndex = -1
+        clearStopAfter()
         clearABRepeat()
         val safeIndex = playlist.currentIndex.coerceIn(0, playlist.items.lastIndex)
         val restored = playlist.copy(items = playlist.items.toList(), currentIndex = safeIndex)
@@ -142,7 +145,7 @@ class PlaylistEngine(
             return
         }
         previousStack.clear()
-        stopAfterIndex = -1
+        clearStopAfter()
         val safe = index.coerceIn(0, playlist.lastIndex)
         _playlist.value = _playlist.value.copy(items = playlist.toList(), currentIndex = safe)
         notifyPlaylist()
@@ -161,7 +164,7 @@ class PlaylistEngine(
 
     override fun stop() {
         backend?.stop()
-        stopAfterIndex = -1
+        clearStopAfter()
         clearABRepeat()
         updateState(PlaybackState.Stopped(currentItem()))
     }
@@ -275,6 +278,9 @@ class PlaylistEngine(
         val at = index.coerceIn(0, mutable.size)
         mutable.add(at, item)
         val newCurrent = PlaylistIndexHelper.adjustCurrentOnAdd(pl.currentIndex, at, expanding)
+        if (stopAfterIndex >= 0) {
+            stopAfterIndex = PlaylistIndexHelper.adjustCurrentOnAdd(stopAfterIndex, at, expanding)
+        }
         _playlist.update { it.copy(items = mutable, currentIndex = newCurrent) }
         notifyPlaylist()
     }
@@ -287,6 +293,9 @@ class PlaylistEngine(
         val dest = to.coerceIn(0, mutable.size)
         mutable.add(dest, item)
         val newCurrent = PlaylistIndexHelper.adjustCurrentOnMove(pl.currentIndex, from, dest)
+        if (stopAfterIndex >= 0) {
+            stopAfterIndex = PlaylistIndexHelper.adjustCurrentOnMove(stopAfterIndex, from, dest)
+        }
         _playlist.update { it.copy(items = mutable, currentIndex = newCurrent) }
         notifyPlaylist()
     }
@@ -297,6 +306,14 @@ class PlaylistEngine(
         val (newCurrent, wasCurrent) = PlaylistIndexHelper.adjustCurrentOnRemove(
             pl.currentIndex, index, expanding
         )
+        if (stopAfterIndex >= 0) {
+            val (newStopAfter, removedStopAfter) = PlaylistIndexHelper.adjustCurrentOnRemove(
+                stopAfterIndex,
+                index,
+                expanding,
+            )
+            if (removedStopAfter) clearStopAfter() else stopAfterIndex = newStopAfter
+        }
         val mutable = pl.items.toMutableList()
         mutable.removeAt(index)
         if (mutable.isEmpty()) {
@@ -329,10 +346,12 @@ class PlaylistEngine(
 
     override fun setStopAfterThis() {
         stopAfterIndex = _playlist.value.currentIndex
+        _stopAfterCurrent.value = stopAfterIndex >= 0
     }
 
     override fun clearStopAfter() {
         stopAfterIndex = -1
+        _stopAfterCurrent.value = false
     }
 
     // --- A/B repeat ---
@@ -392,7 +411,7 @@ class PlaylistEngine(
     private fun handleEnded() {
         val item = currentItem()
         if (stopAfterIndex >= 0 && _playlist.value.currentIndex == stopAfterIndex) {
-            stopAfterIndex = -1
+            clearStopAfter()
             if (item != null) updateState(PlaybackState.Ended(item))
             stop()
             return

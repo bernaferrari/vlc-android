@@ -67,6 +67,7 @@ fun VideoSurfaceWithHud(
     currentQueueIndex: Int = 0,
     abRepeat: ABRepeat = ABRepeat(),
     abRepeatEnabled: Boolean = false,
+    stopAfterCurrent: Boolean = false,
     onTogglePlay: () -> Unit,
     onSeek: (Long) -> Unit,
     onNext: () -> Unit,
@@ -81,6 +82,7 @@ fun VideoSurfaceWithHud(
     onSetABRepeatMarker: () -> Unit = {},
     onResetABRepeat: () -> Unit = {},
     onClearABRepeat: () -> Unit = {},
+    onToggleStopAfterCurrent: () -> Unit = {},
     onClose: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     surface: @Composable BoxScope.(chromeVisible: Boolean) -> Unit,
@@ -155,6 +157,7 @@ fun VideoSurfaceWithHud(
             progressTime = progress.time,
             abRepeat = abRepeat,
             abRepeatEnabled = abRepeatEnabled,
+            stopAfterCurrent = stopAfterCurrent,
             onSetRate = onSetRate,
             onPlayQueueItem = {
                 onPlayQueueItem(it)
@@ -166,6 +169,7 @@ fun VideoSurfaceWithHud(
             onSetABRepeatMarker = onSetABRepeatMarker,
             onResetABRepeat = onResetABRepeat,
             onClearABRepeat = onClearABRepeat,
+            onToggleStopAfterCurrent = onToggleStopAfterCurrent,
             onDismiss = { optionsVisible = false },
         )
     }

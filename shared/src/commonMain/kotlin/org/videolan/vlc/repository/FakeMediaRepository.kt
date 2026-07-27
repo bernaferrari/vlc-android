@@ -89,6 +89,7 @@ class FakePlaybackService : PlaybackService {
     private val _playlist = MutableStateFlow(Playlist(0, "Current"))
     private val _abRepeat = MutableStateFlow(ABRepeat())
     private val _abRepeatEnabled = MutableStateFlow(false)
+    private val _stopAfterCurrent = MutableStateFlow(false)
     private val observers = mutableListOf<PlaybackObserver>()
     private var volume = 100
     private var rate = 1f
@@ -98,6 +99,7 @@ class FakePlaybackService : PlaybackService {
     override val currentPlaylist: Flow<Playlist> = _playlist
     override val abRepeat: Flow<ABRepeat> = _abRepeat
     override val abRepeatEnabled: Flow<Boolean> = _abRepeatEnabled
+    override val stopAfterCurrent: Flow<Boolean> = _stopAfterCurrent
 
     override fun play(item: MediaItem, playlist: List<MediaItem>) {
         val list = playlist.ifEmpty { listOf(item) }
@@ -221,5 +223,13 @@ class FakePlaybackService : PlaybackService {
     override fun clearABRepeat() {
         _abRepeat.value = ABRepeat()
         _abRepeatEnabled.value = false
+    }
+
+    override fun setStopAfterThis() {
+        _stopAfterCurrent.value = _playlist.value.current != null
+    }
+
+    override fun clearStopAfter() {
+        _stopAfterCurrent.value = false
     }
 }

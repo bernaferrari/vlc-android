@@ -52,6 +52,7 @@ import vlc_android.shared.generated.resources.playback_speed
 import vlc_android.shared.generated.resources.playlist
 import vlc_android.shared.generated.resources.remove_from_playlist
 import vlc_android.shared.generated.resources.reset
+import vlc_android.shared.generated.resources.stop_after_this
 
 private val PlaybackRatePresets = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f)
 
@@ -70,6 +71,7 @@ internal fun PlaybackOptionsSheet(
     progressTime: Long,
     abRepeat: ABRepeat,
     abRepeatEnabled: Boolean,
+    stopAfterCurrent: Boolean,
     onSetRate: (Float) -> Unit,
     onPlayQueueItem: (Int) -> Unit,
     onMoveQueueItem: (Int, Int) -> Unit,
@@ -78,6 +80,7 @@ internal fun PlaybackOptionsSheet(
     onSetABRepeatMarker: () -> Unit,
     onResetABRepeat: () -> Unit,
     onClearABRepeat: () -> Unit,
+    onToggleStopAfterCurrent: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     var previewRate by remember(rate) { mutableFloatStateOf(rate) }
@@ -210,6 +213,11 @@ internal fun PlaybackOptionsSheet(
                 "${stringResource(Res.string.playlist)} · ${queue.size}",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold,
+            )
+            FilterChip(
+                selected = stopAfterCurrent,
+                onClick = onToggleStopAfterCurrent,
+                label = { Text(stringResource(Res.string.stop_after_this)) },
             )
 
             LazyColumn(

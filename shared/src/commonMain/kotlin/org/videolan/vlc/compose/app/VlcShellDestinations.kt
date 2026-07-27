@@ -248,6 +248,7 @@ internal fun PlayerDestination(
         currentQueueIndex = state.currentQueueIndex,
         abRepeat = state.abRepeat,
         abRepeatEnabled = state.abRepeatEnabled,
+        stopAfterCurrent = state.stopAfterCurrent,
         onTogglePlay = viewModel::togglePlayPause,
         onSeek = viewModel::seekTo,
         onNext = viewModel::next,
@@ -262,6 +263,7 @@ internal fun PlayerDestination(
         onSetABRepeatMarker = viewModel::setABRepeatMarker,
         onResetABRepeat = viewModel::resetABRepeat,
         onClearABRepeat = viewModel::clearABRepeat,
+        onToggleStopAfterCurrent = viewModel::toggleStopAfterCurrent,
         onClose = onClose,
         modifier = modifier,
     ) { chromeVisible -> playerSurface(state, chromeVisible) }

@@ -104,6 +104,22 @@ class PlaylistEngineTest {
     }
 
     @Test
+    fun stopAfterCurrentSurvivesReorderAndClearsWhenTargetIsRemoved() {
+        val engine = PlaylistEngine()
+        engine.playFromIndex(listOf(item(1), item(2), item(3)), 1)
+
+        engine.setStopAfterThis()
+        assertTrue(engine.stopAfterCurrent.value)
+
+        engine.moveItem(1, 0)
+        assertEquals(0, engine.snapshot().currentIndex)
+        assertTrue(engine.stopAfterCurrent.value)
+
+        engine.removeAt(0)
+        assertFalse(engine.stopAfterCurrent.value)
+    }
+
+    @Test
     fun restorePausedPreparesTheCurrentItemWithoutAutoPlay() {
         val backend = RecordingBackend()
         val engine = PlaylistEngine(backend)

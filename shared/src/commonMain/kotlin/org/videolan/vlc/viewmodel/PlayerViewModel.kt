@@ -29,6 +29,7 @@ data class PlayerUiState(
     val currentQueueIndex: Int = 0,
     val abRepeat: ABRepeat = ABRepeat(),
     val abRepeatEnabled: Boolean = false,
+    val stopAfterCurrent: Boolean = false,
     val hasMedia: Boolean = false,
     /** True for known video and network streams, which may expose video after probing. */
     val hasVideoOutput: Boolean = false,
@@ -50,12 +51,19 @@ class PlayerViewModel(
             combine(
                 playback.state,
                 playback.progress,
-                playback.currentPlaylist,
+                combine(playback.currentPlaylist, playback.stopAfterCurrent, ::Pair),
                 playback.abRepeat,
                 playback.abRepeatEnabled,
-            ) { st, prog, pl, abRepeat, abRepeatEnabled ->
-                PlayerSnapshot(st, prog, pl, abRepeat, abRepeatEnabled)
-            }.collect { (st, prog, pl, abRepeat, abRepeatEnabled) ->
+            ) { st, prog, playlistAndStopAfter, abRepeat, abRepeatEnabled ->
+                PlayerSnapshot(
+                    state = st,
+                    progress = prog,
+                    playlist = playlistAndStopAfter.first,
+                    abRepeat = abRepeat,
+                    abRepeatEnabled = abRepeatEnabled,
+                    stopAfterCurrent = playlistAndStopAfter.second,
+                )
+            }.collect { (st, prog, pl, abRepeat, abRepeatEnabled, stopAfterCurrent) ->
                 val item = when (st) {
                     is PlaybackState.Playing -> st.item
                     is PlaybackState.Paused -> st.item
@@ -80,6 +88,7 @@ class PlayerViewModel(
                         currentQueueIndex = pl.currentIndex,
                         abRepeat = abRepeat,
                         abRepeatEnabled = abRepeatEnabled,
+                        stopAfterCurrent = stopAfterCurrent,
                         hasMedia = item != null || pl.items.isNotEmpty(),
                         hasVideoOutput = item?.let { it.isVideo || it.isStream } == true,
                         error = (st as? PlaybackState.Error)?.message,
@@ -135,6 +144,11 @@ class PlayerViewModel(
 
     fun clearABRepeat() = playback.clearABRepeat()
 
+    fun toggleStopAfterCurrent() {
+        if (_state.value.stopAfterCurrent) playback.clearStopAfter()
+        else playback.setStopAfterThis()
+    }
+
     fun cycleRepeat() {
         val next = when (_state.value.repeatMode) {
             RepeatMode.NONE -> RepeatMode.ALL
@@ -155,4 +169,5 @@ private data class PlayerSnapshot(
     val playlist: Playlist,
     val abRepeat: ABRepeat,
     val abRepeatEnabled: Boolean,
+    val stopAfterCurrent: Boolean,
 )

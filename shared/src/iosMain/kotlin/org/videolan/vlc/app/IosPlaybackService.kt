@@ -32,6 +32,7 @@ class IosPlaybackService : PlaybackService {
     override val currentPlaylist: Flow<Playlist> get() = engine.currentPlaylist
     override val abRepeat: Flow<ABRepeat> get() = engine.abRepeat
     override val abRepeatEnabled: Flow<Boolean> get() = engine.abRepeatEnabled
+    override val stopAfterCurrent: Flow<Boolean> get() = engine.stopAfterCurrent
 
     /**
      * Accepts the legacy VlcKitPlayerBackend and adapts it to [PlayerBackend].

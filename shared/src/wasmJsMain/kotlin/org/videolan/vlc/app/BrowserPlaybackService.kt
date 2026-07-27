@@ -27,6 +27,7 @@ internal class BrowserPlaybackService : PlaybackService {
     private val _playlist = MutableStateFlow(Playlist(0, "Current"))
     private val _abRepeat = MutableStateFlow(ABRepeat())
     private val _abRepeatEnabled = MutableStateFlow(false)
+    private val _stopAfterCurrent = MutableStateFlow(false)
     private val observers = mutableSetOf<PlaybackObserver>()
     private var volume = 100
     private var rate = 1f
@@ -39,6 +40,7 @@ internal class BrowserPlaybackService : PlaybackService {
     override val currentPlaylist: Flow<Playlist> = _playlist.asStateFlow()
     override val abRepeat: Flow<ABRepeat> = _abRepeat.asStateFlow()
     override val abRepeatEnabled: Flow<Boolean> = _abRepeatEnabled.asStateFlow()
+    override val stopAfterCurrent: Flow<Boolean> = _stopAfterCurrent.asStateFlow()
 
     init {
         BrowserMediaElementHost.register(this)
@@ -52,6 +54,7 @@ internal class BrowserPlaybackService : PlaybackService {
 
     override fun playFromIndex(playlist: List<MediaItem>, index: Int) {
         if (playlist.isEmpty()) return
+        clearStopAfter()
         val safeIndex = index.coerceIn(0, playlist.lastIndex)
         val item = playlist[safeIndex]
         _playlist.value = Playlist(
@@ -90,6 +93,7 @@ internal class BrowserPlaybackService : PlaybackService {
 
     override fun stop() {
         mediaElement?.let(::pauseHtmlMedia)
+        clearStopAfter()
         emitState(PlaybackState.Stopped(currentItem()))
     }
 
@@ -228,6 +232,14 @@ internal class BrowserPlaybackService : PlaybackService {
         _abRepeatEnabled.value = false
     }
 
+    override fun setStopAfterThis() {
+        _stopAfterCurrent.value = currentItem() != null
+    }
+
+    override fun clearStopAfter() {
+        _stopAfterCurrent.value = false
+    }
+
     /** The hidden anchor stays mounted so audio survives closing the player route. */
     fun attachFallback(element: HTMLElement) {
         fallbackElement = element
@@ -263,7 +275,7 @@ internal class BrowserPlaybackService : PlaybackService {
 
     private fun attachMediaElement(element: HTMLElement) {
         mediaElement = element
-        observeHtmlMediaEnd(element, ::next)
+        observeHtmlMediaEnd(element, ::handleEnded)
         observeHtmlMediaFailure(element, ::reportPlaybackFailure)
         progressTimer = startHtmlMediaProgressPolling(element, ::syncProgressFromElement)
     }
@@ -317,6 +329,15 @@ internal class BrowserPlaybackService : PlaybackService {
     }
 
     private fun currentItem(): MediaItem? = _playlist.value.current
+
+    private fun handleEnded() {
+        if (_stopAfterCurrent.value) {
+            clearStopAfter()
+            stop()
+        } else {
+            next()
+        }
+    }
 
     private fun reportPlaybackFailure(message: String) {
         emitState(PlaybackState.Error(message))

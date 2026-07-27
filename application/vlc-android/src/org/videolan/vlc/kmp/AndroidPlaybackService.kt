@@ -65,6 +65,9 @@ class AndroidPlaybackService(
     private val _abRepeatEnabled = MutableStateFlow(false)
     override val abRepeatEnabled: Flow<Boolean> = _abRepeatEnabled.asStateFlow()
 
+    private val _stopAfterCurrent = MutableStateFlow(false)
+    override val stopAfterCurrent: Flow<Boolean> = _stopAfterCurrent.asStateFlow()
+
     private val observers = mutableListOf<PlaybackObserver>()
 
     private var boundManager: PlaylistManager? = null
@@ -144,6 +147,7 @@ class AndroidPlaybackService(
             shuffle = pm.shuffling,
             repeatMode = repeatModeFromHost()
         )
+        _stopAfterCurrent.value = pm.stopAfter == safeIndex
         observers.forEach { it.onPlaylistChanged(_playlist.value) }
         // PlaylistManager.load is @MainThread + suspend
         pm.launch {
@@ -286,10 +290,12 @@ class AndroidPlaybackService(
     override fun setStopAfterThis() {
         val pm = manager() ?: return
         pm.stopAfter = pm.currentIndex
+        _stopAfterCurrent.value = pm.currentIndex >= 0
     }
 
     override fun clearStopAfter() {
         manager()?.stopAfter = -1
+        _stopAfterCurrent.value = false
     }
 
     override fun toggleABRepeat() {
@@ -320,6 +326,7 @@ class AndroidPlaybackService(
             shuffle = pm.shuffling,
             repeatMode = repeatModeFromHost(),
         )
+        _stopAfterCurrent.value = pm.stopAfter == pm.currentIndex && pm.currentIndex >= 0
         observers.forEach { it.onPlaylistChanged(_playlist.value) }
     }
 
