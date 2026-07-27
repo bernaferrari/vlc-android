@@ -62,10 +62,10 @@ class PlaylistEngine(
     override val currentPlaylist: StateFlow<Playlist> = _playlist.asStateFlow()
 
     private val _abRepeat = MutableStateFlow(ABRepeat())
-    val abRepeat: StateFlow<ABRepeat> = _abRepeat.asStateFlow()
+    override val abRepeat: StateFlow<ABRepeat> = _abRepeat.asStateFlow()
 
     private val _abRepeatOn = MutableStateFlow(false)
-    val abRepeatOn: StateFlow<Boolean> = _abRepeatOn.asStateFlow()
+    override val abRepeatEnabled: StateFlow<Boolean> = _abRepeatOn.asStateFlow()
 
     private val observers = mutableListOf<PlaybackObserver>()
     private val previousStack = ArrayDeque<Int>()
@@ -346,8 +346,8 @@ class PlaylistEngine(
         val cur = _abRepeat.value
         _abRepeat.value = when {
             cur.start < 0 -> cur.copy(start = timeMs)
-            cur.stop < 0 -> cur.copy(stop = timeMs)
-            else -> ABRepeat(start = timeMs, stop = -1)
+            timeMs < cur.start -> ABRepeat(start = timeMs, stop = cur.start)
+            else -> cur.copy(stop = timeMs)
         }
         _abRepeatOn.value = true
     }

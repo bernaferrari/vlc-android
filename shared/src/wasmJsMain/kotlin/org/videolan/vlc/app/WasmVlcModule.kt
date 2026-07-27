@@ -14,6 +14,8 @@ import org.videolan.vlc.platform.RendererBridge
 import org.videolan.vlc.repository.HistoryRepository
 import org.videolan.vlc.repository.MediaRepository
 import org.videolan.vlc.repository.PlaylistRepository
+import org.videolan.vlc.repository.PreferenceStreamRepository
+import org.videolan.vlc.repository.StreamRepository
 import org.videolan.vlc.repository.StubHistoryRepository
 import org.videolan.vlc.repository.StubPlaylistRepository
 
@@ -27,6 +29,7 @@ actual val platformModule: Module = module {
     single<MediaRepository> { get<BrowserMediaRepository>() }
     single<PlaylistRepository> { StubPlaylistRepository() }
     single<HistoryRepository> { StubHistoryRepository() }
+    single<StreamRepository> { PreferenceStreamRepository(get()) }
     single { BrowserPlaybackService() }
     single<PlaybackService> { get<BrowserPlaybackService>() }
     single<MediaSessionBridge> { NoOpMediaSessionBridge }

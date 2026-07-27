@@ -5,6 +5,7 @@ package org.videolan.vlc.viewmodel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -23,6 +24,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class MoreHubViewModelTest {
 
@@ -68,6 +70,30 @@ class MoreHubViewModelTest {
         assertFalse(recovered.loading)
         assertFalse(recovered.streamsLoading)
 
+        viewModel.onCleared()
+    }
+
+    @Test
+    fun networkStreamValidationAndPlaybackAreShared() = runTest {
+        assertTrue(isPlayableStreamUri("https://media.example.test/movie.mp4"))
+        assertTrue(isPlayableStreamUri("rtsp://media.example.test/live"))
+        assertFalse(isPlayableStreamUri("media.example.test/live"))
+        assertFalse(isPlayableStreamUri("://broken"))
+
+        val playback = FakePlaybackService()
+        val viewModel = MoreHubViewModel(
+            history = ToggleHistoryRepository().apply { fail = false },
+            media = StubMediaRepository(),
+            streamsRepo = ToggleStreamRepository().apply { fail = false },
+            player = PlaybackController(service = playback),
+        )
+
+        viewModel.playStream("", " https://media.example.test/movie.mp4 ")
+
+        val playing = playback.currentPlaylist.first { it.items.isNotEmpty() }.current
+        assertNotNull(playing)
+        assertEquals("https://media.example.test/movie.mp4", playing.uri)
+        assertEquals(playing.uri, playing.title)
         viewModel.onCleared()
     }
 

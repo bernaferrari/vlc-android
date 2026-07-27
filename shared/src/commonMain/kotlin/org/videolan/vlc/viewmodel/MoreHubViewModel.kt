@@ -109,6 +109,18 @@ class MoreHubViewModel(
 
     fun playHistory(entry: HistoryEntry) = player.play(entry.item)
     fun playStream(item: MediaItem) = player.play(item)
+    fun playStream(title: String, uri: String) {
+        val cleanUri = uri.trim()
+        if (!isPlayableStreamUri(cleanUri)) return
+        player.play(
+            MediaItem(
+                id = cleanUri.hashCode().toLong(),
+                title = title.trim().ifBlank { cleanUri },
+                uri = cleanUri,
+                type = MediaType.STREAM,
+            )
+        )
+    }
 
     fun renameStream(id: Long, title: String) = launchIo {
         if (title.isBlank()) return@launchIo
@@ -169,3 +181,11 @@ private fun playback(): PlaybackController = runCatching { PlaybackController.ge
     .getOrElse { error("PlaybackController unavailable") }
 
 private fun HistoryEntry.historyKey(): String = "${item.id}:${playedAt}:${item.uri}"
+
+internal fun isPlayableStreamUri(value: String): Boolean {
+    val uri = value.trim()
+    val separator = uri.indexOf("://")
+    if (separator <= 0 || separator >= uri.lastIndex - 2) return false
+    val scheme = uri.substring(0, separator)
+    return scheme.first().isLetter() && scheme.all { it.isLetterOrDigit() || it == '+' || it == '-' || it == '.' }
+}

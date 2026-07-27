@@ -1,6 +1,7 @@
 package org.videolan.vlc.player
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import org.videolan.vlc.model.ABRepeat
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.Playlist
@@ -36,6 +37,8 @@ interface PlaybackService {
     val state: Flow<PlaybackState>
     val progress: Flow<Progress>
     val currentPlaylist: Flow<Playlist>
+    val abRepeat: Flow<ABRepeat> get() = flowOf(ABRepeat())
+    val abRepeatEnabled: Flow<Boolean> get() = flowOf(false)
 
     fun play(item: MediaItem, playlist: List<MediaItem> = emptyList())
     fun playFromIndex(playlist: List<MediaItem>, index: Int)

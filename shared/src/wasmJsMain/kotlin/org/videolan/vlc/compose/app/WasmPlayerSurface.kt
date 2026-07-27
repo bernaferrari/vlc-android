@@ -23,7 +23,7 @@ import org.w3c.dom.HTMLElement
  * [org.videolan.vlc.compose.player.VideoSurfaceWithHud] remains the only visual
  * and interaction layer on Android, iOS, and the web.
  */
-val WasmPlayerSurface: PlayerSurface = { state ->
+val WasmPlayerSurface: PlayerSurface = { state, chromeVisible ->
     Box(Modifier.fillMaxSize()) {
         if (!state.uri.isBrowserPlayableUri() || !state.hasVideoOutput) {
             PlayerArtworkFallback()
@@ -34,7 +34,7 @@ val WasmPlayerSurface: PlayerSurface = { state ->
                     factory = { createBrowserMediaElement(state.hasVideoOutput) },
                     modifier = Modifier.fillMaxSize(),
                     update = { element ->
-                        configureBrowserMediaElement(element, state.hasVideoOutput)
+                        configureBrowserMediaElement(element, state.hasVideoOutput, chromeVisible)
                         BrowserMediaElementHost.attachSurface(element)
                     },
                     onRelease = BrowserMediaElementHost::detachSurface,
@@ -56,7 +56,7 @@ fun WasmPersistentAudioAnchor() {
         factory = { createBrowserMediaElement(video = false) },
         modifier = Modifier.size(1.dp),
         update = { element ->
-            configureBrowserMediaElement(element, video = false)
+            configureBrowserMediaElement(element, video = false, chromeVisible = false)
             BrowserMediaElementHost.attachFallback(element)
         },
         onRelease = BrowserMediaElementHost::detachFallback,
@@ -69,15 +69,21 @@ private fun createBrowserMediaElement(video: Boolean): HTMLElement = js(
 )
 
 @OptIn(kotlin.js.ExperimentalWasmJsInterop::class)
-private fun configureBrowserMediaElement(element: HTMLElement, video: Boolean): Unit = js(
+private fun configureBrowserMediaElement(
+    element: HTMLElement,
+    video: Boolean,
+    chromeVisible: Boolean,
+): Unit = js(
     """{
         element.controls = false;
         element.preload = 'metadata';
         element.style.width = '100%';
         element.style.height = '100%';
         element.style.objectFit = 'contain';
-        element.style.background = '#000';
+        element.style.background = 'transparent';
+        element.style.opacity = video && chromeVisible ? '0.18' : '1';
         element.style.pointerEvents = 'none';
+        if (element.parentElement) element.parentElement.style.pointerEvents = 'none';
         element.playsInline = true;
         element.setAttribute('playsinline', '');
         element.style.display = video ? 'block' : 'none';

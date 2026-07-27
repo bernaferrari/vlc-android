@@ -11,7 +11,7 @@ import org.videolan.vlc.compose.player.PlayerArtworkFallback
 import org.videolan.vlc.compose.player.PlayerSurface
 
 /** Android decoder island for the shared Compose player route. */
-val AndroidPlayerSurface: PlayerSurface = { state ->
+val AndroidPlayerSurface: PlayerSurface = { state, _ ->
     DisposableEffect(Unit) {
         SharedVideoSurfaceRegistry.activateHost()
         onDispose { SharedVideoSurfaceRegistry.deactivateHost() }

@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.videolan.vlc.model.MediaItem
+import org.videolan.vlc.model.ABRepeat
 import org.videolan.vlc.model.Playlist
 import org.videolan.vlc.model.Progress
 import org.videolan.vlc.model.RepeatMode
@@ -24,6 +25,8 @@ internal class BrowserPlaybackService : PlaybackService {
     private val _state = MutableStateFlow<PlaybackState>(PlaybackState.Idle)
     private val _progress = MutableStateFlow(Progress())
     private val _playlist = MutableStateFlow(Playlist(0, "Current"))
+    private val _abRepeat = MutableStateFlow(ABRepeat())
+    private val _abRepeatEnabled = MutableStateFlow(false)
     private val observers = mutableSetOf<PlaybackObserver>()
     private var volume = 100
     private var rate = 1f
@@ -34,6 +37,8 @@ internal class BrowserPlaybackService : PlaybackService {
     override val state: Flow<PlaybackState> = _state.asStateFlow()
     override val progress: Flow<Progress> = _progress.asStateFlow()
     override val currentPlaylist: Flow<Playlist> = _playlist.asStateFlow()
+    override val abRepeat: Flow<ABRepeat> = _abRepeat.asStateFlow()
+    override val abRepeatEnabled: Flow<Boolean> = _abRepeatEnabled.asStateFlow()
 
     init {
         BrowserMediaElementHost.register(this)
@@ -162,6 +167,67 @@ internal class BrowserPlaybackService : PlaybackService {
         observers -= observer
     }
 
+    override fun moveItem(from: Int, to: Int) {
+        val playlist = _playlist.value
+        if (from !in playlist.items.indices || to !in playlist.items.indices || from == to) return
+        val items = playlist.items.toMutableList()
+        val moved = items.removeAt(from)
+        items.add(to, moved)
+        val currentIndex = when {
+            playlist.currentIndex == from -> to
+            from < playlist.currentIndex && to >= playlist.currentIndex -> playlist.currentIndex - 1
+            from > playlist.currentIndex && to <= playlist.currentIndex -> playlist.currentIndex + 1
+            else -> playlist.currentIndex
+        }
+        _playlist.value = playlist.copy(items = items, currentIndex = currentIndex)
+        notifyPlaylist()
+    }
+
+    override fun removeAt(index: Int) {
+        val playlist = _playlist.value
+        if (index !in playlist.items.indices) return
+        val wasCurrent = index == playlist.currentIndex
+        val items = playlist.items.toMutableList().also { it.removeAt(index) }
+        if (items.isEmpty()) {
+            stop()
+            _playlist.value = playlist.copy(items = emptyList(), currentIndex = 0)
+            notifyPlaylist()
+            return
+        }
+        val currentIndex = when {
+            index < playlist.currentIndex -> playlist.currentIndex - 1
+            playlist.currentIndex > items.lastIndex -> items.lastIndex
+            else -> playlist.currentIndex
+        }
+        _playlist.value = playlist.copy(items = items, currentIndex = currentIndex)
+        notifyPlaylist()
+        if (wasCurrent) playFromIndex(items, currentIndex)
+    }
+
+    override fun toggleABRepeat() {
+        _abRepeatEnabled.value = !_abRepeatEnabled.value
+        if (!_abRepeatEnabled.value) _abRepeat.value = ABRepeat()
+    }
+
+    override fun setABRepeatValue(timeMs: Long) {
+        val time = timeMs.coerceAtLeast(0L)
+        _abRepeat.value = when {
+            _abRepeat.value.start < 0L -> ABRepeat(start = time)
+            time < _abRepeat.value.start -> ABRepeat(start = time, stop = _abRepeat.value.start)
+            else -> _abRepeat.value.copy(stop = time)
+        }
+        _abRepeatEnabled.value = true
+    }
+
+    override fun resetABRepeat() {
+        _abRepeat.value = ABRepeat()
+    }
+
+    override fun clearABRepeat() {
+        _abRepeat.value = ABRepeat()
+        _abRepeatEnabled.value = false
+    }
+
     /** The hidden anchor stays mounted so audio survives closing the player route. */
     fun attachFallback(element: HTMLElement) {
         fallbackElement = element
@@ -229,6 +295,11 @@ internal class BrowserPlaybackService : PlaybackService {
 
     private fun syncProgressFromElement(time: Long, duration: Long, playing: Boolean) {
         val item = currentItem()?.takeIf(MediaItem::isBrowserPlayableMedia) ?: return
+        val repeat = _abRepeat.value
+        if (_abRepeatEnabled.value && repeat.isActive && time >= repeat.stop) {
+            seekTo(repeat.start)
+            return
+        }
         val progress = Progress(
             time = time.coerceAtLeast(0L),
             length = duration.takeIf { it > 0L } ?: item.duration,
@@ -307,7 +378,12 @@ private fun setHtmlMediaSource(element: HTMLElement, source: String): Unit = js(
 private fun playHtmlMedia(element: HTMLElement, onFailure: (String) -> Unit): Unit = js(
     """{
         const result = element.play?.();
-        result?.catch?.(error => onFailure(error?.message || 'This media format cannot be played in this browser.'));
+        result?.catch?.(error => {
+            const message = error?.message || '';
+            if (error?.name !== 'AbortError' && !message.includes('interrupted by a call to pause')) {
+                onFailure(message || 'This media format cannot be played in this browser.');
+            }
+        });
     }""",
 )
 

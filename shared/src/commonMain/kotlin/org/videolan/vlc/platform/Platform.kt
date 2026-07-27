@@ -6,6 +6,7 @@ package org.videolan.vlc.platform
 enum class Platform {
     ANDROID,
     IOS,
+    WEB,
     JVM,
     UNKNOWN
 }

@@ -22,7 +22,7 @@ import org.videolan.vlc.viewmodel.PlayerUiState
  * A host only needs to provide a native rendering view when the current item
  * has visual output; audio remains fully Compose.
  */
-typealias PlayerSurface = @Composable BoxScope.(PlayerUiState) -> Unit
+typealias PlayerSurface = @Composable BoxScope.(state: PlayerUiState, chromeVisible: Boolean) -> Unit
 
 /** Default artwork used on hosts without a native video decoder (web/JVM). */
 @Composable
@@ -42,4 +42,4 @@ fun PlayerArtworkFallback(modifier: Modifier = Modifier) {
     }
 }
 
-internal val FallbackPlayerSurface: PlayerSurface = { PlayerArtworkFallback() }
+internal val FallbackPlayerSurface: PlayerSurface = { _, _ -> PlayerArtworkFallback() }

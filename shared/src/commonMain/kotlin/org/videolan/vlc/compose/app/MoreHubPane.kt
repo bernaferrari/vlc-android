@@ -1,6 +1,7 @@
 package org.videolan.vlc.compose.app
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -28,7 +29,9 @@ import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.model.HistoryEntry
+import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.viewmodel.MoreHubViewModel
+import org.videolan.vlc.viewmodel.isPlayableStreamUri
 
 /** Feature-scoped More hub UI, including independent history/stream retry states. */
 @Composable
@@ -40,11 +43,17 @@ internal fun MorePane(
     onOpenAbout: () -> Unit = {},
     onOpenDonate: () -> Unit = {},
     onPlayHistory: (HistoryEntry) -> Unit,
+    onPlayStream: (MediaItem) -> Unit,
+    onOpenStream: (title: String, uri: String) -> Unit,
 ) {
     val state by vm.state.collectAsState()
     val colors = VLCThemeDefaults.colors
     var renameStreamId by remember { mutableStateOf<Long?>(null) }
     var renameStreamText by remember { mutableStateOf("") }
+    var addingStream by remember { mutableStateOf(false) }
+    var newStreamName by remember { mutableStateOf("") }
+    var newStreamUri by remember { mutableStateOf("") }
+    var streamAddressError by remember { mutableStateOf(false) }
     LazyColumn(
         modifier = modifier.padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -62,7 +71,91 @@ internal fun MorePane(
             item { MoreAction(MaterialSymbols.Filled.Devices, ShellStrings.remoteAccess(), onOpenRemote) }
         }
 
-        item { Text(ShellStrings.streams(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) }
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(ShellStrings.streams(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                TextButton(onClick = {
+                    addingStream = !addingStream
+                    streamAddressError = false
+                }) {
+                    Icon(MaterialSymbols.Filled.Add, contentDescription = null)
+                    Text(ShellStrings.newStream(), modifier = Modifier.padding(start = 8.dp))
+                }
+            }
+        }
+        if (addingStream) {
+            item {
+                Surface(
+                    shape = MaterialTheme.shapes.extraLarge,
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        OutlinedTextField(
+                            value = newStreamName,
+                            onValueChange = { newStreamName = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            label = { Text(ShellStrings.streamName()) },
+                            shape = MaterialTheme.shapes.extraLarge,
+                        )
+                        OutlinedTextField(
+                            value = newStreamUri,
+                            onValueChange = {
+                                newStreamUri = it
+                                streamAddressError = false
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            isError = streamAddressError,
+                            supportingText = if (streamAddressError) {
+                                { Text(ShellStrings.invalidStreamAddress()) }
+                            } else {
+                                null
+                            },
+                            label = { Text(ShellStrings.streamAddress()) },
+                            shape = MaterialTheme.shapes.extraLarge,
+                        )
+                        Row(
+                            modifier = Modifier.align(Alignment.End),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            TextButton(onClick = {
+                                addingStream = false
+                                newStreamName = ""
+                                newStreamUri = ""
+                                streamAddressError = false
+                            }) { Text(ShellStrings.cancel()) }
+                            if (state.hasStreamRepository) {
+                                TextButton(onClick = {
+                                    if (isPlayableStreamUri(newStreamUri)) {
+                                        vm.addStream(newStreamName.ifBlank { newStreamUri }, newStreamUri.trim())
+                                        addingStream = false
+                                        newStreamName = ""
+                                        newStreamUri = ""
+                                    } else {
+                                        streamAddressError = true
+                                    }
+                                }) { Text(ShellStrings.save()) }
+                            }
+                            TextButton(onClick = {
+                                if (isPlayableStreamUri(newStreamUri)) {
+                                    onOpenStream(newStreamName, newStreamUri)
+                                } else {
+                                    streamAddressError = true
+                                }
+                            }) { Text(ShellStrings.play()) }
+                        }
+                    }
+                }
+            }
+        }
         if (renameStreamId != null) {
             item {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -93,7 +186,7 @@ internal fun MorePane(
             VLCBrowserItemRow(
                 title = stream.title,
                 subtitle = stream.uri,
-                onClick = { vm.playStream(stream) },
+                onClick = { onPlayStream(stream) },
                 artworkContent = {
                     Icon(MaterialSymbols.Filled.Devices, contentDescription = null, tint = colors.primary)
                 },

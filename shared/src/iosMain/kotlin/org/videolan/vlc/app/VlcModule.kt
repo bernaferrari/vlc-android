@@ -15,6 +15,8 @@ import org.videolan.vlc.platform.RendererBridge
 import org.videolan.vlc.repository.HistoryRepository
 import org.videolan.vlc.repository.MediaRepository
 import org.videolan.vlc.repository.PlaylistRepository
+import org.videolan.vlc.repository.PreferenceStreamRepository
+import org.videolan.vlc.repository.StreamRepository
 
 /**
  * iOS-specific Koin module.
@@ -30,6 +32,7 @@ actual val platformModule: Module = module {
     single<MediaRepository> { get<IosMediaLibrary>() }
     single<PlaylistRepository> { get<IosMediaLibrary>() }
     single<HistoryRepository> { get<IosMediaLibrary>() }
+    single<StreamRepository> { PreferenceStreamRepository(get()) }
     single<PlaybackService> { IosPlaybackService.shared }
     single<MediaSessionBridge> { IosMediaSessionBridge() }
     single<PipController> { NoOpPipController }

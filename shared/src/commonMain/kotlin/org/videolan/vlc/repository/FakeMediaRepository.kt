@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import org.videolan.vlc.model.MediaItem
+import org.videolan.vlc.model.ABRepeat
 import org.videolan.vlc.model.MediaType
 import org.videolan.vlc.model.Playlist
 import org.videolan.vlc.model.Progress
@@ -86,6 +87,8 @@ class FakePlaybackService : PlaybackService {
     private val _state = MutableStateFlow<PlaybackState>(PlaybackState.Idle)
     private val _progress = MutableStateFlow(Progress())
     private val _playlist = MutableStateFlow(Playlist(0, "Current"))
+    private val _abRepeat = MutableStateFlow(ABRepeat())
+    private val _abRepeatEnabled = MutableStateFlow(false)
     private val observers = mutableListOf<PlaybackObserver>()
     private var volume = 100
     private var rate = 1f
@@ -93,6 +96,8 @@ class FakePlaybackService : PlaybackService {
     override val state: Flow<PlaybackState> = _state
     override val progress: Flow<Progress> = _progress
     override val currentPlaylist: Flow<Playlist> = _playlist
+    override val abRepeat: Flow<ABRepeat> = _abRepeat
+    override val abRepeatEnabled: Flow<Boolean> = _abRepeatEnabled
 
     override fun play(item: MediaItem, playlist: List<MediaItem>) {
         val list = playlist.ifEmpty { listOf(item) }
@@ -158,4 +163,63 @@ class FakePlaybackService : PlaybackService {
     override fun getRate(): Float = rate
     override fun addObserver(observer: PlaybackObserver) { observers.add(observer) }
     override fun removeObserver(observer: PlaybackObserver) { observers.remove(observer) }
+
+    override fun moveItem(from: Int, to: Int) {
+        val playlist = _playlist.value
+        if (from !in playlist.items.indices || to !in playlist.items.indices || from == to) return
+        val items = playlist.items.toMutableList()
+        val moved = items.removeAt(from)
+        items.add(to, moved)
+        val currentIndex = when {
+            playlist.currentIndex == from -> to
+            from < playlist.currentIndex && to >= playlist.currentIndex -> playlist.currentIndex - 1
+            from > playlist.currentIndex && to <= playlist.currentIndex -> playlist.currentIndex + 1
+            else -> playlist.currentIndex
+        }
+        _playlist.value = playlist.copy(items = items, currentIndex = currentIndex)
+    }
+
+    override fun removeAt(index: Int) {
+        val playlist = _playlist.value
+        if (index !in playlist.items.indices) return
+        val items = playlist.items.toMutableList().also { it.removeAt(index) }
+        if (items.isEmpty()) {
+            stop()
+            _playlist.value = playlist.copy(items = emptyList(), currentIndex = 0)
+            return
+        }
+        val currentIndex = when {
+            index < playlist.currentIndex -> playlist.currentIndex - 1
+            playlist.currentIndex > items.lastIndex -> items.lastIndex
+            else -> playlist.currentIndex
+        }
+        _playlist.value = playlist.copy(items = items, currentIndex = currentIndex)
+        if (index == playlist.currentIndex) {
+            val item = items[currentIndex]
+            _state.value = PlaybackState.Playing(item, Progress(length = item.duration))
+        }
+    }
+
+    override fun toggleABRepeat() {
+        _abRepeatEnabled.value = !_abRepeatEnabled.value
+        if (!_abRepeatEnabled.value) _abRepeat.value = ABRepeat()
+    }
+
+    override fun setABRepeatValue(timeMs: Long) {
+        _abRepeat.value = when {
+            _abRepeat.value.start < 0L -> ABRepeat(start = timeMs)
+            timeMs < _abRepeat.value.start -> ABRepeat(start = timeMs, stop = _abRepeat.value.start)
+            else -> _abRepeat.value.copy(stop = timeMs)
+        }
+        _abRepeatEnabled.value = true
+    }
+
+    override fun resetABRepeat() {
+        _abRepeat.value = ABRepeat()
+    }
+
+    override fun clearABRepeat() {
+        _abRepeat.value = ABRepeat()
+        _abRepeatEnabled.value = false
+    }
 }

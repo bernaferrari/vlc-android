@@ -5,6 +5,7 @@ import org.videolan.vlc.model.MediaType
 import org.videolan.vlc.model.RepeatMode
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class PlaylistEngineTest {
@@ -82,6 +83,24 @@ class PlaylistEngineTest {
         assertEquals(4f, engine.getRate())
         engine.setRate(0.01f)
         assertEquals(0.25f, engine.getRate())
+    }
+
+    @Test
+    fun abRepeatPublishesObservableMarkerState() {
+        val engine = PlaylistEngine()
+
+        engine.toggleABRepeat()
+        engine.setABRepeatValue(1_000)
+        engine.setABRepeatValue(3_000)
+
+        assertTrue(engine.abRepeatEnabled.value)
+        assertEquals(1_000, engine.abRepeat.value.start)
+        assertEquals(3_000, engine.abRepeat.value.stop)
+        assertTrue(engine.abRepeat.value.isActive)
+
+        engine.clearABRepeat()
+        assertFalse(engine.abRepeatEnabled.value)
+        assertFalse(engine.abRepeat.value.isActive)
     }
 
     @Test

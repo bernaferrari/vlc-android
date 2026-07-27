@@ -17,7 +17,7 @@ import platform.UIKit.UIView
  * it is explicitly cleared when Compose removes the surface. The surrounding
  * HUD and all player controls remain common Compose code.
  */
-val IosPlayerSurface: PlayerSurface = { state ->
+val IosPlayerSurface: PlayerSurface = { state, _ ->
     if (!state.hasVideoOutput) {
         PlayerArtworkFallback()
     } else {

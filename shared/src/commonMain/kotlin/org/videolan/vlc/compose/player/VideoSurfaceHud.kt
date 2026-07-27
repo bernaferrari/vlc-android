@@ -39,8 +39,11 @@ import org.jetbrains.compose.resources.stringResource
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialSymbols
+import org.videolan.vlc.model.ABRepeat
+import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.Progress
 import org.videolan.vlc.model.RepeatMode
+import kotlin.math.roundToInt
 import vlc_android.shared.generated.resources.Res
 import vlc_android.shared.generated.resources.*
 
@@ -59,17 +62,31 @@ fun VideoSurfaceWithHud(
     progress: Progress,
     shuffle: Boolean = false,
     repeatMode: RepeatMode = RepeatMode.NONE,
+    rate: Float = 1f,
+    queue: List<MediaItem> = emptyList(),
+    currentQueueIndex: Int = 0,
+    abRepeat: ABRepeat = ABRepeat(),
+    abRepeatEnabled: Boolean = false,
     onTogglePlay: () -> Unit,
     onSeek: (Long) -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
     onToggleShuffle: () -> Unit = {},
     onCycleRepeat: () -> Unit = {},
+    onSetRate: (Float) -> Unit = {},
+    onPlayQueueItem: (Int) -> Unit = {},
+    onMoveQueueItem: (Int, Int) -> Unit = { _, _ -> },
+    onRemoveQueueItem: (Int) -> Unit = {},
+    onToggleABRepeat: () -> Unit = {},
+    onSetABRepeatMarker: () -> Unit = {},
+    onResetABRepeat: () -> Unit = {},
+    onClearABRepeat: () -> Unit = {},
     onClose: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
-    surface: @Composable BoxScope.() -> Unit,
+    surface: @Composable BoxScope.(chromeVisible: Boolean) -> Unit,
 ) {
     var hudVisible by remember { mutableStateOf(true) }
+    var optionsVisible by remember { mutableStateOf(false) }
     LaunchedEffect(hudVisible, playing) {
         if (hudVisible && playing) {
             delay(4_000)
@@ -88,7 +105,7 @@ fun VideoSurfaceWithHud(
     ) {
         // Video / artwork surface
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            surface()
+            surface(hudVisible || optionsVisible)
         }
 
         if (!error.isNullOrBlank()) {
@@ -116,15 +133,41 @@ fun VideoSurfaceWithHud(
                 progress = progress,
                 shuffle = shuffle,
                 repeatMode = repeatMode,
+                rate = rate,
+                queueSize = queue.size,
                 onTogglePlay = onTogglePlay,
                 onSeek = onSeek,
                 onNext = onNext,
                 onPrevious = onPrevious,
                 onToggleShuffle = onToggleShuffle,
                 onCycleRepeat = onCycleRepeat,
+                onOpenOptions = { optionsVisible = true },
                 onClose = onClose,
             )
         }
+    }
+
+    if (optionsVisible) {
+        PlaybackOptionsSheet(
+            rate = rate,
+            queue = queue,
+            currentQueueIndex = currentQueueIndex,
+            progressTime = progress.time,
+            abRepeat = abRepeat,
+            abRepeatEnabled = abRepeatEnabled,
+            onSetRate = onSetRate,
+            onPlayQueueItem = {
+                onPlayQueueItem(it)
+                optionsVisible = false
+            },
+            onMoveQueueItem = onMoveQueueItem,
+            onRemoveQueueItem = onRemoveQueueItem,
+            onToggleABRepeat = onToggleABRepeat,
+            onSetABRepeatMarker = onSetABRepeatMarker,
+            onResetABRepeat = onResetABRepeat,
+            onClearABRepeat = onClearABRepeat,
+            onDismiss = { optionsVisible = false },
+        )
     }
 }
 
@@ -136,12 +179,15 @@ fun VideoHudOverlay(
     progress: Progress,
     shuffle: Boolean,
     repeatMode: RepeatMode,
+    rate: Float,
+    queueSize: Int,
     onTogglePlay: () -> Unit,
     onSeek: (Long) -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
     onToggleShuffle: () -> Unit,
     onCycleRepeat: () -> Unit,
+    onOpenOptions: () -> Unit,
     onClose: (() -> Unit)?,
 ) {
     val colors = VLCThemeDefaults.colors
@@ -227,8 +273,32 @@ fun VideoHudOverlay(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text(formatMs(displayedTime), color = Color.White.copy(alpha = 0.85f), style = MaterialTheme.typography.labelSmall)
-                Text(formatMs(progress.length), color = Color.White.copy(alpha = 0.85f), style = MaterialTheme.typography.labelSmall)
+                Text(formatPlaybackTime(displayedTime), color = Color.White.copy(alpha = 0.85f), style = MaterialTheme.typography.labelSmall)
+                Text(formatPlaybackTime(progress.length), color = Color.White.copy(alpha = 0.85f), style = MaterialTheme.typography.labelSmall)
+            }
+            Box(modifier = Modifier.height(8.dp))
+            Surface(
+                onClick = onOpenOptions,
+                shape = MaterialTheme.shapes.large,
+                color = Color.White.copy(alpha = 0.14f),
+                contentColor = Color.White,
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        icon = MaterialSymbols.Filled.Tune,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Text(
+                        text = "${playbackRateLabel(rate)} · ${stringResource(Res.string.playlist)} ($queueSize)",
+                        style = MaterialTheme.typography.labelLarge,
+                    )
+                }
             }
             Box(modifier = Modifier.height(8.dp))
             Row(
@@ -294,7 +364,7 @@ fun VideoHudOverlay(
     }
 }
 
-private fun formatMs(ms: Long): String {
+internal fun formatPlaybackTime(ms: Long): String {
     if (ms <= 0L) return "0:00"
     val total = ms / 1000
     val h = total / 3600
@@ -302,4 +372,11 @@ private fun formatMs(ms: Long): String {
     val s = total % 60
     return if (h > 0) "$h:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}"
     else "$m:${s.toString().padStart(2, '0')}"
+}
+
+internal fun playbackRateLabel(rate: Float): String {
+    val value = ((rate.coerceIn(0.25f, 4f) * 100).roundToInt() / 100f)
+        .toString()
+        .removeSuffix(".0")
+    return "${value}×"
 }

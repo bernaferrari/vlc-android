@@ -14,6 +14,7 @@ import org.videolan.medialibrary.MLServiceLocator
 import org.videolan.medialibrary.interfaces.Medialibrary
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.vlc.media.PlaylistManager
+import org.videolan.vlc.model.ABRepeat
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.MediaType
 import org.videolan.vlc.model.Playlist
@@ -58,6 +59,12 @@ class AndroidPlaybackService(
     private val _playlist = MutableStateFlow(Playlist(0, "Current"))
     override val currentPlaylist: Flow<Playlist> = _playlist.asStateFlow()
 
+    private val _abRepeat = MutableStateFlow(ABRepeat())
+    override val abRepeat: Flow<ABRepeat> = _abRepeat.asStateFlow()
+
+    private val _abRepeatEnabled = MutableStateFlow(false)
+    override val abRepeatEnabled: Flow<Boolean> = _abRepeatEnabled.asStateFlow()
+
     private val observers = mutableListOf<PlaybackObserver>()
 
     private var boundManager: PlaylistManager? = null
@@ -69,6 +76,12 @@ class AndroidPlaybackService(
     }
     private val progressObserver = Observer<org.videolan.vlc.media.Progress> { p ->
         updateProgress(p.time, p.length)
+    }
+    private val abRepeatObserver = Observer<org.videolan.vlc.media.ABRepeat> { repeat ->
+        _abRepeat.value = ABRepeat(start = repeat.start, stop = repeat.stop)
+    }
+    private val abRepeatEnabledObserver = Observer<Boolean> { enabled ->
+        _abRepeatEnabled.value = enabled == true
     }
 
     init {
@@ -82,8 +95,12 @@ class AndroidPlaybackService(
         val current = playlistManagerProvider()
         if (current !== boundManager) {
             boundManager?.player?.progress?.removeObserver(progressObserver)
+            boundManager?.abRepeat?.removeObserver(abRepeatObserver)
+            boundManager?.abRepeatOn?.removeObserver(abRepeatEnabledObserver)
             boundManager = current
             current?.player?.progress?.observeForever(progressObserver)
+            current?.abRepeat?.observeForever(abRepeatObserver)
+            current?.abRepeatOn?.observeForever(abRepeatEnabledObserver)
         }
         return current
     }

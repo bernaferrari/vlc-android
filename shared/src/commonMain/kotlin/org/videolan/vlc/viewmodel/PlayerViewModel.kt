@@ -6,7 +6,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import org.videolan.vlc.app.VlcKoin
+import org.videolan.vlc.model.ABRepeat
 import org.videolan.vlc.model.MediaItem
+import org.videolan.vlc.model.Playlist
 import org.videolan.vlc.model.Progress
 import org.videolan.vlc.model.RepeatMode
 import org.videolan.vlc.player.PlaybackService
@@ -22,6 +24,11 @@ data class PlayerUiState(
     val progress: Progress = Progress(),
     val shuffle: Boolean = false,
     val repeatMode: RepeatMode = RepeatMode.NONE,
+    val rate: Float = 1f,
+    val queue: List<MediaItem> = emptyList(),
+    val currentQueueIndex: Int = 0,
+    val abRepeat: ABRepeat = ABRepeat(),
+    val abRepeatEnabled: Boolean = false,
     val hasMedia: Boolean = false,
     /** True for known video and network streams, which may expose video after probing. */
     val hasVideoOutput: Boolean = false,
@@ -40,9 +47,15 @@ class PlayerViewModel(
 
     init {
         launch {
-            combine(playback.state, playback.progress, playback.currentPlaylist) { st, prog, pl ->
-                Triple(st, prog, pl)
-            }.collect { (st, prog, pl) ->
+            combine(
+                playback.state,
+                playback.progress,
+                playback.currentPlaylist,
+                playback.abRepeat,
+                playback.abRepeatEnabled,
+            ) { st, prog, pl, abRepeat, abRepeatEnabled ->
+                PlayerSnapshot(st, prog, pl, abRepeat, abRepeatEnabled)
+            }.collect { (st, prog, pl, abRepeat, abRepeatEnabled) ->
                 val item = when (st) {
                     is PlaybackState.Playing -> st.item
                     is PlaybackState.Paused -> st.item
@@ -57,13 +70,16 @@ class PlayerViewModel(
                         uri = item?.uri.orEmpty(),
                         artworkUri = item?.artworkUri,
                         playing = st is PlaybackState.Playing,
-                        progress = when (st) {
-                            is PlaybackState.Playing -> st.progress
-                            is PlaybackState.Paused -> st.progress
-                            else -> prog
-                        },
+                        // PlaybackState describes the lifecycle transition; the dedicated flow is
+                        // the continuously updated native clock and must remain authoritative.
+                        progress = prog,
                         shuffle = pl.shuffle,
                         repeatMode = pl.repeatMode,
+                        rate = playback.getRate(),
+                        queue = pl.items,
+                        currentQueueIndex = pl.currentIndex,
+                        abRepeat = abRepeat,
+                        abRepeatEnabled = abRepeatEnabled,
                         hasMedia = item != null || pl.items.isNotEmpty(),
                         hasVideoOutput = item?.let { it.isVideo || it.isStream } == true,
                         error = (st as? PlaybackState.Error)?.message,
@@ -87,6 +103,38 @@ class PlayerViewModel(
     fun seekTo(position: Long) = playback.seekTo(position)
     fun seekRelative(delta: Long) = playback.seekRelative(delta)
 
+    fun setPlaybackRate(rate: Float) {
+        val safeRate = rate.takeIf(Float::isFinite)?.coerceIn(0.25f, 4f) ?: 1f
+        playback.setRate(safeRate)
+        _state.update { it.copy(rate = playback.getRate()) }
+    }
+
+    fun playQueueItem(index: Int) {
+        val queue = _state.value.queue
+        if (index in queue.indices && index != _state.value.currentQueueIndex) {
+            playback.playFromIndex(queue, index)
+        }
+    }
+
+    fun moveQueueItem(from: Int, to: Int) {
+        val queue = _state.value.queue
+        if (from in queue.indices && to in queue.indices && from != to) {
+            playback.moveItem(from, to)
+        }
+    }
+
+    fun removeQueueItem(index: Int) {
+        if (index in _state.value.queue.indices) playback.removeAt(index)
+    }
+
+    fun toggleABRepeat() = playback.toggleABRepeat()
+
+    fun setABRepeatMarker() = playback.setABRepeatValue(_state.value.progress.time)
+
+    fun resetABRepeat() = playback.resetABRepeat()
+
+    fun clearABRepeat() = playback.clearABRepeat()
+
     fun cycleRepeat() {
         val next = when (_state.value.repeatMode) {
             RepeatMode.NONE -> RepeatMode.ALL
@@ -100,3 +148,11 @@ class PlayerViewModel(
         playback.setShuffle(!_state.value.shuffle)
     }
 }
+
+private data class PlayerSnapshot(
+    val state: PlaybackState,
+    val progress: Progress,
+    val playlist: Playlist,
+    val abRepeat: ABRepeat,
+    val abRepeatEnabled: Boolean,
+)

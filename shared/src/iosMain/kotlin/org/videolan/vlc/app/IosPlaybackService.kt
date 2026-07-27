@@ -2,6 +2,7 @@ package org.videolan.vlc.app
 
 import kotlinx.coroutines.flow.Flow
 import org.videolan.vlc.model.MediaItem
+import org.videolan.vlc.model.ABRepeat
 import org.videolan.vlc.model.Playlist
 import org.videolan.vlc.model.Progress
 import org.videolan.vlc.model.RepeatMode
@@ -29,6 +30,8 @@ class IosPlaybackService : PlaybackService {
     override val state: Flow<PlaybackState> get() = engine.state
     override val progress: Flow<Progress> get() = engine.progress
     override val currentPlaylist: Flow<Playlist> get() = engine.currentPlaylist
+    override val abRepeat: Flow<ABRepeat> get() = engine.abRepeat
+    override val abRepeatEnabled: Flow<Boolean> get() = engine.abRepeatEnabled
 
     /**
      * Accepts the legacy VlcKitPlayerBackend and adapts it to [PlayerBackend].

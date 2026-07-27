@@ -243,15 +243,28 @@ internal fun PlayerDestination(
         progress = state.progress,
         shuffle = state.shuffle,
         repeatMode = state.repeatMode,
+        rate = state.rate,
+        queue = state.queue,
+        currentQueueIndex = state.currentQueueIndex,
+        abRepeat = state.abRepeat,
+        abRepeatEnabled = state.abRepeatEnabled,
         onTogglePlay = viewModel::togglePlayPause,
         onSeek = viewModel::seekTo,
         onNext = viewModel::next,
         onPrevious = viewModel::previous,
         onToggleShuffle = viewModel::toggleShuffle,
         onCycleRepeat = viewModel::cycleRepeat,
+        onSetRate = viewModel::setPlaybackRate,
+        onPlayQueueItem = viewModel::playQueueItem,
+        onMoveQueueItem = viewModel::moveQueueItem,
+        onRemoveQueueItem = viewModel::removeQueueItem,
+        onToggleABRepeat = viewModel::toggleABRepeat,
+        onSetABRepeatMarker = viewModel::setABRepeatMarker,
+        onResetABRepeat = viewModel::resetABRepeat,
+        onClearABRepeat = viewModel::clearABRepeat,
         onClose = onClose,
         modifier = modifier,
-    ) { playerSurface(state) }
+    ) { chromeVisible -> playerSurface(state, chromeVisible) }
 }
 
 @Composable
@@ -272,6 +285,14 @@ internal fun MoreDestination(
         onOpenDonate = hostCallbacks::onOpenDonate,
         onPlayHistory = { entry ->
             viewModel.playHistory(entry)
+            onOpenPlayer()
+        },
+        onPlayStream = { stream ->
+            viewModel.playStream(stream)
+            onOpenPlayer()
+        },
+        onOpenStream = { title, uri ->
+            viewModel.playStream(title, uri)
             onOpenPlayer()
         },
     )
