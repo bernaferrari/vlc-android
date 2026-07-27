@@ -129,6 +129,7 @@ class IosPlaybackService : PlaybackService {
         engine.setSleepTimer(durationMillis, waitForCurrentItem)
     override fun clearSleepTimer() = engine.clearSleepTimer()
     override fun selectChapter(index: Int) = engine.selectChapter(index)
+    override fun loadExternalSubtitle(uri: String): Boolean = engine.loadExternalSubtitle(uri)
     override fun addObserver(observer: PlaybackObserver) = engine.addObserver(observer)
     override fun removeObserver(observer: PlaybackObserver) = engine.removeObserver(observer)
 
@@ -175,6 +176,7 @@ private class VlcKitPlayerBackendAdapter(
     override fun setSubtitleDelay(delayUs: Long) = kit.setSubtitleDelay(delayUs)
     override fun chapters(): PlaybackChapters = kit.chapters()
     override fun selectChapter(index: Int) = kit.selectChapter(index)
+    override fun loadExternalSubtitle(uri: String): Boolean = kit.loadExternalSubtitle(uri)
     override fun setListener(listener: PlayerBackend.Listener?) {
         if (listener == null) {
             kit.setListener(null)
@@ -219,6 +221,7 @@ interface VlcKitPlayerBackend {
     fun setSubtitleDelay(delayUs: Long)
     fun chapters(): PlaybackChapters
     fun selectChapter(index: Int)
+    fun loadExternalSubtitle(uri: String): Boolean
     fun setListener(listener: Listener?)
     /** Named to avoid colliding with Objective-C NSObject.release in Swift implementations. */
     fun dispose()

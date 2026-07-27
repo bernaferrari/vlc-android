@@ -307,6 +307,13 @@ class AndroidPlaybackService(
         }
     }
 
+    override fun loadExternalSubtitle(uri: String): Boolean {
+        val player = manager()?.player ?: return false
+        return player.addSubtitleTrack(Uri.parse(uri), true).also { loaded ->
+            if (loaded) refreshTracksFromHost()
+        }
+    }
+
     override fun addObserver(observer: PlaybackObserver) {
         observers.add(observer)
     }

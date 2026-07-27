@@ -69,6 +69,7 @@ interface PlaybackService {
     fun setSleepTimer(durationMillis: Long, waitForCurrentItem: Boolean = false) {}
     fun clearSleepTimer() {}
     fun selectChapter(index: Int) {}
+    fun loadExternalSubtitle(uri: String): Boolean = false
     fun addObserver(observer: PlaybackObserver)
     fun removeObserver(observer: PlaybackObserver)
 

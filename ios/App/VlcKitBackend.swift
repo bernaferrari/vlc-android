@@ -258,6 +258,15 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
 #endif
     }
 
+    func loadExternalSubtitle(uri: String) -> Bool {
+#if canImport(MobileVLCKit)
+        guard let url = URL(string: uri) ?? URL(string: uri.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? "") else { return false }
+        return player?.addPlaybackSlave(url, type: VLCMediaPlaybackSlaveTypeSubtitle, enforce: true) == 0
+#else
+        return false
+#endif
+    }
+
     func setListener(listener: VlcKitPlayerBackendListener?) {
         self.listener = listener
     }

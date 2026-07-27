@@ -165,6 +165,15 @@ class PlaylistEngineTest {
     }
 
     @Test
+    fun externalSubtitleLoadingDelegatesToTheAttachedDecoder() {
+        val backend = RecordingBackend().apply { subtitleLoadResult = true }
+        val engine = PlaylistEngine(backend)
+
+        assertTrue(engine.loadExternalSubtitle("file:///movie/subtitles.vtt"))
+        assertEquals("file:///movie/subtitles.vtt", backend.loadedSubtitleUri)
+    }
+
+    @Test
     fun restorePausedPreparesTheCurrentItemWithoutAutoPlay() {
         val backend = RecordingBackend()
         val engine = PlaylistEngine(backend)
@@ -196,6 +205,8 @@ class PlaylistEngineTest {
         var availableDelays = PlaybackDelays()
         var reportedAudioDelay = 0L
         var reportedSubtitleDelay = 0L
+        var subtitleLoadResult = false
+        var loadedSubtitleUri: String? = null
 
         override fun playUri(uri: String, title: String?) = Unit
         override fun preparePaused(uri: String, title: String?, positionMs: Long): Boolean {
@@ -221,6 +232,10 @@ class PlaylistEngineTest {
         override fun delays(): PlaybackDelays = availableDelays
         override fun setAudioDelay(delayUs: Long) { reportedAudioDelay = delayUs }
         override fun setSubtitleDelay(delayUs: Long) { reportedSubtitleDelay = delayUs }
+        override fun loadExternalSubtitle(uri: String): Boolean {
+            loadedSubtitleUri = uri
+            return subtitleLoadResult
+        }
         override fun setListener(listener: PlayerBackend.Listener?) = Unit
         override fun release() = Unit
     }

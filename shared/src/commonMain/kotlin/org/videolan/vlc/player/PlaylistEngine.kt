@@ -38,6 +38,7 @@ interface PlayerBackend {
     fun setSubtitleDelay(delayUs: Long) {}
     fun chapters(): PlaybackChapters = PlaybackChapters()
     fun selectChapter(index: Int) {}
+    fun loadExternalSubtitle(uri: String): Boolean = false
     fun setListener(listener: Listener?)
     fun release()
 
@@ -306,6 +307,12 @@ class PlaylistEngine(
     override fun selectChapter(index: Int) {
         backend?.selectChapter(index)
         refreshChapters()
+    }
+
+    override fun loadExternalSubtitle(uri: String): Boolean {
+        val loaded = backend?.loadExternalSubtitle(uri) == true
+        if (loaded) refreshTracks()
+        return loaded
     }
 
     private fun refreshTracks() {
