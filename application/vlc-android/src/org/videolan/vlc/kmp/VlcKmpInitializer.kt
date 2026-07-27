@@ -168,6 +168,7 @@ object VlcKmpInitializer {
             org.videolan.tools.KEY_INCOGNITO,
             org.videolan.tools.KEY_SAFE_MODE,
             org.videolan.tools.KEY_ENABLE_REMOTE_ACCESS,
+            org.videolan.tools.KEY_BROWSE_NETWORK,
             org.videolan.tools.FASTPLAY_SPEED,
             org.videolan.tools.AUDIO_RESUME_PLAYBACK,
             org.videolan.tools.VIDEO_RESUME_PLAYBACK,
