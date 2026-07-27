@@ -7,6 +7,7 @@ offering actions a target cannot execute.
 | Capability | Android | iOS | Wasm | JVM |
 | --- | --- | --- | --- | --- |
 | Shared navigation, library, playlists, history, and settings | Yes | Yes | Yes | Yes |
+| Local media intake | Media-library scan | Files / Photos picker | Not yet | Not yet |
 | Native media decoding | LibVLC | MobileVLCKit SPM | Not yet | Not yet |
 | Picture in Picture | Yes, when Android activity supports it | Not yet | Not yet | Not yet |
 | Renderer / cast selection | LibVLC renderer bridge | Not yet | Not yet | Not yet |

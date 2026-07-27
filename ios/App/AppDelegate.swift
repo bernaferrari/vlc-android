@@ -30,6 +30,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         IosKoinBootstrap.shared.start()
         // Real decode when MobileVLCKit SPM product is linked.
         IosPlaybackService.shared.setBackend(backend: VlcKitBackend.shared)
+        IosMediaImportController.shared.setHandler(handler: IosMediaImportBridge.shared)
         MediaImporter.shared.rescanLocalFolders()
         return true
     }
@@ -76,59 +77,10 @@ private extension String {
     }
 }
 
-/// Root: CMP shell + floating import actions.
+/// Root: the shared Compose shell owns all permanent product chrome.
 struct RootContainer: View {
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            ComposeSharedRoot()
-            ImportToolbar()
-                .padding(.top, 56)
-                .padding(.trailing, 12)
-        }
-    }
-}
-
-struct ImportToolbar: View {
-    var body: some View {
-        HStack(spacing: 8) {
-            Button {
-                present { MediaImporter.shared.presentDocumentPicker(from: $0) }
-            } label: {
-                Label("Files", systemImage: "folder")
-                    .font(.caption.weight(.semibold))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 8)
-                    .background(.ultraThinMaterial, in: Capsule())
-            }
-            Button {
-                present { MediaImporter.shared.presentPhotosPicker(from: $0) }
-            } label: {
-                Label("Photos", systemImage: "photo.on.rectangle")
-                    .font(.caption.weight(.semibold))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 8)
-                    .background(.ultraThinMaterial, in: Capsule())
-            }
-            Button {
-                MediaImporter.shared.rescanLocalFolders()
-            } label: {
-                Image(systemName: "arrow.clockwise")
-                    .padding(8)
-                    .background(.ultraThinMaterial, in: Circle())
-            }
-        }
-        .foregroundStyle(.primary)
-    }
-
-    private func present(_ block: @escaping (UIViewController) -> Void) {
-        guard let root = UIApplication.shared.connectedScenes
-            .compactMap({ $0 as? UIWindowScene })
-            .flatMap({ $0.windows })
-            .first(where: { $0.isKeyWindow })?
-            .rootViewController else { return }
-        var top = root
-        while let presented = top.presentedViewController { top = presented }
-        block(top)
+        ComposeSharedRoot()
     }
 }
 

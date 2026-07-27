@@ -23,6 +23,35 @@ final class MediaImporter: NSObject {
 
     // MARK: - Public API
 
+    /// Invoked from the shared Compose top-bar action through [IosMediaImportHandler].
+    /// The menu is native because Files/Photos permissions and presentation are UIKit-owned.
+    func presentImportOptions() {
+        guard let presenter = activePresenter() else { return }
+        let sheet = UIAlertController(title: "Add media", message: nil, preferredStyle: .actionSheet)
+        sheet.addAction(UIAlertAction(title: "Files", style: .default) { [weak self] _ in
+            // Let UIKit finish dismissing the sheet before presenting another controller.
+            DispatchQueue.main.async {
+                guard let self, let active = self.activePresenter() else { return }
+                self.presentDocumentPicker(from: active)
+            }
+        })
+        sheet.addAction(UIAlertAction(title: "Photos", style: .default) { [weak self] _ in
+            DispatchQueue.main.async {
+                guard let self, let active = self.activePresenter() else { return }
+                self.presentPhotosPicker(from: active)
+            }
+        })
+        sheet.addAction(UIAlertAction(title: "Refresh library", style: .default) { [weak self] _ in
+            self?.rescanLocalFolders()
+        })
+        sheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        if let popover = sheet.popoverPresentationController {
+            popover.sourceView = presenter.view
+            popover.sourceRect = presenter.view.bounds
+        }
+        presenter.present(sheet, animated: true)
+    }
+
     /// Rescan app Documents + Inbox and merge into the shared library.
     func rescanLocalFolders() {
         var found: [MediaItem] = []
@@ -159,6 +188,17 @@ final class MediaImporter: NSObject {
                 }
             }
         }
+    }
+
+    private func activePresenter() -> UIViewController? {
+        guard let root = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .flatMap({ $0.windows })
+            .first(where: { $0.isKeyWindow })?
+            .rootViewController else { return nil }
+        var top = root
+        while let presented = top.presentedViewController { top = presented }
+        return top
     }
 }
 

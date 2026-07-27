@@ -29,6 +29,10 @@ fun interface ShellHostCallbacks {
     fun onOpenPlaylistEditor(playlist: PlaylistInfo) = Unit
     /** Request SAF/OTG document tree grant; platform updates OtgAccess.otgRoot. */
     fun onRequestOtgRoot() = Unit
+    /** True when the host can present its native media-import flow. */
+    fun supportsMediaImport(): Boolean = false
+    /** Opens the host's media-import chooser. The permanent trigger stays in the shared shell. */
+    fun onImportMedia() = Unit
 
     companion object {
         val NoOp = ShellHostCallbacks { _, _ -> }

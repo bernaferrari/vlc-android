@@ -86,7 +86,9 @@ Legacy Android `org.videolan.tools.Settings` (SharedPreferences) still powers ma
 `ios/App/AppDelegate.swift` starts the iOS Koin module, installs the
 MobileVLCKit playback backend, and asks `MediaImporter` to reconcile Documents
 and cached imports. `MainViewController()` is the Compose root used by SwiftUI;
-it receives a native video surface only where a video needs one.
+it receives a native video surface only where a video needs one. The shared
+Compose top bar owns the permanent import action; Swift presents only the
+Files/Photos picker that action requests.
 
 ### Setup
 
@@ -106,7 +108,8 @@ configuration. Its pre-build phase invokes the matching Gradle task. Run
 
 ## Design notes
 
-- **Compose Multiplatform in `:shared`**: phone UI components already live here; Android hosts them through activities/interop. iOS UI strategy (CMP vs SwiftUI) is still open.
+- **Compose Multiplatform in `:shared`**: this is the phone product UI on both
+  Android and iOS. SwiftUI is limited to hosting and native integration islands.
 - **FlagSet**: custom bitmask instead of JVM-only `EnumSet`.
 - **DataStore**: Flow/coroutine prefs for common code; minSdk 23 on Android because of androidx.datastore 1.2.x.
 
@@ -132,7 +135,8 @@ iOS now hosts the **same** `VlcSharedApp` as Android (`Library` / `Player` / `Se
 - `IosPlaybackService.shared.setBackend(VlcKitBackend.shared)` installs real
   decode when MobileVLCKit resolves.
 
-Android lab entry: **More → VLC Shared** (`SharedAppActivity`).
+Android's default phone main path hosts the same `VlcKoinMainShell`; its activity
+keeps only Android system, LibVLC, and permission integration islands.
 
 ## Production iOS path (this tree)
 

@@ -16,6 +16,12 @@ class IosShellHostCallbacks(
     private val hostViewController: () -> UIViewController?,
 ) : ShellHostCallbacks {
 
+    override fun supportsMediaImport(): Boolean = true
+
+    override fun onImportMedia() {
+        IosMediaImportController.presentMediaImport()
+    }
+
     override fun onContextAction(item: MediaItem, option: ContextOption) = Unit
 
     override fun supportsContextAction(option: ContextOption): Boolean = when (option) {

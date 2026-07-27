@@ -307,6 +307,14 @@ fun VlcMainShell(
                             titleContentColor = colors.fontDefault,
                         ),
                         actions = {
+                            if (!showPlayer && !showSettings && hostCallbacks.supportsMediaImport()) {
+                                IconButton(onClick = hostCallbacks::onImportMedia) {
+                                    Icon(
+                                        icon = MaterialSymbols.Filled.Add,
+                                        contentDescription = "Import media",
+                                    )
+                                }
+                            }
                             if (canNavigateBack) {
                                 IconButton(onClick = ::navigateBack) {
                                     Icon(
