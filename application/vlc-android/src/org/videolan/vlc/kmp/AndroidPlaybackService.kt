@@ -106,6 +106,9 @@ class AndroidPlaybackService(
         }
         val wrappers = playlist.map { it.toMediaWrapper() }
         val safeIndex = index.coerceIn(0, (wrappers.size - 1).coerceAtLeast(0))
+        if (playlist.getOrNull(safeIndex)?.isVideo == true) {
+            SharedVideoSurfaceRegistry.requestInlinePlayback()
+        }
         _playlist.value = Playlist(
             id = 0,
             name = "Current",

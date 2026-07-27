@@ -39,6 +39,7 @@ import org.videolan.vlc.R
 import org.videolan.vlc.app.VlcKoin
 import org.videolan.vlc.compose.app.VlcKoinMainShell
 import org.videolan.vlc.kmp.AndroidShellHostCallbacks
+import org.videolan.vlc.kmp.AndroidPlayerSurface
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.gui.MainActivity
 import org.videolan.vlc.gui.MainNavChromeState
@@ -171,6 +172,7 @@ class Navigator : DefaultLifecycleObserver, INavigator {
                                 )
                             },
                             hostCallbacks = AndroidShellHostCallbacks(activity),
+                            playerSurface = AndroidPlayerSurface,
                         )
                     }
                 }

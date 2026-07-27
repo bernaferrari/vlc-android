@@ -8,6 +8,8 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.videolan.vlc.model.RepeatMode
+import org.videolan.vlc.model.MediaItem
+import org.videolan.vlc.model.MediaType
 import org.videolan.vlc.repository.FakeCatalog
 import org.videolan.vlc.repository.FakePlaybackService
 import kotlin.test.AfterTest
@@ -60,6 +62,24 @@ class PlayerViewModelTest {
         assertEquals(RepeatMode.ONE, vm.state.first { it.repeatMode == RepeatMode.ONE }.repeatMode)
         vm.cycleRepeat()
         assertEquals(RepeatMode.NONE, vm.state.first { it.repeatMode == RepeatMode.NONE }.repeatMode)
+        vm.onCleared()
+    }
+
+    @Test
+    fun onlyVisualMediaRequestsANativeVideoSurface() = runTest {
+        val playback = FakePlaybackService()
+        val vm = PlayerViewModel(playback)
+
+        vm.play(FakeCatalog.items.first { it.isAudio })
+        assertFalse(vm.state.first { it.hasMedia }.hasVideoOutput)
+
+        val video = FakeCatalog.items.first { it.isVideo }
+        vm.play(video)
+        assertTrue(vm.state.first { it.title == video.title }.hasVideoOutput)
+
+        val networkStream = MediaItem(99, "Live TV", "https://example.test/live", MediaType.STREAM)
+        vm.play(networkStream)
+        assertTrue(vm.state.first { it.title == networkStream.title }.hasVideoOutput)
         vm.onCleared()
     }
 }

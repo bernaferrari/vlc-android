@@ -1,20 +1,12 @@
 package org.videolan.vlc.compose.app
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import org.videolan.vlc.compose.player.FallbackPlayerSurface
+import org.videolan.vlc.compose.player.PlayerSurface
 import org.videolan.vlc.compose.player.VideoSurfaceWithHud
-import org.videolan.vlc.compose.icons.Icon
-import org.videolan.vlc.compose.icons.MaterialSymbols
-import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.model.MediaFolder
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.PlaylistInfo
@@ -241,6 +233,7 @@ internal fun PlayerDestination(
     state: PlayerUiState,
     viewModel: PlayerViewModel,
     onClose: () -> Unit,
+    playerSurface: PlayerSurface = FallbackPlayerSurface,
 ) {
     VideoSurfaceWithHud(
         title = state.title,
@@ -257,19 +250,7 @@ internal fun PlayerDestination(
         onCycleRepeat = viewModel::cycleRepeat,
         onClose = onClose,
         modifier = modifier,
-    ) {
-        Box(
-            Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceContainerHighest),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                icon = MaterialSymbols.Filled.MusicNote,
-                contentDescription = null,
-                tint = VLCThemeDefaults.colors.primary,
-                modifier = Modifier.size(80.dp),
-            )
-        }
-    }
+    ) { playerSurface(state) }
 }
 
 @Composable

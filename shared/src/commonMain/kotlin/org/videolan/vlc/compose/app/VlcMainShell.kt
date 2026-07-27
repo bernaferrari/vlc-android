@@ -47,6 +47,8 @@ import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
+import org.videolan.vlc.compose.player.FallbackPlayerSurface
+import org.videolan.vlc.compose.player.PlayerSurface
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.compose.theme.VLCMotion
@@ -94,6 +96,7 @@ fun VlcMainShell(
     onOpenSettings: (() -> Unit)? = null,
     onOpenRemoteClient: (() -> Unit)? = null,
     hostCallbacks: ShellHostCallbacks = ShellHostCallbacks.NoOp,
+    playerSurface: PlayerSurface = FallbackPlayerSurface,
 ) {
     DisposableEffect(videoVm, audioVm, browserVm, playlistsVm, moreVm, playerVm, settingsVm) {
         onDispose {
@@ -482,6 +485,7 @@ fun VlcMainShell(
                             state = playerState,
                             viewModel = playerVm,
                             onClose = ::popRoute,
+                            playerSurface = playerSurface,
                         )
                     }
                     entry<SettingsRoute>(metadata = detailTransitionMetadata) {

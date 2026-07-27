@@ -136,14 +136,9 @@ struct ImportToolbar: View {
 /// UIKit bridge to Kotlin `MainViewController()` — full CMP library/player/settings.
 struct ComposeSharedRoot: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIViewController {
-        // Ensure backend is attached before first play.
+        // The shared player route supplies the exact Compose-owned drawable.
         IosPlaybackService.shared.setBackend(backend: VlcKitBackend.shared)
-        let vc = MainViewControllerKt.MainViewController()
-        // Prefer drawing video into the host view when VLCKit is present.
-        DispatchQueue.main.async {
-            VlcKitBackend.shared.attachDrawable(vc.view)
-        }
-        return vc
+        return MainViewControllerKt.MainViewController()
     }
 
     func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}

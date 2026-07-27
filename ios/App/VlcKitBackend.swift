@@ -29,12 +29,14 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
         super.init()
     }
 
-    /// Attach a UIView / UIViewController.view as the VLCKit drawable surface.
-    func attachDrawable(_ view: UIView?) {
+    /// Attach the Compose-owned UIView as VLCKit's drawable surface.
+    func attachDrawable(view: UIView?) {
         drawableView = view
 #if canImport(MobileVLCKit)
         if let view {
             player?.drawable = view
+        } else {
+            player?.drawable = nil
         }
 #endif
     }

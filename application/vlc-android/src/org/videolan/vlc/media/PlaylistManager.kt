@@ -88,6 +88,7 @@ import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
 import org.videolan.vlc.gui.video.VideoPlayerActivity
+import org.videolan.vlc.kmp.SharedVideoSurfaceRegistry
 import org.videolan.vlc.util.FileUtils
 import org.videolan.vlc.util.awaitMedialibraryStarted
 import org.videolan.vlc.util.isSchemeFD
@@ -596,6 +597,7 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
             determinePrevAndNextIndices()
             service.onNewPlayback()
         } else { //Start VideoPlayer for first video, it will trigger playIndex when ready.
+            if (SharedVideoSurfaceRegistry.deferLegacyVideoPlayback(this, index)) return
             if (player.isPlaying()) player.stop()
             VideoPlayerActivity.startOpened(ctx, mw.uri, currentIndex)
         }

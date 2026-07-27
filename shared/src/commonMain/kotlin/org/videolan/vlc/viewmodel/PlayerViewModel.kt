@@ -21,6 +21,8 @@ data class PlayerUiState(
     val shuffle: Boolean = false,
     val repeatMode: RepeatMode = RepeatMode.NONE,
     val hasMedia: Boolean = false,
+    /** True for known video and network streams, which may expose video after probing. */
+    val hasVideoOutput: Boolean = false,
     val error: String? = null,
 )
 
@@ -60,6 +62,7 @@ class PlayerViewModel(
                         shuffle = pl.shuffle,
                         repeatMode = pl.repeatMode,
                         hasMedia = item != null || pl.items.isNotEmpty(),
+                        hasVideoOutput = item?.let { it.isVideo || it.isStream } == true,
                         error = (st as? PlaybackState.Error)?.message,
                     )
                 }

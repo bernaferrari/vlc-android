@@ -3,6 +3,8 @@ package org.videolan.vlc.compose.app
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import org.koin.compose.koinInject
+import org.videolan.vlc.compose.player.FallbackPlayerSurface
+import org.videolan.vlc.compose.player.PlayerSurface
 import org.videolan.vlc.viewmodel.AudioListViewModel
 import org.videolan.vlc.viewmodel.BrowserViewModel
 import org.videolan.vlc.viewmodel.MainTab
@@ -30,6 +32,7 @@ fun VlcKoinMainShell(
     onOpenSettings: (() -> Unit)? = null,
     onOpenRemoteClient: (() -> Unit)? = null,
     hostCallbacks: ShellHostCallbacks = ShellHostCallbacks.NoOp,
+    playerSurface: PlayerSurface = FallbackPlayerSurface,
 ) {
     val videoVm: VideoListViewModel = koinInject()
     val audioVm: AudioListViewModel = koinInject()
@@ -56,5 +59,6 @@ fun VlcKoinMainShell(
         onOpenSettings = onOpenSettings,
         onOpenRemoteClient = onOpenRemoteClient,
         hostCallbacks = hostCallbacks,
+        playerSurface = playerSurface,
     )
 }

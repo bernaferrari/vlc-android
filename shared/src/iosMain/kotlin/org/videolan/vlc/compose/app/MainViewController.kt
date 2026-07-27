@@ -25,6 +25,10 @@ fun MainViewController(): UIViewController {
     var hostViewController: UIViewController? = null
     val callbacks = IosShellHostCallbacks { hostViewController }
     return ComposeUIViewController {
-        VlcKoinMainShell(title = "VLC", hostCallbacks = callbacks)
+        VlcKoinMainShell(
+            title = "VLC",
+            hostCallbacks = callbacks,
+            playerSurface = IosPlayerSurface,
+        )
     }.also { hostViewController = it }
 }

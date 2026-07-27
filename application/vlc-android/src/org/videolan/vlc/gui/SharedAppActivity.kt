@@ -9,6 +9,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import org.videolan.vlc.compose.app.VlcKoinMainShell
 import org.videolan.vlc.kmp.AndroidShellHostCallbacks
+import org.videolan.vlc.kmp.AndroidPlayerSurface
 import org.videolan.vlc.kmp.VlcKmpInitializer
 
 /**
@@ -37,6 +38,7 @@ class SharedAppActivity : BaseActivity() {
                 VlcKoinMainShell(
                     title = getString(org.videolan.vlc.R.string.app_name),
                     hostCallbacks = hostCallbacks,
+                    playerSurface = AndroidPlayerSurface,
                 )
             }
         }

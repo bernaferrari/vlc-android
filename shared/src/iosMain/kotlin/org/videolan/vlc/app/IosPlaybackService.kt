@@ -11,6 +11,7 @@ import org.videolan.vlc.player.PlaybackState
 import org.videolan.vlc.player.PlayerBackend
 import org.videolan.vlc.player.PlaylistEngine
 import platform.Foundation.NSURL
+import platform.UIKit.UIView
 
 /**
  * iOS [PlaybackService] backed by shared [PlaylistEngine] + optional VLCKit backend.
@@ -23,6 +24,7 @@ import platform.Foundation.NSURL
 class IosPlaybackService : PlaybackService {
 
     private val engine = PlaylistEngine()
+    private var kitBackend: VlcKitPlayerBackend? = null
 
     override val state: Flow<PlaybackState> get() = engine.state
     override val progress: Flow<Progress> get() = engine.progress
@@ -32,11 +34,17 @@ class IosPlaybackService : PlaybackService {
      * Accepts the legacy VlcKitPlayerBackend and adapts it to [PlayerBackend].
      */
     fun setBackend(backend: VlcKitPlayerBackend?) {
+        kitBackend = backend
         if (backend == null) {
             engine.setBackend(null)
             return
         }
         engine.setBackend(VlcKitPlayerBackendAdapter(backend))
+    }
+
+    /** Routes the Compose-owned drawable to the native VLCKit backend. */
+    fun attachDrawable(view: UIView?) {
+        kitBackend?.attachDrawable(view)
     }
 
     override fun play(item: MediaItem, playlist: List<MediaItem>) = engine.play(item, playlist)
@@ -111,6 +119,8 @@ private class VlcKitPlayerBackendAdapter(
  * Thin bridge Swift implements with VLCKit's VLCMediaPlayer.
  */
 interface VlcKitPlayerBackend {
+    /** Sets the UIView VLCKit should draw video into, or clears it on disposal. */
+    fun attachDrawable(view: UIView?)
     fun play(uri: String, title: String?)
     fun pause()
     fun resume()
