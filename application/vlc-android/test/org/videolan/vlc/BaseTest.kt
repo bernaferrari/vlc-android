@@ -1,5 +1,6 @@
 package org.videolan.vlc
 
+import android.Manifest
 import android.content.Context
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.core.app.ApplicationProvider
@@ -12,13 +13,15 @@ import org.junit.*
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import org.robolectric.Shadows
 import org.robolectric.annotation.Config
 import org.videolan.medialibrary.MLServiceLocator
 import org.videolan.medialibrary.interfaces.Medialibrary
+import org.videolan.vlc.util.Permissions
 
 @RunWith(RobolectricTestRunner::class)
-@Config(application = VLCTestApplication::class, manifest = Config.NONE)
-open class BaseTest {
+@Config(application = VLCTestApplication::class, manifest = Config.NONE, sdk = [36])
+abstract class BaseTest {
     val context: Context = ApplicationProvider.getApplicationContext()
     val application = (RuntimeEnvironment.application as VLCTestApplication)
     val medialibrary: Medialibrary
@@ -34,6 +37,15 @@ open class BaseTest {
 
     @Before
     open fun beforeTest() {
+        // Providers deliberately honour Android 13+ scoped-media permissions.
+        // Give native-adapter tests the same granted state as a user who accepted
+        // the library permission; permission-denied behavior is covered separately.
+        Shadows.shadowOf(application).grantPermissions(
+            Manifest.permission.READ_MEDIA_AUDIO,
+            Manifest.permission.READ_MEDIA_VIDEO,
+            Manifest.permission.READ_MEDIA_IMAGES,
+        )
+        Permissions.emptyCache()
         println("beforeTest")
     }
 

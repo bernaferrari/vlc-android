@@ -60,12 +60,19 @@ android {
             includeAndroidResources = true
         }
         unitTests.all {
-            jvmArgs '-noverify'
             testLogging {
                 events "passed", "skipped", "failed", "standardOut", "standardError"
                 outputs.upToDateWhen { false }
                 showStandardStreams = true
             }
+        }
+    }
+
+    // Robolectric's Android 16 sandbox requires Java 21. Keep Android sources on
+    // Java 17, but execute local Android unit tests on the matching test JVM.
+    tasks.withType(Test).configureEach {
+        javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(21)
         }
     }
 
@@ -175,8 +182,14 @@ dependencies {
         devApi "org.videolan.android:libvlc-all:$rootProject.ext.libvlcVersion"
     }
     devApi project(':medialibrary')
+    // Legacy Android unit tests exercise the medialibrary test stubs. Resolve
+    // them from this checkout so the test fixture and production source cannot
+    // silently drift from the published debug artifact.
+    testImplementation project(':medialibrary')
     debugApi "org.videolan.android:libvlc-all:$rootProject.ext.libvlcVersion"
-    debugApi "org.videolan.android:medialibrary-all:$rootProject.ext.medialibraryVersion"
+    // Keep debug, dev, and their unit tests on the checkout's medialibrary
+    // implementation. Release artifacts remain binary-packaged below.
+    debugApi project(':medialibrary')
     releaseApi "org.videolan.android:libvlc-all:$rootProject.ext.libvlcVersion"
     releaseApi "org.videolan.android:medialibrary-all:$rootProject.ext.medialibraryVersion"
     signedReleaseApi "org.videolan.android:libvlc-all:$rootProject.ext.libvlcVersion"
@@ -256,8 +269,6 @@ dependencies {
     testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$rootProject.ext.kotlinx_version"
     testImplementation "org.mockito:mockito-core:$rootProject.ext.mockito"
     testImplementation "io.mockk:mockk:$rootProject.ext.mockk"
-    testImplementation "org.powermock:powermock-api-mockito2:$rootProject.ext.powerMock"
-    testImplementation "org.powermock:powermock-module-junit4:$rootProject.ext.powerMock"
     testImplementation "com.jraska.livedata:testing-ktx:$rootProject.ext.livedataTest"
     testImplementation "org.robolectric:robolectric:$rootProject.ext.robolectric"
     androidTestImplementation "androidx.test:rules:$rootProject.ext.testCore"

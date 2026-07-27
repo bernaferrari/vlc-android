@@ -98,34 +98,34 @@ class StringsTest {
     }
 
     @Test
-    fun readableFileSize() {
-        var s = 10L.readableFileSize()
+    fun readableSizeUsesConsistentDecimalUnits() {
+        var s = 10L.readableSize()
         assertEquals(s, "10 B")
 
-        s = 1026L.readableFileSize()
-        assertEquals(s, "1 KiB")
+        s = 1026L.readableSize()
+        assertEquals(s, "1 KB")
 
-        s = 10026L.readableFileSize()
-        assertEquals(s, "9.8 KiB")
+        s = 10026L.readableSize()
+        assertEquals(s, "10 KB")
 
-        s = 100026L.readableFileSize()
-        assertEquals(s, "97.7 KiB")
+        s = 100026L.readableSize()
+        assertEquals(s, "100 KB")
 
-        s = 1000026L.readableFileSize()
-        assertEquals(s, "976.6 KiB")
+        s = 1000026L.readableSize()
+        assertEquals(s, "1 MB")
 
-        s = 10000026L.readableFileSize()
-        assertEquals(s, "9.5 MiB")
+        s = 10000026L.readableSize()
+        assertEquals(s, "10 MB")
 
 
-        s = 1000000026L.readableFileSize()
-        assertEquals(s, "953.7 MiB")
+        s = 1000000026L.readableSize()
+        assertEquals(s, "1 GB")
 
-        s = 10000000026L.readableFileSize()
-        assertEquals(s, "9.3 GiB")
+        s = 10000000026L.readableSize()
+        assertEquals(s, "10 GB")
 
-        s = 100000000026L.readableFileSize()
-        assertEquals(s, "93.1 GiB")
+        s = 100000000026L.readableSize()
+        assertEquals(s, "100 GB")
     }
 
     @Test

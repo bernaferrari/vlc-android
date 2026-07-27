@@ -32,9 +32,6 @@ import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
-import org.powermock.api.mockito.PowerMockito
-import org.powermock.core.classloader.annotations.PrepareForTest
-import org.powermock.modules.junit4.PowerMockRunner
 import org.videolan.vlc.database.MediaDatabase
 import org.videolan.vlc.database.SlaveDao
 import org.videolan.vlc.mediadb.models.Slave
@@ -42,9 +39,11 @@ import org.videolan.vlc.util.TestUtil
 import org.videolan.vlc.util.argumentCaptor
 import org.videolan.vlc.util.mock
 import org.videolan.vlc.util.uninitialized
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
-@RunWith(PowerMockRunner::class)
-@PrepareForTest(Uri::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(manifest = Config.NONE, sdk = [36])
 class SlaveRepositoryTest {
     private val slaveDao = mock<SlaveDao>()
     private lateinit var slaveRepository: SlaveRepository
@@ -62,16 +61,13 @@ class SlaveRepositoryTest {
 
     @Test fun saveOneSlave_getSlaveShouldReturnOne() = runBlocking {
         val fakeSlave = TestUtil.createSubtitleSlavesForMedia("foo.mkv", 1)[0]
-        slaveRepository.saveSlave(fakeSlave.mediaPath, fakeSlave.type, fakeSlave.priority, fakeSlave.uri)
+        slaveRepository.saveSlave(fakeSlave.mediaPath, fakeSlave.type, fakeSlave.priority, fakeSlave.uri).join()
 
         val inserted = argumentCaptor<Slave>()
         verify(slaveDao).insert(inserted.capture() ?: uninitialized())
         assertThat(inserted.value, `is`(fakeSlave))
 
-        PowerMockito.mockStatic(Uri::class.java)
-        PowerMockito.`when`<Any>(Uri::class.java, "decode", anyString()).thenAnswer { it.arguments[0] as String }
-
-        `when`(slaveDao[fakeSlave.mediaPath]).thenReturn(listOf(fakeSlave))
+        `when`(slaveDao.get(fakeSlave.mediaPath)).thenReturn(listOf(fakeSlave))
 
         val slave = slaveRepository.getSlaves(fakeSlave.mediaPath)[0]
         assertThat(slave.uri, `is`(fakeSlave.uri))

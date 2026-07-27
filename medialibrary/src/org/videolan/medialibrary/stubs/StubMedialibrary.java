@@ -378,6 +378,11 @@ public class StubMedialibrary extends Medialibrary {
     public void forceRescan() {}
 
     public MediaWrapper[] history(int type) {
+        // Streams are represented by the dedicated native stream catalog rather
+        // than audio/video playback history. This is what StreamsModel consumes.
+        if (type == HISTORY_TYPE_NETWORK) {
+            return dt.mStreamMediaWrappers.toArray(new MediaWrapper[0]);
+        }
         ArrayList<MediaWrapper> results = new ArrayList<>();
         for (MediaWrapper media : dt.mHistory) {
             if (media.getType() == MediaWrapper.TYPE_VIDEO ||

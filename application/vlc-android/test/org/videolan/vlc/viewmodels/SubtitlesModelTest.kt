@@ -2,7 +2,7 @@ package org.videolan.vlc.viewmodels
 
 import androidx.core.net.toUri
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
+import androidx.lifecycle.map
 import com.jraska.livedata.test
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
@@ -12,7 +12,6 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.videolan.resources.opensubtitles.OpenSubtitleRepository
 import org.videolan.resources.util.NoConnectivityException
-import org.videolan.tools.FileUtils
 import org.videolan.vlc.BaseTest
 import org.videolan.vlc.R
 import org.videolan.vlc.database.ExternalSubDao
@@ -42,21 +41,19 @@ class SubtitlesModelTest : BaseTest() {
         ExternalSubRepository.applyMock(subRepo)
         val capturedMedia = slot<String>()
         // To mock the behavior of actual get function in DAO (filter by media path)
-        every { mockedDao.get(capture(capturedMedia)) } answers { Transformations.map(downloadedLiveData) { it.filter { it.mediaPath == capturedMedia.captured } } }
+        every { mockedDao.get(capture(capturedMedia)) } answers {
+            downloadedLiveData.map { subtitles -> subtitles.filter { it.mediaPath == capturedMedia.captured } }
+        }
 
         // To use the mocked instance of OpenSubRepository
         OpenSubtitleRepository.instance = lazyOf(mockedOpenSubRepo)
 
-        // Used when computing hash of media file.
-        mockkObject(FileUtils) {
-            every { FileUtils.computeHash(any()) } returns "fake_hash"
-        }
     }
 
     override fun beforeTest() {
         super.beforeTest()
-        mediaPath = temporaryFolder.newFile("fake_media").path
-        subtitlesModel = SubtitlesModel(context, mediaPath.toUri(), coroutineContextProvider = TestCoroutineContextProvider())
+        mediaPath = temporaryFolder.newFile("fake_media").apply { writeText("fixture media") }.path
+        subtitlesModel = SubtitlesModel(context, java.io.File(mediaPath).toUri(), "fake_media", TestCoroutineContextProvider())
     }
 
     @Test
@@ -81,11 +78,11 @@ class SubtitlesModelTest : BaseTest() {
     fun addThreeDownloadingSubtitlesWithTwoCorrectMediaPath_checkHistoryHasSizeAsTwo() {
         (0..1).map {
             ExternalSubRepository.getInstance(context).addDownloadingItem(
-                    it.toLong(), TestUtil.createDownloadingSubtitleItem("$it", mediaPath, "en", "xyz", "abc.com/$it")
+                    it.toLong(), TestUtil.createDownloadingSubtitleItem("$it", java.io.File(mediaPath).toUri(), "en", "xyz", "abc.com/$it")
             )
         }
         ExternalSubRepository.getInstance(context).addDownloadingItem(
-                2, TestUtil.createDownloadingSubtitleItem("2", "/wrong", "en", "xyz", "abc.com/2")
+                2, TestUtil.createDownloadingSubtitleItem("2", java.io.File("/wrong").toUri(), "en", "xyz", "abc.com/2")
         )
 
         val testResult = subtitlesModel.history.test()
@@ -99,7 +96,7 @@ class SubtitlesModelTest : BaseTest() {
     fun addTwoDownloadingSubtitlesAndTwoDownloadedSubtitles_checkHistoryHasSizeAsFour() {
         (0..1).map {
             ExternalSubRepository.getInstance(context).addDownloadingItem(
-                    it.toLong(), TestUtil.createDownloadingSubtitleItem("$it", mediaPath, "en", "xyz", "abc.com/$it")
+                    it.toLong(), TestUtil.createDownloadingSubtitleItem("$it", java.io.File(mediaPath).toUri(), "en", "xyz", "abc.com/$it")
             )
         }
         val inputSubs = (0..1).map {
@@ -118,7 +115,7 @@ class SubtitlesModelTest : BaseTest() {
 
     @Test
     fun searchByNameAndNoResultHasFound_checkResultIsEmpty() {
-        coEvery { mockedOpenSubRepo.queryWithName(any(), any(), any(), any<List<String>>()) } returns emptyList()
+        coEvery { mockedOpenSubRepo.queryWithName(any(), any(), any(), any<List<String>>(), any()) } returns TestUtil.createOpenSubtitleResponse(emptyList())
 
         subtitlesModel.observableSearchName.set("abc")
         subtitlesModel.search(false)
@@ -133,7 +130,7 @@ class SubtitlesModelTest : BaseTest() {
     @Test
     fun searchByNameAndTwoResultHasFound_checkResultHasSizeAsTwo() {
         val openSubs = (0..1).map { TestUtil.createOpenSubtitle("$it", "en", "xyz", "abc.com/$it") }
-        coEvery { mockedOpenSubRepo.queryWithName(any(), any(), any(), any<List<String>>()) } returns openSubs
+        coEvery { mockedOpenSubRepo.queryWithName(any(), any(), any(), any<List<String>>(), any()) } returns TestUtil.createOpenSubtitleResponse(openSubs)
 
         subtitlesModel.observableSearchName.set("abc")
         subtitlesModel.search(false)
@@ -150,10 +147,10 @@ class SubtitlesModelTest : BaseTest() {
     @Test
     fun searchByNameAndThreeResultHasFoundTwoAreInHistory_checkResultHasSizeAsThreeAndCorrectStates() {
         val openSubs = (0..2).map { TestUtil.createOpenSubtitle("$it", "en", "xyz", "abc.com/$it") }
-        coEvery { mockedOpenSubRepo.queryWithName(any(), any(), any(), any<List<String>>()) } returns openSubs
+        coEvery { mockedOpenSubRepo.queryWithName(any(), any(), any(), any<List<String>>(), any()) } returns TestUtil.createOpenSubtitleResponse(openSubs)
 
         ExternalSubRepository.getInstance(context).addDownloadingItem(
-                0L, TestUtil.createDownloadingSubtitleItem("0", mediaPath, "en", "xyz", "abc.com/0")
+                0L, TestUtil.createDownloadingSubtitleItem("0", java.io.File(mediaPath).toUri(), "en", "xyz", "abc.com/0")
         )
         val subPath = temporaryFolder.newFile("sub1").absolutePath
         downloadedLiveData.value = listOf(TestUtil.createExternalSub("1", subPath, mediaPath, "en", "xyz"))
@@ -192,7 +189,11 @@ class SubtitlesModelTest : BaseTest() {
 
     @Test
     fun searchByHashAndNoResultHasFound_checkResultIsEmpty() {
-        coEvery { mockedOpenSubRepo.queryWithHash(any(), any(), any<List<String>>()) } returns emptyList()
+        coEvery { mockedOpenSubRepo.queryWithHash(any(), any<List<String>>(), any()) } returns TestUtil.createOpenSubtitleResponse(emptyList())
+        // A file-hash miss deliberately falls back to the media name. Stub both
+        // requests so this verifies the user-visible empty state rather than a
+        // missing mock being reported as an OpenSubtitles transport failure.
+        coEvery { mockedOpenSubRepo.queryWithName(any(), any(), any(), any<List<String>>(), any()) } returns TestUtil.createOpenSubtitleResponse(emptyList())
 
         subtitlesModel.search(true)
 
@@ -206,7 +207,7 @@ class SubtitlesModelTest : BaseTest() {
     @Test
     fun searchByHashAndTwoResultHasFound_checkResultHasSizeAsTwo() {
         val openSubs = (0..1).map { TestUtil.createOpenSubtitle("$it", "en", "xyz", "abc.com/$it") }
-        coEvery { mockedOpenSubRepo.queryWithHash(any(), any(), any<List<String>>()) } returns openSubs
+        coEvery { mockedOpenSubRepo.queryWithHash(any(), any<List<String>>(), any()) } returns TestUtil.createOpenSubtitleResponse(openSubs)
 
         subtitlesModel.search(true)
 
@@ -221,7 +222,7 @@ class SubtitlesModelTest : BaseTest() {
 
     @Test
     fun searchByNameWithNoConnection_checkValidMessage() {
-        coEvery { mockedOpenSubRepo.queryWithName(any(), any(), any(), any<List<String>>()) } throws NoConnectivityException()
+        coEvery { mockedOpenSubRepo.queryWithName(any(), any(), any(), any<List<String>>(), any()) } throws NoConnectivityException()
 
         subtitlesModel.observableSearchName.set("abc")
         subtitlesModel.search(false)
@@ -235,7 +236,7 @@ class SubtitlesModelTest : BaseTest() {
 
     @Test
     fun searchByNameWithConverterError_checkValidMessage() {
-        coEvery { mockedOpenSubRepo.queryWithName(any(), any(), any(), any<List<String>>()) } throws IOException()
+        coEvery { mockedOpenSubRepo.queryWithName(any(), any(), any(), any<List<String>>(), any()) } throws IOException()
 
         subtitlesModel.observableSearchName.set("abc")
         subtitlesModel.search(false)

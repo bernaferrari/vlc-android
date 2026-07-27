@@ -34,16 +34,15 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.junit.runner.RunWith
 import org.mockito.Mockito.*
-import org.powermock.api.mockito.PowerMockito
-import org.powermock.core.classloader.annotations.PrepareForTest
-import org.powermock.modules.junit4.PowerMockRunner
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import org.videolan.vlc.database.ExternalSubDao
 import org.videolan.vlc.database.MediaDatabase
 import org.videolan.vlc.util.*
 
 
-@RunWith(PowerMockRunner::class)
-@PrepareForTest(Uri::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(manifest = Config.NONE, sdk = [36])
 class ExternalSubRepositoryTest {
     private val externalSubDao = mock<ExternalSubDao>()
     private lateinit var externalSubRepository: ExternalSubRepository
@@ -70,16 +69,13 @@ class ExternalSubRepositoryTest {
         val fakeBarSubtitles = TestUtil.createExternalSubsForMedia(bar, "bar", 2)
 
         fakeFooSubtitles.forEach {
-            externalSubRepository.saveDownloadedSubtitle(it.idSubtitle, it.subtitlePath, it.mediaPath, it.subLanguageID, it.movieReleaseName)
+            externalSubRepository.saveDownloadedSubtitle(it.idSubtitle, it.subtitlePath, it.mediaPath, it.subLanguageID, it.movieReleaseName, it.hearingImpaired).join()
         }
 
         fakeBarSubtitles.forEach {
-            externalSubRepository.saveDownloadedSubtitle(it.idSubtitle, it.subtitlePath, it.mediaPath, it.subLanguageID, it.movieReleaseName)
+            externalSubRepository.saveDownloadedSubtitle(it.idSubtitle, it.subtitlePath, it.mediaPath, it.subLanguageID, it.movieReleaseName, it.hearingImpaired).join()
         }
 
-
-        PowerMockito.mockStatic(Uri::class.java)
-        PowerMockito.`when`<Any>(Uri::class.java, "decode", anyString()).thenAnswer { it.arguments[0] as String }
 
         val inserted = argumentCaptor<org.videolan.vlc.mediadb.models.ExternalSub>()
         verify(externalSubDao, times(4)).insert(inserted.capture() ?: uninitialized())
@@ -93,33 +89,30 @@ class ExternalSubRepositoryTest {
         val fakeBarLiveDataSubtitles = MutableLiveData<List<org.videolan.vlc.mediadb.models.ExternalSub>>()
         fakeFooLiveDataSubtitles.value = fakeFooSubtitles
         fakeBarLiveDataSubtitles.value = fakeBarSubtitles
-        `when`(externalSubDao[foo]).thenReturn(fakeFooLiveDataSubtitles)
-        `when`(externalSubDao[bar]).thenReturn(fakeBarLiveDataSubtitles)
+        `when`(externalSubDao.get(foo)).thenReturn(fakeFooLiveDataSubtitles)
+        `when`(externalSubDao.get(bar)).thenReturn(fakeBarLiveDataSubtitles)
 
-        val fooSubtitles = getValue(externalSubRepository.getDownloadedSubtitles(foo.toUri()))
-        verify(externalSubDao, times(2))[anyString()]
+        val fooSubtitles = externalSubRepository.getDownloadedSubtitles(java.io.File(foo).toUri()).value.orEmpty()
+        verify(externalSubDao).get(anyString())
         assertThat(fooSubtitles.size, `is`(0))
     }
 
 
-    @Test fun saveTwoSubtitleForTwoMediaCreateTemporaryFilesForThem_GetShouldReturnTwoForEach() {
+    @Test fun saveTwoSubtitleForTwoMediaCreateTemporaryFilesForThem_GetShouldReturnTwoForEach() = runBlocking {
         val foo = "/storage/emulated/foo.mkv"
         val bar = "/storage/emulated/bar.mkv"
 
         val fakeFooSubtitles = (0 until 2).map {
             val file = temp.newFile("foo.$it.srt")
-            externalSubRepository.saveDownloadedSubtitle("1$it", file.path, foo, "en", "foo" )
+            externalSubRepository.saveDownloadedSubtitle("1$it", file.path, foo, "en", "foo", false).join()
             TestUtil.createExternalSub("1$it", file.path, foo, "en", "foo")
         }
 
         val fakeBarSubtitles = (0 until 2).map {
             val file = temp.newFile("bar.$it.srt")
-            externalSubRepository.saveDownloadedSubtitle("2$it", file.path, bar, "en", "bar")
+            externalSubRepository.saveDownloadedSubtitle("2$it", file.path, bar, "en", "bar", false).join()
             TestUtil.createExternalSub("2$it", file.path, bar, "en", "bar")
         }
-
-        PowerMockito.mockStatic(Uri::class.java)
-        PowerMockito.`when`<Any>(Uri::class.java, "decode", anyString()).thenAnswer { it.arguments[0] as String }
 
         val inserted = argumentCaptor<org.videolan.vlc.mediadb.models.ExternalSub>()
         verify(externalSubDao, times(4)).insert(inserted.capture() ?: uninitialized())
@@ -134,12 +127,12 @@ class ExternalSubRepositoryTest {
         fakeFooLiveDataSubtitles.value = fakeFooSubtitles
         fakeBarLiveDataSubtitles.value = fakeBarSubtitles
 
-        `when`(externalSubDao[foo]).thenReturn(fakeFooLiveDataSubtitles)
-        `when`(externalSubDao[bar]).thenReturn(fakeBarLiveDataSubtitles)
+        `when`(externalSubDao.get(foo)).thenReturn(fakeFooLiveDataSubtitles)
+        `when`(externalSubDao.get(bar)).thenReturn(fakeBarLiveDataSubtitles)
 
-        val fooSubtitles = getValue(externalSubRepository.getDownloadedSubtitles(foo.toUri()))
-        val barSubtitles = getValue(externalSubRepository.getDownloadedSubtitles(bar.toUri()))
-        verify(externalSubDao, times(2))[anyString()]
+        val fooSubtitles = externalSubRepository.getDownloadedSubtitles(java.io.File(foo).toUri()).value.orEmpty()
+        val barSubtitles = externalSubRepository.getDownloadedSubtitles(java.io.File(bar).toUri()).value.orEmpty()
+        verify(externalSubDao, times(2)).get(anyString())
         assertThat(fooSubtitles.size, `is`(2))
         assertThat(barSubtitles.size, `is`(2))
 

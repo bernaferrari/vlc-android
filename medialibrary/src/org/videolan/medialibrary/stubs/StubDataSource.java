@@ -98,6 +98,7 @@ public class StubDataSource {
                     0, 0, 1509466228L, 0L, true, false, 1970, true, 1683711438317L);
             addVideo(media);
         }
+        notifyMediaLibraryChanged(mVideoMediaWrappers.toArray(new MediaWrapper[0]), false);
     }
 
     public void setAudioByCount(int count, @Nullable String folder) {
@@ -116,11 +117,13 @@ public class StubDataSource {
                     1547452796L, 0L, true, false, 1965, true, 1683711438317L);
             addAudio(media, "", 1965, 400, mrl);
         }
+        notifyMediaLibraryChanged(mAudioMediaWrappers.toArray(new MediaWrapper[0]), true);
     }
 
     public Folder createFolder(String name) {
         Folder folder = MLServiceLocator.getAbstractFolder(getUUID(), name, baseMrl + name, 1, false);
         mFolders.add(folder);
+        MLServiceLocator.getAbstractMedialibrary().onFoldersAdded();
         return folder;
     }
 
@@ -594,9 +597,31 @@ public class StubDataSource {
                 title, title, -1L, -1L, "Artisto", "Jazz", -1L, "XYZ CD1", "", 0, 0, baseMrl + title, -2,
                 1, 1, 0, 1547452796L, 0L, true, false, 0, true, 1683711438317L);
         if (type == MediaWrapper.TYPE_ALL) type = media.getType();
-        if (type == MediaWrapper.TYPE_VIDEO) addVideo(media);
-        else if (type == MediaWrapper.TYPE_AUDIO) addAudio(media, "", 2018, 12313, mrl);
+        if (type == MediaWrapper.TYPE_VIDEO) {
+            addVideo(media);
+            notifyMediaLibraryChanged(new MediaWrapper[] { media }, false);
+        } else if (type == MediaWrapper.TYPE_AUDIO) {
+            addAudio(media, "", 2018, 12313, mrl);
+            notifyMediaLibraryChanged(new MediaWrapper[] { media }, true);
+        } else if (type == MediaWrapper.TYPE_STREAM) {
+            mStreamMediaWrappers.add(media);
+        }
         return media;
+    }
+
+    /**
+     * Stub data is mutated directly by unit tests. Mirror the native medialibrary
+     * callbacks so providers refresh exactly as they do after a real scan.
+     */
+    private void notifyMediaLibraryChanged(MediaWrapper[] media, boolean audioChanged) {
+        org.videolan.medialibrary.interfaces.Medialibrary medialibrary = MLServiceLocator.getAbstractMedialibrary();
+        medialibrary.onMediaAdded(media);
+        medialibrary.onFoldersAdded();
+        if (audioChanged) {
+            medialibrary.onArtistsAdded();
+            medialibrary.onAlbumsAdded();
+            medialibrary.onGenresAdded();
+        }
     }
 
     public MediaWrapper addMediaWrapper(String title, int type) {

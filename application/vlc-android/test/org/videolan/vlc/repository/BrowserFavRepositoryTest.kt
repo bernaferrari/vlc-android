@@ -20,15 +20,6 @@
 
 package org.videolan.vlc.repository
 
-import android.net.Uri
-import org.junit.runner.RunWith
-import org.powermock.core.classloader.annotations.PrepareForTest
-import org.powermock.modules.junit4.PowerMockRunner
-import org.videolan.vlc.ExternalMonitor
-
-
-@RunWith(PowerMockRunner::class)
-@PrepareForTest(Uri::class, ExternalMonitor::class)
 class BrowserFavRepositoryTest {
 //
 //    @Rule
