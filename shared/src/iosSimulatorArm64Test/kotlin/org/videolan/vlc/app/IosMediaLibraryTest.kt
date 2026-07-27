@@ -10,6 +10,8 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.MediaType
+import org.videolan.vlc.model.Playlist
+import org.videolan.vlc.model.RepeatMode
 
 class IosMediaLibraryTest {
 
@@ -73,6 +75,68 @@ class IosMediaLibraryTest {
             "file:///Documents/road%20trip%20e%CC%81pisode.mp4",
             canonicalIosFileUri("/Documents/road trip épisode.mp4"),
         )
+    }
+
+    @Test
+    fun pausedPlaybackSessionSurvivesCatalogRecreation() {
+        val store = InMemoryIosCatalogStore()
+        val original = IosMediaLibrary.forTesting(store)
+        val first = video(id = 70_001, uri = "file:///Documents/first.mp4")
+        val second = video(id = 70_002, uri = "file:///Documents/second.mp4")
+        original.upsert(first)
+        original.upsert(second)
+        original.savePlaybackSession(
+            playlist = Playlist(
+                id = 0L,
+                name = "Current",
+                items = listOf(first, second),
+                currentIndex = 1,
+                shuffle = true,
+                repeatMode = RepeatMode.ALL,
+            ),
+            positionMs = 42_000L,
+            volume = 140,
+            rate = 1.25f,
+        )
+
+        val restored = assertNotNull(IosMediaLibrary.forTesting(store).playbackSession())
+        assertEquals(second.uri, restored.playlist.current?.uri)
+        assertEquals(42_000L, restored.positionMs)
+        assertEquals(140, restored.volume)
+        assertEquals(1.25f, restored.rate)
+        assertTrue(restored.playlist.shuffle)
+        assertEquals(RepeatMode.ALL, restored.playlist.repeatMode)
+    }
+
+    @Test
+    fun scannedMetadataRefreshKeepsUserOwnedFields() = runTest {
+        val library = IosMediaLibrary.forTesting(InMemoryIosCatalogStore())
+        val original = video(
+            id = 80_001,
+            uri = "file:///Documents/metadata.mp4",
+            title = "Original",
+        )
+        library.upsert(original)
+        library.setFavorite(original.id, true)
+        library.markAsPlayed(original.id)
+
+        library.mergeScannedMetadata(
+            original.copy(
+                id = 99_999,
+                title = "Embedded title",
+                duration = 12_000L,
+                artist = "Artist",
+                album = "Album",
+            ),
+        )
+
+        val merged = assertNotNull(library.getMedia(original.id))
+        assertEquals("Embedded title", merged.title)
+        assertEquals(12_000L, merged.duration)
+        assertEquals("Artist", merged.artist)
+        assertEquals("Album", merged.album)
+        assertTrue(merged.isFavorite)
+        assertEquals(1, merged.playedCount)
     }
 
     private fun video(

@@ -39,6 +39,7 @@ class IosMediaLibrary private constructor(
     private val playlists = MutableStateFlow<Map<Long, Playlist>>(emptyMap())
     private val favoritePlaylistIds = MutableStateFlow<Set<Long>>(emptySet())
     private val history = MutableStateFlow<List<HistoryEntry>>(emptyList())
+    private var savedPlaybackSession: IosPlaybackSession? = null
     private var nextId = FIRST_MEDIA_ID
     private var nextFolderId = 1L
     private var nextPlaylistId = 1L
@@ -54,6 +55,29 @@ class IosMediaLibrary private constructor(
     override fun replaceAllPublic(items: List<MediaItem>) = replaceAll(items)
 
     fun snapshot(): List<MediaItem> = items.value
+
+    internal fun playbackSession(): IosPlaybackSession? = savedPlaybackSession
+
+    internal fun savePlaybackSession(
+        playlist: Playlist,
+        positionMs: Long,
+        volume: Int,
+        rate: Float,
+    ) {
+        savedPlaybackSession = IosPlaybackSession(
+            playlist = playlist,
+            positionMs = positionMs.coerceAtLeast(0L),
+            volume = volume.coerceIn(0, 200),
+            rate = rate.takeIf(Float::isFinite)?.coerceIn(0.25f, 4f) ?: 1f,
+        )
+        persist()
+    }
+
+    internal fun clearPlaybackSession() {
+        if (savedPlaybackSession == null) return
+        savedPlaybackSession = null
+        persist()
+    }
 
     fun replaceAll(media: List<MediaItem>) {
         items.value = normalizeMedia(media)
@@ -80,6 +104,33 @@ class IosMediaLibrary private constructor(
         persist()
     }
 
+    /**
+     * Applies filesystem/decoder-derived fields after a native scan without overwriting metadata
+     * VLC owns (favorites, history, rating, artwork, and descriptions). Swift uses this when
+     * AVFoundation finishes inspecting a local file after it is already visible in the catalog.
+     */
+    fun mergeScannedMetadata(media: MediaItem) {
+        val existing = items.value.firstOrNull { it.uri == media.uri }
+        if (existing == null) {
+            upsert(media)
+            return
+        }
+        val merged = media.copy(
+            id = existing.id,
+            artworkUri = existing.artworkUri ?: media.artworkUri,
+            description = existing.description ?: media.description,
+            rating = existing.rating,
+            playedCount = existing.playedCount,
+            lastPlayed = existing.lastPlayed,
+            isFavorite = existing.isFavorite,
+            seen = existing.seen,
+        )
+        items.value = items.value.map { if (it.uri == merged.uri) merged else it }
+        refreshPlaylistMetadata()
+        rebuildFolderIndex()
+        persist()
+    }
+
     fun removeByUri(uri: String) {
         if (items.value.none { it.uri == uri }) return
         // Keep playlist/history entries: users expect an unavailable local track
@@ -94,6 +145,7 @@ class IosMediaLibrary private constructor(
         playlists.value = emptyMap()
         favoritePlaylistIds.value = emptySet()
         history.value = emptyList()
+        savedPlaybackSession = null
         rebuildFolderIndex()
         persist()
     }
@@ -326,6 +378,7 @@ class IosMediaLibrary private constructor(
             .associateBy(Playlist::id)
         favoritePlaylistIds.value = snapshot.favoritePlaylistIds.toSet().intersect(playlists.value.keys)
         history.value = snapshot.history.map(StoredHistoryEntry::toHistoryEntry)
+        savedPlaybackSession = snapshot.playbackSession?.toPlaybackSession()
         nextId = maxOf(snapshot.nextId, (items.value.maxOfOrNull { it.id } ?: FIRST_MEDIA_ID - 1L) + 1L)
         nextPlaylistId = maxOf(snapshot.nextPlaylistId, (playlists.value.keys.maxOrNull() ?: 0L) + 1L)
         refreshPlaylistMetadata()
@@ -339,6 +392,7 @@ class IosMediaLibrary private constructor(
                 playlists = playlists.value.values.map(Playlist::toStored),
                 favoritePlaylistIds = favoritePlaylistIds.value.sorted(),
                 history = history.value.map(HistoryEntry::toStored),
+                playbackSession = savedPlaybackSession?.toStored(),
                 nextId = nextId,
                 nextPlaylistId = nextPlaylistId,
             )

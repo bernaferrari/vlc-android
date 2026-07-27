@@ -84,11 +84,37 @@ class PlaylistEngineTest {
         assertEquals(0.25f, engine.getRate())
     }
 
+    @Test
+    fun restorePausedPreparesTheCurrentItemWithoutAutoPlay() {
+        val backend = RecordingBackend()
+        val engine = PlaylistEngine(backend)
+        val playlist = org.videolan.vlc.model.Playlist(
+            id = 0,
+            name = "Current",
+            items = listOf(item(1), item(2)),
+            currentIndex = 1,
+        )
+
+        assertTrue(engine.restorePaused(playlist, positionMs = 12_345L))
+        assertEquals(item(2).uri, backend.preparedUri)
+        assertEquals(12_345L, backend.preparedPosition)
+        assertEquals(1, engine.snapshot().currentIndex)
+        assertEquals(12_345L, engine.progress.value.time)
+        assertTrue(engine.state.value is PlaybackState.Paused)
+    }
+
     private class RecordingBackend : PlayerBackend {
         var reportedVolume = -1
         var reportedRate = -1f
+        var preparedUri: String? = null
+        var preparedPosition = -1L
 
         override fun playUri(uri: String, title: String?) = Unit
+        override fun preparePaused(uri: String, title: String?, positionMs: Long): Boolean {
+            preparedUri = uri
+            preparedPosition = positionMs
+            return true
+        }
         override fun pause() = Unit
         override fun resume() = Unit
         override fun stop() = Unit

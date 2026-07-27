@@ -47,6 +47,50 @@ class IosPlaybackService : PlaybackService {
         kitBackend?.attachDrawable(view)
     }
 
+    /** Writes a paused-only session snapshot at UIKit lifecycle boundaries. */
+    fun saveSession() {
+        val playlist = engine.snapshot()
+        if (playlist.items.isEmpty()) {
+            IosMediaLibrary.shared.clearPlaybackSession()
+            return
+        }
+        IosMediaLibrary.shared.savePlaybackSession(
+            playlist = playlist,
+            positionMs = engine.progress.value.time,
+            volume = engine.getVolume(),
+            rate = engine.getRate(),
+        )
+    }
+
+    /**
+     * Recreates the last queue in a paused state after launch. Missing local files are removed
+     * before handing it to the shared engine, and no decoder is asked to auto-play.
+     */
+    fun restoreSession(): Boolean {
+        val saved = IosMediaLibrary.shared.playbackSession() ?: return false
+        val libraryByUri = IosMediaLibrary.shared.snapshot().associateBy(MediaItem::uri)
+        val savedCurrentUri = saved.playlist.current?.uri
+        val items = saved.playlist.items.mapNotNull { libraryByUri[it.uri] }
+        if (items.isEmpty()) {
+            IosMediaLibrary.shared.clearPlaybackSession()
+            return false
+        }
+        val index = items.indexOfFirst { it.uri == savedCurrentUri }.coerceAtLeast(0)
+        val playlist = saved.playlist.copy(items = items, currentIndex = index)
+        engine.setVolume(saved.volume)
+        engine.setRate(saved.rate)
+        return engine.restorePaused(playlist, saved.positionMs).also { restored ->
+            if (restored) {
+                IosMediaLibrary.shared.savePlaybackSession(
+                    playlist = playlist,
+                    positionMs = saved.positionMs,
+                    volume = engine.getVolume(),
+                    rate = engine.getRate(),
+                )
+            }
+        }
+    }
+
     override fun play(item: MediaItem, playlist: List<MediaItem>) = engine.play(item, playlist)
     override fun playFromIndex(playlist: List<MediaItem>, index: Int) = engine.playFromIndex(playlist, index)
     override fun pause() = engine.pause()
@@ -89,6 +133,8 @@ private class VlcKitPlayerBackendAdapter(
     private val kit: VlcKitPlayerBackend,
 ) : PlayerBackend {
     override fun playUri(uri: String, title: String?) = kit.play(uri, title)
+    override fun preparePaused(uri: String, title: String?, positionMs: Long): Boolean =
+        kit.preparePaused(uri, title, positionMs)
     override fun pause() = kit.pause()
     override fun resume() = kit.resume()
     override fun stop() = kit.stop()
@@ -122,6 +168,8 @@ interface VlcKitPlayerBackend {
     /** Sets the UIView VLCKit should draw video into, or clears it on disposal. */
     fun attachDrawable(view: UIView?)
     fun play(uri: String, title: String?)
+    /** Loads the item and start position without starting playback. */
+    fun preparePaused(uri: String, title: String?, positionMs: Long): Boolean
     fun pause()
     fun resume()
     fun stop()

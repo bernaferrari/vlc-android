@@ -16,6 +16,11 @@ import kotlin.random.Random
  */
 interface PlayerBackend {
     fun playUri(uri: String, title: String?)
+    /**
+     * Loads a paused item without starting audio. Only backends that can guarantee this should
+     * override it; the shared engine still exposes the restored queue on other targets.
+     */
+    fun preparePaused(uri: String, title: String?, positionMs: Long): Boolean = false
     fun pause()
     fun resume()
     fun stop()
@@ -95,6 +100,32 @@ class PlaylistEngine(
                 maybeApplyAbRepeat(timeMs)
             }
         })
+    }
+
+    /**
+     * Restores a durable queue without auto-playing. The UI can render a paused mini player and
+     * the next user-initiated resume starts from [positionMs].
+     */
+    fun restorePaused(playlist: Playlist, positionMs: Long): Boolean {
+        if (playlist.items.isEmpty()) return false
+        previousStack.clear()
+        stopAfterIndex = -1
+        clearABRepeat()
+        val safeIndex = playlist.currentIndex.coerceIn(0, playlist.items.lastIndex)
+        val restored = playlist.copy(items = playlist.items.toList(), currentIndex = safeIndex)
+        val item = restored.current ?: return false
+        val length = item.duration.coerceAtLeast(0L)
+        val position = positionMs.coerceAtLeast(0L).let {
+            if (length > 0L) it.coerceAtMost(length) else it
+        }
+        if (backend != null && backend?.preparePaused(item.uri, item.title, position) == false) {
+            return false
+        }
+        _playlist.value = restored
+        notifyPlaylist()
+        updateProgress(position, length)
+        updateState(PlaybackState.Paused(item, _progress.value))
+        return true
     }
 
     // --- PlaybackService ---

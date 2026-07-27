@@ -7,6 +7,7 @@
 //  - Inbox / Documents directory rescans
 //
 
+import AVFoundation
 import Foundation
 import Photos
 import PhotosUI
@@ -73,11 +74,12 @@ final class MediaImporter: NSObject {
         // This is a complete Documents scan, so it can safely remove stale local
         // rows while retaining user metadata and never touching streams.
         repo.reconcileLocalDocuments(media: found)
+        enrichLocalMedia(found)
     }
 
     /// Present document picker for multi-select of audiovisual files.
     func presentDocumentPicker(from presenter: UIViewController) {
-        var types: [UTType] = [.movie, .video, .audio, .mpeg4Movie, .mp3, .mpeg4Audio, .avi, .wav]
+        var types: [UTType] = [.movie, .video, .audio, .folder, .mpeg4Movie, .mp3, .mpeg4Audio, .avi, .wav]
         if let mkv = UTType(filenameExtension: "mkv") { types.append(mkv) }
         if let flac = UTType(filenameExtension: "flac") { types.append(flac) }
         let picker = UIDocumentPickerViewController(forOpeningContentTypes: types, asCopy: true)
@@ -109,31 +111,43 @@ final class MediaImporter: NSObject {
 
     // MARK: - Internals
 
-    private func mediaItem(fromFileURL url: URL) -> MediaItem? {
-        guard (try? url.resourceValues(forKeys: [.isRegularFileKey]))?.isRegularFile == true else {
-            return nil
-        }
+    private func mediaType(for url: URL) -> MediaType? {
         let ext = url.pathExtension.lowercased()
-        let type: MediaType
         switch ext {
         case "mp4", "m4v", "mov", "mkv", "avi", "webm", "ts", "m2ts", "mpg", "mpeg", "3gp":
-            type = .video
+            return .video
         case "mp3", "m4a", "aac", "flac", "wav", "ogg", "opus", "wma", "aiff":
-            type = .audio
+            return .audio
         default:
             return nil
         }
+    }
+
+    private func mediaItem(fromFileURL url: URL) -> MediaItem? {
+        guard (try? url.resourceValues(forKeys: [.isRegularFileKey]))?.isRegularFile == true,
+              let type = mediaType(for: url) else { return nil }
+        return makeMediaItem(url: url, type: type)
+    }
+
+    private func makeMediaItem(
+        url: URL,
+        type: MediaType,
+        title: String? = nil,
+        duration: Int64 = 0,
+        artist: String? = nil,
+        album: String? = nil,
+    ) -> MediaItem {
         let values = try? url.resourceValues(forKeys: [.fileSizeKey, .contentModificationDateKey])
         let id = nextId
         nextId += 1
         return MediaItem(
             id: id,
-            title: url.deletingPathExtension().lastPathComponent,
+            title: title?.nonBlank ?? url.deletingPathExtension().lastPathComponent,
             uri: url.absoluteString,
             type: type,
-            duration: 0,
-            artist: nil,
-            album: nil,
+            duration: max(0, duration),
+            artist: artist?.nonBlank,
+            album: album?.nonBlank,
             albumArtist: nil,
             genre: nil,
             year: 0,
@@ -142,7 +156,7 @@ final class MediaImporter: NSObject {
             artworkUri: nil,
             width: 0,
             height: 0,
-            mime: nil,
+            mime: UTType(filenameExtension: url.pathExtension)?.preferredMIMEType,
             lastModified: Int64((values?.contentModificationDate?.timeIntervalSince1970 ?? 0) * 1000),
             size: Int64(values?.fileSize ?? 0),
             rating: 0,
@@ -162,6 +176,46 @@ final class MediaImporter: NSObject {
         for item in items {
             repo.upsert(media: item)
         }
+        enrichLocalMedia(items)
+    }
+
+    /** AVFoundation enriches the shared catalog after fast, durable intake has completed. */
+    private func enrichLocalMedia(_ items: [MediaItem]) {
+        guard !items.isEmpty else { return }
+        Task { [weak self] in
+            guard let self else { return }
+            for item in items {
+                guard let url = URL(string: item.uri), let enriched = await self.enrichedMediaItem(from: url) else {
+                    continue
+                }
+                // This preserves favorite/history/play-count fields owned by commonMain.
+                self.repo.mergeScannedMetadata(media: enriched)
+            }
+        }
+    }
+
+    private func enrichedMediaItem(from url: URL) async -> MediaItem? {
+        guard (try? url.resourceValues(forKeys: [.isRegularFileKey]))?.isRegularFile == true,
+              let type = mediaType(for: url) else { return nil }
+        let asset = AVURLAsset(url: url)
+        async let loadedDuration = try? asset.load(.duration)
+        async let loadedMetadata = try? asset.load(.commonMetadata)
+        let duration = await loadedDuration
+        let metadata = await loadedMetadata ?? []
+        let seconds = duration?.seconds ?? 0
+        let durationMs = seconds.isFinite && seconds > 0 ? Int64(seconds * 1_000) : 0
+        return makeMediaItem(
+            url: url,
+            type: type,
+            title: commonText(metadata, key: .commonKeyTitle),
+            duration: durationMs,
+            artist: commonText(metadata, key: .commonKeyArtist),
+            album: commonText(metadata, key: .commonKeyAlbumName),
+        )
+    }
+
+    private func commonText(_ metadata: [AVMetadataItem], key: AVMetadataKey) -> String? {
+        metadata.first { $0.commonKey == key }?.stringValue
     }
 
     private func importSecurityScoped(_ urls: [URL]) -> [MediaItem] {
@@ -177,9 +231,7 @@ final class MediaImporter: NSObject {
                 // URLs delivered from an app's Inbox/Documents folder already have durable
                 // ownership. Never duplicate them merely because they arrived via Open In.
                 if source.path.hasPrefix(documentsRoot) {
-                    if let item = mediaItem(fromFileURL: source) {
-                        imported.append(item)
-                    }
+                    imported += mediaItems(at: source)
                     continue
                 }
                 // Preserve every user-selected file. Replacing a same-named document silently
@@ -187,19 +239,29 @@ final class MediaImporter: NSObject {
                 let dest = uniqueDestination(for: url, in: docs)
                 do {
                     try FileManager.default.copyItem(at: url, to: dest)
-                    if let item = mediaItem(fromFileURL: dest) {
-                        imported.append(item)
-                    }
+                    imported += mediaItems(at: dest)
                 } catch {
                     // Do not persist a transient external URI: it would survive in the catalog
                     // after iOS revokes the provider grant and become an unplayable ghost item.
                     NSLog("VLC could not make a durable import of %@: %@", url.path, error.localizedDescription)
                 }
-            } else if let item = mediaItem(fromFileURL: url) {
-                imported.append(item)
+            } else {
+                imported += mediaItems(at: url)
             }
         }
         return imported
+    }
+
+    /** A selected folder is copied once, then catalogued recursively into the shared folder tree. */
+    private func mediaItems(at url: URL) -> [MediaItem] {
+        let values = try? url.resourceValues(forKeys: [.isDirectoryKey])
+        guard values?.isDirectory == true else { return mediaItem(fromFileURL: url).map { [$0] } ?? [] }
+        guard let enumerator = FileManager.default.enumerator(
+            at: url,
+            includingPropertiesForKeys: [.isRegularFileKey, .fileSizeKey, .contentModificationDateKey],
+            options: [.skipsHiddenFiles]
+        ) else { return [] }
+        return enumerator.compactMap { ($0 as? URL).flatMap(mediaItem(fromFileURL:)) }
     }
 
     private func uniqueDestination(for source: URL, in directory: URL) -> URL {
@@ -242,13 +304,37 @@ final class MediaImporter: NSObject {
         while let presented = top.presentedViewController { top = presented }
         return top
     }
+
+    private func showNoSupportedMediaAlert() {
+        // A selected folder can legitimately contain only unsupported files. Make that outcome
+        // explicit instead of returning the user to an unchanged library with no explanation.
+        DispatchQueue.main.async { [weak self] in
+            guard let presenter = self?.activePresenter(), !(presenter is UIDocumentPickerViewController) else { return }
+            let alert = UIAlertController(
+                title: "No supported media found",
+                message: "Choose audio, video, or a folder containing supported media files.",
+                preferredStyle: .alert,
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            presenter.present(alert, animated: true)
+        }
+    }
 }
 
 extension MediaImporter: UIDocumentPickerDelegate {
     nonisolated func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         Task { @MainActor in
-            self.merge(self.importSecurityScoped(urls))
+            let imported = self.importSecurityScoped(urls)
+            self.merge(imported)
+            if imported.isEmpty { self.showNoSupportedMediaAlert() }
         }
+    }
+}
+
+private extension String {
+    var nonBlank: String? {
+        let trimmed = trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 }
 

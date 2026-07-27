@@ -33,6 +33,9 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         IosKoinBootstrap.shared.start()
         // Real decode when MobileVLCKit SPM product is linked.
         IosPlaybackService.companion.shared.setBackend(backend: VlcKitBackend.shared)
+        // Prepare the prior queue without starting playback. The shared paused state lets the
+        // common mini-player offer an explicit resume action after relaunch.
+        _ = IosPlaybackService.companion.shared.restoreSession()
         IosMediaImportController.shared.setHandler(handler: IosMediaImportBridge.shared)
         MediaImporter.shared.rescanLocalFolders()
         return true
@@ -44,6 +47,18 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         options: [UIApplication.OpenURLOptionsKey: Any] = [:]
     ) -> Bool {
         importAndPlayIncomingMedia(url)
+    }
+
+    func applicationWillResignActive(_ application: UIApplication) {
+        IosPlaybackService.companion.shared.saveSession()
+    }
+
+    func applicationDidEnterBackground(_ application: UIApplication) {
+        IosPlaybackService.companion.shared.saveSession()
+    }
+
+    func applicationWillTerminate(_ application: UIApplication) {
+        IosPlaybackService.companion.shared.saveSession()
     }
 }
 

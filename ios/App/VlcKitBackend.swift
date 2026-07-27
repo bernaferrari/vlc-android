@@ -24,6 +24,8 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
     weak var drawableView: UIView?
     private var resumeAfterInterruption = false
     private var currentTitle = ""
+    private var configuredVolume: Int32 = 100
+    private var configuredRate: Float = 1
 
 #if canImport(MobileVLCKit)
     private var player: VLCMediaPlayer?
@@ -62,38 +64,33 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
     func play(uri: String, title: String?) {
 #if canImport(MobileVLCKit)
         activateAudioSession()
-        if player == nil {
-            let p = VLCMediaPlayer()
-            p.delegate = self
-            if let drawableView {
-                p.drawable = drawableView
-            }
-            player = p
-        }
-        let url: URL?
-        if uri.hasPrefix("/") {
-            url = URL(fileURLWithPath: uri)
-        } else {
-            url = URL(string: uri) ?? URL(fileURLWithPath: uri)
-        }
-        guard let url else {
+        guard let media = makeMedia(uri: uri, title: title) else {
             listener?.onError(message: "Invalid URI: \(uri)")
             return
         }
-        let media = VLCMedia(url: url)
-        currentTitle = title?.isEmpty == false ? title! : url.deletingPathExtension().lastPathComponent
-        if let title, !title.isEmpty {
-            media.addOption(":meta-title=\(title)")
-        }
-        // Prefer hardware decode when available
-        media.addOption(":avcodec-hw=any")
-        player?.media = media
-        player?.play()
+        let player = ensurePlayer()
+        player.media = media
+        player.play()
         publishNowPlayingInfo(isPlaying: true)
 #else
         // A shipping build must not simulate success when its decoder package is
         // absent: surface an actionable error to the shared player instead.
         listener?.onError(message: "MobileVLCKit is unavailable in this build.")
+#endif
+    }
+
+    func preparePaused(uri: String, title: String?, positionMs: Int64) -> Bool {
+#if canImport(MobileVLCKit)
+        guard let media = makeMedia(uri: uri, title: title) else { return false }
+        let player = ensurePlayer()
+        player.media = media
+        // VLCKit honours the requested time when play is later initiated. Crucially, we do not
+        // call play/pause here, so restoring the KMP queue can never produce an audio blip.
+        player.time = VLCTime(number: NSNumber(value: max(0, positionMs)))
+        publishNowPlayingInfo(isPlaying: false)
+        return true
+#else
+        return false
 #endif
     }
 
@@ -140,32 +137,34 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
     }
 
     func setVolume(volume: Int32) {
+        configuredVolume = min(200, max(0, volume))
 #if canImport(MobileVLCKit)
         // VLCKit audio.volume is 0...200
-        player?.audio?.volume = volume
+        player?.audio?.volume = configuredVolume
 #endif
     }
 
     func getVolume() -> Int32 {
 #if canImport(MobileVLCKit)
-        player?.audio?.volume ?? 100
+        player?.audio?.volume ?? configuredVolume
 #else
-        100
+        configuredVolume
 #endif
     }
 
     func setRate(rate: Float) {
+        configuredRate = min(4, max(0.25, rate))
 #if canImport(MobileVLCKit)
-        player?.rate = rate
+        player?.rate = configuredRate
         publishNowPlayingInfo()
 #endif
     }
 
     func getRate() -> Float {
 #if canImport(MobileVLCKit)
-        player?.rate ?? 1.0
+        player?.rate ?? configuredRate
 #else
-        1.0
+        configuredRate
 #endif
     }
 
@@ -204,6 +203,39 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
             NSLog("VLC could not activate the audio session: %@", error.localizedDescription)
         }
     }
+
+#if canImport(MobileVLCKit)
+    private func ensurePlayer() -> VLCMediaPlayer {
+        if let player { return player }
+        let player = VLCMediaPlayer()
+        player.delegate = self
+        if let drawableView {
+            player.drawable = drawableView
+        }
+        player.audio?.volume = configuredVolume
+        player.rate = configuredRate
+        self.player = player
+        return player
+    }
+
+    private func makeMedia(uri: String, title: String?) -> VLCMedia? {
+        let url: URL?
+        if uri.hasPrefix("/") {
+            url = URL(fileURLWithPath: uri)
+        } else {
+            url = URL(string: uri) ?? URL(fileURLWithPath: uri)
+        }
+        guard let url else { return nil }
+        currentTitle = title?.isEmpty == false ? title! : url.deletingPathExtension().lastPathComponent
+        let media = VLCMedia(url: url)
+        if let title, !title.isEmpty {
+            media.addOption(":meta-title=\(title)")
+        }
+        // Prefer hardware decode when available.
+        media.addOption(":avcodec-hw=any")
+        return media
+    }
+#endif
 
     private func deactivateAudioSession() {
         do {

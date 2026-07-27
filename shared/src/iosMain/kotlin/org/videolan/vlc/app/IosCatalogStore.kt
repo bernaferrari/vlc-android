@@ -73,6 +73,7 @@ internal data class IosCatalogSnapshot(
     val playlists: List<StoredPlaylist> = emptyList(),
     val favoritePlaylistIds: List<Long> = emptyList(),
     val history: List<StoredHistoryEntry> = emptyList(),
+    val playbackSession: StoredPlaybackSession? = null,
     val nextId: Long = 10_000L,
     val nextPlaylistId: Long = 1L,
 ) {
@@ -125,6 +126,21 @@ internal data class StoredPlaylist(
 internal data class StoredHistoryEntry(
     val item: StoredMediaItem,
     val playedAt: Long,
+)
+
+@Serializable
+internal data class StoredPlaybackSession(
+    val playlist: StoredPlaylist,
+    val positionMs: Long = 0L,
+    val volume: Int = 100,
+    val rate: Float = 1f,
+)
+
+internal data class IosPlaybackSession(
+    val playlist: Playlist,
+    val positionMs: Long,
+    val volume: Int,
+    val rate: Float,
 )
 
 internal fun MediaItem.toStored(): StoredMediaItem = StoredMediaItem(
@@ -208,6 +224,20 @@ internal fun HistoryEntry.toStored(): StoredHistoryEntry =
 
 internal fun StoredHistoryEntry.toHistoryEntry(): HistoryEntry =
     HistoryEntry(item = item.toMediaItem(), playedAt = playedAt)
+
+internal fun IosPlaybackSession.toStored(): StoredPlaybackSession = StoredPlaybackSession(
+    playlist = playlist.toStored(),
+    positionMs = positionMs,
+    volume = volume,
+    rate = rate,
+)
+
+internal fun StoredPlaybackSession.toPlaybackSession(): IosPlaybackSession = IosPlaybackSession(
+    playlist = playlist.toPlaylist(),
+    positionMs = positionMs.coerceAtLeast(0L),
+    volume = volume.coerceIn(0, 200),
+    rate = rate.takeIf(Float::isFinite)?.coerceIn(0.25f, 4f) ?: 1f,
+)
 
 private val catalogJson = Json {
     encodeDefaults = true
