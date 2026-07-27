@@ -36,9 +36,12 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         // The same native package owns LAN discovery and folder parsing; the
         // Compose browser receives only portable entries through its repository.
         IosNetworkBrowserController.shared.setBackend(backend: VlcKitNetworkBrowser.shared)
-        // Prepare the prior queue without starting playback. The shared paused state lets the
-        // common mini-player offer an explicit resume action after relaunch.
-        _ = IosPlaybackService.companion.shared.restoreSession()
+        // Wait for persisted privacy settings before reading a durable queue.
+        // In particular, a prior private session must never be restored during
+        // the small window before DataStore hydration completes.
+        IosKoinBootstrap.shared.whenPreferencesReady {
+            _ = IosPlaybackService.companion.shared.restoreSession()
+        }
         IosMediaImportController.shared.setHandler(handler: IosMediaImportBridge.shared)
         MediaImporter.shared.rescanLocalFolders()
         return true
