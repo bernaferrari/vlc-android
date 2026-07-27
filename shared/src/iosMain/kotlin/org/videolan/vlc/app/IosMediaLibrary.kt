@@ -16,6 +16,7 @@ import org.videolan.vlc.repository.MediaRepository
 import org.videolan.vlc.repository.PlaylistRepository
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
+import platform.Foundation.NSURL
 import platform.Foundation.NSSearchPathForDirectoriesInDomains
 import platform.Foundation.NSUserDomainMask
 import kotlin.time.Clock
@@ -353,10 +354,14 @@ class IosMediaLibrary private constructor(
         val found = names.mapNotNull { name ->
             val fileName = name as? String ?: return@mapNotNull null
             val type = fileName.mediaTypeOrNull() ?: return@mapNotNull null
+            // Match Swift URL.absoluteString from the document picker. Constructing file:// URLs
+            // manually leaves spaces and non-ASCII characters unescaped, which would make a cold
+            // scan look like a different file and discard its saved favorite/history metadata.
+            val uri = canonicalIosFileUri("$documents/$fileName") ?: return@mapNotNull null
             MediaItem(
                 id = 0L,
                 title = fileName.substringBeforeLast('.'),
-                uri = "file://$documents/$fileName",
+                uri = uri,
                 type = type,
             )
         }
@@ -453,6 +458,9 @@ private fun String.mediaTypeOrNull(): MediaType? = when (substringAfterLast('.',
     "mp3", "flac", "m4a", "aac", "wav", "ogg" -> MediaType.AUDIO
     else -> null
 }
+
+/** Shared identity form for both UIKit's picker and the Kotlin Documents rescan. */
+internal fun canonicalIosFileUri(path: String): String? = NSURL.fileURLWithPath(path).absoluteString
 
 private fun normalizedPath(value: String): String = value.removePrefix("file://").trimEnd('/')
 

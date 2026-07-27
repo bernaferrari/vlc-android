@@ -66,6 +66,15 @@ class IosMediaLibraryTest {
         assertFalse(library.snapshot().any { it.uri == local.uri })
     }
 
+    @Test
+    fun documentsRescanUsesTheSameEscapedFileIdentityAsTheUIKitPicker() {
+        assertEquals(
+            // NSURL follows the filesystem's decomposed Unicode identity on Apple platforms.
+            "file:///Documents/road%20trip%20e%CC%81pisode.mp4",
+            canonicalIosFileUri("/Documents/road trip épisode.mp4"),
+        )
+    }
+
     private fun video(
         id: Long,
         uri: String,

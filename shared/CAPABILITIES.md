@@ -7,7 +7,7 @@ offering actions a target cannot execute.
 | Capability | Android | iOS | Wasm | JVM |
 | --- | --- | --- | --- | --- |
 | Shared navigation, library, playlists, history, and settings | Yes | Yes | Yes | Yes |
-| Local media intake | Media-library scan | Files / Photos picker | Files picker; OPFS-backed when available, with persisted favorites and play state | Not yet |
+| Local media intake | Media-library scan and SAF file picker | Files / Photos picker | Files picker; OPFS-backed when available, with persisted favorites and play state | Not yet |
 | Media decoding / playback engine | LibVLC | MobileVLCKit SPM | Browser HTML audio/video for user-imported, browser-supported files | Not yet |
 | Picture in Picture | Yes, when Android activity supports it | Not yet | Not yet | Not yet |
 | Renderer / cast selection | LibVLC renderer bridge | Not yet | Not yet | Not yet |

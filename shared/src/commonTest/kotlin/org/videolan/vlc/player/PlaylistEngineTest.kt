@@ -58,4 +58,46 @@ class PlaylistEngineTest {
         assertEquals(2, PlaylistIndexHelper.adjustCurrentOnMove(1, 1, 3))
         assertEquals(1, PlaylistIndexHelper.adjustCurrentOnAdd(0, 0, false))
     }
+
+    @Test
+    fun backendAttachedAfterSettingsRestorationReceivesCurrentAudioConfiguration() {
+        val engine = PlaylistEngine()
+        engine.setVolume(156)
+        engine.setRate(1.25f)
+        val backend = RecordingBackend()
+
+        engine.setBackend(backend)
+
+        assertEquals(156, backend.reportedVolume)
+        assertEquals(1.25f, backend.reportedRate)
+    }
+
+    @Test
+    fun playbackRateIsFiniteAndWithinDecoderRange() {
+        val engine = PlaylistEngine()
+
+        engine.setRate(Float.NaN)
+        assertEquals(1f, engine.getRate())
+        engine.setRate(20f)
+        assertEquals(4f, engine.getRate())
+        engine.setRate(0.01f)
+        assertEquals(0.25f, engine.getRate())
+    }
+
+    private class RecordingBackend : PlayerBackend {
+        var reportedVolume = -1
+        var reportedRate = -1f
+
+        override fun playUri(uri: String, title: String?) = Unit
+        override fun pause() = Unit
+        override fun resume() = Unit
+        override fun stop() = Unit
+        override fun seekTo(positionMs: Long) = Unit
+        override fun setVolume(volume: Int) { reportedVolume = volume }
+        override fun getVolume(): Int = reportedVolume
+        override fun setRate(rate: Float) { reportedRate = rate }
+        override fun getRate(): Float = reportedRate
+        override fun setListener(listener: PlayerBackend.Listener?) = Unit
+        override fun release() = Unit
+    }
 }

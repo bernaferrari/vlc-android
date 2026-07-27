@@ -1,10 +1,16 @@
 package org.videolan.vlc.kmp
 
 import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.net.toUri
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.videolan.medialibrary.MLServiceLocator
 import org.videolan.medialibrary.interfaces.Medialibrary
@@ -40,7 +46,39 @@ class AndroidShellHostCallbacks(
     private val medialibrary: Medialibrary = Medialibrary.getInstance(),
 ) : ShellHostCallbacks {
 
+    /**
+     * SAF grants read access to a specific user-picked document, so this import path works without
+     * asking for broad storage access. The medialibrary persists the imported URI while Android
+     * persists the corresponding read grant across launches.
+     *
+     * The no-lifecycle-owner overload is intentional: the shared shell can be attached from the
+     * legacy MainActivity after `onStart`. We unregister explicitly with the Activity lifecycle.
+     */
+    private val mediaImportLauncher: ActivityResultLauncher<Array<String>> =
+        activity.activityResultRegistry.register(
+            "vlc-shared-media-import-${System.identityHashCode(this)}",
+            ActivityResultContracts.OpenMultipleDocuments(),
+            ::importMedia,
+        )
+
+    init {
+        activity.lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onDestroy(owner: LifecycleOwner) {
+                mediaImportLauncher.unregister()
+                owner.lifecycle.removeObserver(this)
+            }
+        })
+    }
+
     override fun supportsContextAction(option: ContextOption): Boolean = true
+
+    override fun supportsMediaImport(): Boolean = true
+
+    override fun onImportMedia() {
+        runCatching {
+            mediaImportLauncher.launch(arrayOf("audio/*", "video/*"))
+        }.onFailure { Log.w(TAG, "Unable to open media picker", it) }
+    }
 
     override fun onContextAction(item: MediaItem, option: ContextOption) {
         // Typed callbacks below cover known options; remaining are no-ops.
@@ -132,6 +170,28 @@ class AndroidShellHostCallbacks(
         runCatching {
             activity.requestOtgRoot()
         }.onFailure { Log.w(TAG, "onRequestOtgRoot failed", it) }
+    }
+
+    private fun importMedia(uris: List<Uri>) {
+        if (uris.isEmpty()) return
+        activity.lifecycleScope.launch(Dispatchers.IO) {
+            uris.distinct().forEach { uri ->
+                runCatching {
+                    // ACTION_OPEN_DOCUMENT providers may omit persistable support. Keep playback
+                    // usable for the current session in that case, but never fail the whole batch.
+                    activity.contentResolver.takePersistableUriPermission(
+                        uri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                    )
+                }.onFailure { Log.d(TAG, "Provider did not persist $uri", it) }
+
+                runCatching {
+                    // This mirrors the original VLC playlist import path and makes the entry
+                    // visible through the AndroidMediaRepository callback flow immediately.
+                    medialibrary.addMedia(uri.toString(), -1L)
+                }.onFailure { Log.w(TAG, "Unable to import $uri", it) }
+            }
+        }
     }
 
     private fun resolveWrapper(item: MediaItem): MediaWrapper? {

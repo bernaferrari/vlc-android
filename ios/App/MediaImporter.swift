@@ -53,14 +53,11 @@ final class MediaImporter: NSObject {
         presenter.present(sheet, animated: true)
     }
 
-    /// Rescan app Documents + Inbox and merge into the shared library.
+    /// Rescan app Documents (including Inbox) and merge into the shared library.
     func rescanLocalFolders() {
         var found: [MediaItem] = []
         let fm = FileManager.default
-        let urls = [
-            fm.urls(for: .documentDirectory, in: .userDomainMask).first,
-            fm.urls(for: .cachesDirectory, in: .userDomainMask).first
-        ].compactMap { $0 }
+        let urls = [fm.urls(for: .documentDirectory, in: .userDomainMask).first].compactMap { $0 }
 
         for root in urls {
             guard let enumerator = fm.enumerator(
@@ -102,6 +99,9 @@ final class MediaImporter: NSObject {
     // MARK: - Internals
 
     private func mediaItem(fromFileURL url: URL) -> MediaItem? {
+        guard (try? url.resourceValues(forKeys: [.isRegularFileKey]))?.isRegularFile == true else {
+            return nil
+        }
         let ext = url.pathExtension.lowercased()
         let type: MediaType
         switch ext {
@@ -161,8 +161,9 @@ final class MediaImporter: NSObject {
             defer { if accessed { url.stopAccessingSecurityScopedResource() } }
             // Copy into Documents so library URIs remain valid after picker dismiss
             if let docs {
-                let dest = docs.appendingPathComponent(url.lastPathComponent)
-                try? FileManager.default.removeItem(at: dest)
+                // Preserve every user-selected file. Replacing a same-named document silently
+                // loses the earlier import and its shared-library metadata.
+                let dest = uniqueDestination(for: url, in: docs)
                 do {
                     try FileManager.default.copyItem(at: url, to: dest)
                     if let item = mediaItem(fromFileURL: dest) {
@@ -178,6 +179,20 @@ final class MediaImporter: NSObject {
             }
         }
         merge(imported)
+    }
+
+    private func uniqueDestination(for source: URL, in directory: URL) -> URL {
+        let fm = FileManager.default
+        let base = source.deletingPathExtension().lastPathComponent
+        let ext = source.pathExtension
+        var suffix = 1
+        var destination = directory.appendingPathComponent(source.lastPathComponent)
+        while fm.fileExists(atPath: destination.path) {
+            suffix += 1
+            let name = ext.isEmpty ? "\(base) (\(suffix))" : "\(base) (\(suffix)).\(ext)"
+            destination = directory.appendingPathComponent(name)
+        }
+        return destination
     }
 
     private func importPhotoResults(_ results: [PHPickerResult]) {

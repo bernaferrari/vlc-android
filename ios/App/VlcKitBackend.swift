@@ -99,19 +99,16 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
 
     func seekTo(positionMs: Int64) {
 #if canImport(MobileVLCKit)
-        guard let player, player.isSeekable else {
-            listener?.onTimeChanged(timeMs: positionMs, lengthMs: 0)
-            return
-        }
-        let length = Int64(player.media?.length.intValue ?? 0)
+        // A live/non-seekable input must not make the shared slider pretend it moved.
+        guard let player, player.isSeekable else { return }
+        let length = max(0, Int64(player.media?.length.intValue ?? 0))
+        let target = max(0, length > 0 ? min(positionMs, length) : positionMs)
         if length > 0 {
-            player.position = Float(positionMs) / Float(length)
+            player.position = Float(target) / Float(length)
         } else {
-            player.time = VLCTime(number: NSNumber(value: positionMs))
+            player.time = VLCTime(number: NSNumber(value: target))
         }
-        listener?.onTimeChanged(timeMs: positionMs, lengthMs: length)
-#else
-        listener?.onTimeChanged(timeMs: positionMs, lengthMs: 0)
+        listener?.onTimeChanged(timeMs: target, lengthMs: length)
 #endif
     }
 
@@ -122,9 +119,25 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
 #endif
     }
 
+    func getVolume() -> Int32 {
+#if canImport(MobileVLCKit)
+        player?.audio?.volume ?? 100
+#else
+        100
+#endif
+    }
+
     func setRate(rate: Float) {
 #if canImport(MobileVLCKit)
         player?.rate = rate
+#endif
+    }
+
+    func getRate() -> Float {
+#if canImport(MobileVLCKit)
+        player?.rate ?? 1.0
+#else
+        1.0
 #endif
     }
 

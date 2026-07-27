@@ -70,9 +70,18 @@ class PlaylistEngine(
     private var rate: Float = 1f
     private val random = Random.Default
 
+    private companion object {
+        const val MIN_PLAYBACK_RATE = 0.25f
+        const val MAX_PLAYBACK_RATE = 4f
+    }
+
     fun setBackend(backend: PlayerBackend?) {
         this.backend?.release()
         this.backend = backend
+        // A native backend can be attached after shared settings have already been restored.
+        // Push the current values immediately so native audio never resets to its own defaults.
+        backend?.setVolume(volume)
+        backend?.setRate(rate)
         backend?.setListener(object : PlayerBackend.Listener {
             override fun onPlaying() = pushPlaying()
             override fun onPaused() = pushPaused()
@@ -186,8 +195,10 @@ class PlaylistEngine(
     override fun getVolume(): Int = backend?.getVolume() ?: volume
 
     override fun setRate(rate: Float) {
-        this.rate = rate
-        backend?.setRate(rate)
+        // Keep one safe range across all native/browser decoders. A malformed restored value
+        // must not become an invalid LibVLC or MobileVLCKit playback rate.
+        this.rate = rate.takeIf(Float::isFinite)?.coerceIn(MIN_PLAYBACK_RATE, MAX_PLAYBACK_RATE) ?: 1f
+        backend?.setRate(this.rate)
     }
 
     override fun getRate(): Float = backend?.getRate() ?: rate

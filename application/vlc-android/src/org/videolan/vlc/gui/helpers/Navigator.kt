@@ -18,6 +18,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -144,6 +145,9 @@ class Navigator : DefaultLifecycleObserver, INavigator {
             ComposeView(activity).apply {
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
                 setContent {
+                    // The host owns an Activity Result launcher; keep it stable across Compose
+                    // recompositions so importing media never registers duplicate callbacks.
+                    val hostCallbacks = remember(activity) { AndroidShellHostCallbacks(activity) }
                     // VlcMainShell is the product chrome on both Android and
                     // iOS. Keep Android here strictly as the system/LibVLC host.
                     VlcKoinMainShell(
@@ -159,7 +163,7 @@ class Navigator : DefaultLifecycleObserver, INavigator {
                             }
                         },
                         title = activity.getString(R.string.app_name),
-                        hostCallbacks = AndroidShellHostCallbacks(activity),
+                        hostCallbacks = hostCallbacks,
                         playerSurface = AndroidPlayerSurface,
                     )
                 }

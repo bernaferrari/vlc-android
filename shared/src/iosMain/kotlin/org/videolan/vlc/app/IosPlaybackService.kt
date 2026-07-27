@@ -94,9 +94,9 @@ private class VlcKitPlayerBackendAdapter(
     override fun stop() = kit.stop()
     override fun seekTo(positionMs: Long) = kit.seekTo(positionMs)
     override fun setVolume(volume: Int) = kit.setVolume(volume)
-    override fun getVolume(): Int = 100
+    override fun getVolume(): Int = kit.getVolume()
     override fun setRate(rate: Float) = kit.setRate(rate)
-    override fun getRate(): Float = 1f
+    override fun getRate(): Float = kit.getRate()
     override fun setListener(listener: PlayerBackend.Listener?) {
         if (listener == null) {
             kit.setListener(null)
@@ -127,7 +127,9 @@ interface VlcKitPlayerBackend {
     fun stop()
     fun seekTo(positionMs: Long)
     fun setVolume(volume: Int)
+    fun getVolume(): Int
     fun setRate(rate: Float)
+    fun getRate(): Float
     fun setListener(listener: Listener?)
     /** Named to avoid colliding with Objective-C NSObject.release in Swift implementations. */
     fun dispose()

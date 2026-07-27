@@ -11,6 +11,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -150,14 +151,16 @@ fun RichMediaListPane(
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (state.selection.isNotEmpty()) {
+        if (state.selection.isNotEmpty()) {
+            // Text actions can grow with translations and selection counts. Wrapping keeps the
+            // shared action strip touchable on narrow phones instead of clipping its last action.
+            FlowRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
                 FilledTonalIconButton(onClick = onPlaySelection) {
                     Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = ShellStrings.play())
                 }
@@ -168,7 +171,15 @@ fun RichMediaListPane(
                 TextButton(onClick = onClearSelection) {
                     Text(ShellStrings.selectionCount(ShellStrings.clear(), state.selection.size))
                 }
-            } else {
+            }
+        } else {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 IconButton(onClick = onSelectAll) {
                     Icon(MaterialSymbols.Filled.SelectAll, contentDescription = ShellStrings.select())
                 }

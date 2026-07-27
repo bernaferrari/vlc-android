@@ -24,6 +24,9 @@ import org.videolan.vlc.player.PlaybackService
 import org.videolan.vlc.player.PlaybackState
 import org.videolan.vlc.PlaybackService as AndroidPlaybackHost
 
+private const val MIN_PLAYBACK_RATE = 0.25f
+private const val MAX_PLAYBACK_RATE = 4f
+
 /**
  * Android implementation of [PlaybackService] that delegates to the existing
  * [PlaylistManager] / [org.videolan.vlc.media.PlayerController] stack.
@@ -99,6 +102,10 @@ class AndroidPlaybackService(
 
     override fun playFromIndex(playlist: List<MediaItem>, index: Int) {
         _state.value = PlaybackState.Loading
+        if (playlist.isEmpty()) {
+            updateState(PlaybackState.Error("Empty playlist"))
+            return
+        }
         val pm = manager()
         if (pm == null) {
             _state.value = PlaybackState.Error("PlaybackService not running")
@@ -125,7 +132,9 @@ class AndroidPlaybackService(
         pm.launch {
             try {
                 pm.load(wrappers, safeIndex, mlUpdate = true)
-                pushStateFromHost(playing = true)
+                // Loading can fail asynchronously or leave the host paused. Read the native
+                // source of truth instead of optimistically reporting a false Playing state.
+                pushStateFromHost(playing = PlaylistManager.playingState.value == true)
             } catch (t: Throwable) {
                 _state.value = PlaybackState.Error(t.message ?: "Failed to load playlist")
                 observers.forEach { it.onStateChanged(_state.value) }
@@ -152,13 +161,19 @@ class AndroidPlaybackService(
     }
 
     override fun seekTo(position: Long) {
-        manager()?.player?.setTime(position.coerceAtLeast(0L))
+        val length = _progress.value.length
+        val target = position.coerceAtLeast(0L).let { requested ->
+            if (length > 0L) requested.coerceAtMost(length) else requested
+        }
+        manager()?.player?.setTime(target)
+        // LibVLC progress callbacks are asynchronous; reflect a user-confirmed seek immediately
+        // so the shared scrubber does not snap backwards while waiting for the native callback.
+        updateProgress(target, length)
     }
 
     override fun seekRelative(delta: Long) {
-        val player = manager()?.player ?: return
-        val target = (player.getCurrentTime() + delta).coerceAtLeast(0L)
-        player.setTime(target)
+        val current = manager()?.player?.getCurrentTime() ?: _progress.value.time
+        seekTo(current + delta)
     }
 
     override fun next() {
@@ -198,7 +213,8 @@ class AndroidPlaybackService(
     }
 
     override fun setRate(rate: Float) {
-        manager()?.player?.setRate(rate, true)
+        val safeRate = rate.takeIf(Float::isFinite)?.coerceIn(MIN_PLAYBACK_RATE, MAX_PLAYBACK_RATE) ?: 1f
+        manager()?.player?.setRate(safeRate, true)
     }
 
     override fun getRate(): Float {

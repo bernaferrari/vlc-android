@@ -205,18 +205,29 @@ fun VideoHudOverlay(
                 )
                 .padding(horizontal = 16.dp, vertical = 16.dp)
         ) {
-            val length = progress.length.coerceAtLeast(1L)
+            // Native decoders do not all tolerate a seek for every pixel of a drag. Keep the
+            // preview local and issue exactly one seek when the gesture finishes; this makes the
+            // Android LibVLC and iOS VLCKit surfaces feel equally direct without flooding them.
+            val seekableLength = progress.length.takeIf { it > 0L }
+            val length = seekableLength ?: 1L
+            var scrubPosition by remember(progress.length) { mutableStateOf<Float?>(null) }
+            val displayedTime = (scrubPosition?.toLong() ?: progress.time).coerceIn(0L, length)
             Slider(
-                value = progress.time.toFloat().coerceIn(0f, length.toFloat()),
-                onValueChange = { onSeek(it.toLong()) },
+                value = (scrubPosition ?: progress.time.toFloat()).coerceIn(0f, length.toFloat()),
+                onValueChange = { scrubPosition = it },
+                onValueChangeFinished = {
+                    scrubPosition?.let { onSeek(it.toLong()) }
+                    scrubPosition = null
+                },
                 valueRange = 0f..length.toFloat(),
+                enabled = seekableLength != null,
                 modifier = Modifier.fillMaxWidth(),
             )
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text(formatMs(progress.time), color = Color.White.copy(alpha = 0.85f), style = MaterialTheme.typography.labelSmall)
+                Text(formatMs(displayedTime), color = Color.White.copy(alpha = 0.85f), style = MaterialTheme.typography.labelSmall)
                 Text(formatMs(progress.length), color = Color.White.copy(alpha = 0.85f), style = MaterialTheme.typography.labelSmall)
             }
             Box(modifier = Modifier.height(8.dp))
