@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
+import org.videolan.vlc.compose.components.VLCSettingsCard
 import org.videolan.vlc.compose.player.FallbackPlayerSurface
 import org.videolan.vlc.compose.player.PlayerSurface
 import org.videolan.vlc.compose.theme.VLCTheme
@@ -579,44 +580,42 @@ internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
     ) {
         item {
             SettingsGroup(title = ShellStrings.playback()) {
-                ToggleRow(ShellStrings.resumeAudio(), state.audioResume, vm::setAudioResume)
-                ToggleRow(ShellStrings.resumeVideo(), state.videoResume, vm::setVideoResume)
-                ToggleRow(ShellStrings.playbackHistory(), state.playbackHistory, vm::setPlaybackHistory)
-                ToggleRow(ShellStrings.incognito(), state.incognito, vm::setIncognito)
-                ValueStepperRow(
-                    title = ShellStrings.videoHudTimeout(),
-                    value = "${state.videoHudTimeoutSeconds}s",
-                    decreaseEnabled = state.videoHudTimeoutSeconds > 1,
-                    increaseEnabled = state.videoHudTimeoutSeconds < 10,
+                row { ToggleRow(ShellStrings.resumeAudio(), state.audioResume, vm::setAudioResume) }
+                row { ToggleRow(ShellStrings.resumeVideo(), state.videoResume, vm::setVideoResume) }
+                row { ToggleRow(ShellStrings.playbackHistory(), state.playbackHistory, vm::setPlaybackHistory) }
+                row { ToggleRow(ShellStrings.incognito(), state.incognito, vm::setIncognito) }
+                row { ValueStepperRow(
+                    title = ShellStrings.videoHudTimeout(), value = "${state.videoHudTimeoutSeconds}s",
+                    decreaseEnabled = state.videoHudTimeoutSeconds > 1, increaseEnabled = state.videoHudTimeoutSeconds < 10,
                     onDecrease = { vm.setVideoHudTimeout(state.videoHudTimeoutSeconds - 1) },
                     onIncrease = { vm.setVideoHudTimeout(state.videoHudTimeoutSeconds + 1) },
-                )
+                ) }
             }
         }
         item {
             SettingsGroup(title = ShellStrings.library()) {
-                ToggleRow(ShellStrings.videoThumbnails(), state.showVideoThumbs, vm::setShowVideoThumbs)
-                ToggleRow(ShellStrings.showHeaders(), state.showHeaders, vm::setShowHeaders)
-                ToggleRow(ShellStrings.showTrackNumbers(), state.showTrackNumbers, vm::setShowTrackNumbers)
+                row { ToggleRow(ShellStrings.videoThumbnails(), state.showVideoThumbs, vm::setShowVideoThumbs) }
+                row { ToggleRow(ShellStrings.showHeaders(), state.showHeaders, vm::setShowHeaders) }
+                row { ToggleRow(ShellStrings.showTrackNumbers(), state.showTrackNumbers, vm::setShowTrackNumbers) }
             }
         }
         item {
             SettingsGroup(title = ShellStrings.browser()) {
-                ToggleRow(ShellStrings.showHiddenFiles(), state.showHiddenFiles, vm::setShowHiddenFiles)
-                ToggleRow(ShellStrings.multimediaFilesOnly(), state.showOnlyMultimedia, vm::setShowOnlyMultimedia)
+                row { ToggleRow(ShellStrings.showHiddenFiles(), state.showHiddenFiles, vm::setShowHiddenFiles) }
+                row { ToggleRow(ShellStrings.multimediaFilesOnly(), state.showOnlyMultimedia, vm::setShowOnlyMultimedia) }
             }
         }
         if (state.supportsNetworkBrowsing) item {
             SettingsGroup(title = ShellStrings.network()) {
-                ToggleRow(ShellStrings.browseNetwork(), state.browseNetwork, vm::setBrowseNetwork)
+                row { ToggleRow(ShellStrings.browseNetwork(), state.browseNetwork, vm::setBrowseNetwork) }
             }
         }
         if (state.supportsRemoteAccess) item {
             val remoteAccessAddress = state.remoteAccessAddress
             val remoteAccessError = state.remoteAccessError
             SettingsGroup(title = ShellStrings.network()) {
-                ToggleRow(ShellStrings.remoteAccessServer(), state.remoteAccess, vm::setRemoteAccess)
-                when {
+                row { ToggleRow(ShellStrings.remoteAccessServer(), state.remoteAccess, vm::setRemoteAccess) }
+                row { when {
                     state.remoteAccessStarting -> Text(
                         ShellStrings.remoteAccessStarting(),
                         style = MaterialTheme.typography.bodyMedium,
@@ -639,28 +638,29 @@ internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
                     )
-                }
+                } }
             }
         }
     }
 }
 
+private class SettingsGroupScope {
+    val rows = mutableListOf<@Composable () -> Unit>()
+    fun row(content: @Composable () -> Unit) { rows += content }
+}
+
 @Composable
-private fun SettingsGroup(title: String, content: @Composable () -> Unit) {
-    Surface(
-        shape = MaterialTheme.shapes.extraLarge,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-    ) {
-        Column {
-            Text(
-                title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = VLCThemeDefaults.colors.primary,
-                modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 6.dp),
-            )
-            content()
-        }
+private fun SettingsGroup(title: String, content: SettingsGroupScope.() -> Unit) {
+    val scope = SettingsGroupScope().apply(content)
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(
+            title,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = VLCThemeDefaults.colors.primary,
+            modifier = Modifier.padding(horizontal = 16.dp),
+        )
+        VLCSettingsCard(rows = scope.rows, dividerInset = 20.dp)
     }
 }
 

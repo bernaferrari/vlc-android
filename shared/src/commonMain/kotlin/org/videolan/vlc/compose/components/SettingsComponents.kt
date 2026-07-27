@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -142,14 +143,16 @@ fun VLCSettingsCard(
     dividerInset: Dp = VLCSettingsDividerInset
 ) {
     if (rows.isEmpty()) return
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .vlcSettingsCard()
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.extraLarge,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
-        rows.forEachIndexed { index, row ->
-            if (index > 0) VLCSettingsCardDivider(dividerInset)
-            row()
+        Column {
+            rows.forEachIndexed { index, row ->
+                if (index > 0) VLCSettingsCardDivider(dividerInset)
+                row()
+            }
         }
     }
 }

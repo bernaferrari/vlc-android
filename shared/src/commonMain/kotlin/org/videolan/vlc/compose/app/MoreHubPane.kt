@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -27,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.components.VLCBrowserItemRow
 import org.videolan.vlc.compose.components.VLCIconChip
+import org.videolan.vlc.compose.components.VLCSettingsCard
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
@@ -72,23 +72,17 @@ internal fun MorePane(
             // The shell already owns the VLC title. Group these destinations as a
             // compact directory instead of repeating the brand in a second
             // oversized header and rendering each action as an isolated card.
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.extraLarge,
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-            ) {
-                Column {
-                    MoreAction(MaterialSymbols.Filled.Settings, ShellStrings.settings(), onOpenSettings)
-                    MoreActionDivider()
-                    MoreAction(MaterialSymbols.Filled.Info, ShellStrings.about(), onOpenAbout)
-                    MoreActionDivider()
-                    MoreAction(MaterialSymbols.Filled.Star, ShellStrings.donate(), onOpenDonate)
-                    if (onOpenRemote != null) {
-                        MoreActionDivider()
-                        MoreAction(MaterialSymbols.Filled.Devices, ShellStrings.remoteAccess(), onOpenRemote)
+            VLCSettingsCard(
+                rows = buildList {
+                    add { MoreAction(MaterialSymbols.Filled.Settings, ShellStrings.settings(), onOpenSettings) }
+                    add { MoreAction(MaterialSymbols.Filled.Info, ShellStrings.about(), onOpenAbout) }
+                    add { MoreAction(MaterialSymbols.Filled.Star, ShellStrings.donate(), onOpenDonate) }
+                    onOpenRemote?.let { remote ->
+                        add { MoreAction(MaterialSymbols.Filled.Devices, ShellStrings.remoteAccess(), remote) }
                     }
-                }
-            }
+                },
+                dividerInset = 72.dp,
+            )
         }
 
         item {
@@ -318,14 +312,6 @@ private fun MoreAction(icon: MaterialIcon, label: String, onClick: () -> Unit) {
             fontWeight = FontWeight.SemiBold,
         )
     }
-}
-
-@Composable
-private fun MoreActionDivider() {
-    HorizontalDivider(
-        modifier = Modifier.padding(start = 72.dp),
-        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f),
-    )
 }
 
 @Composable
