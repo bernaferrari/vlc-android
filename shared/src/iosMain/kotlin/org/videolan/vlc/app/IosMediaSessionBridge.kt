@@ -14,37 +14,26 @@ import platform.MediaPlayer.MPNowPlayingInfoPropertyPlaybackRate
 import platform.MediaPlayer.MPRemoteCommandCenter
 
 /**
- * iOS lock-screen / Control Center now-playing integration.
- * Requires UIBackgroundModes: audio in Info.plist.
+ * iOS lock-screen / Control Center state mirror.
+ *
+ * MobileVLCKit owns the actual remote-command registrations because it also owns
+ * decoder-specific seek, skip-interval, and playback-rate handling. Registering
+ * the same commands here causes Control Center to dispatch actions twice (most
+ * visibly skipping two tracks). This bridge deliberately owns only the shared
+ * KMP playback state and Now Playing metadata.
  */
 class IosMediaSessionBridge : MediaSessionBridge {
     private var active = false
     private var lastMeta: Map<Any?, Any?> = emptyMap()
 
     override fun activate() {
+        if (active) return
         active = true
         val center = MPRemoteCommandCenter.sharedCommandCenter()
         center.playCommand.enabled = true
         center.pauseCommand.enabled = true
         center.nextTrackCommand.enabled = true
         center.previousTrackCommand.enabled = true
-
-        center.playCommand.addTargetWithHandler { _ ->
-            IosPlaybackService.shared.resume()
-            platform.MediaPlayer.MPRemoteCommandHandlerStatusSuccess
-        }
-        center.pauseCommand.addTargetWithHandler { _ ->
-            IosPlaybackService.shared.pause()
-            platform.MediaPlayer.MPRemoteCommandHandlerStatusSuccess
-        }
-        center.nextTrackCommand.addTargetWithHandler { _ ->
-            IosPlaybackService.shared.next()
-            platform.MediaPlayer.MPRemoteCommandHandlerStatusSuccess
-        }
-        center.previousTrackCommand.addTargetWithHandler { _ ->
-            IosPlaybackService.shared.previous()
-            platform.MediaPlayer.MPRemoteCommandHandlerStatusSuccess
-        }
     }
 
     override fun deactivate() {
