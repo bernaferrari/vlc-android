@@ -18,18 +18,29 @@ echo "=== VLC KMP iOS Project Setup ==="
 echo "Project root: $PROJECT_ROOT"
 echo ""
 
-# 1. Build frameworks
+# 1. Build the exact framework variants that Xcode can select. The project has
+# SDK/configuration-specific paths, so this mirrors both simulator runs and
+# device release archives instead of relying on one simulator debug artifact.
 cd "$PROJECT_ROOT"
 echo "Building VLCShared frameworks..."
-./gradlew :shared:linkDebugFrameworkIosSimulatorArm64 :shared:linkDebugFrameworkIosArm64 --no-daemon
+./gradlew \
+  :shared:linkDebugFrameworkIosSimulatorArm64 \
+  :shared:linkReleaseFrameworkIosSimulatorArm64 \
+  :shared:linkDebugFrameworkIosArm64 \
+  :shared:linkReleaseFrameworkIosArm64 \
+  --no-daemon --no-configuration-cache
 
 SIM_FRAMEWORK="$BUILD_DIR/iosSimulatorArm64/debugFramework/$FRAMEWORK_NAME.framework"
 ARM64_FRAMEWORK="$BUILD_DIR/iosArm64/debugFramework/$FRAMEWORK_NAME.framework"
+SIM_RELEASE_FRAMEWORK="$BUILD_DIR/iosSimulatorArm64/releaseFramework/$FRAMEWORK_NAME.framework"
+ARM64_RELEASE_FRAMEWORK="$BUILD_DIR/iosArm64/releaseFramework/$FRAMEWORK_NAME.framework"
 
 echo ""
 echo "Framework locations:"
 echo "  Simulator: $SIM_FRAMEWORK"
 echo "  Device:    $ARM64_FRAMEWORK"
+echo "  Simulator Release: $SIM_RELEASE_FRAMEWORK"
+echo "  Device Release:    $ARM64_RELEASE_FRAMEWORK"
 echo ""
 
 # 2. Generate Xcode project

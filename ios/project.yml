@@ -35,10 +35,16 @@ targets:
         INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace: YES
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: ""
+        # The framework is selected by both SDK and configuration. Keeping a
+        # single selected path prevents a device archive from finding (and
+        # embedding) a debug simulator binary first.
+        VLC_SHARED_KOTLIN_TARGET[sdk=iphonesimulator*]: iosSimulatorArm64
+        VLC_SHARED_KOTLIN_TARGET[sdk=iphoneos*]: iosArm64
+        VLC_SHARED_FRAMEWORK_DIRECTORY: $(SRCROOT)/../shared/build/bin/$(VLC_SHARED_KOTLIN_TARGET)/$(VLC_SHARED_BUILD_TYPE)Framework
+        VLC_SHARED_FRAMEWORK_PATH: $(VLC_SHARED_FRAMEWORK_DIRECTORY)/VLCShared.framework
         FRAMEWORK_SEARCH_PATHS:
           - $(inherited)
-          - $(SRCROOT)/../shared/build/bin/iosSimulatorArm64/debugFramework
-          - $(SRCROOT)/../shared/build/bin/iosArm64/debugFramework
+          - $(VLC_SHARED_FRAMEWORK_DIRECTORY)
         OTHER_LDFLAGS:
           - $(inherited)
           - -framework
@@ -48,10 +54,15 @@ targets:
           - "@executable_path/Frameworks"
         ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: YES
         ENABLE_BITCODE: NO
+      configs:
+        Debug:
+          VLC_SHARED_BUILD_TYPE: debug
+        Release:
+          VLC_SHARED_BUILD_TYPE: release
     dependencies:
       - package: MobileVLCKit
         product: MobileVLCKit
-      - framework: ../shared/build/bin/iosSimulatorArm64/debugFramework/VLCShared.framework
+      - framework: $(VLC_SHARED_FRAMEWORK_PATH)
         embed: true
         link: true
     preBuildScripts:
@@ -61,8 +72,13 @@ targets:
           set -euo pipefail
           ROOT="${SRCROOT}/.."
           cd "$ROOT"
-          if [ "${PLATFORM_NAME:-}" = "iphonesimulator" ]; then
-            ./gradlew :shared:linkDebugFrameworkIosSimulatorArm64 -q
-          else
-            ./gradlew :shared:linkDebugFrameworkIosArm64 -q
-          fi
+          case "${PLATFORM_NAME:-}" in
+            iphonesimulator) kotlin_target="iosSimulatorArm64" ;;
+            iphoneos) kotlin_target="iosArm64" ;;
+            *) echo "Unsupported iOS platform: ${PLATFORM_NAME:-unset}" >&2; exit 1 ;;
+          esac
+          case "${CONFIGURATION:-}" in
+            Debug|Release) ;;
+            *) echo "Unsupported configuration: ${CONFIGURATION:-unset}" >&2; exit 1 ;;
+          esac
+          ./gradlew ":shared:link${CONFIGURATION}Framework${kotlin_target}" --no-daemon --no-configuration-cache -q

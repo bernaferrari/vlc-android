@@ -70,24 +70,24 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
         player?.media = media
         player?.play()
 #else
-        // Without VLCKit, report playing so shared state machine still advances in demos.
-        listener?.onPlaying()
-        listener?.onTimeChanged(timeMs: 0, lengthMs: 0)
+        // A shipping build must not simulate success when its decoder package is
+        // absent: surface an actionable error to the shared player instead.
+        listener?.onError(message: "MobileVLCKit is unavailable in this build.")
 #endif
     }
 
     func pause() {
 #if canImport(MobileVLCKit)
         player?.pause()
-#endif
         listener?.onPaused()
+#endif
     }
 
     func resume() {
 #if canImport(MobileVLCKit)
         player?.play()
-#endif
         listener?.onPlaying()
+#endif
     }
 
     func stop() {

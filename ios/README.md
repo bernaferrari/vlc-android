@@ -1,6 +1,8 @@
-# VLC KMP / iOS skeleton
+# VLC KMP / iOS app
 
-Kotlin Multiplatform shared code for VLC Android (and a future iOS app), plus a minimal SwiftUI host.
+The iOS app hosts the same Compose Multiplatform VLC shell as Android, with
+Swift limited to iOS integration islands: MobileVLCKit, document/photo intake,
+and the SwiftUI application lifecycle.
 
 ## Layout
 
@@ -28,8 +30,8 @@ vlc-android/
 │   │   └── …/kmp/                   # AndroidMediaRepository, AndroidPlaybackService, VlcKmpInitializer
 │   └── …
 │
-├── ios/                             # Xcode / SwiftUI skeleton
-│   ├── App/AppDelegate.swift        # VLCiOSApp + VlcSharedApi demo
+├── ios/                             # Xcode host for the shared shell
+│   ├── App/AppDelegate.swift        # SwiftUI lifecycle + native integrations
 │   ├── setup.sh
 │   └── README.md                    # this file
 │
@@ -44,7 +46,10 @@ vlc-android/
 | `:shared:compileKotlinJvm` | Desktop JVM | Okio DataStore |
 | `:shared:compileKotlinIosArm64` | iOS device | |
 | `:shared:compileKotlinIosSimulatorArm64` | iOS simulator (Apple Silicon) | |
-| `:shared:linkDebugFrameworkIosSimulatorArm64` | `VLCShared.framework` | Consumed by `ios/` |
+| `:shared:linkDebugFrameworkIosSimulatorArm64` | simulator Debug framework | Xcode simulator builds |
+| `:shared:linkReleaseFrameworkIosSimulatorArm64` | simulator Release framework | simulator release checks |
+| `:shared:linkDebugFrameworkIosArm64` | device Debug framework | Xcode device builds |
+| `:shared:linkReleaseFrameworkIosArm64` | device Release framework | Xcode archives |
 
 There is **no** `iosX64` target in the current `shared/build.gradle.kts` (Apple Silicon–only simulators).
 
@@ -76,15 +81,12 @@ Legacy Android `org.videolan.tools.Settings` (SharedPreferences) still powers ma
 - UI components are **not** in `:application:compose` (that module is only `VLCComposeView`)
 - Project **minSdk 23** (DataStore 1.2.x / Compose); see root README
 
-## iOS integration (current reality)
+## iOS integration
 
-`ios/App/AppDelegate.swift` is a **skeleton**:
-
-1. Imports `VLCShared` and constructs `VlcSharedApi()`
-2. Shows `platformInfo()` / placeholder media counts in SwiftUI
-3. Comments still mention a future `VlcAppContainer` — **that type does not exist**; use Koin + `VlcSharedApi`
-4. No VLCKit medialibrary/player wiring yet
-5. CMP UI lives in `:shared` commonMain; the iOS app does **not** host those composables yet (SwiftUI shell only)
+`ios/App/AppDelegate.swift` starts the iOS Koin module, installs the
+MobileVLCKit playback backend, and asks `MediaImporter` to reconcile Documents
+and cached imports. `MainViewController()` is the Compose root used by SwiftUI;
+it receives a native video surface only where a video needs one.
 
 ### Setup
 
@@ -94,12 +96,13 @@ cd ios/
 # Follow script output for Xcode + framework link steps
 ```
 
-### Next steps (iOS)
-1. Start Koin from Swift with iOS modules + real repository/player adapters
-2. Wire VLCKit medialibrary → `MediaRepository`
-3. Wire VLCKit `VLCMediaPlayer` → `PlaybackService`
-4. Either embed Compose Multiplatform UI from `VLCShared` or keep SwiftUI and call shared domain APIs only
-5. Library browser + playlist management
+### Framework selection
+
+`ios/project.yml` is the source of truth for the checked-in Xcode project. It
+selects `iosSimulatorArm64` for `iphonesimulator` and `iosArm64` for
+`iphoneos`, then selects `debugFramework` or `releaseFramework` from the Xcode
+configuration. Its pre-build phase invokes the matching Gradle task. Run
+`xcodegen generate` after changing the manifest.
 
 ## Design notes
 
@@ -111,9 +114,10 @@ cd ios/
 ## VLCKit integration
 
 1. `IosKoinBootstrap.start()` from app launch.
-2. Implement/attach `VlcKitBackend` (`ios/App/VlcKitBackend.swift`) once MobileVLCKit is linked:
-   `IosPlaybackService.shared.setBackend(backend: VlcKitBackend())`
-3. Seed library via `VlcSharedApi.replaceLibrary` or `IosMediaRepository.shared.replaceAll`.
+2. `VlcKitBackend` (`ios/App/VlcKitBackend.swift`) is attached at launch:
+   `IosPlaybackService.shared.setBackend(backend: VlcKitBackend.shared)`.
+3. Import media through the Files/Photos controls; the persistent catalog is
+   reconciled on launch and refresh.
 4. Control playback through `VlcSharedApi.playFirst` / pause / resume.
 
 ## Compose Multiplatform shell
@@ -123,9 +127,10 @@ iOS now hosts the **same** `VlcSharedApp` as Android (`Library` / `Player` / `Se
 - Kotlin entry: `MainViewController()` in `shared/.../compose/app/MainViewController.kt`
 - Swift host: `ComposeSharedRoot` in `ios/App/AppDelegate.swift`
 - ViewModels: `LibraryViewModel`, `PlayerViewModel`, `SettingsViewModel` (commonMain)
-- Empty library auto-seeds demo streams; Documents folder is scanned for media
-- Real decode still requires linking MobileVLCKit and:
-  `IosPlaybackService.shared.setBackend(VlcKitBackend())`
+- A first run stays empty until the user imports media; Documents are scanned
+  and reconciled without demo injection.
+- `IosPlaybackService.shared.setBackend(VlcKitBackend.shared)` installs real
+  decode when MobileVLCKit resolves.
 
 Android lab entry: **More → VLC Shared** (`SharedAppActivity`).
 
@@ -140,7 +145,8 @@ open ios/VLC-iOS.xcodeproj
 ### What is wired
 1. **MobileVLCKit (SPM)** — `ios/project.yml` packages.MobileVLCKit
 2. **Real decode** — `AppDelegate` → `IosPlaybackService.shared.setBackend(VlcKitBackend.shared)`
-3. **Drawable** — `ComposeSharedRoot` attaches host view as VLCKit drawable
+3. **Drawable** — the shared player route attaches its native `UIView` as the
+   VLCKit drawable and detaches it on disposal
 4. **Library intake**
    - Documents/Caches recursive scan (`MediaImporter.rescanLocalFolders`)
    - Files picker (multi-select audiovisual types)
@@ -150,6 +156,6 @@ open ios/VLC-iOS.xcodeproj
 
 ### Verify decode
 - First Xcode open resolves SPM (network).
-- Run on Simulator; seed demo or import a file; play.
-- Without SPM resolved, `#if canImport(MobileVLCKit)` falls back to state-only demo mode.
-
+- Run on Simulator; import a file; play.
+- A resolved MobileVLCKit package is required for real decode. If it cannot be
+  imported, playback is unavailable rather than silently presenting demo media.

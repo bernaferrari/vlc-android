@@ -34,7 +34,7 @@ vlc-android/
 │   ├── remote-access-client/       # Web UI assets + Kotlin HTTP client API
 │   ├── tools/, resources/, mediadb/, moviepedia/, donations/, live-plot-graph/
 │   └── …
-├── ios/                            # SwiftUI skeleton consuming VLCShared.framework
+├── ios/                            # Swift host for the shared Compose shell
 ├── medialibrary/                   # Medialibrary JNI / gradle module
 ├── libvlcjni/ (optional checkout)  # LibVLC gradle module; VLC sources under vlc/
 ├── buildsystem/                    # Build scripts, CI, maven publication
@@ -50,11 +50,11 @@ vlc-android/
 | `:application:compose` | **Interop shim only** — `VLCComposeView` for embedding Compose in residual Android View hosts. Components do **not** live here. |
 | KMP `:shared` | commonMain models, DataStore preferences, repository/playback contracts, CMP UI; android/jvm/ios actuals |
 | Android KMP adapters | `application/vlc-android/.../kmp/` wired at app startup; Settings dual-writes to DataStore |
-| iOS | Skeleton SwiftUI app in `ios/`; builds against `VLCShared.framework`. No full VLCKit player yet. DI uses Koin (`VlcKoin` / `VlcSharedApi`), not a `VlcAppContainer` type. |
+| iOS | Same shared Compose shell in `ios/`, with MobileVLCKit decode, a persistent KMP media catalog, and target-aware `VLCShared.framework` packaging. DI uses Koin (`VlcKoin` / `VlcSharedApi`), not a `VlcAppContainer` type. |
 | Remote access | Server (Ktor) + client module (web assets + `RemoteAccessClient` HTTP API) |
 | Permanent native islands | LibVLC video surface, medialibrary JNI, some system/widget/TV edges |
 
-More detail: `application/compose/README.md` (Android interop shim) and `ios/README.md` (KMP / iOS skeleton).
+More detail: `application/compose/README.md` (Android interop shim) and `ios/README.md` (KMP / iOS integration).
 
 ## minSdk policy
 
