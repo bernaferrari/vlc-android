@@ -60,6 +60,7 @@ object ShellStrings {
     @Composable fun resumeVideo(): String = stringResource(Res.string.resume_video)
     @Composable fun playbackHistory(): String = stringResource(Res.string.playback_history)
     @Composable fun incognito(): String = stringResource(Res.string.incognito)
+    @Composable fun videoHudTimeout(): String = stringResource(Res.string.video_hud_timeout)
     @Composable fun library(): String = stringResource(Res.string.library)
     @Composable fun videoThumbnails(): String = stringResource(Res.string.video_thumbnails)
     @Composable fun showHeaders(): String = stringResource(Res.string.show_headers)

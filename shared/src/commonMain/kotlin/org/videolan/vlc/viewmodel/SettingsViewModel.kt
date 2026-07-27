@@ -12,6 +12,7 @@ import org.videolan.tools.KEY_ENABLE_REMOTE_ACCESS
 import org.videolan.tools.KEY_INCOGNITO
 import org.videolan.tools.KEY_BROWSE_NETWORK
 import org.videolan.tools.KEY_SHOW_HEADERS
+import org.videolan.tools.VIDEO_HUD_TIMEOUT
 import org.videolan.tools.PLAYBACK_HISTORY
 import org.videolan.tools.SHOW_VIDEO_THUMBNAILS
 import org.videolan.tools.SettingsWriteBridge
@@ -41,6 +42,8 @@ data class SettingsUiState(
     val showOnlyMultimedia: Boolean = false,
     val browseNetwork: Boolean = true,
     val supportsNetworkBrowsing: Boolean = false,
+    /** The common video HUD observes this live; Android and iOS therefore share its timeout. */
+    val videoHudTimeoutSeconds: Int = 4,
     val platformLabel: String = "",
 )
 
@@ -70,6 +73,7 @@ class SettingsViewModel(
             showOnlyMultimedia = VlcSettings.showOnlyMultimedia.value,
             browseNetwork = VlcSettings.browseNetwork.value,
             supportsNetworkBrowsing = capabilities.networkBrowsing,
+            videoHudTimeoutSeconds = VlcSettings.videoHudDelay.value.coerceIn(1, 10),
         )
     )
     val state: StateFlow<SettingsUiState> = _state.asStateFlow()
@@ -104,6 +108,11 @@ class SettingsViewModel(
         }
         if (capabilities.networkBrowsing) launch {
             VlcSettings.browseNetwork.collect { v -> _state.update { it.copy(browseNetwork = v) } }
+        }
+        launch {
+            VlcSettings.videoHudDelay.collect { seconds ->
+                _state.update { it.copy(videoHudTimeoutSeconds = seconds.coerceIn(1, 10)) }
+            }
         }
         if (capabilities.remoteAccessServer) {
             launch {
@@ -144,6 +153,7 @@ class SettingsViewModel(
                     } else {
                         false
                     },
+                    videoHudTimeoutSeconds = p.getInt(VIDEO_HUD_TIMEOUT, 4).coerceIn(1, 10),
                 )
             }
         }
@@ -200,6 +210,14 @@ class SettingsViewModel(
         }
     }
 
+    /** Keep the upstream 1–10 second range while avoiding an unusable instant-hide HUD. */
+    fun setVideoHudTimeout(seconds: Int) {
+        val normalized = seconds.coerceIn(1, 10)
+        setInt(VIDEO_HUD_TIMEOUT, normalized) {
+            _state.update { it.copy(videoHudTimeoutSeconds = normalized) }
+        }
+    }
+
     private fun setBool(key: String, value: Boolean, local: () -> Unit) {
         local()
         SettingsWriteBridge.onBoolean?.invoke(key, value)
@@ -207,6 +225,18 @@ class SettingsViewModel(
         launchIo {
             try {
                 VlcSettings.updateBoolean(p, key, value)
+            } catch (_: Exception) {
+            }
+        }
+    }
+
+    private fun setInt(key: String, value: Int, local: () -> Unit) {
+        local()
+        SettingsWriteBridge.onInt?.invoke(key, value)
+        val p = prefs ?: return
+        launchIo {
+            try {
+                VlcSettings.updateInt(p, key, value)
             } catch (_: Exception) {
             }
         }

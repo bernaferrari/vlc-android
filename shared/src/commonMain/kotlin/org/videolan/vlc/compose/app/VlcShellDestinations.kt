@@ -270,6 +270,7 @@ internal fun PlayerDestination(
         selectedRendererId = state.selectedRendererId,
         equalizer = state.equalizer,
         bookmarks = state.bookmarks,
+        hudTimeoutSeconds = state.videoHudTimeoutSeconds,
         onTogglePlay = viewModel::togglePlayPause,
         onSeek = viewModel::seekTo,
         onNext = viewModel::next,

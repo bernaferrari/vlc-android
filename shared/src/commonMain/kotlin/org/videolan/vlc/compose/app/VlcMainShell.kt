@@ -23,6 +23,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.adaptive.navigationsuite.ExperimentalMaterial3AdaptiveNavigationSuiteApi
@@ -587,6 +588,14 @@ internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
                 ToggleRow(ShellStrings.resumeVideo(), state.videoResume, vm::setVideoResume)
                 ToggleRow(ShellStrings.playbackHistory(), state.playbackHistory, vm::setPlaybackHistory)
                 ToggleRow(ShellStrings.incognito(), state.incognito, vm::setIncognito)
+                ValueStepperRow(
+                    title = ShellStrings.videoHudTimeout(),
+                    value = "${state.videoHudTimeoutSeconds}s",
+                    decreaseEnabled = state.videoHudTimeoutSeconds > 1,
+                    increaseEnabled = state.videoHudTimeoutSeconds < 10,
+                    onDecrease = { vm.setVideoHudTimeout(state.videoHudTimeoutSeconds - 1) },
+                    onIncrease = { vm.setVideoHudTimeout(state.videoHudTimeoutSeconds + 1) },
+                )
             }
         }
         item {
@@ -669,6 +678,27 @@ private fun ToggleRow(title: String, checked: Boolean, onChange: (Boolean) -> Un
     ) {
         Text(title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
         androidx.compose.material3.Switch(checked = checked, onCheckedChange = onChange)
+    }
+}
+
+@Composable
+private fun ValueStepperRow(
+    title: String,
+    value: String,
+    decreaseEnabled: Boolean,
+    increaseEnabled: Boolean,
+    onDecrease: () -> Unit,
+    onIncrease: () -> Unit,
+) {
+    Row(
+        Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, top = 6.dp, bottom = 10.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        TextButton(onClick = onDecrease, enabled = decreaseEnabled) { Text("−") }
+        Text(value, style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(horizontal = 4.dp))
+        TextButton(onClick = onIncrease, enabled = increaseEnabled) { Text("+") }
     }
 }
 

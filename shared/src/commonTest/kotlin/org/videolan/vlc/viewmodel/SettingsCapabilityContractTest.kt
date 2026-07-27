@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import org.videolan.tools.SettingsWriteBridge
 import org.videolan.tools.KEY_BROWSE_NETWORK
 import org.videolan.tools.BROWSER_SHOW_ONLY_MULTIMEDIA
+import org.videolan.tools.VIDEO_HUD_TIMEOUT
 import org.videolan.vlc.platform.VlcPlatformCapabilities
 import org.videolan.vlc.platform.RemoteAccessServerController
 import org.videolan.vlc.platform.RemoteAccessServerState
@@ -27,11 +28,13 @@ class SettingsCapabilityContractTest {
     fun setUp() {
         Dispatchers.setMain(dispatcher)
         SettingsWriteBridge.onBoolean = null
+        SettingsWriteBridge.onInt = null
     }
 
     @AfterTest
     fun tearDown() {
         SettingsWriteBridge.onBoolean = null
+        SettingsWriteBridge.onInt = null
         Dispatchers.resetMain()
     }
 
@@ -79,6 +82,19 @@ class SettingsCapabilityContractTest {
 
         assertTrue(viewModel.state.value.showOnlyMultimedia)
         assertEquals(listOf(BROWSER_SHOW_ONLY_MULTIMEDIA to true), writes)
+        viewModel.onCleared()
+    }
+
+    @Test
+    fun videoHudTimeoutIsSharedAndBoundedBeforeWritingToNativeSettings() {
+        val writes = mutableListOf<Pair<String, Int>>()
+        SettingsWriteBridge.onInt = { key, value -> writes += key to value }
+        val viewModel = SettingsViewModel(prefs = null)
+
+        viewModel.setVideoHudTimeout(99)
+
+        assertEquals(10, viewModel.state.value.videoHudTimeoutSeconds)
+        assertEquals(listOf(VIDEO_HUD_TIMEOUT to 10), writes)
         viewModel.onCleared()
     }
 

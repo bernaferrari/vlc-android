@@ -26,6 +26,7 @@ import org.videolan.vlc.player.PlaybackVideoAdjust
 import org.videolan.vlc.player.VideoAdjustParameter
 import org.videolan.vlc.player.PlaybackBookmarks
 import org.videolan.vlc.platform.RendererInfo
+import org.videolan.tools.VlcSettings
 
 data class PlayerUiState(
     val title: String = "",
@@ -57,6 +58,8 @@ data class PlayerUiState(
     val videoCrop: PlaybackVideoCrop = PlaybackVideoCrop(),
     val videoAdjust: PlaybackVideoAdjust = PlaybackVideoAdjust(),
     val bookmarks: PlaybackBookmarks = PlaybackBookmarks(),
+    /** Shared player-chrome preference; the decoder remains platform-native. */
+    val videoHudTimeoutSeconds: Int = 4,
     val hasMedia: Boolean = false,
     /** True for known video and network streams, which may expose video after probing. */
     val hasVideoOutput: Boolean = false,
@@ -102,6 +105,11 @@ class PlayerViewModel(
         launch {
             playback.bookmarks.collect { bookmarks ->
                 _state.update { it.copy(bookmarks = bookmarks) }
+            }
+        }
+        launch {
+            VlcSettings.videoHudDelay.collect { seconds ->
+                _state.update { it.copy(videoHudTimeoutSeconds = seconds.coerceIn(1, 10)) }
             }
         }
         launch {

@@ -99,6 +99,7 @@ fun VideoSurfaceWithHud(
     selectedRendererId: String? = null,
     equalizer: PlaybackEqualizer = PlaybackEqualizer(),
     bookmarks: PlaybackBookmarks = PlaybackBookmarks(),
+    hudTimeoutSeconds: Int = 4,
     onTogglePlay: () -> Unit,
     onSeek: (Long) -> Unit,
     onNext: () -> Unit,
@@ -155,9 +156,9 @@ fun VideoSurfaceWithHud(
         interfaceLocked = false
         hudVisible = true
     }
-    LaunchedEffect(hudVisible, playing) {
+    LaunchedEffect(hudVisible, playing, hudTimeoutSeconds) {
         if (hudVisible && playing) {
-            delay(4_000)
+            delay(hudTimeoutSeconds.coerceIn(1, 10) * 1_000L)
             hudVisible = false
         }
     }
