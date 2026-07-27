@@ -75,6 +75,8 @@ object ShellStrings {
     @Composable fun appLock(): String = stringResource(Res.string.app_lock)
     @Composable fun appLockSummary(): String = stringResource(Res.string.app_lock_summary)
     @Composable fun appLocked(): String = stringResource(Res.string.app_locked)
+    @Composable fun useBiometrics(): String = stringResource(Res.string.use_biometrics)
+    @Composable fun useBiometricsSummary(): String = stringResource(Res.string.use_biometrics_summary)
     @Composable fun videoHudTimeout(): String = stringResource(Res.string.video_hud_timeout)
     @Composable fun library(): String = stringResource(Res.string.library)
     @Composable fun videoThumbnails(): String = stringResource(Res.string.video_thumbnails)

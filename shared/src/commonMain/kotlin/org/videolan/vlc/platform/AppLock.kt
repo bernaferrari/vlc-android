@@ -19,6 +19,8 @@ data class AppLockState(
     val enabled: Boolean = false,
     val locked: Boolean = false,
     val biometricsAvailable: Boolean = false,
+    /** Availability is not consent: native prompts run only after this opt-in. */
+    val biometricsEnabled: Boolean = false,
 )
 
 interface AppLockController {
@@ -33,6 +35,9 @@ interface AppLockController {
     /** Presents native authentication and returns whether the app can be shown. */
     suspend fun unlock(): Boolean
 
+    /** Persist a non-secret biometric preference when the secure platform supports it. */
+    suspend fun setBiometricsEnabled(enabled: Boolean): Boolean
+
     /** Called by a host lifecycle boundary when foreground access must be protected again. */
     fun lock()
 }
@@ -44,5 +49,6 @@ object NoOpAppLockController : AppLockController {
     override suspend fun enable(): Boolean = false
     override suspend fun disable(): Boolean = false
     override suspend fun unlock(): Boolean = false
+    override suspend fun setBiometricsEnabled(enabled: Boolean): Boolean = false
     override fun lock() = Unit
 }

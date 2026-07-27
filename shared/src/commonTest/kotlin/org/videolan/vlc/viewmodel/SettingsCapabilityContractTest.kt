@@ -108,14 +108,27 @@ class SettingsCapabilityContractTest {
         viewModel.enableAppLock()
         assertEquals(AppLockState(supported = true, enabled = true), viewModel.state.value.appLock)
 
+        appLock.setBiometricsAvailable(true)
+        viewModel.setAppLockBiometrics(true)
+        assertEquals(
+            AppLockState(supported = true, enabled = true, biometricsAvailable = true, biometricsEnabled = true),
+            viewModel.state.value.appLock,
+        )
+
         appLock.lock()
-        assertEquals(AppLockState(supported = true, enabled = true, locked = true), viewModel.state.value.appLock)
+        assertEquals(
+            AppLockState(supported = true, enabled = true, locked = true, biometricsAvailable = true, biometricsEnabled = true),
+            viewModel.state.value.appLock,
+        )
 
         viewModel.unlockAppLock()
-        assertEquals(AppLockState(supported = true, enabled = true), viewModel.state.value.appLock)
+        assertEquals(
+            AppLockState(supported = true, enabled = true, biometricsAvailable = true, biometricsEnabled = true),
+            viewModel.state.value.appLock,
+        )
 
         viewModel.disableAppLock()
-        assertEquals(AppLockState(supported = true), viewModel.state.value.appLock)
+        assertEquals(AppLockState(supported = true, biometricsAvailable = true), viewModel.state.value.appLock)
         viewModel.onCleared()
     }
 
@@ -155,25 +168,38 @@ class SettingsCapabilityContractTest {
         private val mutableState = MutableStateFlow(AppLockState(supported = true))
         override val state = mutableState
 
+        fun setBiometricsAvailable(available: Boolean) {
+            mutableState.value = mutableState.value.copy(
+                biometricsAvailable = available,
+                biometricsEnabled = available && mutableState.value.biometricsEnabled,
+            )
+        }
+
         override suspend fun enable(): Boolean {
-            mutableState.value = AppLockState(supported = true, enabled = true)
+            mutableState.value = mutableState.value.copy(enabled = true, locked = false)
             return true
         }
 
         override suspend fun disable(): Boolean {
-            mutableState.value = AppLockState(supported = true)
+            mutableState.value = mutableState.value.copy(enabled = false, locked = false, biometricsEnabled = false)
             return true
         }
 
         override suspend fun unlock(): Boolean {
             if (!mutableState.value.enabled) return false
-            mutableState.value = AppLockState(supported = true, enabled = true)
+            mutableState.value = mutableState.value.copy(locked = false)
+            return true
+        }
+
+        override suspend fun setBiometricsEnabled(enabled: Boolean): Boolean {
+            if (!mutableState.value.enabled || !mutableState.value.biometricsAvailable) return false
+            mutableState.value = mutableState.value.copy(biometricsEnabled = enabled)
             return true
         }
 
         override fun lock() {
             if (mutableState.value.enabled) {
-                mutableState.value = AppLockState(supported = true, enabled = true, locked = true)
+                mutableState.value = mutableState.value.copy(locked = true)
             }
         }
     }

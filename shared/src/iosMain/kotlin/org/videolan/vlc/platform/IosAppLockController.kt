@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import platform.CoreFoundation.CFTypeRefVar
 import platform.Foundation.NSData
+import platform.Foundation.NSUserDefaults
 import platform.Foundation.create
 import platform.LocalAuthentication.LAContext
 import platform.LocalAuthentication.LAPolicyDeviceOwnerAuthenticationWithBiometrics
@@ -56,6 +57,7 @@ import kotlin.coroutines.resume
 object IosAppLockController : AppLockController {
     private const val service = "org.videolan.vlc.app-lock"
     private const val account = "pin-v1"
+    private const val biometricsPreference = "org.videolan.vlc.app-lock.biometrics-enabled"
 
     private val mutableState = MutableStateFlow(currentState(locked = hasCredential()))
     override val state: StateFlow<AppLockState> = mutableState.asStateFlow()
@@ -104,6 +106,13 @@ object IosAppLockController : AppLockController {
         return true
     }
 
+    override suspend fun setBiometricsEnabled(enabled: Boolean): Boolean {
+        if (!hasCredential() || !biometricsAvailable()) return false
+        NSUserDefaults.standardUserDefaults.setBool(enabled, biometricsPreference)
+        mutableState.value = currentState(locked = mutableState.value.locked, enabled = true)
+        return true
+    }
+
     override fun lock() {
         if (mutableState.value.enabled || hasCredential()) {
             mutableState.value = currentState(locked = true, enabled = true)
@@ -111,7 +120,7 @@ object IosAppLockController : AppLockController {
     }
 
     private suspend fun authenticate(): Boolean {
-        if (biometricsAvailable() && requestBiometricUnlock()) return true
+        if (biometricsEnabled() && requestBiometricUnlock()) return true
         val pin = requestPin(
             title = "Unlock VLC",
             message = "Enter your 4-digit app lock PIN.",
@@ -179,12 +188,15 @@ object IosAppLockController : AppLockController {
         enabled = enabled,
         locked = enabled && locked,
         biometricsAvailable = biometricsAvailable(),
+        biometricsEnabled = enabled && biometricsAvailable() && biometricsEnabled(),
     )
 
     private fun biometricsAvailable(): Boolean = LAContext().canEvaluatePolicy(
         LAPolicyDeviceOwnerAuthenticationWithBiometrics,
         error = null,
     )
+
+    private fun biometricsEnabled(): Boolean = NSUserDefaults.standardUserDefaults.boolForKey(biometricsPreference)
 
     private fun isValidPin(value: String): Boolean = value.length == 4 && value.all(Char::isDigit)
 
@@ -235,6 +247,7 @@ object IosAppLockController : AppLockController {
 
     private fun deleteCredential() {
         SecItemDelete(query(returnData = false) as platform.CoreFoundation.CFDictionaryRef)
+        NSUserDefaults.standardUserDefaults.removeObjectForKey(biometricsPreference)
     }
 
     private fun query(returnData: Boolean): Map<Any?, Any?> = buildMap {

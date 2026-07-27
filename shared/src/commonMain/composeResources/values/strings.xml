@@ -1120,6 +1120,8 @@
     <string name="app_lock">App lock</string>
     <string name="app_lock_summary">Require your app lock before showing VLC</string>
     <string name="app_locked">VLC is locked</string>
+    <string name="use_biometrics">Use biometrics</string>
+    <string name="use_biometrics_summary">Use your device biometric instead of entering the app-lock PIN</string>
     <string name="safe_mode">Safe mode</string>
     <string name="safe_mode_summary">When activated, files cannot be deleted or playlist modified without entering the pin</string>
     <string name="safe_mode_pin">Enter your PIN</string>

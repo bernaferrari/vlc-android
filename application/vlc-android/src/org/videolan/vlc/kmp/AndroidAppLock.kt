@@ -47,6 +47,12 @@ internal class AndroidAppLockVault(context: Context) {
 
     fun hasCredential(): Boolean = preferences.contains(ENCRYPTED_VERIFIER)
 
+    fun biometricsEnabled(): Boolean = preferences.getBoolean(BIOMETRICS_ENABLED, false)
+
+    fun setBiometricsEnabled(enabled: Boolean) {
+        preferences.edit().putBoolean(BIOMETRICS_ENABLED, enabled).commit()
+    }
+
     fun store(pin: CharArray): Boolean = runCatching {
         val salt = ByteArray(SALT_BYTES).also(SecureRandom()::nextBytes)
         val verifier = derive(pin, salt)
@@ -65,7 +71,7 @@ internal class AndroidAppLockVault(context: Context) {
     }.getOrDefault(false)
 
     fun clear() {
-        preferences.edit().remove(ENCRYPTED_VERIFIER).commit()
+        preferences.edit().remove(ENCRYPTED_VERIFIER).remove(BIOMETRICS_ENABLED).commit()
     }
 
     private fun derive(pin: CharArray, salt: ByteArray): ByteArray {
@@ -110,6 +116,7 @@ internal class AndroidAppLockVault(context: Context) {
     private companion object {
         const val PREFERENCES = "vlc_app_lock_v1"
         const val ENCRYPTED_VERIFIER = "encrypted_verifier"
+        const val BIOMETRICS_ENABLED = "biometrics_enabled"
         const val KEYSTORE = "AndroidKeyStore"
         const val KEY_ALIAS = "vlc_app_lock_v1"
         const val TRANSFORMATION = "AES/GCM/NoPadding"
@@ -190,6 +197,13 @@ class AndroidAppLockController(context: Context) : AppLockController {
         return unlocked
     }
 
+    override suspend fun setBiometricsEnabled(enabled: Boolean): Boolean {
+        if (!vault.hasCredential() || !biometricsAvailable()) return false
+        vault.setBiometricsEnabled(enabled)
+        mutableState.value = currentState(enabled = true, locked = mutableState.value.locked)
+        return true
+    }
+
     override fun lock() {
         if (vault.hasCredential()) {
             mutableState.value = currentState(enabled = true, locked = true)
@@ -197,7 +211,7 @@ class AndroidAppLockController(context: Context) : AppLockController {
     }
 
     private suspend fun authenticate(): Boolean {
-        if (biometricsAvailable() && requestBiometricUnlock()) return true
+        if (mutableState.value.biometricsEnabled && requestBiometricUnlock()) return true
         return request(AppLockPinActivity.Mode.VERIFY)
     }
 
@@ -206,6 +220,7 @@ class AndroidAppLockController(context: Context) : AppLockController {
         enabled = enabled,
         locked = enabled && locked,
         biometricsAvailable = biometricsAvailable(),
+        biometricsEnabled = enabled && biometricsAvailable() && vault.biometricsEnabled(),
     )
 
     private fun biometricsAvailable(): Boolean =

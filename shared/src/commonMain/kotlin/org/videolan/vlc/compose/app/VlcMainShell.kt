@@ -658,6 +658,23 @@ internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
                         modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
                     )
                 }
+                if (state.appLock.enabled && state.appLock.biometricsAvailable) {
+                    row {
+                        ToggleRow(
+                            title = ShellStrings.useBiometrics(),
+                            checked = state.appLock.biometricsEnabled,
+                            onChange = vm::setAppLockBiometrics,
+                        )
+                    }
+                    row {
+                        Text(
+                            ShellStrings.useBiometricsSummary(),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = VLCThemeDefaults.colors.fontLight,
+                            modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
+                        )
+                    }
+                }
             }
         }
         item {

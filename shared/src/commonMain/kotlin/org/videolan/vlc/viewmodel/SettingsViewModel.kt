@@ -225,6 +225,8 @@ class SettingsViewModel(
 
     fun unlockAppLock() = launch { appLock.unlock() }
 
+    fun setAppLockBiometrics(enabled: Boolean) = launch { appLock.setBiometricsEnabled(enabled) }
+
     /** Keep the upstream 1–10 second range while avoiding an unusable instant-hide HUD. */
     fun setVideoHudTimeout(seconds: Int) {
         val normalized = seconds.coerceIn(1, 10)
