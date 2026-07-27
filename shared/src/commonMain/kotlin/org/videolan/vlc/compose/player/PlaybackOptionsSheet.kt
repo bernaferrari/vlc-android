@@ -41,6 +41,8 @@ import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.model.ABRepeat
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.player.VideoScaleMode
+import org.videolan.vlc.player.PlaybackVideoCrop
+import org.videolan.vlc.player.VideoCropMode
 import org.videolan.vlc.player.PlaybackTracks
 import org.videolan.vlc.player.PlaybackDelays
 import org.videolan.vlc.player.SleepTimerState
@@ -74,6 +76,7 @@ import vlc_android.shared.generated.resources.stop_after_this
 import vlc_android.shared.generated.resources.equalizer
 import vlc_android.shared.generated.resources.enable_equalizer
 import vlc_android.shared.generated.resources.preamp
+import vlc_android.shared.generated.resources.video_crop
 
 private val PlaybackRatePresets = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f)
 
@@ -94,6 +97,7 @@ internal fun PlaybackOptionsSheet(
     abRepeatEnabled: Boolean,
     stopAfterCurrent: Boolean,
     videoScaleMode: VideoScaleMode,
+    videoCrop: PlaybackVideoCrop,
     tracks: PlaybackTracks,
     delays: PlaybackDelays,
     sleepTimer: SleepTimerState,
@@ -110,6 +114,7 @@ internal fun PlaybackOptionsSheet(
     onClearABRepeat: () -> Unit,
     onToggleStopAfterCurrent: () -> Unit,
     onSetVideoScaleMode: (VideoScaleMode) -> Unit,
+    onSetVideoCrop: (VideoCropMode) -> Unit,
     onSelectAudioTrack: (String) -> Unit,
     onSelectSubtitleTrack: (String) -> Unit,
     onSetAudioDelay: (Long) -> Unit,
@@ -268,6 +273,26 @@ internal fun PlaybackOptionsSheet(
                             onClick = { onSetVideoScaleMode(mode) },
                             label = { Text(mode.label) },
                         )
+                    }
+                }
+                if (videoCrop.supported) {
+                    Text(
+                        stringResource(Res.string.video_crop),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        VideoCropMode.entries.forEach { mode ->
+                            FilterChip(
+                                selected = mode == videoCrop.mode,
+                                onClick = { onSetVideoCrop(mode) },
+                                label = { Text(mode.label) },
+                            )
+                        }
                     }
                 }
             }

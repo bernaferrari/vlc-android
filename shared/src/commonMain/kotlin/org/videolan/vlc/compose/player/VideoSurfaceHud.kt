@@ -45,6 +45,8 @@ import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.Progress
 import org.videolan.vlc.model.RepeatMode
 import org.videolan.vlc.player.VideoScaleMode
+import org.videolan.vlc.player.PlaybackVideoCrop
+import org.videolan.vlc.player.VideoCropMode
 import org.videolan.vlc.player.PlaybackTracks
 import org.videolan.vlc.player.PlaybackDelays
 import org.videolan.vlc.player.SleepTimerState
@@ -80,6 +82,7 @@ fun VideoSurfaceWithHud(
     abRepeatEnabled: Boolean = false,
     stopAfterCurrent: Boolean = false,
     videoScaleMode: VideoScaleMode = VideoScaleMode.BEST_FIT,
+    videoCrop: PlaybackVideoCrop = PlaybackVideoCrop(),
     tracks: PlaybackTracks = PlaybackTracks(),
     delays: PlaybackDelays = PlaybackDelays(),
     sleepTimer: SleepTimerState = SleepTimerState(),
@@ -106,6 +109,7 @@ fun VideoSurfaceWithHud(
     onClearABRepeat: () -> Unit = {},
     onToggleStopAfterCurrent: () -> Unit = {},
     onSetVideoScaleMode: (VideoScaleMode) -> Unit = {},
+    onSetVideoCrop: (VideoCropMode) -> Unit = {},
     onSelectAudioTrack: (String) -> Unit = {},
     onSelectSubtitleTrack: (String) -> Unit = {},
     onSetAudioDelay: (Long) -> Unit = {},
@@ -245,6 +249,7 @@ fun VideoSurfaceWithHud(
             abRepeatEnabled = abRepeatEnabled,
             stopAfterCurrent = stopAfterCurrent,
             videoScaleMode = videoScaleMode,
+            videoCrop = videoCrop,
             tracks = tracks,
             delays = delays,
             sleepTimer = sleepTimer,
@@ -264,6 +269,7 @@ fun VideoSurfaceWithHud(
             onClearABRepeat = onClearABRepeat,
             onToggleStopAfterCurrent = onToggleStopAfterCurrent,
             onSetVideoScaleMode = onSetVideoScaleMode,
+            onSetVideoCrop = onSetVideoCrop,
             onSelectAudioTrack = onSelectAudioTrack,
             onSelectSubtitleTrack = onSelectSubtitleTrack,
             onSetAudioDelay = onSetAudioDelay,

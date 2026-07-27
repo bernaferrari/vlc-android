@@ -132,6 +132,31 @@ class PlaylistEngineTest {
     }
 
     @Test
+    fun videoCropDelegatesOnlyToCapableNativeBackends() {
+        val backend = RecordingBackend().apply {
+            availableVideoCrop = PlaybackVideoCrop(supported = true)
+        }
+        val engine = PlaylistEngine(backend)
+
+        engine.setVideoCrop(VideoCropMode.RATIO_16_9)
+
+        assertEquals(VideoCropMode.RATIO_16_9, backend.reportedVideoCrop)
+        assertTrue(engine.videoCrop.value.supported)
+        assertEquals(VideoCropMode.RATIO_16_9, engine.videoCrop.value.mode)
+    }
+
+    @Test
+    fun videoCropNeverInvokesAnUnavailableBackend() {
+        val backend = RecordingBackend()
+        val engine = PlaylistEngine(backend)
+
+        engine.setVideoCrop(VideoCropMode.RATIO_16_9)
+
+        assertEquals(null, backend.reportedVideoCrop)
+        assertFalse(engine.videoCrop.value.supported)
+    }
+
+    @Test
     fun trackSelectionIsSharedAndRefreshesTheNativeSnapshot() {
         val backend = RecordingBackend().apply {
             availableTracks = PlaybackTracks(
@@ -231,10 +256,12 @@ class PlaylistEngineTest {
         var subtitleLoadResult = false
         var loadedSubtitleUri: String? = null
         var availableEqualizer = PlaybackEqualizer()
+        var availableVideoCrop = PlaybackVideoCrop()
         var equalizerWasEnabled = false
         var selectedEqualizerPreset: String? = null
         var reportedEqualizerPreamp = 0f
         val reportedEqualizerBands = mutableMapOf<Int, Float>()
+        var reportedVideoCrop: VideoCropMode? = null
 
         override fun playUri(uri: String, title: String?) = Unit
         override fun preparePaused(uri: String, title: String?, positionMs: Long): Boolean {
@@ -271,6 +298,8 @@ class PlaylistEngineTest {
         override fun setEqualizerBand(index: Int, amplificationDb: Float) {
             reportedEqualizerBands[index] = amplificationDb
         }
+        override fun videoCrop(): PlaybackVideoCrop = availableVideoCrop.copy(mode = reportedVideoCrop ?: availableVideoCrop.mode)
+        override fun setVideoCrop(mode: VideoCropMode) { reportedVideoCrop = mode }
         override fun setListener(listener: PlayerBackend.Listener?) = Unit
         override fun release() = Unit
     }

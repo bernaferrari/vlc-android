@@ -15,6 +15,8 @@ import org.videolan.vlc.player.PlaybackDelays
 import org.videolan.vlc.player.SleepTimerState
 import org.videolan.vlc.player.PlaybackChapters
 import org.videolan.vlc.player.PlaybackEqualizer
+import org.videolan.vlc.player.PlaybackVideoCrop
+import org.videolan.vlc.player.VideoCropMode
 import org.videolan.vlc.player.PlayerBackend
 import org.videolan.vlc.player.PlaylistEngine
 import platform.Foundation.NSURL
@@ -45,6 +47,7 @@ class IosPlaybackService : PlaybackService {
     override val sleepTimer: Flow<SleepTimerState> get() = engine.sleepTimer
     override val chapters: Flow<PlaybackChapters> get() = engine.chapters
     override val equalizer: Flow<PlaybackEqualizer> get() = engine.equalizer
+    override val videoCrop: Flow<PlaybackVideoCrop> get() = engine.videoCrop
 
     /**
      * Accepts the legacy VlcKitPlayerBackend and adapts it to [PlayerBackend].
@@ -137,6 +140,7 @@ class IosPlaybackService : PlaybackService {
     override fun setEqualizerPreamp(preampDb: Float) = engine.setEqualizerPreamp(preampDb)
     override fun setEqualizerBand(index: Int, amplificationDb: Float) =
         engine.setEqualizerBand(index, amplificationDb)
+    override fun setVideoCrop(mode: VideoCropMode) = engine.setVideoCrop(mode)
     override fun addObserver(observer: PlaybackObserver) = engine.addObserver(observer)
     override fun removeObserver(observer: PlaybackObserver) = engine.removeObserver(observer)
 
@@ -190,6 +194,8 @@ private class VlcKitPlayerBackendAdapter(
     override fun setEqualizerPreamp(preampDb: Float) = kit.setEqualizerPreamp(preampDb)
     override fun setEqualizerBand(index: Int, amplificationDb: Float) =
         kit.setEqualizerBand(index, amplificationDb)
+    override fun videoCrop(): PlaybackVideoCrop = kit.videoCrop()
+    override fun setVideoCrop(mode: VideoCropMode) = kit.setVideoCrop(mode)
     override fun setListener(listener: PlayerBackend.Listener?) {
         if (listener == null) {
             kit.setListener(null)
@@ -240,6 +246,8 @@ interface VlcKitPlayerBackend {
     fun selectEqualizerPreset(id: String)
     fun setEqualizerPreamp(preampDb: Float)
     fun setEqualizerBand(index: Int, amplificationDb: Float)
+    fun videoCrop(): PlaybackVideoCrop
+    fun setVideoCrop(mode: VideoCropMode)
     fun setListener(listener: Listener?)
     /** Named to avoid colliding with Objective-C NSObject.release in Swift implementations. */
     fun dispose()

@@ -27,6 +27,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
     private var configuredVolume: Int32 = 100
     private var configuredRate: Float = 1
     private var selectedEqualizerPresetId: String?
+    private var videoCropMode = VideoCropMode.original
 
 #if canImport(MobileVLCKit)
     private var player: VLCMediaPlayer?
@@ -178,6 +179,25 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
             aspectRatio.withCString { player?.videoAspectRatio = UnsafeMutablePointer(mutating: $0) }
         } else {
             player?.videoAspectRatio = nil
+        }
+#endif
+    }
+
+    func videoCrop() -> PlaybackVideoCrop {
+#if canImport(MobileVLCKit)
+        PlaybackVideoCrop(supported: true, mode: videoCropMode)
+#else
+        PlaybackVideoCrop()
+#endif
+    }
+
+    func setVideoCrop(mode: VideoCropMode) {
+#if canImport(MobileVLCKit)
+        videoCropMode = mode
+        if let geometry = mode.geometry {
+            geometry.withCString { player?.videoCropGeometry = UnsafeMutablePointer(mutating: $0) }
+        } else {
+            player?.videoCropGeometry = nil
         }
 #endif
     }

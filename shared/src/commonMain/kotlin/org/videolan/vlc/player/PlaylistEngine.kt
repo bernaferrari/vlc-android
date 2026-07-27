@@ -44,6 +44,8 @@ interface PlayerBackend {
     fun selectEqualizerPreset(id: String) {}
     fun setEqualizerPreamp(preampDb: Float) {}
     fun setEqualizerBand(index: Int, amplificationDb: Float) {}
+    fun videoCrop(): PlaybackVideoCrop = PlaybackVideoCrop()
+    fun setVideoCrop(mode: VideoCropMode) {}
     fun setListener(listener: Listener?)
     fun release()
 
@@ -100,6 +102,9 @@ class PlaylistEngine(
     private val _equalizer = MutableStateFlow(PlaybackEqualizer())
     override val equalizer: StateFlow<PlaybackEqualizer> = _equalizer.asStateFlow()
 
+    private val _videoCrop = MutableStateFlow(PlaybackVideoCrop())
+    override val videoCrop: StateFlow<PlaybackVideoCrop> = _videoCrop.asStateFlow()
+
     private val sleepTimerController = SleepTimerController(
         isPlaying = { _state.value is PlaybackState.Playing },
         stopPlayback = ::stop,
@@ -131,12 +136,14 @@ class PlaylistEngine(
         refreshDelays()
         refreshChapters()
         refreshEqualizer()
+        refreshVideoCrop()
         backend?.setListener(object : PlayerBackend.Listener {
             override fun onPlaying() {
                 refreshTracks()
                 refreshDelays()
                 refreshChapters()
                 refreshEqualizer()
+                refreshVideoCrop()
                 pushPlaying()
             }
             override fun onPaused() = pushPaused()
@@ -346,6 +353,16 @@ class PlaylistEngine(
         refreshEqualizer()
     }
 
+    override fun setVideoCrop(mode: VideoCropMode) {
+        val crop = backend?.videoCrop() ?: PlaybackVideoCrop()
+        if (!crop.supported) {
+            _videoCrop.value = crop
+            return
+        }
+        backend?.setVideoCrop(mode)
+        refreshVideoCrop()
+    }
+
     private fun refreshTracks() {
         _tracks.value = backend?.tracks() ?: PlaybackTracks()
     }
@@ -360,6 +377,10 @@ class PlaylistEngine(
 
     private fun refreshEqualizer() {
         _equalizer.value = backend?.equalizer() ?: PlaybackEqualizer()
+    }
+
+    private fun refreshVideoCrop() {
+        _videoCrop.value = backend?.videoCrop() ?: PlaybackVideoCrop()
     }
 
     override fun addObserver(observer: PlaybackObserver) {
