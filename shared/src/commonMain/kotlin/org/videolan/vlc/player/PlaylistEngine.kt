@@ -86,6 +86,12 @@ class PlaylistEngine(
     private val _delays = MutableStateFlow(PlaybackDelays())
     override val delays: StateFlow<PlaybackDelays> = _delays.asStateFlow()
 
+    private val sleepTimerController = SleepTimerController(
+        isPlaying = { _state.value is PlaybackState.Playing },
+        stopPlayback = ::stop,
+    )
+    override val sleepTimer: StateFlow<SleepTimerState> = sleepTimerController.state
+
     private val observers = mutableListOf<PlaybackObserver>()
     private val previousStack = ArrayDeque<Int>()
     private var expanding = false
@@ -285,6 +291,11 @@ class PlaylistEngine(
         refreshDelays()
     }
 
+    override fun setSleepTimer(durationMillis: Long, waitForCurrentItem: Boolean) =
+        sleepTimerController.start(durationMillis, waitForCurrentItem)
+
+    override fun clearSleepTimer() = sleepTimerController.clear()
+
     private fun refreshTracks() {
         _tracks.value = backend?.tracks() ?: PlaybackTracks()
     }
@@ -467,6 +478,10 @@ class PlaylistEngine(
 
     private fun handleEnded() {
         val item = currentItem()
+        if (sleepTimerController.state.value.awaitingCurrentItemEnd) {
+            sleepTimerController.onCurrentItemEnded()
+            return
+        }
         if (stopAfterIndex >= 0 && _playlist.value.currentIndex == stopAfterIndex) {
             clearStopAfter()
             if (item != null) updateState(PlaybackState.Ended(item))

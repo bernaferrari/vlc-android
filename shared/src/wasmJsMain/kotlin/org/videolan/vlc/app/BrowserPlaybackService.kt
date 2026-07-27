@@ -15,6 +15,8 @@ import org.videolan.vlc.player.PlaybackService
 import org.videolan.vlc.player.PlaybackState
 import org.videolan.vlc.player.VideoScaleMode
 import org.videolan.vlc.player.PlaybackTracks
+import org.videolan.vlc.player.SleepTimerController
+import org.videolan.vlc.player.SleepTimerState
 import org.w3c.dom.HTMLElement
 
 /**
@@ -32,6 +34,10 @@ internal class BrowserPlaybackService : PlaybackService {
     private val _stopAfterCurrent = MutableStateFlow(false)
     private val _videoScaleMode = MutableStateFlow(VideoScaleMode.BEST_FIT)
     private val _tracks = MutableStateFlow(PlaybackTracks())
+    private val sleepTimerController = SleepTimerController(
+        isPlaying = { _state.value is PlaybackState.Playing },
+        stopPlayback = ::stop,
+    )
     private val observers = mutableSetOf<PlaybackObserver>()
     private var volume = 100
     private var rate = 1f
@@ -47,6 +53,7 @@ internal class BrowserPlaybackService : PlaybackService {
     override val stopAfterCurrent: Flow<Boolean> = _stopAfterCurrent.asStateFlow()
     override val videoScaleMode: Flow<VideoScaleMode> = _videoScaleMode.asStateFlow()
     override val tracks: Flow<PlaybackTracks> = _tracks.asStateFlow()
+    override val sleepTimer: Flow<SleepTimerState> = sleepTimerController.state
 
     init {
         BrowserMediaElementHost.register(this)
@@ -102,6 +109,11 @@ internal class BrowserPlaybackService : PlaybackService {
         clearStopAfter()
         emitState(PlaybackState.Stopped(currentItem()))
     }
+
+    override fun setSleepTimer(durationMillis: Long, waitForCurrentItem: Boolean) =
+        sleepTimerController.start(durationMillis, waitForCurrentItem)
+
+    override fun clearSleepTimer() = sleepTimerController.clear()
 
     override fun seekTo(position: Long) {
         val target = position.coerceAtLeast(0L)
@@ -343,6 +355,10 @@ internal class BrowserPlaybackService : PlaybackService {
     private fun currentItem(): MediaItem? = _playlist.value.current
 
     private fun handleEnded() {
+        if (sleepTimerController.state.value.awaitingCurrentItemEnd) {
+            sleepTimerController.onCurrentItemEnded()
+            return
+        }
         if (_stopAfterCurrent.value) {
             clearStopAfter()
             stop()

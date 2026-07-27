@@ -27,6 +27,8 @@ import org.videolan.vlc.player.PlaybackState
 import org.videolan.vlc.player.PlaybackTrack
 import org.videolan.vlc.player.PlaybackTracks
 import org.videolan.vlc.player.PlaybackDelays
+import org.videolan.vlc.player.SleepTimerController
+import org.videolan.vlc.player.SleepTimerState
 import org.videolan.vlc.player.VideoScaleMode
 import org.videolan.vlc.PlaybackService as AndroidPlaybackHost
 
@@ -81,6 +83,12 @@ class AndroidPlaybackService(
 
     private val _delays = MutableStateFlow(PlaybackDelays())
     override val delays: Flow<PlaybackDelays> = _delays.asStateFlow()
+
+    private val sleepTimerController = SleepTimerController(
+        isPlaying = { _state.value is PlaybackState.Playing },
+        stopPlayback = ::stop,
+    )
+    override val sleepTimer: Flow<SleepTimerState> = sleepTimerController.state
 
     private val observers = mutableListOf<PlaybackObserver>()
 
@@ -280,6 +288,11 @@ class AndroidPlaybackService(
         manager()?.setSpuDelay(delayUs)
         refreshDelaysFromHost()
     }
+
+    override fun setSleepTimer(durationMillis: Long, waitForCurrentItem: Boolean) =
+        sleepTimerController.start(durationMillis, waitForCurrentItem)
+
+    override fun clearSleepTimer() = sleepTimerController.clear()
 
     override fun addObserver(observer: PlaybackObserver) {
         observers.add(observer)

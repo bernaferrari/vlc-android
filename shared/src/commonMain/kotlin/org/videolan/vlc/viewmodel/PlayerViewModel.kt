@@ -15,6 +15,7 @@ import org.videolan.vlc.player.PlaybackService
 import org.videolan.vlc.player.PlaybackState
 import org.videolan.vlc.player.PlaybackTracks
 import org.videolan.vlc.player.PlaybackDelays
+import org.videolan.vlc.player.SleepTimerState
 import org.videolan.vlc.player.VideoScaleMode
 
 data class PlayerUiState(
@@ -36,6 +37,7 @@ data class PlayerUiState(
     val videoScaleMode: VideoScaleMode = VideoScaleMode.BEST_FIT,
     val tracks: PlaybackTracks = PlaybackTracks(),
     val delays: PlaybackDelays = PlaybackDelays(),
+    val sleepTimer: SleepTimerState = SleepTimerState(),
     val hasMedia: Boolean = false,
     /** True for known video and network streams, which may expose video after probing. */
     val hasVideoOutput: Boolean = false,
@@ -57,9 +59,12 @@ class PlayerViewModel(
             combine(
                 playback.state,
                 playback.progress,
-                combine(playback.currentPlaylist, playback.stopAfterCurrent, playback.videoScaleMode, playback.tracks, playback.delays) { playlist, stopAfter, scale, tracks, delays ->
-                    PlayerContext(playlist, stopAfter, scale, tracks, delays)
-                },
+                combine(
+                    combine(playback.currentPlaylist, playback.stopAfterCurrent, playback.videoScaleMode, playback.tracks, playback.delays) { playlist, stopAfter, scale, tracks, delays ->
+                        PlayerContext(playlist, stopAfter, scale, tracks, delays)
+                    },
+                    playback.sleepTimer,
+                ) { context, sleepTimer -> context.copy(sleepTimer = sleepTimer) },
                 playback.abRepeat,
                 playback.abRepeatEnabled,
             ) { st, prog, playlistAndStopAfter, abRepeat, abRepeatEnabled ->
@@ -73,8 +78,9 @@ class PlayerViewModel(
                     videoScaleMode = playlistAndStopAfter.videoScaleMode,
                     tracks = playlistAndStopAfter.tracks,
                     delays = playlistAndStopAfter.delays,
+                    sleepTimer = playlistAndStopAfter.sleepTimer,
                 )
-            }.collect { (st, prog, pl, abRepeat, abRepeatEnabled, stopAfterCurrent, videoScaleMode, tracks, delays) ->
+            }.collect { (st, prog, pl, abRepeat, abRepeatEnabled, stopAfterCurrent, videoScaleMode, tracks, delays, sleepTimer) ->
                 val item = when (st) {
                     is PlaybackState.Playing -> st.item
                     is PlaybackState.Paused -> st.item
@@ -103,6 +109,7 @@ class PlayerViewModel(
                         videoScaleMode = videoScaleMode,
                         tracks = tracks,
                         delays = delays,
+                        sleepTimer = sleepTimer,
                         hasMedia = item != null || pl.items.isNotEmpty(),
                         hasVideoOutput = item?.let { it.isVideo || it.isStream } == true,
                         error = (st as? PlaybackState.Error)?.message,
@@ -173,6 +180,11 @@ class PlayerViewModel(
 
     fun setSubtitleDelay(delayUs: Long) = playback.setSubtitleDelay(delayUs)
 
+    fun setSleepTimer(durationMillis: Long, waitForCurrentItem: Boolean) =
+        playback.setSleepTimer(durationMillis, waitForCurrentItem)
+
+    fun clearSleepTimer() = playback.clearSleepTimer()
+
     fun cycleRepeat() {
         val next = when (_state.value.repeatMode) {
             RepeatMode.NONE -> RepeatMode.ALL
@@ -197,6 +209,7 @@ private data class PlayerSnapshot(
     val videoScaleMode: VideoScaleMode,
     val tracks: PlaybackTracks,
     val delays: PlaybackDelays,
+    val sleepTimer: SleepTimerState = SleepTimerState(),
 )
 
 private data class PlayerContext(
@@ -205,4 +218,5 @@ private data class PlayerContext(
     val videoScaleMode: VideoScaleMode,
     val tracks: PlaybackTracks,
     val delays: PlaybackDelays,
+    val sleepTimer: SleepTimerState = SleepTimerState(),
 )

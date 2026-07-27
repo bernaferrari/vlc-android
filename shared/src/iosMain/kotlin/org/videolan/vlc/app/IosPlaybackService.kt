@@ -12,6 +12,7 @@ import org.videolan.vlc.player.PlaybackService
 import org.videolan.vlc.player.PlaybackState
 import org.videolan.vlc.player.PlaybackTracks
 import org.videolan.vlc.player.PlaybackDelays
+import org.videolan.vlc.player.SleepTimerState
 import org.videolan.vlc.player.PlayerBackend
 import org.videolan.vlc.player.PlaylistEngine
 import platform.Foundation.NSURL
@@ -39,6 +40,7 @@ class IosPlaybackService : PlaybackService {
     override val videoScaleMode: Flow<VideoScaleMode> get() = engine.videoScaleMode
     override val tracks: Flow<PlaybackTracks> get() = engine.tracks
     override val delays: Flow<PlaybackDelays> get() = engine.delays
+    override val sleepTimer: Flow<SleepTimerState> get() = engine.sleepTimer
 
     /**
      * Accepts the legacy VlcKitPlayerBackend and adapts it to [PlayerBackend].
@@ -121,6 +123,9 @@ class IosPlaybackService : PlaybackService {
     override fun selectSubtitleTrack(id: String) = engine.selectSubtitleTrack(id)
     override fun setAudioDelay(delayUs: Long) = engine.setAudioDelay(delayUs)
     override fun setSubtitleDelay(delayUs: Long) = engine.setSubtitleDelay(delayUs)
+    override fun setSleepTimer(durationMillis: Long, waitForCurrentItem: Boolean) =
+        engine.setSleepTimer(durationMillis, waitForCurrentItem)
+    override fun clearSleepTimer() = engine.clearSleepTimer()
     override fun addObserver(observer: PlaybackObserver) = engine.addObserver(observer)
     override fun removeObserver(observer: PlaybackObserver) = engine.removeObserver(observer)
 

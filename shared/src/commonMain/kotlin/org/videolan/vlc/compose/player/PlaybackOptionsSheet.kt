@@ -25,6 +25,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -41,6 +42,7 @@ import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.player.VideoScaleMode
 import org.videolan.vlc.player.PlaybackTracks
 import org.videolan.vlc.player.PlaybackDelays
+import org.videolan.vlc.player.SleepTimerState
 import vlc_android.shared.generated.resources.Res
 import vlc_android.shared.generated.resources.done
 import vlc_android.shared.generated.resources.ab_repeat
@@ -49,6 +51,9 @@ import vlc_android.shared.generated.resources.audio
 import vlc_android.shared.generated.resources.subtitles
 import vlc_android.shared.generated.resources.audio_delay
 import vlc_android.shared.generated.resources.spu_delay
+import vlc_android.shared.generated.resources.sleep_title
+import vlc_android.shared.generated.resources.wait_before_sleep
+import vlc_android.shared.generated.resources.cancel
 import vlc_android.shared.generated.resources.ab_repeat_reset
 import vlc_android.shared.generated.resources.ab_repeat_stop
 import vlc_android.shared.generated.resources.abrepeat_add_first_marker
@@ -83,6 +88,7 @@ internal fun PlaybackOptionsSheet(
     videoScaleMode: VideoScaleMode,
     tracks: PlaybackTracks,
     delays: PlaybackDelays,
+    sleepTimer: SleepTimerState,
     showVideoOptions: Boolean,
     onSetRate: (Float) -> Unit,
     onPlayQueueItem: (Int) -> Unit,
@@ -98,6 +104,8 @@ internal fun PlaybackOptionsSheet(
     onSelectSubtitleTrack: (String) -> Unit,
     onSetAudioDelay: (Long) -> Unit,
     onSetSubtitleDelay: (Long) -> Unit,
+    onSetSleepTimer: (Long, Boolean) -> Unit,
+    onClearSleepTimer: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     var previewRate by remember(rate) { mutableFloatStateOf(rate) }
@@ -282,6 +290,13 @@ internal fun PlaybackOptionsSheet(
             }
 
             HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
+            SleepTimerChoices(
+                state = sleepTimer,
+                onSetTimer = onSetSleepTimer,
+                onClear = onClearSleepTimer,
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
             Text(
                 "${stringResource(Res.string.playlist)} · ${queue.size}",
                 style = MaterialTheme.typography.titleLarge,
@@ -358,6 +373,45 @@ private fun DelayChoices(title: String, delayUs: Long, onSetDelay: (Long) -> Uni
             FilterChip(selected = delayUs == 0L, onClick = { onSetDelay(0L) }, label = { Text(stringResource(Res.string.reset)) })
             FilterChip(selected = false, onClick = { onSetDelay(delayUs + 500_000L) }, label = { Text("+500 ms") })
         }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalLayoutApi::class)
+private fun SleepTimerChoices(
+    state: SleepTimerState,
+    onSetTimer: (Long, Boolean) -> Unit,
+    onClear: () -> Unit,
+) {
+    var waitForCurrentItem by remember(state.isActive) { mutableStateOf(state.waitForCurrentItem) }
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(stringResource(Res.string.sleep_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            if (state.isActive) {
+                Text(
+                    if (state.awaitingCurrentItemEnd) "After this item" else formatPlaybackTime(state.remainingMillis),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+        }
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf(15L, 30L, 60L).forEach { minutes ->
+                FilterChip(
+                    selected = state.isActive && state.durationMillis == minutes * 60_000L,
+                    onClick = { onSetTimer(minutes * 60_000L, waitForCurrentItem) },
+                    label = { Text("$minutes min") },
+                )
+            }
+            if (state.isActive) {
+                FilterChip(selected = false, onClick = onClear, label = { Text(stringResource(Res.string.cancel)) })
+            }
+        }
+        FilterChip(
+            selected = waitForCurrentItem,
+            onClick = { waitForCurrentItem = !waitForCurrentItem },
+            label = { Text(stringResource(Res.string.wait_before_sleep)) },
+        )
     }
 }
 
