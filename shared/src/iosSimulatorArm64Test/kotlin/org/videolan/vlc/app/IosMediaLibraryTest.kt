@@ -12,8 +12,18 @@ import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.MediaType
 import org.videolan.vlc.model.Playlist
 import org.videolan.vlc.model.RepeatMode
+import org.videolan.vlc.platform.platformCapabilities
 
 class IosMediaLibraryTest {
+
+    @Test
+    fun iosCapabilityContractMatchesTheInstalledNativeBridges() {
+        assertTrue(platformCapabilities.nativePlayback)
+        assertTrue(platformCapabilities.rendererSelection)
+        assertTrue(platformCapabilities.networkBrowsing)
+        assertTrue(platformCapabilities.remoteAccessServer)
+        assertFalse(platformCapabilities.pictureInPicture)
+    }
 
     @Test
     fun durableCatalogRestoresMediaPlaylistsFavoritesAndHistory() = runTest {
