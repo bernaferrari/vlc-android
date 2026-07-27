@@ -10,6 +10,7 @@ class WasmShellHostCallbacksTest {
 
     @Test
     fun advertises_only_browser_supported_media_actions() {
+        assertTrue(callbacks.supportsSubtitleImport())
         assertTrue(callbacks.supportsContextAction(ContextOption.CTX_INFORMATION))
         assertTrue(callbacks.supportsContextAction(ContextOption.CTX_SHARE))
         assertFalse(callbacks.supportsContextAction(ContextOption.CTX_ADD_TO_PLAYLIST))

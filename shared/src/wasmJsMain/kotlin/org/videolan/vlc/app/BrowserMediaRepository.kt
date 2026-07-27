@@ -264,6 +264,24 @@ internal fun openBrowserMediaPicker(onFiles: (List<File>) -> Unit) {
     input.click()
 }
 
+/** Opens a subtitle-only picker and returns a page-lifetime object URL for the selected file. */
+internal fun openBrowserSubtitlePicker(onPicked: (String) -> Unit) {
+    val input = document.createElement("input") as HTMLInputElement
+    input.type = "file"
+    input.accept = ".vtt,.srt,.ass,.ssa,.sub,.ttml,text/vtt,text/plain"
+    input.multiple = false
+    input.style.display = "none"
+    input.onchange = {
+        input.files?.item(0)?.let { file -> onPicked(createBrowserObjectUrl(file)) }
+        input.parentNode?.removeChild(input)
+    }
+    observeBrowserPickerCancellation(input) { input.parentNode?.removeChild(input) }
+    document.body?.appendChild(input)
+    input.click()
+}
+
+private fun createBrowserObjectUrl(file: File): String = js("globalThis.URL.createObjectURL(file)")
+
 internal fun encodeBrowserMediaCatalog(entries: List<BrowserStoredMedia>): String = buildString {
     append(BROWSER_MEDIA_CATALOG_VERSION)
     entries.forEach { entry ->

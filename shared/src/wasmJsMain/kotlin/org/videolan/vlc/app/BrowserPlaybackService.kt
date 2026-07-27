@@ -15,6 +15,7 @@ import org.videolan.vlc.player.PlaybackService
 import org.videolan.vlc.player.PlaybackState
 import org.videolan.vlc.player.VideoScaleMode
 import org.videolan.vlc.player.PlaybackTracks
+import org.videolan.vlc.player.PlaybackTrack
 import org.videolan.vlc.player.SleepTimerController
 import org.videolan.vlc.player.SleepTimerState
 import org.w3c.dom.HTMLElement
@@ -80,6 +81,7 @@ internal class BrowserPlaybackService : PlaybackService {
         )
         notifyPlaylist()
         _progress.value = Progress(length = item.duration)
+        _tracks.value = PlaybackTracks()
         notifyProgress()
         if (item.isBrowserPlayableMedia()) {
             emitState(PlaybackState.Loading)
@@ -114,6 +116,15 @@ internal class BrowserPlaybackService : PlaybackService {
         sleepTimerController.start(durationMillis, waitForCurrentItem)
 
     override fun clearSleepTimer() = sleepTimerController.clear()
+
+    override fun loadExternalSubtitle(uri: String): Boolean {
+        val element = mediaElement ?: return false
+        attachHtmlSubtitleTrack(element, uri)
+        _tracks.value = PlaybackTracks(
+            subtitles = listOf(PlaybackTrack(id = uri, label = "External subtitle", selected = true)),
+        )
+        return true
+    }
 
     override fun seekTo(position: Long) {
         val target = position.coerceAtLeast(0L)
@@ -450,6 +461,20 @@ private fun setHtmlMediaRate(element: HTMLElement, rate: Float): Unit = js("{ el
 
 private fun setHtmlMediaObjectFit(element: HTMLElement, objectFit: String): Unit = js(
     "{ element.style.objectFit = objectFit; }",
+)
+
+private fun attachHtmlSubtitleTrack(element: HTMLElement, uri: String): Unit = js(
+    """{
+        const existing = element.querySelector?.('track[data-vlc-external-subtitle]');
+        existing?.remove?.();
+        const track = document.createElement('track');
+        track.kind = 'subtitles';
+        track.src = uri;
+        track.default = true;
+        track.setAttribute('data-vlc-external-subtitle', 'true');
+        element.appendChild(track);
+        track.track && (track.track.mode = 'showing');
+    }""",
 )
 
 private fun observeHtmlMediaEnd(element: HTMLElement, onEnded: () -> Unit): Unit = js(

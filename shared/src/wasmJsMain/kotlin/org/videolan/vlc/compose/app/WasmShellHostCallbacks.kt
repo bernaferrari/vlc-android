@@ -5,6 +5,7 @@ package org.videolan.vlc.compose.app
 import org.koin.mp.KoinPlatform
 import org.videolan.vlc.app.BrowserMediaRepository
 import org.videolan.vlc.app.openBrowserMediaPicker
+import org.videolan.vlc.app.openBrowserSubtitlePicker
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.util.ContextOption
 
@@ -20,6 +21,10 @@ class WasmShellHostCallbacks : ShellHostCallbacks {
         val mediaRepository = KoinPlatform.getKoin().get<BrowserMediaRepository>()
         openBrowserMediaPicker(mediaRepository::importFiles)
     }
+
+    override fun supportsSubtitleImport(): Boolean = true
+
+    override fun onImportSubtitle(onPicked: (String) -> Unit) = openBrowserSubtitlePicker(onPicked)
 
     override fun supportsContextAction(option: ContextOption): Boolean = when (option) {
         ContextOption.CTX_INFORMATION,

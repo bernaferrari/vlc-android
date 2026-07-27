@@ -50,13 +50,13 @@ import vlc_android.shared.generated.resources.ab_repeat
 import vlc_android.shared.generated.resources.aspect_ratio
 import vlc_android.shared.generated.resources.audio
 import vlc_android.shared.generated.resources.subtitles
+import vlc_android.shared.generated.resources.subtitle_select
 import vlc_android.shared.generated.resources.audio_delay
 import vlc_android.shared.generated.resources.spu_delay
 import vlc_android.shared.generated.resources.sleep_title
 import vlc_android.shared.generated.resources.wait_before_sleep
 import vlc_android.shared.generated.resources.cancel
 import vlc_android.shared.generated.resources.go_to_chapter
-import vlc_android.shared.generated.resources.subtitles
 import vlc_android.shared.generated.resources.ab_repeat_reset
 import vlc_android.shared.generated.resources.ab_repeat_stop
 import vlc_android.shared.generated.resources.abrepeat_add_first_marker
@@ -283,7 +283,7 @@ internal fun PlaybackOptionsSheet(
             }
             if (showSubtitleImport) {
                 TextButton(onClick = onImportSubtitle, modifier = Modifier.align(Alignment.Start)) {
-                    Text(stringResource(Res.string.subtitles))
+                    Text(stringResource(Res.string.subtitle_select))
                 }
             }
 
