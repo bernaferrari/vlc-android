@@ -54,6 +54,7 @@ import org.videolan.vlc.player.PlaybackDelays
 import org.videolan.vlc.player.SleepTimerState
 import org.videolan.vlc.player.PlaybackChapters
 import org.videolan.vlc.player.PlaybackEqualizer
+import org.videolan.vlc.player.PlaybackBookmarks
 import org.videolan.vlc.platform.RendererInfo
 import org.videolan.vlc.platform.RendererType
 import org.videolan.vlc.compose.components.VLCRendererPickerDialogContent
@@ -96,6 +97,7 @@ fun VideoSurfaceWithHud(
     renderers: List<RendererInfo> = emptyList(),
     selectedRendererId: String? = null,
     equalizer: PlaybackEqualizer = PlaybackEqualizer(),
+    bookmarks: PlaybackBookmarks = PlaybackBookmarks(),
     onTogglePlay: () -> Unit,
     onSeek: (Long) -> Unit,
     onNext: () -> Unit,
@@ -134,6 +136,10 @@ fun VideoSurfaceWithHud(
     onSelectEqualizerPreset: (String) -> Unit = {},
     onSetEqualizerPreamp: (Float) -> Unit = {},
     onSetEqualizerBand: (Int, Float) -> Unit = { _, _ -> },
+    onAddBookmark: () -> Unit = {},
+    onRemoveBookmark: (String) -> Unit = {},
+    onRenameBookmark: (String, String) -> Unit = { _, _ -> },
+    onSeekBookmark: (Long) -> Unit = {},
     onClose: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     surface: @Composable BoxScope.(chromeVisible: Boolean) -> Unit,
@@ -262,6 +268,7 @@ fun VideoSurfaceWithHud(
             sleepTimer = sleepTimer,
             chapters = chapters,
             equalizer = equalizer,
+            bookmarks = bookmarks,
             showVideoOptions = hasVideoOutput,
             onSetRate = onSetRate,
             onPlayQueueItem = {
@@ -291,6 +298,10 @@ fun VideoSurfaceWithHud(
             onSelectEqualizerPreset = onSelectEqualizerPreset,
             onSetEqualizerPreamp = onSetEqualizerPreamp,
             onSetEqualizerBand = onSetEqualizerBand,
+            onAddBookmark = onAddBookmark,
+            onRemoveBookmark = onRemoveBookmark,
+            onRenameBookmark = onRenameBookmark,
+            onSeekBookmark = onSeekBookmark,
             showSubtitleImport = showSubtitleImport,
             onImportSubtitle = onImportSubtitle,
             onDismiss = { optionsVisible = false },

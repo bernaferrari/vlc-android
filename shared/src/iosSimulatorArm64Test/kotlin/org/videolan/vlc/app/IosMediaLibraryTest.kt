@@ -78,6 +78,23 @@ class IosMediaLibraryTest {
     }
 
     @Test
+    fun bookmarksPersistAndFollowAnImportedFileRename() {
+        val store = InMemoryIosCatalogStore()
+        val library = IosMediaLibrary.forTesting(store)
+        val original = video(id = 52_000, uri = "file:///Documents/bookmarked.mp4")
+        library.upsert(original)
+        val created = assertNotNull(library.addBookmark(original.uri, 12_000L))
+        library.renameBookmark(original.uri, created.id, "Opening")
+        library.updateMediaAfterFileRename(original.id, "file:///Documents/renamed.mp4", "renamed.mp4")
+
+        val restored = IosMediaLibrary.forTesting(store)
+        assertEquals(
+            listOf("Opening" to 12_000L),
+            restored.bookmarksFor("file:///Documents/renamed.mp4").map { it.title to it.timeMs },
+        )
+    }
+
+    @Test
     fun documentReconciliationRemovesMissingLocalFilesButKeepsStreamsAndPlaylistReferences() = runTest {
         val library = IosMediaLibrary.forTesting(InMemoryIosCatalogStore())
         val local = video(id = 60_001, uri = "file:///Documents/missing.mp4")

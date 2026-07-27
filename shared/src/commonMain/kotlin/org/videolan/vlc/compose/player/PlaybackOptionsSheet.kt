@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
@@ -22,6 +23,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -50,6 +52,8 @@ import org.videolan.vlc.player.PlaybackDelays
 import org.videolan.vlc.player.SleepTimerState
 import org.videolan.vlc.player.PlaybackChapters
 import org.videolan.vlc.player.PlaybackEqualizer
+import org.videolan.vlc.player.PlaybackBookmarks
+import org.videolan.vlc.player.PlaybackBookmark
 import vlc_android.shared.generated.resources.Res
 import vlc_android.shared.generated.resources.done
 import vlc_android.shared.generated.resources.ab_repeat
@@ -80,6 +84,11 @@ import vlc_android.shared.generated.resources.enable_equalizer
 import vlc_android.shared.generated.resources.preamp
 import vlc_android.shared.generated.resources.video_crop
 import vlc_android.shared.generated.resources.video_adjust
+import vlc_android.shared.generated.resources.bookmarks
+import vlc_android.shared.generated.resources.add_bookmark
+import vlc_android.shared.generated.resources.delete
+import vlc_android.shared.generated.resources.rename
+import vlc_android.shared.generated.resources.save
 
 private val PlaybackRatePresets = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f)
 
@@ -107,6 +116,7 @@ internal fun PlaybackOptionsSheet(
     sleepTimer: SleepTimerState,
     chapters: PlaybackChapters,
     equalizer: PlaybackEqualizer,
+    bookmarks: PlaybackBookmarks,
     showVideoOptions: Boolean,
     onSetRate: (Float) -> Unit,
     onPlayQueueItem: (Int) -> Unit,
@@ -133,11 +143,17 @@ internal fun PlaybackOptionsSheet(
     onSelectEqualizerPreset: (String) -> Unit,
     onSetEqualizerPreamp: (Float) -> Unit,
     onSetEqualizerBand: (Int, Float) -> Unit,
+    onAddBookmark: () -> Unit,
+    onRemoveBookmark: (String) -> Unit,
+    onRenameBookmark: (String, String) -> Unit,
+    onSeekBookmark: (Long) -> Unit,
     showSubtitleImport: Boolean,
     onImportSubtitle: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     var previewRate by remember(rate) { mutableFloatStateOf(rate) }
+    var bookmarkToRename by remember { mutableStateOf<PlaybackBookmark?>(null) }
+    var bookmarkName by remember { mutableStateOf("") }
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
@@ -448,6 +464,42 @@ internal fun PlaybackOptionsSheet(
                 }
             }
 
+            if (bookmarks.supported) {
+                HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(stringResource(Res.string.bookmarks), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                    TextButton(onClick = onAddBookmark) { Text(stringResource(Res.string.add_bookmark)) }
+                }
+                bookmarks.entries.forEach { bookmark ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        TextButton(onClick = { onSeekBookmark(bookmark.timeMs) }, modifier = Modifier.weight(1f)) {
+                            Text(
+                                "${bookmark.title} · ${formatPlaybackTime(bookmark.timeMs)}",
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        TextButton(onClick = { onRemoveBookmark(bookmark.id) }) {
+                            Text(stringResource(Res.string.delete))
+                        }
+                        TextButton(onClick = {
+                            bookmarkToRename = bookmark
+                            bookmarkName = bookmark.title
+                        }) {
+                            Text(stringResource(Res.string.rename))
+                        }
+                    }
+                }
+            }
+
             HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
             Text(
                 "${stringResource(Res.string.playlist)} · ${queue.size}",
@@ -487,6 +539,32 @@ internal fun PlaybackOptionsSheet(
                 Text(stringResource(Res.string.done))
             }
         }
+    }
+    bookmarkToRename?.let { bookmark ->
+        AlertDialog(
+            onDismissRequest = { bookmarkToRename = null },
+            title = { Text(stringResource(Res.string.rename)) },
+            text = {
+                OutlinedTextField(
+                    value = bookmarkName,
+                    onValueChange = { bookmarkName = it },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onRenameBookmark(bookmark.id, bookmarkName)
+                        bookmarkToRename = null
+                    },
+                    enabled = bookmarkName.isNotBlank(),
+                ) { Text(stringResource(Res.string.save)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { bookmarkToRename = null }) { Text(stringResource(Res.string.cancel)) }
+            },
+        )
     }
 }
 

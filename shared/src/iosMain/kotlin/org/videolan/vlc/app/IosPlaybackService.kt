@@ -1,6 +1,12 @@
 package org.videolan.vlc.app
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.ABRepeat
 import org.videolan.vlc.model.Playlist
@@ -19,6 +25,7 @@ import org.videolan.vlc.player.PlaybackVideoCrop
 import org.videolan.vlc.player.VideoCropMode
 import org.videolan.vlc.player.PlaybackVideoAdjust
 import org.videolan.vlc.player.VideoAdjustParameter
+import org.videolan.vlc.player.PlaybackBookmarks
 import org.videolan.vlc.player.shouldPersistPlaybackSession
 import org.videolan.vlc.player.PlayerBackend
 import org.videolan.vlc.player.PlaylistEngine
@@ -38,6 +45,8 @@ class IosPlaybackService : PlaybackService {
 
     private val engine = PlaylistEngine()
     private var kitBackend: VlcKitPlayerBackend? = null
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val _bookmarks = MutableStateFlow(PlaybackBookmarks())
 
     override val state: Flow<PlaybackState> get() = engine.state
     override val progress: Flow<Progress> get() = engine.progress
@@ -53,6 +62,13 @@ class IosPlaybackService : PlaybackService {
     override val equalizer: Flow<PlaybackEqualizer> get() = engine.equalizer
     override val videoCrop: Flow<PlaybackVideoCrop> get() = engine.videoCrop
     override val videoAdjust: Flow<PlaybackVideoAdjust> get() = engine.videoAdjust
+    override val bookmarks: Flow<PlaybackBookmarks> = _bookmarks.asStateFlow()
+
+    init {
+        scope.launch {
+            engine.state.collect { refreshBookmarks() }
+        }
+    }
 
     /**
      * Accepts the legacy VlcKitPlayerBackend and adapts it to [PlayerBackend].
@@ -166,6 +182,21 @@ class IosPlaybackService : PlaybackService {
     override fun setVideoAdjust(parameter: VideoAdjustParameter, value: Float) =
         engine.setVideoAdjust(parameter, value)
     override fun resetVideoAdjust() = engine.resetVideoAdjust()
+    override fun addBookmark() {
+        val item = engine.currentItem() ?: return
+        IosMediaLibrary.shared.addBookmark(item.uri, engine.progress.value.time)
+        refreshBookmarks()
+    }
+    override fun removeBookmark(id: String) {
+        val item = engine.currentItem() ?: return
+        IosMediaLibrary.shared.removeBookmark(item.uri, id)
+        refreshBookmarks()
+    }
+    override fun renameBookmark(id: String, title: String) {
+        val item = engine.currentItem() ?: return
+        IosMediaLibrary.shared.renameBookmark(item.uri, id, title)
+        refreshBookmarks()
+    }
     override fun addObserver(observer: PlaybackObserver) = engine.addObserver(observer)
     override fun removeObserver(observer: PlaybackObserver) = engine.removeObserver(observer)
 
@@ -190,6 +221,15 @@ class IosPlaybackService : PlaybackService {
             audioResumeEnabled = VlcSettings.audioResumePlayback.value,
             videoResumeEnabled = VlcSettings.videoResumePlayback.value,
         )
+
+    private fun refreshBookmarks() {
+        val item = engine.currentItem()
+        _bookmarks.value = if (item == null || item.uri.isBlank()) {
+            PlaybackBookmarks()
+        } else {
+            PlaybackBookmarks(supported = true, entries = IosMediaLibrary.shared.bookmarksFor(item.uri))
+        }
+    }
 
     companion object {
         val shared: IosPlaybackService by lazy { IosPlaybackService() }

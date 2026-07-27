@@ -39,7 +39,7 @@ internal class FileIosCatalogStore(
             catalogJson.decodeFromString<IosCatalogSnapshot>(source.readUtf8())
         } finally {
             source.close()
-        }.takeIf { it.schemaVersion == IosCatalogSnapshot.SCHEMA_VERSION }
+        }.takeIf { it.schemaVersion in 1..IosCatalogSnapshot.SCHEMA_VERSION }
     }.getOrNull()
 
     override fun write(snapshot: IosCatalogSnapshot) {
@@ -74,13 +74,22 @@ internal data class IosCatalogSnapshot(
     val favoritePlaylistIds: List<Long> = emptyList(),
     val history: List<StoredHistoryEntry> = emptyList(),
     val playbackSession: StoredPlaybackSession? = null,
+    val bookmarks: List<StoredPlaybackBookmark> = emptyList(),
     val nextId: Long = 10_000L,
     val nextPlaylistId: Long = 1L,
 ) {
     companion object {
-        const val SCHEMA_VERSION = 1
+        const val SCHEMA_VERSION = 2
     }
 }
+
+@Serializable
+internal data class StoredPlaybackBookmark(
+    val mediaUri: String,
+    val id: String,
+    val timeMs: Long,
+    val title: String,
+)
 
 @Serializable
 internal data class StoredMediaItem(

@@ -269,6 +269,7 @@ internal fun PlayerDestination(
         renderers = state.renderers,
         selectedRendererId = state.selectedRendererId,
         equalizer = state.equalizer,
+        bookmarks = state.bookmarks,
         onTogglePlay = viewModel::togglePlayPause,
         onSeek = viewModel::seekTo,
         onNext = viewModel::next,
@@ -307,6 +308,10 @@ internal fun PlayerDestination(
         onSelectEqualizerPreset = viewModel::selectEqualizerPreset,
         onSetEqualizerPreamp = viewModel::setEqualizerPreamp,
         onSetEqualizerBand = viewModel::setEqualizerBand,
+        onAddBookmark = viewModel::addBookmark,
+        onRemoveBookmark = viewModel::removeBookmark,
+        onRenameBookmark = viewModel::renameBookmark,
+        onSeekBookmark = viewModel::seekTo,
         onClose = onClose,
         modifier = modifier,
     ) { chromeVisible -> playerSurface(state, chromeVisible) }

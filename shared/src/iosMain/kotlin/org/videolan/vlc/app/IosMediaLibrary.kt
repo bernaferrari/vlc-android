@@ -11,6 +11,7 @@ import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.MediaType
 import org.videolan.vlc.model.Playlist
 import org.videolan.vlc.model.PlaylistInfo
+import org.videolan.vlc.player.PlaybackBookmark
 import org.videolan.vlc.repository.HistoryRepository
 import org.videolan.vlc.repository.MediaRepository
 import org.videolan.vlc.repository.PlaylistRepository
@@ -39,6 +40,7 @@ class IosMediaLibrary private constructor(
     private val playlists = MutableStateFlow<Map<Long, Playlist>>(emptyMap())
     private val favoritePlaylistIds = MutableStateFlow<Set<Long>>(emptySet())
     private val history = MutableStateFlow<List<HistoryEntry>>(emptyList())
+    private val bookmarks = MutableStateFlow<List<StoredPlaybackBookmark>>(emptyList())
     private var savedPlaybackSession: IosPlaybackSession? = null
     private var nextId = FIRST_MEDIA_ID
     private var nextFolderId = 1L
@@ -84,6 +86,48 @@ class IosMediaLibrary private constructor(
     internal fun clearPlaybackSession() {
         if (savedPlaybackSession == null) return
         savedPlaybackSession = null
+        persist()
+    }
+
+    /** Durable media-position bookmarks used by the shared player on iOS. */
+    internal fun bookmarksFor(uri: String): List<PlaybackBookmark> =
+        bookmarks.value.asSequence()
+            .filter { it.mediaUri == uri }
+            .sortedBy(StoredPlaybackBookmark::timeMs)
+            .map { PlaybackBookmark(id = it.id, timeMs = it.timeMs, title = it.title) }
+            .toList()
+
+    internal fun addBookmark(uri: String, timeMs: Long): PlaybackBookmark? {
+        if (uri.isBlank()) return null
+        val time = timeMs.coerceAtLeast(0L)
+        val existing = bookmarks.value.firstOrNull { it.mediaUri == uri && it.timeMs == time }
+        if (existing != null) return PlaybackBookmark(existing.id, existing.timeMs, existing.title)
+        val bookmark = StoredPlaybackBookmark(
+            mediaUri = uri,
+            id = "$uri#$time",
+            timeMs = time,
+            title = "Bookmark at ${formatBookmarkTime(time)}",
+        )
+        bookmarks.value = bookmarks.value + bookmark
+        persist()
+        return PlaybackBookmark(bookmark.id, bookmark.timeMs, bookmark.title)
+    }
+
+    internal fun removeBookmark(uri: String, id: String) {
+        val updated = bookmarks.value.filterNot { it.mediaUri == uri && it.id == id }
+        if (updated == bookmarks.value) return
+        bookmarks.value = updated
+        persist()
+    }
+
+    internal fun renameBookmark(uri: String, id: String, title: String) {
+        val trimmed = title.trim()
+        if (trimmed.isBlank()) return
+        val updated = bookmarks.value.map { bookmark ->
+            if (bookmark.mediaUri == uri && bookmark.id == id) bookmark.copy(title = trimmed) else bookmark
+        }
+        if (updated == bookmarks.value) return
+        bookmarks.value = updated
         persist()
     }
 
@@ -203,6 +247,13 @@ class IosMediaLibrary private constructor(
                 if (item.uri == original.uri) renamed else item
             }))
         }
+        bookmarks.value = bookmarks.value.map { bookmark ->
+            if (bookmark.mediaUri == original.uri) {
+                bookmark.copy(mediaUri = uri, id = "$uri#${bookmark.timeMs}")
+            } else {
+                bookmark
+            }
+        }
         rebuildFolderIndex()
         persist()
     }
@@ -213,6 +264,7 @@ class IosMediaLibrary private constructor(
         favoritePlaylistIds.value = emptySet()
         history.value = emptyList()
         savedPlaybackSession = null
+        bookmarks.value = emptyList()
         rebuildFolderIndex()
         persist()
     }
@@ -446,6 +498,7 @@ class IosMediaLibrary private constructor(
         favoritePlaylistIds.value = snapshot.favoritePlaylistIds.toSet().intersect(playlists.value.keys)
         history.value = snapshot.history.map(StoredHistoryEntry::toHistoryEntry)
         savedPlaybackSession = snapshot.playbackSession?.toPlaybackSession()
+        bookmarks.value = snapshot.bookmarks
         nextId = maxOf(snapshot.nextId, (items.value.maxOfOrNull { it.id } ?: FIRST_MEDIA_ID - 1L) + 1L)
         nextPlaylistId = maxOf(snapshot.nextPlaylistId, (playlists.value.keys.maxOrNull() ?: 0L) + 1L)
         refreshPlaylistMetadata()
@@ -460,6 +513,7 @@ class IosMediaLibrary private constructor(
                 favoritePlaylistIds = favoritePlaylistIds.value.sorted(),
                 history = history.value.map(HistoryEntry::toStored),
                 playbackSession = savedPlaybackSession?.toStored(),
+                bookmarks = bookmarks.value,
                 nextId = nextId,
                 nextPlaylistId = nextPlaylistId,
             )
@@ -592,3 +646,8 @@ private fun String.isUnderAny(roots: List<String>): Boolean {
 
 private fun String.isSafeFileName(): Boolean =
     isNotBlank() && this !in setOf(".", "..") && '/' !in this && '\\' !in this
+
+private fun formatBookmarkTime(timeMs: Long): String {
+    val seconds = timeMs.coerceAtLeast(0L) / 1_000L
+    return "${seconds / 60L}:${(seconds % 60L).toString().padStart(2, '0')}"
+}

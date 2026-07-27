@@ -14,6 +14,8 @@ import org.videolan.vlc.player.PlaybackObserver
 import org.videolan.vlc.player.PlaybackService
 import org.videolan.vlc.player.PlaybackState
 import org.videolan.vlc.player.VideoScaleMode
+import org.videolan.vlc.player.PlaybackBookmark
+import org.videolan.vlc.player.PlaybackBookmarks
 
 /** Deterministic sample library for previews and unit tests. */
 object FakeCatalog {
@@ -112,6 +114,7 @@ class FakePlaybackService : PlaybackService {
     private val _abRepeatEnabled = MutableStateFlow(false)
     private val _stopAfterCurrent = MutableStateFlow(false)
     private val _videoScaleMode = MutableStateFlow(VideoScaleMode.BEST_FIT)
+    private val _bookmarks = MutableStateFlow(PlaybackBookmarks())
     private val observers = mutableListOf<PlaybackObserver>()
     private var volume = 100
     private var rate = 1f
@@ -123,6 +126,7 @@ class FakePlaybackService : PlaybackService {
     override val abRepeatEnabled: Flow<Boolean> = _abRepeatEnabled
     override val stopAfterCurrent: Flow<Boolean> = _stopAfterCurrent
     override val videoScaleMode: Flow<VideoScaleMode> = _videoScaleMode
+    override val bookmarks: Flow<PlaybackBookmarks> = _bookmarks
 
     override fun play(item: MediaItem, playlist: List<MediaItem>) {
         val list = playlist.ifEmpty { listOf(item) }
@@ -187,6 +191,23 @@ class FakePlaybackService : PlaybackService {
     override fun setRate(rate: Float) { this.rate = rate }
     override fun getRate(): Float = rate
     override fun setVideoScaleMode(mode: VideoScaleMode) { _videoScaleMode.value = mode }
+    override fun addBookmark() {
+        val item = _playlist.value.current ?: return
+        val time = _progress.value.time
+        val entry = PlaybackBookmark("${item.uri}#$time", time, "Bookmark at $time")
+        _bookmarks.value = PlaybackBookmarks(
+            supported = true,
+            entries = (_bookmarks.value.entries.filterNot { it.id == entry.id } + entry).sortedBy { it.timeMs },
+        )
+    }
+    override fun removeBookmark(id: String) {
+        _bookmarks.value = _bookmarks.value.copy(entries = _bookmarks.value.entries.filterNot { it.id == id })
+    }
+    override fun renameBookmark(id: String, title: String) {
+        _bookmarks.value = _bookmarks.value.copy(entries = _bookmarks.value.entries.map {
+            if (it.id == id && title.isNotBlank()) it.copy(title = title.trim()) else it
+        })
+    }
     override fun addObserver(observer: PlaybackObserver) { observers.add(observer) }
     override fun removeObserver(observer: PlaybackObserver) { observers.remove(observer) }
 

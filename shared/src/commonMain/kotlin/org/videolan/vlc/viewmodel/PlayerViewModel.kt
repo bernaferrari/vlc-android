@@ -24,6 +24,7 @@ import org.videolan.vlc.player.PlaybackVideoCrop
 import org.videolan.vlc.player.VideoCropMode
 import org.videolan.vlc.player.PlaybackVideoAdjust
 import org.videolan.vlc.player.VideoAdjustParameter
+import org.videolan.vlc.player.PlaybackBookmarks
 import org.videolan.vlc.platform.RendererInfo
 
 data class PlayerUiState(
@@ -55,6 +56,7 @@ data class PlayerUiState(
     val equalizer: PlaybackEqualizer = PlaybackEqualizer(),
     val videoCrop: PlaybackVideoCrop = PlaybackVideoCrop(),
     val videoAdjust: PlaybackVideoAdjust = PlaybackVideoAdjust(),
+    val bookmarks: PlaybackBookmarks = PlaybackBookmarks(),
     val hasMedia: Boolean = false,
     /** True for known video and network streams, which may expose video after probing. */
     val hasVideoOutput: Boolean = false,
@@ -95,6 +97,11 @@ class PlayerViewModel(
         launch {
             playback.videoAdjust.collect { videoAdjust ->
                 _state.update { it.copy(videoAdjust = videoAdjust) }
+            }
+        }
+        launch {
+            playback.bookmarks.collect { bookmarks ->
+                _state.update { it.copy(bookmarks = bookmarks) }
             }
         }
         launch {
@@ -277,6 +284,12 @@ class PlayerViewModel(
         playback.setVideoAdjust(parameter, value)
 
     fun resetVideoAdjust() = playback.resetVideoAdjust()
+
+    fun addBookmark() = playback.addBookmark()
+
+    fun removeBookmark(id: String) = playback.removeBookmark(id)
+
+    fun renameBookmark(id: String, title: String) = playback.renameBookmark(id, title)
 
     fun cycleRepeat() {
         val next = when (_state.value.repeatMode) {

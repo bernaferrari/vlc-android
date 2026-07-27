@@ -35,6 +35,8 @@ import org.videolan.vlc.player.VideoScaleMode
 import org.videolan.vlc.player.PlaybackEqualizer
 import org.videolan.vlc.player.PlaybackEqualizerBand
 import org.videolan.vlc.player.PlaybackEqualizerPreset
+import org.videolan.vlc.player.PlaybackBookmark
+import org.videolan.vlc.player.PlaybackBookmarks
 import org.videolan.vlc.PlaybackService as AndroidPlaybackHost
 
 private const val MIN_PLAYBACK_RATE = 0.25f
@@ -100,6 +102,8 @@ class AndroidPlaybackService(
 
     private val _equalizer = MutableStateFlow(PlaybackEqualizer())
     override val equalizer: Flow<PlaybackEqualizer> = _equalizer.asStateFlow()
+    private val _bookmarks = MutableStateFlow(PlaybackBookmarks())
+    override val bookmarks: Flow<PlaybackBookmarks> = _bookmarks.asStateFlow()
     private var activeEqualizer: MediaPlayer.Equalizer? = null
     private var equalizerEnabled = false
     private var selectedEqualizerPresetId: String? = null
@@ -231,6 +235,31 @@ class AndroidPlaybackService(
     override fun seekRelative(delta: Long) {
         val current = manager()?.player?.getCurrentTime() ?: _progress.value.time
         seekTo(current + delta)
+    }
+
+    override fun addBookmark() {
+        val media = PlaylistManager.currentPlayedMedia.value ?: return
+        val position = _progress.value.time.coerceAtLeast(0L)
+        val added = runCatching { media.addBookmark(position) }.getOrNull() ?: return
+        // The media library owns persistence; this default is deliberately platform-neutral.
+        added.setName("Bookmark at ${formatBookmarkTime(position)}")
+        refreshBookmarksFromHost(media)
+    }
+
+    override fun removeBookmark(id: String) {
+        val media = PlaylistManager.currentPlayedMedia.value ?: return
+        val bookmark = media.bookmarks.orEmpty().firstOrNull { it.id.toString() == id } ?: return
+        runCatching { media.removeBookmark(bookmark.time) }
+        refreshBookmarksFromHost(media)
+    }
+
+    override fun renameBookmark(id: String, title: String) {
+        val media = PlaylistManager.currentPlayedMedia.value ?: return
+        val bookmark = media.bookmarks.orEmpty().firstOrNull { it.id.toString() == id } ?: return
+        val name = title.trim()
+        if (name.isBlank()) return
+        runCatching { bookmark.setName(name) }
+        refreshBookmarksFromHost(media)
     }
 
     override fun next() {
@@ -485,6 +514,7 @@ class AndroidPlaybackService(
         refreshDelaysFromHost()
         refreshChaptersFromHost()
         refreshEqualizerFromHost()
+        refreshBookmarksFromHost(media)
         val item = media?.toMediaItem() ?: currentItem()
         val progress = _progress.value
         val newState = when {
@@ -503,6 +533,31 @@ class AndroidPlaybackService(
     private fun currentItem(): MediaItem? =
         PlaylistManager.currentPlayedMedia.value?.toMediaItem()
             ?: _playlist.value.current
+
+    private fun refreshBookmarksFromHost(media: MediaWrapper? = PlaylistManager.currentPlayedMedia.value) {
+        _bookmarks.value = if (media == null) {
+            PlaybackBookmarks()
+        } else {
+            PlaybackBookmarks(
+                supported = media.id != 0L,
+                entries = media.bookmarks.orEmpty()
+                    .sortedBy { it.time }
+                    .map { bookmark ->
+                        PlaybackBookmark(
+                            id = bookmark.id.toString(),
+                            timeMs = bookmark.time,
+                            title = bookmark.title?.takeIf(String::isNotBlank)
+                                ?: "Bookmark at ${formatBookmarkTime(bookmark.time)}",
+                        )
+                    },
+            )
+        }
+    }
+
+    private fun formatBookmarkTime(timeMs: Long): String {
+        val seconds = timeMs.coerceAtLeast(0L) / 1_000L
+        return "%d:%02d".format(seconds / 60L, seconds % 60L)
+    }
 
     private fun refreshTracksFromHost() {
         val player = manager()?.player ?: run {

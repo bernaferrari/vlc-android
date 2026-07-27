@@ -192,6 +192,26 @@ class PlayerViewModelTest {
     }
 
     @Test
+    fun bookmarksAreManagedThroughTheSharedPlayerContract() = runTest {
+        val playback = FakePlaybackService()
+        val vm = PlayerViewModel(playback)
+        vm.play(FakeCatalog.items.first())
+        vm.seekTo(12_000L)
+
+        vm.addBookmark()
+        runCurrent()
+        val added = vm.state.value.bookmarks
+        assertTrue(added.supported)
+        assertEquals(1, added.entries.size)
+        assertEquals(12_000L, added.entries.single().timeMs)
+
+        vm.removeBookmark(added.entries.single().id)
+        runCurrent()
+        assertTrue(vm.state.value.bookmarks.entries.isEmpty())
+        vm.onCleared()
+    }
+
+    @Test
     fun pictureInPictureIsCapabilityGatedInSharedPlayerState() = runTest {
         val playback = FakePlaybackService()
         val pip = RecordingPipController()
