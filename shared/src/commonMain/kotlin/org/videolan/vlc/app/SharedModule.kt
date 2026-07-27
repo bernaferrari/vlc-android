@@ -5,6 +5,8 @@ import org.koin.dsl.module
 import org.videolan.tools.VlcPreferences
 import org.videolan.vlc.player.PlaybackController
 import org.videolan.vlc.player.PlaybackService
+import org.videolan.vlc.platform.NoOpRemoteAccessServerController
+import org.videolan.vlc.platform.RemoteAccessServerController
 import org.videolan.vlc.repository.HistoryRepository
 import org.videolan.vlc.repository.MediaRepository
 import org.videolan.vlc.repository.PlaylistRepository
@@ -61,7 +63,12 @@ private val presentationModule: Module = module {
         )
     }
     factory { PlayerViewModel(playback = get<PlaybackService>(), controller = get()) }
-    factory { SettingsViewModel(prefs = get()) }
+    factory {
+        SettingsViewModel(
+            prefs = get(),
+            remoteAccessServer = getOrNull<RemoteAccessServerController>() ?: NoOpRemoteAccessServerController,
+        )
+    }
     factory {
         LibraryViewModel(
             mediaRepository = get<MediaRepository>(),

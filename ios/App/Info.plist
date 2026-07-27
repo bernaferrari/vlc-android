@@ -32,6 +32,8 @@
 	<string>VLC imports videos and audio from your photo library for playback.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>VLC can save media you export back to Photos.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>VLC uses your local network only when you enable local transfer to receive media from your own devices.</string>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UIApplicationSceneManifest</key>

@@ -18,6 +18,7 @@
 		E83794AFAEF22BD4B47FB0AD /* MediaImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E232693711721A109BA5E90 /* MediaImporter.swift */; };
 		EAF63E4A768514B75A1F59DD /* VlcKitBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = C39A17B3461CF8B76D62B858 /* VlcKitBackend.swift */; };
 		ED4022759B98E43D1F25DB69 /* VlcCarPlaySceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E8473F4B78D7AC063BA280C /* VlcCarPlaySceneDelegate.swift */; };
+		F1FF83BC7560AE6E819F3F35 /* IosWifiSharingBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C8D2FCB5515A848D092E90D /* IosWifiSharingBridge.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -40,6 +41,7 @@
 		4939DA2549803F7D1EBDE79C /* VlcExternalDisplayController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VlcExternalDisplayController.swift; sourceTree = "<group>"; };
 		52EAA4B4703AC5A1E3678DE3 /* CarPlay.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CarPlay.framework; path = System/Library/Frameworks/CarPlay.framework; sourceTree = SDKROOT; };
 		607C8408946D36A7E750425A /* VlcKitNetworkBrowser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VlcKitNetworkBrowser.swift; sourceTree = "<group>"; };
+		6C8D2FCB5515A848D092E90D /* IosWifiSharingBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosWifiSharingBridge.swift; sourceTree = "<group>"; };
 		7E8473F4B78D7AC063BA280C /* VlcCarPlaySceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VlcCarPlaySceneDelegate.swift; sourceTree = "<group>"; };
 		872AE79B2B54F682D91B6907 /* VLC-iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "VLC-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		8E232693711721A109BA5E90 /* MediaImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaImporter.swift; sourceTree = "<group>"; };
@@ -69,6 +71,7 @@
 				E48BF24C81066D3E9B9920D5 /* AppDelegate.swift */,
 				3F15D2B0CA4AC7F6830CBF4A /* Info.plist */,
 				9801AC43732CBD1D7D08019C /* IosMediaImportBridge.swift */,
+				6C8D2FCB5515A848D092E90D /* IosWifiSharingBridge.swift */,
 				8E232693711721A109BA5E90 /* MediaImporter.swift */,
 				D66E8A52891B1A66EDCACC29 /* VLC-iOS.entitlements */,
 				7E8473F4B78D7AC063BA280C /* VlcCarPlaySceneDelegate.swift */,
@@ -195,6 +198,7 @@
 			files = (
 				3D520F3C55284134956991B7 /* AppDelegate.swift in Sources */,
 				C75B33B8AE0A4FBEF8337C3A /* IosMediaImportBridge.swift in Sources */,
+				F1FF83BC7560AE6E819F3F35 /* IosWifiSharingBridge.swift in Sources */,
 				E83794AFAEF22BD4B47FB0AD /* MediaImporter.swift in Sources */,
 				ED4022759B98E43D1F25DB69 /* VlcCarPlaySceneDelegate.swift in Sources */,
 				BFE8BDF267FAB7F638FC4494 /* VlcExternalDisplayController.swift in Sources */,

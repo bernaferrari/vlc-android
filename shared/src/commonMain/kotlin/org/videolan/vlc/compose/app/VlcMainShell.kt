@@ -607,8 +607,34 @@ internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
             }
         }
         if (state.supportsRemoteAccess) item {
+            val remoteAccessAddress = state.remoteAccessAddress
+            val remoteAccessError = state.remoteAccessError
             SettingsGroup(title = ShellStrings.network()) {
                 ToggleRow(ShellStrings.remoteAccessServer(), state.remoteAccess, vm::setRemoteAccess)
+                when {
+                    state.remoteAccessStarting -> Text(
+                        ShellStrings.remoteAccessStarting(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
+                    )
+                    remoteAccessAddress != null -> Column(
+                        modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text(ShellStrings.remoteAccessUploadAddress(), style = MaterialTheme.typography.bodyMedium)
+                        Text(
+                            remoteAccessAddress,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = VLCThemeDefaults.colors.primary,
+                        )
+                    }
+                    remoteAccessError != null -> Text(
+                        remoteAccessError,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
+                    )
+                }
             }
         }
     }

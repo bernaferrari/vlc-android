@@ -45,7 +45,11 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
             _ = IosPlaybackService.companion.shared.restoreSession()
         }
         IosMediaImportController.shared.setHandler(handler: IosMediaImportBridge.shared)
+        IosRemoteAccessServer.shared.setHandler(handler: IosWifiSharingBridge.shared)
         MediaImporter.shared.rescanLocalFolders()
+        IosKoinBootstrap.shared.whenPreferencesReady {
+            IosRemoteAccessServer.shared.restorePersistedState()
+        }
         return true
     }
 
@@ -59,10 +63,19 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
 
     func applicationWillResignActive(_ application: UIApplication) {
         IosPlaybackService.companion.shared.saveSession()
+        // iOS does not grant a background-server mode for arbitrary local HTTP.
+        // Stop explicitly so shared settings never claim a suspended listener is live.
+        IosRemoteAccessServer.shared.setEnabled(enabled: false)
     }
 
     func applicationDidEnterBackground(_ application: UIApplication) {
         IosPlaybackService.companion.shared.saveSession()
+    }
+
+    func applicationDidBecomeActive(_ application: UIApplication) {
+        // The persisted switch remains enabled; resume the native listener only
+        // when the app is foregrounded and Local Network access is meaningful.
+        IosRemoteAccessServer.shared.restorePersistedState()
     }
 
     func applicationWillTerminate(_ application: UIApplication) {

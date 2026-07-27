@@ -6,6 +6,8 @@ actual val platformCapabilities = VlcPlatformCapabilities(
     rendererSelection = true,
     // Native MobileVLCKit discovery and folder parsing is bridged by Swift.
     networkBrowsing = true,
+    // Network.framework powers authenticated local Wi-Fi transfer uploads.
+    remoteAccessServer = true,
 )
 
 @OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)

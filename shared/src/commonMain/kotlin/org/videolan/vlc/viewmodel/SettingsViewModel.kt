@@ -19,6 +19,8 @@ import org.videolan.tools.VlcPreferences
 import org.videolan.tools.VlcSettings
 import org.videolan.vlc.app.VlcKoin
 import org.videolan.vlc.platform.VlcPlatformCapabilities
+import org.videolan.vlc.platform.NoOpRemoteAccessServerController
+import org.videolan.vlc.platform.RemoteAccessServerController
 import org.videolan.vlc.platform.platformCapabilities
 
 data class SettingsUiState(
@@ -29,6 +31,9 @@ data class SettingsUiState(
     val incognito: Boolean = false,
     val remoteAccess: Boolean = false,
     val supportsRemoteAccess: Boolean = false,
+    val remoteAccessStarting: Boolean = false,
+    val remoteAccessAddress: String? = null,
+    val remoteAccessError: String? = null,
     val showHeaders: Boolean = true,
     val showTrackNumbers: Boolean = true,
     val showHiddenFiles: Boolean = false,
@@ -45,6 +50,7 @@ class SettingsViewModel(
         VlcKoin.get().get<VlcPreferences>()
     }.getOrNull(),
     private val capabilities: VlcPlatformCapabilities = platformCapabilities,
+    private val remoteAccessServer: RemoteAccessServerController = NoOpRemoteAccessServerController,
 ) : VlcViewModel() {
 
     private val _state = MutableStateFlow(
@@ -87,6 +93,17 @@ class SettingsViewModel(
         if (capabilities.remoteAccessServer) {
             launch {
                 VlcSettings.remoteAccessEnabled.collect { v -> _state.update { it.copy(remoteAccess = v) } }
+            }
+            launch {
+                remoteAccessServer.state.collect { server ->
+                    _state.update {
+                        it.copy(
+                            remoteAccessStarting = server.isStarting,
+                            remoteAccessAddress = server.address,
+                            remoteAccessError = server.error,
+                        )
+                    }
+                }
             }
         }
         launchIo {
@@ -157,6 +174,7 @@ class SettingsViewModel(
 
     fun setRemoteAccess(value: Boolean) {
         if (!capabilities.remoteAccessServer) return
+        remoteAccessServer.setEnabled(value)
         setBool(KEY_ENABLE_REMOTE_ACCESS, value) {
             _state.update { it.copy(remoteAccess = value) }
         }

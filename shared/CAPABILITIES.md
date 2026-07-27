@@ -12,12 +12,18 @@ offering actions a target cannot execute.
 | Background audio and lock-screen transport | Android media session | AVAudioSession + Now Playing / Remote Command Center | Browser-managed, limited by browser policy | Not yet |
 | Picture in Picture | Yes, when Android activity supports it | Not yet | Not yet | Not yet |
 | Renderer / cast selection | LibVLC renderer bridge | Not yet | Not yet | Not yet |
-| Network share discovery and browsing | Yes | Not yet | Not yet | Not yet |
-| Remote access server setting | Yes | Not exposed | Not exposed | Not exposed |
+| Network share discovery and browsing | Yes | MobileVLCKit LAN discovery and folder parsing | Not yet | Not yet |
+| Remote access server setting | Yes | Authenticated local Wi-Fi media transfer | Not exposed | Not exposed |
 
 An unsupported capability is absent from the shared surface and is guarded in
 `PlaybackController`/view models. It must not resolve to a no-op bridge. Implementing a new native
 bridge requires changing this matrix and adding a target-level integration test before enabling it.
+
+The iOS transfer service is deliberately narrow: it is an authenticated, foreground-only local
+upload endpoint. Each enable creates a new bearer token, and incoming files are streamed to
+Documents then reconciled by the shared catalog. It is not a replacement for Android's full
+remote-control server; that broader protocol remains Android-owned until its portable behaviors
+are specified behind shared contracts.
 
 Wasm deliberately keeps its decoder boundary small: imported media is copied into the browser's
 origin-private file system when available and reopened as a fresh object URL. Browser codec and

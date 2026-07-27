@@ -66,6 +66,8 @@ object ShellStrings {
     @Composable fun network(): String = stringResource(Res.string.network)
     @Composable fun remoteAccess(): String = stringResource(Res.string.remote_access)
     @Composable fun remoteAccessServer(): String = stringResource(Res.string.remote_access_server)
+    @Composable fun remoteAccessStarting(): String = stringResource(Res.string.remote_access_starting)
+    @Composable fun remoteAccessUploadAddress(): String = stringResource(Res.string.remote_access_upload_address)
     @Composable fun browseNetwork(): String = stringResource(Res.string.browse_network)
     @Composable fun shuffle(): String = stringResource(Res.string.shuffle_play)
     @Composable fun shuffleAll(): String = stringResource(Res.string.shuffle_all_title)

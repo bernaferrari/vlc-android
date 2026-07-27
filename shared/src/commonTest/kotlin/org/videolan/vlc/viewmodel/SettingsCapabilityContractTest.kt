@@ -6,9 +6,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.videolan.tools.SettingsWriteBridge
 import org.videolan.tools.KEY_BROWSE_NETWORK
 import org.videolan.vlc.platform.VlcPlatformCapabilities
+import org.videolan.vlc.platform.RemoteAccessServerController
+import org.videolan.vlc.platform.RemoteAccessServerState
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -63,5 +66,37 @@ class SettingsCapabilityContractTest {
         assertFalse(viewModel.state.value.browseNetwork)
         assertEquals(listOf(KEY_BROWSE_NETWORK to false), writes)
         viewModel.onCleared()
+    }
+
+    @Test
+    fun remoteServerStatusAndLifecycleAreSharedWhileTheSocketRemainsNative() {
+        val server = FakeRemoteServer()
+        val viewModel = SettingsViewModel(
+            prefs = null,
+            capabilities = VlcPlatformCapabilities(nativePlayback = true, remoteAccessServer = true),
+            remoteAccessServer = server,
+        )
+
+        viewModel.setRemoteAccess(true)
+        server.mutableState.value = RemoteAccessServerState(
+            isRunning = true,
+            address = "http://192.168.1.7:1234/upload?token=private",
+        )
+
+        assertTrue(viewModel.state.value.supportsRemoteAccess)
+        assertEquals(listOf(true), server.enabled)
+        assertEquals("http://192.168.1.7:1234/upload?token=private", viewModel.state.value.remoteAccessAddress)
+        assertFalse(viewModel.state.value.remoteAccessStarting)
+        viewModel.onCleared()
+    }
+
+    private class FakeRemoteServer : RemoteAccessServerController {
+        val mutableState = MutableStateFlow(RemoteAccessServerState())
+        override val state = mutableState
+        val enabled = mutableListOf<Boolean>()
+
+        override fun setEnabled(enabled: Boolean) {
+            this.enabled += enabled
+        }
     }
 }

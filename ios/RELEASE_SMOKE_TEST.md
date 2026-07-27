@@ -20,6 +20,7 @@ Tester: `________`
 | iPhone | `________` | Files and Photos import; persistent catalog after relaunch; video decode surface; audio playback; player/back navigation; open-with handoff | ☐ Pass ☐ Fail | `________` |
 | iPad | `________` | Same flow; compact/regular-width navigation and safe-area behavior; Files picker popover; rotation | ☐ Pass ☐ Fail | `________` |
 | iPhone / iPad | `________` | Background/foreground recovery and lock-screen audio controls, if MobileVLCKit exposes them on this build | ☐ Pass ☐ Fail ☐ N/A | `________` |
+| iPhone / iPad + second device | `________` | Enable local transfer on Wi-Fi; open the authenticated address on the second device; upload a media file; confirm catalog import/playback; disable and verify the address no longer accepts requests | ☐ Pass ☐ Fail | `________` |
 | Wasm browser | `________` | Shared shell renders; import a browser-supported local audio/video file; playback, player collapse, and OPFS-backed relaunch; unsupported native actions remain hidden | ☐ Pass ☐ Fail | `________` |
 
 ## Automated evidence required before device testing

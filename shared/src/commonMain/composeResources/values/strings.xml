@@ -1462,6 +1462,8 @@
     <string name="library">Library</string>
     <string name="video_thumbnails">Video thumbnails</string>
     <string name="remote_access_server">Remote access server</string>
+    <string name="remote_access_starting">Starting local transfer server…</string>
+    <string name="remote_access_upload_address">Upload from this address on the same Wi-Fi network</string>
     <string name="rename_stream">Rename stream</string>
     <string name="delete_stream">Delete stream</string>
     <string name="no_streams">No streams</string>

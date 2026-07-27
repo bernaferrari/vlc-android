@@ -11,6 +11,8 @@ import org.videolan.vlc.platform.NoOpMediaSessionBridge
 import org.videolan.vlc.platform.NoOpPipController
 import org.videolan.vlc.platform.PipController
 import org.videolan.vlc.platform.RendererBridge
+import org.videolan.vlc.platform.IosRemoteAccessServer
+import org.videolan.vlc.platform.RemoteAccessServerController
 import org.videolan.vlc.repository.HistoryRepository
 import org.videolan.vlc.repository.MediaRepository
 import org.videolan.vlc.repository.PlaylistRepository
@@ -39,4 +41,5 @@ actual val platformModule: Module = module {
     single<MediaSessionBridge> { IosMediaSessionBridge() }
     single<PipController> { NoOpPipController }
     single<RendererBridge> { IosRendererBridge() }
+    single<RemoteAccessServerController> { IosRemoteAccessServer }
 }
