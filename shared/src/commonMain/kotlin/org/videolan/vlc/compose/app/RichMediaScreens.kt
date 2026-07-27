@@ -91,11 +91,11 @@ internal fun shouldUseEmptyMediaPresentation(
         !state.onlyFavorites &&
         state.selection.isEmpty() &&
         state.items.isEmpty() &&
+        state.count == 0 &&
         state.containerTitle == null &&
         state.openedEntityTitle == null &&
         sections.isEmpty() &&
-        groups.isEmpty() &&
-        pagingItemCount == 0
+        groups.isEmpty()
 
 /**
  * Rich media browser pane — grid/list, sort, multi-select, context actions, paging.

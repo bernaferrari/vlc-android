@@ -21,6 +21,21 @@ class RichMediaScreensTest {
     }
 
     @Test
+    fun authoritative_empty_library_ignores_stale_paging_placeholders() {
+        // Paging can still expose a stale placeholder count after MediaLibrary has reported an
+        // empty library. The shared state is the source of truth for whether these controls have
+        // anything to operate on.
+        assertTrue(
+            shouldUseEmptyMediaPresentation(
+                state = MediaListUiState(loading = false, count = 0),
+                sections = emptyList(),
+                groups = emptyList(),
+                pagingItemCount = 12,
+            ),
+        )
+    }
+
+    @Test
     fun content_and_active_list_states_keep_their_controls() {
         val media = MediaItem(id = 1L, title = "Clip", uri = "file:///clip.mp4")
 

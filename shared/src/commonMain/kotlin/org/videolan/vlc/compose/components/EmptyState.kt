@@ -1,7 +1,6 @@
 package org.videolan.vlc.compose.components
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,11 +12,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -145,27 +142,22 @@ private fun LoadingText(text: String) {
 
 @Composable
 private fun EmptyIcon(icon: Painter?) {
-    Surface(
-        modifier = Modifier.size(64.dp),
-        shape = CircleShape,
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-        if (icon != null) {
-            Image(
-                painter = icon,
-                contentDescription = null,
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant),
-                modifier = Modifier.size(28.dp),
-            )
-        } else {
-            Icon(
-                icon = MaterialSymbols.Filled.VideoLibrary,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(28.dp),
-            )
-        }
-        }
+    // Empty libraries need a quiet cue, not a floating gray badge that reads like an error.
+    // The shared symbol keeps video, audio, browser, and playlists visually related without
+    // introducing a separate surface into an otherwise intentionally blank state.
+    if (icon != null) {
+        Image(
+            painter = icon,
+            contentDescription = null,
+            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant),
+            modifier = Modifier.size(40.dp),
+        )
+    } else {
+        Icon(
+            icon = MaterialSymbols.Filled.VideoLibrary,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(40.dp),
+        )
     }
 }
