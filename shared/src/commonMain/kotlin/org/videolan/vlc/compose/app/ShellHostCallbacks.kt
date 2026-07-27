@@ -3,6 +3,7 @@ package org.videolan.vlc.compose.app
 import org.videolan.vlc.model.MediaFolder
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.PlaylistInfo
+import org.videolan.vlc.compose.components.VLCAboutVersionInfo
 import org.videolan.vlc.util.ContextOption
 
 /**
@@ -34,6 +35,14 @@ internal const val SHARED_ABOUT_MESSAGE =
     "VLC's media library and player are shared across platforms."
 
 internal const val VLC_DONATION_URL = "https://www.videolan.org/contribute.html"
+internal const val VLC_WEBSITE_URL = "https://www.videolan.org/vlc/"
+internal const val VLC_SOURCES_URL = "https://code.videolan.org/videolan/vlc-android"
+internal const val VLC_LICENSE_URL = "https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt"
+internal const val VLC_DEFAULT_LICENSE_TEXT =
+    "VLC is free software distributed under the GNU General Public License version 2 or later."
+
+/** Actions whose visual presentation is shared but whose destination is host-owned. */
+enum class AboutAction { WEBSITE, FEEDBACK, SOURCES, LIBRARIES, AUTHORS, LICENSE }
 
 /**
  * A destructive file operation is offered only for a real local media URI.  The
@@ -68,6 +77,16 @@ fun interface ShellHostCallbacks {
     fun onBanFolder(folder: MediaFolder) = Unit
     fun onOpenAbout() = Unit
     fun onOpenDonate() = Unit
+    /** Platform build information, shown by the common About screen. */
+    fun aboutVersionInfo(): VLCAboutVersionInfo = VLCAboutVersionInfo(
+        version = "VLC",
+        buildDate = "",
+        changelog = "",
+        detailRows = emptyList(),
+    )
+    /** May read a platform-packaged license off the main thread. */
+    suspend fun loadAboutLicenseText(): String = VLC_DEFAULT_LICENSE_TEXT
+    fun onOpenAboutAction(action: AboutAction) = Unit
     fun onAddToPlaylist(items: List<MediaItem>) = Unit
     fun onOpenPlaylistEditor(playlist: PlaylistInfo) = Unit
     /** Request SAF/OTG document tree grant; platform updates OtgAccess.otgRoot. */

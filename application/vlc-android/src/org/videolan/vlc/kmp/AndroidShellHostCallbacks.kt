@@ -12,13 +12,20 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.videolan.medialibrary.MLServiceLocator
 import org.videolan.medialibrary.interfaces.Medialibrary
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.resources.TAG_ITEM
+import org.videolan.vlc.BuildConfig
+import org.videolan.vlc.R
+import org.videolan.vlc.compose.app.AboutAction
 import org.videolan.vlc.compose.app.ShellHostCallbacks
-import org.videolan.vlc.gui.AboutActivity
+import org.videolan.vlc.compose.components.VLCAboutVersionInfo
+import org.videolan.vlc.gui.AuthorsActivity
+import org.videolan.vlc.gui.FeedbackActivity
 import org.videolan.vlc.gui.InfoActivity
+import org.videolan.vlc.gui.LibrariesActivity
 import org.videolan.vlc.gui.dialogs.showConfirmDeleteComposeDialog
 import org.videolan.vlc.gui.dialogs.showRenameComposeDialog
 import org.videolan.vlc.gui.helpers.AudioUtil.setRingtone
@@ -35,6 +42,7 @@ import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.MediaType
 import org.videolan.vlc.model.PlaylistInfo
 import org.videolan.vlc.util.ContextOption
+import org.videolan.vlc.util.openLinkIfPossible
 import org.videolan.vlc.util.share
 import java.io.File
 
@@ -188,10 +196,28 @@ class AndroidShellHostCallbacks(
         }.onFailure { Log.w(TAG, "onBanFolder failed", it) }
     }
 
-    override fun onOpenAbout() {
+    override fun aboutVersionInfo() = VLCAboutVersionInfo(
+        version = BuildConfig.VLC_VERSION_NAME,
+        buildDate = activity.getString(R.string.build_time),
+        changelog = activity.getString(R.string.changelog).replace("*", "\u2022"),
+        detailRows = emptyList(),
+    )
+
+    override suspend fun loadAboutLicenseText(): String = withContext(Dispatchers.IO) {
+        activity.resources.openRawResource(R.raw.vlc_license).bufferedReader().use { it.readText() }
+    }
+
+    override fun onOpenAboutAction(action: AboutAction) {
         runCatching {
-            activity.startActivity(Intent(activity, AboutActivity::class.java))
-        }.onFailure { Log.w(TAG, "onOpenAbout failed", it) }
+            when (action) {
+                AboutAction.WEBSITE -> activity.openLinkIfPossible("https://www.videolan.org/vlc/")
+                AboutAction.FEEDBACK -> activity.startActivity(Intent(activity, FeedbackActivity::class.java))
+                AboutAction.SOURCES -> activity.openLinkIfPossible("https://code.videolan.org/videolan/vlc-android")
+                AboutAction.LIBRARIES -> activity.startActivity(Intent(activity, LibrariesActivity::class.java))
+                AboutAction.AUTHORS -> activity.startActivity(Intent(activity, AuthorsActivity::class.java))
+                AboutAction.LICENSE -> activity.openLinkIfPossible("https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt")
+            }
+        }.onFailure { Log.w(TAG, "About action $action failed", it) }
     }
 
     override fun onOpenDonate() {

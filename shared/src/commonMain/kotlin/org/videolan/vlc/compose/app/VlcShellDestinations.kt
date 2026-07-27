@@ -331,6 +331,7 @@ internal fun MoreDestination(
     modifier: Modifier,
     viewModel: MoreHubViewModel,
     onOpenSettings: () -> Unit,
+    onOpenAbout: () -> Unit,
     onOpenRemote: (() -> Unit)?,
     hostCallbacks: ShellHostCallbacks,
     onOpenPlayer: () -> Unit,
@@ -340,7 +341,7 @@ internal fun MoreDestination(
         vm = viewModel,
         onOpenSettings = onOpenSettings,
         onOpenRemote = onOpenRemote,
-        onOpenAbout = hostCallbacks::onOpenAbout,
+        onOpenAbout = onOpenAbout,
         onOpenDonate = hostCallbacks::onOpenDonate,
         onPlayHistory = { entry ->
             viewModel.playHistory(entry)

@@ -74,17 +74,22 @@ class IosShellHostCallbacks(
         host.presentViewController(activity, animated = true, completion = null)
     }
 
-    override fun onOpenAbout() {
-        presentAlert(
-            title = "VLC",
-            message = SHARED_ABOUT_MESSAGE,
-        )
-    }
-
     override fun onOpenDonate() {
         NSURL.URLWithString(VLC_DONATION_URL)?.let {
             UIApplication.sharedApplication.openURL(it)
         }
+    }
+
+    override fun onOpenAboutAction(action: AboutAction) {
+        val url = when (action) {
+            AboutAction.WEBSITE -> VLC_WEBSITE_URL
+            AboutAction.FEEDBACK -> "mailto:android@videolan.org"
+            AboutAction.SOURCES -> VLC_SOURCES_URL
+            AboutAction.LIBRARIES -> VLC_SOURCES_URL
+            AboutAction.AUTHORS -> "https://www.videolan.org/vlc/"
+            AboutAction.LICENSE -> VLC_LICENSE_URL
+        }
+        NSURL.URLWithString(url)?.let { UIApplication.sharedApplication.openURL(it) }
     }
 
     private fun confirmDelete(item: MediaItem) {

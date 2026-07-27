@@ -38,6 +38,10 @@ data object PlayerRoute : VlcShellRoute
 @Serializable
 data object SettingsRoute : VlcShellRoute
 
+/** Shared About screen; keeps its back stack and transition consistent on every host. */
+@Serializable
+data object AboutRoute : VlcShellRoute
+
 @Serializable
 enum class VideoContainerRouteKind { FOLDER, VIDEO_GROUP }
 
@@ -130,7 +134,7 @@ fun VlcShellRoute.toMainTabOrNull(): MainTab? = when (this) {
     PlaylistsRoute -> MainTab.PLAYLISTS
     is PlaylistDetailRoute -> MainTab.PLAYLISTS
     MoreRoute -> MainTab.MORE
-    PlayerRoute, SettingsRoute -> null
+    PlayerRoute, SettingsRoute, AboutRoute -> null
 }
 
 /** Returns the root tab represented by a Navigation 3 back stack. */
@@ -148,6 +152,7 @@ val vlcShellNavSavedStateConfiguration = SavedStateConfiguration {
             subclass(MoreRoute::class, MoreRoute.serializer())
             subclass(PlayerRoute::class, PlayerRoute.serializer())
             subclass(SettingsRoute::class, SettingsRoute.serializer())
+            subclass(AboutRoute::class, AboutRoute.serializer())
             subclass(VideoContainerRoute::class, VideoContainerRoute.serializer())
             subclass(AudioEntityRoute::class, AudioEntityRoute.serializer())
             subclass(BrowserFolderRoute::class, BrowserFolderRoute.serializer())

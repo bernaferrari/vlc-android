@@ -24,6 +24,7 @@ class VlcShellRouteTest {
                 AudioEntityRoute(7L, "Artist", AudioEntityRouteKind.ARTIST),
                 PlayerRoute,
                 SettingsRoute,
+                AboutRoute,
             ).activeTab(),
         )
     }

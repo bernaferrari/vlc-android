@@ -41,12 +41,20 @@ class WasmShellHostCallbacks : ShellHostCallbacks {
         KoinPlatform.getKoin().get<BrowserMediaRepository>().share(item)
     }
 
-    override fun onOpenAbout() {
-        showBrowserDialog(SHARED_ABOUT_MESSAGE)
-    }
-
     override fun onOpenDonate() {
         openExternalUrl(VLC_DONATION_URL)
+    }
+
+    override fun onOpenAboutAction(action: AboutAction) {
+        openExternalUrl(
+            when (action) {
+                AboutAction.WEBSITE -> VLC_WEBSITE_URL
+                AboutAction.FEEDBACK -> "mailto:android@videolan.org"
+                AboutAction.SOURCES, AboutAction.LIBRARIES -> VLC_SOURCES_URL
+                AboutAction.AUTHORS -> VLC_WEBSITE_URL
+                AboutAction.LICENSE -> VLC_LICENSE_URL
+            },
+        )
     }
 }
 

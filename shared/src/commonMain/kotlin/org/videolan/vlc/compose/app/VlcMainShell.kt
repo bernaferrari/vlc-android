@@ -482,6 +482,7 @@ fun VlcMainShell(
                             onOpenSettings = {
                                 if (onOpenSettings != null) onOpenSettings() else backStack.add(SettingsRoute)
                             },
+                            onOpenAbout = { backStack.add(AboutRoute) },
                             onOpenRemote = onOpenRemoteClient,
                             hostCallbacks = hostCallbacks,
                             onOpenPlayer = ::openPlayer,
@@ -501,6 +502,13 @@ fun VlcMainShell(
                         SettingsDestination(
                             modifier = Modifier.fillMaxSize(),
                             viewModel = settingsVm,
+                        )
+                    }
+                    entry<AboutRoute>(metadata = detailTransitionMetadata) {
+                        AboutDestination(
+                            hostCallbacks = hostCallbacks,
+                            onBack = ::navigateBack,
+                            modifier = Modifier.fillMaxSize(),
                         )
                     }
                 },

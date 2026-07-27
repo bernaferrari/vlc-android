@@ -86,18 +86,23 @@ internal fun MorePane(
         }
 
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                MoreSectionTitle(ShellStrings.streams())
-                TextButton(onClick = {
-                    addingStream = !addingStream
-                    streamAddressError = false
-                }) {
-                    Icon(MaterialSymbols.Filled.Add, contentDescription = null)
-                    Text(ShellStrings.newStream(), modifier = Modifier.padding(start = 8.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    MoreSectionTitle(ShellStrings.streams())
+                    TextButton(onClick = {
+                        addingStream = !addingStream
+                        streamAddressError = false
+                    }) {
+                        Icon(MaterialSymbols.Filled.Add, contentDescription = null)
+                        Text(ShellStrings.newStream(), modifier = Modifier.padding(start = 8.dp))
+                    }
+                }
+                if (state.streams.isEmpty() && !state.streamsLoading && state.streamsError == null) {
+                    VLCSettingsCard(rows = listOf { MoreEmptyRow(ShellStrings.noStreams()) }, dividerInset = 0.dp)
                 }
             }
         }
@@ -221,28 +226,32 @@ internal fun MorePane(
                 onMoreClick = { vm.deleteStream(stream.id) },
             )
         }
-        if (state.streams.isEmpty() && !state.streamsLoading && state.streamsError == null) {
-            item { Text(ShellStrings.noStreams(), color = colors.fontLight) }
-        }
         state.streamsError?.let { error ->
             item { RetryMessage(error = error, onRetry = vm::retryStreams) }
         }
 
         item {
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                MoreSectionTitle(ShellStrings.history())
-                Row {
-                    if (state.historySelection.isNotEmpty()) {
-                        TextButton(onClick = vm::removeSelectedHistory) {
-                            Text(ShellStrings.selectionCount(ShellStrings.remove(), state.historySelection.size))
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    MoreSectionTitle(ShellStrings.history())
+                    Row {
+                        if (state.historySelection.isNotEmpty()) {
+                            TextButton(onClick = vm::removeSelectedHistory) {
+                                Text(ShellStrings.selectionCount(ShellStrings.remove(), state.historySelection.size))
+                            }
+                            TextButton(onClick = vm::clearHistorySelection) { Text(ShellStrings.clear()) }
                         }
-                        TextButton(onClick = vm::clearHistorySelection) { Text(ShellStrings.clear()) }
+                        if (state.history.isNotEmpty()) {
+                            TextButton(onClick = vm::clearHistory) { Text(ShellStrings.clear()) }
+                        }
                     }
-                    TextButton(onClick = vm::clearHistory) { Text(ShellStrings.clear()) }
+                }
+                if (!state.loading && state.history.isEmpty() && state.historyError == null) {
+                    VLCSettingsCard(rows = listOf { MoreEmptyRow(ShellStrings.noRecentMedia()) }, dividerInset = 0.dp)
                 }
             }
         }
@@ -284,9 +293,6 @@ internal fun MorePane(
         state.historyError?.let { error ->
             item { RetryMessage(error = error, onRetry = vm::retryHistory) }
         }
-        if (!state.loading && state.history.isEmpty() && state.historyError == null) {
-            item { Text(ShellStrings.noRecentMedia(), color = colors.fontLight) }
-        }
     }
 }
 
@@ -312,6 +318,19 @@ private fun MoreAction(icon: MaterialIcon, label: String, onClick: () -> Unit) {
             fontWeight = FontWeight.SemiBold,
         )
     }
+}
+
+@Composable
+private fun MoreEmptyRow(text: String) {
+    Text(
+        text,
+        color = VLCThemeDefaults.colors.fontLight,
+        style = MaterialTheme.typography.bodyLarge,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 64.dp)
+            .padding(horizontal = 20.dp, vertical = 12.dp),
+    )
 }
 
 @Composable
