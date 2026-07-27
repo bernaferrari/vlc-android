@@ -1138,6 +1138,9 @@
     <string name="pin_code_reason_modify">Change your PIN code</string>
     <string name="pin_code_modified">PIN code successfully modified</string>
     <string name="pin_code_reason_check">Access restricted. Please enter your PIN code</string>
+    <string name="app_lock_enter_pin">Enter your app-lock PIN</string>
+    <string name="app_lock_reenter_pin">Enter your PIN again</string>
+    <string name="app_lock_invalid_pin">PIN did not match. Try again</string>
     <string name="pin_code_access_granted">Access granted. You can re-lock in the main screen</string>
     <string name="safe_mode_enabled">Safe mode is now enabled</string>
     <string name="restricted_access">Access restricted</string>

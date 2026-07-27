@@ -44,6 +44,7 @@ import org.videolan.vlc.model.PlaylistInfo
 import org.videolan.vlc.util.ContextOption
 import org.videolan.vlc.util.openLinkIfPossible
 import org.videolan.vlc.util.share
+import org.videolan.vlc.app.VlcKoin
 import java.io.File
 
 /**
@@ -57,6 +58,10 @@ class AndroidShellHostCallbacks(
     private val activity: ComponentActivity,
     private val medialibrary: Medialibrary = Medialibrary.getInstance(),
 ) : ShellHostCallbacks {
+
+    private val appLockController = runCatching {
+        VlcKoin.get().get<org.videolan.vlc.platform.AppLockController>() as? AndroidAppLockController
+    }.getOrNull()
 
     /**
      * SAF grants read access to a specific user-picked document, so this import path works without
@@ -92,10 +97,12 @@ class AndroidShellHostCallbacks(
         }
 
     init {
+        appLockController?.attach(activity)
         activity.lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onDestroy(owner: LifecycleOwner) {
                 mediaImportLauncher.unregister()
                 subtitleImportLauncher.unregister()
+                appLockController?.detach()
                 owner.lifecycle.removeObserver(this)
             }
         })

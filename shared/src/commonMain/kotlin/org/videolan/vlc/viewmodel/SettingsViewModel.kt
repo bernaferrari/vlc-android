@@ -223,6 +223,8 @@ class SettingsViewModel(
 
     fun disableAppLock() = launch { appLock.disable() }
 
+    fun unlockAppLock() = launch { appLock.unlock() }
+
     /** Keep the upstream 1–10 second range while avoiding an unusable instant-hide HUD. */
     fun setVideoHudTimeout(seconds: Int) {
         val normalized = seconds.coerceIn(1, 10)

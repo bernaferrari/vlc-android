@@ -14,6 +14,8 @@ import kotlinx.coroutines.flow.asStateFlow
  * foreground access to the whole product.
  */
 data class AppLockState(
+    /** False for targets that have no secure native credential vault. */
+    val supported: Boolean = false,
     val enabled: Boolean = false,
     val locked: Boolean = false,
     val biometricsAvailable: Boolean = false,

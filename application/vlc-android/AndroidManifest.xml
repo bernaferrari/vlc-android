@@ -1005,6 +1005,11 @@
             android:theme="@style/Theme.VLC"
             android:windowSoftInputMode="adjustResize"/>
         <activity
+            android:name=".gui.AppLockPinActivity"
+            android:exported="false"
+            android:theme="@style/Theme.VLC"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity
                 android:name=".gui.OTPCodeActivity"
                 android:theme="@style/Theme.VLC"/>
         <activity

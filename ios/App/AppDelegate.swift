@@ -62,6 +62,9 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
+        // The shared shell owns the visual gate; this native lifecycle boundary
+        // merely re-arms its Keychain-backed credential when VLC leaves view.
+        IosAppLockController.shared.lock()
         IosPlaybackService.companion.shared.saveSession()
         // iOS does not grant a background-server mode for arbitrary local HTTP.
         // Stop explicitly so shared settings never claim a suspended listener is live.

@@ -14,6 +14,8 @@ import org.videolan.tools.VIDEO_HUD_TIMEOUT
 import org.videolan.vlc.platform.VlcPlatformCapabilities
 import org.videolan.vlc.platform.RemoteAccessServerController
 import org.videolan.vlc.platform.RemoteAccessServerState
+import org.videolan.vlc.platform.AppLockController
+import org.videolan.vlc.platform.AppLockState
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -99,6 +101,25 @@ class SettingsCapabilityContractTest {
     }
 
     @Test
+    fun appLockPolicyIsSharedWhileCredentialPromptsStayNative() {
+        val appLock = FakeAppLock()
+        val viewModel = SettingsViewModel(prefs = null, appLock = appLock)
+
+        viewModel.enableAppLock()
+        assertEquals(AppLockState(supported = true, enabled = true), viewModel.state.value.appLock)
+
+        appLock.lock()
+        assertEquals(AppLockState(supported = true, enabled = true, locked = true), viewModel.state.value.appLock)
+
+        viewModel.unlockAppLock()
+        assertEquals(AppLockState(supported = true, enabled = true), viewModel.state.value.appLock)
+
+        viewModel.disableAppLock()
+        assertEquals(AppLockState(supported = true), viewModel.state.value.appLock)
+        viewModel.onCleared()
+    }
+
+    @Test
     fun remoteServerStatusAndLifecycleAreSharedWhileTheSocketRemainsNative() {
         val server = FakeRemoteServer()
         val viewModel = SettingsViewModel(
@@ -127,6 +148,33 @@ class SettingsCapabilityContractTest {
 
         override fun setEnabled(enabled: Boolean) {
             this.enabled += enabled
+        }
+    }
+
+    private class FakeAppLock : AppLockController {
+        private val mutableState = MutableStateFlow(AppLockState(supported = true))
+        override val state = mutableState
+
+        override suspend fun enable(): Boolean {
+            mutableState.value = AppLockState(supported = true, enabled = true)
+            return true
+        }
+
+        override suspend fun disable(): Boolean {
+            mutableState.value = AppLockState(supported = true)
+            return true
+        }
+
+        override suspend fun unlock(): Boolean {
+            if (!mutableState.value.enabled) return false
+            mutableState.value = AppLockState(supported = true, enabled = true)
+            return true
+        }
+
+        override fun lock() {
+            if (mutableState.value.enabled) {
+                mutableState.value = AppLockState(supported = true, enabled = true, locked = true)
+            }
         }
     }
 }

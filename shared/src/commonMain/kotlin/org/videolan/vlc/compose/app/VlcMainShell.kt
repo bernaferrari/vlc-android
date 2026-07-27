@@ -50,6 +50,7 @@ import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.components.VLCSettingsCard
+import org.videolan.vlc.compose.components.VLCIconChip
 import org.videolan.vlc.compose.player.FallbackPlayerSurface
 import org.videolan.vlc.compose.player.PlayerSurface
 import org.videolan.vlc.compose.theme.VLCTheme
@@ -224,6 +225,10 @@ fun VlcMainShell(
         val audioSection by audioVm.section.collectAsState()
         val browserState by browserVm.state.collectAsState()
         val playlistsState by playlistsVm.state.collectAsState()
+        val settingsState by settingsVm.state.collectAsState()
+        val appLocked = settingsState.appLock.supported &&
+            settingsState.appLock.enabled &&
+            settingsState.appLock.locked
         val detailBackTarget = shellBackTarget(
             showOverlay = false,
             hasPlaylistDetail = playlistsState.openPlaylistId != null,
@@ -271,7 +276,7 @@ fun VlcMainShell(
             }
         }
 
-        HandleShellBackPress(enabled = canNavigateBack, onBack = ::navigateBack)
+        HandleShellBackPress(enabled = canNavigateBack && !appLocked, onBack = ::navigateBack)
 
         VlcAdaptiveNavigationSuite(
             modifier = modifier,
@@ -517,6 +522,38 @@ fun VlcMainShell(
             )
         }
         }
+
+        if (appLocked) {
+            AppLockGate(onUnlock = settingsVm::unlockAppLock)
+        }
+    }
+}
+
+@Composable
+private fun AppLockGate(onUnlock: () -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = VLCThemeDefaults.colors.backgroundDefault,
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize().padding(32.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                VLCIconChip(size = 56.dp) { tint ->
+                    Icon(
+                        icon = MaterialSymbols.Filled.Lock,
+                        contentDescription = null,
+                        tint = tint,
+                    )
+                }
+                Text(ShellStrings.appLocked(), style = MaterialTheme.typography.headlineSmall)
+                TextButton(onClick = onUnlock) { Text(ShellStrings.unlock()) }
+            }
+        }
     }
 }
 
@@ -600,6 +637,27 @@ internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
                     onDecrease = { vm.setVideoHudTimeout(state.videoHudTimeoutSeconds - 1) },
                     onIncrease = { vm.setVideoHudTimeout(state.videoHudTimeoutSeconds + 1) },
                 ) }
+            }
+        }
+        if (state.appLock.supported) item {
+            SettingsGroup(title = ShellStrings.privacy()) {
+                row {
+                    ToggleRow(
+                        title = ShellStrings.appLock(),
+                        checked = state.appLock.enabled,
+                        onChange = { enabled ->
+                            if (enabled) vm.enableAppLock() else vm.disableAppLock()
+                        },
+                    )
+                }
+                row {
+                    Text(
+                        ShellStrings.appLockSummary(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = VLCThemeDefaults.colors.fontLight,
+                        modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
+                    )
+                }
             }
         }
         item {

@@ -3,6 +3,7 @@ package org.videolan.vlc.compose.app
 import androidx.compose.ui.window.ComposeUIViewController
 import org.videolan.vlc.app.IosKoinBootstrap
 import org.videolan.vlc.platform.MediaSessionBridge
+import org.videolan.vlc.platform.IosAppLockController
 import org.videolan.vlc.app.VlcKoin
 import platform.UIKit.UIViewController
 
@@ -16,6 +17,7 @@ fun MainViewController(): UIViewController {
         VlcKoin.get().get<MediaSessionBridge>().activate()
     }
     var hostViewController: UIViewController? = null
+    IosAppLockController.attachHost { hostViewController }
     val callbacks = IosShellHostCallbacks { hostViewController }
     return ComposeUIViewController {
         VlcKoinMainShell(

@@ -1116,6 +1116,10 @@
     <string name="browser_show_missing_media">Show missing media</string>
     <string name="browser_show_missing_media_summary">Show distant media even if they are not present</string>
     <string name="parental_control">Parental control</string>
+    <string name="privacy">Privacy</string>
+    <string name="app_lock">App lock</string>
+    <string name="app_lock_summary">Require your app lock before showing VLC</string>
+    <string name="app_locked">VLC is locked</string>
     <string name="safe_mode">Safe mode</string>
     <string name="safe_mode_summary">When activated, files cannot be deleted or playlist modified without entering the pin</string>
     <string name="safe_mode_pin">Enter your PIN</string>
@@ -1129,6 +1133,9 @@
     <string name="pin_code_reason_modify">Change your PIN code</string>
     <string name="pin_code_modified">PIN code successfully modified</string>
     <string name="pin_code_reason_check">Access restricted. Please enter your PIN code</string>
+    <string name="app_lock_enter_pin">Enter your app-lock PIN</string>
+    <string name="app_lock_reenter_pin">Enter your PIN again</string>
+    <string name="app_lock_invalid_pin">PIN did not match. Try again</string>
     <string name="pin_code_access_granted">Access granted. You can re-lock in the main screen</string>
     <string name="safe_mode_enabled">Safe mode is now enabled</string>
     <string name="restricted_access">Access restricted</string>

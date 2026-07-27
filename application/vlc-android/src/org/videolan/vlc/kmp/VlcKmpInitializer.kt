@@ -25,6 +25,7 @@ import org.videolan.vlc.player.PlaybackService
 import org.videolan.vlc.repository.MediaRepository
 import org.videolan.vlc.platform.RendererBridge
 import org.videolan.vlc.platform.PipController
+import org.videolan.vlc.platform.AppLockController
 import org.videolan.vlc.platform.MediaSessionBridge
 import org.videolan.vlc.repository.HistoryRepository
 import org.videolan.vlc.repository.PlaylistRepository
@@ -79,6 +80,7 @@ object VlcKmpInitializer {
                 single<PlaybackService> { AndroidPlaybackService(managerProvider) }
                 single<MediaSessionBridge> { AndroidMediaSessionBridge(appContext) }
                 single<PipController> { AndroidPipController() }
+                single<AppLockController> { AndroidAppLockController(appContext) }
                 single<RendererBridge> { AndroidRendererBridge() }
             }
 

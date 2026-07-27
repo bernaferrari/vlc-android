@@ -7,6 +7,8 @@ import org.koin.dsl.module
 import org.videolan.tools.IosVlcDataStoreFactory
 import org.videolan.vlc.player.PlaybackService
 import org.videolan.vlc.platform.MediaSessionBridge
+import org.videolan.vlc.platform.AppLockController
+import org.videolan.vlc.platform.IosAppLockController
 import org.videolan.vlc.platform.NoOpMediaSessionBridge
 import org.videolan.vlc.platform.NoOpPipController
 import org.videolan.vlc.platform.PipController
@@ -38,6 +40,7 @@ actual val platformModule: Module = module {
     single<HistoryRepository> { get<IosMediaLibrary>() }
     single<StreamRepository> { PreferenceStreamRepository(get()) }
     single<PlaybackService> { IosPlaybackService.shared }
+    single<AppLockController> { IosAppLockController }
     single<MediaSessionBridge> { IosMediaSessionBridge() }
     single<PipController> { NoOpPipController }
     single<RendererBridge> { IosRendererBridge() }
