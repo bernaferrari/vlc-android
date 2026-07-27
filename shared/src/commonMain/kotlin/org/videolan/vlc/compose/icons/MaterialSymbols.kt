@@ -34,6 +34,8 @@ object MaterialSymbols {
         val CheckCircle: MaterialIcon get() = MaterialIcon(filledCheckCircle)
         val ArrowUpward: MaterialIcon get() = MaterialIcon(filledArrowUpward)
         val Devices: MaterialIcon get() = MaterialIcon(filledDevices)
+        val Add: MaterialIcon get() = MaterialIcon(filledAdd)
+        val Sort: MaterialIcon get() = MaterialIcon(filledSort)
     }
 
     object Outlined {

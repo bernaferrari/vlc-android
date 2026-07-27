@@ -760,31 +760,53 @@ fun BrowserRichPane(
     val colors = VLCThemeDefaults.colors
     val atRoot = state.currentFolder == null
     var showDisplaySettings by remember { mutableStateOf(false) }
-    Column(modifier.padding(horizontal = 12.dp)) {
+    Column(modifier.padding(horizontal = 16.dp)) {
         Row(
-            Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (state.stack.isNotEmpty()) TextButton(onClick = onUp) { Text("Up") }
-                Text(
-                    state.currentFolder?.title ?: "Browser",
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(start = 8.dp),
-                )
-            }
-            if (state.selection.isNotEmpty()) {
-                Row {
-                    TextButton(onClick = onPlaySelection) { Text(ShellStrings.play()) }
-                    TextButton(onClick = onAppendSelection) { Text(ShellStrings.append()) }
-                    TextButton(onClick = onClearSelection) {
-                        Text("${ShellStrings.clear()} (${state.selection.size})")
-                    }
+            if (state.stack.isNotEmpty()) {
+                IconButton(onClick = onUp) {
+                    Icon(
+                        icon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Up",
+                    )
                 }
-            } else {
-                TextButton(onClick = { showDisplaySettings = true }) {
-                    Text(ShellStrings.displaySettings())
+            }
+            Text(
+                state.currentFolder?.title ?: "Browser",
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.weight(1f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (state.selection.isEmpty()) {
+                IconButton(onClick = { showDisplaySettings = true }) {
+                    Icon(
+                        icon = MaterialSymbols.Filled.Tune,
+                        contentDescription = ShellStrings.displaySettings(),
+                    )
+                }
+            }
+        }
+        if (state.selection.isNotEmpty()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                FilledTonalIconButton(onClick = onPlaySelection) {
+                    Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = ShellStrings.play())
+                }
+                TextButton(onClick = onAppendSelection) { Text(ShellStrings.append()) }
+                TextButton(onClick = onClearSelection) {
+                    Text("${ShellStrings.clear()} (${state.selection.size})")
                 }
             }
         }
@@ -812,16 +834,16 @@ fun BrowserRichPane(
         }
         LazyColumn(
             contentPadding = PaddingValues(bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxSize(),
         ) {
             if (atRoot && state.favorites.isNotEmpty()) {
                 item {
                     Text(
                         ShellStrings.favorites(),
-                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.labelLarge,
                         color = colors.primary,
-                        modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp),
+                        modifier = Modifier.padding(start = 4.dp, top = 8.dp, end = 4.dp, bottom = 2.dp),
                     )
                 }
                 items(state.favorites, key = { "fav:${it.id}:${it.uri}" }) { item ->
@@ -840,9 +862,9 @@ fun BrowserRichPane(
                 item {
                     Text(
                         "Storage",
-                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.labelLarge,
                         color = colors.primary,
-                        modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp),
+                        modifier = Modifier.padding(start = 4.dp, top = 8.dp, end = 4.dp, bottom = 2.dp),
                     )
                 }
             }
@@ -859,7 +881,11 @@ fun BrowserRichPane(
                                 tint = colors.primary,
                             )
                         } else {
-                            Text("DIR", color = colors.primary, fontWeight = FontWeight.Bold)
+                            Icon(
+                                icon = MaterialSymbols.Filled.Folder,
+                                contentDescription = null,
+                                tint = colors.primary,
+                            )
                         }
                     },
                 )
@@ -868,9 +894,9 @@ fun BrowserRichPane(
                 item {
                     Text(
                         "Network",
-                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.labelLarge,
                         color = colors.primary,
-                        modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp),
+                        modifier = Modifier.padding(start = 4.dp, top = 8.dp, end = 4.dp, bottom = 2.dp),
                     )
                 }
                 items(state.networkRoots, key = { "n:${it.id}:${it.path}" }) { folder ->
@@ -879,7 +905,11 @@ fun BrowserRichPane(
                         subtitle = "Network",
                         onClick = { onOpenFolder(folder) },
                         artworkContent = {
-                            Text("NET", color = colors.primary, fontWeight = FontWeight.Bold)
+                            Icon(
+                                icon = MaterialSymbols.Filled.Devices,
+                                contentDescription = null,
+                                tint = colors.primary,
+                            )
                         },
                     )
                 }
@@ -1007,13 +1037,32 @@ fun PlaylistsRichPane(
     val detailItems = state.openItems
     val detailName = state.openPlaylistName
 
-    Column(modifier.padding(12.dp)) {
+    Column(modifier.padding(horizontal = 16.dp)) {
         if (detailName != null) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = onBack) { Text(ShellStrings.back()) }
-                Text(detailName, fontWeight = FontWeight.Bold)
+            Row(
+                modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        icon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = ShellStrings.back(),
+                    )
+                }
+                Text(
+                    detailName,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                contentPadding = PaddingValues(bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxSize(),
+            ) {
                 itemsIndexed(detailItems, key = { index, item -> "$index:${item.id}:${item.uri}" }) { index, item ->
                     PlaylistTrackRow(
                         item = item,
@@ -1024,55 +1073,67 @@ fun PlaylistsRichPane(
                     )
                 }
                 if (detailItems.isEmpty()) {
-                    item { Text("Empty playlist", modifier = Modifier.padding(24.dp)) }
+                    item { VLCEmptyState(loading = false, text = "Empty playlist") }
                 }
             }
             return
         }
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             androidx.compose.material3.OutlinedTextField(
                 value = newName,
                 onValueChange = { newName = it },
                 modifier = Modifier.weight(1f),
                 singleLine = true,
                 label = { Text("New playlist") },
+                shape = MaterialTheme.shapes.extraLarge,
             )
-            TextButton(onClick = {
+            FilledTonalIconButton(onClick = {
                 if (newName.isNotBlank()) {
                     onCreate(newName.trim())
                     newName = ""
                 }
-            }) { Text("Add") }
+            }) {
+                Icon(MaterialSymbols.Filled.Add, contentDescription = "Add playlist")
+            }
         }
 
         Row(
-            Modifier.fillMaxWidth().padding(top = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row {
-                TextButton(onClick = onToggleFavorites) {
+            if (state.selection.isNotEmpty()) {
+                FilledTonalIconButton(onClick = onDeleteSelection) {
+                    Icon(MaterialSymbols.Filled.Delete, contentDescription = ShellStrings.delete())
+                }
+                TextButton(onClick = onClearSelection) { Text("${ShellStrings.clear()} (${state.selection.size})") }
+            } else {
+                IconButton(onClick = onToggleFavorites) {
                     Icon(
                         icon = if (state.onlyFavorites) MaterialSymbols.Filled.Star else MaterialSymbols.Outlined.Star,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
+                        contentDescription = ShellStrings.favorites(),
                     )
-                    Text(ShellStrings.favorites())
                 }
-                TextButton(onClick = onToggleSortDesc) {
-                    Text(if (state.sortDesc) "A-Z ↓" else "A-Z ↑")
+                IconButton(onClick = onToggleSortDesc) {
+                    Icon(
+                        icon = MaterialSymbols.Filled.Sort,
+                        contentDescription = if (state.sortDesc) "Sort descending" else "Sort ascending",
+                    )
                 }
-                TextButton(onClick = {
+                IconButton(onClick = {
                     onSetViewMode(if (state.viewMode == ViewMode.LIST) ViewMode.GRID else ViewMode.LIST)
-                }) { Text(if (state.viewMode == ViewMode.LIST) "Grid" else "List") }
-            }
-            if (state.selection.isNotEmpty()) {
-                Row {
-                    TextButton(onClick = onDeleteSelection) {
-                        Text("${ShellStrings.delete()} (${state.selection.size})")
-                    }
-                    TextButton(onClick = onClearSelection) { Text(ShellStrings.clear()) }
+                }) {
+                    Icon(
+                        icon = if (state.viewMode == ViewMode.LIST) MaterialSymbols.Filled.GridView else MaterialSymbols.Filled.ViewList,
+                        contentDescription = if (state.viewMode == ViewMode.LIST) "Grid view" else "List view",
+                    )
                 }
             }
         }
@@ -1088,6 +1149,7 @@ fun PlaylistsRichPane(
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                     label = { Text("Rename") },
+                    shape = MaterialTheme.shapes.extraLarge,
                 )
                 TextButton(onClick = {
                     if (renameText.isNotBlank()) onRename(target.id, renameText.trim())
@@ -1115,8 +1177,8 @@ fun PlaylistsRichPane(
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(minSize = 140.dp),
                 contentPadding = PaddingValues(vertical = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxSize(),
             ) {
                 items(playlists, key = { it.id }) { pl ->
@@ -1139,7 +1201,7 @@ fun PlaylistsRichPane(
         } else {
             LazyColumn(
                 contentPadding = PaddingValues(vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxSize(),
             ) {
                 items(playlists, key = { it.id }) { pl ->
@@ -1162,10 +1224,10 @@ fun PlaylistsRichPane(
                                         tint = VLCThemeDefaults.colors.primary,
                                     )
                                 } else {
-                                    Text(
-                                        "PLS",
-                                        color = VLCThemeDefaults.colors.primary,
-                                        fontWeight = FontWeight.Bold,
+                                    Icon(
+                                        icon = MaterialSymbols.Filled.QueueMusic,
+                                        contentDescription = null,
+                                        tint = VLCThemeDefaults.colors.primary,
                                     )
                                 }
                             },
@@ -1224,64 +1286,70 @@ private fun PlaylistCard(
 ) {
     val colors = VLCThemeDefaults.colors
     var menu by remember { mutableStateOf(false) }
-    Column(
-        Modifier
-            .clip(MaterialTheme.shapes.medium)
-            .background(
-                if (selected) colors.primary.copy(alpha = 0.12f)
-                else MaterialTheme.colorScheme.surfaceContainerHigh,
-            )
-            .combinedClickable(onClick = onOpen, onLongClick = onToggleSelect)
-            .padding(8.dp),
+    Surface(
+        modifier = Modifier.combinedClickable(onClick = onOpen, onLongClick = onToggleSelect),
+        shape = MaterialTheme.shapes.extraLarge,
+        color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
+        contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
     ) {
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(72.dp)
-                .clip(MaterialTheme.shapes.small)
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest),
-            contentAlignment = Alignment.Center,
+        Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            if (playlist.isFavorite) {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+                    .clip(MaterialTheme.shapes.large)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                contentAlignment = Alignment.Center,
+            ) {
                 Icon(
-                    icon = MaterialSymbols.Filled.Star,
-                    contentDescription = ShellStrings.favorites(),
+                    icon = if (playlist.isFavorite) MaterialSymbols.Filled.Star else MaterialSymbols.Filled.QueueMusic,
+                    contentDescription = if (playlist.isFavorite) ShellStrings.favorites() else null,
                     tint = colors.primary,
+                    modifier = Modifier.size(48.dp),
                 )
-            } else {
-                Text("PLS", color = colors.primary, fontWeight = FontWeight.Bold)
-            }
-            Box(Modifier.align(Alignment.TopEnd)) {
-                TextButton(onClick = { menu = true }) {
-                    Icon(MaterialSymbols.Filled.MoreVert, contentDescription = null)
-                }
-                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                    DropdownMenuItem(text = { Text("Play") }, onClick = { menu = false; onPlay() })
-                    DropdownMenuItem(text = { Text("Shuffle") }, onClick = { menu = false; onShuffle() })
-                    DropdownMenuItem(text = { Text("Rename") }, onClick = { menu = false; onRename() })
-                    DropdownMenuItem(
-                        text = { Text(if (playlist.isFavorite) "Unfavorite" else "Favorite") },
-                        onClick = { menu = false; onToggleFavorite() },
-                    )
-                    DropdownMenuItem(text = { Text("Delete") }, onClick = { menu = false; onDelete() })
+                Box(Modifier.align(Alignment.TopEnd).padding(4.dp)) {
+                    FilledTonalIconButton(onClick = { menu = true }) {
+                        Icon(MaterialSymbols.Filled.MoreVert, contentDescription = "More options")
+                    }
+                    DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                        DropdownMenuItem(text = { Text("Play") }, onClick = { menu = false; onPlay() })
+                        DropdownMenuItem(text = { Text("Shuffle") }, onClick = { menu = false; onShuffle() })
+                        DropdownMenuItem(text = { Text("Rename") }, onClick = { menu = false; onRename() })
+                        DropdownMenuItem(
+                            text = { Text(if (playlist.isFavorite) "Unfavorite" else "Favorite") },
+                            onClick = { menu = false; onToggleFavorite() },
+                        )
+                        DropdownMenuItem(text = { Text("Delete") }, onClick = { menu = false; onDelete() })
+                    }
                 }
             }
-        }
-        Text(
-            playlist.name,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(top = 6.dp),
-        )
-        Text(
-            "${playlist.itemCount} items",
-            style = MaterialTheme.typography.labelSmall,
-            color = colors.fontLight,
-        )
-        Row {
-            TextButton(onClick = onPlay) { Text("Play") }
-            TextButton(onClick = onShuffle) { Text("Shuffle") }
+            Text(
+                playlist.name,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleSmall,
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    "${playlist.itemCount} items",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = colors.fontLight,
+                    modifier = Modifier.weight(1f),
+                )
+                IconButton(onClick = onShuffle) {
+                    Icon(MaterialSymbols.Filled.Shuffle, contentDescription = "Shuffle")
+                }
+                FilledTonalIconButton(onClick = onPlay) {
+                    Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = ShellStrings.play())
+                }
+            }
         }
     }
 }

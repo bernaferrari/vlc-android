@@ -3,6 +3,8 @@ package org.videolan.vlc.compose.components
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -61,7 +63,7 @@ data class DisplaySettingsState(
  * optional browser/audio/video toggles. Hosts supply localized labels via [title]
  * and option strings; no Android R.* dependency.
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun DisplaySettingsSheet(
     state: DisplaySettingsState,
@@ -128,7 +130,11 @@ fun DisplaySettingsSheet(
                     style = MaterialTheme.typography.titleSmall,
                     color = colors.primary,
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
                     state.groupingOptions.forEach { option ->
                         FilterChip(
                             selected = option == state.selectedGrouping,
@@ -145,7 +151,11 @@ fun DisplaySettingsSheet(
                     style = MaterialTheme.typography.titleSmall,
                     color = colors.primary,
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
                     state.defaultActionOptions.forEach { option ->
                         FilterChip(
                             selected = option == state.selectedDefaultAction,
