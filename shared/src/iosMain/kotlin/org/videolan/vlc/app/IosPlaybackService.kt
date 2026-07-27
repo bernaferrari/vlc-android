@@ -21,6 +21,7 @@ import org.videolan.vlc.player.PlaybackVideoAdjust
 import org.videolan.vlc.player.VideoAdjustParameter
 import org.videolan.vlc.player.PlayerBackend
 import org.videolan.vlc.player.PlaylistEngine
+import org.videolan.tools.VlcSettings
 import platform.Foundation.NSURL
 import platform.UIKit.UIView
 
@@ -71,6 +72,12 @@ class IosPlaybackService : PlaybackService {
 
     /** Writes a paused-only session snapshot at UIKit lifecycle boundaries. */
     fun saveSession() {
+        // Match Android's incognito policy: a private playback session must not
+        // leave a recoverable queue, URI, position, or media title on disk.
+        if (VlcSettings.incognitoMode.value) {
+            IosMediaLibrary.shared.clearPlaybackSession()
+            return
+        }
         val playlist = engine.snapshot()
         if (playlist.items.isEmpty()) {
             IosMediaLibrary.shared.clearPlaybackSession()
@@ -89,6 +96,10 @@ class IosPlaybackService : PlaybackService {
      * before handing it to the shared engine, and no decoder is asked to auto-play.
      */
     fun restoreSession(): Boolean {
+        if (VlcSettings.incognitoMode.value) {
+            IosMediaLibrary.shared.clearPlaybackSession()
+            return false
+        }
         val saved = IosMediaLibrary.shared.playbackSession() ?: return false
         val libraryByUri = IosMediaLibrary.shared.snapshot().associateBy(MediaItem::uri)
         val savedCurrentUri = saved.playlist.current?.uri
