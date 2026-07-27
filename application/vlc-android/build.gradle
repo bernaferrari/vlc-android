@@ -187,9 +187,12 @@ dependencies {
     // silently drift from the published debug artifact.
     testImplementation project(':medialibrary')
     debugApi "org.videolan.android:libvlc-all:$rootProject.ext.libvlcVersion"
-    // Keep debug, dev, and their unit tests on the checkout's medialibrary
-    // implementation. Release artifacts remain binary-packaged below.
-    debugApi project(':medialibrary')
+    // The checkout's :medialibrary project contains only Kotlin/Java bindings
+    // until a separate native medialibrary build has populated jni/libs. A
+    // normal debug APK must remain runnable without that optional native build,
+    // so use the published artifact that carries libmla for every ABI. Keep
+    // the project dependency for dev/source work and unit tests above.
+    debugApi "org.videolan.android:medialibrary-all:$rootProject.ext.medialibraryVersion"
     releaseApi "org.videolan.android:libvlc-all:$rootProject.ext.libvlcVersion"
     releaseApi "org.videolan.android:medialibrary-all:$rootProject.ext.medialibraryVersion"
     signedReleaseApi "org.videolan.android:libvlc-all:$rootProject.ext.libvlcVersion"

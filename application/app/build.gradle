@@ -6,6 +6,42 @@ plugins {
 // before the android { } body finishes configuring split outputs.
 def abiCodes = ['armeabi-v7a': 5, 'arm64-v8a': 6, 'x86': 7, 'x86_64': 8]
 
+/**
+ * The Java medialibrary bindings can compile without their JNI payload, which
+ * makes a broken debug APK deceptively easy to produce. Keep that regression
+ * visible at assemble time instead of discovering it only through a native
+ * `UnsatisfiedLinkError` on a device.
+ */
+tasks.register('verifyDebugMedialibraryJni') {
+    group = 'verification'
+    description = 'Verifies that every universal debug APK packages libmla for each supported ABI.'
+    dependsOn('packageDebug')
+    doLast {
+        def debugApks = fileTree(layout.buildDirectory.dir('outputs/apk/debug').get().asFile) {
+            include '**/*.apk'
+        }.files
+        if (debugApks.empty) throw new GradleException('No debug APK was produced to verify medialibrary JNI packaging.')
+
+        // `abiCodes` also receives the universal `all` output while configuring
+        // version codes. The APK itself still carries the four concrete ABI
+        // folders, which are the JNI entries this task must validate.
+        def supportedAbis = ['armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64']
+        def expectedEntries = supportedAbis.collect { abi -> "lib/${abi}/libmla.so" }
+        debugApks.each { apk ->
+            new java.util.zip.ZipFile(apk).withCloseable { zip ->
+                def missing = expectedEntries.findAll { entry -> zip.getEntry(entry) == null }
+                if (!missing.empty) {
+                    throw new GradleException("${apk.name} is missing medialibrary JNI entries: ${missing.join(', ')}")
+                }
+            }
+        }
+    }
+}
+
+tasks.matching { it.name == 'assembleDebug' }.configureEach {
+    finalizedBy('verifyDebugMedialibraryJni')
+}
+
 android {
     compileOptions {
         coreLibraryDesugaringEnabled = true
