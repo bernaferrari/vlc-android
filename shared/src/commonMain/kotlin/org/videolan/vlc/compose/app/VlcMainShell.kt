@@ -317,7 +317,7 @@ fun VlcMainShell(
                                 containerColor = colors.backgroundDefault,
                                 titleContentColor = colors.fontDefault,
                             ),
-                            actions = {
+                            navigationIcon = {
                                 if (canNavigateBack) IconButton(onClick = ::navigateBack) {
                                     Icon(
                                         icon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
