@@ -156,6 +156,21 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
     }
 }
 
+// Android-KMP does not currently assign an output directory to Compose's
+// Android asset-copy task. Without it, an Android application can compile the
+// shared UI but cannot package its resource bundle. Use one stable generated
+// directory that every Android host variant can consume.
+tasks.configureEach {
+    if (name == "copyAndroidMainComposeResourcesToAndroidAssets") {
+        // The Compose task type is internal, but its Gradle property is public
+        // at runtime. Configure it reflectively until the plugin exposes a
+        // stable DSL.
+        val outputDirectory = javaClass.getMethod("getOutputDirectory")
+            .invoke(this) as org.gradle.api.file.DirectoryProperty
+        outputDirectory.set(layout.buildDirectory.dir("generated/assets/sharedComposeResources"))
+    }
+}
+
 // Koin compiler — compile-time verification of module bindings via KSP.
 dependencies {
     // Android-KMP has one publishable variant. Keep inspection tooling available
