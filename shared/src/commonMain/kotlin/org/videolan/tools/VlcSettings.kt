@@ -45,6 +45,9 @@ object VlcSettings {
     private val _safeMode = MutableStateFlow(false)
     private val _remoteAccessEnabled = MutableStateFlow(false)
     private val _browseNetwork = MutableStateFlow(true)
+    private val _playbackHistory = MutableStateFlow(true)
+    private val _audioResumePlayback = MutableStateFlow(true)
+    private val _videoResumePlayback = MutableStateFlow(true)
     private val _fastplaySpeed = MutableStateFlow(2f)
 
     // --- Public read-only StateFlows (reactive) ---
@@ -72,6 +75,12 @@ object VlcSettings {
     val remoteAccessEnabled: StateFlow<Boolean> = _remoteAccessEnabled.asStateFlow()
     /** Whether network discovery/favorites are visible in the shared browser. */
     val browseNetwork: StateFlow<Boolean> = _browseNetwork.asStateFlow()
+    /** Whether normal (non-private) playback is recorded in shared history. */
+    val playbackHistory: StateFlow<Boolean> = _playbackHistory.asStateFlow()
+    /** Whether the current audio queue may be restored after relaunch. */
+    val audioResumePlayback: StateFlow<Boolean> = _audioResumePlayback.asStateFlow()
+    /** Whether the current video/stream queue may be restored after relaunch. */
+    val videoResumePlayback: StateFlow<Boolean> = _videoResumePlayback.asStateFlow()
     val fastplaySpeed: StateFlow<Float> = _fastplaySpeed.asStateFlow()
 
     /**
@@ -113,6 +122,9 @@ object VlcSettings {
         incognitoMode: Boolean,
         safeMode: Boolean,
         remoteAccessEnabled: Boolean,
+        playbackHistory: Boolean,
+        audioResumePlayback: Boolean,
+        videoResumePlayback: Boolean,
         fastplaySpeed: Float,
     ) {
         _firstRun.value = firstRun
@@ -136,6 +148,9 @@ object VlcSettings {
         _incognitoMode.value = incognitoMode
         _safeMode.value = safeMode
         _remoteAccessEnabled.value = remoteAccessEnabled
+        _playbackHistory.value = playbackHistory
+        _audioResumePlayback.value = audioResumePlayback
+        _videoResumePlayback.value = videoResumePlayback
         _fastplaySpeed.value = fastplaySpeed
     }
 
@@ -168,6 +183,9 @@ object VlcSettings {
         _safeMode.value = prefs.getBoolean(KEY_SAFE_MODE, false)
         _remoteAccessEnabled.value = prefs.getBoolean(KEY_ENABLE_REMOTE_ACCESS, false)
         _browseNetwork.value = prefs.getBoolean(KEY_BROWSE_NETWORK, true)
+        _playbackHistory.value = prefs.getBoolean(PLAYBACK_HISTORY, true)
+        _audioResumePlayback.value = prefs.getBoolean(AUDIO_RESUME_PLAYBACK, true)
+        _videoResumePlayback.value = prefs.getBoolean(VIDEO_RESUME_PLAYBACK, true)
     }
 
     /**
@@ -196,6 +214,9 @@ object VlcSettings {
             KEY_SAFE_MODE -> _safeMode.value = value
             KEY_ENABLE_REMOTE_ACCESS -> _remoteAccessEnabled.value = value
             KEY_BROWSE_NETWORK -> _browseNetwork.value = value
+            PLAYBACK_HISTORY -> _playbackHistory.value = value
+            AUDIO_RESUME_PLAYBACK -> _audioResumePlayback.value = value
+            VIDEO_RESUME_PLAYBACK -> _videoResumePlayback.value = value
             KEY_OVERRIDE_TV_UI -> _overrideTvUI.value = value
             KEY_AUDIO_SHOW_TRACK_NUMBERS -> _audioShowTrackNumbers.value = value
         }

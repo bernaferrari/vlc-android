@@ -19,6 +19,7 @@ import org.videolan.vlc.player.PlaybackVideoCrop
 import org.videolan.vlc.player.VideoCropMode
 import org.videolan.vlc.player.PlaybackVideoAdjust
 import org.videolan.vlc.player.VideoAdjustParameter
+import org.videolan.vlc.player.shouldPersistPlaybackSession
 import org.videolan.vlc.player.PlayerBackend
 import org.videolan.vlc.player.PlaylistEngine
 import org.videolan.tools.VlcSettings
@@ -79,7 +80,8 @@ class IosPlaybackService : PlaybackService {
             return
         }
         val playlist = engine.snapshot()
-        if (playlist.items.isEmpty()) {
+        val current = playlist.current
+        if (playlist.items.isEmpty() || current == null || !shouldPersistSession(current)) {
             IosMediaLibrary.shared.clearPlaybackSession()
             return
         }
@@ -110,6 +112,11 @@ class IosPlaybackService : PlaybackService {
         }
         val index = items.indexOfFirst { it.uri == savedCurrentUri }.coerceAtLeast(0)
         val playlist = saved.playlist.copy(items = items, currentIndex = index)
+        val current = playlist.current
+        if (current == null || !shouldPersistSession(current)) {
+            IosMediaLibrary.shared.clearPlaybackSession()
+            return false
+        }
         engine.setVolume(saved.volume)
         engine.setRate(saved.rate)
         return engine.restorePaused(playlist, saved.positionMs).also { restored ->
@@ -175,6 +182,14 @@ class IosPlaybackService : PlaybackService {
     override fun setABRepeatValue(timeMs: Long) = engine.setABRepeatValue(timeMs)
     override fun resetABRepeat() = engine.resetABRepeat()
     override fun clearABRepeat() = engine.clearABRepeat()
+
+    /** Mirrors Android's audio/video resume preferences for the durable shared queue snapshot. */
+    private fun shouldPersistSession(item: MediaItem): Boolean =
+        shouldPersistPlaybackSession(
+            item = item,
+            audioResumeEnabled = VlcSettings.audioResumePlayback.value,
+            videoResumeEnabled = VlcSettings.videoResumePlayback.value,
+        )
 
     companion object {
         val shared: IosPlaybackService by lazy { IosPlaybackService() }

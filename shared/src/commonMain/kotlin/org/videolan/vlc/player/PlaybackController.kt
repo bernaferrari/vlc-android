@@ -49,6 +49,8 @@ class PlaybackController(
     }.getOrNull(),
     /** Kept injectable so the privacy policy is testable without a platform preference store. */
     private val isIncognito: () -> Boolean = { VlcSettings.incognitoMode.value },
+    /** User intent is separate from incognito: history can be disabled for normal playback too. */
+    private val isHistoryEnabled: () -> Boolean = { VlcSettings.playbackHistory.value },
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var sessionBound = false
@@ -141,7 +143,7 @@ class PlaybackController(
 
     /** Incognito is enforced before any shared history repository is touched. */
     private fun rememberPlayback(item: MediaItem) {
-        if (isIncognito()) return
+        if (isIncognito() || !isHistoryEnabled()) return
         scope.launch { runCatching { history?.addToHistory(item) } }
     }
 

@@ -37,6 +37,9 @@ object Settings : SingletonHolder<SharedPreferences, Context>({ init(it.applicat
     var incognitoMode = false
     var safeMode = false
     var remoteAccessEnabled = MutableLiveData(false)
+    var playbackHistory = true
+    var audioResumePlayback = true
+    var videoResumePlayback = true
     var fastplaySpeed = 2f
     private var audioControlsChangeListener: (() -> Unit)? = null
     lateinit var device : DeviceInfo
@@ -79,6 +82,9 @@ object Settings : SingletonHolder<SharedPreferences, Context>({ init(it.applicat
             incognitoMode = incognitoMode,
             safeMode = safeMode,
             remoteAccessEnabled = remoteAccessEnabled.value == true,
+            playbackHistory = playbackHistory,
+            audioResumePlayback = audioResumePlayback,
+            videoResumePlayback = videoResumePlayback,
             fastplaySpeed = fastplaySpeed,
         )
     }
@@ -105,6 +111,9 @@ object Settings : SingletonHolder<SharedPreferences, Context>({ init(it.applicat
         incognitoMode = prefs.getBoolean(KEY_INCOGNITO, false)
         safeMode = prefs.getBoolean(KEY_SAFE_MODE, false) && prefs.getString(KEY_SAFE_MODE_PIN, "")?.isNotBlank() == true
         remoteAccessEnabled.postValue(prefs.getBoolean(KEY_ENABLE_REMOTE_ACCESS, false))
+        playbackHistory = prefs.getBoolean(PLAYBACK_HISTORY, true)
+        audioResumePlayback = prefs.getBoolean(AUDIO_RESUME_PLAYBACK, true)
+        videoResumePlayback = prefs.getBoolean(VIDEO_RESUME_PLAYBACK, true)
         HotPlaybackSettings.attach(prefs)
         hydrateVlcSettingsCache()
         return prefs

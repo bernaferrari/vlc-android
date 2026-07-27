@@ -56,9 +56,9 @@ class SettingsViewModel(
     private val _state = MutableStateFlow(
         SettingsUiState(
             showVideoThumbs = VlcSettings.showVideoThumbs.value,
-            playbackHistory = true,
-            audioResume = true,
-            videoResume = true,
+            playbackHistory = VlcSettings.playbackHistory.value,
+            audioResume = VlcSettings.audioResumePlayback.value,
+            videoResume = VlcSettings.videoResumePlayback.value,
             incognito = VlcSettings.incognitoMode.value,
             remoteAccess = if (capabilities.remoteAccessServer) VlcSettings.remoteAccessEnabled.value else false,
             supportsRemoteAccess = capabilities.remoteAccessServer,
@@ -77,6 +77,15 @@ class SettingsViewModel(
         }
         launch {
             VlcSettings.incognitoMode.collect { v -> _state.update { it.copy(incognito = v) } }
+        }
+        launch {
+            VlcSettings.playbackHistory.collect { v -> _state.update { it.copy(playbackHistory = v) } }
+        }
+        launch {
+            VlcSettings.audioResumePlayback.collect { v -> _state.update { it.copy(audioResume = v) } }
+        }
+        launch {
+            VlcSettings.videoResumePlayback.collect { v -> _state.update { it.copy(videoResume = v) } }
         }
         launch {
             VlcSettings.showHeaders.collect { v -> _state.update { it.copy(showHeaders = v) } }

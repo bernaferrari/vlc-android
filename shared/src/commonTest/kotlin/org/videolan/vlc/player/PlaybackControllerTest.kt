@@ -71,6 +71,22 @@ class PlaybackControllerTest {
     }
 
     @Test
+    fun disabledHistoryNeverTouchesSharedHistoryOutsideIncognito() = runTest {
+        val history = RecordingHistoryRepository()
+        val controller = PlaybackController(
+            service = FakePlaybackService(),
+            history = history,
+            isIncognito = { false },
+            isHistoryEnabled = { false },
+        )
+
+        controller.play(FakeCatalog.items.first())
+        controller.playFromIndex(FakeCatalog.items, 1)
+
+        assertTrue(history.playedIds.isEmpty())
+    }
+
+    @Test
     fun clearsNowPlayingMetadataWhenPlaybackStops() = runTest {
         val service = FakePlaybackService()
         val session = RecordingMediaSessionBridge()
