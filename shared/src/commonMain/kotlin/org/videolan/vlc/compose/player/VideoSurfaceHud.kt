@@ -59,6 +59,7 @@ import org.videolan.vlc.platform.RendererInfo
 import org.videolan.vlc.platform.RendererType
 import org.videolan.vlc.compose.components.VLCRendererPickerDialogContent
 import org.videolan.vlc.compose.components.VLCRendererUiItem
+import org.videolan.vlc.compose.components.VLCBookmarkMarkers
 import kotlin.math.roundToInt
 import vlc_android.shared.generated.resources.Res
 import vlc_android.shared.generated.resources.*
@@ -208,6 +209,7 @@ fun VideoSurfaceWithHud(
                 repeatMode = repeatMode,
                 rate = rate,
                 queueSize = queue.size,
+                bookmarks = bookmarks,
                 onTogglePlay = onTogglePlay,
                 onSeek = onSeek,
                 onNext = onNext,
@@ -359,6 +361,7 @@ fun VideoHudOverlay(
     repeatMode: RepeatMode,
     rate: Float,
     queueSize: Int,
+    bookmarks: PlaybackBookmarks = PlaybackBookmarks(),
     onTogglePlay: () -> Unit,
     onSeek: (Long) -> Unit,
     onNext: () -> Unit,
@@ -469,6 +472,14 @@ fun VideoHudOverlay(
             val length = seekableLength ?: 1L
             var scrubPosition by remember(progress.length) { mutableStateOf<Float?>(null) }
             val displayedTime = (scrubPosition?.toLong() ?: progress.time).coerceIn(0L, length)
+            if (seekableLength != null && bookmarks.entries.isNotEmpty()) {
+                VLCBookmarkMarkers(
+                    markerFractions = bookmarks.entries.map { bookmark ->
+                        bookmark.timeMs.toFloat() / seekableLength.toFloat()
+                    },
+                    markerColor = Color.White.copy(alpha = 0.9f),
+                )
+            }
             Slider(
                 value = (scrubPosition ?: progress.time.toFloat()).coerceIn(0f, length.toFloat()),
                 onValueChange = { scrubPosition = it },
