@@ -615,40 +615,45 @@ internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
                 row { ToggleRow(ShellStrings.multimediaFilesOnly(), state.showOnlyMultimedia, vm::setShowOnlyMultimedia) }
             }
         }
-        if (state.supportsNetworkBrowsing) item {
-            SettingsGroup(title = ShellStrings.network()) {
-                row { ToggleRow(ShellStrings.browseNetwork(), state.browseNetwork, vm::setBrowseNetwork) }
-            }
-        }
-        if (state.supportsRemoteAccess) item {
+        if (state.supportsNetworkBrowsing || state.supportsRemoteAccess) item {
             val remoteAccessAddress = state.remoteAccessAddress
             val remoteAccessError = state.remoteAccessError
             SettingsGroup(title = ShellStrings.network()) {
-                row { ToggleRow(ShellStrings.remoteAccessServer(), state.remoteAccess, vm::setRemoteAccess) }
-                row { when {
-                    state.remoteAccessStarting -> Text(
-                        ShellStrings.remoteAccessStarting(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
-                    )
-                    remoteAccessAddress != null -> Column(
-                        modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        Text(ShellStrings.remoteAccessUploadAddress(), style = MaterialTheme.typography.bodyMedium)
-                        Text(
-                            remoteAccessAddress,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = VLCThemeDefaults.colors.primary,
-                        )
+                if (state.supportsNetworkBrowsing) {
+                    row { ToggleRow(ShellStrings.browseNetwork(), state.browseNetwork, vm::setBrowseNetwork) }
+                }
+                if (state.supportsRemoteAccess) {
+                    row { ToggleRow(ShellStrings.remoteAccessServer(), state.remoteAccess, vm::setRemoteAccess) }
+                    if (state.remoteAccessStarting || remoteAccessAddress != null || remoteAccessError != null) {
+                        row {
+                            when {
+                                state.remoteAccessStarting -> Text(
+                                    ShellStrings.remoteAccessStarting(),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
+                                )
+                                remoteAccessAddress != null -> Column(
+                                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                                ) {
+                                    Text(ShellStrings.remoteAccessUploadAddress(), style = MaterialTheme.typography.bodyMedium)
+                                    Text(
+                                        remoteAccessAddress,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = VLCThemeDefaults.colors.primary,
+                                    )
+                                }
+                                remoteAccessError != null -> Text(
+                                    remoteAccessError,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
+                                )
+                                else -> Unit
+                            }
+                        }
                     }
-                    remoteAccessError != null -> Text(
-                        remoteAccessError,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
-                    )
-                } }
+                }
             }
         }
     }
