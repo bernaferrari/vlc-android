@@ -10,7 +10,10 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import org.videolan.vlc.compose.app.VlcKoinMainShell
 import org.videolan.vlc.kmp.AndroidShellHostCallbacks
 import org.videolan.vlc.kmp.AndroidPlayerSurface
+import org.videolan.vlc.kmp.AndroidPipController
 import org.videolan.vlc.kmp.VlcKmpInitializer
+import org.videolan.vlc.app.VlcKoin
+import org.videolan.vlc.platform.PipController
 
 /**
  * Production-quality entry for the shared Compose shell
@@ -30,6 +33,11 @@ class SharedAppActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         if (!VlcKmpInitializer.isInitialized) {
             VlcKmpInitializer.initialize(applicationContext)
+        }
+        // The shared HUD dispatches PiP through the common controller; it still needs the
+        // foreground activity at the Android edge to perform the system transition.
+        runCatching {
+            (VlcKoin.get().get<PipController>() as? AndroidPipController)?.attachActivity(this)
         }
         val hostCallbacks = AndroidShellHostCallbacks(this)
         root = ComposeView(this).apply {

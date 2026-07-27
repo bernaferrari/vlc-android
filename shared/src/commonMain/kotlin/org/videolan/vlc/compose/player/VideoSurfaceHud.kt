@@ -79,6 +79,7 @@ fun VideoSurfaceWithHud(
     sleepTimer: SleepTimerState = SleepTimerState(),
     chapters: PlaybackChapters = PlaybackChapters(),
     hasVideoOutput: Boolean = false,
+    showPictureInPicture: Boolean = false,
     onTogglePlay: () -> Unit,
     onSeek: (Long) -> Unit,
     onNext: () -> Unit,
@@ -104,6 +105,7 @@ fun VideoSurfaceWithHud(
     onSelectChapter: (Int) -> Unit = {},
     showSubtitleImport: Boolean = false,
     onImportSubtitle: () -> Unit = {},
+    onEnterPictureInPicture: () -> Unit = {},
     onClose: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     surface: @Composable BoxScope.(chromeVisible: Boolean) -> Unit,
@@ -165,6 +167,8 @@ fun VideoSurfaceWithHud(
                 onToggleShuffle = onToggleShuffle,
                 onCycleRepeat = onCycleRepeat,
                 onOpenOptions = { optionsVisible = true },
+                showPictureInPicture = showPictureInPicture,
+                onEnterPictureInPicture = onEnterPictureInPicture,
                 onClose = onClose,
             )
         }
@@ -229,6 +233,8 @@ fun VideoHudOverlay(
     onToggleShuffle: () -> Unit,
     onCycleRepeat: () -> Unit,
     onOpenOptions: () -> Unit,
+    showPictureInPicture: Boolean,
+    onEnterPictureInPicture: () -> Unit,
     onClose: (() -> Unit)?,
 ) {
     val colors = VLCThemeDefaults.colors
@@ -277,7 +283,16 @@ fun VideoHudOverlay(
                         )
                     }
                 }
-            }
+                if (showPictureInPicture) {
+                    IconButton(onClick = onEnterPictureInPicture) {
+                        Icon(
+                            icon = MaterialSymbols.Filled.PictureInPictureAlt,
+                            contentDescription = stringResource(Res.string.play_pip_title),
+                            tint = Color.White,
+                        )
+                    }
+                }
+                }
         }
 
         // Bottom gradient + transport

@@ -55,6 +55,8 @@ class PlaybackController(
     val playlist: Flow<Playlist> get() = service.currentPlaylist
     val pipController: PipController get() = pip
     val rendererBridge: RendererBridge get() = renderers
+    val isPictureInPictureAvailable: Boolean
+        get() = capabilities.pictureInPicture && pip.isSupported
 
     init {
         bindSession()
@@ -108,7 +110,7 @@ class PlaybackController(
     fun setRate(rate: Float) = service.setRate(rate)
     fun getRate(): Float = service.getRate()
 
-    fun enterPip(): Boolean = capabilities.pictureInPicture && pip.isSupported && pip.enterPip()
+    fun enterPip(): Boolean = isPictureInPictureAvailable && pip.enterPip()
     fun exitPip() {
         if (capabilities.pictureInPicture) pip.exitPip()
     }

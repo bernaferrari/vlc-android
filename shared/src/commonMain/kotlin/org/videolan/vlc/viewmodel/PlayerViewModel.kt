@@ -12,6 +12,7 @@ import org.videolan.vlc.model.Playlist
 import org.videolan.vlc.model.Progress
 import org.videolan.vlc.model.RepeatMode
 import org.videolan.vlc.player.PlaybackService
+import org.videolan.vlc.player.PlaybackController
 import org.videolan.vlc.player.PlaybackState
 import org.videolan.vlc.player.PlaybackTracks
 import org.videolan.vlc.player.PlaybackDelays
@@ -40,6 +41,8 @@ data class PlayerUiState(
     val delays: PlaybackDelays = PlaybackDelays(),
     val sleepTimer: SleepTimerState = SleepTimerState(),
     val chapters: PlaybackChapters = PlaybackChapters(),
+    /** The native host can transition the active video to system Picture-in-Picture. */
+    val pictureInPictureAvailable: Boolean = false,
     val hasMedia: Boolean = false,
     /** True for known video and network streams, which may expose video after probing. */
     val hasVideoOutput: Boolean = false,
@@ -51,9 +54,16 @@ class PlayerViewModel(
     private val playback: PlaybackService = runCatching {
         VlcKoin.get().get<PlaybackService>()
     }.getOrElse { error("PlaybackService unavailable") },
+    private val controller: PlaybackController? = runCatching {
+        VlcKoin.get().get<PlaybackController>()
+    }.getOrNull(),
 ) : VlcViewModel() {
 
-    private val _state = MutableStateFlow(PlayerUiState())
+    private val _state = MutableStateFlow(
+        PlayerUiState(
+            pictureInPictureAvailable = controller?.isPictureInPictureAvailable == true,
+        ),
+    )
     val state: StateFlow<PlayerUiState> = _state.asStateFlow()
 
     init {
@@ -192,6 +202,9 @@ class PlayerViewModel(
     fun selectChapter(index: Int) = playback.selectChapter(index)
 
     fun loadExternalSubtitle(uri: String): Boolean = playback.loadExternalSubtitle(uri)
+
+    /** Delegates the OS-owned transition while keeping visibility/capability policy in common UI. */
+    fun enterPictureInPicture(): Boolean = controller?.enterPip() == true
 
     fun cycleRepeat() {
         val next = when (_state.value.repeatMode) {

@@ -14,6 +14,9 @@ import org.videolan.vlc.model.MediaType
 import org.videolan.vlc.repository.FakeCatalog
 import org.videolan.vlc.repository.FakePlaybackService
 import org.videolan.vlc.player.VideoScaleMode
+import org.videolan.vlc.player.PlaybackController
+import org.videolan.vlc.platform.PipController
+import org.videolan.vlc.platform.VlcPlatformCapabilities
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -183,5 +186,33 @@ class PlayerViewModelTest {
 
         assertEquals(VideoScaleMode.FILL, vm.state.value.videoScaleMode)
         vm.onCleared()
+    }
+
+    @Test
+    fun pictureInPictureIsCapabilityGatedInSharedPlayerState() = runTest {
+        val playback = FakePlaybackService()
+        val pip = RecordingPipController()
+        val controller = PlaybackController(
+            service = playback,
+            pip = pip,
+            capabilities = VlcPlatformCapabilities(nativePlayback = true, pictureInPicture = true),
+        )
+        val vm = PlayerViewModel(playback, controller)
+
+        assertTrue(vm.state.value.pictureInPictureAvailable)
+        assertTrue(vm.enterPictureInPicture())
+        assertTrue(pip.entered)
+        vm.onCleared()
+    }
+
+    private class RecordingPipController : PipController {
+        var entered = false
+        override val isSupported: Boolean = true
+        override fun enterPip(): Boolean {
+            entered = true
+            return true
+        }
+        override fun exitPip() = Unit
+        override fun isInPip(): Boolean = entered
     }
 }

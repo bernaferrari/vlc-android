@@ -55,6 +55,7 @@ object MaterialSymbols {
         val Notifications: MaterialIcon get() = MaterialIcon(filledNotifications)
         val ArrowDownward: MaterialIcon get() = MaterialIcon(filledArrowDownward)
         val Stop: MaterialIcon get() = MaterialIcon(filledStop)
+        val PictureInPictureAlt: MaterialIcon get() = MaterialIcon(filledPictureInPictureAlt)
     }
 
     object Outlined {

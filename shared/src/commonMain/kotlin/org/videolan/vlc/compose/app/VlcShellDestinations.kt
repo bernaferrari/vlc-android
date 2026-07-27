@@ -256,6 +256,7 @@ internal fun PlayerDestination(
         sleepTimer = state.sleepTimer,
         chapters = state.chapters,
         hasVideoOutput = state.hasVideoOutput,
+        showPictureInPicture = state.pictureInPictureAvailable && state.hasVideoOutput,
         onTogglePlay = viewModel::togglePlayPause,
         onSeek = viewModel::seekTo,
         onNext = viewModel::next,
@@ -281,6 +282,7 @@ internal fun PlayerDestination(
         onSelectChapter = viewModel::selectChapter,
         showSubtitleImport = hostCallbacks.supportsSubtitleImport(),
         onImportSubtitle = { hostCallbacks.onImportSubtitle(viewModel::loadExternalSubtitle) },
+        onEnterPictureInPicture = viewModel::enterPictureInPicture,
         onClose = onClose,
         modifier = modifier,
     ) { chromeVisible -> playerSurface(state, chromeVisible) }

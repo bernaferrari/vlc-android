@@ -60,7 +60,7 @@ private val presentationModule: Module = module {
             player = get<PlaybackController>(),
         )
     }
-    factory { PlayerViewModel(playback = get<PlaybackService>()) }
+    factory { PlayerViewModel(playback = get<PlaybackService>(), controller = get()) }
     factory { SettingsViewModel(prefs = get()) }
     factory {
         LibraryViewModel(
