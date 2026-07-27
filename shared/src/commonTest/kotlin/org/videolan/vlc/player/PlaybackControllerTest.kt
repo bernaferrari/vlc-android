@@ -18,6 +18,7 @@ import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class PlaybackControllerTest {
 
@@ -49,6 +50,21 @@ class PlaybackControllerTest {
         controller.playFromIndex(listOf(first, second), 1)
 
         assertEquals(listOf(first.id, second.id), history.playedIds)
+    }
+
+    @Test
+    fun incognitoPlaybackNeverTouchesSharedHistory() = runTest {
+        val history = RecordingHistoryRepository()
+        val controller = PlaybackController(
+            service = FakePlaybackService(),
+            history = history,
+            isIncognito = { true },
+        )
+
+        controller.play(FakeCatalog.items.first())
+        controller.playFromIndex(FakeCatalog.items, 1)
+
+        assertTrue(history.playedIds.isEmpty())
     }
 
     private class RecordingHistoryRepository : HistoryRepository {

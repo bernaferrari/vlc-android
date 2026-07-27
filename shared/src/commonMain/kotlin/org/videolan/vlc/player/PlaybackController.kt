@@ -22,6 +22,7 @@ import org.videolan.vlc.platform.SessionActions
 import org.videolan.vlc.platform.VlcPlatformCapabilities
 import org.videolan.vlc.platform.platformCapabilities
 import org.videolan.vlc.repository.HistoryRepository
+import org.videolan.tools.VlcSettings
 
 /**
  * Thin façade over platform [PlaybackService] plus session / PiP / renderer hooks.
@@ -46,6 +47,8 @@ class PlaybackController(
     private val history: HistoryRepository? = runCatching {
         VlcKoin.get().get<HistoryRepository>()
     }.getOrNull(),
+    /** Kept injectable so the privacy policy is testable without a platform preference store. */
+    private val isIncognito: () -> Boolean = { VlcSettings.incognitoMode.value },
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var sessionBound = false
@@ -87,15 +90,13 @@ class PlaybackController(
 
     fun play(item: MediaItem, queue: List<MediaItem> = emptyList()) {
         service.play(item, queue)
-        scope.launch {
-            runCatching { history?.addToHistory(item) }
-        }
+        rememberPlayback(item)
     }
 
     fun playFromIndex(queue: List<MediaItem>, index: Int) {
         service.playFromIndex(queue, index)
         val item = queue.getOrNull(index) ?: return
-        scope.launch { runCatching { history?.addToHistory(item) } }
+        rememberPlayback(item)
     }
 
     fun pause() = service.pause()
@@ -135,6 +136,12 @@ class PlaybackController(
     fun toggleABRepeat() = service.toggleABRepeat()
     fun setABRepeatValue(timeMs: Long) = service.setABRepeatValue(timeMs)
     fun clearABRepeat() = service.clearABRepeat()
+
+    /** Incognito is enforced before any shared history repository is touched. */
+    private fun rememberPlayback(item: MediaItem) {
+        if (isIncognito()) return
+        scope.launch { runCatching { history?.addToHistory(item) } }
+    }
 
 
     fun addObserver(observer: PlaybackObserver) = service.addObserver(observer)
