@@ -71,6 +71,15 @@ class AndroidMediaRepository(
     private val networkMonitor = NetworkMonitor.getInstance(appContext)
     private val settings = Settings.getInstance(appContext)
 
+    override val supportsRescan: Boolean
+        get() = medialibrary.isInitiated
+
+    override suspend fun rescan(): Boolean = withContext(Dispatchers.IO) {
+        if (!medialibrary.isInitiated) return@withContext false
+        medialibrary.forceRescan()
+        true
+    }
+
     override fun observeMedia(type: MediaType): Flow<List<MediaItem>> = mediaCallbackFlow {
         queryMedia(type)
     }

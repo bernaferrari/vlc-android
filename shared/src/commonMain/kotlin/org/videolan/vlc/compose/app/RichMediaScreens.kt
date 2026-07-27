@@ -102,6 +102,7 @@ fun RichMediaListPane(
     onSetSort: (SortMode) -> Unit = {},
     onToggleSortDesc: () -> Unit = {},
     onToggleFavorites: () -> Unit = {},
+    onRescan: () -> Unit = {},
     onCtx: (MediaItem, ContextOption) -> Unit = { _, _ -> },
     canHandleHostAction: (ContextOption) -> Boolean = { false },
     onOpenGroup: (MediaFolder) -> Unit = {},
@@ -199,6 +200,9 @@ fun RichMediaListPane(
                 }
                 IconButton(onClick = { showDisplaySettings = true }) {
                     Icon(MaterialSymbols.Filled.Tune, contentDescription = ShellStrings.displaySettings())
+                }
+                if (state.supportsRescan) {
+                    TextButton(onClick = onRescan) { Text(ShellStrings.refresh()) }
                 }
                 FilledTonalIconButton(onClick = onPlayAll) {
                     Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = ShellStrings.playAll())

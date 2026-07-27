@@ -82,6 +82,8 @@ data class MediaListUiState(
     val openedEntityTitle: String? = null,
     val showAllArtists: Boolean = false,
     val showTrackNumbers: Boolean = true,
+    /** Whether the current repository can re-enumerate its local media source. */
+    val supportsRescan: Boolean = false,
 )
 
 data class BrowserUiState(
@@ -286,6 +288,7 @@ class VideoListViewModel(
         MediaListUiState(
             viewMode = ViewMode.GRID,
             showTrackNumbers = runCatching { VlcSettings.showTrackNumber.value }.getOrDefault(true),
+            supportsRescan = repo.supportsRescan,
         ),
     )
     val state: StateFlow<MediaListUiState> = _state.asStateFlow()
@@ -528,6 +531,10 @@ class VideoListViewModel(
         }
         rebuildQuery()
     }
+
+    fun rescan() = launch {
+        if (runCatching { repo.rescan() }.getOrDefault(false)) refresh()
+    }
     private fun rebuildQuery() {
         val s = _state.value
         queryFlow.value = MediaQuery(
@@ -623,6 +630,7 @@ class AudioListViewModel(
             showTrackNumbers = runCatching {
                 VlcSettings.audioShowTrackNumbers.value || VlcSettings.showTrackNumber.value
             }.getOrDefault(true),
+            supportsRescan = repo.supportsRescan,
         ),
     )
     val state: StateFlow<MediaListUiState> = _state.asStateFlow()
@@ -975,6 +983,10 @@ class AudioListViewModel(
         _state.update { it.copy(loading = true, error = null) }
         rebuildQuery()
         refreshCurrent()
+    }
+
+    fun rescan() = launch {
+        if (runCatching { repo.rescan() }.getOrDefault(false)) refresh()
     }
 
     private fun refreshCurrent() {

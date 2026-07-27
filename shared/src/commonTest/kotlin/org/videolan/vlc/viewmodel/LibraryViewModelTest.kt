@@ -77,4 +77,15 @@ class LibraryViewModelTest {
         assertTrue(FakeCatalog.items.any { it.isAudio })
         assertTrue(FakeCatalog.items.any { it.isVideo })
     }
+
+    @Test
+    fun rescanIsExposedOnlyWhenTheNativeRepositorySupportsIt() = runTest {
+        val media = FakeMediaRepository(rescannable = true)
+        val vm = LibraryViewModel(media, FakePlaybackService())
+
+        assertTrue(vm.state.value.supportsRescan)
+        vm.rescan()
+        kotlin.test.assertEquals(1, media.rescanRequests)
+        vm.onCleared()
+    }
 }

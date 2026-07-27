@@ -21,6 +21,7 @@ object ShellStrings {
     @Composable fun delete(): String = stringResource(Res.string.delete)
     @Composable fun remove(): String = stringResource(Res.string.remove)
     @Composable fun retry(): String = stringResource(Res.string.retry)
+    @Composable fun refresh(): String = stringResource(Res.string.refresh)
     @Composable fun search(): String = stringResource(Res.string.search)
     @Composable fun history(): String = stringResource(Res.string.history)
     @Composable fun favorites(): String = stringResource(Res.string.favorites)

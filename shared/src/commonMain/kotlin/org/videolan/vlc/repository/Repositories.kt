@@ -70,6 +70,12 @@ data class AudioEntity(
  *   - iOS: in-process catalog + Files/Photos intake
  */
 interface MediaRepository {
+    /** True when this repository can re-enumerate its platform-owned local media source. */
+    val supportsRescan: Boolean get() = false
+
+    /** Re-enumerates platform-owned local media. Returns false when the source is not scannable. */
+    suspend fun rescan(): Boolean = false
+
     fun observeMedia(type: MediaType): Flow<List<MediaItem>>
 
     /**

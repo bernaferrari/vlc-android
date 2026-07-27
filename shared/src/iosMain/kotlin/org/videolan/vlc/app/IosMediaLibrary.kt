@@ -52,6 +52,14 @@ class IosMediaLibrary private constructor(
 
     // --- MediaRepository ---
 
+    override val supportsRescan: Boolean get() = documentsPath() != null
+
+    override suspend fun rescan(): Boolean {
+        if (!supportsRescan) return false
+        scanDocumentsFolder()
+        return true
+    }
+
     override fun replaceAllPublic(items: List<MediaItem>) = replaceAll(items)
 
     fun snapshot(): List<MediaItem> = items.value

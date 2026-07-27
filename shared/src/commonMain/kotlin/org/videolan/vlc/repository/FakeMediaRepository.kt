@@ -27,9 +27,20 @@ object FakeCatalog {
 
 class FakeMediaRepository(
     seed: List<MediaItem> = FakeCatalog.items,
+    private val rescannable: Boolean = false,
 ) : MediaRepository {
     private val items = MutableStateFlow(seed)
     private val recent = MutableStateFlow(seed.take(3))
+    var rescanRequests: Int = 0
+        private set
+
+    override val supportsRescan: Boolean get() = rescannable
+
+    override suspend fun rescan(): Boolean {
+        if (!rescannable) return false
+        rescanRequests++
+        return true
+    }
 
     override fun observeMedia(type: MediaType): Flow<List<MediaItem>> =
         items.map { list -> if (type == MediaType.ALL) list else list.filter { it.type == type } }

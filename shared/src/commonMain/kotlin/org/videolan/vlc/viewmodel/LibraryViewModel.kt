@@ -20,6 +20,7 @@ data class LibraryUiState(
     val loading: Boolean = true,
     val error: String? = null,
     val count: Int = 0,
+    val supportsRescan: Boolean = false,
 )
 
 enum class LibraryTab { VIDEO, AUDIO, ALL, RECENT }
@@ -36,7 +37,7 @@ class LibraryViewModel(
     }.getOrElse { error("PlaybackService unavailable — start Koin first") },
 ) : VlcViewModel() {
 
-    private val _state = MutableStateFlow(LibraryUiState())
+    private val _state = MutableStateFlow(LibraryUiState(supportsRescan = mediaRepository.supportsRescan))
     val state: StateFlow<LibraryUiState> = _state.asStateFlow()
 
     private var observeJob: Job? = null
@@ -68,6 +69,10 @@ class LibraryViewModel(
     }
 
     fun refresh() = observe()
+
+    fun rescan() = launch {
+        if (runCatching { mediaRepository.rescan() }.getOrDefault(false)) observe()
+    }
 
     private fun observe() {
         observeJob?.cancel()
