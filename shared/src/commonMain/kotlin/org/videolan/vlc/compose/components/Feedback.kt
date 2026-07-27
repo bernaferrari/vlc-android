@@ -46,6 +46,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialIcon
+import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
@@ -107,12 +110,12 @@ fun VLCFeedbackScreen(
     onIncludeLogsChange: (Boolean) -> Unit,
     onSend: () -> Unit,
     modifier: Modifier = Modifier,
-    closeIconContent: @Composable () -> Unit = { DefaultFeedbackIconPlaceholder() },
-    forumIconContent: @Composable () -> Unit = { DefaultFeedbackIconPlaceholder() },
-    docIconContent: @Composable () -> Unit = { DefaultFeedbackIconPlaceholder() },
-    emailIconContent: @Composable () -> Unit = { DefaultFeedbackIconPlaceholder() },
-    rateIconContent: @Composable () -> Unit = { DefaultFeedbackIconPlaceholder() },
-    warningIconContent: @Composable () -> Unit = { DefaultFeedbackIconPlaceholder() }
+    closeIconContent: @Composable () -> Unit = { DefaultFeedbackIcon(MaterialSymbols.Filled.Close) },
+    forumIconContent: @Composable () -> Unit = { DefaultFeedbackIcon(MaterialSymbols.Filled.Forum) },
+    docIconContent: @Composable () -> Unit = { DefaultFeedbackIcon(MaterialSymbols.Filled.Description) },
+    emailIconContent: @Composable () -> Unit = { DefaultFeedbackIcon(MaterialSymbols.Filled.Mail) },
+    rateIconContent: @Composable () -> Unit = { DefaultFeedbackIcon(MaterialSymbols.Filled.Star) },
+    warningIconContent: @Composable () -> Unit = { DefaultFeedbackIcon(MaterialSymbols.Filled.Warning) }
 ) {
     VLCTheme {
         val colors = VLCThemeDefaults.colors
@@ -545,10 +548,7 @@ private fun DividerLine() {
 }
 
 @Composable
-private fun DefaultFeedbackIconPlaceholder() {
-    Box(
-        modifier = Modifier
-            .size(24.dp)
-            .background(LocalContentColor.current.copy(alpha = 0.24f))
-    )
-}
+private fun DefaultFeedbackIcon(icon: MaterialIcon) = Icon(
+    icon = icon,
+    contentDescription = null,
+)

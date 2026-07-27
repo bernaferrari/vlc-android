@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.LocalContentColor
@@ -25,6 +24,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
@@ -47,7 +48,7 @@ fun VLCNotificationPermissionDialogContent(
     okText: String,
     onOk: () -> Unit,
     modifier: Modifier = Modifier,
-    iconContent: @Composable () -> Unit = { NotificationIconPlaceholder() }
+    iconContent: @Composable () -> Unit = { DefaultNotificationIcon() }
 ) {
     VLCTheme {
         val colors = VLCThemeDefaults.colors
@@ -128,11 +129,8 @@ fun VLCNotificationPermissionDialogContent(
 }
 
 @Composable
-private fun NotificationIconPlaceholder() {
-    Box(
-        modifier = Modifier
-            .size(36.dp)
-            .clip(RoundedCornerShape(4.dp))
-            .background(LocalContentColor.current.copy(alpha = 0.24f))
-    )
-}
+private fun DefaultNotificationIcon() = Icon(
+    icon = MaterialSymbols.Filled.Notifications,
+    contentDescription = null,
+    modifier = Modifier.size(36.dp),
+)

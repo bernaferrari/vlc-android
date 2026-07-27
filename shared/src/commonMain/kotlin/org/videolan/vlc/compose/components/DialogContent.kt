@@ -21,6 +21,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
@@ -62,12 +64,33 @@ fun VLCDialogConfirmDelete(
                 if (iconContent != null) {
                     Box(
                         modifier = Modifier
-                            .size(44.dp)
-                            .padding(end = 12.dp),
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.errorContainer)
+                            .padding(12.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        iconContent()
+                        CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onErrorContainer) {
+                            iconContent()
+                        }
                     }
+                    Spacer(Modifier.width(12.dp))
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.errorContainer),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            icon = MaterialSymbols.Filled.Delete,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
+                    Spacer(Modifier.width(12.dp))
                 }
 
                 Text(

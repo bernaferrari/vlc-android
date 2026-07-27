@@ -57,6 +57,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialIcon
+import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import kotlin.math.roundToInt
@@ -172,18 +175,18 @@ fun VLCEqualizerSettingsScreen(
     onBandChangeFinished: () -> Unit,
     onSnapBandsChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
-    closeIconContent: @Composable () -> Unit = { EqualizerIconPlaceholder() },
-    equalizerIconContent: @Composable () -> Unit = { EqualizerIconPlaceholder() },
-    importIconContent: @Composable () -> Unit = { EqualizerIconPlaceholder() },
-    overflowIconContent: @Composable () -> Unit = { EqualizerIconPlaceholder() },
-    enableIconContent: @Composable () -> Unit = { EqualizerIconPlaceholder() },
-    disableIconContent: @Composable () -> Unit = { EqualizerIconPlaceholder() },
-    deleteIconContent: @Composable () -> Unit = { EqualizerIconPlaceholder() },
-    exportIconContent: @Composable () -> Unit = { EqualizerIconPlaceholder() },
-    editIconContent: @Composable () -> Unit = { EqualizerIconPlaceholder() },
-    undoIconContent: @Composable () -> Unit = { EqualizerIconPlaceholder() },
-    addIconContent: @Composable () -> Unit = { EqualizerIconPlaceholder() },
-    currentIconContent: @Composable () -> Unit = { EqualizerIconPlaceholder() }
+    closeIconContent: @Composable () -> Unit = { EqualizerIcon(MaterialSymbols.Filled.Close) },
+    equalizerIconContent: @Composable () -> Unit = { EqualizerIcon(MaterialSymbols.Filled.Tune) },
+    importIconContent: @Composable () -> Unit = { EqualizerIcon(MaterialSymbols.Filled.FileUpload) },
+    overflowIconContent: @Composable () -> Unit = { EqualizerIcon(MaterialSymbols.Filled.MoreVert) },
+    enableIconContent: @Composable () -> Unit = { EqualizerIcon(MaterialSymbols.Filled.CheckCircle) },
+    disableIconContent: @Composable () -> Unit = { EqualizerIcon(MaterialSymbols.Filled.Block) },
+    deleteIconContent: @Composable () -> Unit = { EqualizerIcon(MaterialSymbols.Filled.Delete) },
+    exportIconContent: @Composable () -> Unit = { EqualizerIcon(MaterialSymbols.Filled.IosShare) },
+    editIconContent: @Composable () -> Unit = { EqualizerIcon(MaterialSymbols.Filled.Edit) },
+    undoIconContent: @Composable () -> Unit = { EqualizerIcon(MaterialSymbols.Filled.Undo) },
+    addIconContent: @Composable () -> Unit = { EqualizerIcon(MaterialSymbols.Filled.Add) },
+    currentIconContent: @Composable () -> Unit = { EqualizerIcon(MaterialSymbols.Filled.CheckCircle) }
 ) {
     VLCTheme {
         val colors = VLCThemeDefaults.colors
@@ -318,11 +321,11 @@ fun VLCEqualizerEditorDialogContent(
     onBandChangeFinished: () -> Unit,
     onSnapBandsChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
-    addIconContent: @Composable () -> Unit = { EqualizerIconPlaceholder() },
-    settingsIconContent: @Composable () -> Unit = { EqualizerIconPlaceholder() },
-    editIconContent: @Composable () -> Unit = { EqualizerIconPlaceholder() },
-    undoIconContent: @Composable () -> Unit = { EqualizerIconPlaceholder() },
-    deleteIconContent: @Composable () -> Unit = { EqualizerIconPlaceholder() }
+    addIconContent: @Composable () -> Unit = { EqualizerIcon(MaterialSymbols.Filled.Add) },
+    settingsIconContent: @Composable () -> Unit = { EqualizerIcon(MaterialSymbols.Filled.Settings) },
+    editIconContent: @Composable () -> Unit = { EqualizerIcon(MaterialSymbols.Filled.Edit) },
+    undoIconContent: @Composable () -> Unit = { EqualizerIcon(MaterialSymbols.Filled.Undo) },
+    deleteIconContent: @Composable () -> Unit = { EqualizerIcon(MaterialSymbols.Filled.Delete) }
 ) {
     VLCTheme {
         val colors = VLCThemeDefaults.colors
@@ -936,13 +939,10 @@ private fun EqualizerPreviewIcon(
 }
 
 @Composable
-private fun EqualizerIconPlaceholder() {
-    Box(
-        modifier = Modifier
-            .size(24.dp)
-            .background(LocalContentColor.current.copy(alpha = 0.24f))
-    )
-}
+private fun EqualizerIcon(icon: MaterialIcon) = Icon(
+    icon = icon,
+    contentDescription = null,
+)
 
 private const val EqualizerValueMin = -20f
 private const val EqualizerValueMax = 20f

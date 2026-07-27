@@ -13,7 +13,9 @@ readonly PACKAGE_NAME="org.videolan.vlc.compose.icons"
 
 readonly FILLED_ICONS=(
   video_library music_note folder queue_music more_vert play_arrow pause shuffle star arrow_back select_all grid_view view_list tune
-  skip_next skip_previous repeat repeat_one settings info edit delete history check_circle arrow_upward devices add sort
+  skip_next skip_previous repeat repeat_one settings info edit delete history check_circle arrow_upward devices add sort close search warning
+  forum description mail backspace language code extension groups open_in_new
+  file_upload ios_share undo block notifications arrow_downward stop
 )
 
 readonly OUTLINED_ICONS=(

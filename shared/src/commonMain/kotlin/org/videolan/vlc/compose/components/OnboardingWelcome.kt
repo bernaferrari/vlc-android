@@ -89,14 +89,14 @@ fun VLCOnboardingWelcome(
 
 @Composable
 private fun DefaultOnboardingLogo() {
-    // Simple placeholder representing the VLC icon in onboarding.
-    // Real usage passes the actual painter/vector from app resources.
+    // Hosts can provide their branded mark; the shared fallback remains a clear
+    // media-library symbol on Android, iOS, and Wasm.
     Box(
         modifier = Modifier.size(96.dp),
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            icon = MaterialSymbols.Filled.PlayArrow,
+            icon = MaterialSymbols.Filled.VideoLibrary,
             contentDescription = null,
             modifier = Modifier.size(72.dp),
             tint = VLCThemeDefaults.colors.primary,

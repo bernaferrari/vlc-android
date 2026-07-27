@@ -3,6 +3,7 @@ package org.videolan.vlc.compose.components
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,6 +20,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,6 +41,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
@@ -76,10 +80,14 @@ fun VLCAudioCoverMediaSwitcher(
     onPreviousChapterClick: () -> Unit = {},
     onNextChapterClick: () -> Unit = {},
     fallbackCoverContent: @Composable (ContentScale, Modifier) -> Unit = { _, fallbackModifier ->
-        Spacer(fallbackModifier)
+        DefaultAudioCoverArt(fallbackModifier)
     },
-    previousChapterIcon: @Composable () -> Unit = {},
-    nextChapterIcon: @Composable () -> Unit = {}
+    previousChapterIcon: @Composable () -> Unit = {
+        Icon(icon = MaterialSymbols.Filled.SkipPrevious, contentDescription = null)
+    },
+    nextChapterIcon: @Composable () -> Unit = {
+        Icon(icon = MaterialSymbols.Filled.SkipNext, contentDescription = null)
+    }
 ) {
     VLCTheme {
         if (state.items.isEmpty()) {
@@ -149,28 +157,29 @@ private fun CoverSwitcherPage(
     previousChapterIcon: @Composable () -> Unit,
     nextChapterIcon: @Composable () -> Unit
 ) {
-    // TODO: Replace with multiplatform screen info (BoxWithConstraints or LocalWindowInfo)
-    val isLandscape = false
-    val isLargeLandscape = false
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val isLandscape = maxWidth > maxHeight
+        val isLargeLandscape = isLandscape && maxWidth >= 840.dp && maxHeight >= 480.dp
 
-    if (isLandscape) {
-        CoverSwitcherLandscapePage(
-            item = item,
-            large = isLargeLandscape,
-            fallbackCoverContent = fallbackCoverContent
-        )
-    } else {
-        CoverSwitcherPortraitPage(
-            item = item,
-            showTrackInfo = showTrackInfo,
-            marquee = marquee,
-            onTextClick = onTextClick,
-            onPreviousChapterClick = onPreviousChapterClick,
-            onNextChapterClick = onNextChapterClick,
-            fallbackCoverContent = fallbackCoverContent,
-            previousChapterIcon = previousChapterIcon,
-            nextChapterIcon = nextChapterIcon
-        )
+        if (isLandscape) {
+            CoverSwitcherLandscapePage(
+                item = item,
+                large = isLargeLandscape,
+                fallbackCoverContent = fallbackCoverContent
+            )
+        } else {
+            CoverSwitcherPortraitPage(
+                item = item,
+                showTrackInfo = showTrackInfo,
+                marquee = marquee,
+                onTextClick = onTextClick,
+                onPreviousChapterClick = onPreviousChapterClick,
+                onNextChapterClick = onNextChapterClick,
+                fallbackCoverContent = fallbackCoverContent,
+                previousChapterIcon = previousChapterIcon,
+                nextChapterIcon = nextChapterIcon
+            )
+        }
     }
 }
 
@@ -219,8 +228,8 @@ private fun CoverSwitcherPortraitPage(
     ) {
         val textReserve = if (showTrackInfo && item.trackInfo.isNotEmpty()) 160.dp else 128.dp
         val coverSize = minOf(
-            maxWidth,
-            (maxHeight - textReserve).coerceAtLeast(96.dp)
+            (maxWidth - 32.dp).coerceAtLeast(96.dp),
+            (maxHeight - textReserve - 32.dp).coerceAtLeast(96.dp)
         )
 
         Column(
@@ -321,6 +330,21 @@ private fun CoverArt(
         } else {
             fallbackCoverContent(contentScale, Modifier.fillMaxSize())
         }
+    }
+}
+
+@Composable
+private fun DefaultAudioCoverArt(modifier: Modifier) {
+    Box(
+        modifier = modifier.background(MaterialTheme.colorScheme.surfaceContainerHighest),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            icon = MaterialSymbols.Filled.MusicNote,
+            contentDescription = null,
+            modifier = Modifier.size(64.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

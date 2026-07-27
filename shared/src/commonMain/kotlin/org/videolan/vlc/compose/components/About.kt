@@ -44,6 +44,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialIcon
+import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
@@ -78,14 +81,14 @@ fun VLCAboutScreen(
     onOpenAuthors: () -> Unit,
     onOpenLicenseLink: () -> Unit,
     modifier: Modifier = Modifier,
-    closeIconContent: @Composable () -> Unit = { DefaultAboutIconPlaceholder() },
-    logoContent: @Composable () -> Unit = { DefaultAboutIconPlaceholder(96) },
-    websiteIconContent: @Composable () -> Unit = { DefaultAboutIconPlaceholder() },
-    feedbackIconContent: @Composable () -> Unit = { DefaultAboutIconPlaceholder() },
-    sourcesIconContent: @Composable () -> Unit = { DefaultAboutIconPlaceholder() },
-    librariesIconContent: @Composable () -> Unit = { DefaultAboutIconPlaceholder() },
-    authorsIconContent: @Composable () -> Unit = { DefaultAboutIconPlaceholder() },
-    linkIconContent: @Composable () -> Unit = { DefaultAboutIconPlaceholder() }
+    closeIconContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.Close) },
+    logoContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.VideoLibrary, 96) },
+    websiteIconContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.Language) },
+    feedbackIconContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.Forum) },
+    sourcesIconContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.Code) },
+    librariesIconContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.Extension) },
+    authorsIconContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.Groups) },
+    linkIconContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.OpenInNew) }
 ) {
     VLCTheme {
         val colors = VLCThemeDefaults.colors
@@ -571,10 +574,8 @@ private enum class AboutSheet {
 }
 
 @Composable
-private fun DefaultAboutIconPlaceholder(size: Int = 24) {
-    Box(
-        modifier = Modifier
-            .size(size.dp)
-            .background(LocalContentColor.current.copy(alpha = 0.24f))
-    )
-}
+private fun DefaultAboutIcon(icon: MaterialIcon, size: Int = 24) = Icon(
+    icon = icon,
+    contentDescription = null,
+    modifier = Modifier.size(size.dp),
+)

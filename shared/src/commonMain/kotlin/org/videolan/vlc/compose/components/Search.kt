@@ -45,6 +45,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
@@ -85,9 +87,9 @@ fun VLCSearchScreen(
     onClear: () -> Unit,
     onResultClick: (sectionIndex: Int, rowIndex: Int) -> Unit,
     modifier: Modifier = Modifier,
-    backIconContent: @Composable () -> Unit = { DefaultSearchIconPlaceholder() },
-    clearIconContent: @Composable () -> Unit = { DefaultSearchIconPlaceholder() },
-    emptyIconContent: @Composable () -> Unit = { DefaultSearchIconPlaceholder() },
+    backIconContent: @Composable () -> Unit = { DefaultSearchBackIcon() },
+    clearIconContent: @Composable () -> Unit = { DefaultSearchClearIcon() },
+    emptyIconContent: @Composable () -> Unit = { DefaultSearchEmptyIcon() },
     thumbnailContent: @Composable (sectionIndex: Int, rowIndex: Int, row: VLCSearchResultRow) -> Unit = { _, _, row ->
         SearchThumbnail(
             width = if (row.thumbnailWide) SearchResultThumbnailWideWidth else SearchResultThumbnailSquareSize,
@@ -119,30 +121,38 @@ fun VLCSearchScreen(
                 )
 
                 if (showEmpty) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                    Box(
+                        modifier = Modifier.fillMaxSize().padding(24.dp),
+                        contentAlignment = Alignment.Center,
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(112.dp)
-                                .background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape),
-                            contentAlignment = Alignment.Center
+                        Surface(
+                            shape = MaterialTheme.shapes.extraLarge,
+                            color = MaterialTheme.colorScheme.surfaceContainerLow,
                         ) {
-                            CompositionLocalProvider(LocalContentColor provides colors.fontLight) {
-                                emptyIconContent()
+                            Column(
+                                modifier = Modifier.padding(horizontal = 28.dp, vertical = 32.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center,
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(96.dp)
+                                        .background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    CompositionLocalProvider(LocalContentColor provides colors.fontLight) {
+                                        emptyIconContent()
+                                    }
+                                }
+                                Spacer(Modifier.height(20.dp))
+                                Text(
+                                    text = emptyText,
+                                    color = colors.fontDefault,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                )
                             }
                         }
-                        Spacer(Modifier.height(20.dp))
-                        Text(
-                            text = emptyText,
-                            color = colors.fontDefault,
-                            style = MaterialTheme.typography.titleMedium,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                        )
                     }
                 } else {
                     SearchResults(
@@ -231,7 +241,8 @@ private fun SearchTopBar(
             },
             modifier = Modifier
                 .weight(1f)
-                .focusRequester(focusRequester)
+                .focusRequester(focusRequester),
+            shape = MaterialTheme.shapes.extraLarge,
         )
     }
 }
@@ -247,13 +258,13 @@ private fun SearchResults(
 
     LazyColumn(
         modifier = modifier.background(VLCThemeDefaults.colors.backgroundDefault),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 8.dp, bottom = 24.dp)
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 12.dp, bottom = 24.dp),
     ) {
         visibleSections.forEachIndexed { sectionIndex, section ->
             item(key = "title-${section.title}") {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 6.dp)
+                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 8.dp)
                 ) {
                     Text(
                         text = section.title,
@@ -290,9 +301,9 @@ private fun SearchSectionCard(content: @Composable () -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 2.dp),
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainer,
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        shape = MaterialTheme.shapes.extraLarge,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
         contentColor = VLCThemeDefaults.colors.fontDefault
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
@@ -375,13 +386,14 @@ private fun SearchThumbnail(width: Dp, height: Dp) {
         modifier = Modifier
             .width(width)
             .height(height)
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest, RoundedCornerShape(8.dp)),
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest, RoundedCornerShape(16.dp)),
         contentAlignment = Alignment.Center
     ) {
-        Box(
-            modifier = Modifier
-                .size(18.dp)
-                .background(colors.fontLight.copy(alpha = 0.35f), RoundedCornerShape(2.dp))
+        Icon(
+            icon = MaterialSymbols.Filled.VideoLibrary,
+            contentDescription = null,
+            tint = colors.fontLight.copy(alpha = 0.55f),
+            modifier = Modifier.size(24.dp),
         )
     }
 }
@@ -391,10 +403,20 @@ private val SearchResultThumbnailWideWidth = 100.dp
 private val SearchResultThumbnailWideHeight = 56.dp
 
 @Composable
-private fun DefaultSearchIconPlaceholder() {
-    Box(
-        modifier = Modifier
-            .size(24.dp)
-            .background(LocalContentColor.current.copy(alpha = 0.24f))
-    )
-}
+private fun DefaultSearchBackIcon() = Icon(
+    icon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
+    contentDescription = null,
+)
+
+@Composable
+private fun DefaultSearchClearIcon() = Icon(
+    icon = MaterialSymbols.Filled.Close,
+    contentDescription = null,
+)
+
+@Composable
+private fun DefaultSearchEmptyIcon() = Icon(
+    icon = MaterialSymbols.Filled.Search,
+    contentDescription = null,
+    modifier = Modifier.size(48.dp),
+)

@@ -6,13 +6,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +25,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
@@ -54,8 +54,8 @@ fun VLCWhatsNewDialogContent(
     onNeverShowAgainChange: (Boolean) -> Unit,
     onItemAction: (String) -> Unit,
     modifier: Modifier = Modifier,
-    titleIconContent: @Composable () -> Unit = { WhatsNewIconPlaceholder() },
-    itemIconContent: @Composable (VLCWhatsNewItem) -> Unit = { WhatsNewIconPlaceholder() }
+    titleIconContent: @Composable () -> Unit = { DefaultWhatsNewIcon() },
+    itemIconContent: @Composable (VLCWhatsNewItem) -> Unit = { DefaultWhatsNewIcon() }
 ) {
     VLCTheme {
         val colors = VLCThemeDefaults.colors
@@ -185,14 +185,10 @@ private fun WhatsNewCard(
 }
 
 @Composable
-private fun WhatsNewIconPlaceholder() {
-    Spacer(
-        modifier = Modifier
-            .size(24.dp)
-            .clip(RoundedCornerShape(4.dp))
-            .background(LocalContentColor.current.copy(alpha = 0.24f))
-    )
-}
+private fun DefaultWhatsNewIcon() = Icon(
+    icon = MaterialSymbols.Filled.Star,
+    contentDescription = null,
+)
 
 private val MockWhatsNewItems = listOf(
     VLCWhatsNewItem(

@@ -55,6 +55,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialIcon
+import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
@@ -86,8 +89,8 @@ fun VLCPinCodeScreen(
     onNext: () -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
-    successIconContent: @Composable () -> Unit = { DefaultPinIconPlaceholder() },
-    backspaceIconContent: @Composable () -> Unit = { DefaultPinIconPlaceholder() }
+    successIconContent: @Composable () -> Unit = { DefaultPinIcon(MaterialSymbols.Filled.CheckCircle) },
+    backspaceIconContent: @Composable () -> Unit = { DefaultPinIcon(MaterialSymbols.Filled.Backspace) }
 ) {
     VLCTheme {
         val colors = VLCThemeDefaults.colors
@@ -473,10 +476,7 @@ private fun PinActions(
 }
 
 @Composable
-private fun DefaultPinIconPlaceholder() {
-    Box(
-        modifier = Modifier
-            .size(24.dp)
-            .background(LocalContentColor.current.copy(alpha = 0.24f))
-    )
-}
+private fun DefaultPinIcon(icon: MaterialIcon) = Icon(
+    icon = icon,
+    contentDescription = null,
+)

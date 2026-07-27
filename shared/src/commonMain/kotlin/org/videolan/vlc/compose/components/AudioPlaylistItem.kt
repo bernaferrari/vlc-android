@@ -31,6 +31,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialIcon
+import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
@@ -224,11 +227,11 @@ private fun PlaylistItemPreviewContent(current: Boolean) {
         current = current,
         coverContent = { PreviewSquare(48.dp) },
         playingContent = { PreviewSquare(32.dp) },
-        stopAfterContent = { Text("S", color = VLCThemeDefaults.colors.playerIconColor) },
-        moveUpContent = { Text("^", color = VLCThemeDefaults.colors.playerIconColor) },
-        moveDownContent = { Text("v", color = VLCThemeDefaults.colors.playerIconColor) },
-        deleteContent = { Text("x", color = VLCThemeDefaults.colors.playerIconColor) },
-        moreContent = { Text("...", color = VLCThemeDefaults.colors.playerIconColor) }
+        stopAfterContent = { PlaylistPreviewIcon(MaterialSymbols.Filled.Stop) },
+        moveUpContent = { PlaylistPreviewIcon(MaterialSymbols.Filled.ArrowUpward) },
+        moveDownContent = { PlaylistPreviewIcon(MaterialSymbols.Filled.ArrowDownward) },
+        deleteContent = { PlaylistPreviewIcon(MaterialSymbols.Filled.Delete) },
+        moreContent = { PlaylistPreviewIcon(MaterialSymbols.Filled.MoreVert) }
     )
 }
 
@@ -241,3 +244,10 @@ private fun BoxScope.PreviewSquare(size: Dp) {
             .align(Alignment.Center)
     )
 }
+
+@Composable
+private fun PlaylistPreviewIcon(icon: MaterialIcon) = Icon(
+    icon = icon,
+    contentDescription = null,
+    tint = VLCThemeDefaults.colors.playerIconColor,
+)

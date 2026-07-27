@@ -29,6 +29,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
@@ -53,7 +55,7 @@ fun VLCAuthorsScreen(
     closeContentDescription: String,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
-    closeIconContent: @Composable () -> Unit = { DefaultAuthorsIconPlaceholder() },
+    closeIconContent: @Composable () -> Unit = { DefaultAuthorsCloseIcon() },
     authorIconContent: (@Composable () -> Unit)? = null
 ) {
     VLCTheme {
@@ -166,10 +168,7 @@ private fun String.firstInitial(): String =
     trim().firstOrNull { it.isLetterOrDigit() }?.uppercase() ?: "?"
 
 @Composable
-private fun DefaultAuthorsIconPlaceholder() {
-    Box(
-        modifier = Modifier
-            .size(24.dp)
-            .background(LocalContentColor.current.copy(alpha = 0.24f))
-    )
-}
+private fun DefaultAuthorsCloseIcon() = Icon(
+    icon = MaterialSymbols.Filled.Close,
+    contentDescription = null,
+)

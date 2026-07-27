@@ -27,6 +27,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
@@ -161,10 +163,10 @@ private fun WarningCallout(
 
 @Composable
 private fun DefaultBetaWelcomeIcon() {
-    Box(
-        modifier = Modifier
-            .size(40.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(VLCThemeDefaults.colors.primary)
+    Icon(
+        icon = MaterialSymbols.Filled.VideoLibrary,
+        contentDescription = null,
+        tint = VLCThemeDefaults.colors.primary,
+        modifier = Modifier.size(40.dp),
     )
 }

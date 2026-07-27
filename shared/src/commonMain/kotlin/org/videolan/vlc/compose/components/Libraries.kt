@@ -44,6 +44,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialIcon
+import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
@@ -69,9 +72,9 @@ fun VLCLibrariesScreen(
     onClose: () -> Unit,
     onOpenLicenseLink: (String) -> Unit,
     modifier: Modifier = Modifier,
-    closeIconContent: @Composable () -> Unit = { DefaultLibrariesIconPlaceholder() },
-    sourceIconContent: @Composable () -> Unit = { DefaultLibrariesIconPlaceholder() },
-    linkIconContent: @Composable () -> Unit = { DefaultLibrariesIconPlaceholder() }
+    closeIconContent: @Composable () -> Unit = { DefaultLibrariesIcon(MaterialSymbols.Filled.Close) },
+    sourceIconContent: @Composable () -> Unit = { DefaultLibrariesIcon(MaterialSymbols.Filled.Code) },
+    linkIconContent: @Composable () -> Unit = { DefaultLibrariesIcon(MaterialSymbols.Filled.OpenInNew) }
 ) {
     VLCTheme {
         val colors = VLCThemeDefaults.colors
@@ -340,10 +343,7 @@ data class VLCLibraryLicense(
 )
 
 @Composable
-private fun DefaultLibrariesIconPlaceholder() {
-    Box(
-        modifier = Modifier
-            .size(24.dp)
-            .background(LocalContentColor.current.copy(alpha = 0.24f))
-    )
-}
+private fun DefaultLibrariesIcon(icon: MaterialIcon) = Icon(
+    icon = icon,
+    contentDescription = null,
+)
