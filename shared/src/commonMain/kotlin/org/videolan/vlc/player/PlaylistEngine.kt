@@ -36,6 +36,8 @@ interface PlayerBackend {
     fun delays(): PlaybackDelays = PlaybackDelays()
     fun setAudioDelay(delayUs: Long) {}
     fun setSubtitleDelay(delayUs: Long) {}
+    fun chapters(): PlaybackChapters = PlaybackChapters()
+    fun selectChapter(index: Int) {}
     fun setListener(listener: Listener?)
     fun release()
 
@@ -86,6 +88,9 @@ class PlaylistEngine(
     private val _delays = MutableStateFlow(PlaybackDelays())
     override val delays: StateFlow<PlaybackDelays> = _delays.asStateFlow()
 
+    private val _chapters = MutableStateFlow(PlaybackChapters())
+    override val chapters: StateFlow<PlaybackChapters> = _chapters.asStateFlow()
+
     private val sleepTimerController = SleepTimerController(
         isPlaying = { _state.value is PlaybackState.Playing },
         stopPlayback = ::stop,
@@ -115,10 +120,12 @@ class PlaylistEngine(
         backend?.setVideoOutput(_videoScaleMode.value.nativeAspectRatio, _videoScaleMode.value.nativeScale)
         refreshTracks()
         refreshDelays()
+        refreshChapters()
         backend?.setListener(object : PlayerBackend.Listener {
             override fun onPlaying() {
                 refreshTracks()
                 refreshDelays()
+                refreshChapters()
                 pushPlaying()
             }
             override fun onPaused() = pushPaused()
@@ -296,12 +303,21 @@ class PlaylistEngine(
 
     override fun clearSleepTimer() = sleepTimerController.clear()
 
+    override fun selectChapter(index: Int) {
+        backend?.selectChapter(index)
+        refreshChapters()
+    }
+
     private fun refreshTracks() {
         _tracks.value = backend?.tracks() ?: PlaybackTracks()
     }
 
     private fun refreshDelays() {
         _delays.value = backend?.delays() ?: PlaybackDelays()
+    }
+
+    private fun refreshChapters() {
+        _chapters.value = backend?.chapters() ?: PlaybackChapters()
     }
 
     override fun addObserver(observer: PlaybackObserver) {
@@ -461,6 +477,7 @@ class PlaylistEngine(
         updateState(PlaybackState.Loading)
         clearABRepeat()
         _tracks.value = PlaybackTracks()
+        _chapters.value = PlaybackChapters()
         val b = backend
         if (b == null) {
             updateProgress(0L, item.duration.coerceAtLeast(0L))

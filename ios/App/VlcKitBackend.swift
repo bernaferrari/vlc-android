@@ -239,6 +239,25 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
 #endif
     }
 
+    func chapters() -> PlaybackChapters {
+#if canImport(MobileVLCKit)
+        guard let player else { return PlaybackChapters(entries: []) }
+        let selected = Int(player.currentChapterIndex)
+        let count = max(0, Int(player.numberOfChapters(forTitle: -1)))
+        return PlaybackChapters(entries: (0..<count).map { index in
+            PlaybackChapter(index: Int32(index), title: "Chapter \(index + 1)", positionMs: 0, selected: index == selected)
+        })
+#else
+        return PlaybackChapters(entries: [])
+#endif
+    }
+
+    func selectChapter(index: Int32) {
+#if canImport(MobileVLCKit)
+        player?.currentChapterIndex = index
+#endif
+    }
+
     func setListener(listener: VlcKitPlayerBackendListener?) {
         self.listener = listener
     }

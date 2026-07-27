@@ -44,6 +44,7 @@ interface PlaybackService {
     val tracks: Flow<PlaybackTracks> get() = flowOf(PlaybackTracks())
     val delays: Flow<PlaybackDelays> get() = flowOf(PlaybackDelays())
     val sleepTimer: Flow<SleepTimerState> get() = flowOf(SleepTimerState())
+    val chapters: Flow<PlaybackChapters> get() = flowOf(PlaybackChapters())
 
     fun play(item: MediaItem, playlist: List<MediaItem> = emptyList())
     fun playFromIndex(playlist: List<MediaItem>, index: Int)
@@ -67,6 +68,7 @@ interface PlaybackService {
     fun setSubtitleDelay(delayUs: Long) {}
     fun setSleepTimer(durationMillis: Long, waitForCurrentItem: Boolean = false) {}
     fun clearSleepTimer() {}
+    fun selectChapter(index: Int) {}
     fun addObserver(observer: PlaybackObserver)
     fun removeObserver(observer: PlaybackObserver)
 

@@ -253,6 +253,7 @@ internal fun PlayerDestination(
         tracks = state.tracks,
         delays = state.delays,
         sleepTimer = state.sleepTimer,
+        chapters = state.chapters,
         hasVideoOutput = state.hasVideoOutput,
         onTogglePlay = viewModel::togglePlayPause,
         onSeek = viewModel::seekTo,
@@ -276,6 +277,7 @@ internal fun PlayerDestination(
         onSetSubtitleDelay = viewModel::setSubtitleDelay,
         onSetSleepTimer = viewModel::setSleepTimer,
         onClearSleepTimer = viewModel::clearSleepTimer,
+        onSelectChapter = viewModel::selectChapter,
         onClose = onClose,
         modifier = modifier,
     ) { chromeVisible -> playerSurface(state, chromeVisible) }

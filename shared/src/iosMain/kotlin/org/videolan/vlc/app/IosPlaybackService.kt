@@ -13,6 +13,7 @@ import org.videolan.vlc.player.PlaybackState
 import org.videolan.vlc.player.PlaybackTracks
 import org.videolan.vlc.player.PlaybackDelays
 import org.videolan.vlc.player.SleepTimerState
+import org.videolan.vlc.player.PlaybackChapters
 import org.videolan.vlc.player.PlayerBackend
 import org.videolan.vlc.player.PlaylistEngine
 import platform.Foundation.NSURL
@@ -41,6 +42,7 @@ class IosPlaybackService : PlaybackService {
     override val tracks: Flow<PlaybackTracks> get() = engine.tracks
     override val delays: Flow<PlaybackDelays> get() = engine.delays
     override val sleepTimer: Flow<SleepTimerState> get() = engine.sleepTimer
+    override val chapters: Flow<PlaybackChapters> get() = engine.chapters
 
     /**
      * Accepts the legacy VlcKitPlayerBackend and adapts it to [PlayerBackend].
@@ -126,6 +128,7 @@ class IosPlaybackService : PlaybackService {
     override fun setSleepTimer(durationMillis: Long, waitForCurrentItem: Boolean) =
         engine.setSleepTimer(durationMillis, waitForCurrentItem)
     override fun clearSleepTimer() = engine.clearSleepTimer()
+    override fun selectChapter(index: Int) = engine.selectChapter(index)
     override fun addObserver(observer: PlaybackObserver) = engine.addObserver(observer)
     override fun removeObserver(observer: PlaybackObserver) = engine.removeObserver(observer)
 
@@ -170,6 +173,8 @@ private class VlcKitPlayerBackendAdapter(
     override fun delays(): PlaybackDelays = kit.delays()
     override fun setAudioDelay(delayUs: Long) = kit.setAudioDelay(delayUs)
     override fun setSubtitleDelay(delayUs: Long) = kit.setSubtitleDelay(delayUs)
+    override fun chapters(): PlaybackChapters = kit.chapters()
+    override fun selectChapter(index: Int) = kit.selectChapter(index)
     override fun setListener(listener: PlayerBackend.Listener?) {
         if (listener == null) {
             kit.setListener(null)
@@ -212,6 +217,8 @@ interface VlcKitPlayerBackend {
     fun delays(): PlaybackDelays
     fun setAudioDelay(delayUs: Long)
     fun setSubtitleDelay(delayUs: Long)
+    fun chapters(): PlaybackChapters
+    fun selectChapter(index: Int)
     fun setListener(listener: Listener?)
     /** Named to avoid colliding with Objective-C NSObject.release in Swift implementations. */
     fun dispose()

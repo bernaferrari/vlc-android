@@ -43,6 +43,7 @@ import org.videolan.vlc.player.VideoScaleMode
 import org.videolan.vlc.player.PlaybackTracks
 import org.videolan.vlc.player.PlaybackDelays
 import org.videolan.vlc.player.SleepTimerState
+import org.videolan.vlc.player.PlaybackChapters
 import vlc_android.shared.generated.resources.Res
 import vlc_android.shared.generated.resources.done
 import vlc_android.shared.generated.resources.ab_repeat
@@ -54,6 +55,7 @@ import vlc_android.shared.generated.resources.spu_delay
 import vlc_android.shared.generated.resources.sleep_title
 import vlc_android.shared.generated.resources.wait_before_sleep
 import vlc_android.shared.generated.resources.cancel
+import vlc_android.shared.generated.resources.go_to_chapter
 import vlc_android.shared.generated.resources.ab_repeat_reset
 import vlc_android.shared.generated.resources.ab_repeat_stop
 import vlc_android.shared.generated.resources.abrepeat_add_first_marker
@@ -89,6 +91,7 @@ internal fun PlaybackOptionsSheet(
     tracks: PlaybackTracks,
     delays: PlaybackDelays,
     sleepTimer: SleepTimerState,
+    chapters: PlaybackChapters,
     showVideoOptions: Boolean,
     onSetRate: (Float) -> Unit,
     onPlayQueueItem: (Int) -> Unit,
@@ -106,6 +109,7 @@ internal fun PlaybackOptionsSheet(
     onSetSubtitleDelay: (Long) -> Unit,
     onSetSleepTimer: (Long, Boolean) -> Unit,
     onClearSleepTimer: () -> Unit,
+    onSelectChapter: (Int) -> Unit,
     onDismiss: () -> Unit,
 ) {
     var previewRate by remember(rate) { mutableFloatStateOf(rate) }
@@ -295,6 +299,20 @@ internal fun PlaybackOptionsSheet(
                 onSetTimer = onSetSleepTimer,
                 onClear = onClearSleepTimer,
             )
+
+            if (chapters.entries.isNotEmpty()) {
+                HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
+                Text(stringResource(Res.string.go_to_chapter), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    chapters.entries.forEach { chapter ->
+                        FilterChip(
+                            selected = chapter.selected,
+                            onClick = { onSelectChapter(chapter.index) },
+                            label = { Text(chapter.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                        )
+                    }
+                }
+            }
 
             HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
             Text(

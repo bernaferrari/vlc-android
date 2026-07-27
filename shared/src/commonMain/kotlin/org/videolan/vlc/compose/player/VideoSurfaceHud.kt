@@ -47,6 +47,7 @@ import org.videolan.vlc.player.VideoScaleMode
 import org.videolan.vlc.player.PlaybackTracks
 import org.videolan.vlc.player.PlaybackDelays
 import org.videolan.vlc.player.SleepTimerState
+import org.videolan.vlc.player.PlaybackChapters
 import kotlin.math.roundToInt
 import vlc_android.shared.generated.resources.Res
 import vlc_android.shared.generated.resources.*
@@ -76,6 +77,7 @@ fun VideoSurfaceWithHud(
     tracks: PlaybackTracks = PlaybackTracks(),
     delays: PlaybackDelays = PlaybackDelays(),
     sleepTimer: SleepTimerState = SleepTimerState(),
+    chapters: PlaybackChapters = PlaybackChapters(),
     hasVideoOutput: Boolean = false,
     onTogglePlay: () -> Unit,
     onSeek: (Long) -> Unit,
@@ -99,6 +101,7 @@ fun VideoSurfaceWithHud(
     onSetSubtitleDelay: (Long) -> Unit = {},
     onSetSleepTimer: (Long, Boolean) -> Unit = { _, _ -> },
     onClearSleepTimer: () -> Unit = {},
+    onSelectChapter: (Int) -> Unit = {},
     onClose: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     surface: @Composable BoxScope.(chromeVisible: Boolean) -> Unit,
@@ -178,6 +181,7 @@ fun VideoSurfaceWithHud(
             tracks = tracks,
             delays = delays,
             sleepTimer = sleepTimer,
+            chapters = chapters,
             showVideoOptions = hasVideoOutput,
             onSetRate = onSetRate,
             onPlayQueueItem = {
@@ -198,6 +202,7 @@ fun VideoSurfaceWithHud(
             onSetSubtitleDelay = onSetSubtitleDelay,
             onSetSleepTimer = onSetSleepTimer,
             onClearSleepTimer = onClearSleepTimer,
+            onSelectChapter = onSelectChapter,
             onDismiss = { optionsVisible = false },
         )
     }

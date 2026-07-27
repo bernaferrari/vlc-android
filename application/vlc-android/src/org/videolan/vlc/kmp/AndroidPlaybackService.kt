@@ -29,6 +29,8 @@ import org.videolan.vlc.player.PlaybackTracks
 import org.videolan.vlc.player.PlaybackDelays
 import org.videolan.vlc.player.SleepTimerController
 import org.videolan.vlc.player.SleepTimerState
+import org.videolan.vlc.player.PlaybackChapter
+import org.videolan.vlc.player.PlaybackChapters
 import org.videolan.vlc.player.VideoScaleMode
 import org.videolan.vlc.PlaybackService as AndroidPlaybackHost
 
@@ -89,6 +91,9 @@ class AndroidPlaybackService(
         stopPlayback = ::stop,
     )
     override val sleepTimer: Flow<SleepTimerState> = sleepTimerController.state
+
+    private val _chapters = MutableStateFlow(PlaybackChapters())
+    override val chapters: Flow<PlaybackChapters> = _chapters.asStateFlow()
 
     private val observers = mutableListOf<PlaybackObserver>()
 
@@ -294,6 +299,14 @@ class AndroidPlaybackService(
 
     override fun clearSleepTimer() = sleepTimerController.clear()
 
+    override fun selectChapter(index: Int) {
+        val player = manager()?.player ?: return
+        if (index in player.getChapters(-1).orEmpty().indices) {
+            player.setChapterIdx(index)
+            refreshChaptersFromHost()
+        }
+    }
+
     override fun addObserver(observer: PlaybackObserver) {
         observers.add(observer)
     }
@@ -415,6 +428,7 @@ class AndroidPlaybackService(
         ensurePlayerProgressBound()
         refreshTracksFromHost()
         refreshDelaysFromHost()
+        refreshChaptersFromHost()
         val item = media?.toMediaItem() ?: currentItem()
         val progress = _progress.value
         val newState = when {
@@ -468,6 +482,24 @@ class AndroidPlaybackService(
             audioUs = player.getAudioDelay(),
             subtitleUs = player.getSpuDelay(),
             supported = true,
+        )
+    }
+
+    private fun refreshChaptersFromHost() {
+        val player = manager()?.player ?: run {
+            _chapters.value = PlaybackChapters()
+            return
+        }
+        val selected = player.getChapterIdx()
+        _chapters.value = PlaybackChapters(
+            player.getChapters(-1).orEmpty().mapIndexed { index, chapter ->
+                PlaybackChapter(
+                    index = index,
+                    title = chapter.name.ifBlank { "Chapter ${index + 1}" },
+                    positionMs = chapter.timeOffset,
+                    selected = index == selected,
+                )
+            }
         )
     }
 
