@@ -14,6 +14,15 @@ IOS_DIR="$PROJECT_ROOT/ios"
 FRAMEWORK_NAME="VLCShared"
 BUILD_DIR="$PROJECT_ROOT/shared/build/bin"
 
+if [ -x "$PROJECT_ROOT/gradlew" ]; then
+  GRADLE_COMMAND=("$PROJECT_ROOT/gradlew")
+elif command -v gradle >/dev/null 2>&1; then
+  GRADLE_COMMAND=(gradle)
+else
+  echo "Gradle is required. Install Gradle or add the Gradle wrapper." >&2
+  exit 1
+fi
+
 echo "=== VLC KMP iOS Project Setup ==="
 echo "Project root: $PROJECT_ROOT"
 echo ""
@@ -23,7 +32,7 @@ echo ""
 # device release archives instead of relying on one simulator debug artifact.
 cd "$PROJECT_ROOT"
 echo "Building VLCShared frameworks..."
-./gradlew \
+"${GRADLE_COMMAND[@]}" \
   :shared:linkDebugFrameworkIosSimulatorArm64 \
   :shared:linkReleaseFrameworkIosSimulatorArm64 \
   :shared:linkDebugFrameworkIosArm64 \

@@ -81,4 +81,12 @@ targets:
             Debug|Release) ;;
             *) echo "Unsupported configuration: ${CONFIGURATION:-unset}" >&2; exit 1 ;;
           esac
-          ./gradlew ":shared:link${CONFIGURATION}Framework${kotlin_target}" --no-daemon --no-configuration-cache -q
+          if [ -x ./gradlew ]; then
+            gradle_command=./gradlew
+          elif command -v gradle >/dev/null 2>&1; then
+            gradle_command=gradle
+          else
+            echo "Gradle is required to build VLCShared. Install Gradle or add the wrapper." >&2
+            exit 1
+          fi
+          "$gradle_command" ":shared:link${CONFIGURATION}Framework${kotlin_target}" --no-daemon --no-configuration-cache -q

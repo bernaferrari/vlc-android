@@ -125,6 +125,12 @@ Focused gates used during Compose/KMP work:
 ./gradlew :application:app:processDebugMainManifest --no-daemon --console=plain
 ```
 
+The checked-in GitHub release gate also builds unsigned Android Debug/Release
+artifacts, runs the shared/Wasm suite, and builds/archives the iOS host on a
+macOS runner. For local iOS verification, run
+[`ios/verify.sh`](ios/verify.sh); record hardware evidence in
+[`ios/RELEASE_SMOKE_TEST.md`](ios/RELEASE_SMOKE_TEST.md) before promotion.
+
 ### VLC 3 vs VLC 4 dependency matrix
 
 The major version is chosen once in `settings.gradle` (`gradle.ext.vlcMajorVersion`) and consumed from root `build.gradle` `ext`:

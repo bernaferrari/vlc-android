@@ -169,7 +169,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\nROOT=\"${SRCROOT}/..\"\ncd \"$ROOT\"\ncase \"${PLATFORM_NAME:-}\" in\n  iphonesimulator) kotlin_target=\"iosSimulatorArm64\" ;;\n  iphoneos) kotlin_target=\"iosArm64\" ;;\n  *) echo \"Unsupported iOS platform: ${PLATFORM_NAME:-unset}\" >&2; exit 1 ;;\nesac\ncase \"${CONFIGURATION:-}\" in\n  Debug|Release) ;;\n  *) echo \"Unsupported configuration: ${CONFIGURATION:-unset}\" >&2; exit 1 ;;\nesac\n./gradlew \":shared:link${CONFIGURATION}Framework${kotlin_target}\" --no-daemon --no-configuration-cache -q\n";
+			shellScript = "set -euo pipefail\nROOT=\"${SRCROOT}/..\"\ncd \"$ROOT\"\ncase \"${PLATFORM_NAME:-}\" in\n  iphonesimulator) kotlin_target=\"iosSimulatorArm64\" ;;\n  iphoneos) kotlin_target=\"iosArm64\" ;;\n  *) echo \"Unsupported iOS platform: ${PLATFORM_NAME:-unset}\" >&2; exit 1 ;;\nesac\ncase \"${CONFIGURATION:-}\" in\n  Debug|Release) ;;\n  *) echo \"Unsupported configuration: ${CONFIGURATION:-unset}\" >&2; exit 1 ;;\nesac\nif [ -x ./gradlew ]; then\n  gradle_command=./gradlew\nelif command -v gradle >/dev/null 2>&1; then\n  gradle_command=gradle\nelse\n  echo \"Gradle is required to build VLCShared. Install Gradle or add the wrapper.\" >&2\n  exit 1\nfi\n\"$gradle_command\" \":shared:link${CONFIGURATION}Framework${kotlin_target}\" --no-daemon --no-configuration-cache -q\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

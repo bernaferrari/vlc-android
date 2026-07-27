@@ -163,3 +163,23 @@ open ios/VLC-iOS.xcodeproj
 - Run on Simulator; import a file; play.
 - A resolved MobileVLCKit package is required for real decode. If it cannot be
   imported, playback is unavailable rather than silently presenting demo media.
+
+## Release verification
+
+`verify.sh` is the repeatable unsigned Xcode gate used by CI. It regenerates
+the project, resolves the locked MobileVLCKit package, builds the simulator
+host, and archives the device host against the matching framework variant:
+
+```bash
+./ios/verify.sh simulator
+./ios/verify.sh archive
+```
+
+It accepts `IOS_ARCHIVE_PATH` and `IOS_SPM_CACHE` for CI isolation. The script
+uses the checked-in Gradle wrapper when present and otherwise a `gradle` binary
+on `PATH`, so Xcode's pre-build phase works from a clean checkout as well.
+
+Automated results do not certify native playback on hardware. Fill
+[`RELEASE_SMOKE_TEST.md`](RELEASE_SMOKE_TEST.md) for every candidate, and use
+[`shared/CAPABILITIES.md`](../shared/CAPABILITIES.md) to distinguish supported
+features from intentionally unavailable platform controls.
