@@ -78,12 +78,14 @@ class PlaybackController(
                     val item = when (st) {
                         is PlaybackState.Playing -> st.item
                         is PlaybackState.Paused -> st.item
-                        is PlaybackState.Stopped -> st.item
-                        is PlaybackState.Ended -> st.item
                         else -> null
                     }
                     session.updateMetadata(item)
-                    session.updatePlayback(st is PlaybackState.Playing, prog)
+                    session.updatePlayback(
+                        playing = st is PlaybackState.Playing,
+                        progress = prog,
+                        rate = if (st is PlaybackState.Playing) service.getRate() else 0f,
+                    )
                 }
         }
     }

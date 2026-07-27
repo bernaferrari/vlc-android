@@ -35,7 +35,7 @@ class AndroidMediaSessionBridge(
 
     override fun updateMetadata(item: MediaItem?) {}
 
-    override fun updatePlayback(playing: Boolean, progress: Progress) {}
+    override fun updatePlayback(playing: Boolean, progress: Progress, rate: Float) {}
 
     override fun setActions(actions: SessionActions) {}
 }

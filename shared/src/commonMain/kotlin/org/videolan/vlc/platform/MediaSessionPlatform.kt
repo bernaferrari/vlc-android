@@ -11,7 +11,8 @@ interface MediaSessionBridge {
     fun activate()
     fun deactivate()
     fun updateMetadata(item: MediaItem?)
-    fun updatePlayback(playing: Boolean, progress: Progress)
+    /** [rate] is the effective native playback speed, or 0 while paused/stopped. */
+    fun updatePlayback(playing: Boolean, progress: Progress, rate: Float)
     fun setActions(actions: SessionActions)
 }
 
@@ -60,7 +61,7 @@ object NoOpMediaSessionBridge : MediaSessionBridge {
     override fun activate() {}
     override fun deactivate() {}
     override fun updateMetadata(item: MediaItem?) {}
-    override fun updatePlayback(playing: Boolean, progress: Progress) {}
+    override fun updatePlayback(playing: Boolean, progress: Progress, rate: Float) {}
     override fun setActions(actions: SessionActions) {}
 }
 

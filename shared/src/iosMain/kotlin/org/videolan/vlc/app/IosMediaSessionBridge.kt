@@ -60,11 +60,11 @@ class IosMediaSessionBridge : MediaSessionBridge {
         MPNowPlayingInfoCenter.defaultCenter().nowPlayingInfo = info
     }
 
-    override fun updatePlayback(playing: Boolean, progress: Progress) {
+    override fun updatePlayback(playing: Boolean, progress: Progress, rate: Float) {
         if (!active) return
         val info = lastMeta.toMutableMap()
         info[MPNowPlayingInfoPropertyElapsedPlaybackTime] = NSNumber(double = progress.time / 1000.0)
-        info[MPNowPlayingInfoPropertyPlaybackRate] = NSNumber(double = if (playing) 1.0 else 0.0)
+        info[MPNowPlayingInfoPropertyPlaybackRate] = NSNumber(double = if (playing) rate.toDouble() else 0.0)
         if (progress.length > 0) {
             info[MPMediaItemPropertyPlaybackDuration] = NSNumber(double = progress.length / 1000.0)
         }
