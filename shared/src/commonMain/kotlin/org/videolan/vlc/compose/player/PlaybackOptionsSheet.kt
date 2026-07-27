@@ -38,9 +38,11 @@ import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.model.ABRepeat
 import org.videolan.vlc.model.MediaItem
+import org.videolan.vlc.player.VideoScaleMode
 import vlc_android.shared.generated.resources.Res
 import vlc_android.shared.generated.resources.done
 import vlc_android.shared.generated.resources.ab_repeat
+import vlc_android.shared.generated.resources.aspect_ratio
 import vlc_android.shared.generated.resources.ab_repeat_reset
 import vlc_android.shared.generated.resources.ab_repeat_stop
 import vlc_android.shared.generated.resources.abrepeat_add_first_marker
@@ -72,6 +74,8 @@ internal fun PlaybackOptionsSheet(
     abRepeat: ABRepeat,
     abRepeatEnabled: Boolean,
     stopAfterCurrent: Boolean,
+    videoScaleMode: VideoScaleMode,
+    showVideoOptions: Boolean,
     onSetRate: (Float) -> Unit,
     onPlayQueueItem: (Int) -> Unit,
     onMoveQueueItem: (Int, Int) -> Unit,
@@ -81,6 +85,7 @@ internal fun PlaybackOptionsSheet(
     onResetABRepeat: () -> Unit,
     onClearABRepeat: () -> Unit,
     onToggleStopAfterCurrent: () -> Unit,
+    onSetVideoScaleMode: (VideoScaleMode) -> Unit,
     onDismiss: () -> Unit,
 ) {
     var previewRate by remember(rate) { mutableFloatStateOf(rate) }
@@ -206,6 +211,28 @@ internal fun PlaybackOptionsSheet(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.labelMedium,
                 )
+            }
+
+            if (showVideoOptions) {
+                HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
+                Text(
+                    stringResource(Res.string.aspect_ratio),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    VideoScaleMode.entries.forEach { mode ->
+                        FilterChip(
+                            selected = mode == videoScaleMode,
+                            onClick = { onSetVideoScaleMode(mode) },
+                            label = { Text(mode.label) },
+                        )
+                    }
+                }
             }
 
             HorizontalDivider(modifier = Modifier.padding(top = 4.dp))

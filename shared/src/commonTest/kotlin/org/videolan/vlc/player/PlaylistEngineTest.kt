@@ -120,6 +120,18 @@ class PlaylistEngineTest {
     }
 
     @Test
+    fun videoScaleModeIsSharedWithAnAttachedBackend() {
+        val backend = RecordingBackend()
+        val engine = PlaylistEngine(backend)
+
+        engine.setVideoScaleMode(VideoScaleMode.RATIO_235_1)
+
+        assertEquals("235:100", backend.reportedAspectRatio)
+        assertEquals(0f, backend.reportedScale)
+        assertEquals(VideoScaleMode.RATIO_235_1, engine.videoScaleMode.value)
+    }
+
+    @Test
     fun restorePausedPreparesTheCurrentItemWithoutAutoPlay() {
         val backend = RecordingBackend()
         val engine = PlaylistEngine(backend)
@@ -143,6 +155,8 @@ class PlaylistEngineTest {
         var reportedRate = -1f
         var preparedUri: String? = null
         var preparedPosition = -1L
+        var reportedAspectRatio: String? = null
+        var reportedScale = -1f
 
         override fun playUri(uri: String, title: String?) = Unit
         override fun preparePaused(uri: String, title: String?, positionMs: Long): Boolean {
@@ -158,6 +172,10 @@ class PlaylistEngineTest {
         override fun getVolume(): Int = reportedVolume
         override fun setRate(rate: Float) { reportedRate = rate }
         override fun getRate(): Float = reportedRate
+        override fun setVideoOutput(aspectRatio: String?, scale: Float) {
+            reportedAspectRatio = aspectRatio
+            reportedScale = scale
+        }
         override fun setListener(listener: PlayerBackend.Listener?) = Unit
         override fun release() = Unit
     }

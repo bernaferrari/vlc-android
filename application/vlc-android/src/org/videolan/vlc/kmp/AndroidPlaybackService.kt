@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import org.videolan.medialibrary.MLServiceLocator
 import org.videolan.medialibrary.interfaces.Medialibrary
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
+import org.videolan.libvlc.MediaPlayer
 import org.videolan.vlc.media.PlaylistManager
 import org.videolan.vlc.model.ABRepeat
 import org.videolan.vlc.model.MediaItem
@@ -23,6 +24,7 @@ import org.videolan.vlc.model.RepeatMode
 import org.videolan.vlc.player.PlaybackObserver
 import org.videolan.vlc.player.PlaybackService
 import org.videolan.vlc.player.PlaybackState
+import org.videolan.vlc.player.VideoScaleMode
 import org.videolan.vlc.PlaybackService as AndroidPlaybackHost
 
 private const val MIN_PLAYBACK_RATE = 0.25f
@@ -67,6 +69,9 @@ class AndroidPlaybackService(
 
     private val _stopAfterCurrent = MutableStateFlow(false)
     override val stopAfterCurrent: Flow<Boolean> = _stopAfterCurrent.asStateFlow()
+
+    private val _videoScaleMode = MutableStateFlow(VideoScaleMode.BEST_FIT)
+    override val videoScaleMode: Flow<VideoScaleMode> = _videoScaleMode.asStateFlow()
 
     private val observers = mutableListOf<PlaybackObserver>()
 
@@ -242,6 +247,11 @@ class AndroidPlaybackService(
         return manager()?.player?.getRate() ?: 1.0f
     }
 
+    override fun setVideoScaleMode(mode: VideoScaleMode) {
+        _videoScaleMode.value = mode
+        manager()?.player?.mediaplayer?.videoScale = mode.toAndroidScaleType()
+    }
+
     override fun addObserver(observer: PlaybackObserver) {
         observers.add(observer)
     }
@@ -409,6 +419,21 @@ class AndroidPlaybackService(
         }
     }
 
+}
+
+private fun VideoScaleMode.toAndroidScaleType(): MediaPlayer.ScaleType = when (this) {
+    VideoScaleMode.BEST_FIT -> MediaPlayer.ScaleType.SURFACE_BEST_FIT
+    VideoScaleMode.FIT_SCREEN -> MediaPlayer.ScaleType.SURFACE_FIT_SCREEN
+    VideoScaleMode.FILL -> MediaPlayer.ScaleType.SURFACE_FILL
+    VideoScaleMode.RATIO_16_9 -> MediaPlayer.ScaleType.SURFACE_16_9
+    VideoScaleMode.RATIO_4_3 -> MediaPlayer.ScaleType.SURFACE_4_3
+    VideoScaleMode.RATIO_16_10 -> MediaPlayer.ScaleType.SURFACE_16_10
+    VideoScaleMode.RATIO_2_1 -> MediaPlayer.ScaleType.SURFACE_2_1
+    VideoScaleMode.RATIO_221_1 -> MediaPlayer.ScaleType.SURFACE_221_1
+    VideoScaleMode.RATIO_235_1 -> MediaPlayer.ScaleType.SURFACE_235_1
+    VideoScaleMode.RATIO_239_1 -> MediaPlayer.ScaleType.SURFACE_239_1
+    VideoScaleMode.RATIO_5_4 -> MediaPlayer.ScaleType.SURFACE_5_4
+    VideoScaleMode.ORIGINAL -> MediaPlayer.ScaleType.SURFACE_ORIGINAL
 }
 
 /**

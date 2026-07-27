@@ -6,6 +6,7 @@ import org.videolan.vlc.model.ABRepeat
 import org.videolan.vlc.model.Playlist
 import org.videolan.vlc.model.Progress
 import org.videolan.vlc.model.RepeatMode
+import org.videolan.vlc.player.VideoScaleMode
 import org.videolan.vlc.player.PlaybackObserver
 import org.videolan.vlc.player.PlaybackService
 import org.videolan.vlc.player.PlaybackState
@@ -33,6 +34,7 @@ class IosPlaybackService : PlaybackService {
     override val abRepeat: Flow<ABRepeat> get() = engine.abRepeat
     override val abRepeatEnabled: Flow<Boolean> get() = engine.abRepeatEnabled
     override val stopAfterCurrent: Flow<Boolean> get() = engine.stopAfterCurrent
+    override val videoScaleMode: Flow<VideoScaleMode> get() = engine.videoScaleMode
 
     /**
      * Accepts the legacy VlcKitPlayerBackend and adapts it to [PlayerBackend].
@@ -110,6 +112,7 @@ class IosPlaybackService : PlaybackService {
     override fun getVolume(): Int = engine.getVolume()
     override fun setRate(rate: Float) = engine.setRate(rate)
     override fun getRate(): Float = engine.getRate()
+    override fun setVideoScaleMode(mode: VideoScaleMode) = engine.setVideoScaleMode(mode)
     override fun addObserver(observer: PlaybackObserver) = engine.addObserver(observer)
     override fun removeObserver(observer: PlaybackObserver) = engine.removeObserver(observer)
 
@@ -147,6 +150,7 @@ private class VlcKitPlayerBackendAdapter(
     override fun getVolume(): Int = kit.getVolume()
     override fun setRate(rate: Float) = kit.setRate(rate)
     override fun getRate(): Float = kit.getRate()
+    override fun setVideoOutput(aspectRatio: String?, scale: Float) = kit.setVideoOutput(aspectRatio, scale)
     override fun setListener(listener: PlayerBackend.Listener?) {
         if (listener == null) {
             kit.setListener(null)
@@ -182,6 +186,7 @@ interface VlcKitPlayerBackend {
     fun getVolume(): Int
     fun setRate(rate: Float)
     fun getRate(): Float
+    fun setVideoOutput(aspectRatio: String?, scale: Float)
     fun setListener(listener: Listener?)
     /** Named to avoid colliding with Objective-C NSObject.release in Swift implementations. */
     fun dispose()

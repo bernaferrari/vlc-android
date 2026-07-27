@@ -43,6 +43,7 @@ import org.videolan.vlc.model.ABRepeat
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.Progress
 import org.videolan.vlc.model.RepeatMode
+import org.videolan.vlc.player.VideoScaleMode
 import kotlin.math.roundToInt
 import vlc_android.shared.generated.resources.Res
 import vlc_android.shared.generated.resources.*
@@ -68,6 +69,8 @@ fun VideoSurfaceWithHud(
     abRepeat: ABRepeat = ABRepeat(),
     abRepeatEnabled: Boolean = false,
     stopAfterCurrent: Boolean = false,
+    videoScaleMode: VideoScaleMode = VideoScaleMode.BEST_FIT,
+    hasVideoOutput: Boolean = false,
     onTogglePlay: () -> Unit,
     onSeek: (Long) -> Unit,
     onNext: () -> Unit,
@@ -83,6 +86,7 @@ fun VideoSurfaceWithHud(
     onResetABRepeat: () -> Unit = {},
     onClearABRepeat: () -> Unit = {},
     onToggleStopAfterCurrent: () -> Unit = {},
+    onSetVideoScaleMode: (VideoScaleMode) -> Unit = {},
     onClose: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     surface: @Composable BoxScope.(chromeVisible: Boolean) -> Unit,
@@ -158,6 +162,8 @@ fun VideoSurfaceWithHud(
             abRepeat = abRepeat,
             abRepeatEnabled = abRepeatEnabled,
             stopAfterCurrent = stopAfterCurrent,
+            videoScaleMode = videoScaleMode,
+            showVideoOptions = hasVideoOutput,
             onSetRate = onSetRate,
             onPlayQueueItem = {
                 onPlayQueueItem(it)
@@ -170,6 +176,7 @@ fun VideoSurfaceWithHud(
             onResetABRepeat = onResetABRepeat,
             onClearABRepeat = onClearABRepeat,
             onToggleStopAfterCurrent = onToggleStopAfterCurrent,
+            onSetVideoScaleMode = onSetVideoScaleMode,
             onDismiss = { optionsVisible = false },
         )
     }

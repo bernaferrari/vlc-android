@@ -13,6 +13,7 @@ import org.videolan.vlc.model.RepeatMode
 import org.videolan.vlc.player.PlaybackObserver
 import org.videolan.vlc.player.PlaybackService
 import org.videolan.vlc.player.PlaybackState
+import org.videolan.vlc.player.VideoScaleMode
 import org.w3c.dom.HTMLElement
 
 /**
@@ -28,6 +29,7 @@ internal class BrowserPlaybackService : PlaybackService {
     private val _abRepeat = MutableStateFlow(ABRepeat())
     private val _abRepeatEnabled = MutableStateFlow(false)
     private val _stopAfterCurrent = MutableStateFlow(false)
+    private val _videoScaleMode = MutableStateFlow(VideoScaleMode.BEST_FIT)
     private val observers = mutableSetOf<PlaybackObserver>()
     private var volume = 100
     private var rate = 1f
@@ -41,6 +43,7 @@ internal class BrowserPlaybackService : PlaybackService {
     override val abRepeat: Flow<ABRepeat> = _abRepeat.asStateFlow()
     override val abRepeatEnabled: Flow<Boolean> = _abRepeatEnabled.asStateFlow()
     override val stopAfterCurrent: Flow<Boolean> = _stopAfterCurrent.asStateFlow()
+    override val videoScaleMode: Flow<VideoScaleMode> = _videoScaleMode.asStateFlow()
 
     init {
         BrowserMediaElementHost.register(this)
@@ -162,6 +165,11 @@ internal class BrowserPlaybackService : PlaybackService {
     }
 
     override fun getRate(): Float = rate
+
+    override fun setVideoScaleMode(mode: VideoScaleMode) {
+        _videoScaleMode.value = mode
+        mediaElement?.let { setHtmlMediaObjectFit(it, mode.cssObjectFit) }
+    }
 
     override fun addObserver(observer: PlaybackObserver) {
         observers += observer
@@ -297,6 +305,7 @@ internal class BrowserPlaybackService : PlaybackService {
         setHtmlMediaSource(element, item.uri)
         setHtmlMediaVolume(element, volume)
         setHtmlMediaRate(element, rate)
+        setHtmlMediaObjectFit(element, _videoScaleMode.value.cssObjectFit)
         // The visible video element and persistent audio anchor are different DOM nodes.
         // Reapply common progress whenever ownership moves between them.
         seekHtmlMedia(element, _progress.value.time)
@@ -419,6 +428,10 @@ private fun setHtmlMediaVolume(element: HTMLElement, volume: Int): Unit = js(
 )
 
 private fun setHtmlMediaRate(element: HTMLElement, rate: Float): Unit = js("{ element.playbackRate = rate; }")
+
+private fun setHtmlMediaObjectFit(element: HTMLElement, objectFit: String): Unit = js(
+    "{ element.style.objectFit = objectFit; }",
+)
 
 private fun observeHtmlMediaEnd(element: HTMLElement, onEnded: () -> Unit): Unit = js(
     "{ element.onended = () => onEnded(); }",

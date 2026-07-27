@@ -29,6 +29,7 @@ interface PlayerBackend {
     fun getVolume(): Int
     fun setRate(rate: Float)
     fun getRate(): Float
+    fun setVideoOutput(aspectRatio: String?, scale: Float) {}
     fun setListener(listener: Listener?)
     fun release()
 
@@ -70,6 +71,9 @@ class PlaylistEngine(
     private val _stopAfterCurrent = MutableStateFlow(false)
     override val stopAfterCurrent: StateFlow<Boolean> = _stopAfterCurrent.asStateFlow()
 
+    private val _videoScaleMode = MutableStateFlow(VideoScaleMode.BEST_FIT)
+    override val videoScaleMode: StateFlow<VideoScaleMode> = _videoScaleMode.asStateFlow()
+
     private val observers = mutableListOf<PlaybackObserver>()
     private val previousStack = ArrayDeque<Int>()
     private var expanding = false
@@ -90,6 +94,7 @@ class PlaylistEngine(
         // Push the current values immediately so native audio never resets to its own defaults.
         backend?.setVolume(volume)
         backend?.setRate(rate)
+        backend?.setVideoOutput(_videoScaleMode.value.nativeAspectRatio, _videoScaleMode.value.nativeScale)
         backend?.setListener(object : PlayerBackend.Listener {
             override fun onPlaying() = pushPlaying()
             override fun onPaused() = pushPaused()
@@ -236,6 +241,11 @@ class PlaylistEngine(
     }
 
     override fun getRate(): Float = backend?.getRate() ?: rate
+
+    override fun setVideoScaleMode(mode: VideoScaleMode) {
+        _videoScaleMode.value = mode
+        backend?.setVideoOutput(mode.nativeAspectRatio, mode.nativeScale)
+    }
 
     override fun addObserver(observer: PlaybackObserver) {
         observers.add(observer)

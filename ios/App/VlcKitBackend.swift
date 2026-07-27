@@ -168,6 +168,19 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
 #endif
     }
 
+    /// Applies the shared Compose resize choice using MobileVLCKit's native video controls.
+    /// A nil ratio resets LibVLC's forced aspect ratio; scale 0 asks it to fit its drawable.
+    func setVideoOutput(aspectRatio: String?, scale: Float) {
+#if canImport(MobileVLCKit)
+        player?.scaleFactor = scale
+        if let aspectRatio {
+            aspectRatio.withCString { player?.videoAspectRatio = UnsafeMutablePointer(mutating: $0) }
+        } else {
+            player?.videoAspectRatio = nil
+        }
+#endif
+    }
+
     func setListener(listener: VlcKitPlayerBackendListener?) {
         self.listener = listener
     }

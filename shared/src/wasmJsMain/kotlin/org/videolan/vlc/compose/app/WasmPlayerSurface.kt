@@ -34,7 +34,7 @@ val WasmPlayerSurface: PlayerSurface = { state, chromeVisible ->
                     factory = { createBrowserMediaElement(state.hasVideoOutput) },
                     modifier = Modifier.fillMaxSize(),
                     update = { element ->
-                        configureBrowserMediaElement(element, state.hasVideoOutput, chromeVisible)
+                        configureBrowserMediaElement(element, state.hasVideoOutput, chromeVisible, state.videoScaleMode.cssObjectFit)
                         BrowserMediaElementHost.attachSurface(element)
                     },
                     onRelease = BrowserMediaElementHost::detachSurface,
@@ -56,7 +56,7 @@ fun WasmPersistentAudioAnchor() {
         factory = { createBrowserMediaElement(video = false) },
         modifier = Modifier.size(1.dp),
         update = { element ->
-            configureBrowserMediaElement(element, video = false, chromeVisible = false)
+            configureBrowserMediaElement(element, video = false, chromeVisible = false, objectFit = "contain")
             BrowserMediaElementHost.attachFallback(element)
         },
         onRelease = BrowserMediaElementHost::detachFallback,
@@ -73,13 +73,14 @@ private fun configureBrowserMediaElement(
     element: HTMLElement,
     video: Boolean,
     chromeVisible: Boolean,
+    objectFit: String,
 ): Unit = js(
     """{
         element.controls = false;
         element.preload = 'metadata';
         element.style.width = '100%';
         element.style.height = '100%';
-        element.style.objectFit = 'contain';
+        element.style.objectFit = objectFit;
         element.style.background = 'transparent';
         element.style.opacity = video && chromeVisible ? '0.18' : '1';
         element.style.pointerEvents = 'none';

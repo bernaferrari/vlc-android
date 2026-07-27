@@ -13,6 +13,7 @@ import org.videolan.vlc.model.Progress
 import org.videolan.vlc.model.RepeatMode
 import org.videolan.vlc.player.PlaybackService
 import org.videolan.vlc.player.PlaybackState
+import org.videolan.vlc.player.VideoScaleMode
 
 data class PlayerUiState(
     val title: String = "",
@@ -30,6 +31,7 @@ data class PlayerUiState(
     val abRepeat: ABRepeat = ABRepeat(),
     val abRepeatEnabled: Boolean = false,
     val stopAfterCurrent: Boolean = false,
+    val videoScaleMode: VideoScaleMode = VideoScaleMode.BEST_FIT,
     val hasMedia: Boolean = false,
     /** True for known video and network streams, which may expose video after probing. */
     val hasVideoOutput: Boolean = false,
@@ -51,19 +53,22 @@ class PlayerViewModel(
             combine(
                 playback.state,
                 playback.progress,
-                combine(playback.currentPlaylist, playback.stopAfterCurrent, ::Pair),
+                combine(playback.currentPlaylist, playback.stopAfterCurrent, playback.videoScaleMode) { playlist, stopAfter, scale ->
+                    PlayerContext(playlist, stopAfter, scale)
+                },
                 playback.abRepeat,
                 playback.abRepeatEnabled,
             ) { st, prog, playlistAndStopAfter, abRepeat, abRepeatEnabled ->
                 PlayerSnapshot(
                     state = st,
                     progress = prog,
-                    playlist = playlistAndStopAfter.first,
+                    playlist = playlistAndStopAfter.playlist,
                     abRepeat = abRepeat,
                     abRepeatEnabled = abRepeatEnabled,
-                    stopAfterCurrent = playlistAndStopAfter.second,
+                    stopAfterCurrent = playlistAndStopAfter.stopAfterCurrent,
+                    videoScaleMode = playlistAndStopAfter.videoScaleMode,
                 )
-            }.collect { (st, prog, pl, abRepeat, abRepeatEnabled, stopAfterCurrent) ->
+            }.collect { (st, prog, pl, abRepeat, abRepeatEnabled, stopAfterCurrent, videoScaleMode) ->
                 val item = when (st) {
                     is PlaybackState.Playing -> st.item
                     is PlaybackState.Paused -> st.item
@@ -89,6 +94,7 @@ class PlayerViewModel(
                         abRepeat = abRepeat,
                         abRepeatEnabled = abRepeatEnabled,
                         stopAfterCurrent = stopAfterCurrent,
+                        videoScaleMode = videoScaleMode,
                         hasMedia = item != null || pl.items.isNotEmpty(),
                         hasVideoOutput = item?.let { it.isVideo || it.isStream } == true,
                         error = (st as? PlaybackState.Error)?.message,
@@ -149,6 +155,8 @@ class PlayerViewModel(
         else playback.setStopAfterThis()
     }
 
+    fun setVideoScaleMode(mode: VideoScaleMode) = playback.setVideoScaleMode(mode)
+
     fun cycleRepeat() {
         val next = when (_state.value.repeatMode) {
             RepeatMode.NONE -> RepeatMode.ALL
@@ -170,4 +178,11 @@ private data class PlayerSnapshot(
     val abRepeat: ABRepeat,
     val abRepeatEnabled: Boolean,
     val stopAfterCurrent: Boolean,
+    val videoScaleMode: VideoScaleMode,
+)
+
+private data class PlayerContext(
+    val playlist: Playlist,
+    val stopAfterCurrent: Boolean,
+    val videoScaleMode: VideoScaleMode,
 )

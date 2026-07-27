@@ -13,6 +13,7 @@ import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.MediaType
 import org.videolan.vlc.repository.FakeCatalog
 import org.videolan.vlc.repository.FakePlaybackService
+import org.videolan.vlc.player.VideoScaleMode
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -169,6 +170,18 @@ class PlayerViewModelTest {
         vm.toggleStopAfterCurrent()
         runCurrent()
         assertFalse(vm.state.value.stopAfterCurrent)
+        vm.onCleared()
+    }
+
+    @Test
+    fun videoScaleModeIsOwnedByTheSharedPlayerState() = runTest {
+        val playback = FakePlaybackService()
+        val vm = PlayerViewModel(playback)
+
+        vm.setVideoScaleMode(VideoScaleMode.FILL)
+        runCurrent()
+
+        assertEquals(VideoScaleMode.FILL, vm.state.value.videoScaleMode)
         vm.onCleared()
     }
 }

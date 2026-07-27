@@ -12,6 +12,7 @@ import org.videolan.vlc.model.RepeatMode
 import org.videolan.vlc.player.PlaybackObserver
 import org.videolan.vlc.player.PlaybackService
 import org.videolan.vlc.player.PlaybackState
+import org.videolan.vlc.player.VideoScaleMode
 
 /** Deterministic sample library for previews and unit tests. */
 object FakeCatalog {
@@ -90,6 +91,7 @@ class FakePlaybackService : PlaybackService {
     private val _abRepeat = MutableStateFlow(ABRepeat())
     private val _abRepeatEnabled = MutableStateFlow(false)
     private val _stopAfterCurrent = MutableStateFlow(false)
+    private val _videoScaleMode = MutableStateFlow(VideoScaleMode.BEST_FIT)
     private val observers = mutableListOf<PlaybackObserver>()
     private var volume = 100
     private var rate = 1f
@@ -100,6 +102,7 @@ class FakePlaybackService : PlaybackService {
     override val abRepeat: Flow<ABRepeat> = _abRepeat
     override val abRepeatEnabled: Flow<Boolean> = _abRepeatEnabled
     override val stopAfterCurrent: Flow<Boolean> = _stopAfterCurrent
+    override val videoScaleMode: Flow<VideoScaleMode> = _videoScaleMode
 
     override fun play(item: MediaItem, playlist: List<MediaItem>) {
         val list = playlist.ifEmpty { listOf(item) }
@@ -163,6 +166,7 @@ class FakePlaybackService : PlaybackService {
     override fun getVolume(): Int = volume
     override fun setRate(rate: Float) { this.rate = rate }
     override fun getRate(): Float = rate
+    override fun setVideoScaleMode(mode: VideoScaleMode) { _videoScaleMode.value = mode }
     override fun addObserver(observer: PlaybackObserver) { observers.add(observer) }
     override fun removeObserver(observer: PlaybackObserver) { observers.remove(observer) }
 

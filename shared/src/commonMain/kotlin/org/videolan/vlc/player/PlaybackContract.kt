@@ -40,6 +40,7 @@ interface PlaybackService {
     val abRepeat: Flow<ABRepeat> get() = flowOf(ABRepeat())
     val abRepeatEnabled: Flow<Boolean> get() = flowOf(false)
     val stopAfterCurrent: Flow<Boolean> get() = flowOf(false)
+    val videoScaleMode: Flow<VideoScaleMode> get() = flowOf(VideoScaleMode.BEST_FIT)
 
     fun play(item: MediaItem, playlist: List<MediaItem> = emptyList())
     fun playFromIndex(playlist: List<MediaItem>, index: Int)
@@ -56,6 +57,7 @@ interface PlaybackService {
     fun getVolume(): Int
     fun setRate(rate: Float)
     fun getRate(): Float
+    fun setVideoScaleMode(mode: VideoScaleMode) {}
     fun addObserver(observer: PlaybackObserver)
     fun removeObserver(observer: PlaybackObserver)
 
