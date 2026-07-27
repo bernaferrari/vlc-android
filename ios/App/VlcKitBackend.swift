@@ -20,8 +20,10 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     static let shared = VlcKitBackend()
 
     private var listener: VlcKitPlayerBackendListener?
-    /// Host view VLCKit draws video into (optional; audio-only still works).
+    /// Compose-owned host view. It remains the fallback while no external display is attached.
     weak var drawableView: UIView?
+    /// Native external-display host. It takes precedence without changing shared player state.
+    weak var externalDrawableView: UIView?
     private var resumeAfterInterruption = false
     private var currentTitle = ""
     private var configuredVolume: Int32 = 100
@@ -61,11 +63,17 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     func attachDrawable(view: UIView?) {
         drawableView = view
 #if canImport(MobileVLCKit)
-        if let view {
-            player?.drawable = view
-        } else {
-            player?.drawable = nil
-        }
+        updateDrawable()
+#endif
+    }
+
+    /// Route video to a connected physical display while retaining Compose as the fallback.
+    /// This deliberately lives in the decoder island: no duplicate external-display screen or
+    /// playback state is created outside the common KMP controller.
+    func attachExternalDrawable(view: UIView?) {
+        externalDrawableView = view
+#if canImport(MobileVLCKit)
+        updateDrawable()
 #endif
     }
 
@@ -524,14 +532,22 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     private func makePlayer() -> VLCMediaPlayer {
         let player = VLCMediaPlayer()
         player.delegate = self
-        if let drawableView {
-            player.drawable = drawableView
+        if let activeDrawableView {
+            player.drawable = activeDrawableView
         }
         player.audio?.volume = configuredVolume
         player.rate = configuredRate
         applyVideoOutput(to: player)
         applyVideoCrop(to: player)
         return player
+    }
+
+    private var activeDrawableView: UIView? {
+        externalDrawableView ?? drawableView
+    }
+
+    private func updateDrawable() {
+        player?.drawable = activeDrawableView
     }
 
     /**
