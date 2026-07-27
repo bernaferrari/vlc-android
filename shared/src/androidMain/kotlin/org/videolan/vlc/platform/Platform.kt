@@ -1,6 +1,7 @@
 package org.videolan.vlc.platform
 
 import android.os.Build
+import android.animation.ValueAnimator
 
 actual val platformCapabilities = VlcPlatformCapabilities(
     nativePlayback = true,
@@ -9,6 +10,9 @@ actual val platformCapabilities = VlcPlatformCapabilities(
     networkBrowsing = true,
     remoteAccessServer = true,
 )
+
+actual fun prefersReducedMotion(): Boolean =
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !ValueAnimator.areAnimatorsEnabled()
 
 actual object PlatformInfoProvider {
     actual val current: PlatformInfo = PlatformInfo(

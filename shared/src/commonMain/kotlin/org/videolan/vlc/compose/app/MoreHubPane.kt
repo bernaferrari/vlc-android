@@ -2,6 +2,7 @@ package org.videolan.vlc.compose.app
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -36,6 +37,7 @@ import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.compose.theme.LocalVLCMotion
 import org.videolan.vlc.model.HistoryEntry
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.viewmodel.MoreHubViewModel
@@ -304,11 +306,12 @@ internal fun MorePane(
 @Composable
 private fun MoreAction(icon: MaterialIcon, label: String, onClick: () -> Unit) {
     val colors = VLCThemeDefaults.colors
+    val motion = LocalVLCMotion.current
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     val pressScale by animateFloatAsState(
         targetValue = if (pressed) 0.975f else 1f,
-        animationSpec = spring(dampingRatio = 0.65f, stiffness = 700f),
+        animationSpec = if (motion.reducedMotion) snap() else spring(dampingRatio = 0.65f, stiffness = 700f),
         label = "moreActionPressScale",
     )
     Row(

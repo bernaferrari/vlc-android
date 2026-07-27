@@ -5,6 +5,10 @@ actual val platformCapabilities = VlcPlatformCapabilities(
     nativePlayback = true,
 )
 
+actual fun prefersReducedMotion(): Boolean = js(
+    "globalThis.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true",
+)
+
 actual object PlatformInfoProvider {
     actual val current: PlatformInfo = PlatformInfo(
         platform = Platform.WEB,

@@ -1,5 +1,7 @@
 package org.videolan.vlc.platform
 
+import platform.UIKit.UIAccessibilityIsReduceMotionEnabled
+
 actual val platformCapabilities = VlcPlatformCapabilities(
     // The iOS host links MobileVLCKit through Swift Package Manager.
     nativePlayback = true,
@@ -9,6 +11,8 @@ actual val platformCapabilities = VlcPlatformCapabilities(
     // Network.framework powers authenticated local Wi-Fi transfer uploads.
     remoteAccessServer = true,
 )
+
+actual fun prefersReducedMotion(): Boolean = UIAccessibilityIsReduceMotionEnabled()
 
 @OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
 actual object PlatformInfoProvider {

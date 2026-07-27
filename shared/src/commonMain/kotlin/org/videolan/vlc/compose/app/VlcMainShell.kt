@@ -55,6 +55,7 @@ import org.videolan.vlc.compose.player.PlayerSurface
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.compose.theme.VLCMotion
+import org.videolan.vlc.compose.theme.LocalVLCMotion
 import org.videolan.vlc.model.MediaFolder
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.PlaylistInfo
@@ -115,6 +116,7 @@ fun VlcMainShell(
 
     VLCTheme {
         val colors = VLCThemeDefaults.colors
+        val motion = LocalVLCMotion.current
         val initialRoute = remember(initialTab) { initialTab.toVlcShellRoute() }
         val backStack = rememberNavBackStack(vlcShellNavSavedStateConfiguration, initialRoute)
         val currentRoute = backStack.lastOrNull() as? VlcShellRoute ?: initialRoute
@@ -137,12 +139,12 @@ fun VlcMainShell(
         }
         // Details move in from the right and leave to the right, so navigation is spatial rather
         // than the default cross-fade that made the shell feel disconnected.
-        val detailTransitionMetadata = remember {
+        val detailTransitionMetadata = remember(motion) {
             NavDisplay.transitionSpec {
                 ContentTransform(
                     targetContentEnter = slideInHorizontally(
                         animationSpec = tween(
-                            durationMillis = 220,
+                            durationMillis = if (motion.reducedMotion) 0 else 220,
                             easing = VLCMotion.EmphasizedDecelerate,
                         ),
                         initialOffsetX = { fullWidth -> fullWidth },
@@ -154,7 +156,7 @@ fun VlcMainShell(
                     targetContentEnter = EnterTransition.None,
                     initialContentExit = slideOutHorizontally(
                         animationSpec = tween(
-                            durationMillis = 180,
+                            durationMillis = if (motion.reducedMotion) 0 else 180,
                             easing = VLCMotion.EmphasizedAccelerate,
                         ),
                         targetOffsetX = { fullWidth -> fullWidth },

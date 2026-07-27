@@ -1,6 +1,7 @@
 package org.videolan.vlc.compose.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,7 @@ import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.compose.theme.LocalVLCMotion
 
 /**
  * Shared Material 3 Expressive building blocks for VLC's settings-style sheets and pickers.
@@ -56,6 +58,7 @@ fun VLCIconChip(
     content: @Composable (tint: Color) -> Unit
 ) {
     val colors = VLCThemeDefaults.colors
+    val motion = LocalVLCMotion.current
     val targetContainer = (when {
         containerColor.isSpecified -> containerColor
         selected -> colors.primary
@@ -66,8 +69,16 @@ fun VLCIconChip(
         selected -> colors.onPrimary
         else -> colors.fontDefault
     }
-    val container by animateColorAsState(targetContainer, label = "vlcChipContainer")
-    val contentColor by animateColorAsState(targetContent, label = "vlcChipContent")
+    val container by animateColorAsState(
+        targetContainer,
+        animationSpec = tween(motion.durationShort),
+        label = "vlcChipContainer",
+    )
+    val contentColor by animateColorAsState(
+        targetContent,
+        animationSpec = tween(motion.durationShort),
+        label = "vlcChipContent",
+    )
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier

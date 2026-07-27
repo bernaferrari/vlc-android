@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCMotion
+import org.videolan.vlc.compose.theme.LocalVLCMotion
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
 /**
@@ -73,13 +74,14 @@ fun VLCBrowserItemRow(
     onMoreClick: () -> Unit = {}
 ) {
     val colors = VLCThemeDefaults.colors
+    val motion = LocalVLCMotion.current
     val containerColor by animateColorAsState(
         targetValue = if (selected) {
             MaterialTheme.colorScheme.primaryContainer
         } else {
             MaterialTheme.colorScheme.surfaceContainerLow
         },
-        animationSpec = tween(VLCMotion.DurationShort, easing = VLCMotion.Standard),
+        animationSpec = tween(motion.durationShort, easing = VLCMotion.Standard),
         label = "rowContainer",
     )
     Surface(
@@ -153,13 +155,14 @@ fun VLCBrowserItemCard(
     moreActionContent: (@Composable () -> Unit)? = null,
     onMoreClick: () -> Unit = {}
 ) {
+    val motion = LocalVLCMotion.current
     val containerColor by animateColorAsState(
         targetValue = if (selected) {
             MaterialTheme.colorScheme.primaryContainer
         } else {
             MaterialTheme.colorScheme.surfaceContainer
         },
-        animationSpec = tween(VLCMotion.DurationShort, easing = VLCMotion.Standard),
+        animationSpec = tween(motion.durationShort, easing = VLCMotion.Standard),
         label = "cardContainer",
     )
     Surface(

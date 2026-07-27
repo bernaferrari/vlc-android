@@ -41,6 +41,15 @@ data class VlcPlatformCapabilities(
 expect val platformCapabilities: VlcPlatformCapabilities
 
 /**
+ * Whether the OS requests that non-essential interface motion be removed.
+ *
+ * This stays a tiny platform seam: the shared theme and Nav3 graph own the
+ * actual behavior, while Android/iOS/browser hosts only report their native
+ * accessibility preference.
+ */
+expect fun prefersReducedMotion(): Boolean
+
+/**
  * Provider for platform-specific information.
  * Each target must supply an [actual] implementation.
  */

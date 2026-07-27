@@ -11,6 +11,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
@@ -18,6 +19,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.videolan.vlc.platform.prefersReducedMotion
 
 /**
  * VLCTheme.kt - Expanded theme tokens for VLC Compose migration (Phase 0).
@@ -423,6 +425,16 @@ object VLCMotion {
     val Standard: Easing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
 }
 
+/** Shared accessibility-aware motion values, modeled after QuietGuard's Motion token. */
+@Immutable
+data class VLCMotionPreferences(val reducedMotion: Boolean = false) {
+    val durationShort: Int = if (reducedMotion) 0 else VLCMotion.DurationShort
+    val durationMedium: Int = if (reducedMotion) 0 else VLCMotion.DurationMedium
+    val durationLong: Int = if (reducedMotion) 0 else VLCMotion.DurationLong
+}
+
+val LocalVLCMotion = staticCompositionLocalOf { VLCMotionPreferences() }
+
 // ============================================================
 // Full M3 ColorScheme - every role wired from the VLC palette so stock Material
 // components (Slider, Switch, Chip, tonal buttons, navigation, sheets) render
@@ -519,7 +531,8 @@ fun VLCTheme(
 
     CompositionLocalProvider(
         LocalVLCColors provides vlcColors,
-        LocalVLCTheme provides VLCThemeDefaults
+        LocalVLCTheme provides VLCThemeDefaults,
+        LocalVLCMotion provides VLCMotionPreferences(prefersReducedMotion()),
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
