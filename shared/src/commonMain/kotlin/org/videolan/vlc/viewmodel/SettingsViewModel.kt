@@ -7,6 +7,8 @@ import kotlinx.coroutines.flow.update
 import org.videolan.tools.AUDIO_RESUME_PLAYBACK
 import org.videolan.tools.KEY_ENABLE_REMOTE_ACCESS
 import org.videolan.tools.KEY_INCOGNITO
+import org.videolan.tools.KEY_BROWSE_NETWORK
+import org.videolan.tools.KEY_SHOW_HEADERS
 import org.videolan.tools.PLAYBACK_HISTORY
 import org.videolan.tools.SHOW_VIDEO_THUMBNAILS
 import org.videolan.tools.SettingsWriteBridge
@@ -25,6 +27,9 @@ data class SettingsUiState(
     val incognito: Boolean = false,
     val remoteAccess: Boolean = false,
     val supportsRemoteAccess: Boolean = false,
+    val showHeaders: Boolean = true,
+    val browseNetwork: Boolean = true,
+    val supportsNetworkBrowsing: Boolean = false,
     val platformLabel: String = "",
 )
 
@@ -47,6 +52,9 @@ class SettingsViewModel(
             incognito = VlcSettings.incognitoMode.value,
             remoteAccess = if (capabilities.remoteAccessServer) VlcSettings.remoteAccessEnabled.value else false,
             supportsRemoteAccess = capabilities.remoteAccessServer,
+            showHeaders = VlcSettings.showHeaders.value,
+            browseNetwork = VlcSettings.browseNetwork.value,
+            supportsNetworkBrowsing = capabilities.networkBrowsing,
         )
     )
     val state: StateFlow<SettingsUiState> = _state.asStateFlow()
@@ -57,6 +65,12 @@ class SettingsViewModel(
         }
         launch {
             VlcSettings.incognitoMode.collect { v -> _state.update { it.copy(incognito = v) } }
+        }
+        launch {
+            VlcSettings.showHeaders.collect { v -> _state.update { it.copy(showHeaders = v) } }
+        }
+        if (capabilities.networkBrowsing) launch {
+            VlcSettings.browseNetwork.collect { v -> _state.update { it.copy(browseNetwork = v) } }
         }
         if (capabilities.remoteAccessServer) {
             launch {
@@ -74,6 +88,12 @@ class SettingsViewModel(
                     incognito = p.getBoolean(KEY_INCOGNITO, false),
                     remoteAccess = if (capabilities.remoteAccessServer) {
                         p.getBoolean(KEY_ENABLE_REMOTE_ACCESS, false)
+                    } else {
+                        false
+                    },
+                    showHeaders = p.getBoolean(KEY_SHOW_HEADERS, true),
+                    browseNetwork = if (capabilities.networkBrowsing) {
+                        p.getBoolean(KEY_BROWSE_NETWORK, true)
                     } else {
                         false
                     },
@@ -102,6 +122,17 @@ class SettingsViewModel(
         _state.update { it.copy(incognito = value) }
     }
 
+    fun setShowHeaders(value: Boolean) = setBool(KEY_SHOW_HEADERS, value) {
+        _state.update { it.copy(showHeaders = value) }
+    }
+
+    fun setBrowseNetwork(value: Boolean) {
+        if (!capabilities.networkBrowsing) return
+        setBool(KEY_BROWSE_NETWORK, value) {
+            _state.update { it.copy(browseNetwork = value) }
+        }
+    }
+
     fun setRemoteAccess(value: Boolean) {
         if (!capabilities.remoteAccessServer) return
         setBool(KEY_ENABLE_REMOTE_ACCESS, value) {
@@ -115,7 +146,7 @@ class SettingsViewModel(
         val p = prefs ?: return
         launchIo {
             try {
-                p.putBoolean(key, value)
+                VlcSettings.updateBoolean(p, key, value)
             } catch (_: Exception) {
             }
         }

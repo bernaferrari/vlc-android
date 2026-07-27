@@ -1302,6 +1302,16 @@ class BrowserViewModel(
     init {
         loadPrefs(initialDefaultAction)
         openRoot()
+        if (capabilities.networkBrowsing) launch {
+            VlcSettings.browseNetwork.collectLatest { enabled ->
+                val folder = _state.value.currentFolder
+                if (!enabled && folder?.kind == FolderKind.NETWORK) {
+                    openRoot()
+                } else if (folder == null) {
+                    observeRoot()
+                }
+            }
+        }
     }
 
     private fun loadPrefs(injectedDefault: String?) {
@@ -1335,7 +1345,7 @@ class BrowserViewModel(
     }
 
     fun openFolder(folder: MediaFolder) {
-        if (folder.kind == FolderKind.NETWORK && !capabilities.networkBrowsing) return
+        if (folder.kind == FolderKind.NETWORK && (!capabilities.networkBrowsing || !VlcSettings.browseNetwork.value)) return
         val stack = _state.value.stack + folder
         _state.update {
             it.copy(
@@ -1356,7 +1366,7 @@ class BrowserViewModel(
 
     /** Restores a saved Navigation 3 browser route without replaying each ancestor. */
     fun restoreFolderStack(folders: List<MediaFolder>) {
-        val supportedFolders = if (capabilities.networkBrowsing) {
+        val supportedFolders = if (capabilities.networkBrowsing && VlcSettings.browseNetwork.value) {
             folders
         } else {
             folders.filterNot { it.kind == FolderKind.NETWORK }
@@ -1490,7 +1500,11 @@ class BrowserViewModel(
             combine(
                 repo.observeBrowserFavorites(),
                 repo.observeFolders(null),
-                if (capabilities.networkBrowsing) repo.observeNetworkRoots() else flowOf(emptyList()),
+                if (capabilities.networkBrowsing && VlcSettings.browseNetwork.value) {
+                    repo.observeNetworkRoots()
+                } else {
+                    flowOf(emptyList())
+                },
             ) { favs, storage, network -> Triple(favs, storage, network) }
                 .catch { e -> _state.update { it.copy(loading = false, error = e.message) } }
                 .collectLatest { (favs, storage, network) ->

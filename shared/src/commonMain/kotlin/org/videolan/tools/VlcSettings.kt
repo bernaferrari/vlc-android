@@ -44,6 +44,7 @@ object VlcSettings {
     private val _incognitoMode = MutableStateFlow(false)
     private val _safeMode = MutableStateFlow(false)
     private val _remoteAccessEnabled = MutableStateFlow(false)
+    private val _browseNetwork = MutableStateFlow(true)
     private val _fastplaySpeed = MutableStateFlow(2f)
 
     // --- Public read-only StateFlows (reactive) ---
@@ -69,6 +70,8 @@ object VlcSettings {
     val incognitoMode: StateFlow<Boolean> = _incognitoMode.asStateFlow()
     val safeMode: StateFlow<Boolean> = _safeMode.asStateFlow()
     val remoteAccessEnabled: StateFlow<Boolean> = _remoteAccessEnabled.asStateFlow()
+    /** Whether network discovery/favorites are visible in the shared browser. */
+    val browseNetwork: StateFlow<Boolean> = _browseNetwork.asStateFlow()
     val fastplaySpeed: StateFlow<Float> = _fastplaySpeed.asStateFlow()
 
     /**
@@ -164,6 +167,7 @@ object VlcSettings {
         _incognitoMode.value = prefs.getBoolean(KEY_INCOGNITO, false)
         _safeMode.value = prefs.getBoolean(KEY_SAFE_MODE, false)
         _remoteAccessEnabled.value = prefs.getBoolean(KEY_ENABLE_REMOTE_ACCESS, false)
+        _browseNetwork.value = prefs.getBoolean(KEY_BROWSE_NETWORK, true)
     }
 
     /**
@@ -191,6 +195,7 @@ object VlcSettings {
             KEY_INCOGNITO -> _incognitoMode.value = value
             KEY_SAFE_MODE -> _safeMode.value = value
             KEY_ENABLE_REMOTE_ACCESS -> _remoteAccessEnabled.value = value
+            KEY_BROWSE_NETWORK -> _browseNetwork.value = value
             KEY_OVERRIDE_TV_UI -> _overrideTvUI.value = value
             KEY_AUDIO_SHOW_TRACK_NUMBERS -> _audioShowTrackNumbers.value = value
         }

@@ -592,6 +592,12 @@ internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
         item {
             SettingsGroup(title = ShellStrings.library()) {
                 ToggleRow(ShellStrings.videoThumbnails(), state.showVideoThumbs, vm::setShowVideoThumbs)
+                ToggleRow(ShellStrings.showHeaders(), state.showHeaders, vm::setShowHeaders)
+            }
+        }
+        if (state.supportsNetworkBrowsing) item {
+            SettingsGroup(title = ShellStrings.network()) {
+                ToggleRow(ShellStrings.browseNetwork(), state.browseNetwork, vm::setBrowseNetwork)
             }
         }
         if (state.supportsRemoteAccess) item {
