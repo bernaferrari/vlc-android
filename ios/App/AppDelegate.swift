@@ -8,6 +8,7 @@
 
 import SwiftUI
 import UIKit
+import CarPlay
 import VLCShared
 
 @main
@@ -68,6 +69,22 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
 
     func applicationWillTerminate(_ application: UIApplication) {
         IosPlaybackService.companion.shared.saveSession()
+    }
+
+    func application(
+        _ application: UIApplication,
+        configurationForConnecting connectingSceneSession: UISceneSession,
+        options: UIScene.ConnectionOptions
+    ) -> UISceneConfiguration {
+        if connectingSceneSession.role == .carTemplateApplication {
+            let configuration = UISceneConfiguration(
+                name: "VLC CarPlay",
+                sessionRole: connectingSceneSession.role
+            )
+            configuration.delegateClass = VlcCarPlaySceneDelegate.self
+            return configuration
+        }
+        return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
     }
 }
 

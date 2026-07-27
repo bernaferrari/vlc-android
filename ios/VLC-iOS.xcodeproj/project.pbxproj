@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		04D62390FB3F076A51C9B942 /* MobileVLCKit in Frameworks */ = {isa = PBXBuildFile; productRef = C8F715C12898A655F10889FC /* MobileVLCKit */; };
 		3D520F3C55284134956991B7 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E48BF24C81066D3E9B9920D5 /* AppDelegate.swift */; };
+		42556EC0547AA003AEB1BA22 /* CarPlay.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52EAA4B4703AC5A1E3678DE3 /* CarPlay.framework */; };
 		82389E7E85899602B1EE3A09 /* $(VLC_SHARED_FRAMEWORK_PATH) in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0EF723608B7873844B8658BC /* $(VLC_SHARED_FRAMEWORK_PATH) */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A4C394D7E43ADA8CE0FF07BF /* VlcKitNetworkBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607C8408946D36A7E750425A /* VlcKitNetworkBrowser.swift */; };
 		B8A2D11D4CE19ECCEED4B486 /* $(VLC_SHARED_FRAMEWORK_PATH) in Frameworks */ = {isa = PBXBuildFile; fileRef = 0EF723608B7873844B8658BC /* $(VLC_SHARED_FRAMEWORK_PATH) */; };
@@ -16,6 +17,7 @@
 		C75B33B8AE0A4FBEF8337C3A /* IosMediaImportBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9801AC43732CBD1D7D08019C /* IosMediaImportBridge.swift */; };
 		E83794AFAEF22BD4B47FB0AD /* MediaImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E232693711721A109BA5E90 /* MediaImporter.swift */; };
 		EAF63E4A768514B75A1F59DD /* VlcKitBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = C39A17B3461CF8B76D62B858 /* VlcKitBackend.swift */; };
+		ED4022759B98E43D1F25DB69 /* VlcCarPlaySceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E8473F4B78D7AC063BA280C /* VlcCarPlaySceneDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -36,11 +38,14 @@
 		0EF723608B7873844B8658BC /* $(VLC_SHARED_FRAMEWORK_PATH) */ = {isa = PBXFileReference; path = "$(VLC_SHARED_FRAMEWORK_PATH)"; sourceTree = "<group>"; };
 		3F15D2B0CA4AC7F6830CBF4A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		4939DA2549803F7D1EBDE79C /* VlcExternalDisplayController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VlcExternalDisplayController.swift; sourceTree = "<group>"; };
+		52EAA4B4703AC5A1E3678DE3 /* CarPlay.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CarPlay.framework; path = System/Library/Frameworks/CarPlay.framework; sourceTree = SDKROOT; };
 		607C8408946D36A7E750425A /* VlcKitNetworkBrowser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VlcKitNetworkBrowser.swift; sourceTree = "<group>"; };
+		7E8473F4B78D7AC063BA280C /* VlcCarPlaySceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VlcCarPlaySceneDelegate.swift; sourceTree = "<group>"; };
 		872AE79B2B54F682D91B6907 /* VLC-iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "VLC-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		8E232693711721A109BA5E90 /* MediaImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaImporter.swift; sourceTree = "<group>"; };
 		9801AC43732CBD1D7D08019C /* IosMediaImportBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosMediaImportBridge.swift; sourceTree = "<group>"; };
 		C39A17B3461CF8B76D62B858 /* VlcKitBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VlcKitBackend.swift; sourceTree = "<group>"; };
+		D66E8A52891B1A66EDCACC29 /* VLC-iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "VLC-iOS.entitlements"; sourceTree = "<group>"; };
 		E48BF24C81066D3E9B9920D5 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -50,6 +55,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				04D62390FB3F076A51C9B942 /* MobileVLCKit in Frameworks */,
+				42556EC0547AA003AEB1BA22 /* CarPlay.framework in Frameworks */,
 				B8A2D11D4CE19ECCEED4B486 /* $(VLC_SHARED_FRAMEWORK_PATH) in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -64,6 +70,8 @@
 				3F15D2B0CA4AC7F6830CBF4A /* Info.plist */,
 				9801AC43732CBD1D7D08019C /* IosMediaImportBridge.swift */,
 				8E232693711721A109BA5E90 /* MediaImporter.swift */,
+				D66E8A52891B1A66EDCACC29 /* VLC-iOS.entitlements */,
+				7E8473F4B78D7AC063BA280C /* VlcCarPlaySceneDelegate.swift */,
 				4939DA2549803F7D1EBDE79C /* VlcExternalDisplayController.swift */,
 				C39A17B3461CF8B76D62B858 /* VlcKitBackend.swift */,
 				607C8408946D36A7E750425A /* VlcKitNetworkBrowser.swift */,
@@ -83,6 +91,7 @@
 			isa = PBXGroup;
 			children = (
 				0EF723608B7873844B8658BC /* $(VLC_SHARED_FRAMEWORK_PATH) */,
+				52EAA4B4703AC5A1E3678DE3 /* CarPlay.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -187,6 +196,7 @@
 				3D520F3C55284134956991B7 /* AppDelegate.swift in Sources */,
 				C75B33B8AE0A4FBEF8337C3A /* IosMediaImportBridge.swift in Sources */,
 				E83794AFAEF22BD4B47FB0AD /* MediaImporter.swift in Sources */,
+				ED4022759B98E43D1F25DB69 /* VlcCarPlaySceneDelegate.swift in Sources */,
 				BFE8BDF267FAB7F638FC4494 /* VlcExternalDisplayController.swift in Sources */,
 				EAF63E4A768514B75A1F59DD /* VlcKitBackend.swift in Sources */,
 				A4C394D7E43ADA8CE0FF07BF /* VlcKitNetworkBrowser.swift in Sources */,
@@ -201,6 +211,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "App/VLC-iOS.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "";
@@ -215,7 +226,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = VLC;
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "VLC imports videos and audio from your photo library for playback.";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
 				INFOPLIST_KEY_UIFileSharingEnabled = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -303,6 +314,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "App/VLC-iOS.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = "";
@@ -317,7 +329,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = VLC;
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "VLC imports videos and audio from your photo library for playback.";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
 				INFOPLIST_KEY_UIFileSharingEnabled = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
