@@ -96,6 +96,17 @@ final class MediaImporter: NSObject {
         presenter.present(picker, animated: true)
     }
 
+    /**
+     * Handles the system's “Open in VLC” hand-off. Unlike an external security-scoped URL,
+     * a copy in Documents remains available after the source app releases its grant.
+     */
+    @discardableResult
+    func importIncomingURL(_ url: URL) -> MediaItem? {
+        let imported = importSecurityScoped([url])
+        merge(imported)
+        return imported.first
+    }
+
     // MARK: - Internals
 
     private func mediaItem(fromFileURL url: URL) -> MediaItem? {
@@ -153,7 +164,7 @@ final class MediaImporter: NSObject {
         }
     }
 
-    private func importSecurityScoped(_ urls: [URL]) {
+    private func importSecurityScoped(_ urls: [URL]) -> [MediaItem] {
         var imported: [MediaItem] = []
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
         for url in urls {
@@ -161,6 +172,16 @@ final class MediaImporter: NSObject {
             defer { if accessed { url.stopAccessingSecurityScopedResource() } }
             // Copy into Documents so library URIs remain valid after picker dismiss
             if let docs {
+                let source = url.standardizedFileURL
+                let documentsRoot = docs.standardizedFileURL.path + "/"
+                // URLs delivered from an app's Inbox/Documents folder already have durable
+                // ownership. Never duplicate them merely because they arrived via Open In.
+                if source.path.hasPrefix(documentsRoot) {
+                    if let item = mediaItem(fromFileURL: source) {
+                        imported.append(item)
+                    }
+                    continue
+                }
                 // Preserve every user-selected file. Replacing a same-named document silently
                 // loses the earlier import and its shared-library metadata.
                 let dest = uniqueDestination(for: url, in: docs)
@@ -170,15 +191,15 @@ final class MediaImporter: NSObject {
                         imported.append(item)
                     }
                 } catch {
-                    if let item = mediaItem(fromFileURL: url) {
-                        imported.append(item)
-                    }
+                    // Do not persist a transient external URI: it would survive in the catalog
+                    // after iOS revokes the provider grant and become an unplayable ghost item.
+                    NSLog("VLC could not make a durable import of %@: %@", url.path, error.localizedDescription)
                 }
             } else if let item = mediaItem(fromFileURL: url) {
                 imported.append(item)
             }
         }
-        merge(imported)
+        return imported
     }
 
     private func uniqueDestination(for source: URL, in directory: URL) -> URL {
@@ -204,7 +225,7 @@ final class MediaImporter: NSObject {
                         .appendingPathComponent(UUID().uuidString + "-" + url.lastPathComponent)
                     try? FileManager.default.copyItem(at: url, to: tmp)
                     Task { @MainActor in
-                        self.importSecurityScoped([tmp])
+                        self.merge(self.importSecurityScoped([tmp]))
                     }
                 }
             }
@@ -226,7 +247,7 @@ final class MediaImporter: NSObject {
 extension MediaImporter: UIDocumentPickerDelegate {
     nonisolated func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         Task { @MainActor in
-            self.importSecurityScoped(urls)
+            self.merge(self.importSecurityScoped(urls))
         }
     }
 }

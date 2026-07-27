@@ -9,6 +9,7 @@ offering actions a target cannot execute.
 | Shared navigation, library, playlists, history, and settings | Yes | Yes | Yes | Yes |
 | Local media intake | Media-library scan and SAF file picker | Files / Photos picker | Files picker; OPFS-backed when available, with persisted favorites and play state | Not yet |
 | Media decoding / playback engine | LibVLC | MobileVLCKit SPM | Browser HTML audio/video for user-imported, browser-supported files | Not yet |
+| Background audio and lock-screen transport | Android media session | AVAudioSession + Now Playing / Remote Command Center | Browser-managed, limited by browser policy | Not yet |
 | Picture in Picture | Yes, when Android activity supports it | Not yet | Not yet | Not yet |
 | Renderer / cast selection | LibVLC renderer bridge | Not yet | Not yet | Not yet |
 | Network share discovery and browsing | Yes | Not yet | Not yet | Not yet |

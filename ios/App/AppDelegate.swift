@@ -18,6 +18,9 @@ struct VLCiOSApp: App {
         WindowGroup {
             RootContainer()
                 .ignoresSafeArea()
+                // SwiftUI scene delivery is the reliable path for document hand-off on modern
+                // iPadOS multi-window apps; UIKit delegate delivery remains as a fallback.
+                .onOpenURL { _ = importAndPlayIncomingMedia($0) }
         }
     }
 }
@@ -40,46 +43,20 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         open url: URL,
         options: [UIApplication.OpenURLOptionsKey: Any] = [:]
     ) -> Bool {
-        // "Open in VLC" / Files share → copy into library
-        MediaImporter.shared.rescanLocalFolders()
-        IosMediaLibrary.companion.shared.upsert(
-            media: MediaItem(
-                id: Int64(Date().timeIntervalSince1970 * 1000),
-                title: url.deletingPathExtension().lastPathComponent,
-                uri: url.absoluteString,
-                type: url.pathExtension.lowercased().isVideoExt ? .video : .audio,
-                duration: 0,
-                artist: nil,
-                album: nil,
-                albumArtist: nil,
-                genre: nil,
-                year: 0,
-                trackNumber: 0,
-                discNumber: 0,
-                artworkUri: nil,
-                width: 0,
-                height: 0,
-                mime: nil,
-                lastModified: 0,
-                size: 0,
-                rating: 0,
-                playedCount: 0,
-                lastPlayed: 0,
-                isFavorite: false,
-                seen: 0,
-                present: true,
-                fileName: url.lastPathComponent,
-                description: nil
-            )
-        )
-        return true
+        importAndPlayIncomingMedia(url)
     }
 }
 
-private extension String {
-    var isVideoExt: Bool {
-        ["mp4", "m4v", "mov", "mkv", "avi", "webm", "ts", "mpg", "mpeg", "3gp"].contains(self)
-    }
+@MainActor
+@discardableResult
+private func importAndPlayIncomingMedia(_ url: URL) -> Bool {
+    guard let media = MediaImporter.shared.importIncomingURL(url) else { return false }
+    // “Open in VLC” means play now, while the permanent Documents copy also appears in the
+    // shared library and survives the source app's security-scoped grant.
+    // Go through the shared controller so the imported item receives the same history and
+    // cross-platform session bookkeeping as a selection made in the Compose library.
+    PlaybackController.companion.get().play(item: media, queue: [media])
+    return true
 }
 
 /// Root: the shared Compose shell owns all permanent product chrome.
