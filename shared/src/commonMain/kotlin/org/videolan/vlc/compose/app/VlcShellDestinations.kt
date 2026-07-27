@@ -260,6 +260,7 @@ internal fun PlayerDestination(
         showRendererSelection = state.rendererSelectionAvailable,
         renderers = state.renderers,
         selectedRendererId = state.selectedRendererId,
+        equalizer = state.equalizer,
         onTogglePlay = viewModel::togglePlayPause,
         onSeek = viewModel::seekTo,
         onNext = viewModel::next,
@@ -290,6 +291,10 @@ internal fun PlayerDestination(
         onStopRendererDiscovery = viewModel::stopRendererDiscovery,
         onRefreshRenderers = viewModel::refreshRenderers,
         onSelectRenderer = viewModel::selectRenderer,
+        onSetEqualizerEnabled = viewModel::setEqualizerEnabled,
+        onSelectEqualizerPreset = viewModel::selectEqualizerPreset,
+        onSetEqualizerPreamp = viewModel::setEqualizerPreamp,
+        onSetEqualizerBand = viewModel::setEqualizerBand,
         onClose = onClose,
         modifier = modifier,
     ) { chromeVisible -> playerSurface(state, chromeVisible) }

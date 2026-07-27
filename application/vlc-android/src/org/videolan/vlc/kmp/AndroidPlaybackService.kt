@@ -32,6 +32,9 @@ import org.videolan.vlc.player.SleepTimerState
 import org.videolan.vlc.player.PlaybackChapter
 import org.videolan.vlc.player.PlaybackChapters
 import org.videolan.vlc.player.VideoScaleMode
+import org.videolan.vlc.player.PlaybackEqualizer
+import org.videolan.vlc.player.PlaybackEqualizerBand
+import org.videolan.vlc.player.PlaybackEqualizerPreset
 import org.videolan.vlc.PlaybackService as AndroidPlaybackHost
 
 private const val MIN_PLAYBACK_RATE = 0.25f
@@ -94,6 +97,12 @@ class AndroidPlaybackService(
 
     private val _chapters = MutableStateFlow(PlaybackChapters())
     override val chapters: Flow<PlaybackChapters> = _chapters.asStateFlow()
+
+    private val _equalizer = MutableStateFlow(PlaybackEqualizer())
+    override val equalizer: Flow<PlaybackEqualizer> = _equalizer.asStateFlow()
+    private var activeEqualizer: MediaPlayer.Equalizer? = null
+    private var equalizerEnabled = false
+    private var selectedEqualizerPresetId: String? = null
 
     private val observers = mutableListOf<PlaybackObserver>()
 
@@ -314,6 +323,45 @@ class AndroidPlaybackService(
         }
     }
 
+    override fun setEqualizerEnabled(enabled: Boolean) {
+        equalizerEnabled = enabled
+        if (enabled && activeEqualizer == null) activeEqualizer = runCatching { MediaPlayer.Equalizer.create() }.getOrNull()
+        if (!enabled) selectedEqualizerPresetId = null
+        applyEqualizerToHost()
+        refreshEqualizerFromHost()
+    }
+
+    override fun selectEqualizerPreset(id: String) {
+        val preset = id.toIntOrNull() ?: return
+        activeEqualizer = runCatching { MediaPlayer.Equalizer.createFromPreset(preset) }.getOrNull() ?: return
+        equalizerEnabled = true
+        selectedEqualizerPresetId = id
+        applyEqualizerToHost()
+        refreshEqualizerFromHost()
+    }
+
+    override fun setEqualizerPreamp(preampDb: Float) {
+        val equalizer = activeEqualizer ?: runCatching { MediaPlayer.Equalizer.create() }.getOrNull() ?: return
+        equalizer.preAmp = preampDb.coerceIn(-20f, 20f)
+        activeEqualizer = equalizer
+        equalizerEnabled = true
+        selectedEqualizerPresetId = null
+        applyEqualizerToHost()
+        refreshEqualizerFromHost()
+    }
+
+    override fun setEqualizerBand(index: Int, amplificationDb: Float) {
+        val equalizer = activeEqualizer ?: runCatching { MediaPlayer.Equalizer.create() }.getOrNull() ?: return
+        val count = runCatching { MediaPlayer.Equalizer.getBandCount() }.getOrDefault(0)
+        if (index !in 0 until count) return
+        equalizer.setAmp(index, amplificationDb.coerceIn(-20f, 20f))
+        activeEqualizer = equalizer
+        equalizerEnabled = true
+        selectedEqualizerPresetId = null
+        applyEqualizerToHost()
+        refreshEqualizerFromHost()
+    }
+
     override fun addObserver(observer: PlaybackObserver) {
         observers.add(observer)
     }
@@ -436,6 +484,7 @@ class AndroidPlaybackService(
         refreshTracksFromHost()
         refreshDelaysFromHost()
         refreshChaptersFromHost()
+        refreshEqualizerFromHost()
         val item = media?.toMediaItem() ?: currentItem()
         val progress = _progress.value
         val newState = when {
@@ -510,6 +559,40 @@ class AndroidPlaybackService(
         )
     }
 
+    private fun applyEqualizerToHost() {
+        manager()?.player?.setEqualizer(if (equalizerEnabled) activeEqualizer else null)
+    }
+
+    private fun refreshEqualizerFromHost() {
+        val supported = runCatching { MediaPlayer.Equalizer.getBandCount() > 0 }.getOrDefault(false)
+        if (!supported) {
+            _equalizer.value = PlaybackEqualizer()
+            return
+        }
+        val active = activeEqualizer
+        val presetCount = runCatching { MediaPlayer.Equalizer.getPresetCount() }.getOrDefault(0)
+        val bandCount = runCatching { MediaPlayer.Equalizer.getBandCount() }.getOrDefault(0)
+        _equalizer.value = PlaybackEqualizer(
+            supported = true,
+            enabled = equalizerEnabled,
+            presets = (0 until presetCount).map { index ->
+                PlaybackEqualizerPreset(
+                    id = index.toString(),
+                    label = runCatching { MediaPlayer.Equalizer.getPresetName(index) }.getOrDefault("Preset ${index + 1}"),
+                )
+            },
+            selectedPresetId = selectedEqualizerPresetId,
+            preampDb = active?.preAmp ?: 0f,
+            bands = (0 until bandCount).map { index ->
+                PlaybackEqualizerBand(
+                    index = index,
+                    label = formatEqualizerFrequency(runCatching { MediaPlayer.Equalizer.getBandFrequency(index) }.getOrDefault(0f)),
+                    amplificationDb = active?.getAmp(index) ?: 0f,
+                )
+            },
+        )
+    }
+
     private fun repeatModeFromHost(): RepeatMode = when (PlaylistManager.repeating.value) {
         PlaybackStateCompat.REPEAT_MODE_ONE -> RepeatMode.ONE
         PlaybackStateCompat.REPEAT_MODE_ALL,
@@ -554,6 +637,12 @@ private fun VideoScaleMode.toAndroidScaleType(): MediaPlayer.ScaleType = when (t
     VideoScaleMode.RATIO_239_1 -> MediaPlayer.ScaleType.SURFACE_239_1
     VideoScaleMode.RATIO_5_4 -> MediaPlayer.ScaleType.SURFACE_5_4
     VideoScaleMode.ORIGINAL -> MediaPlayer.ScaleType.SURFACE_ORIGINAL
+}
+
+private fun formatEqualizerFrequency(frequencyHz: Float): String = when {
+    frequencyHz >= 1_000f -> "${"%.1f".format(frequencyHz / 1_000f)} kHz"
+    frequencyHz > 0f -> "${frequencyHz.toInt()} Hz"
+    else -> "Band"
 }
 
 /**

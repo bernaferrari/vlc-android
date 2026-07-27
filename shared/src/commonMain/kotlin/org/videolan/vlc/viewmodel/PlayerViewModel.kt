@@ -19,6 +19,7 @@ import org.videolan.vlc.player.PlaybackDelays
 import org.videolan.vlc.player.SleepTimerState
 import org.videolan.vlc.player.PlaybackChapters
 import org.videolan.vlc.player.VideoScaleMode
+import org.videolan.vlc.player.PlaybackEqualizer
 import org.videolan.vlc.platform.RendererInfo
 
 data class PlayerUiState(
@@ -47,6 +48,7 @@ data class PlayerUiState(
     val rendererSelectionAvailable: Boolean = false,
     val renderers: List<RendererInfo> = emptyList(),
     val selectedRendererId: String? = null,
+    val equalizer: PlaybackEqualizer = PlaybackEqualizer(),
     val hasMedia: Boolean = false,
     /** True for known video and network streams, which may expose video after probing. */
     val hasVideoOutput: Boolean = false,
@@ -74,6 +76,11 @@ class PlayerViewModel(
     val state: StateFlow<PlayerUiState> = _state.asStateFlow()
 
     init {
+        launch {
+            playback.equalizer.collect { equalizer ->
+                _state.update { it.copy(equalizer = equalizer) }
+            }
+        }
         launch {
             combine(
                 playback.state,
@@ -236,6 +243,15 @@ class PlayerViewModel(
         refreshRenderers()
         return selected
     }
+
+    fun setEqualizerEnabled(enabled: Boolean) = playback.setEqualizerEnabled(enabled)
+
+    fun selectEqualizerPreset(id: String) = playback.selectEqualizerPreset(id)
+
+    fun setEqualizerPreamp(preampDb: Float) = playback.setEqualizerPreamp(preampDb)
+
+    fun setEqualizerBand(index: Int, amplificationDb: Float) =
+        playback.setEqualizerBand(index, amplificationDb)
 
     fun cycleRepeat() {
         val next = when (_state.value.repeatMode) {

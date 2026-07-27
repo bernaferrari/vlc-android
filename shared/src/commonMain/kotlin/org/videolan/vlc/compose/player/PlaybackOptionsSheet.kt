@@ -22,6 +22,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -44,6 +45,7 @@ import org.videolan.vlc.player.PlaybackTracks
 import org.videolan.vlc.player.PlaybackDelays
 import org.videolan.vlc.player.SleepTimerState
 import org.videolan.vlc.player.PlaybackChapters
+import org.videolan.vlc.player.PlaybackEqualizer
 import vlc_android.shared.generated.resources.Res
 import vlc_android.shared.generated.resources.done
 import vlc_android.shared.generated.resources.ab_repeat
@@ -69,6 +71,9 @@ import vlc_android.shared.generated.resources.playlist
 import vlc_android.shared.generated.resources.remove_from_playlist
 import vlc_android.shared.generated.resources.reset
 import vlc_android.shared.generated.resources.stop_after_this
+import vlc_android.shared.generated.resources.equalizer
+import vlc_android.shared.generated.resources.enable_equalizer
+import vlc_android.shared.generated.resources.preamp
 
 private val PlaybackRatePresets = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f)
 
@@ -93,6 +98,7 @@ internal fun PlaybackOptionsSheet(
     delays: PlaybackDelays,
     sleepTimer: SleepTimerState,
     chapters: PlaybackChapters,
+    equalizer: PlaybackEqualizer,
     showVideoOptions: Boolean,
     onSetRate: (Float) -> Unit,
     onPlayQueueItem: (Int) -> Unit,
@@ -111,6 +117,10 @@ internal fun PlaybackOptionsSheet(
     onSetSleepTimer: (Long, Boolean) -> Unit,
     onClearSleepTimer: () -> Unit,
     onSelectChapter: (Int) -> Unit,
+    onSetEqualizerEnabled: (Boolean) -> Unit,
+    onSelectEqualizerPreset: (String) -> Unit,
+    onSetEqualizerPreamp: (Float) -> Unit,
+    onSetEqualizerBand: (Int, Float) -> Unit,
     showSubtitleImport: Boolean,
     onImportSubtitle: () -> Unit,
     onDismiss: () -> Unit,
@@ -301,6 +311,56 @@ internal fun PlaybackOptionsSheet(
                 )
             }
 
+            if (equalizer.supported) {
+                HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column {
+                        Text(
+                            stringResource(Res.string.equalizer),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                        Text(
+                            stringResource(Res.string.enable_equalizer),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Switch(checked = equalizer.enabled, onCheckedChange = onSetEqualizerEnabled)
+                }
+                if (equalizer.enabled) {
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        equalizer.presets.forEach { preset ->
+                            FilterChip(
+                                selected = preset.id == equalizer.selectedPresetId,
+                                onClick = { onSelectEqualizerPreset(preset.id) },
+                                label = { Text(preset.label) },
+                            )
+                        }
+                    }
+                    EqualizerSlider(
+                        label = stringResource(Res.string.preamp),
+                        value = equalizer.preampDb,
+                        onValueChangeFinished = onSetEqualizerPreamp,
+                    )
+                    equalizer.bands.forEach { band ->
+                        EqualizerSlider(
+                            label = band.label,
+                            value = band.amplificationDb,
+                            onValueChangeFinished = { onSetEqualizerBand(band.index, it) },
+                        )
+                    }
+                }
+            }
+
             HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
             SleepTimerChoices(
                 state = sleepTimer,
@@ -362,6 +422,26 @@ internal fun PlaybackOptionsSheet(
             }
         }
     }
+}
+
+@Composable
+private fun EqualizerSlider(
+    label: String,
+    value: Float,
+    onValueChangeFinished: (Float) -> Unit,
+) {
+    var preview by remember(value) { mutableFloatStateOf(value.coerceIn(-20f, 20f)) }
+    Text(
+        "$label  ${preview.roundToInt()} dB",
+        style = MaterialTheme.typography.labelLarge,
+    )
+    Slider(
+        value = preview,
+        onValueChange = { preview = it },
+        onValueChangeFinished = { onValueChangeFinished(preview) },
+        valueRange = -20f..20f,
+        modifier = Modifier.fillMaxWidth(),
+    )
 }
 
 @Composable

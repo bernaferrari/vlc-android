@@ -14,6 +14,7 @@ import org.videolan.vlc.player.PlaybackTracks
 import org.videolan.vlc.player.PlaybackDelays
 import org.videolan.vlc.player.SleepTimerState
 import org.videolan.vlc.player.PlaybackChapters
+import org.videolan.vlc.player.PlaybackEqualizer
 import org.videolan.vlc.player.PlayerBackend
 import org.videolan.vlc.player.PlaylistEngine
 import platform.Foundation.NSURL
@@ -43,6 +44,7 @@ class IosPlaybackService : PlaybackService {
     override val delays: Flow<PlaybackDelays> get() = engine.delays
     override val sleepTimer: Flow<SleepTimerState> get() = engine.sleepTimer
     override val chapters: Flow<PlaybackChapters> get() = engine.chapters
+    override val equalizer: Flow<PlaybackEqualizer> get() = engine.equalizer
 
     /**
      * Accepts the legacy VlcKitPlayerBackend and adapts it to [PlayerBackend].
@@ -130,6 +132,11 @@ class IosPlaybackService : PlaybackService {
     override fun clearSleepTimer() = engine.clearSleepTimer()
     override fun selectChapter(index: Int) = engine.selectChapter(index)
     override fun loadExternalSubtitle(uri: String): Boolean = engine.loadExternalSubtitle(uri)
+    override fun setEqualizerEnabled(enabled: Boolean) = engine.setEqualizerEnabled(enabled)
+    override fun selectEqualizerPreset(id: String) = engine.selectEqualizerPreset(id)
+    override fun setEqualizerPreamp(preampDb: Float) = engine.setEqualizerPreamp(preampDb)
+    override fun setEqualizerBand(index: Int, amplificationDb: Float) =
+        engine.setEqualizerBand(index, amplificationDb)
     override fun addObserver(observer: PlaybackObserver) = engine.addObserver(observer)
     override fun removeObserver(observer: PlaybackObserver) = engine.removeObserver(observer)
 
@@ -177,6 +184,12 @@ private class VlcKitPlayerBackendAdapter(
     override fun chapters(): PlaybackChapters = kit.chapters()
     override fun selectChapter(index: Int) = kit.selectChapter(index)
     override fun loadExternalSubtitle(uri: String): Boolean = kit.loadExternalSubtitle(uri)
+    override fun equalizer(): PlaybackEqualizer = kit.equalizer()
+    override fun setEqualizerEnabled(enabled: Boolean) = kit.setEqualizerEnabled(enabled)
+    override fun selectEqualizerPreset(id: String) = kit.selectEqualizerPreset(id)
+    override fun setEqualizerPreamp(preampDb: Float) = kit.setEqualizerPreamp(preampDb)
+    override fun setEqualizerBand(index: Int, amplificationDb: Float) =
+        kit.setEqualizerBand(index, amplificationDb)
     override fun setListener(listener: PlayerBackend.Listener?) {
         if (listener == null) {
             kit.setListener(null)
@@ -222,6 +235,11 @@ interface VlcKitPlayerBackend {
     fun chapters(): PlaybackChapters
     fun selectChapter(index: Int)
     fun loadExternalSubtitle(uri: String): Boolean
+    fun equalizer(): PlaybackEqualizer
+    fun setEqualizerEnabled(enabled: Boolean)
+    fun selectEqualizerPreset(id: String)
+    fun setEqualizerPreamp(preampDb: Float)
+    fun setEqualizerBand(index: Int, amplificationDb: Float)
     fun setListener(listener: Listener?)
     /** Named to avoid colliding with Objective-C NSObject.release in Swift implementations. */
     fun dispose()

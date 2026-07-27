@@ -174,6 +174,29 @@ class PlaylistEngineTest {
     }
 
     @Test
+    fun equalizerStateAndDecoderMutationsRemainShared() {
+        val backend = RecordingBackend().apply {
+            availableEqualizer = PlaybackEqualizer(
+                supported = true,
+                presets = listOf(PlaybackEqualizerPreset("1", "Rock")),
+                bands = listOf(PlaybackEqualizerBand(0, "60 Hz", 0f)),
+            )
+        }
+        val engine = PlaylistEngine(backend)
+
+        engine.setEqualizerEnabled(true)
+        engine.selectEqualizerPreset("1")
+        engine.setEqualizerPreamp(42f)
+        engine.setEqualizerBand(0, -42f)
+
+        assertTrue(backend.equalizerWasEnabled)
+        assertEquals("1", backend.selectedEqualizerPreset)
+        assertEquals(20f, backend.reportedEqualizerPreamp)
+        assertEquals(-20f, backend.reportedEqualizerBands[0])
+        assertTrue(engine.equalizer.value.supported)
+    }
+
+    @Test
     fun restorePausedPreparesTheCurrentItemWithoutAutoPlay() {
         val backend = RecordingBackend()
         val engine = PlaylistEngine(backend)
@@ -207,6 +230,11 @@ class PlaylistEngineTest {
         var reportedSubtitleDelay = 0L
         var subtitleLoadResult = false
         var loadedSubtitleUri: String? = null
+        var availableEqualizer = PlaybackEqualizer()
+        var equalizerWasEnabled = false
+        var selectedEqualizerPreset: String? = null
+        var reportedEqualizerPreamp = 0f
+        val reportedEqualizerBands = mutableMapOf<Int, Float>()
 
         override fun playUri(uri: String, title: String?) = Unit
         override fun preparePaused(uri: String, title: String?, positionMs: Long): Boolean {
@@ -235,6 +263,13 @@ class PlaylistEngineTest {
         override fun loadExternalSubtitle(uri: String): Boolean {
             loadedSubtitleUri = uri
             return subtitleLoadResult
+        }
+        override fun equalizer(): PlaybackEqualizer = availableEqualizer
+        override fun setEqualizerEnabled(enabled: Boolean) { equalizerWasEnabled = enabled }
+        override fun selectEqualizerPreset(id: String) { selectedEqualizerPreset = id }
+        override fun setEqualizerPreamp(preampDb: Float) { reportedEqualizerPreamp = preampDb }
+        override fun setEqualizerBand(index: Int, amplificationDb: Float) {
+            reportedEqualizerBands[index] = amplificationDb
         }
         override fun setListener(listener: PlayerBackend.Listener?) = Unit
         override fun release() = Unit

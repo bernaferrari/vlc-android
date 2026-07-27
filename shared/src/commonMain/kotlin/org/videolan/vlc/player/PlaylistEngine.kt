@@ -39,6 +39,11 @@ interface PlayerBackend {
     fun chapters(): PlaybackChapters = PlaybackChapters()
     fun selectChapter(index: Int) {}
     fun loadExternalSubtitle(uri: String): Boolean = false
+    fun equalizer(): PlaybackEqualizer = PlaybackEqualizer()
+    fun setEqualizerEnabled(enabled: Boolean) {}
+    fun selectEqualizerPreset(id: String) {}
+    fun setEqualizerPreamp(preampDb: Float) {}
+    fun setEqualizerBand(index: Int, amplificationDb: Float) {}
     fun setListener(listener: Listener?)
     fun release()
 
@@ -92,6 +97,9 @@ class PlaylistEngine(
     private val _chapters = MutableStateFlow(PlaybackChapters())
     override val chapters: StateFlow<PlaybackChapters> = _chapters.asStateFlow()
 
+    private val _equalizer = MutableStateFlow(PlaybackEqualizer())
+    override val equalizer: StateFlow<PlaybackEqualizer> = _equalizer.asStateFlow()
+
     private val sleepTimerController = SleepTimerController(
         isPlaying = { _state.value is PlaybackState.Playing },
         stopPlayback = ::stop,
@@ -122,11 +130,13 @@ class PlaylistEngine(
         refreshTracks()
         refreshDelays()
         refreshChapters()
+        refreshEqualizer()
         backend?.setListener(object : PlayerBackend.Listener {
             override fun onPlaying() {
                 refreshTracks()
                 refreshDelays()
                 refreshChapters()
+                refreshEqualizer()
                 pushPlaying()
             }
             override fun onPaused() = pushPaused()
@@ -315,6 +325,27 @@ class PlaylistEngine(
         return loaded
     }
 
+    override fun setEqualizerEnabled(enabled: Boolean) {
+        backend?.setEqualizerEnabled(enabled)
+        refreshEqualizer()
+    }
+
+    override fun selectEqualizerPreset(id: String) {
+        backend?.selectEqualizerPreset(id)
+        refreshEqualizer()
+    }
+
+    override fun setEqualizerPreamp(preampDb: Float) {
+        backend?.setEqualizerPreamp(preampDb.coerceEqualizerDb())
+        refreshEqualizer()
+    }
+
+    override fun setEqualizerBand(index: Int, amplificationDb: Float) {
+        if (index < 0) return
+        backend?.setEqualizerBand(index, amplificationDb.coerceEqualizerDb())
+        refreshEqualizer()
+    }
+
     private fun refreshTracks() {
         _tracks.value = backend?.tracks() ?: PlaybackTracks()
     }
@@ -325,6 +356,10 @@ class PlaylistEngine(
 
     private fun refreshChapters() {
         _chapters.value = backend?.chapters() ?: PlaybackChapters()
+    }
+
+    private fun refreshEqualizer() {
+        _equalizer.value = backend?.equalizer() ?: PlaybackEqualizer()
     }
 
     override fun addObserver(observer: PlaybackObserver) {

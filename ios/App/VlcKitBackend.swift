@@ -26,6 +26,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
     private var currentTitle = ""
     private var configuredVolume: Int32 = 100
     private var configuredRate: Float = 1
+    private var selectedEqualizerPresetId: String?
 
 #if canImport(MobileVLCKit)
     private var player: VLCMediaPlayer?
@@ -267,6 +268,69 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
 #endif
     }
 
+    func equalizer() -> PlaybackEqualizer {
+#if canImport(MobileVLCKit)
+        let active = player?.equalizer
+        let presets = VLCAudioEqualizer.presets.compactMap { $0 as? VLCAudioEqualizer.Preset }.map {
+            PlaybackEqualizerPreset(id: String($0.index), label: $0.name)
+        }
+        let bands = active?.bands.compactMap { $0 as? VLCAudioEqualizer.Band }.map {
+            PlaybackEqualizerBand(index: Int32($0.index), label: formatFrequency($0.frequency), amplificationDb: $0.amplification)
+        } ?? []
+        return PlaybackEqualizer(
+            supported: true,
+            enabled: active != nil,
+            presets: presets,
+            selectedPresetId: selectedEqualizerPresetId,
+            preampDb: active?.preAmplification ?? 0,
+            bands: bands
+        )
+#else
+        return PlaybackEqualizer()
+#endif
+    }
+
+    func setEqualizerEnabled(enabled: Bool) {
+#if canImport(MobileVLCKit)
+        if enabled {
+            let equalizer = player?.equalizer ?? VLCAudioEqualizer()
+            player?.equalizer = equalizer
+        } else {
+            player?.equalizer = nil
+            selectedEqualizerPresetId = nil
+        }
+#endif
+    }
+
+    func selectEqualizerPreset(id: String) {
+#if canImport(MobileVLCKit)
+        guard let index = UInt(id),
+              let preset = VLCAudioEqualizer.presets.compactMap({ $0 as? VLCAudioEqualizer.Preset }).first(where: { $0.index == index }) else { return }
+        player?.equalizer = VLCAudioEqualizer(preset: preset)
+        selectedEqualizerPresetId = id
+#endif
+    }
+
+    func setEqualizerPreamp(preampDb: Float) {
+#if canImport(MobileVLCKit)
+        let equalizer = player?.equalizer ?? VLCAudioEqualizer()
+        equalizer.preAmplification = min(20, max(-20, preampDb))
+        player?.equalizer = equalizer
+        selectedEqualizerPresetId = nil
+#endif
+    }
+
+    func setEqualizerBand(index: Int32, amplificationDb: Float) {
+#if canImport(MobileVLCKit)
+        let equalizer = player?.equalizer ?? VLCAudioEqualizer()
+        guard index >= 0, Int(index) < equalizer.bands.count,
+              let band = equalizer.bands[Int(index)] as? VLCAudioEqualizer.Band else { return }
+        band.amplification = min(20, max(-20, amplificationDb))
+        player?.equalizer = equalizer
+        selectedEqualizerPresetId = nil
+#endif
+    }
+
     func setListener(listener: VlcKitPlayerBackendListener?) {
         self.listener = listener
     }
@@ -323,6 +387,10 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
         player.rate = configuredRate
         self.player = player
         return player
+    }
+
+    private func formatFrequency(_ frequency: Float) -> String {
+        frequency >= 1_000 ? String(format: "%.1f kHz", frequency / 1_000) : String(format: "%.0f Hz", frequency)
     }
 
     private func makeMedia(uri: String, title: String?) -> VLCMedia? {
