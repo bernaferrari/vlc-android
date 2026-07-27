@@ -59,6 +59,7 @@ internal fun VideoDestination(
         canHandleHostAction = hostCallbacks::supportsContextAction,
         onCtx = { item, option ->
             when (option) {
+                ContextOption.CTX_DELETE,
                 ContextOption.CTX_INFORMATION,
                 ContextOption.CTX_SHARE,
                 ContextOption.CTX_DOWNLOAD_SUBTITLES,
@@ -142,6 +143,7 @@ internal fun AudioDestination(
             canHandleHostAction = hostCallbacks::supportsContextAction,
             onCtx = { item, option ->
                 when (option) {
+                    ContextOption.CTX_DELETE,
                     ContextOption.CTX_INFORMATION,
                     ContextOption.CTX_SHARE,
                     ContextOption.CTX_DOWNLOAD_SUBTITLES,

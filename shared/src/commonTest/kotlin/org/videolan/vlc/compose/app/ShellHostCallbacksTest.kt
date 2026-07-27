@@ -5,6 +5,27 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class ShellHostCallbacksTest {
+
+    @Test
+    fun localDeletionIsNeverOfferedForStreamsOrSyntheticRows() {
+        assertEquals(
+            true,
+            MediaItem(id = 1, title = "Downloaded", uri = "file:///media/movie.mp4").isLocallyDeletable(),
+        )
+        assertEquals(
+            true,
+            MediaItem(id = 2, title = "SAF", uri = "content://media/video/2").isLocallyDeletable(),
+        )
+        assertEquals(
+            false,
+            MediaItem(id = 3, title = "Stream", uri = "https://example.test/live.m3u8").isLocallyDeletable(),
+        )
+        assertEquals(
+            false,
+            MediaItem(id = 4, title = "Artist", uri = "artist://4").isLocallyDeletable(),
+        )
+    }
+
     @Test
     fun mediaInformationPresentation_is_shared_and_keeps_all_available_metadata() {
         val presentation = MediaItem(

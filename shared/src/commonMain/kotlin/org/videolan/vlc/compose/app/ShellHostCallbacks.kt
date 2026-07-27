@@ -36,6 +36,15 @@ internal const val SHARED_ABOUT_MESSAGE =
 internal const val VLC_DONATION_URL = "https://www.videolan.org/contribute.html"
 
 /**
+ * A destructive file operation is offered only for a real local media URI.  The
+ * platform still performs the deletion (including Android's scoped-storage
+ * consent), but this shared guard prevents a stream or synthetic library row
+ * from ever receiving a misleading Delete affordance.
+ */
+internal fun MediaItem.isLocallyDeletable(): Boolean =
+    !isStream && (uri.startsWith("file:") || uri.startsWith("content:"))
+
+/**
  * Platform-owned actions the shared shell cannot perform in commonMain
  * (intents, SAF, JNI side-effects outside MediaRepository).
  *

@@ -148,6 +148,22 @@ class IosMediaLibrary private constructor(
         persist()
     }
 
+    /**
+     * Deletes only an app-owned Documents file.  Imported file-provider URLs
+     * are copied into Documents before entering this catalog, so this guard
+     * never deletes a security-scoped source outside VLC's sandbox.
+     */
+    fun deleteImportedMedia(id: Long): Boolean {
+        val media = items.value.firstOrNull { it.id == id } ?: return false
+        val documents = documentsPath()?.let(::normalizedPath) ?: return false
+        val url = NSURL.URLWithString(media.uri) ?: return false
+        val path = url.path?.let(::normalizedPath) ?: return false
+        if (!url.isFileURL() || !path.isUnderAny(listOf(documents))) return false
+        if (!NSFileManager.defaultManager.removeItemAtURL(url, error = null)) return false
+        removeByUri(media.uri)
+        return true
+    }
+
     fun clear() {
         items.value = emptyList()
         playlists.value = emptyMap()

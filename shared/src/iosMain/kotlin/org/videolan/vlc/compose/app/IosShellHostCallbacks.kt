@@ -2,12 +2,15 @@
 
 package org.videolan.vlc.compose.app
 
+import org.videolan.vlc.app.IosMediaLibrary
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.util.ContextOption
 import platform.Foundation.NSURL
 import platform.UIKit.UIActivityViewController
 import platform.UIKit.UIAlertAction
+import platform.UIKit.UIAlertActionStyleCancel
 import platform.UIKit.UIAlertActionStyleDefault
+import platform.UIKit.UIAlertActionStyleDestructive
 import platform.UIKit.UIAlertController
 import platform.UIKit.UIAlertControllerStyleAlert
 import platform.UIKit.UIApplication
@@ -31,9 +34,13 @@ class IosShellHostCallbacks(
         IosMediaImportController.presentSubtitleImport(onPicked)
     }
 
-    override fun onContextAction(item: MediaItem, option: ContextOption) = Unit
+    override fun onContextAction(item: MediaItem, option: ContextOption) = when (option) {
+        ContextOption.CTX_DELETE -> confirmDelete(item)
+        else -> Unit
+    }
 
     override fun supportsContextAction(option: ContextOption): Boolean = when (option) {
+        ContextOption.CTX_DELETE,
         ContextOption.CTX_INFORMATION,
         ContextOption.CTX_SHARE,
         -> true
@@ -75,6 +82,29 @@ class IosShellHostCallbacks(
         NSURL.URLWithString(VLC_DONATION_URL)?.let {
             UIApplication.sharedApplication.openURL(it)
         }
+    }
+
+    private fun confirmDelete(item: MediaItem) {
+        val host = hostViewController() ?: return
+        val alert = UIAlertController.alertControllerWithTitle(
+            title = "Delete ${item.displayTitle}?",
+            message = "This removes the file from VLC on this device.",
+            preferredStyle = UIAlertControllerStyleAlert,
+        )
+        alert.addAction(
+            UIAlertAction.actionWithTitle("Cancel", style = UIAlertActionStyleCancel, handler = null),
+        )
+        alert.addAction(
+            UIAlertAction.actionWithTitle("Delete", style = UIAlertActionStyleDestructive) {
+                if (!IosMediaLibrary.shared.deleteImportedMedia(item.id)) {
+                    presentAlert(
+                        title = "Could not delete file",
+                        message = "VLC can only delete files it imported into its Documents library.",
+                    )
+                }
+            },
+        )
+        host.presentViewController(alert, animated = true, completion = null)
     }
 
     private fun MediaItem.shareableActivityItem(): Any =

@@ -269,6 +269,7 @@ private val URI_BROWSE_SCHEMES = setOf(
 )
 
 private val HOST_CONTEXT_OPTIONS = setOf(
+    ContextOption.CTX_DELETE,
     ContextOption.CTX_INFORMATION,
     ContextOption.CTX_SHARE,
     ContextOption.CTX_DOWNLOAD_SUBTITLES,

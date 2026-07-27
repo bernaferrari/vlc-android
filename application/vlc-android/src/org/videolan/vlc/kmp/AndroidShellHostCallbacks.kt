@@ -19,6 +19,7 @@ import org.videolan.resources.TAG_ITEM
 import org.videolan.vlc.compose.app.ShellHostCallbacks
 import org.videolan.vlc.gui.AboutActivity
 import org.videolan.vlc.gui.InfoActivity
+import org.videolan.vlc.gui.dialogs.showConfirmDeleteComposeDialog
 import org.videolan.vlc.gui.helpers.AudioUtil.setRingtone
 import org.videolan.vlc.gui.helpers.MedialibraryUtils
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
@@ -26,6 +27,7 @@ import org.videolan.vlc.gui.helpers.hf.requestOtgRoot
 import org.videolan.vlc.gui.helpers.UiTools.createShortcut
 import org.videolan.vlc.gui.helpers.UiTools.showDonations
 import org.videolan.vlc.gui.helpers.UiTools.showMediaInfo
+import org.videolan.vlc.gui.helpers.UiTools.snacker
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.model.MediaFolder
 import org.videolan.vlc.model.MediaItem
@@ -89,7 +91,16 @@ class AndroidShellHostCallbacks(
         })
     }
 
-    override fun supportsContextAction(option: ContextOption): Boolean = true
+    override fun supportsContextAction(option: ContextOption): Boolean = option in setOf(
+        ContextOption.CTX_DELETE,
+        ContextOption.CTX_INFORMATION,
+        ContextOption.CTX_SHARE,
+        ContextOption.CTX_DOWNLOAD_SUBTITLES,
+        ContextOption.CTX_ADD_SHORTCUT,
+        ContextOption.CTX_SET_RINGTONE,
+        ContextOption.CTX_BAN_FOLDER,
+        ContextOption.CTX_ADD_TO_PLAYLIST,
+    )
 
     override fun supportsMediaImport(): Boolean = true
 
@@ -110,9 +121,10 @@ class AndroidShellHostCallbacks(
             }
     }
 
-    override fun onContextAction(item: MediaItem, option: ContextOption) {
-        // Typed callbacks below cover known options; remaining are no-ops.
-        Log.d(TAG, "Unhandled context action $option for ${item.uri}")
+    override fun onContextAction(item: MediaItem, option: ContextOption) = when (option) {
+        ContextOption.CTX_DELETE -> confirmDelete(item)
+        // Typed callbacks below cover the rest; never advertise a no-op action.
+        else -> Log.d(TAG, "Unhandled context action $option for ${item.uri}")
     }
 
     override fun onOpenInfo(item: MediaItem) {
@@ -200,6 +212,21 @@ class AndroidShellHostCallbacks(
         runCatching {
             activity.requestOtgRoot()
         }.onFailure { Log.w(TAG, "onRequestOtgRoot failed", it) }
+    }
+
+    /**
+     * Reuse the mature Android confirmation and write-permission path.  In
+     * particular, [MediaUtils.deleteItem] requests scoped-storage consent
+     * before touching a MediaStore/content URI instead of treating its path as
+     * a normal file.
+     */
+    private fun confirmDelete(item: MediaItem) {
+        val wrapper = resolveWrapper(item) ?: return
+        activity.showConfirmDeleteComposeDialog(arrayListOf(wrapper)) {
+            MediaUtils.deleteItem(activity, wrapper) { failed ->
+                snacker(activity, activity.getString(org.videolan.vlc.R.string.msg_delete_failed, failed.title))
+            }
+        }
     }
 
     private fun importMedia(uris: List<Uri>) {
