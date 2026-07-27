@@ -17,6 +17,7 @@ readonly FILLED_ICONS=(
   forum description mail backspace language code extension groups open_in_new
   file_upload ios_share undo block notifications arrow_downward stop
   picture_in_picture_alt
+  lock lock_open
 )
 
 readonly OUTLINED_ICONS=(

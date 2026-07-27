@@ -131,6 +131,11 @@ fun VideoSurfaceWithHud(
     var hudVisible by remember { mutableStateOf(true) }
     var optionsVisible by remember { mutableStateOf(false) }
     var rendererPickerVisible by remember { mutableStateOf(false) }
+    var interfaceLocked by remember { mutableStateOf(false) }
+    LaunchedEffect(title) {
+        interfaceLocked = false
+        hudVisible = true
+    }
     LaunchedEffect(hudVisible, playing) {
         if (hudVisible && playing) {
             delay(4_000)
@@ -153,7 +158,7 @@ fun VideoSurfaceWithHud(
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
-            ) { hudVisible = !hudVisible }
+            ) { if (!interfaceLocked) hudVisible = !hudVisible }
     ) {
         // Video / artwork surface
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -177,7 +182,7 @@ fun VideoSurfaceWithHud(
             }
         }
 
-        if (hudVisible) {
+        if (hudVisible && !interfaceLocked) {
             VideoHudOverlay(
                 title = title,
                 subtitle = subtitle,
@@ -198,8 +203,35 @@ fun VideoSurfaceWithHud(
                 onEnterPictureInPicture = onEnterPictureInPicture,
                 showRendererSelection = showRendererSelection,
                 onOpenRendererSelection = { rendererPickerVisible = true },
+                showInterfaceLock = hasVideoOutput,
+                onLockInterface = { interfaceLocked = true },
                 onClose = onClose,
             )
+        }
+
+        if (interfaceLocked) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .clip(CircleShape),
+                shape = CircleShape,
+                color = Color.Black.copy(alpha = 0.72f),
+                contentColor = Color.White,
+            ) {
+                IconButton(
+                    onClick = {
+                        interfaceLocked = false
+                        hudVisible = true
+                    },
+                    modifier = Modifier.size(64.dp),
+                ) {
+                    Icon(
+                        icon = MaterialSymbols.Filled.LockOpen,
+                        contentDescription = stringResource(Res.string.unlock),
+                        modifier = Modifier.size(30.dp),
+                    )
+                }
+            }
         }
     }
 
@@ -311,6 +343,8 @@ fun VideoHudOverlay(
     onEnterPictureInPicture: () -> Unit,
     showRendererSelection: Boolean,
     onOpenRendererSelection: () -> Unit,
+    showInterfaceLock: Boolean,
+    onLockInterface: () -> Unit,
     onClose: (() -> Unit)?,
 ) {
     val colors = VLCThemeDefaults.colors
@@ -373,6 +407,15 @@ fun VideoHudOverlay(
                         Icon(
                             icon = MaterialSymbols.Filled.Devices,
                             contentDescription = stringResource(Res.string.renderer_list_title),
+                            tint = Color.White,
+                        )
+                    }
+                }
+                if (showInterfaceLock) {
+                    IconButton(onClick = onLockInterface) {
+                        Icon(
+                            icon = MaterialSymbols.Filled.Lock,
+                            contentDescription = stringResource(Res.string.lock),
                             tint = Color.White,
                         )
                     }
