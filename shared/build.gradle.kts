@@ -89,6 +89,7 @@ kotlin {
                 api(libs.koin.core)
                 api(libs.koin.compose)
                 api(libs.kotlinx.serialization.core)
+                api(libs.kotlinx.serialization.json)
                 // Compose Multiplatform — shared UI across all targets
                 api(compose.runtime)
                 api(compose.foundation)

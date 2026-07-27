@@ -111,7 +111,6 @@ struct ImportToolbar: View {
             }
             Button {
                 MediaImporter.shared.rescanLocalFolders()
-                VlcSharedApi().seedDemoLibrary()
             } label: {
                 Image(systemName: "arrow.clockwise")
                     .padding(8)

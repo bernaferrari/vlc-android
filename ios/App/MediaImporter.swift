@@ -43,7 +43,9 @@ final class MediaImporter: NSObject {
                 found.append(item)
             }
         }
-        merge(found)
+        // This is a complete Documents scan, so it can safely remove stale local
+        // rows while retaining user metadata and never touching streams.
+        repo.reconcileLocalDocuments(media: found)
     }
 
     /// Present document picker for multi-select of audiovisual files.
