@@ -291,40 +291,43 @@ fun VlcMainShell(
                 modifier = Modifier.fillMaxSize(),
                 containerColor = colors.backgroundDefault,
                 topBar = {
-                    TopAppBar(
-                        title = {
-                            Text(
-                                when {
-                                    showPlayer -> ShellStrings.nowPlaying()
-                                    showSettings -> ShellStrings.settings()
-                                    else -> title.ifBlank { ShellStrings.appName() }
-                                },
-                                style = MaterialTheme.typography.titleLarge,
-                            )
-                        },
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = colors.backgroundDefault,
-                            titleContentColor = colors.fontDefault,
-                        ),
-                        actions = {
-                            if (!showPlayer && !showSettings && hostCallbacks.supportsMediaImport()) {
-                                IconButton(onClick = hostCallbacks::onImportMedia) {
-                                    Icon(
-                                        icon = MaterialSymbols.Filled.Add,
-                                        contentDescription = ShellStrings.importMedia(),
-                                    )
+                    // The player owns its immersive, gesture-revealed HUD. A second shell bar
+                    // consumes vertical space and duplicates its close/title affordance.
+                    if (!showPlayer) {
+                        TopAppBar(
+                            title = {
+                                Text(
+                                    when {
+                                        showSettings -> ShellStrings.settings()
+                                        else -> title.ifBlank { ShellStrings.appName() }
+                                    },
+                                    style = MaterialTheme.typography.titleLarge,
+                                )
+                            },
+                            colors = TopAppBarDefaults.topAppBarColors(
+                                containerColor = colors.backgroundDefault,
+                                titleContentColor = colors.fontDefault,
+                            ),
+                            actions = {
+                                if (!showSettings && hostCallbacks.supportsMediaImport()) {
+                                    IconButton(onClick = hostCallbacks::onImportMedia) {
+                                        Icon(
+                                            icon = MaterialSymbols.Filled.Add,
+                                            contentDescription = ShellStrings.importMedia(),
+                                        )
+                                    }
                                 }
-                            }
-                            if (canNavigateBack) {
-                                IconButton(onClick = ::navigateBack) {
-                                    Icon(
-                                        icon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = ShellStrings.back(),
-                                    )
+                                if (canNavigateBack) {
+                                    IconButton(onClick = ::navigateBack) {
+                                        Icon(
+                                            icon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
+                                            contentDescription = ShellStrings.back(),
+                                        )
+                                    }
                                 }
-                            }
-                        }
-                    )
+                            },
+                        )
+                    }
                 },
                 floatingActionButton = {
                     if (!showPlayer && !showSettings) {

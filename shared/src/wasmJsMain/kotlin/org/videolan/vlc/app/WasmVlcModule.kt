@@ -11,21 +11,24 @@ import org.videolan.vlc.platform.NoOpPipController
 import org.videolan.vlc.platform.NoOpRendererBridge
 import org.videolan.vlc.platform.PipController
 import org.videolan.vlc.platform.RendererBridge
-import org.videolan.vlc.repository.FakeMediaRepository
-import org.videolan.vlc.repository.FakePlaybackService
 import org.videolan.vlc.repository.HistoryRepository
 import org.videolan.vlc.repository.MediaRepository
 import org.videolan.vlc.repository.PlaylistRepository
 import org.videolan.vlc.repository.StubHistoryRepository
 import org.videolan.vlc.repository.StubPlaylistRepository
 
-/** Wasm uses deterministic media data and a stateful UI playback service. */
+/**
+ * Wasm keeps deterministic demo content but augments it with user-selected OPFS media and an
+ * HTML media element bridge. The common library/player UI remains exactly the same as mobile.
+ */
 actual val platformModule: Module = module {
     single<DataStore<Preferences>> { BrowserPreferencesDataStore() }
-    single<MediaRepository> { FakeMediaRepository() }
+    single { BrowserMediaRepository() }
+    single<MediaRepository> { get<BrowserMediaRepository>() }
     single<PlaylistRepository> { StubPlaylistRepository() }
     single<HistoryRepository> { StubHistoryRepository() }
-    single<PlaybackService> { FakePlaybackService() }
+    single { BrowserPlaybackService() }
+    single<PlaybackService> { get<BrowserPlaybackService>() }
     single<MediaSessionBridge> { NoOpMediaSessionBridge }
     single<PipController> { NoOpPipController }
     single<RendererBridge> { NoOpRendererBridge }

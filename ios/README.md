@@ -118,7 +118,7 @@ configuration. Its pre-build phase invokes the matching Gradle task. Run
 
 1. `IosKoinBootstrap.start()` from app launch.
 2. `VlcKitBackend` (`ios/App/VlcKitBackend.swift`) is attached at launch:
-   `IosPlaybackService.shared.setBackend(backend: VlcKitBackend.shared)`.
+   `IosPlaybackService.companion.shared.setBackend(backend: VlcKitBackend.shared)`.
 3. Import media through the Files/Photos controls; the persistent catalog is
    reconciled on launch and refresh.
 4. Control playback through `VlcSharedApi.playFirst` / pause / resume.
@@ -132,7 +132,7 @@ iOS now hosts the **same** `VlcSharedApp` as Android (`Library` / `Player` / `Se
 - ViewModels: `LibraryViewModel`, `PlayerViewModel`, `SettingsViewModel` (commonMain)
 - A first run stays empty until the user imports media; Documents are scanned
   and reconciled without demo injection.
-- `IosPlaybackService.shared.setBackend(VlcKitBackend.shared)` installs real
+- `IosPlaybackService.companion.shared.setBackend(VlcKitBackend.shared)` installs real
   decode when MobileVLCKit resolves.
 
 Android's default phone main path hosts the same `VlcKoinMainShell`; its activity
@@ -148,7 +148,7 @@ open ios/VLC-iOS.xcodeproj
 
 ### What is wired
 1. **MobileVLCKit (SPM)** — `ios/project.yml` packages.MobileVLCKit
-2. **Real decode** — `AppDelegate` → `IosPlaybackService.shared.setBackend(VlcKitBackend.shared)`
+2. **Real decode** — `AppDelegate` → `IosPlaybackService.companion.shared.setBackend(VlcKitBackend.shared)`
 3. **Drawable** — the shared player route attaches its native `UIView` as the
    VLCKit drawable and detaches it on disposal
 4. **Library intake**

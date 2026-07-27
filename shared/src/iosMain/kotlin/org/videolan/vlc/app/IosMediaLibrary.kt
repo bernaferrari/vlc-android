@@ -460,6 +460,3 @@ private fun String.isUnderAny(roots: List<String>): Boolean {
     val path = normalizedPath(this)
     return roots.any { root -> path == root || path.startsWith("$root/") }
 }
-
-/** Back-compat alias used by Swift / older call sites. */
-typealias IosMediaRepository = IosMediaLibrary

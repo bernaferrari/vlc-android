@@ -124,6 +124,14 @@ kotlin {
             dependsOn(commonJvmMain)
         }
 
+        wasmJsMain {
+            dependencies {
+                // Browser DOM + media declarations used by the Wasm-only player and importer.
+                // This is the same explicit Wasm boundary QuietGuard uses for browser APIs.
+                implementation(libs.kotlinx.browser)
+            }
+        }
+
         // ── iOS intermediate (shared between all iOS architectures) ──
         val iosMain = create("iosMain") {
             dependsOn(commonMain.get())

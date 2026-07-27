@@ -54,6 +54,7 @@ import vlc_android.shared.generated.resources.*
 fun VideoSurfaceWithHud(
     title: String,
     subtitle: String = "",
+    error: String? = null,
     playing: Boolean,
     progress: Progress,
     shuffle: Boolean = false,
@@ -88,6 +89,23 @@ fun VideoSurfaceWithHud(
         // Video / artwork surface
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             surface()
+        }
+
+        if (!error.isNullOrBlank()) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(24.dp),
+                shape = MaterialTheme.shapes.medium,
+                color = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer,
+            ) {
+                Text(
+                    text = error,
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
         }
 
         if (hudVisible) {

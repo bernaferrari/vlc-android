@@ -18,7 +18,8 @@ import VLCShared
 final class MediaImporter: NSObject {
     static let shared = MediaImporter()
 
-    private let repo = IosMediaRepository.shared
+    // Kotlin typealiases are not exported to Objective-C/Swift; use the concrete public class.
+    private let repo = IosMediaLibrary.companion.shared
     private var nextId: Int64 = 50_000
 
     // MARK: - Public API
@@ -135,7 +136,12 @@ final class MediaImporter: NSObject {
             size: Int64(values?.fileSize ?? 0),
             rating: 0,
             playedCount: 0,
-            lastPlayed: 0
+            lastPlayed: 0,
+            isFavorite: false,
+            seen: 0,
+            present: true,
+            fileName: url.lastPathComponent,
+            description: nil
         )
     }
 

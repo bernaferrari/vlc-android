@@ -29,7 +29,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     ) -> Bool {
         IosKoinBootstrap.shared.start()
         // Real decode when MobileVLCKit SPM product is linked.
-        IosPlaybackService.shared.setBackend(backend: VlcKitBackend.shared)
+        IosPlaybackService.companion.shared.setBackend(backend: VlcKitBackend.shared)
         IosMediaImportController.shared.setHandler(handler: IosMediaImportBridge.shared)
         MediaImporter.shared.rescanLocalFolders()
         return true
@@ -42,7 +42,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
     ) -> Bool {
         // "Open in VLC" / Files share → copy into library
         MediaImporter.shared.rescanLocalFolders()
-        IosMediaRepository.shared.upsert(
+        IosMediaLibrary.companion.shared.upsert(
             media: MediaItem(
                 id: Int64(Date().timeIntervalSince1970 * 1000),
                 title: url.deletingPathExtension().lastPathComponent,
@@ -64,7 +64,12 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
                 size: 0,
                 rating: 0,
                 playedCount: 0,
-                lastPlayed: 0
+                lastPlayed: 0,
+                isFavorite: false,
+                seen: 0,
+                present: true,
+                fileName: url.lastPathComponent,
+                description: nil
             )
         )
         return true
@@ -88,7 +93,7 @@ struct RootContainer: View {
 struct ComposeSharedRoot: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIViewController {
         // The shared player route supplies the exact Compose-owned drawable.
-        IosPlaybackService.shared.setBackend(backend: VlcKitBackend.shared)
+        IosPlaybackService.companion.shared.setBackend(backend: VlcKitBackend.shared)
         return MainViewControllerKt.MainViewController()
     }
 

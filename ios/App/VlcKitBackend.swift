@@ -118,7 +118,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
     func setVolume(volume: Int32) {
 #if canImport(MobileVLCKit)
         // VLCKit audio.volume is 0...200
-        player?.audio?.volume = Int(volume)
+        player?.audio?.volume = volume
 #endif
     }
 
@@ -132,7 +132,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
         self.listener = listener
     }
 
-    func release() {
+    func dispose() {
 #if canImport(MobileVLCKit)
         player?.stop()
         player?.delegate = nil

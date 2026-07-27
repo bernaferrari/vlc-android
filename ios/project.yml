@@ -40,6 +40,10 @@ targets:
         # embedding) a debug simulator binary first.
         VLC_SHARED_KOTLIN_TARGET[sdk=iphonesimulator*]: iosSimulatorArm64
         VLC_SHARED_KOTLIN_TARGET[sdk=iphoneos*]: iosArm64
+        # This KMP project intentionally does not publish an iosX64 framework.
+        # Keep generic simulator builds on the Apple-Silicon slice rather than
+        # silently attempting to link arm64 objects into an x86_64 target.
+        EXCLUDED_ARCHS[sdk=iphonesimulator*]: x86_64
         VLC_SHARED_FRAMEWORK_DIRECTORY: $(SRCROOT)/../shared/build/bin/$(VLC_SHARED_KOTLIN_TARGET)/$(VLC_SHARED_BUILD_TYPE)Framework
         VLC_SHARED_FRAMEWORK_PATH: $(VLC_SHARED_FRAMEWORK_DIRECTORY)/VLCShared.framework
         FRAMEWORK_SEARCH_PATHS:

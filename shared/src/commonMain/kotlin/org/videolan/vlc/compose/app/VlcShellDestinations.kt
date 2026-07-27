@@ -238,6 +238,7 @@ internal fun PlayerDestination(
     VideoSurfaceWithHud(
         title = state.title,
         subtitle = state.subtitle,
+        error = state.error,
         playing = state.playing,
         progress = state.progress,
         shuffle = state.shuffle,

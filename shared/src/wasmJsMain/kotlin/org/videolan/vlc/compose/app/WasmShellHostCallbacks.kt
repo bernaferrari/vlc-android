@@ -2,12 +2,24 @@
 
 package org.videolan.vlc.compose.app
 
+import org.koin.mp.KoinPlatform
+import org.videolan.vlc.app.BrowserMediaRepository
+import org.videolan.vlc.app.openBrowserMediaPicker
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.util.ContextOption
 
 /** Browser-native equivalents for the shell actions that a Wasm host can perform today. */
 class WasmShellHostCallbacks : ShellHostCallbacks {
     override fun onContextAction(item: MediaItem, option: ContextOption) = Unit
+
+    override fun supportsMediaImport(): Boolean = true
+
+    override fun onImportMedia() {
+        // Resolve only for the user action. This keeps capability discovery and
+        // callback tests independent from a fully bootstrapped Koin graph.
+        val mediaRepository = KoinPlatform.getKoin().get<BrowserMediaRepository>()
+        openBrowserMediaPicker(mediaRepository::importFiles)
+    }
 
     override fun supportsContextAction(option: ContextOption): Boolean = when (option) {
         ContextOption.CTX_INFORMATION,

@@ -112,7 +112,7 @@ private class VlcKitPlayerBackendAdapter(
                 listener.onTimeChanged(timeMs, lengthMs)
         })
     }
-    override fun release() = kit.release()
+    override fun release() = kit.dispose()
 }
 
 /**
@@ -129,7 +129,8 @@ interface VlcKitPlayerBackend {
     fun setVolume(volume: Int)
     fun setRate(rate: Float)
     fun setListener(listener: Listener?)
-    fun release()
+    /** Named to avoid colliding with Objective-C NSObject.release in Swift implementations. */
+    fun dispose()
 
     interface Listener {
         fun onPlaying()

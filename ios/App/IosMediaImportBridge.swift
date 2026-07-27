@@ -12,6 +12,9 @@ final class IosMediaImportBridge: NSObject, IosMediaImportHandler {
     static let shared = IosMediaImportBridge()
 
     func presentMediaImport() {
-        MediaImporter.shared.presentImportOptions()
+        // The KMP callback is nonisolated; UIKit presentation must re-enter MainActor.
+        Task { @MainActor in
+            MediaImporter.shared.presentImportOptions()
+        }
     }
 }

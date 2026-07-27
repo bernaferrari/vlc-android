@@ -1501,7 +1501,7 @@
         <item quantity="one">%d group</item>
         <item quantity="other">%d groups</item>
     </plurals>
-    <string name="items_plus_count">%d+ items</string>
+    <string name="items_plus_count">%1$d+ items</string>
     <string name="default_sort">Default</string>
     <string name="file_size">File size</string>
     <plurals name="items_count">

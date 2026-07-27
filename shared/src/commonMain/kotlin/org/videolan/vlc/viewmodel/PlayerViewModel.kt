@@ -15,6 +15,8 @@ import org.videolan.vlc.player.PlaybackState
 data class PlayerUiState(
     val title: String = "",
     val subtitle: String = "",
+    /** The active source; platform surfaces use this without duplicating shared navigation state. */
+    val uri: String = "",
     val artworkUri: String? = null,
     val playing: Boolean = false,
     val progress: Progress = Progress(),
@@ -52,6 +54,7 @@ class PlayerViewModel(
                     it.copy(
                         title = item?.displayTitle.orEmpty(),
                         subtitle = listOfNotNull(item?.artist, item?.album).joinToString(" · "),
+                        uri = item?.uri.orEmpty(),
                         artworkUri = item?.artworkUri,
                         playing = st is PlaybackState.Playing,
                         progress = when (st) {

@@ -7,8 +7,8 @@ offering actions a target cannot execute.
 | Capability | Android | iOS | Wasm | JVM |
 | --- | --- | --- | --- | --- |
 | Shared navigation, library, playlists, history, and settings | Yes | Yes | Yes | Yes |
-| Local media intake | Media-library scan | Files / Photos picker | Not yet | Not yet |
-| Native media decoding | LibVLC | MobileVLCKit SPM | Not yet | Not yet |
+| Local media intake | Media-library scan | Files / Photos picker | Files picker; OPFS-backed when available, with persisted favorites and play state | Not yet |
+| Media decoding / playback engine | LibVLC | MobileVLCKit SPM | Browser HTML audio/video for user-imported, browser-supported files | Not yet |
 | Picture in Picture | Yes, when Android activity supports it | Not yet | Not yet | Not yet |
 | Renderer / cast selection | LibVLC renderer bridge | Not yet | Not yet | Not yet |
 | Network share discovery and browsing | Yes | Not yet | Not yet | Not yet |
@@ -17,3 +17,8 @@ offering actions a target cannot execute.
 An unsupported capability is absent from the shared surface and is guarded in
 `PlaybackController`/view models. It must not resolve to a no-op bridge. Implementing a new native
 bridge requires changing this matrix and adding a target-level integration test before enabling it.
+
+Wasm deliberately keeps its decoder boundary small: imported media is copied into the browser's
+origin-private file system when available and reopened as a fresh object URL. Browser codec and
+container support, autoplay policy, and storage availability still apply; a rejected format is
+reported in the shared player instead of being presented as playable.
