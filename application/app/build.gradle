@@ -1,7 +1,10 @@
 plugins {
     id 'com.android.application'
-    id 'kotlin-android'
 }
+
+// Kept at project scope because Android Components callbacks are evaluated
+// before the android { } body finishes configuring split outputs.
+def abiCodes = ['armeabi-v7a': 5, 'arm64-v8a': 6, 'x86': 7, 'x86_64': 8]
 
 android {
     compileOptions {
@@ -70,13 +73,32 @@ android {
         beforeVariants(selector().withBuildType("vlcBundle")) { variantBuilder ->
             variantBuilder.minSdk = 30
         }
+
+        // The legacy applicationVariants API is unavailable in AGP 9. Configure
+        // split-specific outputs through the stable Android Components API.
+        onVariants(selector().all()) { variant ->
+            variant.outputs.each { output ->
+                def abiFilter = output.filters.find {
+                    it.filterType == com.android.build.api.variant.FilterConfiguration.FilterType.ABI
+                }
+                def abiName = abiFilter?.identifier ?: "all"
+                def abiVersionCode = abiCodes.get(abiName, 0)
+                if (variant.buildType == "vlcBundle") {
+                    abiVersionCode = 9
+                }
+
+                output.versionCode.set(10000000 + rootProject.ext.versionCode + abiVersionCode)
+                def outputName = "VLC-Android-${rootProject.ext.versionName.replace(" ", "-")}"
+                if (variant.buildType == "debug") outputName += "-debug"
+                output.outputFileName.set("${outputName}-${abiName}.apk")
+            }
+        }
     }
 
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            kotlinOptions.freeCompilerArgs = ['-Xno-param-assertions']
         }
         signedRelease {
             initWith release
@@ -133,32 +155,18 @@ android {
         }
     }
 
-    def abiCodes = ['armeabi-v7a': 5, 'arm64-v8a': 6, 'x86': 7, 'x86_64': 8]
     lint {
         abortOnError = false
         disable 'MissingTranslation', 'ExtraTranslation'
     }
     namespace = 'org.videolan.mobile.app'
-    // make per-variant version code
-    applicationVariants.all { variant ->
-        //Custom APK name and versionCode
-        variant.outputs.each { output ->
-            def outputAbi = output.getFilter(com.android.build.OutputFile.ABI)
-            def abiName = outputAbi ?: "all"
-            def versionCode = abiCodes.get(abiName, 0)
-            if (variant.buildType.name == "vlcBundle") {
-                versionCode = 9
-            }
+}
 
-            output.versionCodeOverride = 10000000 + defaultConfig.versionCode + versionCode
-            def outputName = "VLC-Android-"
-            outputName += variant.versionName.replace(" ", "-")
-            if (variant.buildType.name == "debug") outputName += "-debug"
-            outputName += "-" + abiName + ".apk"
-            output.outputFileName = outputName
-        }
+// AGP 9 provides Kotlin directly; compiler options now live on its Kotlin DSL.
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add('-Xno-param-assertions')
     }
-
 }
 
 dependencies {

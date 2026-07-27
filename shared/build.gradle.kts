@@ -22,35 +22,27 @@
  */
 plugins {
     kotlin("multiplatform")
-    id("com.android.library")
+    // AGP 9 no longer supports the legacy Android-library target alongside
+    // Kotlin Multiplatform. This plugin keeps the Android target genuinely KMP.
+    id("com.android.kotlin.multiplatform.library")
     id("org.jetbrains.compose")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.devtools.ksp")
 }
 
-android {
-    namespace = "org.videolan.shared"
-    compileSdk = 36
-
-    defaultConfig {
+kotlin {
+    android {
+        namespace = "org.videolan.shared"
+        compileSdk = 36
         // DataStore 1.2.x / modern AndroidX require API 23+. VLC 3 native still
         // builds with NDK 21, but the app/shared JVM floor is 23 for both VLC 3 and 4.
         minSdk = 23
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-}
-
-kotlin {
-
-    androidTarget {
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
         }
+        // Keep common tests executable against Android as the KMP target evolves.
+        withHostTest {}
     }
 
     jvm {
@@ -91,12 +83,12 @@ kotlin {
                 api(libs.kotlinx.serialization.core)
                 api(libs.kotlinx.serialization.json)
                 // Compose Multiplatform — shared UI across all targets
-                api(compose.runtime)
-                api(compose.foundation)
-                api(compose.material3)
-                api(compose.animation)
-                api(compose.ui)
-                api(compose.components.resources)
+                api(libs.jetbrains.compose.runtime)
+                api(libs.jetbrains.compose.foundation)
+                api(libs.jetbrains.compose.material3)
+                api(libs.jetbrains.compose.animation)
+                api(libs.jetbrains.compose.ui)
+                api(libs.jetbrains.compose.resources)
                 // Navigation 3 is available for Android, iOS, JVM, and Wasm on Compose 1.10+.
                 api(libs.jetbrains.navigation3.ui)
                 // Uses a bottom bar on compact layouts and a navigation rail on wider hosts.
@@ -108,7 +100,7 @@ kotlin {
         }
 
         // ── JVM intermediate (shared between android and jvm) ──
-        val commonJvmMain by creating {
+        val commonJvmMain = create("commonJvmMain") {
             dependsOn(commonMain.get())
             dependencies {
                 api(libs.koin.annotations)
@@ -124,8 +116,7 @@ kotlin {
                 implementation(libs.androidx.activity.compose)
                 implementation(libs.androidx.datastore.preferences)
                 api(libs.koin.android)
-                implementation(compose.uiTooling)
-                implementation(compose.preview)
+                implementation(libs.jetbrains.compose.ui.tooling.preview)
             }
         }
 
@@ -134,7 +125,7 @@ kotlin {
         }
 
         // ── iOS intermediate (shared between all iOS architectures) ──
-        val iosMain by creating {
+        val iosMain = create("iosMain") {
             dependsOn(commonMain.get())
         }
 
@@ -159,6 +150,9 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 
 // Koin compiler — compile-time verification of module bindings via KSP.
 dependencies {
+    // Android-KMP has one publishable variant. Keep inspection tooling available
+    // to local Android runtime/Preview without leaking it into the shared AAR.
+    add("androidRuntimeClasspath", libs.jetbrains.compose.ui.tooling)
     add("kspAndroid", libs.koin.ksp.compiler)
     add("kspJvm", libs.koin.ksp.compiler)
 }

@@ -18,8 +18,9 @@ buildscript {
     dependencies {
         classpath "com.android.tools.build:gradle:$android_plugin_version"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
-        classpath 'com.vanniktech:gradle-maven-publish-plugin:0.34.0'
+        // 0.36.0 supports Gradle 9 and the AGP 9 publishing APIs. The
+        // dcendents plugin was unused and relies on Gradle APIs removed in 9.
+        classpath 'com.vanniktech:gradle-maven-publish-plugin:0.36.0'
     }
 }
 

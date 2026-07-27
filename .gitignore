@@ -60,10 +60,9 @@ captures/
 *.files
 *.includes
 
-#gradle
-gradlew.bat
-gradlew
-gradle*/
+# Gradle build state/distributions. Keep the wrapper itself in version control
+# so local and CI builds use the same AGP-compatible Gradle version.
+gradle-*/
 .gradle/
 build/
 vlc-android/build/

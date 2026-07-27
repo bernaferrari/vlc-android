@@ -22,13 +22,15 @@
 
 plugins {
     id 'com.android.library'
-    id 'org.jetbrains.kotlin.android'
     id 'com.vanniktech.maven.publish'
 }
 
 ext {
     library_version = "$rootProject.ext.remoteAccessVersion"
 }
+
+group = 'org.videolan.android'
+version = library_version
 
 def remoteclientSourceDir = "$projectDir/remoteaccess"
 File remoteAccessPackage = file("$remoteclientSourceDir/package.json")
@@ -53,14 +55,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    buildFeatures {
+        // AGP 9 generates resource values only when a module explicitly uses them.
+        resValues = true
+    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = '17'
-    }
-
     // Web UI package (optional submodule). Server copies assets/dist at runtime.
     task webCopy(type: Copy) {
         from 'remoteaccess/dist'
@@ -73,13 +75,6 @@ android {
         assets.srcDirs = ['assets']
     }
 
-    libraryVariants.all { variant ->
-        variant.outputs.each { output ->
-            if (output.outputFileName != null && output.outputFileName.endsWith('.aar')) {
-                output.outputFileName = "vlc-android-remote-access-${library_version}.aar"
-            }
-        }
-    }
 }
 
 preBuild.dependsOn(webCopy)
@@ -106,5 +101,3 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
 }
-
-apply from: '../../buildsystem/publish.gradle'

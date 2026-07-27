@@ -106,7 +106,10 @@ class AndroidPlaybackService(
         }
         val wrappers = playlist.map { it.toMediaWrapper() }
         val safeIndex = index.coerceIn(0, (wrappers.size - 1).coerceAtLeast(0))
-        if (playlist.getOrNull(safeIndex)?.isVideo == true) {
+        // Streams can expose video only after LibVLC probes them. Match the
+        // shared PlayerUiState contract so they wait for the route-owned
+        // VLCVideoLayout instead of escaping into the legacy activity.
+        if (playlist.getOrNull(safeIndex)?.let { it.isVideo || it.isStream } == true) {
             SharedVideoSurfaceRegistry.requestInlinePlayback()
         }
         _playlist.value = Playlist(

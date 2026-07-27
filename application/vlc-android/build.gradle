@@ -1,10 +1,10 @@
 plugins {
     id 'com.android.library'
-    id 'org.jetbrains.kotlin.android'
     // Compose plugin required for any module hosting inline @Composable content / setContent lambdas (hybrid interop).
     // Enables Compose compiler for Kotlin sources in this legacy module when we embed ComposeView + Composable trees.
     id 'org.jetbrains.kotlin.plugin.compose'
-    id 'kotlin-kapt'
+    // Data Binding still requires kapt; AGP 9 supplies this compatibility plugin.
+    id 'com.android.legacy-kapt'
     id 'com.google.devtools.ksp'
     id 'kotlin-parcelize'
 }
@@ -100,7 +100,10 @@ android {
 
     sourceSets.main {
         manifest.srcFile 'AndroidManifest.xml'
-        java.srcDirs = rootProject.ext.vlcMajorVersion == 4 ? ['src', 'vlc4/src'] : ['src', 'vlc3/src']
+        def versionedSources = rootProject.ext.vlcMajorVersion == 4 ? ['src', 'vlc4/src'] : ['src', 'vlc3/src']
+        java.srcDirs = versionedSources
+        // Kotlin sources must be declared explicitly with AGP 9 built-in Kotlin.
+        kotlin.srcDirs = versionedSources
         resources.srcDirs = ['src']
         aidl.srcDirs = ['src']
         renderscript.srcDirs = ['src']
@@ -117,10 +120,12 @@ android {
     }
     sourceSets.test {
         java.srcDirs = ['test', 'test-common']
+        kotlin.srcDirs = ['test', 'test-common']
         assets.srcDirs = ['flavors/debug/assets']
     }
     sourceSets.androidTest {
         java.srcDirs = ['androidTest', 'test-common']
+        kotlin.srcDirs = ['androidTest', 'test-common']
         assets.srcDirs = ['flavors/debug/assets']
         assets.srcDirs += files("$projectDir/assets/schemas".toString())
     }
@@ -129,6 +134,7 @@ android {
         renderScript = true
         aidl = true
         buildConfig = true
+        resValues = true
         // Enable Compose build feature for hybrid interop hosting.
         // Allows this legacy module (vlc-android) to compile Kotlin files containing
         // ComposeView.setContent { VLCTheme { LeafComposable(...) } } call sites.

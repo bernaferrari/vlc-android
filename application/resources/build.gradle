@@ -1,6 +1,5 @@
 plugins {
     id 'com.android.library'
-    id 'kotlin-android'
 }
 
 android {
@@ -39,7 +38,11 @@ android {
     }
 
     sourceSets.main {
-        java.srcDirs = rootProject.ext.vlcMajorVersion == 4 ? ['src', 'vlc4/src'] : ['src', 'vlc3/src']
+        def versionedSources = rootProject.ext.vlcMajorVersion == 4 ? ['src', 'vlc4/src'] : ['src', 'vlc3/src']
+        java.srcDirs = versionedSources
+        // AGP 9's built-in Kotlin no longer reads Kotlin from the Java source
+        // set. Keep VLC 3/4 version selection identical for both languages.
+        kotlin.srcDirs = versionedSources
     }
 
     sourceSets.debug {
