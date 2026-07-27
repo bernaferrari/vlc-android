@@ -1,42 +1,20 @@
 package org.videolan.vlc.compose.app
 
 import androidx.compose.runtime.Composable
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import vlc_android.shared.generated.resources.Res
-import vlc_android.shared.generated.resources.about
-import vlc_android.shared.generated.resources.add_to_playlist
-import vlc_android.shared.generated.resources.append
-import vlc_android.shared.generated.resources.back
-import vlc_android.shared.generated.resources.cancel
-import vlc_android.shared.generated.resources.clear
-import vlc_android.shared.generated.resources.delete
-import vlc_android.shared.generated.resources.display_settings
-import vlc_android.shared.generated.resources.download_subtitles
-import vlc_android.shared.generated.resources.favorites
-import vlc_android.shared.generated.resources.history
-import vlc_android.shared.generated.resources.info
-import vlc_android.shared.generated.resources.insert_next
-import vlc_android.shared.generated.resources.move_down
-import vlc_android.shared.generated.resources.move_up
-import vlc_android.shared.generated.resources.ok
-import vlc_android.shared.generated.resources.play
-import vlc_android.shared.generated.resources.play_all
-import vlc_android.shared.generated.resources.remove
-import vlc_android.shared.generated.resources.retry
-import vlc_android.shared.generated.resources.search
-import vlc_android.shared.generated.resources.select
-import vlc_android.shared.generated.resources.set_song
-import vlc_android.shared.generated.resources.settings
-import vlc_android.shared.generated.resources.share
-import vlc_android.shared.generated.resources.sortby
+import vlc_android.shared.generated.resources.*
 
 /**
  * Shared chrome labels backed by composeResources.
  * Prefer these over hard-coded English in main shell panes.
  */
 object ShellStrings {
+    @Composable fun appName(): String = stringResource(Res.string.app_name)
     @Composable fun play(): String = stringResource(Res.string.play)
     @Composable fun playAll(): String = stringResource(Res.string.play_all)
+    @Composable fun playNext(): String = stringResource(Res.string.play_next)
     @Composable fun append(): String = stringResource(Res.string.append)
     @Composable fun addToPlaylist(): String = stringResource(Res.string.add_to_playlist)
     @Composable fun insertNext(): String = stringResource(Res.string.insert_next)
@@ -46,6 +24,12 @@ object ShellStrings {
     @Composable fun search(): String = stringResource(Res.string.search)
     @Composable fun history(): String = stringResource(Res.string.history)
     @Composable fun favorites(): String = stringResource(Res.string.favorites)
+    @Composable fun addFavorite(): String = stringResource(Res.string.favorites_add)
+    @Composable fun removeFavorite(): String = stringResource(Res.string.favorites_remove)
+    @Composable fun unfavorite(): String = stringResource(Res.string.unfavorite)
+    @Composable fun favorite(): String = stringResource(Res.string.favorite)
+    @Composable fun markPlayed(): String = stringResource(Res.string.mark_as_played)
+    @Composable fun markUnplayed(): String = stringResource(Res.string.mark_as_not_played)
     @Composable fun settings(): String = stringResource(Res.string.settings)
     @Composable fun about(): String = stringResource(Res.string.about)
     @Composable fun info(): String = stringResource(Res.string.info)
@@ -61,4 +45,74 @@ object ShellStrings {
     @Composable fun back(): String = stringResource(Res.string.back)
     @Composable fun moveUp(): String = stringResource(Res.string.move_up)
     @Composable fun moveDown(): String = stringResource(Res.string.move_down)
+    @Composable fun nowPlaying(): String = stringResource(Res.string.now_playing)
+    @Composable fun importMedia(): String = stringResource(Res.string.import_media)
+    @Composable fun notPlaying(): String = stringResource(Res.string.not_playing)
+    @Composable fun pause(): String = stringResource(Res.string.pause)
+    @Composable fun video(): String = stringResource(Res.string.video)
+    @Composable fun audio(): String = stringResource(Res.string.audio)
+    @Composable fun browse(): String = stringResource(Res.string.browse)
+    @Composable fun playlists(): String = stringResource(Res.string.playlists)
+    @Composable fun more(): String = stringResource(Res.string.more)
+    @Composable fun playback(): String = stringResource(Res.string.playback)
+    @Composable fun resumeAudio(): String = stringResource(Res.string.resume_audio)
+    @Composable fun resumeVideo(): String = stringResource(Res.string.resume_video)
+    @Composable fun playbackHistory(): String = stringResource(Res.string.playback_history)
+    @Composable fun incognito(): String = stringResource(Res.string.incognito)
+    @Composable fun library(): String = stringResource(Res.string.library)
+    @Composable fun videoThumbnails(): String = stringResource(Res.string.video_thumbnails)
+    @Composable fun network(): String = stringResource(Res.string.network)
+    @Composable fun remoteAccess(): String = stringResource(Res.string.remote_access)
+    @Composable fun remoteAccessServer(): String = stringResource(Res.string.remote_access_server)
+    @Composable fun shuffle(): String = stringResource(Res.string.shuffle_play)
+    @Composable fun shuffleAll(): String = stringResource(Res.string.shuffle_all_title)
+    @Composable fun donate(): String = stringResource(Res.string.donate)
+    @Composable fun streams(): String = stringResource(Res.string.streams)
+    @Composable fun rename(): String = stringResource(Res.string.rename)
+    @Composable fun renameStream(): String = stringResource(Res.string.rename_stream)
+    @Composable fun save(): String = stringResource(Res.string.save)
+    @Composable fun deleteStream(): String = stringResource(Res.string.delete_stream)
+    @Composable fun noStreams(): String = stringResource(Res.string.no_streams)
+    @Composable fun present(): String = stringResource(Res.string.present)
+    @Composable fun missing(): String = stringResource(Res.string.missing)
+    @Composable fun selected(): String = stringResource(Res.string.selected)
+    @Composable fun selectHistoryEntry(): String = stringResource(Res.string.select_history_entry)
+    @Composable fun noRecentMedia(): String = stringResource(Res.string.no_recent_media)
+    @Composable fun moreOptions(): String = stringResource(Res.string.more_options)
+    @Composable fun newPlaylist(): String = stringResource(Res.string.new_playlist)
+    @Composable fun addPlaylist(): String = stringResource(Res.string.add_playlist)
+    @Composable fun emptyPlaylist(): String = stringResource(Res.string.empty_playlist)
+    @Composable fun noPlaylists(): String = stringResource(Res.string.no_playlists)
+    @Composable fun nothingHere(): String = stringResource(Res.string.nothing_here)
+    @Composable fun favoritesOnly(): String = stringResource(Res.string.favorites_only)
+    @Composable fun showAllArtists(): String = stringResource(Res.string.show_all_artists)
+    @Composable fun showTrackNumbers(): String = stringResource(Res.string.show_track_numbers)
+    @Composable fun multimediaFilesOnly(): String = stringResource(Res.string.multimedia_files_only)
+    @Composable fun showHiddenFiles(): String = stringResource(Res.string.show_hidden_files)
+    @Composable fun grouping(): String = stringResource(Res.string.grouping)
+    @Composable fun layout(): String = stringResource(Res.string.layout)
+    @Composable fun list(): String = stringResource(Res.string.list)
+    @Composable fun grid(): String = stringResource(Res.string.grid)
+    @Composable fun sort(): String = stringResource(Res.string.sort)
+    @Composable fun ascending(): String = stringResource(Res.string.ascending)
+    @Composable fun descending(): String = stringResource(Res.string.descending)
+    @Composable fun gridView(): String = stringResource(Res.string.grid_view)
+    @Composable fun listView(): String = stringResource(Res.string.list_view)
+    @Composable fun up(): String = stringResource(Res.string.up)
+    @Composable fun defaultAction(): String = stringResource(Res.string.default_action)
+    @Composable fun storage(): String = stringResource(Res.string.storage)
+    @Composable fun folder(): String = stringResource(Res.string.folder)
+    @Composable fun group(): String = stringResource(Res.string.group)
+    @Composable fun groupVideos(): String = stringResource(Res.string.group_videos)
+    @Composable fun none(): String = stringResource(Res.string.none)
+    @Composable fun byName(): String = stringResource(Res.string.by_name)
+    @Composable fun byFolder(): String = stringResource(Res.string.by_folder)
+    @Composable fun browser(): String = stringResource(Res.string.browser)
+    @Composable fun itemsCount(count: Int): String = pluralStringResource(Res.plurals.items_count, count, count)
+    @Composable fun groupsCount(count: Int): String = pluralStringResource(Res.plurals.groups_count, count, count)
+    @Composable fun itemsPlusCount(count: Int): String = stringResource(Res.string.items_plus_count, count)
+    @Composable fun selectionCount(action: String, count: Int): String =
+        stringResource(Res.string.selection_action_count, action, count)
+    @Composable fun selectedItemsSummary(items: String, count: Int): String =
+        stringResource(Res.string.selected_items_summary, items, count)
 }

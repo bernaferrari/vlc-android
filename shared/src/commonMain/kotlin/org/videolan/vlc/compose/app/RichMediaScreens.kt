@@ -166,7 +166,7 @@ fun RichMediaListPane(
                     Icon(MaterialSymbols.Filled.Star, contentDescription = ShellStrings.favorites())
                 }
                 TextButton(onClick = onClearSelection) {
-                    Text("${ShellStrings.clear()} (${state.selection.size})")
+                    Text(ShellStrings.selectionCount(ShellStrings.clear(), state.selection.size))
                 }
             } else {
                 IconButton(onClick = onSelectAll) {
@@ -183,7 +183,7 @@ fun RichMediaListPane(
                 }) {
                     Icon(
                         icon = if (state.viewMode == ViewMode.LIST) MaterialSymbols.Filled.GridView else MaterialSymbols.Filled.ViewList,
-                        contentDescription = if (state.viewMode == ViewMode.LIST) "Grid view" else "List view",
+                        contentDescription = if (state.viewMode == ViewMode.LIST) ShellStrings.gridView() else ShellStrings.listView(),
                     )
                 }
                 IconButton(onClick = { showDisplaySettings = true }) {
@@ -197,15 +197,13 @@ fun RichMediaListPane(
 
         if (showDisplaySettings) {
             val groupingOptions = if (showGroupingToggle) {
-                listOf("None", "By name", "By folder")
+                VideoGroupingMode.entries.map(VideoGroupingMode::name)
             } else {
                 emptyList()
             }
             val selectedGrouping = when {
                 !showGroupingToggle -> null
-                state.groupingMode == VideoGroupingMode.NAME -> "By name"
-                state.groupingMode == VideoGroupingMode.FOLDER -> "By folder"
-                else -> "None"
+                else -> state.groupingMode.name
             }
             DisplaySettingsSheet(
                 state = DisplaySettingsState(
@@ -215,10 +213,10 @@ fun RichMediaListPane(
                     sortDesc = state.sortDesc,
                     showAllArtists = if (showAllArtistsToggle) state.showAllArtists else null,
                     showTrackNumbers = if (showTrackNumbersToggle) state.showTrackNumbers else null,
-                    groupingLabel = if (showGroupingToggle) "Group videos" else null,
+                    groupingLabel = if (showGroupingToggle) ShellStrings.groupVideos() else null,
                     groupingOptions = groupingOptions,
                     selectedGrouping = selectedGrouping,
-                    defaultActionLabel = "Default action",
+                    defaultActionLabel = ShellStrings.defaultAction(),
                     defaultActionOptions = defaultActionOptions,
                     selectedDefaultAction = state.defaultPlaybackAction,
                     availableSorts = listOf(
@@ -244,11 +242,7 @@ fun RichMediaListPane(
                 onDefaultAction = onDefaultAction,
                 onGrouping = { label ->
                     onSetGroupingMode(
-                        when (label) {
-                            "By name" -> VideoGroupingMode.NAME
-                            "By folder" -> VideoGroupingMode.FOLDER
-                            else -> VideoGroupingMode.NONE
-                        },
+                        VideoGroupingMode.entries.firstOrNull { it.name == label } ?: VideoGroupingMode.NONE,
                     )
                 },
             )
@@ -271,15 +265,19 @@ fun RichMediaListPane(
         }
 
         val countLabel = when {
-            groups.isNotEmpty() -> "${groups.size} groups"
+            groups.isNotEmpty() -> ShellStrings.groupsCount(groups.size)
             usePaging -> {
                 val n = lazyPagingItems.itemCount
-                if (n > 0) "$n+ items" else "${state.count} items"
+                if (n > 0) ShellStrings.itemsPlusCount(n) else ShellStrings.itemsCount(state.count)
             }
-            else -> "${state.count} items"
+            else -> ShellStrings.itemsCount(state.count)
         }
         Text(
-            countLabel + if (state.selection.isNotEmpty()) " · ${state.selection.size} selected" else "",
+            if (state.selection.isNotEmpty()) {
+                ShellStrings.selectedItemsSummary(countLabel, state.selection.size)
+            } else {
+                countLabel
+            },
             color = colors.fontLight,
             style = MaterialTheme.typography.labelMedium,
             modifier = Modifier.padding(bottom = 4.dp),
@@ -295,19 +293,26 @@ fun RichMediaListPane(
                     items(groups, key = { "g:${it.id}:${it.path}" }) { folder ->
                         VLCBrowserItemRow(
                             title = folder.title,
-                            subtitle = if (folder.childCount > 0) "${folder.childCount} items" else {
+                            subtitle = if (folder.childCount > 0) ShellStrings.itemsCount(folder.childCount) else {
                                 if (folder.kind == org.videolan.vlc.model.FolderKind.MEDIA_FOLDER ||
                                     state.groupingMode == VideoGroupingMode.FOLDER
                                 ) {
-                                    "Folder"
+                                    ShellStrings.folder()
                                 } else {
-                                    "Group"
+                                    ShellStrings.group()
                                 }
                             },
                             onClick = { onOpenGroup(folder) },
                             artworkContent = {
-                                val label = if (state.groupingMode == VideoGroupingMode.FOLDER) "DIR" else "GRP"
-                                Text(label, color = colors.primary, fontWeight = FontWeight.Bold)
+                                Icon(
+                                    icon = if (state.groupingMode == VideoGroupingMode.FOLDER) {
+                                        MaterialSymbols.Filled.Folder
+                                    } else {
+                                        MaterialSymbols.Filled.VideoLibrary
+                                    },
+                                    contentDescription = null,
+                                    tint = colors.primary,
+                                )
                             },
                         )
                     }
@@ -569,16 +574,16 @@ private fun MediaContextMenu(
     canHandleHostAction: (ContextOption) -> Boolean,
 ) {
     DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
-        DropdownMenuItem(text = { Text("Play") }, onClick = {
+        DropdownMenuItem(text = { Text(ShellStrings.play()) }, onClick = {
             onDismiss(); onCtx(item, ContextOption.CTX_PLAY)
         })
-        DropdownMenuItem(text = { Text("Play next") }, onClick = {
+        DropdownMenuItem(text = { Text(ShellStrings.playNext()) }, onClick = {
             onDismiss(); onPlayNext(item)
         })
-        DropdownMenuItem(text = { Text("Append") }, onClick = {
+        DropdownMenuItem(text = { Text(ShellStrings.append()) }, onClick = {
             onDismiss(); onAppend(item)
         })
-        DropdownMenuItem(text = { Text("Play all") }, onClick = {
+        DropdownMenuItem(text = { Text(ShellStrings.playAll()) }, onClick = {
             onDismiss(); onCtx(item, ContextOption.CTX_PLAY_ALL)
         })
         if (canHandleHostAction(ContextOption.CTX_ADD_TO_PLAYLIST)) {
@@ -597,18 +602,18 @@ private fun MediaContextMenu(
             })
         }
         if (item.isFavorite) {
-            DropdownMenuItem(text = { Text("Remove favorite") }, onClick = {
+            DropdownMenuItem(text = { Text(ShellStrings.removeFavorite()) }, onClick = {
                 onDismiss(); onCtx(item, ContextOption.CTX_FAV_REMOVE)
             })
         } else {
-            DropdownMenuItem(text = { Text("Add favorite") }, onClick = {
+            DropdownMenuItem(text = { Text(ShellStrings.addFavorite()) }, onClick = {
                 onDismiss(); onCtx(item, ContextOption.CTX_FAV_ADD)
             })
         }
-        DropdownMenuItem(text = { Text("Mark played") }, onClick = {
+        DropdownMenuItem(text = { Text(ShellStrings.markPlayed()) }, onClick = {
             onDismiss(); onCtx(item, ContextOption.CTX_MARK_AS_PLAYED)
         })
-        DropdownMenuItem(text = { Text("Mark unplayed") }, onClick = {
+        DropdownMenuItem(text = { Text(ShellStrings.markUnplayed()) }, onClick = {
             onDismiss(); onCtx(item, ContextOption.CTX_MARK_AS_UNPLAYED)
         })
         if (canHandleHostAction(ContextOption.CTX_SHARE)) {
@@ -617,7 +622,7 @@ private fun MediaContextMenu(
             })
         }
         if (canHandleHostAction(ContextOption.CTX_INFORMATION)) {
-            DropdownMenuItem(text = { Text("Info") }, onClick = {
+            DropdownMenuItem(text = { Text(ShellStrings.info()) }, onClick = {
                 onDismiss(); onCtx(item, ContextOption.CTX_INFORMATION)
             })
         }
@@ -659,7 +664,7 @@ fun MediaGridCard(
                         menu = true
                         onMore()
                     }) {
-                        Icon(MaterialSymbols.Filled.MoreVert, contentDescription = "More options")
+                        Icon(MaterialSymbols.Filled.MoreVert, contentDescription = ShellStrings.moreOptions())
                     }
                     MediaContextMenu(
                         expanded = menu,
@@ -772,12 +777,12 @@ fun BrowserRichPane(
                 IconButton(onClick = onUp) {
                     Icon(
                         icon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Up",
+                        contentDescription = ShellStrings.up(),
                     )
                 }
             }
             Text(
-                state.currentFolder?.title ?: "Browser",
+                state.currentFolder?.title ?: ShellStrings.browser(),
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.headlineSmall,
                 modifier = Modifier.weight(1f),
@@ -806,7 +811,7 @@ fun BrowserRichPane(
                 }
                 TextButton(onClick = onAppendSelection) { Text(ShellStrings.append()) }
                 TextButton(onClick = onClearSelection) {
-                    Text("${ShellStrings.clear()} (${state.selection.size})")
+                    Text(ShellStrings.selectionCount(ShellStrings.clear(), state.selection.size))
                 }
             }
         }
@@ -815,7 +820,7 @@ fun BrowserRichPane(
                 state = DisplaySettingsState(
                     showHiddenFiles = state.showHiddenFiles,
                     showOnlyMultimedia = state.showOnlyMultimedia,
-                    defaultActionLabel = "Default action",
+                    defaultActionLabel = ShellStrings.defaultAction(),
                     defaultActionOptions = listOf("PLAY", "PLAY_ALL", "ADD_TO_QUEUE", "INSERT_NEXT"),
                     selectedDefaultAction = state.defaultPlaybackAction,
                     supportsViewMode = false,
@@ -861,7 +866,7 @@ fun BrowserRichPane(
             if (atRoot && state.folders.isNotEmpty()) {
                 item {
                     Text(
-                        "Storage",
+                        ShellStrings.storage(),
                         style = MaterialTheme.typography.labelLarge,
                         color = colors.primary,
                         modifier = Modifier.padding(start = 4.dp, top = 8.dp, end = 4.dp, bottom = 2.dp),
@@ -871,7 +876,7 @@ fun BrowserRichPane(
             items(state.folders, key = { "f:${it.id}:${it.path}" }) { folder ->
                 VLCBrowserItemRow(
                     title = folder.title,
-                    subtitle = if (folder.childCount > 0) "${folder.childCount} items" else "Folder",
+                    subtitle = if (folder.childCount > 0) ShellStrings.itemsCount(folder.childCount) else ShellStrings.folder(),
                     onClick = { onOpenFolder(folder) },
                     artworkContent = {
                         if (folder.isFavorite) {
@@ -893,7 +898,7 @@ fun BrowserRichPane(
             if (atRoot && state.networkRoots.isNotEmpty()) {
                 item {
                     Text(
-                        "Network",
+                        ShellStrings.network(),
                         style = MaterialTheme.typography.labelLarge,
                         color = colors.primary,
                         modifier = Modifier.padding(start = 4.dp, top = 8.dp, end = 4.dp, bottom = 2.dp),
@@ -902,7 +907,7 @@ fun BrowserRichPane(
                 items(state.networkRoots, key = { "n:${it.id}:${it.path}" }) { folder ->
                     VLCBrowserItemRow(
                         title = folder.title,
-                        subtitle = "Network",
+                        subtitle = ShellStrings.network(),
                         onClick = { onOpenFolder(folder) },
                         artworkContent = {
                             Icon(
@@ -932,7 +937,7 @@ fun BrowserRichPane(
                 state.networkRoots.isEmpty()
             ) {
                 item {
-                    VLCEmptyState(loading = false, text = "Nothing here")
+                    VLCEmptyState(loading = false, text = ShellStrings.nothingHere())
                 }
             }
         }
@@ -1073,7 +1078,7 @@ fun PlaylistsRichPane(
                     )
                 }
                 if (detailItems.isEmpty()) {
-                    item { VLCEmptyState(loading = false, text = "Empty playlist") }
+                    item { VLCEmptyState(loading = false, text = ShellStrings.emptyPlaylist()) }
                 }
             }
             return
@@ -1089,7 +1094,7 @@ fun PlaylistsRichPane(
                 onValueChange = { newName = it },
                 modifier = Modifier.weight(1f),
                 singleLine = true,
-                label = { Text("New playlist") },
+                label = { Text(ShellStrings.newPlaylist()) },
                 shape = MaterialTheme.shapes.extraLarge,
             )
             FilledTonalIconButton(onClick = {
@@ -1098,7 +1103,7 @@ fun PlaylistsRichPane(
                     newName = ""
                 }
             }) {
-                Icon(MaterialSymbols.Filled.Add, contentDescription = "Add playlist")
+                Icon(MaterialSymbols.Filled.Add, contentDescription = ShellStrings.addPlaylist())
             }
         }
 
@@ -1113,7 +1118,9 @@ fun PlaylistsRichPane(
                 FilledTonalIconButton(onClick = onDeleteSelection) {
                     Icon(MaterialSymbols.Filled.Delete, contentDescription = ShellStrings.delete())
                 }
-                TextButton(onClick = onClearSelection) { Text("${ShellStrings.clear()} (${state.selection.size})") }
+                TextButton(onClick = onClearSelection) {
+                    Text(ShellStrings.selectionCount(ShellStrings.clear(), state.selection.size))
+                }
             } else {
                 IconButton(onClick = onToggleFavorites) {
                     Icon(
@@ -1124,7 +1131,7 @@ fun PlaylistsRichPane(
                 IconButton(onClick = onToggleSortDesc) {
                     Icon(
                         icon = MaterialSymbols.Filled.Sort,
-                        contentDescription = if (state.sortDesc) "Sort descending" else "Sort ascending",
+                        contentDescription = if (state.sortDesc) ShellStrings.descending() else ShellStrings.ascending(),
                     )
                 }
                 IconButton(onClick = {
@@ -1132,7 +1139,7 @@ fun PlaylistsRichPane(
                 }) {
                     Icon(
                         icon = if (state.viewMode == ViewMode.LIST) MaterialSymbols.Filled.GridView else MaterialSymbols.Filled.ViewList,
-                        contentDescription = if (state.viewMode == ViewMode.LIST) "Grid view" else "List view",
+                        contentDescription = if (state.viewMode == ViewMode.LIST) ShellStrings.gridView() else ShellStrings.listView(),
                     )
                 }
             }
@@ -1148,14 +1155,14 @@ fun PlaylistsRichPane(
                     onValueChange = { renameText = it },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
-                    label = { Text("Rename") },
+                    label = { Text(ShellStrings.rename()) },
                     shape = MaterialTheme.shapes.extraLarge,
                 )
                 TextButton(onClick = {
                     if (renameText.isNotBlank()) onRename(target.id, renameText.trim())
                     renameTarget = null
                     renameText = ""
-                }) { Text("Save") }
+                }) { Text(ShellStrings.save()) }
                 TextButton(onClick = {
                     renameTarget = null
                     renameText = ""
@@ -1209,7 +1216,7 @@ fun PlaylistsRichPane(
                     Box {
                         VLCBrowserItemRow(
                             title = pl.name,
-                            subtitle = "${pl.itemCount} items",
+                            subtitle = ShellStrings.itemsCount(pl.itemCount),
                             selected = pl.id in state.selection,
                             onClick = {
                                 if (state.selection.isNotEmpty()) onToggleSelect(pl.id)
@@ -1237,25 +1244,25 @@ fun PlaylistsRichPane(
                             onPrimaryActionClick = { onPlay(pl) },
                         )
                         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                            DropdownMenuItem(text = { Text("Play") }, onClick = {
+                            DropdownMenuItem(text = { Text(ShellStrings.play()) }, onClick = {
                                 menu = false; onPlay(pl)
                             })
-                            DropdownMenuItem(text = { Text("Shuffle") }, onClick = {
+                            DropdownMenuItem(text = { Text(ShellStrings.shuffle()) }, onClick = {
                                 menu = false; onShufflePlay(pl)
                             })
-                            DropdownMenuItem(text = { Text("Rename") }, onClick = {
+                            DropdownMenuItem(text = { Text(ShellStrings.rename()) }, onClick = {
                                 menu = false
                                 renameTarget = pl
                                 renameText = pl.name
                             })
                             DropdownMenuItem(
-                                text = { Text(if (pl.isFavorite) "Unfavorite" else "Favorite") },
+                                text = { Text(if (pl.isFavorite) ShellStrings.unfavorite() else ShellStrings.favorite()) },
                                 onClick = {
                                     menu = false
                                     onSetFavorite(pl.id, !pl.isFavorite)
                                 },
                             )
-                            DropdownMenuItem(text = { Text("Delete") }, onClick = {
+                            DropdownMenuItem(text = { Text(ShellStrings.delete()) }, onClick = {
                                 menu = false; onDelete(pl.id)
                             })
                         }
@@ -1263,7 +1270,7 @@ fun PlaylistsRichPane(
                 }
                 if (!loading && playlists.isEmpty()) {
                     item {
-                        VLCEmptyState(loading = false, text = "No playlists")
+                        VLCEmptyState(loading = false, text = ShellStrings.noPlaylists())
                     }
                 }
             }
@@ -1312,17 +1319,17 @@ private fun PlaylistCard(
                 )
                 Box(Modifier.align(Alignment.TopEnd).padding(4.dp)) {
                     FilledTonalIconButton(onClick = { menu = true }) {
-                        Icon(MaterialSymbols.Filled.MoreVert, contentDescription = "More options")
+                        Icon(MaterialSymbols.Filled.MoreVert, contentDescription = ShellStrings.moreOptions())
                     }
                     DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                        DropdownMenuItem(text = { Text("Play") }, onClick = { menu = false; onPlay() })
-                        DropdownMenuItem(text = { Text("Shuffle") }, onClick = { menu = false; onShuffle() })
-                        DropdownMenuItem(text = { Text("Rename") }, onClick = { menu = false; onRename() })
+                        DropdownMenuItem(text = { Text(ShellStrings.play()) }, onClick = { menu = false; onPlay() })
+                        DropdownMenuItem(text = { Text(ShellStrings.shuffle()) }, onClick = { menu = false; onShuffle() })
+                        DropdownMenuItem(text = { Text(ShellStrings.rename()) }, onClick = { menu = false; onRename() })
                         DropdownMenuItem(
-                            text = { Text(if (playlist.isFavorite) "Unfavorite" else "Favorite") },
+                            text = { Text(if (playlist.isFavorite) ShellStrings.unfavorite() else ShellStrings.favorite()) },
                             onClick = { menu = false; onToggleFavorite() },
                         )
-                        DropdownMenuItem(text = { Text("Delete") }, onClick = { menu = false; onDelete() })
+                        DropdownMenuItem(text = { Text(ShellStrings.delete()) }, onClick = { menu = false; onDelete() })
                     }
                 }
             }
@@ -1338,13 +1345,13 @@ private fun PlaylistCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    "${playlist.itemCount} items",
+                    ShellStrings.itemsCount(playlist.itemCount),
                     style = MaterialTheme.typography.labelSmall,
                     color = colors.fontLight,
                     modifier = Modifier.weight(1f),
                 )
                 IconButton(onClick = onShuffle) {
-                    Icon(MaterialSymbols.Filled.Shuffle, contentDescription = "Shuffle")
+                    Icon(MaterialSymbols.Filled.Shuffle, contentDescription = ShellStrings.shuffle())
                 }
                 FilledTonalIconButton(onClick = onPlay) {
                     Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = ShellStrings.play())

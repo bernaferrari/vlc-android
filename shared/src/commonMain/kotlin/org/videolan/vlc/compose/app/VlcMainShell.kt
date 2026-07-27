@@ -92,7 +92,7 @@ fun VlcMainShell(
     moreVm: MoreHubViewModel = remember { MoreHubViewModel() },
     playerVm: PlayerViewModel = remember { PlayerViewModel() },
     settingsVm: SettingsViewModel = remember { SettingsViewModel() },
-    title: String = "VLC",
+    title: String = "",
     onOpenSettings: (() -> Unit)? = null,
     onOpenRemoteClient: (() -> Unit)? = null,
     hostCallbacks: ShellHostCallbacks = ShellHostCallbacks.NoOp,
@@ -295,9 +295,9 @@ fun VlcMainShell(
                         title = {
                             Text(
                                 when {
-                                    showPlayer -> "Now Playing"
+                                    showPlayer -> ShellStrings.nowPlaying()
                                     showSettings -> ShellStrings.settings()
-                                    else -> title
+                                    else -> title.ifBlank { ShellStrings.appName() }
                                 },
                                 style = MaterialTheme.typography.titleLarge,
                             )
@@ -311,7 +311,7 @@ fun VlcMainShell(
                                 IconButton(onClick = hostCallbacks::onImportMedia) {
                                     Icon(
                                         icon = MaterialSymbols.Filled.Add,
-                                        contentDescription = "Import media",
+                                        contentDescription = ShellStrings.importMedia(),
                                     )
                                 }
                             }
@@ -350,7 +350,7 @@ fun VlcMainShell(
                                     }) {
                                         Icon(
                                             icon = MaterialSymbols.Filled.Shuffle,
-                                            contentDescription = "Shuffle all",
+                                            contentDescription = ShellStrings.shuffleAll(),
                                         )
                                     }
                                 }
@@ -362,7 +362,7 @@ fun VlcMainShell(
                 bottomBar = {
                     if (showBottomBar && !showPlayer && !showSettings && playerState.hasMedia) {
                         MiniBar(
-                            title = playerState.title.ifBlank { "Not playing" },
+                            title = playerState.title.ifBlank { ShellStrings.notPlaying() },
                             subtitle = playerState.subtitle,
                             playing = playerState.playing,
                             onExpand = ::openPlayer,
@@ -546,13 +546,14 @@ private fun VlcAdaptiveNavigationSuite(
     }
 }
 
+@Composable
 private fun MainTab.displayName(): String =
     when (this) {
-        MainTab.VIDEO -> "Video"
-        MainTab.AUDIO -> "Audio"
-        MainTab.BROWSER -> "Browse"
-        MainTab.PLAYLISTS -> "Playlists"
-        MainTab.MORE -> "More"
+        MainTab.VIDEO -> ShellStrings.video()
+        MainTab.AUDIO -> ShellStrings.audio()
+        MainTab.BROWSER -> ShellStrings.browse()
+        MainTab.PLAYLISTS -> ShellStrings.playlists()
+        MainTab.MORE -> ShellStrings.more()
     }
 
 private fun MainTab.navigationIcon(selected: Boolean): MaterialIcon =
@@ -577,21 +578,21 @@ internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
-            SettingsGroup(title = "Playback") {
-                ToggleRow("Resume audio", state.audioResume, vm::setAudioResume)
-                ToggleRow("Resume video", state.videoResume, vm::setVideoResume)
-                ToggleRow("Playback history", state.playbackHistory, vm::setPlaybackHistory)
-                ToggleRow("Incognito", state.incognito, vm::setIncognito)
+            SettingsGroup(title = ShellStrings.playback()) {
+                ToggleRow(ShellStrings.resumeAudio(), state.audioResume, vm::setAudioResume)
+                ToggleRow(ShellStrings.resumeVideo(), state.videoResume, vm::setVideoResume)
+                ToggleRow(ShellStrings.playbackHistory(), state.playbackHistory, vm::setPlaybackHistory)
+                ToggleRow(ShellStrings.incognito(), state.incognito, vm::setIncognito)
             }
         }
         item {
-            SettingsGroup(title = "Library") {
-                ToggleRow("Video thumbnails", state.showVideoThumbs, vm::setShowVideoThumbs)
+            SettingsGroup(title = ShellStrings.library()) {
+                ToggleRow(ShellStrings.videoThumbnails(), state.showVideoThumbs, vm::setShowVideoThumbs)
             }
         }
         if (state.supportsRemoteAccess) item {
-            SettingsGroup(title = "Network") {
-                ToggleRow("Remote access server", state.remoteAccess, vm::setRemoteAccess)
+            SettingsGroup(title = ShellStrings.network()) {
+                ToggleRow(ShellStrings.remoteAccessServer(), state.remoteAccess, vm::setRemoteAccess)
             }
         }
     }
@@ -660,7 +661,7 @@ private fun MiniBar(
             IconButton(onClick = onToggle) {
                 Icon(
                     icon = if (playing) MaterialSymbols.Filled.Pause else MaterialSymbols.Filled.PlayArrow,
-                    contentDescription = if (playing) "Pause" else ShellStrings.play(),
+                    contentDescription = if (playing) ShellStrings.pause() else ShellStrings.play(),
                 )
             }
         }

@@ -50,19 +50,19 @@ internal fun MorePane(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         item {
-            Text("VLC", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Text(ShellStrings.appName(), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             if (state.platformName.isNotBlank()) {
                 Text(state.platformName, color = colors.fontLight, style = MaterialTheme.typography.bodySmall)
             }
         }
         item { MoreAction(MaterialSymbols.Filled.Settings, ShellStrings.settings(), onOpenSettings) }
         item { MoreAction(MaterialSymbols.Filled.Info, ShellStrings.about(), onOpenAbout) }
-        item { MoreAction(MaterialSymbols.Filled.Star, "Donate", onOpenDonate) }
+        item { MoreAction(MaterialSymbols.Filled.Star, ShellStrings.donate(), onOpenDonate) }
         if (onOpenRemote != null) {
-            item { MoreAction(MaterialSymbols.Filled.Devices, "Remote", onOpenRemote) }
+            item { MoreAction(MaterialSymbols.Filled.Devices, ShellStrings.remoteAccess(), onOpenRemote) }
         }
 
-        item { Text("Streams", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) }
+        item { Text(ShellStrings.streams(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) }
         if (renameStreamId != null) {
             item {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -71,7 +71,7 @@ internal fun MorePane(
                         onValueChange = { renameStreamText = it },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
-                        label = { Text("Rename stream") },
+                        label = { Text(ShellStrings.renameStream()) },
                         shape = MaterialTheme.shapes.extraLarge,
                     )
                     TextButton(onClick = {
@@ -81,7 +81,7 @@ internal fun MorePane(
                         }
                         renameStreamId = null
                         renameStreamText = ""
-                    }) { Text("Save") }
+                    }) { Text(ShellStrings.save()) }
                     TextButton(onClick = {
                         renameStreamId = null
                         renameStreamText = ""
@@ -98,7 +98,7 @@ internal fun MorePane(
                     Icon(MaterialSymbols.Filled.Devices, contentDescription = null, tint = colors.primary)
                 },
                 primaryActionContent = if (state.hasStreamRepository) {
-                    { Icon(MaterialSymbols.Filled.Edit, contentDescription = "Rename stream") }
+                    { Icon(MaterialSymbols.Filled.Edit, contentDescription = ShellStrings.renameStream()) }
                 } else {
                     null
                 },
@@ -107,7 +107,7 @@ internal fun MorePane(
                     renameStreamText = stream.title
                 },
                 moreActionContent = if (state.hasStreamRepository) {
-                    { Icon(MaterialSymbols.Filled.Delete, contentDescription = "Delete stream") }
+                    { Icon(MaterialSymbols.Filled.Delete, contentDescription = ShellStrings.deleteStream()) }
                 } else {
                     null
                 },
@@ -115,7 +115,7 @@ internal fun MorePane(
             )
         }
         if (state.streams.isEmpty() && !state.streamsLoading && state.streamsError == null) {
-            item { Text("No streams", color = colors.fontLight) }
+            item { Text(ShellStrings.noStreams(), color = colors.fontLight) }
         }
         state.streamsError?.let { error ->
             item { RetryMessage(error = error, onRetry = vm::retryStreams) }
@@ -131,7 +131,7 @@ internal fun MorePane(
                 Row {
                     if (state.historySelection.isNotEmpty()) {
                         TextButton(onClick = vm::removeSelectedHistory) {
-                            Text("${ShellStrings.remove()} (${state.historySelection.size})")
+                            Text(ShellStrings.selectionCount(ShellStrings.remove(), state.historySelection.size))
                         }
                         TextButton(onClick = vm::clearHistorySelection) { Text(ShellStrings.clear()) }
                     }
@@ -156,7 +156,7 @@ internal fun MorePane(
                 },
                 badgeContent = {
                     Text(
-                        if (entry.item.present) "present" else "missing",
+                        if (entry.item.present) ShellStrings.present() else ShellStrings.missing(),
                         color = if (entry.item.present) colors.fontLight else MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.labelSmall,
                     )
@@ -164,12 +164,12 @@ internal fun MorePane(
                 primaryActionContent = {
                     Icon(
                         MaterialSymbols.Filled.CheckCircle,
-                        contentDescription = if (selected) "Selected" else "Select history entry",
+                        contentDescription = if (selected) ShellStrings.selected() else ShellStrings.selectHistoryEntry(),
                     )
                 },
                 onPrimaryActionClick = { vm.toggleHistorySelect(entry) },
                 moreActionContent = {
-                    Icon(MaterialSymbols.Filled.ArrowUpward, contentDescription = "Move to top")
+                    Icon(MaterialSymbols.Filled.ArrowUpward, contentDescription = ShellStrings.moveUp())
                 },
                 onMoreClick = { vm.moveUp(entry) },
             )
@@ -178,7 +178,7 @@ internal fun MorePane(
             item { RetryMessage(error = error, onRetry = vm::retryHistory) }
         }
         if (!state.loading && state.history.isEmpty() && state.historyError == null) {
-            item { Text("No recent media", color = colors.fontLight) }
+            item { Text(ShellStrings.noRecentMedia(), color = colors.fontLight) }
         }
     }
 }

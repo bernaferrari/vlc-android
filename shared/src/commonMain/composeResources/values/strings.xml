@@ -661,7 +661,6 @@
     <string name="network_browsing">Local Network</string>
     <string name="browsing">Browsing</string>
 
-    <string name="file_size">File size</string>
 
     <string name="audio_delay">Audio delay</string>
     <string name="spu_delay">Subtitle delay</string>
@@ -1448,4 +1447,66 @@
     <string name="feedback_email_warning_try_anyway">Try anyway</string>
     <string name="forum_url" translatable="false">https://forum.videolan.org/viewforum.php?f=35</string>
     <string name="doc_url" translatable="false">https://docs.videolan.me/vlc-user/android/</string>
+
+    <!-- Shared Compose shell -->
+    <string name="now_playing">Now playing</string>
+    <string name="close_player">Close player</string>
+    <string name="import_media">Import media</string>
+    <string name="not_playing">Not playing</string>
+    <string name="resume_audio">Resume audio</string>
+    <string name="resume_video">Resume video</string>
+    <string name="playback_history">Playback history</string>
+    <string name="incognito">Incognito</string>
+    <string name="library">Library</string>
+    <string name="video_thumbnails">Video thumbnails</string>
+    <string name="remote_access_server">Remote access server</string>
+    <string name="rename_stream">Rename stream</string>
+    <string name="delete_stream">Delete stream</string>
+    <string name="no_streams">No streams</string>
+    <string name="present">Present</string>
+    <string name="missing">Missing</string>
+    <string name="select_history_entry">Select history entry</string>
+    <string name="no_recent_media">No recent media</string>
+    <string name="play_next">Play next</string>
+    <string name="more_options">More options</string>
+    <string name="new_playlist">New playlist</string>
+    <string name="add_playlist">Add playlist</string>
+    <string name="empty_playlist">Empty playlist</string>
+    <string name="no_playlists">No playlists</string>
+    <string name="nothing_here">Nothing here</string>
+    <string name="unfavorite">Remove from favorites</string>
+    <string name="favorites_only">Favorites only</string>
+    <string name="show_all_artists">Show all artists</string>
+    <string name="show_track_numbers">Show track numbers</string>
+    <string name="multimedia_files_only">Multimedia files only</string>
+    <string name="show_hidden_files">Show hidden files</string>
+    <string name="grouping">Grouping</string>
+    <string name="layout">Layout</string>
+    <string name="list">List</string>
+    <string name="grid">Grid</string>
+    <string name="sort">Sort</string>
+    <string name="grid_view">Grid view</string>
+    <string name="list_view">List view</string>
+    <string name="up">Up</string>
+    <string name="default_action">Default action</string>
+    <string name="storage">Storage</string>
+    <string name="folder">Folder</string>
+    <string name="group">Group</string>
+    <string name="group_videos">Group videos</string>
+    <string name="none">None</string>
+    <string name="by_name">By name</string>
+    <string name="by_folder">By folder</string>
+    <string name="selected_items_summary">%1$s · %2$d selected</string>
+    <plurals name="groups_count">
+        <item quantity="one">%d group</item>
+        <item quantity="other">%d groups</item>
+    </plurals>
+    <string name="items_plus_count">%d+ items</string>
+    <string name="default_sort">Default</string>
+    <string name="file_size">File size</string>
+    <plurals name="items_count">
+        <item quantity="one">%d item</item>
+        <item quantity="other">%d items</item>
+    </plurals>
+    <string name="selection_action_count">%1$s (%2$d)</string>
 </resources>

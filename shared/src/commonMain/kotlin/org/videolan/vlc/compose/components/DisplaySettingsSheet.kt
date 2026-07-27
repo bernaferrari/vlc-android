@@ -29,6 +29,9 @@ import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.repository.MediaSort
 import org.videolan.vlc.viewmodel.ViewMode
+import org.jetbrains.compose.resources.stringResource
+import vlc_android.shared.generated.resources.Res
+import vlc_android.shared.generated.resources.*
 
 data class DisplaySettingsState(
     val viewMode: ViewMode = ViewMode.LIST,
@@ -60,14 +63,14 @@ data class DisplaySettingsState(
 
 /**
  * Shared display-settings bottom sheet — list/grid, favorites, sort±desc,
- * optional browser/audio/video toggles. Hosts supply localized labels via [title]
- * and option strings; no Android R.* dependency.
+ * optional browser/audio/video toggles. Internal labels are composeResources-backed;
+ * hosts may override the title and supply custom grouping/action option tokens.
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun DisplaySettingsSheet(
     state: DisplaySettingsState,
-    title: String = "Display settings",
+    title: String? = null,
     onDismiss: () -> Unit,
     onViewMode: (ViewMode) -> Unit = {},
     onOnlyFavorites: (Boolean) -> Unit = {},
@@ -95,38 +98,42 @@ fun DisplaySettingsSheet(
                 .padding(bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Text(
+                title ?: stringResource(Res.string.display_settings),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+            )
 
             if (state.supportsViewMode) {
-                Text("Layout", style = MaterialTheme.typography.titleSmall, color = colors.primary)
+                Text(stringResource(Res.string.layout), style = MaterialTheme.typography.titleSmall, color = colors.primary)
                 SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                     SegmentedButton(
                         selected = state.viewMode == ViewMode.LIST,
                         onClick = { onViewMode(ViewMode.LIST) },
                         shape = SegmentedButtonDefaults.itemShape(0, 2),
-                        label = { Text("List") },
+                        label = { Text(stringResource(Res.string.list)) },
                     )
                     SegmentedButton(
                         selected = state.viewMode == ViewMode.GRID,
                         onClick = { onViewMode(ViewMode.GRID) },
                         shape = SegmentedButtonDefaults.itemShape(1, 2),
-                        label = { Text("Grid") },
+                        label = { Text(stringResource(Res.string.grid)) },
                     )
                 }
             }
 
             if (state.supportsFavorites) {
-                SwitchRow("Favorites only", state.onlyFavorites, onOnlyFavorites)
+                SwitchRow(stringResource(Res.string.favorites_only), state.onlyFavorites, onOnlyFavorites)
             }
 
-            state.showAllArtists?.let { SwitchRow("Show all artists", it, onShowAllArtists) }
-            state.showTrackNumbers?.let { SwitchRow("Show track numbers", it, onShowTrackNumbers) }
-            state.showOnlyMultimedia?.let { SwitchRow("Multimedia files only", it, onShowOnlyMultimedia) }
-            state.showHiddenFiles?.let { SwitchRow("Show hidden files", it, onShowHiddenFiles) }
+            state.showAllArtists?.let { SwitchRow(stringResource(Res.string.show_all_artists), it, onShowAllArtists) }
+            state.showTrackNumbers?.let { SwitchRow(stringResource(Res.string.show_track_numbers), it, onShowTrackNumbers) }
+            state.showOnlyMultimedia?.let { SwitchRow(stringResource(Res.string.multimedia_files_only), it, onShowOnlyMultimedia) }
+            state.showHiddenFiles?.let { SwitchRow(stringResource(Res.string.show_hidden_files), it, onShowHiddenFiles) }
 
             if (state.groupingOptions.isNotEmpty()) {
                 Text(
-                    state.groupingLabel ?: "Grouping",
+                    state.groupingLabel ?: stringResource(Res.string.grouping),
                     style = MaterialTheme.typography.titleSmall,
                     color = colors.primary,
                 )
@@ -139,7 +146,7 @@ fun DisplaySettingsSheet(
                         FilterChip(
                             selected = option == state.selectedGrouping,
                             onClick = { onGrouping(option) },
-                            label = { Text(option) },
+                            label = { Text(option.displayLabel()) },
                         )
                     }
                 }
@@ -147,7 +154,7 @@ fun DisplaySettingsSheet(
 
             if (state.defaultActionOptions.isNotEmpty()) {
                 Text(
-                    state.defaultActionLabel ?: "Default action",
+                    state.defaultActionLabel ?: stringResource(Res.string.default_action),
                     style = MaterialTheme.typography.titleSmall,
                     color = colors.primary,
                 )
@@ -160,14 +167,14 @@ fun DisplaySettingsSheet(
                         FilterChip(
                             selected = option == state.selectedDefaultAction,
                             onClick = { onDefaultAction(option) },
-                            label = { Text(option) },
+                            label = { Text(option.displayLabel()) },
                         )
                     }
                 }
             }
 
             if (state.supportsSorting) {
-                Text("Sort", style = MaterialTheme.typography.titleSmall, color = colors.primary)
+                Text(stringResource(Res.string.sort), style = MaterialTheme.typography.titleSmall, color = colors.primary)
                 state.availableSorts.forEach { sort ->
                     val selected = sort == state.sort
                     Row(
@@ -181,13 +188,13 @@ fun DisplaySettingsSheet(
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         Text(
-                            sort.name.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() },
+                            sort.displayLabel(),
                             color = if (selected) colors.primary else colors.fontDefault,
                             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
                         )
                         if (selected) {
                             Text(
-                                if (state.sortDesc) "Desc ▼" else "Asc ▲",
+                                if (state.sortDesc) stringResource(Res.string.descending) else stringResource(Res.string.ascending),
                                 color = colors.primary,
                                 style = MaterialTheme.typography.labelLarge,
                             )
@@ -197,7 +204,7 @@ fun DisplaySettingsSheet(
             }
 
             TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) {
-                Text("Done")
+                Text(stringResource(Res.string.done))
             }
         }
     }
@@ -213,4 +220,32 @@ private fun SwitchRow(title: String, checked: Boolean, onChange: (Boolean) -> Un
         Text(title, modifier = Modifier.weight(1f))
         Switch(checked = checked, onCheckedChange = onChange)
     }
+}
+
+@Composable
+private fun String.displayLabel(): String = when (this) {
+    "NONE" -> stringResource(Res.string.none)
+    "NAME" -> stringResource(Res.string.by_name)
+    "FOLDER" -> stringResource(Res.string.by_folder)
+    "PLAY" -> stringResource(Res.string.play)
+    "PLAY_ALL" -> stringResource(Res.string.play_all)
+    "ADD_TO_QUEUE" -> stringResource(Res.string.append)
+    "INSERT_NEXT" -> stringResource(Res.string.insert_next)
+    else -> this
+}
+
+@Composable
+private fun MediaSort.displayLabel(): String = when (this) {
+    MediaSort.DEFAULT -> stringResource(Res.string.default_sort)
+    MediaSort.TITLE -> stringResource(Res.string.sortby_name)
+    MediaSort.FILENAME -> stringResource(Res.string.sortby_filename)
+    MediaSort.ARTIST -> stringResource(Res.string.sortby_artist_name)
+    MediaSort.ALBUM -> stringResource(Res.string.sortby_album_name)
+    MediaSort.DURATION -> stringResource(Res.string.sortby_length)
+    MediaSort.RELEASE_DATE -> stringResource(Res.string.sortby_date_release)
+    MediaSort.LAST_MODIFIED -> stringResource(Res.string.sortby_last_modified_date)
+    MediaSort.INSERTION_DATE -> stringResource(Res.string.sortby_insertion)
+    MediaSort.FILE_SIZE -> stringResource(Res.string.file_size)
+    MediaSort.TRACK_COUNT -> stringResource(Res.string.sortby_number)
+    MediaSort.RECENT -> stringResource(Res.string.sortby_date)
 }

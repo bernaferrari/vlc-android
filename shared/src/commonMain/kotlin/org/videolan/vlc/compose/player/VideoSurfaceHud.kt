@@ -35,11 +35,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import org.jetbrains.compose.resources.stringResource
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.model.Progress
 import org.videolan.vlc.model.RepeatMode
+import vlc_android.shared.generated.resources.Res
+import vlc_android.shared.generated.resources.*
 
 /**
  * Platform-neutral video chrome: surface slot + auto-hiding HUD.
@@ -145,7 +148,7 @@ fun VideoHudOverlay(
                     IconButton(onClick = onClose) {
                         Icon(
                             icon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Close player",
+                            contentDescription = stringResource(Res.string.close_player),
                             tint = Color.White,
                         )
                     }
@@ -207,14 +210,14 @@ fun VideoHudOverlay(
                 IconButton(onClick = onToggleShuffle) {
                     Icon(
                         icon = MaterialSymbols.Filled.Shuffle,
-                        contentDescription = "Shuffle",
+                        contentDescription = stringResource(Res.string.shuffle_play),
                         tint = if (shuffle) colors.primary else Color.White,
                     )
                 }
                 IconButton(onClick = onPrevious) {
                     Icon(
                         icon = MaterialSymbols.Filled.SkipPrevious,
-                        contentDescription = "Previous",
+                        contentDescription = stringResource(Res.string.previous),
                         tint = Color.White,
                     )
                 }
@@ -229,7 +232,11 @@ fun VideoHudOverlay(
                     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                         Icon(
                             icon = if (playing) MaterialSymbols.Filled.Pause else MaterialSymbols.Filled.PlayArrow,
-                            contentDescription = if (playing) "Pause" else "Play",
+                            contentDescription = if (playing) {
+                                stringResource(Res.string.pause)
+                            } else {
+                                stringResource(Res.string.play)
+                            },
                             tint = colors.onPrimary,
                             modifier = Modifier.size(32.dp),
                         )
@@ -238,7 +245,7 @@ fun VideoHudOverlay(
                 IconButton(onClick = onNext) {
                     Icon(
                         icon = MaterialSymbols.Filled.SkipNext,
-                        contentDescription = "Next",
+                        contentDescription = stringResource(Res.string.next),
                         tint = Color.White,
                     )
                 }
@@ -246,9 +253,9 @@ fun VideoHudOverlay(
                     Icon(
                         icon = if (repeatMode == RepeatMode.ONE) MaterialSymbols.Filled.RepeatOne else MaterialSymbols.Filled.Repeat,
                         contentDescription = when (repeatMode) {
-                            RepeatMode.NONE -> "Repeat off"
-                            RepeatMode.ALL -> "Repeat all"
-                            RepeatMode.ONE -> "Repeat one"
+                            RepeatMode.NONE -> stringResource(Res.string.repeat_none)
+                            RepeatMode.ALL -> stringResource(Res.string.repeat_all)
+                            RepeatMode.ONE -> stringResource(Res.string.repeat_single)
                         },
                         tint = if (repeatMode == RepeatMode.NONE) Color.White else colors.primary,
                     )
