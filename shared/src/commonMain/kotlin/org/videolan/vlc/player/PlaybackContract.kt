@@ -42,6 +42,7 @@ interface PlaybackService {
     val stopAfterCurrent: Flow<Boolean> get() = flowOf(false)
     val videoScaleMode: Flow<VideoScaleMode> get() = flowOf(VideoScaleMode.BEST_FIT)
     val tracks: Flow<PlaybackTracks> get() = flowOf(PlaybackTracks())
+    val delays: Flow<PlaybackDelays> get() = flowOf(PlaybackDelays())
 
     fun play(item: MediaItem, playlist: List<MediaItem> = emptyList())
     fun playFromIndex(playlist: List<MediaItem>, index: Int)
@@ -61,6 +62,8 @@ interface PlaybackService {
     fun setVideoScaleMode(mode: VideoScaleMode) {}
     fun selectAudioTrack(id: String) {}
     fun selectSubtitleTrack(id: String) {}
+    fun setAudioDelay(delayUs: Long) {}
+    fun setSubtitleDelay(delayUs: Long) {}
     fun addObserver(observer: PlaybackObserver)
     fun removeObserver(observer: PlaybackObserver)
 

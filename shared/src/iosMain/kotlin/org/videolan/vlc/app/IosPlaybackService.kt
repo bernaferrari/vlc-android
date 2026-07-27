@@ -11,6 +11,7 @@ import org.videolan.vlc.player.PlaybackObserver
 import org.videolan.vlc.player.PlaybackService
 import org.videolan.vlc.player.PlaybackState
 import org.videolan.vlc.player.PlaybackTracks
+import org.videolan.vlc.player.PlaybackDelays
 import org.videolan.vlc.player.PlayerBackend
 import org.videolan.vlc.player.PlaylistEngine
 import platform.Foundation.NSURL
@@ -37,6 +38,7 @@ class IosPlaybackService : PlaybackService {
     override val stopAfterCurrent: Flow<Boolean> get() = engine.stopAfterCurrent
     override val videoScaleMode: Flow<VideoScaleMode> get() = engine.videoScaleMode
     override val tracks: Flow<PlaybackTracks> get() = engine.tracks
+    override val delays: Flow<PlaybackDelays> get() = engine.delays
 
     /**
      * Accepts the legacy VlcKitPlayerBackend and adapts it to [PlayerBackend].
@@ -117,6 +119,8 @@ class IosPlaybackService : PlaybackService {
     override fun setVideoScaleMode(mode: VideoScaleMode) = engine.setVideoScaleMode(mode)
     override fun selectAudioTrack(id: String) = engine.selectAudioTrack(id)
     override fun selectSubtitleTrack(id: String) = engine.selectSubtitleTrack(id)
+    override fun setAudioDelay(delayUs: Long) = engine.setAudioDelay(delayUs)
+    override fun setSubtitleDelay(delayUs: Long) = engine.setSubtitleDelay(delayUs)
     override fun addObserver(observer: PlaybackObserver) = engine.addObserver(observer)
     override fun removeObserver(observer: PlaybackObserver) = engine.removeObserver(observer)
 
@@ -158,6 +162,9 @@ private class VlcKitPlayerBackendAdapter(
     override fun tracks(): PlaybackTracks = kit.tracks()
     override fun selectAudioTrack(id: String) = kit.selectAudioTrack(id)
     override fun selectSubtitleTrack(id: String) = kit.selectSubtitleTrack(id)
+    override fun delays(): PlaybackDelays = kit.delays()
+    override fun setAudioDelay(delayUs: Long) = kit.setAudioDelay(delayUs)
+    override fun setSubtitleDelay(delayUs: Long) = kit.setSubtitleDelay(delayUs)
     override fun setListener(listener: PlayerBackend.Listener?) {
         if (listener == null) {
             kit.setListener(null)
@@ -197,6 +204,9 @@ interface VlcKitPlayerBackend {
     fun tracks(): PlaybackTracks
     fun selectAudioTrack(id: String)
     fun selectSubtitleTrack(id: String)
+    fun delays(): PlaybackDelays
+    fun setAudioDelay(delayUs: Long)
+    fun setSubtitleDelay(delayUs: Long)
     fun setListener(listener: Listener?)
     /** Named to avoid colliding with Objective-C NSObject.release in Swift implementations. */
     fun dispose()

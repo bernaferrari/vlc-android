@@ -40,12 +40,15 @@ import org.videolan.vlc.model.ABRepeat
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.player.VideoScaleMode
 import org.videolan.vlc.player.PlaybackTracks
+import org.videolan.vlc.player.PlaybackDelays
 import vlc_android.shared.generated.resources.Res
 import vlc_android.shared.generated.resources.done
 import vlc_android.shared.generated.resources.ab_repeat
 import vlc_android.shared.generated.resources.aspect_ratio
 import vlc_android.shared.generated.resources.audio
 import vlc_android.shared.generated.resources.subtitles
+import vlc_android.shared.generated.resources.audio_delay
+import vlc_android.shared.generated.resources.spu_delay
 import vlc_android.shared.generated.resources.ab_repeat_reset
 import vlc_android.shared.generated.resources.ab_repeat_stop
 import vlc_android.shared.generated.resources.abrepeat_add_first_marker
@@ -79,6 +82,7 @@ internal fun PlaybackOptionsSheet(
     stopAfterCurrent: Boolean,
     videoScaleMode: VideoScaleMode,
     tracks: PlaybackTracks,
+    delays: PlaybackDelays,
     showVideoOptions: Boolean,
     onSetRate: (Float) -> Unit,
     onPlayQueueItem: (Int) -> Unit,
@@ -92,6 +96,8 @@ internal fun PlaybackOptionsSheet(
     onSetVideoScaleMode: (VideoScaleMode) -> Unit,
     onSelectAudioTrack: (String) -> Unit,
     onSelectSubtitleTrack: (String) -> Unit,
+    onSetAudioDelay: (Long) -> Unit,
+    onSetSubtitleDelay: (Long) -> Unit,
     onDismiss: () -> Unit,
 ) {
     var previewRate by remember(rate) { mutableFloatStateOf(rate) }
@@ -261,6 +267,20 @@ internal fun PlaybackOptionsSheet(
                 }
             }
 
+            if (delays.supported) {
+                HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
+                DelayChoices(
+                    title = stringResource(Res.string.audio_delay),
+                    delayUs = delays.audioUs,
+                    onSetDelay = onSetAudioDelay,
+                )
+                DelayChoices(
+                    title = stringResource(Res.string.spu_delay),
+                    delayUs = delays.subtitleUs,
+                    onSetDelay = onSetSubtitleDelay,
+                )
+            }
+
             HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
             Text(
                 "${stringResource(Res.string.playlist)} · ${queue.size}",
@@ -320,6 +340,23 @@ private fun TrackChoices(
                 onClick = { onSelect(track.id) },
                 label = { Text(track.label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
             )
+        }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalLayoutApi::class)
+private fun DelayChoices(title: String, delayUs: Long, onSetDelay: (Long) -> Unit) {
+    val delayMs = delayUs / 1_000L
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            Text("${delayMs} ms", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyMedium)
+        }
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(selected = false, onClick = { onSetDelay(delayUs - 500_000L) }, label = { Text("−500 ms") })
+            FilterChip(selected = delayUs == 0L, onClick = { onSetDelay(0L) }, label = { Text(stringResource(Res.string.reset)) })
+            FilterChip(selected = false, onClick = { onSetDelay(delayUs + 500_000L) }, label = { Text("+500 ms") })
         }
     }
 }

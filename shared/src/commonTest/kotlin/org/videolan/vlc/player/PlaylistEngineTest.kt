@@ -150,6 +150,21 @@ class PlaylistEngineTest {
     }
 
     @Test
+    fun decoderDelaysAreSharedInMicroseconds() {
+        val backend = RecordingBackend().apply {
+            availableDelays = PlaybackDelays(audioUs = 250_000L, subtitleUs = -500_000L, supported = true)
+        }
+        val engine = PlaylistEngine(backend)
+
+        engine.setAudioDelay(500_000L)
+        engine.setSubtitleDelay(-250_000L)
+
+        assertEquals(500_000L, backend.reportedAudioDelay)
+        assertEquals(-250_000L, backend.reportedSubtitleDelay)
+        assertTrue(engine.delays.value.supported)
+    }
+
+    @Test
     fun restorePausedPreparesTheCurrentItemWithoutAutoPlay() {
         val backend = RecordingBackend()
         val engine = PlaylistEngine(backend)
@@ -178,6 +193,9 @@ class PlaylistEngineTest {
         var availableTracks = PlaybackTracks()
         var selectedAudioTrack: String? = null
         var selectedSubtitleTrack: String? = null
+        var availableDelays = PlaybackDelays()
+        var reportedAudioDelay = 0L
+        var reportedSubtitleDelay = 0L
 
         override fun playUri(uri: String, title: String?) = Unit
         override fun preparePaused(uri: String, title: String?, positionMs: Long): Boolean {
@@ -200,6 +218,9 @@ class PlaylistEngineTest {
         override fun tracks(): PlaybackTracks = availableTracks
         override fun selectAudioTrack(id: String) { selectedAudioTrack = id }
         override fun selectSubtitleTrack(id: String) { selectedSubtitleTrack = id }
+        override fun delays(): PlaybackDelays = availableDelays
+        override fun setAudioDelay(delayUs: Long) { reportedAudioDelay = delayUs }
+        override fun setSubtitleDelay(delayUs: Long) { reportedSubtitleDelay = delayUs }
         override fun setListener(listener: PlayerBackend.Listener?) = Unit
         override fun release() = Unit
     }

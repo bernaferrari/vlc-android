@@ -215,6 +215,30 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
 #endif
     }
 
+    func delays() -> PlaybackDelays {
+#if canImport(MobileVLCKit)
+        return PlaybackDelays(
+            audioUs: Int64(player?.currentAudioPlaybackDelay ?? 0),
+            subtitleUs: Int64(player?.currentVideoSubTitleDelay ?? 0),
+            supported: true
+        )
+#else
+        return PlaybackDelays(audioUs: 0, subtitleUs: 0, supported: false)
+#endif
+    }
+
+    func setAudioDelay(delayUs: Int64) {
+#if canImport(MobileVLCKit)
+        player?.currentAudioPlaybackDelay = Int(delayUs)
+#endif
+    }
+
+    func setSubtitleDelay(delayUs: Int64) {
+#if canImport(MobileVLCKit)
+        player?.currentVideoSubTitleDelay = Int(delayUs)
+#endif
+    }
+
     func setListener(listener: VlcKitPlayerBackendListener?) {
         self.listener = listener
     }

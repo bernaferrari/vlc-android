@@ -33,6 +33,9 @@ interface PlayerBackend {
     fun tracks(): PlaybackTracks = PlaybackTracks()
     fun selectAudioTrack(id: String) {}
     fun selectSubtitleTrack(id: String) {}
+    fun delays(): PlaybackDelays = PlaybackDelays()
+    fun setAudioDelay(delayUs: Long) {}
+    fun setSubtitleDelay(delayUs: Long) {}
     fun setListener(listener: Listener?)
     fun release()
 
@@ -80,6 +83,9 @@ class PlaylistEngine(
     private val _tracks = MutableStateFlow(PlaybackTracks())
     override val tracks: StateFlow<PlaybackTracks> = _tracks.asStateFlow()
 
+    private val _delays = MutableStateFlow(PlaybackDelays())
+    override val delays: StateFlow<PlaybackDelays> = _delays.asStateFlow()
+
     private val observers = mutableListOf<PlaybackObserver>()
     private val previousStack = ArrayDeque<Int>()
     private var expanding = false
@@ -102,9 +108,11 @@ class PlaylistEngine(
         backend?.setRate(rate)
         backend?.setVideoOutput(_videoScaleMode.value.nativeAspectRatio, _videoScaleMode.value.nativeScale)
         refreshTracks()
+        refreshDelays()
         backend?.setListener(object : PlayerBackend.Listener {
             override fun onPlaying() {
                 refreshTracks()
+                refreshDelays()
                 pushPlaying()
             }
             override fun onPaused() = pushPaused()
@@ -267,8 +275,22 @@ class PlaylistEngine(
         refreshTracks()
     }
 
+    override fun setAudioDelay(delayUs: Long) {
+        backend?.setAudioDelay(delayUs)
+        refreshDelays()
+    }
+
+    override fun setSubtitleDelay(delayUs: Long) {
+        backend?.setSubtitleDelay(delayUs)
+        refreshDelays()
+    }
+
     private fun refreshTracks() {
         _tracks.value = backend?.tracks() ?: PlaybackTracks()
+    }
+
+    private fun refreshDelays() {
+        _delays.value = backend?.delays() ?: PlaybackDelays()
     }
 
     override fun addObserver(observer: PlaybackObserver) {

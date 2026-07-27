@@ -26,6 +26,7 @@ import org.videolan.vlc.player.PlaybackService
 import org.videolan.vlc.player.PlaybackState
 import org.videolan.vlc.player.PlaybackTrack
 import org.videolan.vlc.player.PlaybackTracks
+import org.videolan.vlc.player.PlaybackDelays
 import org.videolan.vlc.player.VideoScaleMode
 import org.videolan.vlc.PlaybackService as AndroidPlaybackHost
 
@@ -77,6 +78,9 @@ class AndroidPlaybackService(
 
     private val _tracks = MutableStateFlow(PlaybackTracks())
     override val tracks: Flow<PlaybackTracks> = _tracks.asStateFlow()
+
+    private val _delays = MutableStateFlow(PlaybackDelays())
+    override val delays: Flow<PlaybackDelays> = _delays.asStateFlow()
 
     private val observers = mutableListOf<PlaybackObserver>()
 
@@ -267,6 +271,16 @@ class AndroidPlaybackService(
         refreshTracksFromHost()
     }
 
+    override fun setAudioDelay(delayUs: Long) {
+        manager()?.setAudioDelay(delayUs)
+        refreshDelaysFromHost()
+    }
+
+    override fun setSubtitleDelay(delayUs: Long) {
+        manager()?.setSpuDelay(delayUs)
+        refreshDelaysFromHost()
+    }
+
     override fun addObserver(observer: PlaybackObserver) {
         observers.add(observer)
     }
@@ -387,6 +401,7 @@ class AndroidPlaybackService(
     private fun pushStateFromHost(playing: Boolean, media: MediaWrapper? = PlaylistManager.currentPlayedMedia.value) {
         ensurePlayerProgressBound()
         refreshTracksFromHost()
+        refreshDelaysFromHost()
         val item = media?.toMediaItem() ?: currentItem()
         val progress = _progress.value
         val newState = when {
@@ -428,6 +443,18 @@ class AndroidPlaybackService(
                     selected = track.getId() == selectedSubtitle,
                 )
             },
+        )
+    }
+
+    private fun refreshDelaysFromHost() {
+        val player = manager()?.player ?: run {
+            _delays.value = PlaybackDelays()
+            return
+        }
+        _delays.value = PlaybackDelays(
+            audioUs = player.getAudioDelay(),
+            subtitleUs = player.getSpuDelay(),
+            supported = true,
         )
     }
 
