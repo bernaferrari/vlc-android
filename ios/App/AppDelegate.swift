@@ -35,8 +35,6 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         // Real decode when MobileVLCKit SPM product is linked.
         IosPlaybackService.companion.shared.setBackend(backend: VlcKitBackend.shared)
         IosRendererController.shared.setBackend(backend: VlcKitBackend.shared)
-        // Keep the one shared player instance when an HDMI/AirPlay display is attached.
-        VlcExternalDisplayController.shared.start()
         // The same native package owns LAN discovery and folder parsing; the
         // Compose browser receives only portable entries through its repository.
         IosNetworkBrowserController.shared.setBackend(backend: VlcKitNetworkBrowser.shared)
@@ -82,6 +80,14 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
                 sessionRole: connectingSceneSession.role
             )
             configuration.delegateClass = VlcCarPlaySceneDelegate.self
+            return configuration
+        }
+        if connectingSceneSession.role == .windowExternalDisplay {
+            let configuration = UISceneConfiguration(
+                name: "VLC External Display",
+                sessionRole: connectingSceneSession.role
+            )
+            configuration.delegateClass = VlcExternalDisplaySceneDelegate.self
             return configuration
         }
         return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)

@@ -7,59 +7,44 @@
 
 import UIKit
 
-final class VlcExternalDisplayController: NSObject {
+/**
+ * Retains the one native output window for a UIKit external-display scene.
+ * The MobileVLCKit player is still the shared KMP player; only its drawable moves.
+ */
+final class VlcExternalDisplayController {
     static let shared = VlcExternalDisplayController()
 
     private var externalWindow: UIWindow?
-    private var started = false
 
-    func start() {
-        guard !started else { return }
-        started = true
-        let center = NotificationCenter.default
-        center.addObserver(
-            self,
-            selector: #selector(screenDidConnect(_:)),
-            name: UIScreen.didConnectNotification,
-            object: nil
-        )
-        center.addObserver(
-            self,
-            selector: #selector(screenDidDisconnect(_:)),
-            name: UIScreen.didDisconnectNotification,
-            object: nil
-        )
-        if let screen = UIScreen.screens.first(where: { $0 !== UIScreen.main }) {
-            show(screen: screen)
-        }
-    }
-
-    @objc private func screenDidConnect(_ notification: Notification) {
-        let screen = notification.object as? UIScreen
-            ?? UIScreen.screens.first(where: { $0 !== UIScreen.main })
-        guard let screen else { return }
-        show(screen: screen)
-    }
-
-    @objc private func screenDidDisconnect(_ notification: Notification) {
-        hide()
-    }
-
-    private func show(screen: UIScreen) {
+    func connect(windowScene: UIWindowScene) {
         guard externalWindow == nil else { return }
         let outputController = ExternalDisplayViewController()
-        let window = UIWindow(frame: screen.bounds)
-        window.screen = screen
+        let window = UIWindow(windowScene: windowScene)
         window.rootViewController = outputController
         window.isHidden = false
         externalWindow = window
         VlcKitBackend.shared.attachExternalDrawable(view: outputController.view)
     }
 
-    private func hide() {
+    func disconnect() {
         VlcKitBackend.shared.attachExternalDrawable(view: nil)
         externalWindow?.isHidden = true
         externalWindow = nil
+    }
+}
+
+final class VlcExternalDisplaySceneDelegate: NSObject, UIWindowSceneDelegate {
+    func scene(
+        _ scene: UIScene,
+        willConnectTo session: UISceneSession,
+        options connectionOptions: UIScene.ConnectionOptions
+    ) {
+        guard let windowScene = scene as? UIWindowScene else { return }
+        VlcExternalDisplayController.shared.connect(windowScene: windowScene)
+    }
+
+    func sceneDidDisconnect(_ scene: UIScene) {
+        VlcExternalDisplayController.shared.disconnect()
     }
 }
 
