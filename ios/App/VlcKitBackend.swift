@@ -28,6 +28,9 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     private var configuredRate: Float = 1
     private var selectedEqualizerPresetId: String?
     private var videoCropMode = VideoCropMode.original
+    private var videoOutputAspectRatio: String?
+    private var videoOutputScale: Float = 0
+    private var externalSubtitleURL: URL?
     private var selectedRendererId: String?
 
 #if canImport(MobileVLCKit)
@@ -73,6 +76,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
             listener?.onError(message: "Invalid URI: \(uri)")
             return
         }
+        externalSubtitleURL = nil
         let player = ensurePlayer()
         player.media = media
         player.play()
@@ -87,6 +91,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     func preparePaused(uri: String, title: String?, positionMs: Int64) -> Bool {
 #if canImport(MobileVLCKit)
         guard let media = makeMedia(uri: uri, title: title) else { return false }
+        externalSubtitleURL = nil
         let player = ensurePlayer()
         player.media = media
         // VLCKit honours the requested time when play is later initiated. Crucially, we do not
@@ -176,13 +181,10 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     /// Applies the shared Compose resize choice using MobileVLCKit's native video controls.
     /// A nil ratio resets LibVLC's forced aspect ratio; scale 0 asks it to fit its drawable.
     func setVideoOutput(aspectRatio: String?, scale: Float) {
+        videoOutputAspectRatio = aspectRatio
+        videoOutputScale = scale
 #if canImport(MobileVLCKit)
-        player?.scaleFactor = scale
-        if let aspectRatio {
-            aspectRatio.withCString { player?.videoAspectRatio = UnsafeMutablePointer(mutating: $0) }
-        } else {
-            player?.videoAspectRatio = nil
-        }
+        applyVideoOutput(to: player)
 #endif
     }
 
@@ -195,13 +197,9 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 
     func setVideoCrop(mode: VideoCropMode) {
-#if canImport(MobileVLCKit)
         videoCropMode = mode
-        if let geometry = mode.geometry {
-            geometry.withCString { player?.videoCropGeometry = UnsafeMutablePointer(mutating: $0) }
-        } else {
-            player?.videoCropGeometry = nil
-        }
+#if canImport(MobileVLCKit)
+        applyVideoCrop(to: player)
 #endif
     }
 
@@ -341,7 +339,9 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     func loadExternalSubtitle(uri: String) -> Bool {
 #if canImport(MobileVLCKit)
         guard let url = URL(string: uri) ?? URL(string: uri.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? "") else { return false }
-        return player?.addPlaybackSlave(url, type: .subtitle, enforce: true) == 0
+        let loaded = player?.addPlaybackSlave(url, type: .subtitle, enforce: true) == 0
+        if loaded { externalSubtitleURL = url }
+        return loaded
 #else
         return false
 #endif
@@ -350,10 +350,10 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     func equalizer() -> PlaybackEqualizer {
 #if canImport(MobileVLCKit)
         let active = player?.equalizer
-        let presets = VLCAudioEqualizer.presets.compactMap { $0 as? VLCAudioEqualizer.Preset }.map {
+        let presets = VLCAudioEqualizer.presets.map {
             PlaybackEqualizerPreset(id: String($0.index), label: $0.name)
         }
-        let bands = active?.bands.compactMap { $0 as? VLCAudioEqualizer.Band }.map {
+        let bands = active?.bands.map {
             PlaybackEqualizerBand(index: Int32($0.index), label: formatFrequency($0.frequency), amplificationDb: $0.amplification)
         } ?? []
         return PlaybackEqualizer(
@@ -384,7 +384,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     func selectEqualizerPreset(id: String) {
 #if canImport(MobileVLCKit)
         guard let index = UInt(id),
-              let preset = VLCAudioEqualizer.presets.compactMap({ $0 as? VLCAudioEqualizer.Preset }).first(where: { $0.index == index }) else { return }
+              let preset = VLCAudioEqualizer.presets.first(where: { $0.index == index }) else { return }
         player?.equalizer = VLCAudioEqualizer(preset: preset)
         selectedEqualizerPresetId = id
 #endif
@@ -402,8 +402,8 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     func setEqualizerBand(index: Int32, amplificationDb: Float) {
 #if canImport(MobileVLCKit)
         let equalizer = player?.equalizer ?? VLCAudioEqualizer()
-        guard index >= 0, Int(index) < equalizer.bands.count,
-              let band = equalizer.bands[Int(index)] as? VLCAudioEqualizer.Band else { return }
+        guard index >= 0, Int(index) < equalizer.bands.count else { return }
+        let band = equalizer.bands[Int(index)]
         band.amplification = min(20, max(-20, amplificationDb))
         player?.equalizer = equalizer
         selectedEqualizerPresetId = nil
@@ -472,7 +472,10 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
 #if canImport(MobileVLCKit)
         let item = id.flatMap { rendererItems[$0] }
         guard id == nil || item != nil else { return false }
-        let applied = ensurePlayer().setRendererItem(item)
+        // MobileVLCKit only honours this before the first play on a player. Rebuild the
+        // native player transactionally so choosing or disconnecting a renderer during
+        // playback actually changes the output without losing the current item or time.
+        let applied = replacePlayer(renderer: item)
         if applied { selectedRendererId = id }
         return applied
 #else
@@ -513,6 +516,12 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
 
     private func ensurePlayer() -> VLCMediaPlayer {
         if let player { return player }
+        let player = makePlayer()
+        self.player = player
+        return player
+    }
+
+    private func makePlayer() -> VLCMediaPlayer {
         let player = VLCMediaPlayer()
         player.delegate = self
         if let drawableView {
@@ -520,8 +529,89 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
         }
         player.audio?.volume = configuredVolume
         player.rate = configuredRate
-        self.player = player
+        applyVideoOutput(to: player)
+        applyVideoCrop(to: player)
         return player
+    }
+
+    /**
+     * Renderer assignment is a construction-time option in MobileVLCKit. Create and validate
+     * the replacement first, then detach the previous player so a failed selection never
+     * interrupts playback. The native player owns decoder/output state; the shared queue and
+     * UI state deliberately remain untouched.
+     */
+    private func replacePlayer(renderer: VLCRendererItem?) -> Bool {
+        let replacement = makePlayer()
+        guard replacement.setRendererItem(renderer) else { return false }
+        guard let previous = player else {
+            player = replacement
+            return true
+        }
+
+        let media = previous.media
+        let positionMs = max(0, Int64(previous.time.intValue))
+        let wasPlaying = previous.isPlaying
+        let equalizer = previous.equalizer
+        let audioTrack = previous.currentAudioTrackIndex
+        let subtitleTrack = previous.currentVideoSubTitleIndex
+        let audioDelay = previous.currentAudioPlaybackDelay
+        let subtitleDelay = previous.currentVideoSubTitleDelay
+        let chapter = previous.currentChapterIndex
+
+        replacement.equalizer = equalizer
+        replacement.media = media
+        if let externalSubtitleURL {
+            _ = replacement.addPlaybackSlave(externalSubtitleURL, type: .subtitle, enforce: true)
+        }
+        replacement.time = VLCTime(number: NSNumber(value: positionMs))
+        replacement.currentAudioTrackIndex = audioTrack
+        replacement.currentVideoSubTitleIndex = subtitleTrack
+        replacement.currentAudioPlaybackDelay = audioDelay
+        replacement.currentVideoSubTitleDelay = subtitleDelay
+        replacement.currentChapterIndex = chapter
+        copyVideoAdjust(from: previous, to: replacement)
+
+        // Stop only after the replacement is completely configured. Clearing the delegate
+        // prevents the intentional teardown from publishing a false "stopped" event to KMP.
+        previous.delegate = nil
+        previous.drawable = nil
+        previous.stop()
+        player = replacement
+
+        if wasPlaying {
+            activateAudioSession()
+            replacement.play()
+        }
+        publishNowPlayingInfo(isPlaying: wasPlaying)
+        return true
+    }
+
+    private func applyVideoOutput(to player: VLCMediaPlayer?) {
+        player?.scaleFactor = videoOutputScale
+        if let videoOutputAspectRatio {
+            videoOutputAspectRatio.withCString { player?.videoAspectRatio = UnsafeMutablePointer(mutating: $0) }
+        } else {
+            player?.videoAspectRatio = nil
+        }
+    }
+
+    private func applyVideoCrop(to player: VLCMediaPlayer?) {
+        if let geometry = videoCropMode.geometry {
+            geometry.withCString { player?.videoCropGeometry = UnsafeMutablePointer(mutating: $0) }
+        } else {
+            player?.videoCropGeometry = nil
+        }
+    }
+
+    private func copyVideoAdjust(from source: VLCMediaPlayer, to destination: VLCMediaPlayer) {
+        let sourceFilter = source.adjustFilter
+        let destinationFilter = destination.adjustFilter
+        destinationFilter.brightness.value = NSNumber(value: filterFloat(sourceFilter.brightness, fallback: 1))
+        destinationFilter.contrast.value = NSNumber(value: filterFloat(sourceFilter.contrast, fallback: 1))
+        destinationFilter.hue.value = NSNumber(value: filterFloat(sourceFilter.hue, fallback: 0))
+        destinationFilter.saturation.value = NSNumber(value: filterFloat(sourceFilter.saturation, fallback: 1))
+        destinationFilter.gamma.value = NSNumber(value: filterFloat(sourceFilter.gamma, fallback: 1))
+        destinationFilter.isEnabled = sourceFilter.isEnabled
     }
 
     private func formatFrequency(_ frequency: Float) -> String {
