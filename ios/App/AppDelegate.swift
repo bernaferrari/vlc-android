@@ -33,6 +33,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         IosKoinBootstrap.shared.start()
         // Real decode when MobileVLCKit SPM product is linked.
         IosPlaybackService.companion.shared.setBackend(backend: VlcKitBackend.shared)
+        IosRendererController.shared.setBackend(backend: VlcKitBackend.shared)
         // The same native package owns LAN discovery and folder parsing; the
         // Compose browser receives only portable entries through its repository.
         IosNetworkBrowserController.shared.setBackend(backend: VlcKitNetworkBrowser.shared)

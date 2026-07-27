@@ -9,7 +9,6 @@ import org.videolan.vlc.player.PlaybackService
 import org.videolan.vlc.platform.MediaSessionBridge
 import org.videolan.vlc.platform.NoOpMediaSessionBridge
 import org.videolan.vlc.platform.NoOpPipController
-import org.videolan.vlc.platform.NoOpRendererBridge
 import org.videolan.vlc.platform.PipController
 import org.videolan.vlc.platform.RendererBridge
 import org.videolan.vlc.repository.HistoryRepository
@@ -39,5 +38,5 @@ actual val platformModule: Module = module {
     single<PlaybackService> { IosPlaybackService.shared }
     single<MediaSessionBridge> { IosMediaSessionBridge() }
     single<PipController> { NoOpPipController }
-    single<RendererBridge> { NoOpRendererBridge }
+    single<RendererBridge> { IosRendererBridge() }
 }

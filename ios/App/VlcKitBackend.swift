@@ -16,7 +16,7 @@ import MobileVLCKit
 #endif
 
 /// Swift implementation of the Kotlin `VlcKitPlayerBackend` interface.
-final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
+final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend {
     static let shared = VlcKitBackend()
 
     private var listener: VlcKitPlayerBackendListener?
@@ -28,9 +28,12 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
     private var configuredRate: Float = 1
     private var selectedEqualizerPresetId: String?
     private var videoCropMode = VideoCropMode.original
+    private var selectedRendererId: String?
 
 #if canImport(MobileVLCKit)
     private var player: VLCMediaPlayer?
+    private var rendererDiscoverers: [VLCRendererDiscoverer] = []
+    private var rendererItems: [String: VLCRendererItem] = [:]
 #endif
 
     private override init() {
@@ -204,10 +207,15 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
 
     func videoAdjust() -> PlaybackVideoAdjust {
 #if canImport(MobileVLCKit)
-        guard let filter = player?.adjustFilter else { return PlaybackVideoAdjust(supported: true) }
+        guard let filter = player?.adjustFilter else {
+            return PlaybackVideoAdjust(
+                supported: true, enabled: false, brightness: 1, contrast: 1,
+                hue: 0, saturation: 1, gamma: 1
+            )
+        }
         return PlaybackVideoAdjust(
             supported: true,
-            enabled: filter.enabled,
+            enabled: filter.isEnabled,
             brightness: filterFloat(filter.brightness, fallback: 1),
             contrast: filterFloat(filter.contrast, fallback: 1),
             hue: filterFloat(filter.hue, fallback: 0),
@@ -221,7 +229,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
 
     func setVideoAdjustEnabled(enabled: Bool) {
 #if canImport(MobileVLCKit)
-        player?.adjustFilter.enabled = enabled
+        player?.adjustFilter.isEnabled = enabled
 #endif
     }
 
@@ -237,7 +245,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
         case .gamma: filter.gamma.value = NSNumber(value: safe)
         default: break
         }
-        filter.enabled = true
+        filter.isEnabled = true
 #endif
     }
 
@@ -249,7 +257,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
         filter.hue.value = NSNumber(value: 0)
         filter.saturation.value = NSNumber(value: 1)
         filter.gamma.value = NSNumber(value: 1)
-        filter.enabled = false
+        filter.isEnabled = false
 #endif
     }
 
@@ -333,7 +341,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
     func loadExternalSubtitle(uri: String) -> Bool {
 #if canImport(MobileVLCKit)
         guard let url = URL(string: uri) ?? URL(string: uri.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? "") else { return false }
-        return player?.addPlaybackSlave(url, type: VLCMediaPlaybackSlaveTypeSubtitle, enforce: true) == 0
+        return player?.addPlaybackSlave(url, type: .subtitle, enforce: true) == 0
 #else
         return false
 #endif
@@ -418,6 +426,62 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
         listener = nil
     }
 
+    // MARK: - Shared renderer bridge
+
+    func startRendererDiscovery() {
+#if canImport(MobileVLCKit)
+        stopRendererDiscovery()
+        guard let descriptions = VLCRendererDiscoverer.list() else { return }
+        rendererDiscoverers = descriptions.compactMap { description in
+            guard let discoverer = VLCRendererDiscoverer(name: description.name), discoverer.start() else {
+                return nil
+            }
+            discoverer.delegate = self
+            return discoverer
+        }
+#endif
+    }
+
+    func stopRendererDiscovery() {
+#if canImport(MobileVLCKit)
+        rendererDiscoverers.forEach {
+            $0.delegate = nil
+            $0.stop()
+        }
+        rendererDiscoverers.removeAll()
+        rendererItems.removeAll()
+#endif
+    }
+
+    func renderers() -> [VlcKitRendererInfo] {
+#if canImport(MobileVLCKit)
+        let items = rendererDiscoverers.flatMap(\.renderers)
+        // Different libVLC discoverers can report the same physical target.
+        // Keep the latest item rather than crashing on duplicate dictionary keys.
+        rendererItems = [:]
+        items.forEach { rendererItems[rendererId(for: $0)] = $0 }
+        return items.map {
+            VlcKitRendererInfo(id: rendererId(for: $0), name: $0.name, type: $0.type)
+        }
+#else
+        []
+#endif
+    }
+
+    func selectRenderer(id: String?) -> Bool {
+#if canImport(MobileVLCKit)
+        let item = id.flatMap { rendererItems[$0] }
+        guard id == nil || item != nil else { return false }
+        let applied = ensurePlayer().setRendererItem(item)
+        if applied { selectedRendererId = id }
+        return applied
+#else
+        false
+#endif
+    }
+
+    func currentRendererId() -> String? { selectedRendererId }
+
     var isVlcKitLinked: Bool {
 #if canImport(MobileVLCKit)
         true
@@ -439,7 +503,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
     }
 
 #if canImport(MobileVLCKit)
-    private func makeTracks(names: NSArray, indexes: NSArray, selected: Int) -> [PlaybackTrack] {
+    private func makeTracks(names: [Any], indexes: [Any], selected: Int) -> [PlaybackTrack] {
         let labels = names.compactMap { $0 as? String }
         let ids = indexes.map { String(describing: $0) }
         return zip(labels, ids).map { label, id in
@@ -465,7 +529,13 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend {
     }
 
 #if canImport(MobileVLCKit)
-    private func filterFloat(_ parameter: VLCFilterParameter, fallback: Float) -> Float {
+    private func rendererId(for item: VLCRendererItem) -> String {
+        "\(item.type)|\(item.name)|\(item.iconURI)"
+    }
+#endif
+
+#if canImport(MobileVLCKit)
+    private func filterFloat(_ parameter: VLCFilterParameterProtocol, fallback: Float) -> Float {
         (parameter.value as? NSNumber)?.floatValue ?? fallback
     }
 #endif
@@ -649,4 +719,17 @@ extension VlcKitBackend: VLCMediaPlayerDelegate {
         publishNowPlayingInfo()
     }
 }
+
+#if canImport(MobileVLCKit)
+extension VlcKitBackend: VLCRendererDiscovererDelegate {
+    func rendererDiscovererItemAdded(_ rendererDiscoverer: VLCRendererDiscoverer, item: VLCRendererItem) {
+        rendererItems[rendererId(for: item)] = item
+    }
+
+    func rendererDiscovererItemDeleted(_ rendererDiscoverer: VLCRendererDiscoverer, item: VLCRendererItem) {
+        rendererItems.removeValue(forKey: rendererId(for: item))
+        if selectedRendererId == rendererId(for: item) { selectedRendererId = nil }
+    }
+}
+#endif
 #endif

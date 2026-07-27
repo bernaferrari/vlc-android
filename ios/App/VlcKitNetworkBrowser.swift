@@ -33,7 +33,7 @@ final class VlcKitNetworkBrowser: NSObject, IosNetworkBrowserBackend {
         discoveryListener = listener
 #if canImport(MobileVLCKit)
         discoveryTimer?.invalidate()
-        discoverers.forEach { $0.stopDiscoverer() }
+        discoverers.forEach { $0.stop() }
         discoverers.removeAll()
         guard listener != nil else { return }
 
@@ -41,7 +41,7 @@ final class VlcKitNetworkBrowser: NSObject, IosNetworkBrowserBackend {
         // network browsers. Unsupported modules simply return a start error.
         for service in ["upnp", "dsm", "nfs", "bonjour"] {
             let discoverer = VLCMediaDiscoverer(name: service)
-            guard discoverer.startDiscoverer() == 0 else { continue }
+            guard discoverer.start() == 0 else { continue }
             discoverers.append(discoverer)
         }
         publishRoots()
@@ -70,7 +70,7 @@ final class VlcKitNetworkBrowser: NSObject, IosNetworkBrowserBackend {
         browsingMedia = media
         // MobileVLCKit parses server trees asynchronously and supplies their
         // children through `subitems`, exactly as upstream iOS does.
-        guard media.parse(withOptions: .network) == 0 else {
+        guard media.parse(options: .parseNetwork) == 0 else {
             finishBrowse(error: "Unable to open this network location.")
             return
         }
@@ -94,16 +94,16 @@ final class VlcKitNetworkBrowser: NSObject, IosNetworkBrowserBackend {
     }
 
     private func publishRoots() {
-        let entries = discoverers.flatMap { discoverer in
+        let discoveredEntries = discoverers.flatMap { discoverer in
             entries(in: discoverer.discoveredMedia)
         }
-        discoveryListener?.onRootsChanged(entries: entries)
+        discoveryListener?.onRootsChanged(entries: discoveredEntries)
     }
 
     private func entries(in mediaList: VLCMediaList?) -> [IosNetworkEntry] {
         guard let mediaList else { return [] }
         return (0..<mediaList.count).compactMap { index in
-            guard let media = mediaList.media(at: index) else { return nil }
+            guard let media = mediaList.media(at: UInt(index)) else { return nil }
             return entry(for: media)
         }
     }
