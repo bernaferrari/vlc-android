@@ -157,6 +157,9 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
 
     open fun isTransparent(): Boolean = false
 
+    /** The common shell renders its own mini/full player; legacy views stay native-only. */
+    protected open fun usesSharedMainShell(): Boolean = false
+
     open val insetListener: (Insets) -> Unit = {}
 
     var bottomInset = 0
@@ -239,6 +242,10 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
      * and the presence of the bottom navigation and mini player
      */
     private fun setContentBottomPadding() {
+        if (usesSharedMainShell()) {
+            contentContainer.setPadding(0, 0, 0, 0)
+            return
+        }
         // insets from soft nav buttons
         var bottomMargin = if (this is MainActivity && isTablet()) 0 else bottomInset
         // Bottom bar navigation
@@ -621,7 +628,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
      * Show the audio player.
      */
     private fun showAudioPlayer() {
-        if (isFinishing) return
+        if (isFinishing || usesSharedMainShell()) return
         scheduler.scheduleAction(ACTION_SHOW_PLAYER, 100L)
         // due to the 100L delay when scheduling ACTION_SHOW_PLAYER
         // if switching screen off, it can be canceled, this ensures that onResume the player is shown
@@ -629,7 +636,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
     }
 
     private fun showAudioPlayerImpl() {
-        if (isFinishing) return
+        if (isFinishing || usesSharedMainShell()) return
         showAudioPlayerWhenResumed = false
         if (!isAudioPlayerReady) initAudioPlayer()
         if (audioPlayerContainer.visibility != View.VISIBLE) {
@@ -692,7 +699,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
     }
 
     private fun showProgressBar(discovery: String) {
-        if (!Medialibrary.getInstance().isWorking) return
+        if (usesSharedMainShell() || !Medialibrary.getInstance().isWorking) return
         val progressView = scanProgressLayout ?: findViewById<VLCComposeView>(R.id.scan_progress_layout)?.also {
             scanProgressLayout = it
         } ?: return

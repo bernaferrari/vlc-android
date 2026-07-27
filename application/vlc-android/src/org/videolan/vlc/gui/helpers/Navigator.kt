@@ -10,7 +10,6 @@
 package org.videolan.vlc.gui.helpers
 
 import android.app.Activity
-import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.Menu
@@ -22,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.edit
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -29,7 +29,6 @@ import com.google.android.material.appbar.AppBarLayout
 import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.resources.EXTRA_FOR_ESPRESSO
 import org.videolan.resources.EXTRA_TARGET
-import org.videolan.resources.REMOTE_ACCESS_CLIENT_ACTIVITY
 import org.videolan.resources.util.parcelableList
 import org.videolan.tools.KEY_NAVIGATION_ID
 import org.videolan.tools.KEY_USE_SHARED_MAIN_SHELL
@@ -38,9 +37,9 @@ import org.videolan.tools.setVisible
 import org.videolan.vlc.R
 import org.videolan.vlc.app.VlcKoin
 import org.videolan.vlc.compose.app.VlcKoinMainShell
+import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.kmp.AndroidShellHostCallbacks
 import org.videolan.vlc.kmp.AndroidPlayerSurface
-import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.gui.MainActivity
 import org.videolan.vlc.gui.MainNavChromeState
 import org.videolan.vlc.gui.MoreScreenController
@@ -48,7 +47,6 @@ import org.videolan.vlc.gui.PlaylistScreenController
 import org.videolan.vlc.gui.audio.AudioScreenController
 import org.videolan.vlc.gui.browser.MainBrowserScreenController
 import org.videolan.vlc.gui.helpers.UiTools.isTablet
-import org.videolan.vlc.gui.preferences.PreferencesActivity
 import org.videolan.vlc.gui.video.VideoScreenController
 import org.videolan.vlc.kmp.AndroidPipController
 import org.videolan.vlc.kmp.VlcKmpInitializer
@@ -140,41 +138,30 @@ class Navigator : DefaultLifecycleObserver, INavigator {
     private fun attachSharedShell() {
         if (sharedShellAttached) return
         val container = activity.findViewById<ViewGroup>(R.id.content_placeholder)
+        hideLegacyChromeForSharedShell(container)
         container.removeAllViews()
         container.addView(
             ComposeView(activity).apply {
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
                 setContent {
-                    VLCTheme {
-                        // Controlled by Android bottom chrome — hide internal bar.
-                        VlcKoinMainShell(
-                            tab = sharedTab,
-                            onTabChange = { t ->
-                                sharedTab = t
-                                val id = when (t) {
-                                    MainTab.VIDEO -> R.id.nav_video
-                                    MainTab.AUDIO -> R.id.nav_audio
-                                    MainTab.BROWSER -> R.id.nav_directories
-                                    MainTab.PLAYLISTS -> R.id.nav_playlists
-                                    MainTab.MORE -> R.id.nav_more
-                                }
-                                updateCheckedItem(id)
-                                currentDestinationId = id
-                            },
-                            showBottomBar = false,
-                            title = activity.getString(R.string.app_name),
-                            onOpenSettings = {
-                                activity.startActivity(Intent(activity, PreferencesActivity::class.java))
-                            },
-                            onOpenRemoteClient = {
-                                activity.startActivity(
-                                    Intent().setClassName(activity, REMOTE_ACCESS_CLIENT_ACTIVITY)
-                                )
-                            },
-                            hostCallbacks = AndroidShellHostCallbacks(activity),
-                            playerSurface = AndroidPlayerSurface,
-                        )
-                    }
+                    // VlcMainShell is the product chrome on both Android and
+                    // iOS. Keep Android here strictly as the system/LibVLC host.
+                    VlcKoinMainShell(
+                        tab = sharedTab,
+                        onTabChange = { t ->
+                            sharedTab = t
+                            currentDestinationId = when (t) {
+                                MainTab.VIDEO -> R.id.nav_video
+                                MainTab.AUDIO -> R.id.nav_audio
+                                MainTab.BROWSER -> R.id.nav_directories
+                                MainTab.PLAYLISTS -> R.id.nav_playlists
+                                MainTab.MORE -> R.id.nav_more
+                            }
+                        },
+                        title = activity.getString(R.string.app_name),
+                        hostCallbacks = AndroidShellHostCallbacks(activity),
+                        playerSurface = AndroidPlayerSurface,
+                    )
                 }
             },
             ViewGroup.LayoutParams(
@@ -183,6 +170,28 @@ class Navigator : DefaultLifecycleObserver, INavigator {
             )
         )
         sharedShellAttached = true
+    }
+
+    /**
+     * MainActivity still creates these views for legacy activity/service code,
+     * but the shared Compose shell is their visual owner on this path. Hiding
+     * rather than removing the islands keeps Android system hooks stable while
+     * avoiding duplicate toolbars, navigation, FABs, and mini-players.
+     */
+    private fun hideLegacyChromeForSharedShell(content: ViewGroup) {
+        appbarLayout.setGone()
+        navigationViews.forEach(View::setGone)
+        activity.findViewById<View>(R.id.fab).setGone()
+        activity.findViewById<View>(R.id.audio_player_container).setGone()
+        activity.findViewById<View>(R.id.scan_progress_layout).setGone()
+        (content.layoutParams as? CoordinatorLayout.LayoutParams)?.let { params ->
+            params.marginStart = 0
+            params.marginEnd = 0
+            params.topMargin = 0
+            params.bottomMargin = 0
+            params.behavior = null
+            content.layoutParams = params
+        }
     }
 
     private fun showScreen(id: Int) {
@@ -289,6 +298,11 @@ class Navigator : DefaultLifecycleObserver, INavigator {
     override fun configurationChanged(size: Int) {
         val bottom = activity.findViewById<View>(R.id.navigation)
         val rail = activity.findViewById<View>(R.id.navigation_rail)
+        if (useSharedShell) {
+            bottom.setGone()
+            rail.setGone()
+            return
+        }
         if (activity.isTablet()) {
             bottom.setGone()
             rail.setVisible()
