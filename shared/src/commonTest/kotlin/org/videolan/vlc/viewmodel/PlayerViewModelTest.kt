@@ -17,6 +17,9 @@ import org.videolan.vlc.player.VideoScaleMode
 import org.videolan.vlc.player.PlaybackController
 import org.videolan.vlc.platform.PipController
 import org.videolan.vlc.platform.VlcPlatformCapabilities
+import org.videolan.vlc.platform.RendererBridge
+import org.videolan.vlc.platform.RendererInfo
+import org.videolan.vlc.platform.RendererType
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -205,6 +208,27 @@ class PlayerViewModelTest {
         vm.onCleared()
     }
 
+    @Test
+    fun rendererDiscoveryAndSelectionStayInSharedPlayerState() = runTest {
+        val playback = FakePlaybackService()
+        val renderers = RecordingRendererBridge()
+        val controller = PlaybackController(
+            service = playback,
+            renderers = renderers,
+            capabilities = VlcPlatformCapabilities(nativePlayback = true, rendererSelection = true),
+        )
+        val vm = PlayerViewModel(playback, controller)
+
+        vm.startRendererDiscovery()
+        assertTrue(renderers.discoveryStarted)
+        assertEquals("living-room", vm.state.value.renderers.single().id)
+        assertTrue(vm.selectRenderer("living-room"))
+        assertEquals("living-room", vm.state.value.selectedRendererId)
+        vm.stopRendererDiscovery()
+        assertTrue(renderers.discoveryStopped)
+        vm.onCleared()
+    }
+
     private class RecordingPipController : PipController {
         var entered = false
         override val isSupported: Boolean = true
@@ -214,5 +238,21 @@ class PlayerViewModelTest {
         }
         override fun exitPip() = Unit
         override fun isInPip(): Boolean = entered
+    }
+
+    private class RecordingRendererBridge : RendererBridge {
+        var discoveryStarted = false
+        var discoveryStopped = false
+        private var selected: String? = null
+        override fun startDiscovery() { discoveryStarted = true }
+        override fun stopDiscovery() { discoveryStopped = true }
+        override fun listRenderers(): List<RendererInfo> = listOf(
+            RendererInfo("living-room", "Living Room", RendererType.CHROMECAST),
+        )
+        override fun selectRenderer(id: String?): Boolean {
+            selected = id
+            return true
+        }
+        override fun currentRendererId(): String? = selected
     }
 }

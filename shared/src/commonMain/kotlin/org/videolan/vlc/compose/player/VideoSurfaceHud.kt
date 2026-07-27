@@ -20,6 +20,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.window.Dialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -48,6 +49,10 @@ import org.videolan.vlc.player.PlaybackTracks
 import org.videolan.vlc.player.PlaybackDelays
 import org.videolan.vlc.player.SleepTimerState
 import org.videolan.vlc.player.PlaybackChapters
+import org.videolan.vlc.platform.RendererInfo
+import org.videolan.vlc.platform.RendererType
+import org.videolan.vlc.compose.components.VLCRendererPickerDialogContent
+import org.videolan.vlc.compose.components.VLCRendererUiItem
 import kotlin.math.roundToInt
 import vlc_android.shared.generated.resources.Res
 import vlc_android.shared.generated.resources.*
@@ -80,6 +85,9 @@ fun VideoSurfaceWithHud(
     chapters: PlaybackChapters = PlaybackChapters(),
     hasVideoOutput: Boolean = false,
     showPictureInPicture: Boolean = false,
+    showRendererSelection: Boolean = false,
+    renderers: List<RendererInfo> = emptyList(),
+    selectedRendererId: String? = null,
     onTogglePlay: () -> Unit,
     onSeek: (Long) -> Unit,
     onNext: () -> Unit,
@@ -106,16 +114,29 @@ fun VideoSurfaceWithHud(
     showSubtitleImport: Boolean = false,
     onImportSubtitle: () -> Unit = {},
     onEnterPictureInPicture: () -> Unit = {},
+    onStartRendererDiscovery: () -> Unit = {},
+    onStopRendererDiscovery: () -> Unit = {},
+    onRefreshRenderers: () -> Unit = {},
+    onSelectRenderer: (String?) -> Unit = {},
     onClose: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     surface: @Composable BoxScope.(chromeVisible: Boolean) -> Unit,
 ) {
     var hudVisible by remember { mutableStateOf(true) }
     var optionsVisible by remember { mutableStateOf(false) }
+    var rendererPickerVisible by remember { mutableStateOf(false) }
     LaunchedEffect(hudVisible, playing) {
         if (hudVisible && playing) {
             delay(4_000)
             hudVisible = false
+        }
+    }
+    LaunchedEffect(rendererPickerVisible) {
+        if (!rendererPickerVisible) return@LaunchedEffect
+        onStartRendererDiscovery()
+        while (rendererPickerVisible) {
+            delay(1_000)
+            onRefreshRenderers()
         }
     }
 
@@ -169,6 +190,8 @@ fun VideoSurfaceWithHud(
                 onOpenOptions = { optionsVisible = true },
                 showPictureInPicture = showPictureInPicture,
                 onEnterPictureInPicture = onEnterPictureInPicture,
+                showRendererSelection = showRendererSelection,
+                onOpenRendererSelection = { rendererPickerVisible = true },
                 onClose = onClose,
             )
         }
@@ -214,6 +237,46 @@ fun VideoSurfaceWithHud(
             onDismiss = { optionsVisible = false },
         )
     }
+
+    if (rendererPickerVisible) {
+        Dialog(
+            onDismissRequest = {
+                rendererPickerVisible = false
+                onStopRendererDiscovery()
+            },
+        ) {
+            VLCRendererPickerDialogContent(
+                title = stringResource(Res.string.renderer_list_title),
+                renderers = renderers.map { renderer ->
+                    VLCRendererUiItem(
+                        id = renderer.id,
+                        displayName = renderer.name,
+                        isSelected = renderer.id == selectedRendererId,
+                        isChromecast = renderer.type == RendererType.CHROMECAST,
+                    )
+                },
+                disconnectText = stringResource(Res.string.renderers_disconnect),
+                showDisconnect = selectedRendererId != null,
+                onRendererSelected = { renderer ->
+                    onSelectRenderer(renderer.id)
+                    rendererPickerVisible = false
+                    onStopRendererDiscovery()
+                },
+                onDisconnect = {
+                    onSelectRenderer(null)
+                    rendererPickerVisible = false
+                    onStopRendererDiscovery()
+                },
+                rendererIcon = { _, tint ->
+                    Icon(
+                        icon = MaterialSymbols.Filled.Devices,
+                        contentDescription = null,
+                        tint = tint ?: MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                },
+            )
+        }
+    }
 }
 
 @Composable
@@ -235,6 +298,8 @@ fun VideoHudOverlay(
     onOpenOptions: () -> Unit,
     showPictureInPicture: Boolean,
     onEnterPictureInPicture: () -> Unit,
+    showRendererSelection: Boolean,
+    onOpenRendererSelection: () -> Unit,
     onClose: (() -> Unit)?,
 ) {
     val colors = VLCThemeDefaults.colors
@@ -288,6 +353,15 @@ fun VideoHudOverlay(
                         Icon(
                             icon = MaterialSymbols.Filled.PictureInPictureAlt,
                             contentDescription = stringResource(Res.string.play_pip_title),
+                            tint = Color.White,
+                        )
+                    }
+                }
+                if (showRendererSelection) {
+                    IconButton(onClick = onOpenRendererSelection) {
+                        Icon(
+                            icon = MaterialSymbols.Filled.Devices,
+                            contentDescription = stringResource(Res.string.renderer_list_title),
                             tint = Color.White,
                         )
                     }

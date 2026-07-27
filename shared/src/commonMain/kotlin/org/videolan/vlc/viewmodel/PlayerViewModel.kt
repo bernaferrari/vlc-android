@@ -19,6 +19,7 @@ import org.videolan.vlc.player.PlaybackDelays
 import org.videolan.vlc.player.SleepTimerState
 import org.videolan.vlc.player.PlaybackChapters
 import org.videolan.vlc.player.VideoScaleMode
+import org.videolan.vlc.platform.RendererInfo
 
 data class PlayerUiState(
     val title: String = "",
@@ -43,6 +44,9 @@ data class PlayerUiState(
     val chapters: PlaybackChapters = PlaybackChapters(),
     /** The native host can transition the active video to system Picture-in-Picture. */
     val pictureInPictureAvailable: Boolean = false,
+    val rendererSelectionAvailable: Boolean = false,
+    val renderers: List<RendererInfo> = emptyList(),
+    val selectedRendererId: String? = null,
     val hasMedia: Boolean = false,
     /** True for known video and network streams, which may expose video after probing. */
     val hasVideoOutput: Boolean = false,
@@ -62,6 +66,9 @@ class PlayerViewModel(
     private val _state = MutableStateFlow(
         PlayerUiState(
             pictureInPictureAvailable = controller?.isPictureInPictureAvailable == true,
+            rendererSelectionAvailable = controller?.isRendererSelectionAvailable == true,
+            renderers = controller?.rendererBridge?.listRenderers().orEmpty(),
+            selectedRendererId = controller?.rendererBridge?.currentRendererId(),
         ),
     )
     val state: StateFlow<PlayerUiState> = _state.asStateFlow()
@@ -205,6 +212,30 @@ class PlayerViewModel(
 
     /** Delegates the OS-owned transition while keeping visibility/capability policy in common UI. */
     fun enterPictureInPicture(): Boolean = controller?.enterPip() == true
+
+    fun startRendererDiscovery() {
+        controller?.startRendererDiscovery()
+        refreshRenderers()
+    }
+
+    fun stopRendererDiscovery() = controller?.stopRendererDiscovery()
+
+    /** Renderer discovery is asynchronous on native hosts, so the shared picker polls safely. */
+    fun refreshRenderers() {
+        val bridge = controller?.rendererBridge ?: return
+        _state.update {
+            it.copy(
+                renderers = bridge.listRenderers(),
+                selectedRendererId = bridge.currentRendererId(),
+            )
+        }
+    }
+
+    fun selectRenderer(id: String?): Boolean {
+        val selected = controller?.selectRenderer(id) == true
+        refreshRenderers()
+        return selected
+    }
 
     fun cycleRepeat() {
         val next = when (_state.value.repeatMode) {

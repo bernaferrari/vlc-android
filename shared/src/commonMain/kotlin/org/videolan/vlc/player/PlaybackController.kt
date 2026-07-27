@@ -57,6 +57,8 @@ class PlaybackController(
     val rendererBridge: RendererBridge get() = renderers
     val isPictureInPictureAvailable: Boolean
         get() = capabilities.pictureInPicture && pip.isSupported
+    val isRendererSelectionAvailable: Boolean
+        get() = capabilities.rendererSelection
 
     init {
         bindSession()
