@@ -10,6 +10,7 @@
 		04D62390FB3F076A51C9B942 /* MobileVLCKit in Frameworks */ = {isa = PBXBuildFile; productRef = C8F715C12898A655F10889FC /* MobileVLCKit */; };
 		3D520F3C55284134956991B7 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E48BF24C81066D3E9B9920D5 /* AppDelegate.swift */; };
 		82389E7E85899602B1EE3A09 /* $(VLC_SHARED_FRAMEWORK_PATH) in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0EF723608B7873844B8658BC /* $(VLC_SHARED_FRAMEWORK_PATH) */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		A4C394D7E43ADA8CE0FF07BF /* VlcKitNetworkBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607C8408946D36A7E750425A /* VlcKitNetworkBrowser.swift */; };
 		B8A2D11D4CE19ECCEED4B486 /* $(VLC_SHARED_FRAMEWORK_PATH) in Frameworks */ = {isa = PBXBuildFile; fileRef = 0EF723608B7873844B8658BC /* $(VLC_SHARED_FRAMEWORK_PATH) */; };
 		C75B33B8AE0A4FBEF8337C3A /* IosMediaImportBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9801AC43732CBD1D7D08019C /* IosMediaImportBridge.swift */; };
 		E83794AFAEF22BD4B47FB0AD /* MediaImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E232693711721A109BA5E90 /* MediaImporter.swift */; };
@@ -33,6 +34,7 @@
 /* Begin PBXFileReference section */
 		0EF723608B7873844B8658BC /* $(VLC_SHARED_FRAMEWORK_PATH) */ = {isa = PBXFileReference; path = "$(VLC_SHARED_FRAMEWORK_PATH)"; sourceTree = "<group>"; };
 		3F15D2B0CA4AC7F6830CBF4A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		607C8408946D36A7E750425A /* VlcKitNetworkBrowser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VlcKitNetworkBrowser.swift; sourceTree = "<group>"; };
 		872AE79B2B54F682D91B6907 /* VLC-iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "VLC-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		8E232693711721A109BA5E90 /* MediaImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaImporter.swift; sourceTree = "<group>"; };
 		9801AC43732CBD1D7D08019C /* IosMediaImportBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosMediaImportBridge.swift; sourceTree = "<group>"; };
@@ -61,6 +63,7 @@
 				9801AC43732CBD1D7D08019C /* IosMediaImportBridge.swift */,
 				8E232693711721A109BA5E90 /* MediaImporter.swift */,
 				C39A17B3461CF8B76D62B858 /* VlcKitBackend.swift */,
+				607C8408946D36A7E750425A /* VlcKitNetworkBrowser.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -182,6 +185,7 @@
 				C75B33B8AE0A4FBEF8337C3A /* IosMediaImportBridge.swift in Sources */,
 				E83794AFAEF22BD4B47FB0AD /* MediaImporter.swift in Sources */,
 				EAF63E4A768514B75A1F59DD /* VlcKitBackend.swift in Sources */,
+				A4C394D7E43ADA8CE0FF07BF /* VlcKitNetworkBrowser.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

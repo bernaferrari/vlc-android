@@ -3,6 +3,8 @@ package org.videolan.vlc.platform
 actual val platformCapabilities = VlcPlatformCapabilities(
     // The iOS host links MobileVLCKit through Swift Package Manager.
     nativePlayback = true,
+    // Native MobileVLCKit discovery and folder parsing is bridged by Swift.
+    networkBrowsing = true,
 )
 
 @OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)

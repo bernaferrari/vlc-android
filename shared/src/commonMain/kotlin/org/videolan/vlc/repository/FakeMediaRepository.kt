@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import org.videolan.vlc.model.MediaItem
+import org.videolan.vlc.model.MediaFolder
 import org.videolan.vlc.model.ABRepeat
 import org.videolan.vlc.model.MediaType
 import org.videolan.vlc.model.Playlist
@@ -28,9 +29,12 @@ object FakeCatalog {
 class FakeMediaRepository(
     seed: List<MediaItem> = FakeCatalog.items,
     private val rescannable: Boolean = false,
+    networkRoots: List<MediaFolder> = emptyList(),
+    private val browserListings: Map<String, BrowserListing> = emptyMap(),
 ) : MediaRepository {
     private val items = MutableStateFlow(seed)
     private val recent = MutableStateFlow(seed.take(3))
+    private val networkRoots = MutableStateFlow(networkRoots)
     var rescanRequests: Int = 0
         private set
 
@@ -93,6 +97,11 @@ class FakeMediaRepository(
             if (it.id == id) it.copy(isFavorite = favorite) else it
         }
     }
+
+    override fun observeNetworkRoots(): Flow<List<MediaFolder>> = networkRoots
+
+    override fun browseUri(uri: String): Flow<BrowserListing> =
+        MutableStateFlow(browserListings[uri] ?: BrowserListing())
 }
 
 class FakePlaybackService : PlaybackService {

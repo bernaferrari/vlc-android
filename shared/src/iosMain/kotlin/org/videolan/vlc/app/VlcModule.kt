@@ -21,7 +21,9 @@ import org.videolan.vlc.repository.StreamRepository
 /**
  * iOS-specific Koin module.
  *
- * [IosMediaLibrary.shared] backs media + playlists + history.
+ * [IosMediaLibrary.shared] backs media + playlists + history while
+ * [IosNetworkMediaRepository] adds MobileVLCKit LAN discovery to the same
+ * shared browser contract.
  * Swift attaches VLCKit via [IosPlaybackService.shared.setBackend].
  */
 actual val platformModule: Module = module {
@@ -29,7 +31,8 @@ actual val platformModule: Module = module {
         IosVlcDataStoreFactory().create()
     }
     single { IosMediaLibrary.shared }
-    single<MediaRepository> { get<IosMediaLibrary>() }
+    single { IosNetworkMediaRepository(get<IosMediaLibrary>()) }
+    single<MediaRepository> { get<IosNetworkMediaRepository>() }
     single<PlaylistRepository> { get<IosMediaLibrary>() }
     single<HistoryRepository> { get<IosMediaLibrary>() }
     single<StreamRepository> { PreferenceStreamRepository(get()) }
