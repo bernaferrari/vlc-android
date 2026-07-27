@@ -27,6 +27,18 @@ class ShellHostCallbacksTest {
     }
 
     @Test
+    fun renameIsRestrictedToFileUrisNotDocumentProviders() {
+        assertEquals(
+            true,
+            MediaItem(id = 1, title = "Imported", uri = "file:///Documents/movie.mp4").isLocallyRenamable(),
+        )
+        assertEquals(
+            false,
+            MediaItem(id = 2, title = "Provider", uri = "content://media/video/2").isLocallyRenamable(),
+        )
+    }
+
+    @Test
     fun mediaInformationPresentation_is_shared_and_keeps_all_available_metadata() {
         val presentation = MediaItem(
             id = 7L,

@@ -641,6 +641,11 @@ private fun MediaContextMenu(
                 onDismiss(); onCtx(item, ContextOption.CTX_INFORMATION)
             })
         }
+        if (item.isLocallyRenamable() && canHandleHostAction(ContextOption.CTX_RENAME)) {
+            DropdownMenuItem(text = { Text(ShellStrings.rename()) }, onClick = {
+                onDismiss(); onCtx(item, ContextOption.CTX_RENAME)
+            })
+        }
         if (item.isLocallyDeletable() && canHandleHostAction(ContextOption.CTX_DELETE)) {
             DropdownMenuItem(text = { Text(ShellStrings.delete()) }, onClick = {
                 onDismiss(); onCtx(item, ContextOption.CTX_DELETE)

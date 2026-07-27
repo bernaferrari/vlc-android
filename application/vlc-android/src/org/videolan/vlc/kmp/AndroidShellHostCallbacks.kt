@@ -20,6 +20,7 @@ import org.videolan.vlc.compose.app.ShellHostCallbacks
 import org.videolan.vlc.gui.AboutActivity
 import org.videolan.vlc.gui.InfoActivity
 import org.videolan.vlc.gui.dialogs.showConfirmDeleteComposeDialog
+import org.videolan.vlc.gui.dialogs.showRenameComposeDialog
 import org.videolan.vlc.gui.helpers.AudioUtil.setRingtone
 import org.videolan.vlc.gui.helpers.MedialibraryUtils
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
@@ -35,6 +36,7 @@ import org.videolan.vlc.model.MediaType
 import org.videolan.vlc.model.PlaylistInfo
 import org.videolan.vlc.util.ContextOption
 import org.videolan.vlc.util.share
+import java.io.File
 
 /**
  * Android host-side actions for [org.videolan.vlc.compose.app.VlcMainShell].
@@ -93,6 +95,7 @@ class AndroidShellHostCallbacks(
 
     override fun supportsContextAction(option: ContextOption): Boolean = option in setOf(
         ContextOption.CTX_DELETE,
+        ContextOption.CTX_RENAME,
         ContextOption.CTX_INFORMATION,
         ContextOption.CTX_SHARE,
         ContextOption.CTX_DOWNLOAD_SUBTITLES,
@@ -123,6 +126,7 @@ class AndroidShellHostCallbacks(
 
     override fun onContextAction(item: MediaItem, option: ContextOption) = when (option) {
         ContextOption.CTX_DELETE -> confirmDelete(item)
+        ContextOption.CTX_RENAME -> confirmRename(item)
         // Typed callbacks below cover the rest; never advertise a no-op action.
         else -> Log.d(TAG, "Unhandled context action $option for ${item.uri}")
     }
@@ -226,6 +230,36 @@ class AndroidShellHostCallbacks(
             MediaUtils.deleteItem(activity, wrapper) { failed ->
                 snacker(activity, activity.getString(org.videolan.vlc.R.string.msg_delete_failed, failed.title))
             }
+        }
+    }
+
+    private fun confirmRename(item: MediaItem) {
+        val wrapper = resolveWrapper(item) ?: return
+        activity.showRenameComposeDialog(wrapper, isFile = true) { _, proposedName ->
+            activity.lifecycleScope.launch(Dispatchers.IO) {
+                val source = wrapper.uri.path?.let(::File) ?: return@launch
+                val newName = proposedName.trim()
+                if (!source.isFile || !newName.isSafeFileName()) {
+                    reportRenameFailure(item)
+                    return@launch
+                }
+                val target = File(source.parentFile, newName)
+                if (!source.renameTo(target)) {
+                    reportRenameFailure(item)
+                    return@launch
+                }
+                source.parentFile?.path?.let(medialibrary::reload)
+            }
+        }
+    }
+
+    private fun String.isSafeFileName(): Boolean =
+        isNotBlank() && this !in setOf(".", "..") && '/' !in this && '\\' !in this
+
+    private fun reportRenameFailure(item: MediaItem) {
+        activity.runOnUiThread {
+            Log.w(TAG, "Could not rename ${item.uri}")
+            snacker(activity, activity.getString(org.videolan.vlc.R.string.unknown_error))
         }
     }
 

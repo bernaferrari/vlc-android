@@ -44,6 +44,10 @@ internal const val VLC_DONATION_URL = "https://www.videolan.org/contribute.html"
 internal fun MediaItem.isLocallyDeletable(): Boolean =
     !isStream && (uri.startsWith("file:") || uri.startsWith("content:"))
 
+/** SAF providers cannot reliably rename a document without a provider-specific grant. */
+internal fun MediaItem.isLocallyRenamable(): Boolean =
+    !isStream && uri.startsWith("file:")
+
 /**
  * Platform-owned actions the shared shell cannot perform in commonMain
  * (intents, SAF, JNI side-effects outside MediaRepository).

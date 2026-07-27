@@ -14,6 +14,7 @@ import platform.UIKit.UIAlertActionStyleDestructive
 import platform.UIKit.UIAlertController
 import platform.UIKit.UIAlertControllerStyleAlert
 import platform.UIKit.UIApplication
+import platform.UIKit.UITextField
 import platform.UIKit.UIViewController
 import platform.UIKit.popoverPresentationController
 
@@ -36,11 +37,13 @@ class IosShellHostCallbacks(
 
     override fun onContextAction(item: MediaItem, option: ContextOption) = when (option) {
         ContextOption.CTX_DELETE -> confirmDelete(item)
+        ContextOption.CTX_RENAME -> confirmRename(item)
         else -> Unit
     }
 
     override fun supportsContextAction(option: ContextOption): Boolean = when (option) {
         ContextOption.CTX_DELETE,
+        ContextOption.CTX_RENAME,
         ContextOption.CTX_INFORMATION,
         ContextOption.CTX_SHARE,
         -> true
@@ -100,6 +103,34 @@ class IosShellHostCallbacks(
                     presentAlert(
                         title = "Could not delete file",
                         message = "VLC can only delete files it imported into its Documents library.",
+                    )
+                }
+            },
+        )
+        host.presentViewController(alert, animated = true, completion = null)
+    }
+
+    private fun confirmRename(item: MediaItem) {
+        val host = hostViewController() ?: return
+        val alert = UIAlertController.alertControllerWithTitle(
+            title = "Rename file",
+            message = item.displayTitle,
+            preferredStyle = UIAlertControllerStyleAlert,
+        )
+        alert.addTextFieldWithConfigurationHandler { field ->
+            field.text = item.fileName ?: item.displayTitle
+            field.selectAll(null)
+        }
+        alert.addAction(
+            UIAlertAction.actionWithTitle("Cancel", style = UIAlertActionStyleCancel, handler = null),
+        )
+        alert.addAction(
+            UIAlertAction.actionWithTitle("Rename", style = UIAlertActionStyleDefault) {
+                val textField = alert.textFields?.firstOrNull() as? UITextField
+                if (!IosMediaLibrary.shared.renameImportedMedia(item.id, textField?.text.orEmpty())) {
+                    presentAlert(
+                        title = "Could not rename file",
+                        message = "Choose a new name for a file imported into VLC's Documents library.",
                     )
                 }
             },

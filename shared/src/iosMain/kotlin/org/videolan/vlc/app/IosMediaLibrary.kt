@@ -164,6 +164,49 @@ class IosMediaLibrary private constructor(
         return true
     }
 
+    /** Moves an app-owned Documents file and migrates every durable reference to it. */
+    fun renameImportedMedia(id: Long, proposedName: String): Boolean {
+        val media = items.value.firstOrNull { it.id == id } ?: return false
+        val name = proposedName.trim()
+        if (!name.isSafeFileName()) return false
+        val documents = documentsPath()?.let(::normalizedPath) ?: return false
+        val source = NSURL.URLWithString(media.uri) ?: return false
+        val sourcePath = source.path?.let(::normalizedPath) ?: return false
+        if (!source.isFileURL() || !sourcePath.isUnderAny(listOf(documents))) return false
+        val parent = sourcePath.substringBeforeLast('/', missingDelimiterValue = return false)
+        val destination = NSURL.fileURLWithPath("$parent/$name")
+        if (!NSFileManager.defaultManager.moveItemAtURL(source, toURL = destination, error = null)) return false
+        val destinationUri = destination.absoluteString ?: return false
+        updateMediaAfterFileRename(id, destinationUri, name)
+        return true
+    }
+
+    /** Kept separate from filesystem work so reference migration is deterministic and testable. */
+    internal fun updateMediaAfterFileRename(id: Long, uri: String, fileName: String) {
+        val original = items.value.firstOrNull { it.id == id } ?: return
+        val renamed = original.copy(
+            title = fileName.substringBeforeLast('.', missingDelimiterValue = fileName),
+            uri = uri,
+            fileName = fileName,
+        )
+        items.value = items.value.map { if (it.id == id) renamed else it }
+        playlists.value = playlists.value.mapValues { (_, playlist) ->
+            playlist.copy(items = playlist.items.map { item ->
+                if (item.uri == original.uri) renamed else item
+            })
+        }
+        history.value = history.value.map { entry ->
+            if (entry.item.uri == original.uri) entry.copy(item = renamed) else entry
+        }
+        savedPlaybackSession = savedPlaybackSession?.let { session ->
+            session.copy(playlist = session.playlist.copy(items = session.playlist.items.map { item ->
+                if (item.uri == original.uri) renamed else item
+            }))
+        }
+        rebuildFolderIndex()
+        persist()
+    }
+
     fun clear() {
         items.value = emptyList()
         playlists.value = emptyMap()
@@ -546,3 +589,6 @@ private fun String.isUnderAny(roots: List<String>): Boolean {
     val path = normalizedPath(this)
     return roots.any { root -> path == root || path.startsWith("$root/") }
 }
+
+private fun String.isSafeFileName(): Boolean =
+    isNotBlank() && this !in setOf(".", "..") && '/' !in this && '\\' !in this

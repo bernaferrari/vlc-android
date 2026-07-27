@@ -50,6 +50,24 @@ class IosMediaLibraryTest {
     }
 
     @Test
+    fun renameMigratesCatalogPlaylistHistoryAndSavedSessionReferences() = runTest {
+        val library = IosMediaLibrary.forTesting(InMemoryIosCatalogStore())
+        val original = video(id = 51_000, uri = "file:///Documents/original.mp4")
+        library.upsert(original)
+        val playlist = library.createPlaylist("Saved")
+        library.addToPlaylist(playlist.id, listOf(original))
+        library.markAsPlayed(original.id)
+        library.savePlaybackSession(Playlist(id = 0L, name = "Current", items = listOf(original)), 1_000, 100, 1f)
+
+        library.updateMediaAfterFileRename(original.id, "file:///Documents/renamed.mp4", "renamed.mp4")
+
+        assertEquals("file:///Documents/renamed.mp4", assertNotNull(library.getMedia(original.id)).uri)
+        assertEquals("file:///Documents/renamed.mp4", assertNotNull(library.getPlaylist(playlist.id)).items.single().uri)
+        assertEquals("file:///Documents/renamed.mp4", library.observeHistory(1).firstValue().single().item.uri)
+        assertEquals("file:///Documents/renamed.mp4", assertNotNull(library.playbackSession()).playlist.current?.uri)
+    }
+
+    @Test
     fun documentReconciliationRemovesMissingLocalFilesButKeepsStreamsAndPlaylistReferences() = runTest {
         val library = IosMediaLibrary.forTesting(InMemoryIosCatalogStore())
         val local = video(id = 60_001, uri = "file:///Documents/missing.mp4")
