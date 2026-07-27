@@ -54,7 +54,7 @@ vlc-android/
 | Remote access | Server (Ktor) + client module (web assets + `RemoteAccessClient` HTTP API) |
 | Permanent native islands | LibVLC video surface, medialibrary JNI, some system/widget/TV edges |
 
-More detail: `application/compose/README.md` (Android interop shim) and `ios/README.md` (KMP / iOS integration).
+More detail: `application/compose/README.md` (Android interop shim), `ios/README.md` (KMP / iOS integration), and [`shared/CAPABILITIES.md`](shared/CAPABILITIES.md) (target feature contract).
 
 ## minSdk policy
 

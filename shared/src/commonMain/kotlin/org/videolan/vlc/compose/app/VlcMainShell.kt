@@ -581,7 +581,7 @@ internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
                 ToggleRow("Video thumbnails", state.showVideoThumbs, vm::setShowVideoThumbs)
             }
         }
-        item {
+        if (state.supportsRemoteAccess) item {
             SettingsGroup(title = "Network") {
                 ToggleRow("Remote access server", state.remoteAccess, vm::setRemoteAccess)
             }

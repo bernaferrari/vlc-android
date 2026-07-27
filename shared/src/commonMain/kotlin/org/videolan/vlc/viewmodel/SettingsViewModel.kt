@@ -14,6 +14,8 @@ import org.videolan.tools.VIDEO_RESUME_PLAYBACK
 import org.videolan.tools.VlcPreferences
 import org.videolan.tools.VlcSettings
 import org.videolan.vlc.app.VlcKoin
+import org.videolan.vlc.platform.VlcPlatformCapabilities
+import org.videolan.vlc.platform.platformCapabilities
 
 data class SettingsUiState(
     val showVideoThumbs: Boolean = true,
@@ -22,6 +24,7 @@ data class SettingsUiState(
     val videoResume: Boolean = true,
     val incognito: Boolean = false,
     val remoteAccess: Boolean = false,
+    val supportsRemoteAccess: Boolean = false,
     val platformLabel: String = "",
 )
 
@@ -32,6 +35,7 @@ class SettingsViewModel(
     private val prefs: VlcPreferences? = runCatching {
         VlcKoin.get().get<VlcPreferences>()
     }.getOrNull(),
+    private val capabilities: VlcPlatformCapabilities = platformCapabilities,
 ) : VlcViewModel() {
 
     private val _state = MutableStateFlow(
@@ -41,7 +45,8 @@ class SettingsViewModel(
             audioResume = true,
             videoResume = true,
             incognito = VlcSettings.incognitoMode.value,
-            remoteAccess = VlcSettings.remoteAccessEnabled.value,
+            remoteAccess = if (capabilities.remoteAccessServer) VlcSettings.remoteAccessEnabled.value else false,
+            supportsRemoteAccess = capabilities.remoteAccessServer,
         )
     )
     val state: StateFlow<SettingsUiState> = _state.asStateFlow()
@@ -53,8 +58,10 @@ class SettingsViewModel(
         launch {
             VlcSettings.incognitoMode.collect { v -> _state.update { it.copy(incognito = v) } }
         }
-        launch {
-            VlcSettings.remoteAccessEnabled.collect { v -> _state.update { it.copy(remoteAccess = v) } }
+        if (capabilities.remoteAccessServer) {
+            launch {
+                VlcSettings.remoteAccessEnabled.collect { v -> _state.update { it.copy(remoteAccess = v) } }
+            }
         }
         launchIo {
             val p = prefs ?: return@launchIo
@@ -65,7 +72,11 @@ class SettingsViewModel(
                     videoResume = p.getBoolean(VIDEO_RESUME_PLAYBACK, true),
                     showVideoThumbs = p.getBoolean(SHOW_VIDEO_THUMBNAILS, true),
                     incognito = p.getBoolean(KEY_INCOGNITO, false),
-                    remoteAccess = p.getBoolean(KEY_ENABLE_REMOTE_ACCESS, false),
+                    remoteAccess = if (capabilities.remoteAccessServer) {
+                        p.getBoolean(KEY_ENABLE_REMOTE_ACCESS, false)
+                    } else {
+                        false
+                    },
                 )
             }
         }
@@ -91,8 +102,11 @@ class SettingsViewModel(
         _state.update { it.copy(incognito = value) }
     }
 
-    fun setRemoteAccess(value: Boolean) = setBool(KEY_ENABLE_REMOTE_ACCESS, value) {
-        _state.update { it.copy(remoteAccess = value) }
+    fun setRemoteAccess(value: Boolean) {
+        if (!capabilities.remoteAccessServer) return
+        setBool(KEY_ENABLE_REMOTE_ACCESS, value) {
+            _state.update { it.copy(remoteAccess = value) }
+        }
     }
 
     private fun setBool(key: String, value: Boolean, local: () -> Unit) {

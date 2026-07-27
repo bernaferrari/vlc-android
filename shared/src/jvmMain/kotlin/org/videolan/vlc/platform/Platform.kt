@@ -1,5 +1,7 @@
 package org.videolan.vlc.platform
 
+actual val platformCapabilities = VlcPlatformCapabilities(nativePlayback = false)
+
 actual object PlatformInfoProvider {
     actual val current: PlatformInfo = PlatformInfo(
         platform = Platform.JVM,

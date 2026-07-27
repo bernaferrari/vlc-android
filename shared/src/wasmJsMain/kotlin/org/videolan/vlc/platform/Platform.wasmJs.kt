@@ -1,5 +1,10 @@
 package org.videolan.vlc.platform
 
+actual val platformCapabilities = VlcPlatformCapabilities(
+    // Wasm currently ships the shared catalog/player UI, not a browser decode bridge.
+    nativePlayback = false,
+)
+
 actual object PlatformInfoProvider {
     actual val current: PlatformInfo = PlatformInfo(
         platform = Platform.UNKNOWN,

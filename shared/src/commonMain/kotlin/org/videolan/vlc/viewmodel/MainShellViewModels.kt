@@ -23,6 +23,8 @@ import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.MediaType
 import org.videolan.vlc.model.PlaylistInfo
 import org.videolan.vlc.player.PlaybackController
+import org.videolan.vlc.platform.VlcPlatformCapabilities
+import org.videolan.vlc.platform.platformCapabilities
 import org.videolan.vlc.repository.AudioEntity
 import org.videolan.vlc.repository.AudioEntityKind
 import org.videolan.vlc.repository.ContainerKind
@@ -1274,6 +1276,7 @@ class BrowserViewModel(
     private val repo: MediaRepository = mediaRepo(),
     private val player: PlaybackController = playback(),
     private val prefs: VlcPreferences? = prefsOrNull(),
+    private val capabilities: VlcPlatformCapabilities = platformCapabilities,
     initialDefaultAction: String? = null,
 ) : VlcViewModel() {
     private val _state = MutableStateFlow(
@@ -1320,6 +1323,7 @@ class BrowserViewModel(
     }
 
     fun openFolder(folder: MediaFolder) {
+        if (folder.kind == FolderKind.NETWORK && !capabilities.networkBrowsing) return
         val stack = _state.value.stack + folder
         _state.update {
             it.copy(
@@ -1340,8 +1344,13 @@ class BrowserViewModel(
 
     /** Restores a saved Navigation 3 browser route without replaying each ancestor. */
     fun restoreFolderStack(folders: List<MediaFolder>) {
-        if (folders == _state.value.stack) return
-        val folder = folders.lastOrNull()
+        val supportedFolders = if (capabilities.networkBrowsing) {
+            folders
+        } else {
+            folders.filterNot { it.kind == FolderKind.NETWORK }
+        }
+        if (supportedFolders == _state.value.stack) return
+        val folder = supportedFolders.lastOrNull()
         if (folder == null) {
             openRoot()
             return
@@ -1349,7 +1358,7 @@ class BrowserViewModel(
         _state.update {
             it.copy(
                 currentFolder = folder,
-                stack = folders,
+                stack = supportedFolders,
                 loading = true,
                 favorites = emptyList(),
                 networkRoots = emptyList(),
@@ -1469,7 +1478,7 @@ class BrowserViewModel(
             combine(
                 repo.observeBrowserFavorites(),
                 repo.observeFolders(null),
-                repo.observeNetworkRoots(),
+                if (capabilities.networkBrowsing) repo.observeNetworkRoots() else flowOf(emptyList()),
             ) { favs, storage, network -> Triple(favs, storage, network) }
                 .catch { e -> _state.update { it.copy(loading = false, error = e.message) } }
                 .collectLatest { (favs, storage, network) ->

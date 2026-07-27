@@ -22,6 +22,24 @@ data class PlatformInfo(
 )
 
 /**
+ * Product capabilities that differ by target, independent from the shared Compose surface.
+ *
+ * A capability being false is a promise: shared code must neither render its entry point nor
+ * dispatch its bridge action. Runtime readiness (for example, a selected Android activity being
+ * PiP-capable) remains the responsibility of the corresponding native bridge.
+ */
+data class VlcPlatformCapabilities(
+    val nativePlayback: Boolean,
+    val pictureInPicture: Boolean = false,
+    val rendererSelection: Boolean = false,
+    val networkBrowsing: Boolean = false,
+    val remoteAccessServer: Boolean = false,
+)
+
+/** Target-owned capability declaration used by shared UI and controller guards. */
+expect val platformCapabilities: VlcPlatformCapabilities
+
+/**
  * Provider for platform-specific information.
  * Each target must supply an [actual] implementation.
  */

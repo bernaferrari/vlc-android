@@ -2,6 +2,14 @@ package org.videolan.vlc.platform
 
 import android.os.Build
 
+actual val platformCapabilities = VlcPlatformCapabilities(
+    nativePlayback = true,
+    pictureInPicture = true,
+    rendererSelection = true,
+    networkBrowsing = true,
+    remoteAccessServer = true,
+)
+
 actual object PlatformInfoProvider {
     actual val current: PlatformInfo = PlatformInfo(
         platform = Platform.ANDROID,

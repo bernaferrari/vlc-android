@@ -19,6 +19,8 @@ import org.videolan.vlc.platform.NoOpRendererBridge
 import org.videolan.vlc.platform.PipController
 import org.videolan.vlc.platform.RendererBridge
 import org.videolan.vlc.platform.SessionActions
+import org.videolan.vlc.platform.VlcPlatformCapabilities
+import org.videolan.vlc.platform.platformCapabilities
 import org.videolan.vlc.repository.HistoryRepository
 
 /**
@@ -40,6 +42,7 @@ class PlaybackController(
     private val renderers: RendererBridge = runCatching {
         VlcKoin.get().get<RendererBridge>()
     }.getOrDefault(NoOpRendererBridge),
+    private val capabilities: VlcPlatformCapabilities = platformCapabilities,
     private val history: HistoryRepository? = runCatching {
         VlcKoin.get().get<HistoryRepository>()
     }.getOrNull(),
@@ -105,11 +108,18 @@ class PlaybackController(
     fun setRate(rate: Float) = service.setRate(rate)
     fun getRate(): Float = service.getRate()
 
-    fun enterPip(): Boolean = pip.enterPip()
-    fun exitPip() = pip.exitPip()
-    fun startRendererDiscovery() = renderers.startDiscovery()
-    fun stopRendererDiscovery() = renderers.stopDiscovery()
-    fun selectRenderer(id: String?) = renderers.selectRenderer(id)
+    fun enterPip(): Boolean = capabilities.pictureInPicture && pip.isSupported && pip.enterPip()
+    fun exitPip() {
+        if (capabilities.pictureInPicture) pip.exitPip()
+    }
+    fun startRendererDiscovery() {
+        if (capabilities.rendererSelection) renderers.startDiscovery()
+    }
+    fun stopRendererDiscovery() {
+        if (capabilities.rendererSelection) renderers.stopDiscovery()
+    }
+    fun selectRenderer(id: String?): Boolean =
+        capabilities.rendererSelection && renderers.selectRenderer(id)
     fun append(items: List<MediaItem>) = service.append(items)
     fun insertNext(items: List<MediaItem>) = service.insertNext(items)
     fun insertAt(index: Int, item: MediaItem) = service.insertAt(index, item)
