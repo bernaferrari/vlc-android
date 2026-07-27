@@ -25,6 +25,12 @@ class IosShellHostCallbacks(
         IosMediaImportController.presentMediaImport()
     }
 
+    override fun supportsSubtitleImport(): Boolean = true
+
+    override fun onImportSubtitle(onPicked: (String) -> Unit) {
+        IosMediaImportController.presentSubtitleImport(onPicked)
+    }
+
     override fun onContextAction(item: MediaItem, option: ContextOption) = Unit
 
     override fun supportsContextAction(option: ContextOption): Boolean = when (option) {

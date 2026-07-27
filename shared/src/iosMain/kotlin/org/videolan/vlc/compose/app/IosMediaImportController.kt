@@ -6,6 +6,7 @@ package org.videolan.vlc.compose.app
  */
 interface IosMediaImportHandler {
     fun presentMediaImport()
+    fun presentSubtitleImport(onPicked: (String) -> Unit)
 }
 
 object IosMediaImportController {
@@ -17,5 +18,9 @@ object IosMediaImportController {
 
     fun presentMediaImport() {
         handler?.presentMediaImport()
+    }
+
+    fun presentSubtitleImport(onPicked: (String) -> Unit) {
+        handler?.presentSubtitleImport(onPicked)
     }
 }

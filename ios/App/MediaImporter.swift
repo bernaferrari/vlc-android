@@ -22,6 +22,7 @@ final class MediaImporter: NSObject {
     // Kotlin typealiases are not exported to Objective-C/Swift; use the concrete public class.
     private let repo = IosMediaLibrary.companion.shared
     private var nextId: Int64 = 50_000
+    private var subtitlePickHandler: ((String) -> Void)?
 
     // MARK: - Public API
 
@@ -84,6 +85,19 @@ final class MediaImporter: NSObject {
         if let flac = UTType(filenameExtension: "flac") { types.append(flac) }
         let picker = UIDocumentPickerViewController(forOpeningContentTypes: types, asCopy: true)
         picker.allowsMultipleSelection = true
+        picker.delegate = self
+        presenter.present(picker, animated: true)
+    }
+
+    func presentSubtitlePicker(onPicked: @escaping (String) -> Void) {
+        guard let presenter = activePresenter() else { return }
+        var types: [UTType] = [.plainText]
+        ["srt", "vtt", "ass", "ssa", "sub", "ttml"].forEach {
+            if let type = UTType(filenameExtension: $0) { types.append(type) }
+        }
+        subtitlePickHandler = onPicked
+        let picker = UIDocumentPickerViewController(forOpeningContentTypes: types, asCopy: true)
+        picker.allowsMultipleSelection = false
         picker.delegate = self
         presenter.present(picker, animated: true)
     }
@@ -324,6 +338,13 @@ final class MediaImporter: NSObject {
 extension MediaImporter: UIDocumentPickerDelegate {
     nonisolated func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         Task { @MainActor in
+            if let handler = self.subtitlePickHandler {
+                self.subtitlePickHandler = nil
+                if let url = urls.first {
+                    handler(url.absoluteString)
+                }
+                return
+            }
             let imported = self.importSecurityScoped(urls)
             self.merge(imported)
             if imported.isEmpty { self.showNoSupportedMediaAlert() }

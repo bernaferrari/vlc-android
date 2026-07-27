@@ -60,11 +60,30 @@ class AndroidShellHostCallbacks(
             ActivityResultContracts.OpenMultipleDocuments(),
             ::importMedia,
         )
+    private var subtitleResult: ((String) -> Unit)? = null
+    private val subtitleImportLauncher: ActivityResultLauncher<Array<String>> =
+        activity.activityResultRegistry.register(
+            "vlc-shared-subtitle-import-${System.identityHashCode(this)}",
+            ActivityResultContracts.OpenDocument(),
+        ) { uri ->
+            val callback = subtitleResult
+            subtitleResult = null
+            uri?.let { picked ->
+                runCatching {
+                    activity.contentResolver.takePersistableUriPermission(
+                        picked,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                    )
+                }
+                callback?.invoke(picked.toString())
+            }
+        }
 
     init {
         activity.lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onDestroy(owner: LifecycleOwner) {
                 mediaImportLauncher.unregister()
+                subtitleImportLauncher.unregister()
                 owner.lifecycle.removeObserver(this)
             }
         })
@@ -78,6 +97,17 @@ class AndroidShellHostCallbacks(
         runCatching {
             mediaImportLauncher.launch(arrayOf("audio/*", "video/*"))
         }.onFailure { Log.w(TAG, "Unable to open media picker", it) }
+    }
+
+    override fun supportsSubtitleImport(): Boolean = true
+
+    override fun onImportSubtitle(onPicked: (String) -> Unit) {
+        subtitleResult = onPicked
+        runCatching { subtitleImportLauncher.launch(arrayOf("text/*", "application/x-subrip", "application/octet-stream")) }
+            .onFailure { error ->
+                subtitleResult = null
+                Log.w(TAG, "Unable to open subtitle picker", error)
+            }
     }
 
     override fun onContextAction(item: MediaItem, option: ContextOption) {

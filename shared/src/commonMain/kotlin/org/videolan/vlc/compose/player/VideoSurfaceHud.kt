@@ -102,6 +102,8 @@ fun VideoSurfaceWithHud(
     onSetSleepTimer: (Long, Boolean) -> Unit = { _, _ -> },
     onClearSleepTimer: () -> Unit = {},
     onSelectChapter: (Int) -> Unit = {},
+    showSubtitleImport: Boolean = false,
+    onImportSubtitle: () -> Unit = {},
     onClose: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     surface: @Composable BoxScope.(chromeVisible: Boolean) -> Unit,
@@ -203,6 +205,8 @@ fun VideoSurfaceWithHud(
             onSetSleepTimer = onSetSleepTimer,
             onClearSleepTimer = onClearSleepTimer,
             onSelectChapter = onSelectChapter,
+            showSubtitleImport = showSubtitleImport,
+            onImportSubtitle = onImportSubtitle,
             onDismiss = { optionsVisible = false },
         )
     }

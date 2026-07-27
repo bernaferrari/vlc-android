@@ -56,6 +56,7 @@ import vlc_android.shared.generated.resources.sleep_title
 import vlc_android.shared.generated.resources.wait_before_sleep
 import vlc_android.shared.generated.resources.cancel
 import vlc_android.shared.generated.resources.go_to_chapter
+import vlc_android.shared.generated.resources.subtitles
 import vlc_android.shared.generated.resources.ab_repeat_reset
 import vlc_android.shared.generated.resources.ab_repeat_stop
 import vlc_android.shared.generated.resources.abrepeat_add_first_marker
@@ -110,6 +111,8 @@ internal fun PlaybackOptionsSheet(
     onSetSleepTimer: (Long, Boolean) -> Unit,
     onClearSleepTimer: () -> Unit,
     onSelectChapter: (Int) -> Unit,
+    showSubtitleImport: Boolean,
+    onImportSubtitle: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     var previewRate by remember(rate) { mutableFloatStateOf(rate) }
@@ -276,6 +279,11 @@ internal fun PlaybackOptionsSheet(
                         fontWeight = FontWeight.SemiBold,
                     )
                     TrackChoices(tracks.subtitles, onSelectSubtitleTrack)
+                }
+            }
+            if (showSubtitleImport) {
+                TextButton(onClick = onImportSubtitle, modifier = Modifier.align(Alignment.Start)) {
+                    Text(stringResource(Res.string.subtitles))
                 }
             }
 

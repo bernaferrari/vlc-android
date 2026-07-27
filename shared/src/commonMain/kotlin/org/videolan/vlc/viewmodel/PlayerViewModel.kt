@@ -191,6 +191,8 @@ class PlayerViewModel(
 
     fun selectChapter(index: Int) = playback.selectChapter(index)
 
+    fun loadExternalSubtitle(uri: String): Boolean = playback.loadExternalSubtitle(uri)
+
     fun cycleRepeat() {
         val next = when (_state.value.repeatMode) {
             RepeatMode.NONE -> RepeatMode.ALL

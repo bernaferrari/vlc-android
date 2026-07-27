@@ -497,6 +497,7 @@ fun VlcMainShell(
                             viewModel = playerVm,
                             onClose = ::popRoute,
                             playerSurface = playerSurface,
+                            hostCallbacks = hostCallbacks,
                         )
                     }
                     entry<SettingsRoute>(metadata = detailTransitionMetadata) {

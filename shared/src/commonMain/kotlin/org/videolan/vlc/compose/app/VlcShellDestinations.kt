@@ -234,6 +234,7 @@ internal fun PlayerDestination(
     viewModel: PlayerViewModel,
     onClose: () -> Unit,
     playerSurface: PlayerSurface = FallbackPlayerSurface,
+    hostCallbacks: ShellHostCallbacks,
 ) {
     VideoSurfaceWithHud(
         title = state.title,
@@ -278,6 +279,8 @@ internal fun PlayerDestination(
         onSetSleepTimer = viewModel::setSleepTimer,
         onClearSleepTimer = viewModel::clearSleepTimer,
         onSelectChapter = viewModel::selectChapter,
+        showSubtitleImport = hostCallbacks.supportsSubtitleImport(),
+        onImportSubtitle = { hostCallbacks.onImportSubtitle(viewModel::loadExternalSubtitle) },
         onClose = onClose,
         modifier = modifier,
     ) { chromeVisible -> playerSurface(state, chromeVisible) }

@@ -17,4 +17,10 @@ final class IosMediaImportBridge: NSObject, IosMediaImportHandler {
             MediaImporter.shared.presentImportOptions()
         }
     }
+
+    func presentSubtitleImport(onPicked: @escaping (String) -> Void) {
+        Task { @MainActor in
+            MediaImporter.shared.presentSubtitlePicker(onPicked: onPicked)
+        }
+    }
 }

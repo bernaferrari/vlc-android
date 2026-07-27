@@ -63,6 +63,9 @@ fun interface ShellHostCallbacks {
     fun supportsMediaImport(): Boolean = false
     /** Opens the host's media-import chooser. The permanent trigger stays in the shared shell. */
     fun onImportMedia() = Unit
+    /** Opens a native subtitle-only document picker and returns a readable URI. */
+    fun supportsSubtitleImport(): Boolean = false
+    fun onImportSubtitle(onPicked: (String) -> Unit) = Unit
 
     companion object {
         val NoOp = ShellHostCallbacks { _, _ -> }
