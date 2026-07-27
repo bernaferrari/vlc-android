@@ -15,12 +15,10 @@ import org.videolan.vlc.player.PlaybackState
 import org.w3c.dom.HTMLElement
 
 /**
- * Browser playback adapter for user-imported blob URLs.
+ * Browser playback adapter for user-imported files and browser-decodable streams.
  *
- * It deliberately falls back to deterministic state-only playback for the
- * bundled demo catalog: demo URLs are not presented as files the browser can
- * decode. Real browser-selected files are driven by HTML media elements while
- * the playlist, HUD, and state contract remain entirely shared.
+ * The playlist, HUD, and state contract stay shared. A source the browser cannot
+ * decode fails visibly instead of being represented as pretend state-only playback.
  */
 internal class BrowserPlaybackService : PlaybackService {
     private val _state = MutableStateFlow<PlaybackState>(PlaybackState.Idle)
@@ -62,12 +60,11 @@ internal class BrowserPlaybackService : PlaybackService {
         notifyPlaylist()
         _progress.value = Progress(length = item.duration)
         notifyProgress()
-        if (item.isBrowserMedia()) {
+        if (item.isBrowserPlayableMedia()) {
             emitState(PlaybackState.Loading)
             mediaElement?.let(::attachCurrentItem)
         } else {
-            // Keep previews/tests deterministic when no browser-decodable file was selected.
-            emitState(PlaybackState.Playing(item, _progress.value))
+            reportPlaybackFailure("This media source cannot be played in a browser.")
         }
     }
 
@@ -78,7 +75,11 @@ internal class BrowserPlaybackService : PlaybackService {
 
     override fun resume() {
         val item = currentItem() ?: return
-        if (item.isBrowserMedia()) mediaElement?.let { playHtmlMedia(it, ::reportPlaybackFailure) }
+        if (!item.isBrowserPlayableMedia()) {
+            reportPlaybackFailure("This media source cannot be played in a browser.")
+            return
+        }
+        mediaElement?.let { playHtmlMedia(it, ::reportPlaybackFailure) }
         emitState(PlaybackState.Playing(item, _progress.value))
     }
 
@@ -214,7 +215,7 @@ internal class BrowserPlaybackService : PlaybackService {
     }
 
     private fun attachCurrentItem(element: HTMLElement) {
-        val item = currentItem()?.takeIf(MediaItem::isBrowserMedia) ?: return
+        val item = currentItem()?.takeIf(MediaItem::isBrowserPlayableMedia) ?: return
         setHtmlMediaSource(element, item.uri)
         setHtmlMediaVolume(element, volume)
         setHtmlMediaRate(element, rate)
@@ -227,7 +228,7 @@ internal class BrowserPlaybackService : PlaybackService {
     }
 
     private fun syncProgressFromElement(time: Long, duration: Long, playing: Boolean) {
-        val item = currentItem()?.takeIf(MediaItem::isBrowserMedia) ?: return
+        val item = currentItem()?.takeIf(MediaItem::isBrowserPlayableMedia) ?: return
         val progress = Progress(
             time = time.coerceAtLeast(0L),
             length = duration.takeIf { it > 0L } ?: item.duration,
@@ -293,7 +294,11 @@ internal object BrowserMediaElementHost {
     }
 }
 
-private fun MediaItem.isBrowserMedia(): Boolean = uri.startsWith("blob:")
+internal fun MediaItem.isBrowserPlayableMedia(): Boolean = uri.isBrowserPlayableUri()
+
+/** Browsers can decode local object URLs and CORS-permitted HTTP(S) media only. */
+internal fun String.isBrowserPlayableUri(): Boolean =
+    startsWith("blob:") || startsWith("https://") || startsWith("http://")
 
 private fun setHtmlMediaSource(element: HTMLElement, source: String): Unit = js(
     "{ if (element.src !== source) { element.src = source; element.load?.(); } }",

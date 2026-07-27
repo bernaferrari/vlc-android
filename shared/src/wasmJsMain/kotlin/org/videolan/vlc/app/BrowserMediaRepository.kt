@@ -18,29 +18,33 @@ import org.w3c.files.File
  *
  * Imported bytes are stored in OPFS when the browser exposes it. Only compact
  * metadata lives in localStorage, and every session reconstructs fresh blob
- * URLs from OPFS; stale entries are never presented as playable files. The
- * deterministic demo catalog remains alongside imported media for previews and
- * first-run exploration.
+ * URLs from OPFS; stale entries are never presented as playable files. Demo
+ * media is opt-in for previews and tests only, never shown to a real user.
  */
 internal class BrowserMediaRepository(
     private val catalogStorage: BrowserMediaCatalogStorage = LocalStorageBrowserMediaCatalogStorage,
     private val fileStore: BrowserMediaFileStore = OpfsBrowserMediaFileStore,
-    includeDemoCatalog: Boolean = true,
+    includeDemoCatalog: Boolean = false,
 ) : MediaRepository {
     private val catalogEntries = decodeBrowserMediaCatalog(catalogStorage.read()).toMutableList()
     private val items = MutableStateFlow(if (includeDemoCatalog) FakeCatalog.items else emptyList())
     private val recent = MutableStateFlow(emptyList<MediaItem>())
+    // Keep the browser File handle as long as the catalog row is live. It lets Web Share hand
+    // receivers the actual media bytes, rather than a process-local blob: URL.
+    private val shareableFiles = mutableMapOf<Long, File>()
     private var nextId = (catalogEntries.maxOfOrNull(BrowserStoredMedia::id) ?: 10_000L) + 1L
 
     init {
         // A persisted entry becomes visible only after its OPFS file is opened.
         // This avoids a convincing-looking row that would fail as soon as it is played.
         catalogEntries.toList().forEach { entry ->
-            fileStore.restore(entry.fileKey) { objectUrl ->
+            fileStore.restore(entry.fileKey) { objectUrl, file ->
                 if (objectUrl == null) {
                     catalogEntries.removeAll { it.fileKey == entry.fileKey }
+                    shareableFiles.remove(entry.id)
                     saveCatalog()
                 } else {
+                    file?.let { shareableFiles[entry.id] = it }
                     addOrReplace(entry.toMediaItem(objectUrl))
                 }
             }
@@ -62,8 +66,9 @@ internal class BrowserMediaRepository(
                 lastModified = browserFileLastModified(file),
                 fileName = file.name,
             )
-            fileStore.persist(file, entry.fileKey) { objectUrl, durable ->
+            fileStore.persist(file, entry.fileKey) { objectUrl, persistedFile, durable ->
                 if (objectUrl == null) return@persist
+                persistedFile?.let { shareableFiles[id] = it }
                 addOrReplace(entry.toMediaItem(objectUrl))
                 if (durable) {
                     catalogEntries.removeAll { it.fileKey == entry.fileKey }
@@ -72,6 +77,12 @@ internal class BrowserMediaRepository(
                 }
             }
         }
+    }
+
+    /** Shares a selected file when the browser supports file sharing, with a useful URL/text fallback. */
+    fun share(item: MediaItem) {
+        val shareText = item.uri.takeIf(String::isBrowserShareableLink) ?: item.displayTitle
+        shareBrowserMedia(item.displayTitle, shareText, shareableFiles[item.id])
     }
 
     override fun observeMedia(type: MediaType): Flow<List<MediaItem>> =
@@ -205,16 +216,21 @@ internal object LocalStorageBrowserMediaCatalogStorage : BrowserMediaCatalogStor
 
 /** OPFS stores the actual file; an object URL is returned only while this page is alive. */
 internal interface BrowserMediaFileStore {
-    fun persist(file: File, fileKey: String, onComplete: (objectUrl: String?, durable: Boolean) -> Unit)
-    fun restore(fileKey: String, onComplete: (objectUrl: String?) -> Unit)
+    fun persist(
+        file: File,
+        fileKey: String,
+        onComplete: (objectUrl: String?, file: File?, durable: Boolean) -> Unit,
+    )
+
+    fun restore(fileKey: String, onComplete: (objectUrl: String?, file: File?) -> Unit)
 }
 
 internal object OpfsBrowserMediaFileStore : BrowserMediaFileStore {
-    override fun persist(file: File, fileKey: String, onComplete: (String?, Boolean) -> Unit) {
+    override fun persist(file: File, fileKey: String, onComplete: (String?, File?, Boolean) -> Unit) {
         persistBrowserMediaFile(file, fileKey, onComplete)
     }
 
-    override fun restore(fileKey: String, onComplete: (String?) -> Unit) {
+    override fun restore(fileKey: String, onComplete: (String?, File?) -> Unit) {
         restoreBrowserMediaFile(fileKey, onComplete)
     }
 }
@@ -377,7 +393,7 @@ private fun observeBrowserPickerCancellation(input: HTMLInputElement, onCancel: 
 private fun persistBrowserMediaFile(
     file: File,
     fileKey: String,
-    onComplete: (String?, Boolean) -> Unit,
+    onComplete: (String?, File?, Boolean) -> Unit,
 ): Unit = js(
     """{
         (async () => {
@@ -388,19 +404,19 @@ private fun persistBrowserMediaFile(
                 const writable = await handle.createWritable();
                 await writable.write(file);
                 await writable.close();
-                onComplete(globalThis.URL?.createObjectURL?.(file) ?? null, true);
+                onComplete(globalThis.URL?.createObjectURL?.(file) ?? null, file, true);
             } catch (_) {
                 try {
-                    onComplete(globalThis.URL?.createObjectURL?.(file) ?? null, false);
+                    onComplete(globalThis.URL?.createObjectURL?.(file) ?? null, file, false);
                 } catch (_) {
-                    onComplete(null, false);
+                    onComplete(null, null, false);
                 }
             }
         })();
     }""",
 )
 
-private fun restoreBrowserMediaFile(fileKey: String, onComplete: (String?) -> Unit): Unit = js(
+private fun restoreBrowserMediaFile(fileKey: String, onComplete: (String?, File?) -> Unit): Unit = js(
     """{
         (async () => {
             try {
@@ -408,13 +424,50 @@ private fun restoreBrowserMediaFile(fileKey: String, onComplete: (String?) -> Un
                 if (!root) throw new Error('OPFS unavailable');
                 const handle = await root.getFileHandle(fileKey);
                 const file = await handle.getFile();
-                onComplete(globalThis.URL?.createObjectURL?.(file) ?? null);
+                onComplete(globalThis.URL?.createObjectURL?.(file) ?? null, file);
             } catch (_) {
-                onComplete(null);
+                onComplete(null, null);
             }
         })();
     }""",
 )
+
+/** Prefer the actual File where supported; never expose a process-local blob URL as share text. */
+private fun shareBrowserMedia(title: String, text: String, file: File?): Unit = js(
+    """{
+        const navigator = globalThis.navigator;
+        const fallback = () => {
+            const value = text || title;
+            const writeText = navigator?.clipboard?.writeText;
+            if (typeof writeText === 'function') {
+                writeText.call(navigator.clipboard, value)
+                    .catch(() => globalThis.prompt?.('Copy this media to share it:', value));
+            } else {
+                globalThis.prompt?.('Copy this media to share it:', value);
+            }
+        };
+        const share = navigator?.share;
+        if (typeof share !== 'function') {
+            fallback();
+            return;
+        }
+        try {
+            const canShareFiles = file != null &&
+                typeof navigator?.canShare === 'function' && navigator.canShare({ files: [file] });
+            const payload = canShareFiles ? { title, files: [file] } : { title, text };
+            const result = share.call(navigator, payload);
+            result?.catch?.(error => {
+                // Cancelling the native sheet is intentional; only capability failures need a fallback.
+                if (error?.name !== 'AbortError') fallback();
+            });
+        } catch (_) {
+            fallback();
+        }
+    }""",
+)
+
+private fun String.isBrowserShareableLink(): Boolean =
+    startsWith("https://") || startsWith("http://")
 
 private const val WEB_MEDIA_CATALOG_KEY = "org.videolan.vlc.web.media-catalog"
 private const val BROWSER_MEDIA_CATALOG_VERSION = "vlc-web-media-v2"

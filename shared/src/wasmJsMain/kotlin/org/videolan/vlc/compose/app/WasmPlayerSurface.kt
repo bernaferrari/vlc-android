@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.WebElementView
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.app.BrowserMediaElementHost
+import org.videolan.vlc.app.isBrowserPlayableUri
 import org.videolan.vlc.compose.player.PlayerArtworkFallback
 import org.videolan.vlc.compose.player.PlayerSurface
 import org.w3c.dom.HTMLElement
@@ -24,10 +25,10 @@ import org.w3c.dom.HTMLElement
  */
 val WasmPlayerSurface: PlayerSurface = { state ->
     Box(Modifier.fillMaxSize()) {
-        if (!state.uri.startsWith("blob:") || !state.hasVideoOutput) {
+        if (!state.uri.isBrowserPlayableUri() || !state.hasVideoOutput) {
             PlayerArtworkFallback()
         }
-        if (state.uri.startsWith("blob:") && state.hasVideoOutput) {
+        if (state.uri.isBrowserPlayableUri() && state.hasVideoOutput) {
             key(state.hasVideoOutput) {
                 WebElementView(
                     factory = { createBrowserMediaElement(state.hasVideoOutput) },

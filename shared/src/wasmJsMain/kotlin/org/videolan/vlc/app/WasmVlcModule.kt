@@ -18,12 +18,12 @@ import org.videolan.vlc.repository.StubHistoryRepository
 import org.videolan.vlc.repository.StubPlaylistRepository
 
 /**
- * Wasm keeps deterministic demo content but augments it with user-selected OPFS media and an
- * HTML media element bridge. The common library/player UI remains exactly the same as mobile.
+ * Browser media is user-owned: OPFS keeps imported files durable and an HTML media element
+ * decodes them. Demo rows remain available only to explicit previews/tests, never the app graph.
  */
 actual val platformModule: Module = module {
     single<DataStore<Preferences>> { BrowserPreferencesDataStore() }
-    single { BrowserMediaRepository() }
+    single { BrowserMediaRepository(includeDemoCatalog = false) }
     single<MediaRepository> { get<BrowserMediaRepository>() }
     single<PlaylistRepository> { StubPlaylistRepository() }
     single<HistoryRepository> { StubHistoryRepository() }

@@ -172,4 +172,5 @@ data class Playlist(
     }
 }
 
-private fun String.getFileName(): String = substringBeforeLast('/')
+private fun String.getFileName(): String =
+    substringBefore('?').substringBefore('#').trimEnd('/').substringAfterLast('/')

@@ -16,7 +16,8 @@ fun containsName(list: List<String>, text: String) = list.indexOfLast { it.endsW
 
 fun String.removeFileScheme() = if (this.startsWith("file://")) this.drop(7) else this
 
-fun String.getFileNameFromPath() = substringBeforeLast('/')
+fun String.getFileNameFromPath() =
+    substringBefore('?').substringBefore('#').trimEnd('/').substringAfterLast('/')
 
 const val FORBIDDEN_CHARS = "ha]/m(?-*"
 

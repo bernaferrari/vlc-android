@@ -7,10 +7,30 @@ import org.videolan.vlc.model.MediaType
 import org.w3c.files.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class BrowserMediaRepositoryTest {
+    @Test
+    fun production_repository_starts_with_only_user_media() = runTest {
+        val repository = BrowserMediaRepository(
+            catalogStorage = RecordingCatalogStorage(),
+            fileStore = RecordingFileStore(),
+        )
+
+        assertEquals(0, repository.count(MediaType.ALL))
+    }
+
+    @Test
+    fun browser_playable_uris_are_limited_to_local_objects_and_http_streams() {
+        assertTrue("blob:vlc-import".isBrowserPlayableUri())
+        assertTrue("https://media.example.org/live.m3u8".isBrowserPlayableUri())
+        assertTrue("http://media.example.org/live.ogg".isBrowserPlayableUri())
+        assertFalse("file:///Documents/local.mkv".isBrowserPlayableUri())
+        assertFalse("rtsp://camera.example.org/live".isBrowserPlayableUri())
+    }
+
     @Test
     fun catalog_snapshot_roundTrips_escaped_metadata() {
         val original = listOf(
@@ -111,13 +131,17 @@ class BrowserMediaRepositoryTest {
     private class RecordingFileStore : BrowserMediaFileStore {
         private val fileKeys = mutableSetOf<String>()
 
-        override fun persist(file: File, fileKey: String, onComplete: (String?, Boolean) -> Unit) {
+        override fun persist(file: File, fileKey: String, onComplete: (String?, File?, Boolean) -> Unit) {
             fileKeys += fileKey
-            onComplete("blob:import-$fileKey", true)
+            onComplete("blob:import-$fileKey", file, true)
         }
 
-        override fun restore(fileKey: String, onComplete: (String?) -> Unit) {
-            onComplete(fileKey.takeIf(fileKeys::contains)?.let { "blob:restored-$it" })
+        override fun restore(fileKey: String, onComplete: (String?, File?) -> Unit) {
+            val present = fileKey.takeIf(fileKeys::contains)
+            onComplete(
+                present?.let { "blob:restored-$it" },
+                present?.let { browserFile("$it.ogg", "audio/ogg") },
+            )
         }
     }
 }

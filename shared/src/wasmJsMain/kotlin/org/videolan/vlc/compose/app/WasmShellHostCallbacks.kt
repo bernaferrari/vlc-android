@@ -29,35 +29,23 @@ class WasmShellHostCallbacks : ShellHostCallbacks {
     }
 
     override fun onOpenInfo(item: MediaItem) {
-        showBrowserDialog(
-            listOfNotNull(
-                item.displayTitle.takeIf(String::isNotBlank),
-                item.artist?.takeIf(String::isNotBlank),
-                item.album?.takeIf(String::isNotBlank),
-                item.uri.takeIf(String::isNotBlank),
-            ).joinToString("\n"),
-        )
+        showBrowserDialog(item.infoPresentation().dialogMessage())
     }
 
     override fun onShare(item: MediaItem) {
-        // A prompt is deliberately universal: Web Share and Clipboard APIs are both optional.
-        promptForCopy("Copy this media location to share it:", item.uri.ifBlank { item.displayTitle })
+        KoinPlatform.getKoin().get<BrowserMediaRepository>().share(item)
     }
 
     override fun onOpenAbout() {
-        showBrowserDialog("VLC Web uses the shared Compose Multiplatform media-library shell.")
+        showBrowserDialog(SHARED_ABOUT_MESSAGE)
     }
 
     override fun onOpenDonate() {
-        openExternalUrl("https://www.videolan.org/contribute.html")
+        openExternalUrl(VLC_DONATION_URL)
     }
 }
 
 private fun showBrowserDialog(message: String): Unit = js("{ globalThis.alert?.(message); }")
-
-private fun promptForCopy(message: String, value: String): Unit = js(
-    "{ globalThis.prompt?.(message, value); }",
-)
 
 private fun openExternalUrl(url: String): Unit = js(
     "{ globalThis.open?.(url, '_blank', 'noopener,noreferrer'); }",

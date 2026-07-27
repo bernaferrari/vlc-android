@@ -6,6 +6,36 @@ import org.videolan.vlc.model.PlaylistInfo
 import org.videolan.vlc.util.ContextOption
 
 /**
+ * Platform-neutral content for the native information presentation. Keeping this
+ * here makes the sheet/dialog on every host describe the exact same media item.
+ */
+internal data class MediaInfoPresentation(
+    val title: String,
+    val details: String,
+)
+
+internal fun MediaItem.infoPresentation(): MediaInfoPresentation {
+    val title = displayTitle.ifBlank { fileName.orEmpty().ifBlank { uri } }
+    return MediaInfoPresentation(
+        title = title,
+        details = listOfNotNull(
+            artist?.takeIf(String::isNotBlank),
+            album?.takeIf(String::isNotBlank),
+            uri.takeIf(String::isNotBlank),
+        ).joinToString("\n"),
+    )
+}
+
+internal fun MediaInfoPresentation.dialogMessage(): String =
+    listOf(title, details).filter(String::isNotBlank).joinToString("\n")
+
+/** Shared wording for host-owned About affordances; the product chrome is not platform-branded. */
+internal const val SHARED_ABOUT_MESSAGE =
+    "VLC's media library and player are shared across platforms."
+
+internal const val VLC_DONATION_URL = "https://www.videolan.org/contribute.html"
+
+/**
  * Platform-owned actions the shared shell cannot perform in commonMain
  * (intents, SAF, JNI side-effects outside MediaRepository).
  *
