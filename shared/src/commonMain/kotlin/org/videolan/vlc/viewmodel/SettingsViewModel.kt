@@ -5,6 +5,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import org.videolan.tools.AUDIO_RESUME_PLAYBACK
+import org.videolan.tools.ALBUMS_SHOW_TRACK_NUMBER
+import org.videolan.tools.BROWSER_SHOW_HIDDEN_FILES
 import org.videolan.tools.KEY_ENABLE_REMOTE_ACCESS
 import org.videolan.tools.KEY_INCOGNITO
 import org.videolan.tools.KEY_BROWSE_NETWORK
@@ -28,6 +30,8 @@ data class SettingsUiState(
     val remoteAccess: Boolean = false,
     val supportsRemoteAccess: Boolean = false,
     val showHeaders: Boolean = true,
+    val showTrackNumbers: Boolean = true,
+    val showHiddenFiles: Boolean = false,
     val browseNetwork: Boolean = true,
     val supportsNetworkBrowsing: Boolean = false,
     val platformLabel: String = "",
@@ -53,6 +57,8 @@ class SettingsViewModel(
             remoteAccess = if (capabilities.remoteAccessServer) VlcSettings.remoteAccessEnabled.value else false,
             supportsRemoteAccess = capabilities.remoteAccessServer,
             showHeaders = VlcSettings.showHeaders.value,
+            showTrackNumbers = VlcSettings.showTrackNumber.value,
+            showHiddenFiles = VlcSettings.showHiddenFiles.value,
             browseNetwork = VlcSettings.browseNetwork.value,
             supportsNetworkBrowsing = capabilities.networkBrowsing,
         )
@@ -68,6 +74,12 @@ class SettingsViewModel(
         }
         launch {
             VlcSettings.showHeaders.collect { v -> _state.update { it.copy(showHeaders = v) } }
+        }
+        launch {
+            VlcSettings.showTrackNumber.collect { v -> _state.update { it.copy(showTrackNumbers = v) } }
+        }
+        launch {
+            VlcSettings.showHiddenFiles.collect { v -> _state.update { it.copy(showHiddenFiles = v) } }
         }
         if (capabilities.networkBrowsing) launch {
             VlcSettings.browseNetwork.collect { v -> _state.update { it.copy(browseNetwork = v) } }
@@ -92,6 +104,8 @@ class SettingsViewModel(
                         false
                     },
                     showHeaders = p.getBoolean(KEY_SHOW_HEADERS, true),
+                    showTrackNumbers = p.getBoolean(ALBUMS_SHOW_TRACK_NUMBER, true),
+                    showHiddenFiles = p.getBoolean(BROWSER_SHOW_HIDDEN_FILES, false),
                     browseNetwork = if (capabilities.networkBrowsing) {
                         p.getBoolean(KEY_BROWSE_NETWORK, true)
                     } else {
@@ -124,6 +138,14 @@ class SettingsViewModel(
 
     fun setShowHeaders(value: Boolean) = setBool(KEY_SHOW_HEADERS, value) {
         _state.update { it.copy(showHeaders = value) }
+    }
+
+    fun setShowTrackNumbers(value: Boolean) = setBool(ALBUMS_SHOW_TRACK_NUMBER, value) {
+        _state.update { it.copy(showTrackNumbers = value) }
+    }
+
+    fun setShowHiddenFiles(value: Boolean) = setBool(BROWSER_SHOW_HIDDEN_FILES, value) {
+        _state.update { it.copy(showHiddenFiles = value) }
     }
 
     fun setBrowseNetwork(value: Boolean) {

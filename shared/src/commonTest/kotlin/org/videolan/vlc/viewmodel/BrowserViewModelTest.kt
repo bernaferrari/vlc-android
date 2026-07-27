@@ -78,4 +78,29 @@ class BrowserViewModelTest {
         assertTrue(listing.networkRoots.isEmpty())
         vm.onCleared()
     }
+
+    @Test
+    fun hiddenEntriesAreFilteredInSharedBrowserState() = runTest {
+        val root = MediaFolder(
+            id = 1L,
+            title = "Storage",
+            path = "file:///storage",
+            uri = "file:///storage",
+            isRoot = true,
+            kind = FolderKind.STORAGE,
+        )
+        val visible = MediaItem(2L, "Song", "file:///storage/song.mp3", MediaType.AUDIO)
+        val hidden = MediaItem(3L, ".secret", "file:///storage/.secret.mp3", MediaType.AUDIO)
+        val repo = FakeMediaRepository(
+            browserListings = mapOf(root.uri to BrowserListing(media = listOf(visible, hidden))),
+        )
+        val vm = BrowserViewModel(repo = repo, player = PlaybackController(service = FakePlaybackService()))
+
+        vm.openFolder(root)
+        assertEquals(listOf(visible), vm.state.first { !it.loading && it.currentFolder == root }.media)
+
+        vm.setShowHiddenFiles(true)
+        assertEquals(listOf(visible, hidden), vm.state.first { !it.loading && it.showHiddenFiles }.media)
+        vm.onCleared()
+    }
 }

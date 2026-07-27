@@ -317,6 +317,11 @@ class VideoListViewModel(
 
     init {
         loadDefaultPlaybackAction(initialDefaultAction)
+        launch {
+            VlcSettings.showTrackNumber.collectLatest { show ->
+                _state.update { it.copy(showTrackNumbers = show) }
+            }
+        }
         observe()
     }
 
@@ -516,7 +521,7 @@ class VideoListViewModel(
         _state.update { it.copy(showTrackNumbers = show) }
         persistBool(ALBUMS_SHOW_TRACK_NUMBER, show)
         launchIo {
-            runCatching { prefs?.putBoolean(ALBUMS_SHOW_TRACK_NUMBER, show) }
+            runCatching { prefs?.let { VlcSettings.updateBoolean(it, ALBUMS_SHOW_TRACK_NUMBER, show) } }
         }
     }
 
@@ -659,6 +664,11 @@ class AudioListViewModel(
 
     init {
         loadDisplayPrefs(initialDefaultAction)
+        launch {
+            combine(VlcSettings.audioShowTrackNumbers, VlcSettings.showTrackNumber) { audio, album ->
+                audio || album
+            }.collectLatest { show -> _state.update { it.copy(showTrackNumbers = show) } }
+        }
         observe()
         observePlaylists()
     }
@@ -973,8 +983,10 @@ class AudioListViewModel(
         persistBool(ALBUMS_SHOW_TRACK_NUMBER, show)
         launchIo {
             runCatching {
-                prefs?.putBoolean(KEY_AUDIO_SHOW_TRACK_NUMBERS, show)
-                prefs?.putBoolean(ALBUMS_SHOW_TRACK_NUMBER, show)
+                prefs?.let {
+                    VlcSettings.updateBoolean(it, KEY_AUDIO_SHOW_TRACK_NUMBERS, show)
+                    VlcSettings.updateBoolean(it, ALBUMS_SHOW_TRACK_NUMBER, show)
+                }
             }
         }
     }
@@ -1302,6 +1314,12 @@ class BrowserViewModel(
     init {
         loadPrefs(initialDefaultAction)
         openRoot()
+        launch {
+            VlcSettings.showHiddenFiles.collectLatest { show ->
+                _state.update { it.copy(showHiddenFiles = show) }
+                refreshCurrentUriListing()
+            }
+        }
         if (capabilities.networkBrowsing) launch {
             VlcSettings.browseNetwork.collectLatest { enabled ->
                 val folder = _state.value.currentFolder
@@ -1463,7 +1481,7 @@ class BrowserViewModel(
         _state.update { it.copy(showHiddenFiles = show) }
         persistBool(BROWSER_SHOW_HIDDEN_FILES, show)
         launchIo {
-            runCatching { prefs?.putBoolean(BROWSER_SHOW_HIDDEN_FILES, show) }
+            runCatching { prefs?.let { VlcSettings.updateBoolean(it, BROWSER_SHOW_HIDDEN_FILES, show) } }
         }
         refreshCurrentUriListing()
     }
@@ -1533,7 +1551,9 @@ class BrowserViewModel(
             repo.observeFolderMedia(folderId)
                 .catch { e -> _state.update { it.copy(loading = false, error = e.message) } }
                 .collectLatest { media ->
-                    _state.update { it.copy(media = media, loading = false, error = null) }
+                    _state.update { state ->
+                        state.copy(media = media.filterBrowserMedia(state), loading = false, error = null)
+                    }
                 }
         }
     }
@@ -1551,8 +1571,8 @@ class BrowserViewModel(
                 .collectLatest { listing ->
                     _state.update {
                         it.copy(
-                            folders = listing.folders,
-                            media = listing.media,
+                            folders = listing.folders.filterBrowserFolders(it),
+                            media = listing.media.filterBrowserMedia(it),
                             loading = false,
                             error = null,
                         )
@@ -1561,6 +1581,21 @@ class BrowserViewModel(
         }
     }
 }
+
+private fun List<MediaFolder>.filterBrowserFolders(state: BrowserUiState): List<MediaFolder> =
+    if (state.showHiddenFiles) this else filterNot { it.isHiddenBrowserEntry() }
+
+private fun List<MediaItem>.filterBrowserMedia(state: BrowserUiState): List<MediaItem> =
+    asSequence()
+        .filter { state.showHiddenFiles || !it.isHiddenBrowserEntry() }
+        .filter { !state.showOnlyMultimedia || it.type == MediaType.AUDIO || it.type == MediaType.VIDEO }
+        .toList()
+
+private fun MediaFolder.isHiddenBrowserEntry(): Boolean =
+    path.substringBefore('?').trimEnd('/').substringAfterLast('/').startsWith('.') || title.startsWith('.')
+
+private fun MediaItem.isHiddenBrowserEntry(): Boolean =
+    uri.substringBefore('?').trimEnd('/').substringAfterLast('/').startsWith('.') || title.startsWith('.')
 
 private fun VideoGroupingMode.isGrouped(): Boolean =
     this == VideoGroupingMode.NAME || this == VideoGroupingMode.FOLDER
