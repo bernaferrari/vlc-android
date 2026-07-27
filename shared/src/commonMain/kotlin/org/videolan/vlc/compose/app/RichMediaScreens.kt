@@ -75,6 +75,29 @@ import org.videolan.vlc.viewmodel.VideoGroupingMode
 import org.videolan.vlc.viewmodel.ViewMode
 
 /**
+ * A library whose first result has not arrived is not a filtered list.  Treat
+ * it like a dedicated loading/empty surface instead of briefly exposing
+ * controls that cannot operate on anything.  This is deliberately data-only
+ * so every host (and its tests) gets the same first-launch hierarchy.
+ */
+internal fun shouldUseEmptyMediaPresentation(
+    state: MediaListUiState,
+    sections: List<Pair<String, List<MediaItem>>>,
+    groups: List<MediaFolder>,
+    pagingItemCount: Int,
+): Boolean =
+    state.error == null &&
+        state.query.isBlank() &&
+        !state.onlyFavorites &&
+        state.selection.isEmpty() &&
+        state.items.isEmpty() &&
+        state.containerTitle == null &&
+        state.openedEntityTitle == null &&
+        sections.isEmpty() &&
+        groups.isEmpty() &&
+        pagingItemCount == 0
+
+/**
  * Rich media browser pane — grid/list, sort, multi-select, context actions, paging.
  * Used by Video and Audio tabs of [VlcMainShell].
  */
@@ -127,40 +150,40 @@ fun RichMediaListPane(
         sections.isEmpty() &&
         groups.isEmpty() &&
         state.groupingMode == VideoGroupingMode.NONE
-    val emptyLibrary = !state.loading &&
-        state.query.isBlank() &&
-        !state.onlyFavorites &&
-        state.selection.isEmpty() &&
-        state.items.isEmpty() &&
-        sections.isEmpty() &&
-        groups.isEmpty() &&
-        (!usePaging || lazyPagingItems.itemCount == 0)
+    val useEmptyPresentation = shouldUseEmptyMediaPresentation(
+        state = state,
+        sections = sections,
+        groups = groups,
+        pagingItemCount = lazyPagingItems?.itemCount ?: 0,
+    )
 
     Column(modifier.padding(horizontal = 16.dp)) {
-        // Keep the hierarchy deliberate: identity first, then a compact action strip.
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 12.dp, bottom = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            if (state.containerTitle != null || state.openedEntityTitle != null) {
-                IconButton(onClick = onCloseContainer) {
-                    Icon(
-                        icon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = ShellStrings.back(),
-                    )
+        if (!useEmptyPresentation) {
+            // Keep the hierarchy deliberate: identity first, then a compact action strip.
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                if (state.containerTitle != null || state.openedEntityTitle != null) {
+                    IconButton(onClick = onCloseContainer) {
+                        Icon(
+                            icon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = ShellStrings.back(),
+                        )
+                    }
                 }
+                Text(
+                    state.openedEntityTitle ?: state.containerTitle ?: title,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.weight(1f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
-            Text(
-                state.openedEntityTitle ?: state.containerTitle ?: title,
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.weight(1f),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
         }
         if (state.selection.isNotEmpty()) {
             // Text actions can grow with translations and selection counts. Wrapping keeps the
@@ -183,7 +206,7 @@ fun RichMediaListPane(
                     Text(ShellStrings.selectionCount(ShellStrings.clear(), state.selection.size))
                 }
             }
-        } else if (!emptyLibrary) {
+        } else if (!useEmptyPresentation) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -273,7 +296,7 @@ fun RichMediaListPane(
             )
         }
 
-        if (!emptyLibrary) {
+        if (!useEmptyPresentation) {
             androidx.compose.material3.OutlinedTextField(
                 value = state.query,
                 onValueChange = onQuery,
@@ -284,14 +307,14 @@ fun RichMediaListPane(
             )
         }
 
-        if (state.loading) {
+        if (state.loading && !useEmptyPresentation) {
             LinearProgressIndicator(progress = { 0f }, modifier = Modifier.fillMaxWidth())
         }
         state.error?.let { error ->
             RetryMessage(error = error, onRetry = onRetry)
         }
 
-        if (!emptyLibrary) {
+        if (!useEmptyPresentation) {
             val countLabel = when {
                 groups.isNotEmpty() -> ShellStrings.groupsCount(groups.size)
                 usePaging -> {
@@ -313,6 +336,17 @@ fun RichMediaListPane(
         }
 
         when {
+            useEmptyPresentation -> {
+                VLCEmptyState(
+                    loading = state.loading,
+                    // During first load the spinner is sufficient; do not imply that no media
+                    // exists until the repository has delivered its first empty result.
+                    text = if (state.loading) "" else emptyLabel,
+                    modifier = Modifier.fillMaxSize(),
+                    actionText = emptyActionText.takeIf { !state.loading },
+                    onActionClick = onEmptyAction,
+                )
+            }
             state.groupingMode != VideoGroupingMode.NONE && groups.isNotEmpty() -> {
                 LazyColumn(
                     contentPadding = PaddingValues(bottom = 24.dp),

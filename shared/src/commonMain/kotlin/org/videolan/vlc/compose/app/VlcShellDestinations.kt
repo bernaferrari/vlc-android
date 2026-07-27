@@ -101,7 +101,7 @@ internal fun AudioDestination(
     Column(modifier) {
         // Section tabs are filters, not onboarding. An empty music library has
         // nothing to filter, so leave the import affordance as the only action.
-        if (state.openedEntityTitle == null && (state.loading || state.count > 0 || state.items.isNotEmpty())) {
+        if (state.openedEntityTitle == null && (state.count > 0 || state.items.isNotEmpty() || state.sections.isNotEmpty())) {
             SectionTabs(
                 tabs = listOf("Tracks", "Artists", "Albums", "Genres", "Playlists"),
                 selected = section.ordinal,
