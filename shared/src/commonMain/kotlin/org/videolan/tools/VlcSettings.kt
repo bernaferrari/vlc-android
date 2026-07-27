@@ -39,6 +39,7 @@ object VlcSettings {
     private val _audioLongJumpDelay = MutableStateFlow(20)
     private val _audioShowTrackNumbers = MutableStateFlow(false)
     private val _showHiddenFiles = MutableStateFlow(false)
+    private val _showOnlyMultimedia = MutableStateFlow(false)
     private val _showTrackNumber = MutableStateFlow(true)
     private val _tvFoldersFirst = MutableStateFlow(true)
     private val _incognitoMode = MutableStateFlow(false)
@@ -68,6 +69,8 @@ object VlcSettings {
     val audioLongJumpDelay: StateFlow<Int> = _audioLongJumpDelay.asStateFlow()
     val audioShowTrackNumbers: StateFlow<Boolean> = _audioShowTrackNumbers.asStateFlow()
     val showHiddenFiles: StateFlow<Boolean> = _showHiddenFiles.asStateFlow()
+    /** Whether the shared browser hides non-audio/video files. */
+    val showOnlyMultimedia: StateFlow<Boolean> = _showOnlyMultimedia.asStateFlow()
     val showTrackNumber: StateFlow<Boolean> = _showTrackNumber.asStateFlow()
     val tvFoldersFirst: StateFlow<Boolean> = _tvFoldersFirst.asStateFlow()
     val incognitoMode: StateFlow<Boolean> = _incognitoMode.asStateFlow()
@@ -117,6 +120,7 @@ object VlcSettings {
         audioLongJumpDelay: Int,
         audioShowTrackNumbers: Boolean,
         showHiddenFiles: Boolean,
+        showOnlyMultimedia: Boolean,
         showTrackNumber: Boolean,
         tvFoldersFirst: Boolean,
         incognitoMode: Boolean,
@@ -143,6 +147,7 @@ object VlcSettings {
         _audioLongJumpDelay.value = audioLongJumpDelay
         _audioShowTrackNumbers.value = audioShowTrackNumbers
         _showHiddenFiles.value = showHiddenFiles
+        _showOnlyMultimedia.value = showOnlyMultimedia
         _showTrackNumber.value = showTrackNumber
         _tvFoldersFirst.value = tvFoldersFirst
         _incognitoMode.value = incognitoMode
@@ -177,6 +182,7 @@ object VlcSettings {
         _audioLongJumpDelay.value = prefs.getInt(KEY_AUDIO_LONG_JUMP_DELAY, 20)
         _audioShowTrackNumbers.value = prefs.getBoolean(KEY_AUDIO_SHOW_TRACK_NUMBERS, false)
         _showHiddenFiles.value = prefs.getBoolean(BROWSER_SHOW_HIDDEN_FILES, !tvUI.value)
+        _showOnlyMultimedia.value = prefs.getBoolean(BROWSER_SHOW_ONLY_MULTIMEDIA, false)
         _showTrackNumber.value = prefs.getBoolean(ALBUMS_SHOW_TRACK_NUMBER, true)
         _tvFoldersFirst.value = prefs.getBoolean(TV_FOLDERS_FIRST, true)
         _incognitoMode.value = prefs.getBoolean(KEY_INCOGNITO, false)
@@ -208,6 +214,7 @@ object VlcSettings {
             KEY_SHOW_HEADERS -> _showHeaders.value = value
             KEY_SHOW_TRACK_INFO -> _showAudioTrackInfo.value = value
             BROWSER_SHOW_HIDDEN_FILES -> _showHiddenFiles.value = value
+            BROWSER_SHOW_ONLY_MULTIMEDIA -> _showOnlyMultimedia.value = value
             ALBUMS_SHOW_TRACK_NUMBER -> _showTrackNumber.value = value
             TV_FOLDERS_FIRST -> _tvFoldersFirst.value = value
             KEY_INCOGNITO -> _incognitoMode.value = value

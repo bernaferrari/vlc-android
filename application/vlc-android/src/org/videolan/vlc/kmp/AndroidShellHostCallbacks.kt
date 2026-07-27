@@ -124,11 +124,13 @@ class AndroidShellHostCallbacks(
             }
     }
 
-    override fun onContextAction(item: MediaItem, option: ContextOption) = when (option) {
-        ContextOption.CTX_DELETE -> confirmDelete(item)
-        ContextOption.CTX_RENAME -> confirmRename(item)
-        // Typed callbacks below cover the rest; never advertise a no-op action.
-        else -> Log.d(TAG, "Unhandled context action $option for ${item.uri}")
+    override fun onContextAction(item: MediaItem, option: ContextOption) {
+        when (option) {
+            ContextOption.CTX_DELETE -> confirmDelete(item)
+            ContextOption.CTX_RENAME -> confirmRename(item)
+            // Typed callbacks below cover the rest; never advertise a no-op action.
+            else -> Log.d(TAG, "Unhandled context action $option for ${item.uri}")
+        }
     }
 
     override fun onOpenInfo(item: MediaItem) {

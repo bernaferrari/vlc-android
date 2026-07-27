@@ -599,6 +599,7 @@ internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
         item {
             SettingsGroup(title = ShellStrings.browser()) {
                 ToggleRow(ShellStrings.showHiddenFiles(), state.showHiddenFiles, vm::setShowHiddenFiles)
+                ToggleRow(ShellStrings.multimediaFilesOnly(), state.showOnlyMultimedia, vm::setShowOnlyMultimedia)
             }
         }
         if (state.supportsNetworkBrowsing) item {

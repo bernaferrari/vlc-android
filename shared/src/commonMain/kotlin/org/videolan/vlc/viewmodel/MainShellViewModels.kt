@@ -1322,6 +1322,12 @@ class BrowserViewModel(
                 refreshCurrentUriListing()
             }
         }
+        launch {
+            VlcSettings.showOnlyMultimedia.collectLatest { only ->
+                _state.update { it.copy(showOnlyMultimedia = only) }
+                refreshCurrentUriListing()
+            }
+        }
         if (capabilities.networkBrowsing) launch {
             VlcSettings.browseNetwork.collectLatest { enabled ->
                 val folder = _state.value.currentFolder
@@ -1492,7 +1498,7 @@ class BrowserViewModel(
         _state.update { it.copy(showOnlyMultimedia = only) }
         persistBool(BROWSER_SHOW_ONLY_MULTIMEDIA, only)
         launchIo {
-            runCatching { prefs?.putBoolean(BROWSER_SHOW_ONLY_MULTIMEDIA, only) }
+            runCatching { prefs?.let { VlcSettings.updateBoolean(it, BROWSER_SHOW_ONLY_MULTIMEDIA, only) } }
         }
         refreshCurrentUriListing()
     }

@@ -118,8 +118,10 @@ class IosShellHostCallbacks(
             preferredStyle = UIAlertControllerStyleAlert,
         )
         alert.addTextFieldWithConfigurationHandler { field ->
-            field.text = item.fileName ?: item.displayTitle
-            field.selectAll(null)
+            field?.apply {
+                text = item.fileName ?: item.displayTitle
+                selectAll(null)
+            }
         }
         alert.addAction(
             UIAlertAction.actionWithTitle("Cancel", style = UIAlertActionStyleCancel, handler = null),

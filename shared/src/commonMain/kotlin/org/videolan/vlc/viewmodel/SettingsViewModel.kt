@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.update
 import org.videolan.tools.AUDIO_RESUME_PLAYBACK
 import org.videolan.tools.ALBUMS_SHOW_TRACK_NUMBER
 import org.videolan.tools.BROWSER_SHOW_HIDDEN_FILES
+import org.videolan.tools.BROWSER_SHOW_ONLY_MULTIMEDIA
 import org.videolan.tools.KEY_ENABLE_REMOTE_ACCESS
 import org.videolan.tools.KEY_INCOGNITO
 import org.videolan.tools.KEY_BROWSE_NETWORK
@@ -37,6 +38,7 @@ data class SettingsUiState(
     val showHeaders: Boolean = true,
     val showTrackNumbers: Boolean = true,
     val showHiddenFiles: Boolean = false,
+    val showOnlyMultimedia: Boolean = false,
     val browseNetwork: Boolean = true,
     val supportsNetworkBrowsing: Boolean = false,
     val platformLabel: String = "",
@@ -65,6 +67,7 @@ class SettingsViewModel(
             showHeaders = VlcSettings.showHeaders.value,
             showTrackNumbers = VlcSettings.showTrackNumber.value,
             showHiddenFiles = VlcSettings.showHiddenFiles.value,
+            showOnlyMultimedia = VlcSettings.showOnlyMultimedia.value,
             browseNetwork = VlcSettings.browseNetwork.value,
             supportsNetworkBrowsing = capabilities.networkBrowsing,
         )
@@ -95,6 +98,9 @@ class SettingsViewModel(
         }
         launch {
             VlcSettings.showHiddenFiles.collect { v -> _state.update { it.copy(showHiddenFiles = v) } }
+        }
+        launch {
+            VlcSettings.showOnlyMultimedia.collect { v -> _state.update { it.copy(showOnlyMultimedia = v) } }
         }
         if (capabilities.networkBrowsing) launch {
             VlcSettings.browseNetwork.collect { v -> _state.update { it.copy(browseNetwork = v) } }
@@ -132,6 +138,7 @@ class SettingsViewModel(
                     showHeaders = p.getBoolean(KEY_SHOW_HEADERS, true),
                     showTrackNumbers = p.getBoolean(ALBUMS_SHOW_TRACK_NUMBER, true),
                     showHiddenFiles = p.getBoolean(BROWSER_SHOW_HIDDEN_FILES, false),
+                    showOnlyMultimedia = p.getBoolean(BROWSER_SHOW_ONLY_MULTIMEDIA, false),
                     browseNetwork = if (capabilities.networkBrowsing) {
                         p.getBoolean(KEY_BROWSE_NETWORK, true)
                     } else {
@@ -172,6 +179,10 @@ class SettingsViewModel(
 
     fun setShowHiddenFiles(value: Boolean) = setBool(BROWSER_SHOW_HIDDEN_FILES, value) {
         _state.update { it.copy(showHiddenFiles = value) }
+    }
+
+    fun setShowOnlyMultimedia(value: Boolean) = setBool(BROWSER_SHOW_ONLY_MULTIMEDIA, value) {
+        _state.update { it.copy(showOnlyMultimedia = value) }
     }
 
     fun setBrowseNetwork(value: Boolean) {

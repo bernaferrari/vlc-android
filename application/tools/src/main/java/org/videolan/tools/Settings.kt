@@ -32,6 +32,7 @@ object Settings : SingletonHolder<SharedPreferences, Context>({ init(it.applicat
     var audioLongJumpDelay = 20
     var audioShowTrackNumbers = MutableLiveData(false)
     var showHiddenFiles = false
+    var showOnlyMultimedia = false
     var showTrackNumber = true
     var tvFoldersFirst = true
     var incognitoMode = false
@@ -77,6 +78,7 @@ object Settings : SingletonHolder<SharedPreferences, Context>({ init(it.applicat
             audioLongJumpDelay = audioLongJumpDelay,
             audioShowTrackNumbers = audioShowTrackNumbers.value == true,
             showHiddenFiles = showHiddenFiles,
+            showOnlyMultimedia = showOnlyMultimedia,
             showTrackNumber = showTrackNumber,
             tvFoldersFirst = tvFoldersFirst,
             incognitoMode = incognitoMode,
@@ -106,6 +108,7 @@ object Settings : SingletonHolder<SharedPreferences, Context>({ init(it.applicat
         audioLongJumpDelay = prefs.getInt(KEY_AUDIO_LONG_JUMP_DELAY, 20)
         audioShowTrackNumbers.postValue(prefs.getBoolean(KEY_AUDIO_SHOW_TRACK_NUMBERS, false))
         showHiddenFiles = prefs.getBoolean(BROWSER_SHOW_HIDDEN_FILES, !tvUI)
+        showOnlyMultimedia = prefs.getBoolean(BROWSER_SHOW_ONLY_MULTIMEDIA, false)
         showTrackNumber = prefs.getBoolean(ALBUMS_SHOW_TRACK_NUMBER, true)
         tvFoldersFirst = prefs.getBoolean(TV_FOLDERS_FIRST, true)
         incognitoMode = prefs.getBoolean(KEY_INCOGNITO, false)

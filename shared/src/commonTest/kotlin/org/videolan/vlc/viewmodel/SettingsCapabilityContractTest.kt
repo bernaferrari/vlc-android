@@ -9,6 +9,7 @@ import kotlinx.coroutines.test.setMain
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.videolan.tools.SettingsWriteBridge
 import org.videolan.tools.KEY_BROWSE_NETWORK
+import org.videolan.tools.BROWSER_SHOW_ONLY_MULTIMEDIA
 import org.videolan.vlc.platform.VlcPlatformCapabilities
 import org.videolan.vlc.platform.RemoteAccessServerController
 import org.videolan.vlc.platform.RemoteAccessServerState
@@ -65,6 +66,19 @@ class SettingsCapabilityContractTest {
         assertTrue(viewModel.state.value.supportsNetworkBrowsing)
         assertFalse(viewModel.state.value.browseNetwork)
         assertEquals(listOf(KEY_BROWSE_NETWORK to false), writes)
+        viewModel.onCleared()
+    }
+
+    @Test
+    fun multimediaOnlyBrowserFilterIsASharedSetting() {
+        val writes = mutableListOf<Pair<String, Boolean>>()
+        SettingsWriteBridge.onBoolean = { key, value -> writes += key to value }
+        val viewModel = SettingsViewModel(prefs = null)
+
+        viewModel.setShowOnlyMultimedia(true)
+
+        assertTrue(viewModel.state.value.showOnlyMultimedia)
+        assertEquals(listOf(BROWSER_SHOW_ONLY_MULTIMEDIA to true), writes)
         viewModel.onCleared()
     }
 
