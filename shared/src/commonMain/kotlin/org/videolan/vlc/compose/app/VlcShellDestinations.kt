@@ -312,6 +312,8 @@ internal fun PlayerDestination(
         onRemoveBookmark = viewModel::removeBookmark,
         onRenameBookmark = viewModel::renameBookmark,
         onSeekBookmark = viewModel::seekTo,
+        onPreviousBookmark = viewModel::previousBookmark,
+        onNextBookmark = viewModel::nextBookmark,
         onClose = onClose,
         modifier = modifier,
     ) { chromeVisible -> playerSurface(state, chromeVisible) }

@@ -89,6 +89,8 @@ import vlc_android.shared.generated.resources.add_bookmark
 import vlc_android.shared.generated.resources.delete
 import vlc_android.shared.generated.resources.rename
 import vlc_android.shared.generated.resources.save
+import vlc_android.shared.generated.resources.previous_bookmark
+import vlc_android.shared.generated.resources.next_bookmark
 
 private val PlaybackRatePresets = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f)
 
@@ -147,6 +149,8 @@ internal fun PlaybackOptionsSheet(
     onRemoveBookmark: (String) -> Unit,
     onRenameBookmark: (String, String) -> Unit,
     onSeekBookmark: (Long) -> Unit,
+    onPreviousBookmark: () -> Unit,
+    onNextBookmark: () -> Unit,
     showSubtitleImport: Boolean,
     onImportSubtitle: () -> Unit,
     onDismiss: () -> Unit,
@@ -473,6 +477,27 @@ internal fun PlaybackOptionsSheet(
                 ) {
                     Text(stringResource(Res.string.bookmarks), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                     TextButton(onClick = onAddBookmark) { Text(stringResource(Res.string.add_bookmark)) }
+                }
+                if (bookmarks.entries.isNotEmpty()) {
+                    val hasPreviousBookmark = bookmarks.entries.any { it.timeMs < progressTime }
+                    val hasNextBookmark = bookmarks.entries.any { it.timeMs > progressTime }
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        FilledTonalButton(
+                            onClick = onPreviousBookmark,
+                            enabled = hasPreviousBookmark,
+                        ) {
+                            Text(stringResource(Res.string.previous_bookmark))
+                        }
+                        FilledTonalButton(
+                            onClick = onNextBookmark,
+                            enabled = hasNextBookmark,
+                        ) {
+                            Text(stringResource(Res.string.next_bookmark))
+                        }
+                    }
                 }
                 bookmarks.entries.forEach { bookmark ->
                     Row(

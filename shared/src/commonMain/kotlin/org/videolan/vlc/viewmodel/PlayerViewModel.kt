@@ -291,6 +291,19 @@ class PlayerViewModel(
 
     fun renameBookmark(id: String, title: String) = playback.renameBookmark(id, title)
 
+    /** Mirrors the upstream player controls: jump to the nearest marker either side of the playhead. */
+    fun previousBookmark() {
+        _state.value.bookmarks.entries.sortedBy { it.timeMs }
+            .lastOrNull { it.timeMs < _state.value.progress.time }
+            ?.let { playback.seekTo(it.timeMs) }
+    }
+
+    fun nextBookmark() {
+        _state.value.bookmarks.entries.sortedBy { it.timeMs }
+            .firstOrNull { it.timeMs > _state.value.progress.time }
+            ?.let { playback.seekTo(it.timeMs) }
+    }
+
     fun cycleRepeat() {
         val next = when (_state.value.repeatMode) {
             RepeatMode.NONE -> RepeatMode.ALL

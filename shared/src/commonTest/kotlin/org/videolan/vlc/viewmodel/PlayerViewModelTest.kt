@@ -212,6 +212,28 @@ class PlayerViewModelTest {
     }
 
     @Test
+    fun bookmarkNavigationUsesTheSharedProgressAndMarkerState() = runTest {
+        val playback = FakePlaybackService()
+        val vm = PlayerViewModel(playback)
+        vm.play(FakeCatalog.items.first())
+        vm.seekTo(5_000L)
+        vm.addBookmark()
+        vm.seekTo(15_000L)
+        vm.addBookmark()
+        vm.seekTo(10_000L)
+
+        vm.previousBookmark()
+        runCurrent()
+        assertEquals(5_000L, vm.state.value.progress.time)
+
+        vm.seekTo(10_000L)
+        vm.nextBookmark()
+        runCurrent()
+        assertEquals(15_000L, vm.state.value.progress.time)
+        vm.onCleared()
+    }
+
+    @Test
     fun pictureInPictureIsCapabilityGatedInSharedPlayerState() = runTest {
         val playback = FakePlaybackService()
         val pip = RecordingPipController()
