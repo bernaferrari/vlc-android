@@ -284,6 +284,7 @@ internal fun PlayerDestination(
         onToggleShuffle = viewModel::toggleShuffle,
         onCycleRepeat = viewModel::cycleRepeat,
         onSetRate = viewModel::setPlaybackRate,
+        onSavePlaylist = viewModel::saveQueueAsPlaylist,
         onPlayQueueItem = viewModel::playQueueItem,
         onMoveQueueItem = viewModel::moveQueueItem,
         onRemoveQueueItem = viewModel::removeQueueItem,

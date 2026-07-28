@@ -108,6 +108,7 @@ fun VideoSurfaceWithHud(
     onToggleShuffle: () -> Unit = {},
     onCycleRepeat: () -> Unit = {},
     onSetRate: (Float) -> Unit = {},
+    onSavePlaylist: (String) -> Unit = {},
     onPlayQueueItem: (Int) -> Unit = {},
     onMoveQueueItem: (Int, Int) -> Unit = { _, _ -> },
     onRemoveQueueItem: (Int) -> Unit = {},
@@ -278,6 +279,7 @@ fun VideoSurfaceWithHud(
             showVideoOptions = hasVideoOutput,
             onSetRate = onSetRate,
             onSeekTo = onSeek,
+            onSavePlaylist = onSavePlaylist,
             onPlayQueueItem = {
                 onPlayQueueItem(it)
                 optionsVisible = false

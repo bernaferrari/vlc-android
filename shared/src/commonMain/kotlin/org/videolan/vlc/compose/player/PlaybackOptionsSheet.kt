@@ -77,6 +77,7 @@ import vlc_android.shared.generated.resources.move_up
 import vlc_android.shared.generated.resources.now_playing
 import vlc_android.shared.generated.resources.playback_speed
 import vlc_android.shared.generated.resources.jump_to_time
+import vlc_android.shared.generated.resources.playlist_save
 import vlc_android.shared.generated.resources.playlist
 import vlc_android.shared.generated.resources.remove_from_playlist
 import vlc_android.shared.generated.resources.reset
@@ -124,6 +125,7 @@ internal fun PlaybackOptionsSheet(
     showVideoOptions: Boolean,
     onSetRate: (Float) -> Unit,
     onSeekTo: (Long) -> Unit,
+    onSavePlaylist: (String) -> Unit,
     onPlayQueueItem: (Int) -> Unit,
     onMoveQueueItem: (Int, Int) -> Unit,
     onRemoveQueueItem: (Int) -> Unit,
@@ -163,6 +165,8 @@ internal fun PlaybackOptionsSheet(
     var bookmarkName by remember { mutableStateOf("") }
     var jumpToTimeVisible by remember { mutableStateOf(false) }
     var jumpToTimeText by remember { mutableStateOf("") }
+    var savePlaylistVisible by remember { mutableStateOf(false) }
+    var playlistName by remember { mutableStateOf("") }
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
@@ -224,6 +228,11 @@ internal fun PlaybackOptionsSheet(
             }
             TextButton(onClick = { jumpToTimeVisible = true }) {
                 Text(stringResource(Res.string.jump_to_time))
+            }
+            if (queue.isNotEmpty()) {
+                TextButton(onClick = { savePlaylistVisible = true }) {
+                    Text(stringResource(Res.string.playlist_save))
+                }
             }
 
             HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
@@ -624,6 +633,35 @@ internal fun PlaybackOptionsSheet(
             },
             dismissButton = {
                 TextButton(onClick = { jumpToTimeVisible = false }) {
+                    Text(stringResource(Res.string.cancel))
+                }
+            },
+        )
+    }
+
+    if (savePlaylistVisible) {
+        AlertDialog(
+            onDismissRequest = { savePlaylistVisible = false },
+            title = { Text(stringResource(Res.string.playlist_save)) },
+            text = {
+                OutlinedTextField(
+                    value = playlistName,
+                    onValueChange = { playlistName = it },
+                    label = { Text(stringResource(Res.string.playlist)) },
+                    singleLine = true,
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = playlistName.isNotBlank(),
+                    onClick = {
+                        onSavePlaylist(playlistName)
+                        savePlaylistVisible = false
+                    },
+                ) { Text(stringResource(Res.string.save)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { savePlaylistVisible = false }) {
                     Text(stringResource(Res.string.cancel))
                 }
             },

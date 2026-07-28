@@ -27,6 +27,7 @@ import org.videolan.vlc.player.VideoAdjustParameter
 import org.videolan.vlc.player.PlaybackBookmarks
 import org.videolan.vlc.player.PlaybackRate
 import org.videolan.vlc.platform.RendererInfo
+import org.videolan.vlc.repository.PlaylistRepository
 import org.videolan.tools.VlcSettings
 
 data class PlayerUiState(
@@ -74,6 +75,9 @@ class PlayerViewModel(
     }.getOrElse { error("PlaybackService unavailable") },
     private val controller: PlaybackController? = runCatching {
         VlcKoin.get().get<PlaybackController>()
+    }.getOrNull(),
+    private val playlists: PlaylistRepository? = runCatching {
+        VlcKoin.get().get<PlaylistRepository>()
     }.getOrNull(),
 ) : VlcViewModel() {
 
@@ -197,6 +201,23 @@ class PlayerViewModel(
         val safeRate = PlaybackRate.normalize(rate)
         playback.setRate(safeRate)
         _state.update { it.copy(rate = playback.getRate()) }
+    }
+
+    /** Persists a snapshot of the current queue, matching VLC Android's Save Playlist action. */
+    fun saveQueueAsPlaylist(name: String) {
+        val trimmedName = name.trim()
+        val queue = _state.value.queue
+        val repository = playlists
+        if (trimmedName.isEmpty() || queue.isEmpty() || repository == null) return
+        launchIo {
+            runCatching {
+                repository.createPlaylist(trimmedName).also { playlist ->
+                    repository.addToPlaylist(playlist.id, queue)
+                }
+            }.onFailure { error ->
+                _state.update { it.copy(error = error.message ?: "Unable to save playlist") }
+            }
+        }
     }
 
     fun playQueueItem(index: Int) {

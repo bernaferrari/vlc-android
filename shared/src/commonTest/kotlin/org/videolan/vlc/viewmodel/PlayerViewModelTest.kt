@@ -13,6 +13,7 @@ import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.MediaType
 import org.videolan.vlc.repository.FakeCatalog
 import org.videolan.vlc.repository.FakePlaybackService
+import org.videolan.vlc.repository.StubPlaylistRepository
 import org.videolan.vlc.player.VideoScaleMode
 import org.videolan.vlc.player.PlaybackController
 import org.videolan.vlc.platform.PipController
@@ -109,6 +110,21 @@ class PlayerViewModelTest {
         vm.setPlaybackRate(Float.NaN)
         assertEquals(1f, playback.getRate())
         assertEquals(1f, vm.state.value.rate)
+        vm.onCleared()
+    }
+
+    @Test
+    fun currentQueueCanBeSavedAsADurableSharedPlaylist() = runTest {
+        val playback = FakePlaybackService()
+        val playlists = StubPlaylistRepository()
+        val vm = PlayerViewModel(playback, playlists = playlists)
+        val queue = FakeCatalog.items.take(2)
+        vm.play(queue.first(), queue)
+
+        vm.saveQueueAsPlaylist("Road trip")
+
+        val info = playlists.observePlaylists().first { it.singleOrNull()?.name == "Road trip" }.single()
+        assertEquals(queue, playlists.getPlaylist(info.id)?.items)
         vm.onCleared()
     }
 
