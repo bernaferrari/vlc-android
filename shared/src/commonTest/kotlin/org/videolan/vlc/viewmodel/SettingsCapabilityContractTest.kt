@@ -12,6 +12,7 @@ import org.videolan.tools.KEY_BROWSE_NETWORK
 import org.videolan.tools.BROWSER_SHOW_ONLY_MULTIMEDIA
 import org.videolan.tools.KEY_PLAYBACK_SPEED_AUDIO_GLOBAL
 import org.videolan.tools.KEY_PLAYBACK_SPEED_AUDIO_GLOBAL_VALUE
+import org.videolan.tools.KEY_PLAYBACK_SPEED_VIDEO_GLOBAL_VALUE
 import org.videolan.tools.VIDEO_HUD_TIMEOUT
 import org.videolan.vlc.platform.VlcPlatformCapabilities
 import org.videolan.vlc.platform.RemoteAccessServerController
