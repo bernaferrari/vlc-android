@@ -629,6 +629,16 @@ internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
             SettingsGroup(title = ShellStrings.playback()) {
                 row { ToggleRow(ShellStrings.resumeAudio(), state.audioResume, vm::setAudioResume) }
                 row { ToggleRow(ShellStrings.resumeVideo(), state.videoResume, vm::setVideoResume) }
+                row { PlaybackSpeedStepperRow(
+                    title = ShellStrings.defaultAudioPlaybackSpeed(),
+                    rate = state.defaultAudioPlaybackSpeed,
+                    onChange = vm::setDefaultAudioPlaybackSpeed,
+                ) }
+                row { PlaybackSpeedStepperRow(
+                    title = ShellStrings.defaultVideoPlaybackSpeed(),
+                    rate = state.defaultVideoPlaybackSpeed,
+                    onChange = vm::setDefaultVideoPlaybackSpeed,
+                ) }
                 row { ToggleRow(ShellStrings.playbackHistory(), state.playbackHistory, vm::setPlaybackHistory) }
                 row { ToggleRow(ShellStrings.incognito(), state.incognito, vm::setIncognito) }
                 row { ValueStepperRow(
@@ -785,6 +795,22 @@ private fun ValueStepperRow(
         Text(value, style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(horizontal = 4.dp))
         TextButton(onClick = onIncrease, enabled = increaseEnabled) { Text("+") }
     }
+}
+
+private val PlaybackSpeedChoices = listOf(0.25f, 0.5f, 0.75f, 1f, 1.25f, 1.5f, 1.75f, 2f, 2.5f, 3f, 4f)
+
+@Composable
+private fun PlaybackSpeedStepperRow(title: String, rate: Float, onChange: (Float) -> Unit) {
+    val currentIndex = PlaybackSpeedChoices.indexOf(rate).takeIf { it >= 0 }
+        ?: PlaybackSpeedChoices.indices.minBy { kotlin.math.abs(PlaybackSpeedChoices[it] - rate) }
+    ValueStepperRow(
+        title = title,
+        value = "${PlaybackSpeedChoices[currentIndex]}×",
+        decreaseEnabled = currentIndex > 0,
+        increaseEnabled = currentIndex < PlaybackSpeedChoices.lastIndex,
+        onDecrease = { onChange(PlaybackSpeedChoices[currentIndex - 1]) },
+        onIncrease = { onChange(PlaybackSpeedChoices[currentIndex + 1]) },
+    )
 }
 
 @Composable

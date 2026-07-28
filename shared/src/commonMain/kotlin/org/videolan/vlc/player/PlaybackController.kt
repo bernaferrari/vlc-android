@@ -51,6 +51,11 @@ class PlaybackController(
     private val isIncognito: () -> Boolean = { VlcSettings.incognitoMode.value },
     /** User intent is separate from incognito: history can be disabled for normal playback too. */
     private val isHistoryEnabled: () -> Boolean = { VlcSettings.playbackHistory.value },
+    /** Shared preference policy; native services only decide how to deliver this rate to a decoder. */
+    private val defaultRateFor: (MediaItem) -> Float = { item ->
+        if (item.isAudio) VlcSettings.defaultAudioPlaybackSpeed.value
+        else VlcSettings.defaultVideoPlaybackSpeed.value
+    },
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var sessionBound = false
@@ -93,14 +98,16 @@ class PlaybackController(
     }
 
     fun play(item: MediaItem, queue: List<MediaItem> = emptyList()) {
+        service.setRateForNextPlayback(defaultRateFor(item))
         service.play(item, queue)
         rememberPlayback(item)
     }
 
     fun playFromIndex(queue: List<MediaItem>, index: Int) {
+        val item = queue.getOrNull(index)
+        if (item != null) service.setRateForNextPlayback(defaultRateFor(item))
         service.playFromIndex(queue, index)
-        val item = queue.getOrNull(index) ?: return
-        rememberPlayback(item)
+        if (item != null) rememberPlayback(item)
     }
 
     fun pause() = service.pause()

@@ -118,6 +118,7 @@ class FakePlaybackService : PlaybackService {
     private val observers = mutableListOf<PlaybackObserver>()
     private var volume = 100
     private var rate = 1f
+    var preparedRateForNextPlayback: Float? = null
 
     override val state: Flow<PlaybackState> = _state
     override val progress: Flow<Progress> = _progress
@@ -189,6 +190,10 @@ class FakePlaybackService : PlaybackService {
     override fun setVolume(volume: Int) { this.volume = volume }
     override fun getVolume(): Int = volume
     override fun setRate(rate: Float) { this.rate = rate }
+    override fun setRateForNextPlayback(rate: Float) {
+        preparedRateForNextPlayback = rate
+        setRate(rate)
+    }
     override fun getRate(): Float = rate
     override fun setVideoScaleMode(mode: VideoScaleMode) { _videoScaleMode.value = mode }
     override fun addBookmark() {

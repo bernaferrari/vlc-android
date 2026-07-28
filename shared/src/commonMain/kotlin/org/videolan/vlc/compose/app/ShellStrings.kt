@@ -67,6 +67,8 @@ object ShellStrings {
     @Composable fun playlists(): String = stringResource(Res.string.playlists)
     @Composable fun more(): String = stringResource(Res.string.more)
     @Composable fun playback(): String = stringResource(Res.string.playback)
+    @Composable fun defaultAudioPlaybackSpeed(): String = stringResource(Res.string.default_audio_playback_speed)
+    @Composable fun defaultVideoPlaybackSpeed(): String = stringResource(Res.string.default_video_playback_speed)
     @Composable fun resumeAudio(): String = stringResource(Res.string.resume_audio)
     @Composable fun resumeVideo(): String = stringResource(Res.string.resume_video)
     @Composable fun playbackHistory(): String = stringResource(Res.string.playback_history)

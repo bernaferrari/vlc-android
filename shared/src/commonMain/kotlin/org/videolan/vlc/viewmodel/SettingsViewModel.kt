@@ -11,6 +11,10 @@ import org.videolan.tools.BROWSER_SHOW_ONLY_MULTIMEDIA
 import org.videolan.tools.KEY_ENABLE_REMOTE_ACCESS
 import org.videolan.tools.KEY_INCOGNITO
 import org.videolan.tools.KEY_BROWSE_NETWORK
+import org.videolan.tools.KEY_PLAYBACK_SPEED_AUDIO_GLOBAL
+import org.videolan.tools.KEY_PLAYBACK_SPEED_AUDIO_GLOBAL_VALUE
+import org.videolan.tools.KEY_PLAYBACK_SPEED_VIDEO_GLOBAL
+import org.videolan.tools.KEY_PLAYBACK_SPEED_VIDEO_GLOBAL_VALUE
 import org.videolan.tools.KEY_SHOW_HEADERS
 import org.videolan.tools.VIDEO_HUD_TIMEOUT
 import org.videolan.tools.PLAYBACK_HISTORY
@@ -33,6 +37,8 @@ data class SettingsUiState(
     val playbackHistory: Boolean = true,
     val audioResume: Boolean = true,
     val videoResume: Boolean = true,
+    val defaultAudioPlaybackSpeed: Float = 1f,
+    val defaultVideoPlaybackSpeed: Float = 1f,
     val incognito: Boolean = false,
     val remoteAccess: Boolean = false,
     val supportsRemoteAccess: Boolean = false,
@@ -69,6 +75,8 @@ class SettingsViewModel(
             playbackHistory = VlcSettings.playbackHistory.value,
             audioResume = VlcSettings.audioResumePlayback.value,
             videoResume = VlcSettings.videoResumePlayback.value,
+            defaultAudioPlaybackSpeed = VlcSettings.defaultAudioPlaybackSpeed.value,
+            defaultVideoPlaybackSpeed = VlcSettings.defaultVideoPlaybackSpeed.value,
             incognito = VlcSettings.incognitoMode.value,
             remoteAccess = if (capabilities.remoteAccessServer) VlcSettings.remoteAccessEnabled.value else false,
             supportsRemoteAccess = capabilities.remoteAccessServer,
@@ -99,6 +107,16 @@ class SettingsViewModel(
         }
         launch {
             VlcSettings.videoResumePlayback.collect { v -> _state.update { it.copy(videoResume = v) } }
+        }
+        launch {
+            VlcSettings.defaultAudioPlaybackSpeed.collect { speed ->
+                _state.update { it.copy(defaultAudioPlaybackSpeed = speed) }
+            }
+        }
+        launch {
+            VlcSettings.defaultVideoPlaybackSpeed.collect { speed ->
+                _state.update { it.copy(defaultVideoPlaybackSpeed = speed) }
+            }
         }
         launch {
             VlcSettings.showHeaders.collect { v -> _state.update { it.copy(showHeaders = v) } }
@@ -146,6 +164,12 @@ class SettingsViewModel(
                     playbackHistory = p.getBoolean(PLAYBACK_HISTORY, true),
                     audioResume = p.getBoolean(AUDIO_RESUME_PLAYBACK, true),
                     videoResume = p.getBoolean(VIDEO_RESUME_PLAYBACK, true),
+                    defaultAudioPlaybackSpeed = normalizePlaybackSpeed(
+                        p.getFloat(KEY_PLAYBACK_SPEED_AUDIO_GLOBAL_VALUE, 1f)
+                    ),
+                    defaultVideoPlaybackSpeed = normalizePlaybackSpeed(
+                        p.getFloat(KEY_PLAYBACK_SPEED_VIDEO_GLOBAL_VALUE, 1f)
+                    ),
                     showVideoThumbs = p.getBoolean(SHOW_VIDEO_THUMBNAILS, true),
                     incognito = p.getBoolean(KEY_INCOGNITO, false),
                     remoteAccess = if (capabilities.remoteAccessServer) {
@@ -182,6 +206,22 @@ class SettingsViewModel(
 
     fun setVideoResume(value: Boolean) = setBool(VIDEO_RESUME_PLAYBACK, value) {
         _state.update { it.copy(videoResume = value) }
+    }
+
+    /** Choosing a shared default intentionally enables the matching Android global-rate mode. */
+    fun setDefaultAudioPlaybackSpeed(speed: Float) {
+        setFloat(KEY_PLAYBACK_SPEED_AUDIO_GLOBAL_VALUE, speed) {
+            _state.update { it.copy(defaultAudioPlaybackSpeed = normalizePlaybackSpeed(speed)) }
+        }
+        setBool(KEY_PLAYBACK_SPEED_AUDIO_GLOBAL, true) {}
+    }
+
+    /** Choosing a shared default intentionally enables the matching Android global-rate mode. */
+    fun setDefaultVideoPlaybackSpeed(speed: Float) {
+        setFloat(KEY_PLAYBACK_SPEED_VIDEO_GLOBAL_VALUE, speed) {
+            _state.update { it.copy(defaultVideoPlaybackSpeed = normalizePlaybackSpeed(speed)) }
+        }
+        setBool(KEY_PLAYBACK_SPEED_VIDEO_GLOBAL, true) {}
     }
 
     fun setIncognito(value: Boolean) = setBool(KEY_INCOGNITO, value) {
@@ -257,5 +297,26 @@ class SettingsViewModel(
             } catch (_: Exception) {
             }
         }
+    }
+
+    private fun setFloat(key: String, value: Float, local: () -> Unit) {
+        val normalized = normalizePlaybackSpeed(value)
+        local()
+        SettingsWriteBridge.onFloat?.invoke(key, normalized)
+        val p = prefs ?: return
+        launchIo {
+            try {
+                VlcSettings.updateFloat(p, key, normalized)
+            } catch (_: Exception) {
+            }
+        }
+    }
+
+    private fun normalizePlaybackSpeed(value: Float): Float =
+        value.takeIf(Float::isFinite)?.coerceIn(MIN_PLAYBACK_SPEED, MAX_PLAYBACK_SPEED) ?: 1f
+
+    private companion object {
+        const val MIN_PLAYBACK_SPEED = 0.25f
+        const val MAX_PLAYBACK_SPEED = 4f
     }
 }

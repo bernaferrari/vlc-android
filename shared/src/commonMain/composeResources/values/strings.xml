@@ -218,6 +218,8 @@
     <string name="track_framerate_info">Frame rate: %1$.3f\n</string>
 
     <string name="playback_speed">Playback speed</string>
+    <string name="default_audio_playback_speed">Default audio speed</string>
+    <string name="default_video_playback_speed">Default video speed</string>
     <string name="warning_stream_speed">Increasing playback speed over 1 for streams may cause stuttering</string>
     <string name="playback_speed_this_video">This video</string>
     <string name="playback_speed_this_track">This track</string>

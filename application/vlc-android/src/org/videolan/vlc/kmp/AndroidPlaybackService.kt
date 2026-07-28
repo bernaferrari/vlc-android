@@ -109,6 +109,9 @@ class AndroidPlaybackService(
     private var selectedEqualizerPresetId: String? = null
 
     private val observers = mutableListOf<PlaybackObserver>()
+    // PlaylistManager restores media state inside its asynchronous load coroutine. Keep the
+    // shared controller's requested default until that restoration has finished.
+    private var rateForNextPlayback = 1f
 
     private var boundManager: PlaylistManager? = null
     private val playingObserver = Observer<Boolean> { playing ->
@@ -173,6 +176,7 @@ class AndroidPlaybackService(
         }
         val wrappers = playlist.map { it.toMediaWrapper() }
         val safeIndex = index.coerceIn(0, (wrappers.size - 1).coerceAtLeast(0))
+        val requestedRate = rateForNextPlayback
         // Streams can expose video only after LibVLC probes them. Match the
         // shared PlayerUiState contract so they wait for the route-owned
         // VLCVideoLayout instead of escaping into the legacy activity.
@@ -193,6 +197,7 @@ class AndroidPlaybackService(
         pm.launch {
             try {
                 pm.load(wrappers, safeIndex, mlUpdate = true)
+                pm.player?.setRate(requestedRate, true)
                 // Loading can fail asynchronously or leave the host paused. Read the native
                 // source of truth instead of optimistically reporting a false Playing state.
                 pushStateFromHost(playing = PlaylistManager.playingState.value == true)
@@ -301,6 +306,10 @@ class AndroidPlaybackService(
     override fun setRate(rate: Float) {
         val safeRate = rate.takeIf(Float::isFinite)?.coerceIn(MIN_PLAYBACK_RATE, MAX_PLAYBACK_RATE) ?: 1f
         manager()?.player?.setRate(safeRate, true)
+    }
+
+    override fun setRateForNextPlayback(rate: Float) {
+        rateForNextPlayback = rate.takeIf(Float::isFinite)?.coerceIn(MIN_PLAYBACK_RATE, MAX_PLAYBACK_RATE) ?: 1f
     }
 
     override fun getRate(): Float {

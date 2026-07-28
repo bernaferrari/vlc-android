@@ -63,6 +63,13 @@ interface PlaybackService {
     fun setRepeatMode(mode: RepeatMode)
     fun setVolume(volume: Int)
     fun getVolume(): Int
+    /**
+     * Sets a decoder-safe rate that must be in effect when the next item is loaded.
+     *
+     * Most services can retain it through [setRate]. Android overrides this because its
+     * PlaylistManager loads asynchronously and otherwise restores the previous media rate.
+     */
+    fun setRateForNextPlayback(rate: Float) = setRate(rate)
     fun setRate(rate: Float)
     fun getRate(): Float
     fun setVideoScaleMode(mode: VideoScaleMode) {}

@@ -1,7 +1,9 @@
 package org.videolan.vlc.kmp
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.app.Activity
 import android.hardware.biometrics.BiometricManager
 import android.hardware.biometrics.BiometricPrompt
@@ -227,9 +229,17 @@ class AndroidAppLockController(context: Context) : AppLockController {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && biometricEnrollmentAvailable()
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    private fun biometricEnrollmentAvailable(): Boolean = appContext
-        .getSystemService(BiometricManager::class.java)
-        ?.canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS
+    private fun biometricEnrollmentAvailable(): Boolean {
+        // OEM/system implementations can throw here when a product flavor or an embedded host
+        // does not carry USE_BIOMETRIC. App lock must remain PIN-capable in that situation.
+        if (ContextCompat.checkSelfPermission(appContext, Manifest.permission.USE_BIOMETRIC) != PackageManager.PERMISSION_GRANTED) {
+            return false
+        }
+        return runCatching {
+            appContext.getSystemService(BiometricManager::class.java)
+                ?.canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS
+        }.getOrDefault(false)
+    }
 
     @RequiresApi(Build.VERSION_CODES.P)
     private suspend fun requestBiometricUnlock(): Boolean = suspendCancellableCoroutine { continuation ->

@@ -131,6 +131,12 @@ object VlcKmpInitializer {
             } catch (_: Exception) {
             }
         }
+        SettingsWriteBridge.onFloat = { key, value ->
+            try {
+                Settings.getInstance(appContext).putSingle(key, value)
+            } catch (_: Exception) {
+            }
+        }
         AppScope.launch(Dispatchers.IO) {
             try {
                 seedDataStoreFromSharedPreferences(
@@ -186,6 +192,8 @@ object VlcKmpInitializer {
             org.videolan.tools.KEY_VIDEO_APP_SWITCH,
             org.videolan.tools.KEY_PLAYBACK_SPEED_AUDIO_GLOBAL,
             org.videolan.tools.KEY_PLAYBACK_SPEED_VIDEO_GLOBAL,
+            org.videolan.tools.KEY_PLAYBACK_SPEED_AUDIO_GLOBAL_VALUE,
+            org.videolan.tools.KEY_PLAYBACK_SPEED_VIDEO_GLOBAL_VALUE,
             org.videolan.tools.KEY_DEFAULT_PLAYBACK_ACTION_VIDEO,
             org.videolan.tools.KEY_DEFAULT_PLAYBACK_ACTION_TRACK,
             org.videolan.tools.KEY_DEFAULT_PLAYBACK_ACTION_PLAYLIST,

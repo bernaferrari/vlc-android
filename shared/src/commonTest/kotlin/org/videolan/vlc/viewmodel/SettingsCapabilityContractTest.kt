@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import org.videolan.tools.SettingsWriteBridge
 import org.videolan.tools.KEY_BROWSE_NETWORK
 import org.videolan.tools.BROWSER_SHOW_ONLY_MULTIMEDIA
+import org.videolan.tools.KEY_PLAYBACK_SPEED_AUDIO_GLOBAL
+import org.videolan.tools.KEY_PLAYBACK_SPEED_AUDIO_GLOBAL_VALUE
 import org.videolan.tools.VIDEO_HUD_TIMEOUT
 import org.videolan.vlc.platform.VlcPlatformCapabilities
 import org.videolan.vlc.platform.RemoteAccessServerController
@@ -31,12 +33,14 @@ class SettingsCapabilityContractTest {
         Dispatchers.setMain(dispatcher)
         SettingsWriteBridge.onBoolean = null
         SettingsWriteBridge.onInt = null
+        SettingsWriteBridge.onFloat = null
     }
 
     @AfterTest
     fun tearDown() {
         SettingsWriteBridge.onBoolean = null
         SettingsWriteBridge.onInt = null
+        SettingsWriteBridge.onFloat = null
         Dispatchers.resetMain()
     }
 
@@ -97,6 +101,22 @@ class SettingsCapabilityContractTest {
 
         assertEquals(10, viewModel.state.value.videoHudTimeoutSeconds)
         assertEquals(listOf(VIDEO_HUD_TIMEOUT to 10), writes)
+        viewModel.onCleared()
+    }
+
+    @Test
+    fun defaultAudioSpeedIsSharedBoundedAndEnablesAndroidGlobalParity() {
+        val floatWrites = mutableListOf<Pair<String, Float>>()
+        val booleanWrites = mutableListOf<Pair<String, Boolean>>()
+        SettingsWriteBridge.onFloat = { key, value -> floatWrites += key to value }
+        SettingsWriteBridge.onBoolean = { key, value -> booleanWrites += key to value }
+        val viewModel = SettingsViewModel(prefs = null)
+
+        viewModel.setDefaultAudioPlaybackSpeed(Float.POSITIVE_INFINITY)
+
+        assertEquals(1f, viewModel.state.value.defaultAudioPlaybackSpeed)
+        assertEquals(listOf(KEY_PLAYBACK_SPEED_AUDIO_GLOBAL_VALUE to 1f), floatWrites)
+        assertEquals(listOf(KEY_PLAYBACK_SPEED_AUDIO_GLOBAL to true), booleanWrites)
         viewModel.onCleared()
     }
 

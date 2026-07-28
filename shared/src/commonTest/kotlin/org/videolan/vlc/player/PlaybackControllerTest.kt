@@ -11,6 +11,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.videolan.vlc.model.HistoryEntry
 import org.videolan.vlc.model.MediaItem
+import org.videolan.vlc.model.MediaType
 import org.videolan.vlc.model.Progress
 import org.videolan.vlc.platform.MediaSessionBridge
 import org.videolan.vlc.platform.SessionActions
@@ -90,7 +91,11 @@ class PlaybackControllerTest {
     fun clearsNowPlayingMetadataWhenPlaybackStops() = runTest {
         val service = FakePlaybackService()
         val session = RecordingMediaSessionBridge()
-        val controller = PlaybackController(service = service, session = session)
+        val controller = PlaybackController(
+            service = service,
+            session = session,
+            defaultRateFor = { 1.25f },
+        )
         val item = FakeCatalog.items.first()
 
         service.setRate(1.25f)
@@ -102,6 +107,25 @@ class PlaybackControllerTest {
         assertTrue(session.playingStates.last().not())
         assertEquals(0f, session.playbackRates.last())
         assertTrue(session.playbackRates.contains(1.25f))
+    }
+
+    @Test
+    fun appliesSeparateSharedDefaultsBeforeAudioAndVideoPlayback() = runTest {
+        val service = FakePlaybackService()
+        val controller = PlaybackController(
+            service = service,
+            defaultRateFor = { item -> if (item.isAudio) 1.25f else 1.5f },
+        )
+        val audio = FakeCatalog.items.first().copy(type = MediaType.AUDIO)
+        val video = FakeCatalog.items.first().copy(type = MediaType.VIDEO)
+
+        controller.play(audio)
+        assertEquals(1.25f, service.preparedRateForNextPlayback)
+        assertEquals(1.25f, service.getRate())
+
+        controller.play(video)
+        assertEquals(1.5f, service.preparedRateForNextPlayback)
+        assertEquals(1.5f, service.getRate())
     }
 
     private class RecordingHistoryRepository : HistoryRepository {

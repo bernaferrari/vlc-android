@@ -88,6 +88,8 @@ object Settings : SingletonHolder<SharedPreferences, Context>({ init(it.applicat
             audioResumePlayback = audioResumePlayback,
             videoResumePlayback = videoResumePlayback,
             fastplaySpeed = fastplaySpeed,
+            defaultAudioPlaybackSpeed = HotPlaybackSettings.playbackSpeedAudioGlobalValue,
+            defaultVideoPlaybackSpeed = HotPlaybackSettings.playbackSpeedVideoGlobalValue,
         )
     }
 

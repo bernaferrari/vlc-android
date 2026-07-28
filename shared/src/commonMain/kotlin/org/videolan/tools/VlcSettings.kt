@@ -50,6 +50,8 @@ object VlcSettings {
     private val _audioResumePlayback = MutableStateFlow(true)
     private val _videoResumePlayback = MutableStateFlow(true)
     private val _fastplaySpeed = MutableStateFlow(2f)
+    private val _defaultAudioPlaybackSpeed = MutableStateFlow(1f)
+    private val _defaultVideoPlaybackSpeed = MutableStateFlow(1f)
 
     // --- Public read-only StateFlows (reactive) ---
 
@@ -85,6 +87,10 @@ object VlcSettings {
     /** Whether the current video/stream queue may be restored after relaunch. */
     val videoResumePlayback: StateFlow<Boolean> = _videoResumePlayback.asStateFlow()
     val fastplaySpeed: StateFlow<Float> = _fastplaySpeed.asStateFlow()
+    /** Preferred rate for every newly started audio item. */
+    val defaultAudioPlaybackSpeed: StateFlow<Float> = _defaultAudioPlaybackSpeed.asStateFlow()
+    /** Preferred rate for every newly started video or stream item. */
+    val defaultVideoPlaybackSpeed: StateFlow<Float> = _defaultVideoPlaybackSpeed.asStateFlow()
 
     /**
      * Platform-specific device info. Set by platform code at startup.
@@ -130,6 +136,8 @@ object VlcSettings {
         audioResumePlayback: Boolean,
         videoResumePlayback: Boolean,
         fastplaySpeed: Float,
+        defaultAudioPlaybackSpeed: Float,
+        defaultVideoPlaybackSpeed: Float,
     ) {
         _firstRun.value = firstRun
         _showVideoThumbs.value = showVideoThumbs
@@ -157,6 +165,8 @@ object VlcSettings {
         _audioResumePlayback.value = audioResumePlayback
         _videoResumePlayback.value = videoResumePlayback
         _fastplaySpeed.value = fastplaySpeed
+        _defaultAudioPlaybackSpeed.value = normalizePlaybackSpeed(defaultAudioPlaybackSpeed)
+        _defaultVideoPlaybackSpeed.value = normalizePlaybackSpeed(defaultVideoPlaybackSpeed)
     }
 
     /**
@@ -192,6 +202,12 @@ object VlcSettings {
         _playbackHistory.value = prefs.getBoolean(PLAYBACK_HISTORY, true)
         _audioResumePlayback.value = prefs.getBoolean(AUDIO_RESUME_PLAYBACK, true)
         _videoResumePlayback.value = prefs.getBoolean(VIDEO_RESUME_PLAYBACK, true)
+        _defaultAudioPlaybackSpeed.value = normalizePlaybackSpeed(
+            prefs.getFloat(KEY_PLAYBACK_SPEED_AUDIO_GLOBAL_VALUE, 1f)
+        )
+        _defaultVideoPlaybackSpeed.value = normalizePlaybackSpeed(
+            prefs.getFloat(KEY_PLAYBACK_SPEED_VIDEO_GLOBAL_VALUE, 1f)
+        )
     }
 
     /**
@@ -244,4 +260,20 @@ object VlcSettings {
             LIST_TITLE_ELLIPSIZE -> _listTitleEllipsize.value = value
         }
     }
+
+    /** Update a decoder-safe playback-rate preference in cache and DataStore. */
+    suspend fun updateFloat(prefs: VlcPreferences, key: String, value: Float) {
+        val normalized = normalizePlaybackSpeed(value)
+        prefs.putFloat(key, normalized)
+        when (key) {
+            KEY_PLAYBACK_SPEED_AUDIO_GLOBAL_VALUE -> _defaultAudioPlaybackSpeed.value = normalized
+            KEY_PLAYBACK_SPEED_VIDEO_GLOBAL_VALUE -> _defaultVideoPlaybackSpeed.value = normalized
+        }
+    }
+
+    private fun normalizePlaybackSpeed(value: Float): Float =
+        value.takeIf(Float::isFinite)?.coerceIn(MIN_PLAYBACK_SPEED, MAX_PLAYBACK_SPEED) ?: 1f
+
+    private const val MIN_PLAYBACK_SPEED = 0.25f
+    private const val MAX_PLAYBACK_SPEED = 4f
 }
