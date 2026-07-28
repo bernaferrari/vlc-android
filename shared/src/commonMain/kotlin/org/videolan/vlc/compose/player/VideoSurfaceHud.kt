@@ -55,6 +55,7 @@ import org.videolan.vlc.player.SleepTimerState
 import org.videolan.vlc.player.PlaybackChapters
 import org.videolan.vlc.player.PlaybackEqualizer
 import org.videolan.vlc.player.PlaybackBookmarks
+import org.videolan.vlc.player.PlaybackRate
 import org.videolan.vlc.platform.RendererInfo
 import org.videolan.vlc.platform.RendererType
 import org.videolan.vlc.compose.components.VLCRendererPickerDialogContent
@@ -602,7 +603,7 @@ internal fun formatPlaybackTime(ms: Long): String {
 }
 
 internal fun playbackRateLabel(rate: Float): String {
-    val value = ((rate.coerceIn(0.25f, 4f) * 100).roundToInt() / 100f)
+    val value = ((PlaybackRate.normalize(rate) * 100).roundToInt() / 100f)
         .toString()
         .removeSuffix(".0")
     return "${value}×"

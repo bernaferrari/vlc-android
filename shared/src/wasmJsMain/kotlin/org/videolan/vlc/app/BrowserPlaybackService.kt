@@ -13,6 +13,7 @@ import org.videolan.vlc.model.RepeatMode
 import org.videolan.vlc.player.PlaybackObserver
 import org.videolan.vlc.player.PlaybackService
 import org.videolan.vlc.player.PlaybackState
+import org.videolan.vlc.player.PlaybackRate
 import org.videolan.vlc.player.VideoScaleMode
 import org.videolan.vlc.player.PlaybackTracks
 import org.videolan.vlc.player.PlaybackTrack
@@ -186,7 +187,7 @@ internal class BrowserPlaybackService : PlaybackService {
     override fun getVolume(): Int = volume
 
     override fun setRate(rate: Float) {
-        this.rate = rate.coerceIn(0.25f, 4f)
+        this.rate = PlaybackRate.normalize(rate)
         mediaElement?.let { setHtmlMediaRate(it, this.rate) }
     }
 

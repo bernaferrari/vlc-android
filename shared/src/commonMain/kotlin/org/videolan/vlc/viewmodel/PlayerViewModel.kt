@@ -25,6 +25,7 @@ import org.videolan.vlc.player.VideoCropMode
 import org.videolan.vlc.player.PlaybackVideoAdjust
 import org.videolan.vlc.player.VideoAdjustParameter
 import org.videolan.vlc.player.PlaybackBookmarks
+import org.videolan.vlc.player.PlaybackRate
 import org.videolan.vlc.platform.RendererInfo
 import org.videolan.tools.VlcSettings
 
@@ -193,7 +194,7 @@ class PlayerViewModel(
     fun seekRelative(delta: Long) = playback.seekRelative(delta)
 
     fun setPlaybackRate(rate: Float) {
-        val safeRate = rate.takeIf(Float::isFinite)?.coerceIn(0.25f, 4f) ?: 1f
+        val safeRate = PlaybackRate.normalize(rate)
         playback.setRate(safeRate)
         _state.update { it.copy(rate = playback.getRate()) }
     }

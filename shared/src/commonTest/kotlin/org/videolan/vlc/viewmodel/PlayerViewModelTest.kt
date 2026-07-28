@@ -102,6 +102,10 @@ class PlayerViewModelTest {
         assertEquals(1.5f, playback.getRate())
         assertEquals(1.5f, vm.state.value.rate)
 
+        vm.setPlaybackRate(8f)
+        assertEquals(8f, playback.getRate())
+        assertEquals(8f, vm.state.value.rate)
+
         vm.setPlaybackRate(Float.NaN)
         assertEquals(1f, playback.getRate())
         assertEquals(1f, vm.state.value.rate)

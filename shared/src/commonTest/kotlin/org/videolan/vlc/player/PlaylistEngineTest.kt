@@ -80,7 +80,9 @@ class PlaylistEngineTest {
         engine.setRate(Float.NaN)
         assertEquals(1f, engine.getRate())
         engine.setRate(20f)
-        assertEquals(4f, engine.getRate())
+        assertEquals(8f, engine.getRate())
+        engine.setRate(8f)
+        assertEquals(8f, engine.getRate())
         engine.setRate(0.01f)
         assertEquals(0.25f, engine.getRate())
     }

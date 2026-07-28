@@ -12,6 +12,7 @@ import org.videolan.vlc.model.MediaType
 import org.videolan.vlc.model.Playlist
 import org.videolan.vlc.model.PlaylistInfo
 import org.videolan.vlc.player.PlaybackBookmark
+import org.videolan.vlc.player.PlaybackRate
 import org.videolan.vlc.repository.HistoryRepository
 import org.videolan.vlc.repository.MediaRepository
 import org.videolan.vlc.repository.PlaylistRepository
@@ -78,7 +79,7 @@ class IosMediaLibrary private constructor(
             playlist = playlist,
             positionMs = positionMs.coerceAtLeast(0L),
             volume = volume.coerceIn(0, 200),
-            rate = rate.takeIf(Float::isFinite)?.coerceIn(0.25f, 4f) ?: 1f,
+            rate = PlaybackRate.normalize(rate),
         )
         persist()
     }

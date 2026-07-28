@@ -54,6 +54,7 @@ import org.videolan.vlc.player.PlaybackChapters
 import org.videolan.vlc.player.PlaybackEqualizer
 import org.videolan.vlc.player.PlaybackBookmarks
 import org.videolan.vlc.player.PlaybackBookmark
+import org.videolan.vlc.player.PlaybackRate
 import vlc_android.shared.generated.resources.Res
 import vlc_android.shared.generated.resources.done
 import vlc_android.shared.generated.resources.ab_repeat
@@ -92,7 +93,7 @@ import vlc_android.shared.generated.resources.save
 import vlc_android.shared.generated.resources.previous_bookmark
 import vlc_android.shared.generated.resources.next_bookmark
 
-private val PlaybackRatePresets = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f)
+private val PlaybackRatePresets = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f, 4f, 8f)
 
 /**
  * Shared advanced playback entry point.
@@ -194,11 +195,11 @@ internal fun PlaybackOptionsSheet(
             }
 
             Slider(
-                value = previewRate.coerceIn(0.25f, 4f),
+                value = PlaybackRate.normalize(previewRate),
                 onValueChange = { previewRate = it },
                 onValueChangeFinished = { onSetRate(previewRate) },
-                valueRange = 0.25f..4f,
-                steps = 14,
+                valueRange = PlaybackRate.MIN..PlaybackRate.MAX,
+                steps = 30,
                 modifier = Modifier.fillMaxWidth(),
             )
             FlowRow(

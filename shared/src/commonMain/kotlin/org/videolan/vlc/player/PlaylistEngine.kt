@@ -126,11 +126,6 @@ class PlaylistEngine(
     private var rate: Float = 1f
     private val random = Random.Default
 
-    private companion object {
-        const val MIN_PLAYBACK_RATE = 0.25f
-        const val MAX_PLAYBACK_RATE = 4f
-    }
-
     fun setBackend(backend: PlayerBackend?) {
         this.backend?.release()
         this.backend = backend
@@ -292,9 +287,8 @@ class PlaylistEngine(
     override fun getVolume(): Int = backend?.getVolume() ?: volume
 
     override fun setRate(rate: Float) {
-        // Keep one safe range across all native/browser decoders. A malformed restored value
-        // must not become an invalid LibVLC or MobileVLCKit playback rate.
-        this.rate = rate.takeIf(Float::isFinite)?.coerceIn(MIN_PLAYBACK_RATE, MAX_PLAYBACK_RATE) ?: 1f
+        // A malformed restored value must not become an invalid LibVLC or MobileVLCKit rate.
+        this.rate = PlaybackRate.normalize(rate)
         backend?.setRate(this.rate)
     }
 

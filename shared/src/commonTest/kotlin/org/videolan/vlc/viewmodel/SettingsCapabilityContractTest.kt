@@ -117,6 +117,10 @@ class SettingsCapabilityContractTest {
         assertEquals(1f, viewModel.state.value.defaultAudioPlaybackSpeed)
         assertEquals(listOf(KEY_PLAYBACK_SPEED_AUDIO_GLOBAL_VALUE to 1f), floatWrites)
         assertEquals(listOf(KEY_PLAYBACK_SPEED_AUDIO_GLOBAL to true), booleanWrites)
+
+        viewModel.setDefaultVideoPlaybackSpeed(8f)
+        assertEquals(8f, viewModel.state.value.defaultVideoPlaybackSpeed)
+        assertEquals(KEY_PLAYBACK_SPEED_VIDEO_GLOBAL_VALUE to 8f, floatWrites.last())
         viewModel.onCleared()
     }
 

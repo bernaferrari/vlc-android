@@ -31,6 +31,7 @@ import org.videolan.vlc.platform.platformCapabilities
 import org.videolan.vlc.platform.AppLockController
 import org.videolan.vlc.platform.AppLockState
 import org.videolan.vlc.platform.NoOpAppLockController
+import org.videolan.vlc.player.PlaybackRate
 
 data class SettingsUiState(
     val showVideoThumbs: Boolean = true,
@@ -312,11 +313,5 @@ class SettingsViewModel(
         }
     }
 
-    private fun normalizePlaybackSpeed(value: Float): Float =
-        value.takeIf(Float::isFinite)?.coerceIn(MIN_PLAYBACK_SPEED, MAX_PLAYBACK_SPEED) ?: 1f
-
-    private companion object {
-        const val MIN_PLAYBACK_SPEED = 0.25f
-        const val MAX_PLAYBACK_SPEED = 4f
-    }
+    private fun normalizePlaybackSpeed(value: Float): Float = PlaybackRate.normalize(value)
 }

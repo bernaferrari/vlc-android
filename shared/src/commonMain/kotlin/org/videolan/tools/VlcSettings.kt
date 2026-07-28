@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.videolan.vlc.platform.PlatformInfo
+import org.videolan.vlc.player.PlaybackRate
 
 /**
  * Cross-platform settings facade backed by [VlcPreferences] (DataStore).
@@ -271,9 +272,5 @@ object VlcSettings {
         }
     }
 
-    private fun normalizePlaybackSpeed(value: Float): Float =
-        value.takeIf(Float::isFinite)?.coerceIn(MIN_PLAYBACK_SPEED, MAX_PLAYBACK_SPEED) ?: 1f
-
-    private const val MIN_PLAYBACK_SPEED = 0.25f
-    private const val MAX_PLAYBACK_SPEED = 4f
+    private fun normalizePlaybackSpeed(value: Float): Float = PlaybackRate.normalize(value)
 }

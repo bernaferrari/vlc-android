@@ -23,6 +23,7 @@ import org.videolan.vlc.model.Progress
 import org.videolan.vlc.model.RepeatMode
 import org.videolan.vlc.player.PlaybackObserver
 import org.videolan.vlc.player.PlaybackService
+import org.videolan.vlc.player.PlaybackRate
 import org.videolan.vlc.player.PlaybackState
 import org.videolan.vlc.player.PlaybackTrack
 import org.videolan.vlc.player.PlaybackTracks
@@ -38,9 +39,6 @@ import org.videolan.vlc.player.PlaybackEqualizerPreset
 import org.videolan.vlc.player.PlaybackBookmark
 import org.videolan.vlc.player.PlaybackBookmarks
 import org.videolan.vlc.PlaybackService as AndroidPlaybackHost
-
-private const val MIN_PLAYBACK_RATE = 0.25f
-private const val MAX_PLAYBACK_RATE = 4f
 
 /**
  * Android implementation of [PlaybackService] that delegates to the existing
@@ -304,12 +302,12 @@ class AndroidPlaybackService(
     }
 
     override fun setRate(rate: Float) {
-        val safeRate = rate.takeIf(Float::isFinite)?.coerceIn(MIN_PLAYBACK_RATE, MAX_PLAYBACK_RATE) ?: 1f
+        val safeRate = PlaybackRate.normalize(rate)
         manager()?.player?.setRate(safeRate, true)
     }
 
     override fun setRateForNextPlayback(rate: Float) {
-        rateForNextPlayback = rate.takeIf(Float::isFinite)?.coerceIn(MIN_PLAYBACK_RATE, MAX_PLAYBACK_RATE) ?: 1f
+        rateForNextPlayback = PlaybackRate.normalize(rate)
     }
 
     override fun getRate(): Float {

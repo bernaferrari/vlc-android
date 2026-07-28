@@ -21,6 +21,17 @@ sealed class PlaybackState {
     data class Ended(val item: MediaItem) : PlaybackState()
 }
 
+/**
+ * Playback-rate contract shared by common UI, persisted defaults, and platform adapters.
+ * VLC for Android and VLC for iOS both expose rates through 8×.
+ */
+object PlaybackRate {
+    const val MIN = 0.25f
+    const val MAX = 8f
+
+    fun normalize(rate: Float): Float = rate.takeIf(Float::isFinite)?.coerceIn(MIN, MAX) ?: 1f
+}
+
 interface PlaybackObserver {
     fun onStateChanged(state: PlaybackState)
     fun onProgressChanged(progress: Progress)

@@ -797,7 +797,7 @@ private fun ValueStepperRow(
     }
 }
 
-private val PlaybackSpeedChoices = listOf(0.25f, 0.5f, 0.75f, 1f, 1.25f, 1.5f, 1.75f, 2f, 2.5f, 3f, 4f)
+private val PlaybackSpeedChoices = listOf(0.25f, 0.5f, 0.75f, 1f, 1.25f, 1.5f, 1.75f, 2f, 2.5f, 3f, 4f, 5f, 6f, 8f)
 
 @Composable
 private fun PlaybackSpeedStepperRow(title: String, rate: Float, onChange: (Float) -> Unit) {

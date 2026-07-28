@@ -11,6 +11,7 @@ import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.MediaType
 import org.videolan.vlc.model.Playlist
 import org.videolan.vlc.model.RepeatMode
+import org.videolan.vlc.player.PlaybackRate
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSURL
@@ -245,7 +246,7 @@ internal fun StoredPlaybackSession.toPlaybackSession(): IosPlaybackSession = Ios
     playlist = playlist.toPlaylist(),
     positionMs = positionMs.coerceAtLeast(0L),
     volume = volume.coerceIn(0, 200),
-    rate = rate.takeIf(Float::isFinite)?.coerceIn(0.25f, 4f) ?: 1f,
+    rate = PlaybackRate.normalize(rate),
 )
 
 private val catalogJson = Json {
