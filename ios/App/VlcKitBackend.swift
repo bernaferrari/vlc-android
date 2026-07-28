@@ -34,6 +34,9 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     private var videoOutputScale: Float = 0
     private var externalSubtitleURL: URL?
     private var selectedRendererId: String?
+    private var stopRequested = false
+    private var lastPlaybackTimeMs: Int64 = 0
+    private var lastPlaybackLengthMs: Int64 = 0
 
 #if canImport(VLCKit)
     private var player: VLCMediaPlayer?
@@ -85,6 +88,9 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
             listener?.onError(message: "Invalid URI: \(uri)")
             return
         }
+        stopRequested = false
+        lastPlaybackTimeMs = 0
+        lastPlaybackLengthMs = 0
         externalSubtitleURL = nil
         let player = ensurePlayer()
         player.media = media
@@ -100,6 +106,9 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     func preparePaused(uri: String, title: String?, positionMs: Int64) -> Bool {
 #if canImport(VLCKit)
         guard let media = makeMedia(uri: uri, title: title) else { return false }
+        stopRequested = false
+        lastPlaybackTimeMs = max(0, positionMs)
+        lastPlaybackLengthMs = 0
         externalSubtitleURL = nil
         let player = ensurePlayer()
         player.media = media
@@ -132,6 +141,9 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
 
     func stop() {
 #if canImport(VLCKit)
+        stopRequested = true
+#endif
+#if canImport(VLCKit)
         player?.stop()
 #endif
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
@@ -146,7 +158,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
         let length = max(0, Int64(player.media?.length.intValue ?? 0))
         let target = max(0, length > 0 ? min(positionMs, length) : positionMs)
         if length > 0 {
-            player.position = Float(target) / Float(length)
+            player.position = Double(target) / Double(length)
         } else {
             player.time = VLCTime(number: NSNumber(value: target))
         }
@@ -272,16 +284,8 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
 #if canImport(VLCKit)
         guard let player else { return PlaybackTracks(audio: [], subtitles: []) }
         return PlaybackTracks(
-            audio: makeTracks(
-                names: player.audioTrackNames,
-                indexes: player.audioTrackIndexes,
-                selected: Int(player.currentAudioTrackIndex)
-            ),
-            subtitles: makeTracks(
-                names: player.videoSubTitlesNames,
-                indexes: player.videoSubTitlesIndexes,
-                selected: Int(player.currentVideoSubTitleIndex)
-            )
+            audio: makeTracks(player.audioTracks),
+            subtitles: makeTracks(player.textTracks)
         )
 #else
         return PlaybackTracks(audio: [], subtitles: [])
@@ -290,15 +294,17 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
 
     func selectAudioTrack(id: String) {
 #if canImport(VLCKit)
-        guard let trackID = Int32(id) else { return }
-        player?.currentAudioTrackIndex = trackID
+        guard let player,
+              let index = player.audioTracks.firstIndex(where: { $0.trackId == id }) else { return }
+        player.selectTrack(at: index, type: .audio)
 #endif
     }
 
     func selectSubtitleTrack(id: String) {
 #if canImport(VLCKit)
-        guard let trackID = Int32(id) else { return }
-        player?.currentVideoSubTitleIndex = trackID
+        guard let player,
+              let index = player.textTracks.firstIndex(where: { $0.trackId == id }) else { return }
+        player.selectTrack(at: index, type: .text)
 #endif
     }
 
@@ -515,11 +521,14 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 
 #if canImport(VLCKit)
-    private func makeTracks(names: [Any], indexes: [Any], selected: Int) -> [PlaybackTrack] {
-        let labels = names.compactMap { $0 as? String }
-        let ids = indexes.map { String(describing: $0) }
-        return zip(labels, ids).map { label, id in
-            PlaybackTrack(id: id, label: label, selected: Int(id) == selected)
+    private func makeTracks(_ tracks: [VLCMediaPlayer.Track]) -> [PlaybackTrack] {
+        tracks.enumerated().map { index, track in
+            let label = track.trackName.trimmingCharacters(in: .whitespacesAndNewlines)
+            return PlaybackTrack(
+                id: track.trackId,
+                label: label.isEmpty ? "Track \(index + 1)" : label,
+                selected: track.isSelected
+            )
         }
     }
 
@@ -596,8 +605,8 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
         let positionMs = max(0, Int64(previous.time.intValue))
         let wasPlaying = previous.isPlaying
         let equalizer = previous.equalizer
-        let audioTrack = previous.currentAudioTrackIndex
-        let subtitleTrack = previous.currentVideoSubTitleIndex
+        let audioTrack = previous.audioTracks.firstIndex(where: { $0.isSelected })
+        let subtitleTrack = previous.textTracks.firstIndex(where: { $0.isSelected })
         let audioDelay = previous.currentAudioPlaybackDelay
         let subtitleDelay = previous.currentVideoSubTitleDelay
         let chapter = previous.currentChapterIndex
@@ -608,8 +617,12 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
             _ = replacement.addPlaybackSlave(externalSubtitleURL, type: .subtitle, enforce: true)
         }
         replacement.time = VLCTime(number: NSNumber(value: positionMs))
-        replacement.currentAudioTrackIndex = audioTrack
-        replacement.currentVideoSubTitleIndex = subtitleTrack
+        if let audioTrack {
+            replacement.selectTrack(at: audioTrack, type: .audio)
+        }
+        if let subtitleTrack {
+            replacement.selectTrack(at: subtitleTrack, type: .text)
+        }
         replacement.currentAudioPlaybackDelay = audioDelay
         replacement.currentVideoSubTitleDelay = subtitleDelay
         replacement.currentChapterIndex = chapter
@@ -632,19 +645,21 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
 
     private func applyVideoOutput(to player: VLCMediaPlayer?) {
         player?.scaleFactor = videoOutputScale
-        if let videoOutputAspectRatio {
-            videoOutputAspectRatio.withCString { player?.videoAspectRatio = UnsafeMutablePointer(mutating: $0) }
-        } else {
-            player?.videoAspectRatio = nil
-        }
+        player?.videoAspectRatio = videoOutputAspectRatio
     }
 
     private func applyVideoCrop(to player: VLCMediaPlayer?) {
-        if let geometry = videoCropMode.geometry {
-            geometry.withCString { player?.videoCropGeometry = UnsafeMutablePointer(mutating: $0) }
-        } else {
-            player?.videoCropGeometry = nil
+        guard let player else { return }
+        guard let geometry = videoCropMode.geometry else {
+            VlcKitCropBridge.apply(0, denominator: 0, to: player)
+            return
         }
+        let parts = geometry.split(separator: ":", maxSplits: 1)
+        guard parts.count == 2,
+              let numerator = UInt32(parts[0]),
+              let denominator = UInt32(parts[1]),
+              denominator > 0 else { return }
+        VlcKitCropBridge.apply(numerator, denominator: denominator, to: player)
     }
 
     private func copyVideoAdjust(from source: VLCMediaPlayer, to destination: VLCMediaPlayer) {
@@ -683,7 +698,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
         }
         guard let url else { return nil }
         currentTitle = title?.isEmpty == false ? title! : url.deletingPathExtension().lastPathComponent
-        let media = VLCMedia(url: url)
+        guard let media = VLCMedia(url: url) else { return nil }
         if let title, !title.isEmpty {
             media.addOption(":meta-title=\(title)")
         }
@@ -825,9 +840,8 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
 
 #if canImport(VLCKit)
 extension VlcKitBackend: VLCMediaPlayerDelegate {
-    func mediaPlayerStateChanged(_ aNotification: Notification) {
-        guard let player else { return }
-        switch player.state {
+    func mediaPlayerStateChanged(_ newState: VLCMediaPlayerState) {
+        switch newState {
         case .playing:
             publishNowPlayingInfo(isPlaying: true)
             listener?.onPlaying()
@@ -836,10 +850,14 @@ extension VlcKitBackend: VLCMediaPlayerDelegate {
             listener?.onPaused()
         case .stopped:
             MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
-            listener?.onStopped()
-        case .ended:
-            MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
-            listener?.onEnded()
+            let reachedEnd = !stopRequested && lastPlaybackLengthMs > 0 &&
+                lastPlaybackTimeMs >= max(0, lastPlaybackLengthMs - 1_500)
+            stopRequested = false
+            if reachedEnd {
+                listener?.onEnded()
+            } else {
+                listener?.onStopped()
+            }
         case .error: listener?.onError(message: "VLCKit error")
         default: break
         }
@@ -850,6 +868,8 @@ extension VlcKitBackend: VLCMediaPlayerDelegate {
         guard let player else { return }
         let time = Int64(player.time.intValue)
         let length = Int64(player.media?.length.intValue ?? 0)
+        lastPlaybackTimeMs = time
+        lastPlaybackLengthMs = length
         listener?.onTimeChanged(timeMs: time, lengthMs: length)
         publishNowPlayingInfo()
         VlcKitPipDrawable.shared.invalidatePlaybackState()

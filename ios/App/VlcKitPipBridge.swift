@@ -56,8 +56,9 @@ final class VlcKitPipDrawable: NSObject,
 
     func mediaController() -> (any VLCPictureInPictureMediaControlling)! { self }
 
-    func pictureInPictureReady() -> ((any VLCPictureInPictureWindowControlling) -> Void)! {
+    func pictureInPictureReady() -> (((any VLCPictureInPictureWindowControlling)?) -> Void)! {
         { [weak self] controller in
+            guard let controller else { return }
             self?.pipController = controller
             controller.stateChangeEventHandler = { [weak self] active in
                 self?.pipActive = active

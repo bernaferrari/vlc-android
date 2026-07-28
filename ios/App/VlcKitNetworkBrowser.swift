@@ -23,6 +23,9 @@ final class VlcKitNetworkBrowser: NSObject, IosNetworkBrowserBackend {
     private var discoverers: [VLCMediaDiscoverer] = []
     private var discoveryTimer: Timer?
     private var browsingMedia: VLCMedia?
+    // VLCKit 4 owns parsing through a reusable parser. Keeping it here also
+    // gives cancellation a real effect when the Compose screen changes.
+    private let mediaParser = VLCMediaParser.shared()
 #endif
 
     private override init() {
@@ -65,12 +68,19 @@ final class VlcKitNetworkBrowser: NSObject, IosNetworkBrowserBackend {
             listener?.onError(message: "Invalid network address.")
             return
         }
-        let media = VLCMedia(url: url)
+        guard let media = VLCMedia(url: url) else {
+            listener?.onError(message: "Unable to open this network location.")
+            return
+        }
         media.delegate = self
         browsingMedia = media
         // VLCKit parses server trees asynchronously and supplies their
-        // children through `subitems`, exactly as upstream iOS does.
-        guard media.parse(options: .parseNetwork) == 0 else {
+        // children through `subitems`, exactly as the upstream iOS browser
+        // does. VLCKit 4 moved this operation from VLCMedia to VLCMediaParser.
+        guard mediaParser.queue(
+            media,
+            options: VLCMediaParsingOptions(rawValue: 1) // VLCMediaParse
+        ) == 0 else {
             finishBrowse(error: "Unable to open this network location.")
             return
         }
@@ -81,7 +91,9 @@ final class VlcKitNetworkBrowser: NSObject, IosNetworkBrowserBackend {
 
     func cancelBrowse() {
 #if canImport(VLCKit)
-        browsingMedia?.parseStop()
+        if let browsingMedia {
+            mediaParser.cancelParsing(for: browsingMedia)
+        }
         browsingMedia?.delegate = nil
         browsingMedia = nil
 #endif

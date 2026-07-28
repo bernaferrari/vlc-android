@@ -13,6 +13,7 @@
 		82389E7E85899602B1EE3A09 /* $(VLC_SHARED_FRAMEWORK_PATH) in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0EF723608B7873844B8658BC /* $(VLC_SHARED_FRAMEWORK_PATH) */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9DDD10A1BBFE08AFE22891FD /* VlcKitPipBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 399847AE7520F5D9D0EC7CD7 /* VlcKitPipBridge.swift */; };
 		A4C394D7E43ADA8CE0FF07BF /* VlcKitNetworkBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607C8408946D36A7E750425A /* VlcKitNetworkBrowser.swift */; };
+		A8F53B3824CC3F9EC673EAE9 /* VlcKitCropBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 636EC51380A9A5A81DAEEB88 /* VlcKitCropBridge.m */; };
 		B8A2D11D4CE19ECCEED4B486 /* $(VLC_SHARED_FRAMEWORK_PATH) in Frameworks */ = {isa = PBXBuildFile; fileRef = 0EF723608B7873844B8658BC /* $(VLC_SHARED_FRAMEWORK_PATH) */; };
 		BFE8BDF267FAB7F638FC4494 /* VlcExternalDisplayController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4939DA2549803F7D1EBDE79C /* VlcExternalDisplayController.swift */; };
 		C75B33B8AE0A4FBEF8337C3A /* IosMediaImportBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9801AC43732CBD1D7D08019C /* IosMediaImportBridge.swift */; };
@@ -38,11 +39,13 @@
 
 /* Begin PBXFileReference section */
 		0EF723608B7873844B8658BC /* $(VLC_SHARED_FRAMEWORK_PATH) */ = {isa = PBXFileReference; path = "$(VLC_SHARED_FRAMEWORK_PATH)"; sourceTree = "<group>"; };
+		22A11BAFEB8D4945A280B6B0 /* VlcKitCropBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VlcKitCropBridge.h; sourceTree = "<group>"; };
 		399847AE7520F5D9D0EC7CD7 /* VlcKitPipBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VlcKitPipBridge.swift; sourceTree = "<group>"; };
 		3F15D2B0CA4AC7F6830CBF4A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		4939DA2549803F7D1EBDE79C /* VlcExternalDisplayController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VlcExternalDisplayController.swift; sourceTree = "<group>"; };
 		52EAA4B4703AC5A1E3678DE3 /* CarPlay.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CarPlay.framework; path = System/Library/Frameworks/CarPlay.framework; sourceTree = SDKROOT; };
 		607C8408946D36A7E750425A /* VlcKitNetworkBrowser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VlcKitNetworkBrowser.swift; sourceTree = "<group>"; };
+		636EC51380A9A5A81DAEEB88 /* VlcKitCropBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VlcKitCropBridge.m; sourceTree = "<group>"; };
 		6C8D2FCB5515A848D092E90D /* IosWifiSharingBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IosWifiSharingBridge.swift; sourceTree = "<group>"; };
 		7E8473F4B78D7AC063BA280C /* VlcCarPlaySceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VlcCarPlaySceneDelegate.swift; sourceTree = "<group>"; };
 		872AE79B2B54F682D91B6907 /* VLC-iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = "VLC-iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -79,6 +82,8 @@
 				7E8473F4B78D7AC063BA280C /* VlcCarPlaySceneDelegate.swift */,
 				4939DA2549803F7D1EBDE79C /* VlcExternalDisplayController.swift */,
 				C39A17B3461CF8B76D62B858 /* VlcKitBackend.swift */,
+				22A11BAFEB8D4945A280B6B0 /* VlcKitCropBridge.h */,
+				636EC51380A9A5A81DAEEB88 /* VlcKitCropBridge.m */,
 				607C8408946D36A7E750425A /* VlcKitNetworkBrowser.swift */,
 				399847AE7520F5D9D0EC7CD7 /* VlcKitPipBridge.swift */,
 			);
@@ -206,6 +211,7 @@
 				ED4022759B98E43D1F25DB69 /* VlcCarPlaySceneDelegate.swift in Sources */,
 				BFE8BDF267FAB7F638FC4494 /* VlcExternalDisplayController.swift in Sources */,
 				EAF63E4A768514B75A1F59DD /* VlcKitBackend.swift in Sources */,
+				A8F53B3824CC3F9EC673EAE9 /* VlcKitCropBridge.m in Sources */,
 				A4C394D7E43ADA8CE0FF07BF /* VlcKitNetworkBrowser.swift in Sources */,
 				9DDD10A1BBFE08AFE22891FD /* VlcKitPipBridge.swift in Sources */,
 			);
@@ -311,6 +317,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OBJC_BRIDGING_HEADER = App/VlcKitCropBridge.h;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -421,6 +428,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OBJC_BRIDGING_HEADER = App/VlcKitCropBridge.h;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
