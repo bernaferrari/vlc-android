@@ -95,6 +95,9 @@ kotlin {
                 api(libs.compose.adaptive.navigation.suite)
                 // Nav3 list-detail scenes keep a library visible beside its selected detail on wide hosts.
                 api(libs.compose.adaptive.navigation3)
+                // Common lifecycle ownership matches Navigation 3 entries on Android, iOS, JVM, and Wasm.
+                api(libs.jetbrains.lifecycle.runtime.compose)
+                api(libs.jetbrains.lifecycle.viewmodel.navigation3)
                 // Paging 3 — KMP common + Compose Multiplatform integration
                 api(libs.androidx.paging.common)
                 api(libs.androidx.paging.compose)

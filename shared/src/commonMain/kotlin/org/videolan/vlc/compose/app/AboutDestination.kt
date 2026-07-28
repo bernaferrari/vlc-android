@@ -28,35 +28,37 @@ internal fun AboutDestination(
         licenseText = hostCallbacks.loadAboutLicenseText()
     }
 
-    VLCAboutScreen(
-        title = ShellStrings.about(),
-        appName = ShellStrings.appName(),
-        description = ShellStrings.aboutDescription(),
-        versionInfo = hostCallbacks.aboutVersionInfo(),
-        copyright = ShellStrings.aboutCopyright(),
-        licenseTitle = ShellStrings.aboutLicense(),
-        licenseText = licenseText,
-        websiteTitle = ShellStrings.officialWebsite(),
-        feedbackTitle = ShellStrings.sendFeedback(),
-        sourcesTitle = ShellStrings.sources(),
-        librariesTitle = ShellStrings.libraries(),
-        authorsTitle = ShellStrings.authors(),
-        closeContentDescription = ShellStrings.close(),
-        openLinkContentDescription = ShellStrings.openInBrowser(),
-        onClose = onBack,
-        onOpenWebsite = { hostCallbacks.onOpenAboutAction(AboutAction.WEBSITE) },
-        onSendFeedback = { hostCallbacks.onOpenAboutAction(AboutAction.FEEDBACK) },
-        onOpenSources = { hostCallbacks.onOpenAboutAction(AboutAction.SOURCES) },
-        onOpenLibraries = { hostCallbacks.onOpenAboutAction(AboutAction.LIBRARIES) },
-        onOpenAuthors = { hostCallbacks.onOpenAboutAction(AboutAction.AUTHORS) },
-        onOpenLicenseLink = { hostCallbacks.onOpenAboutAction(AboutAction.LICENSE) },
-        // This is a Nav3 detail, so use a spatial Back affordance rather than a dialog close.
-        closeIconContent = {
-            Icon(
-                icon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
-                contentDescription = null,
-            )
-        },
-        modifier = modifier.fillMaxSize(),
-    )
+    VLCUtilityPane(modifier = modifier) {
+        VLCAboutScreen(
+            title = ShellStrings.about(),
+            appName = ShellStrings.appName(),
+            description = ShellStrings.aboutDescription(),
+            versionInfo = hostCallbacks.aboutVersionInfo(),
+            copyright = ShellStrings.aboutCopyright(),
+            licenseTitle = ShellStrings.aboutLicense(),
+            licenseText = licenseText,
+            websiteTitle = ShellStrings.officialWebsite(),
+            feedbackTitle = ShellStrings.sendFeedback(),
+            sourcesTitle = ShellStrings.sources(),
+            librariesTitle = ShellStrings.libraries(),
+            authorsTitle = ShellStrings.authors(),
+            closeContentDescription = ShellStrings.close(),
+            openLinkContentDescription = ShellStrings.openInBrowser(),
+            onClose = onBack,
+            onOpenWebsite = { hostCallbacks.onOpenAboutAction(AboutAction.WEBSITE) },
+            onSendFeedback = { hostCallbacks.onOpenAboutAction(AboutAction.FEEDBACK) },
+            onOpenSources = { hostCallbacks.onOpenAboutAction(AboutAction.SOURCES) },
+            onOpenLibraries = { hostCallbacks.onOpenAboutAction(AboutAction.LIBRARIES) },
+            onOpenAuthors = { hostCallbacks.onOpenAboutAction(AboutAction.AUTHORS) },
+            onOpenLicenseLink = { hostCallbacks.onOpenAboutAction(AboutAction.LICENSE) },
+            // This is a Nav3 detail, so use a spatial Back affordance rather than a dialog close.
+            closeIconContent = {
+                Icon(
+                    icon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = null,
+                )
+            },
+            modifier = Modifier.fillMaxSize(),
+        )
+    }
 }

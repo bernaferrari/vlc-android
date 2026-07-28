@@ -1,6 +1,7 @@
 package org.videolan.vlc.compose.app
 
 import org.videolan.vlc.model.MediaItem
+import org.videolan.vlc.compose.components.vlcIndexLabel
 import org.videolan.vlc.viewmodel.MediaListUiState
 import kotlin.test.Test
 import kotlin.test.assertFalse
@@ -63,5 +64,20 @@ class RichMediaScreensTest {
                 pagingItemCount = 0,
             ),
         )
+    }
+
+    @Test
+    fun alphabetic_fast_scroll_targets_account_for_visible_section_headers() {
+        val alpha = MediaItem(id = 1L, title = "Alpha", uri = "file:///alpha.mp3")
+        val beta = MediaItem(id = 2L, title = "2 Fast", uri = "file:///two.mp3")
+
+        val targets = mediaIndexScrollTargets(
+            listOf("A" to listOf(alpha), "#" to listOf(beta)),
+        )
+
+        assertTrue(targets[0].itemIndex == 1)
+        assertTrue(targets[1].itemIndex == 3)
+        assertTrue(vlcIndexLabel(targets[0].labelSource) == "A")
+        assertTrue(vlcIndexLabel(targets[1].labelSource) == "#")
     }
 }

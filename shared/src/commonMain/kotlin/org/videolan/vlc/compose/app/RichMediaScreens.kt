@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -63,6 +64,8 @@ import org.videolan.vlc.viewmodel.toMediaSort
 import org.videolan.vlc.viewmodel.toSortMode
 import org.videolan.vlc.compose.components.VLCBrowserItemRow
 import org.videolan.vlc.compose.components.VLCEmptyState
+import org.videolan.vlc.compose.components.VLCIndexScrollTarget
+import org.videolan.vlc.compose.components.VLCIndexedFastScroller
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.model.MediaFolder
 import org.videolan.vlc.model.MediaItem
@@ -494,28 +497,55 @@ private fun PagedMediaBody(
             }
         }
     } else {
-        LazyColumn(
-            contentPadding = PaddingValues(bottom = 80.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = modifier,
-        ) {
-            items(lazyPagingItems.itemCount, key = { index ->
-                val item = lazyPagingItems.peek(index)
-                item?.let { "${it.id}:${it.uri}" } ?: "placeholder-$index"
-            }) { index ->
-                val item = lazyPagingItems[index] ?: return@items
-                MediaListRow(
-                    item = item,
-                    selected = item.uri in state.selection,
-                    selecting = state.selection.isNotEmpty(),
-                    showTrackNumbers = state.showTrackNumbers,
-                    onPlay = onPlay,
-                    onPlayNext = onPlayNext,
-                    onAppend = onAppend,
-                    onToggleSelect = onToggleSelect,
-                    onCtx = onCtx,
-                    canHandleHostAction = canHandleHostAction,
-                )
+        val listState = rememberLazyListState()
+        val indexTargets = buildList {
+            repeat(lazyPagingItems.itemCount) { index ->
+                lazyPagingItems.peek(index)?.let { add(VLCIndexScrollTarget(index, it.displayTitle)) }
+            }
+        }
+        Box(modifier = modifier) {
+            LazyColumn(
+                state = listState,
+                contentPadding = PaddingValues(bottom = 80.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                items(lazyPagingItems.itemCount, key = { index ->
+                    val item = lazyPagingItems.peek(index)
+                    item?.let { "${it.id}:${it.uri}" } ?: "placeholder-$index"
+                }) { index ->
+                    val item = lazyPagingItems[index] ?: return@items
+                    MediaListRow(
+                        item = item,
+                        selected = item.uri in state.selection,
+                        selecting = state.selection.isNotEmpty(),
+                        showTrackNumbers = state.showTrackNumbers,
+                        onPlay = onPlay,
+                        onPlayNext = onPlayNext,
+                        onAppend = onAppend,
+                        onToggleSelect = onToggleSelect,
+                        onCtx = onCtx,
+                        canHandleHostAction = canHandleHostAction,
+                    )
+                }
+            }
+            VLCIndexedFastScroller(
+                targets = indexTargets,
+                listState = listState,
+                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 4.dp),
+            )
+        }
+    }
+}
+
+/** Positions alphabetic targets after any visible section headers in [SnapshotMediaBody]. */
+internal fun mediaIndexScrollTargets(sections: List<Pair<String, List<MediaItem>>>): List<VLCIndexScrollTarget> {
+    var lazyIndex = 0
+    return buildList {
+        sections.forEach { (section, items) ->
+            if (section.isNotBlank()) lazyIndex++
+            items.forEach { item ->
+                add(VLCIndexScrollTarget(itemIndex = lazyIndex++, labelSource = item.displayTitle))
             }
         }
     }
@@ -572,37 +602,47 @@ private fun SnapshotMediaBody(
             }
         }
     } else {
-        LazyColumn(
-            contentPadding = PaddingValues(bottom = 80.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = modifier,
-        ) {
-            displaySections.forEach { (section, items) ->
-                if (section.isNotBlank()) {
-                    item {
-                        Text(
-                            section,
-                            fontWeight = FontWeight.SemiBold,
-                            color = colors.primary,
-                            modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp),
+        val listState = rememberLazyListState()
+        val indexTargets = remember(displaySections) { mediaIndexScrollTargets(displaySections) }
+        Box(modifier = modifier) {
+            LazyColumn(
+                state = listState,
+                contentPadding = PaddingValues(bottom = 80.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                displaySections.forEach { (section, items) ->
+                    if (section.isNotBlank()) {
+                        item {
+                            Text(
+                                section,
+                                fontWeight = FontWeight.SemiBold,
+                                color = colors.primary,
+                                modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp),
+                            )
+                        }
+                    }
+                    items(items, key = { "${it.id}:${it.uri}" }) { item ->
+                        MediaListRow(
+                            item = item,
+                            selected = item.uri in state.selection,
+                            selecting = state.selection.isNotEmpty(),
+                            showTrackNumbers = state.showTrackNumbers,
+                            onPlay = onPlay,
+                            onPlayNext = onPlayNext,
+                            onAppend = onAppend,
+                            onToggleSelect = onToggleSelect,
+                            onCtx = onCtx,
+                            canHandleHostAction = canHandleHostAction,
                         )
                     }
                 }
-                items(items, key = { "${it.id}:${it.uri}" }) { item ->
-                    MediaListRow(
-                        item = item,
-                        selected = item.uri in state.selection,
-                        selecting = state.selection.isNotEmpty(),
-                        showTrackNumbers = state.showTrackNumbers,
-                        onPlay = onPlay,
-                        onPlayNext = onPlayNext,
-                        onAppend = onAppend,
-                        onToggleSelect = onToggleSelect,
-                        onCtx = onCtx,
-                        canHandleHostAction = canHandleHostAction,
-                    )
-                }
             }
+            VLCIndexedFastScroller(
+                targets = indexTargets,
+                listState = listState,
+                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 4.dp),
+            )
         }
     }
 }

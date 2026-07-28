@@ -1,11 +1,5 @@
 package org.videolan.vlc.compose.app
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.snap
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,24 +14,24 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.videolan.vlc.compose.components.VLCBrowserItemRow
+import org.videolan.vlc.compose.components.VLCExpandableContent
 import org.videolan.vlc.compose.components.VLCIconChip
+import org.videolan.vlc.compose.components.VLCPressableContent
 import org.videolan.vlc.compose.components.VLCSettingsCard
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
-import org.videolan.vlc.compose.theme.LocalVLCMotion
 import org.videolan.vlc.model.HistoryEntry
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.viewmodel.MoreHubViewModel
@@ -56,7 +50,7 @@ internal fun MorePane(
     onPlayStream: (MediaItem) -> Unit,
     onOpenStream: (title: String, uri: String) -> Unit,
 ) {
-    val state by vm.state.collectAsState()
+    val state by vm.state.collectAsStateWithLifecycle()
     val colors = VLCThemeDefaults.colors
     var renameStreamId by remember { mutableStateOf<Long?>(null) }
     var renameStreamText by remember { mutableStateOf("") }
@@ -64,10 +58,11 @@ internal fun MorePane(
     var newStreamName by remember { mutableStateOf("") }
     var newStreamUri by remember { mutableStateOf("") }
     var streamAddressError by remember { mutableStateOf(false) }
-    LazyColumn(
-        modifier = modifier.padding(horizontal = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp),
-    ) {
+    VLCUtilityPane(modifier = modifier) {
+        LazyColumn(
+            modifier = Modifier.padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
+        ) {
         item {
             Text(
                 ShellStrings.more(),
@@ -113,8 +108,8 @@ internal fun MorePane(
                 }
             }
         }
-        if (addingStream) {
-            item {
+        item {
+            VLCExpandableContent(visible = addingStream) {
                 Surface(
                     shape = MaterialTheme.shapes.extraLarge,
                     color = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -182,8 +177,8 @@ internal fun MorePane(
                 }
             }
         }
-        if (renameStreamId != null) {
-            item {
+        item {
+            VLCExpandableContent(visible = renameStreamId != null) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     OutlinedTextField(
                         value = renameStreamText,
@@ -300,42 +295,34 @@ internal fun MorePane(
         state.historyError?.let { error ->
             item { RetryMessage(error = error, onRetry = vm::retryHistory) }
         }
-    }
+        }
+        }
 }
 
 @Composable
 private fun MoreAction(icon: MaterialIcon, label: String, onClick: () -> Unit) {
     val colors = VLCThemeDefaults.colors
-    val motion = LocalVLCMotion.current
-    val interactionSource = remember { MutableInteractionSource() }
-    val pressed by interactionSource.collectIsPressedAsState()
-    val pressScale by animateFloatAsState(
-        targetValue = if (pressed) 0.975f else 1f,
-        animationSpec = if (motion.reducedMotion) snap() else spring(dampingRatio = 0.65f, stiffness = 700f),
-        label = "moreActionPressScale",
-    )
-    Row(
-        Modifier
+    VLCPressableContent(
+        onClick = onClick,
+        modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 64.dp)
-            .graphicsLayer {
-                scaleX = pressScale
-                scaleY = pressScale
-            }
-            .clickable(interactionSource = interactionSource, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        VLCIconChip(size = 40.dp) { tint ->
-            Icon(icon, contentDescription = null, tint = tint)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            VLCIconChip(size = 40.dp) { tint ->
+                Icon(icon, contentDescription = null, tint = tint)
+            }
+            Text(
+                label,
+                color = colors.listTitle,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
         }
-        Text(
-            label,
-            color = colors.listTitle,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-        )
     }
 }
 

@@ -52,6 +52,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
@@ -471,6 +473,7 @@ fun VlcMainShell(
                     sceneStrategies = listOf(listDetailStrategy),
                     entryDecorators = listOf(
                         rememberSaveableStateHolderNavEntryDecorator(),
+                        rememberViewModelStoreNavEntryDecorator(),
                     ),
                     entryProvider = entryProvider {
                     entry<VideoRoute>(metadata = videoListMetadata) {
@@ -721,11 +724,12 @@ private fun MainTab.navigationIcon(selected: Boolean): MaterialIcon =
 
 @Composable
 internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
-    val state by vm.state.collectAsState()
-    LazyColumn(
-        modifier = modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
+    val state by vm.state.collectAsStateWithLifecycle()
+    VLCUtilityPane(modifier = modifier) {
+        LazyColumn(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
         item {
             SettingsGroup(title = ShellStrings.playback()) {
                 row { ToggleRow(ShellStrings.resumeAudio(), state.audioResume, vm::setAudioResume) }
@@ -841,6 +845,7 @@ internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
                     }
                 }
             }
+        }
         }
     }
 }
