@@ -1275,7 +1275,15 @@ fun PlaylistsRichPane(
             RetryMessage(error = error, onRetry = onRetry)
         }
 
-        if (state.viewMode == ViewMode.GRID) {
+        if (!loading && playlists.isEmpty()) {
+            // This is a full library state, not a row in an otherwise scrollable list. Give it
+            // the complete remaining pane so it is visually centred beneath the controls.
+            VLCEmptyState(
+                loading = false,
+                text = ShellStrings.noPlaylists(),
+                modifier = Modifier.fillMaxWidth().weight(1f),
+            )
+        } else if (state.viewMode == ViewMode.GRID) {
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(minSize = 140.dp),
                 contentPadding = PaddingValues(vertical = 12.dp),
@@ -1361,11 +1369,6 @@ fun PlaylistsRichPane(
                                 menu = false; onDelete(pl.id)
                             })
                         }
-                    }
-                }
-                if (!loading && playlists.isEmpty()) {
-                    item {
-                        VLCEmptyState(loading = false, text = ShellStrings.noPlaylists())
                     }
                 }
             }
