@@ -1,4 +1,4 @@
-@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
+@file:OptIn(kotlinx.cinterop.ExperimentalForeignApi::class, kotlinx.cinterop.BetaInteropApi::class)
 
 package org.videolan.vlc.platform
 
@@ -10,12 +10,19 @@ import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.usePinned
 import kotlinx.cinterop.value
+import kotlinx.cinterop.interpretObjCPointerOrNull
+import platform.CoreFoundation.CFDictionaryRef
+import platform.CoreFoundation.CFRelease
+import platform.CoreFoundation.CFStringRef
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import platform.CoreFoundation.CFTypeRefVar
 import platform.Foundation.NSData
+import platform.Foundation.NSMutableDictionary
+import platform.Foundation.NSString
+import platform.Foundation.CFBridgingRetain
 import platform.Foundation.NSUserDefaults
 import platform.Foundation.create
 import platform.LocalAuthentication.LAContext
@@ -200,9 +207,8 @@ object IosAppLockController : AppLockController {
 
     private fun isValidPin(value: String): Boolean = value.length == 4 && value.all(Char::isDigit)
 
-    private fun hasCredential(): Boolean = memScoped {
-        SecItemCopyMatching(query(returnData = false) as platform.CoreFoundation.CFDictionaryRef, null) == errSecSuccess
-    }
+    private fun hasCredential(): Boolean =
+        withSecurityQuery(query(returnData = false)) { SecItemCopyMatching(it, null) == errSecSuccess }
 
     private fun credentialMatches(pin: String): Boolean = readCredential()?.let { stored ->
         // Do not use an ordinary String equality for a secret comparison.
@@ -217,14 +223,19 @@ object IosAppLockController : AppLockController {
 
     private fun readCredential(): ByteArray? = memScoped {
         val result = alloc<CFTypeRefVar>()
-        if (SecItemCopyMatching(query(returnData = true) as platform.CoreFoundation.CFDictionaryRef, result.ptr) != errSecSuccess) {
+        if (withSecurityQuery(query(returnData = true)) { SecItemCopyMatching(it, result.ptr) } != errSecSuccess) {
             return null
         }
-        val data = result.value as? NSData ?: return null
-        val length = data.length.toInt()
-        if (length <= 0) return null
-        ByteArray(length).also { bytes ->
-            bytes.usePinned { pinned -> platform.posix.memcpy(pinned.addressOf(0), data.bytes, data.length) }
+        val resultRef = result.value ?: return null
+        try {
+            val data = interpretObjCPointerOrNull<NSData>(resultRef.rawValue) ?: return null
+            val length = data.length.toInt()
+            if (length <= 0) return null
+            ByteArray(length).also { bytes ->
+                bytes.usePinned { pinned -> platform.posix.memcpy(pinned.addressOf(0), data.bytes, data.length) }
+            }
+        } finally {
+            CFRelease(resultRef)
         }
     }
 
@@ -233,30 +244,48 @@ object IosAppLockController : AppLockController {
         val encoded = pin.encodeToByteArray()
         val data = encoded.usePinned { pinned -> NSData.create(pinned.addressOf(0), encoded.size.convert()) }
         encoded.fill(0)
-        return SecItemAdd(
-            mapOf<Any?, Any?>(
-                kSecClass to kSecClassGenericPassword,
-                kSecAttrService to service,
-                kSecAttrAccount to account,
-                kSecAttrAccessible to kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
-                kSecValueData to data,
-            ) as platform.CoreFoundation.CFDictionaryRef,
-            null,
-        ) == errSecSuccess
+        return withSecurityQuery(credentialQuery(data)) { SecItemAdd(it, null) == errSecSuccess }
     }
 
     private fun deleteCredential() {
-        SecItemDelete(query(returnData = false) as platform.CoreFoundation.CFDictionaryRef)
+        withSecurityQuery(query(returnData = false)) { SecItemDelete(it) }
         NSUserDefaults.standardUserDefaults.removeObjectForKey(biometricsPreference)
     }
 
-    private fun query(returnData: Boolean): Map<Any?, Any?> = buildMap {
-        put(kSecClass, kSecClassGenericPassword)
-        put(kSecAttrService, service)
-        put(kSecAttrAccount, account)
+    private fun query(returnData: Boolean): NSMutableDictionary = NSMutableDictionary().apply {
+        putSecurityValue(kSecClass, securityString(kSecClassGenericPassword))
+        putSecurityValue(kSecAttrService, service)
+        putSecurityValue(kSecAttrAccount, account)
         if (returnData) {
-            put(kSecReturnData, true)
-            put(kSecMatchLimit, kSecMatchLimitOne)
+            putSecurityValue(kSecReturnData, true)
+            putSecurityValue(kSecMatchLimit, securityString(kSecMatchLimitOne))
+        }
+    }
+
+    private fun credentialQuery(data: NSData): NSMutableDictionary = query(returnData = false).apply {
+        putSecurityValue(kSecAttrAccessible, securityString(kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly))
+        putSecurityValue(kSecValueData, data)
+    }
+
+    private fun NSMutableDictionary.putSecurityValue(key: CFStringRef?, value: Any) {
+        val nsKey = key?.rawValue?.let { interpretObjCPointerOrNull<NSString>(it) } ?: return
+        setObject(value, forKey = nsKey)
+    }
+
+    private fun securityString(value: CFStringRef?): NSString =
+        value?.rawValue?.let { interpretObjCPointerOrNull<NSString>(it) }
+            ?: error("Missing Security framework constant")
+
+    private inline fun <T> withSecurityQuery(
+        query: NSMutableDictionary,
+        block: (CFDictionaryRef) -> T,
+    ): T {
+        @Suppress("UNCHECKED_CAST")
+        val dictionary = (CFBridgingRetain(query) ?: error("Unable to bridge Keychain query")) as CFDictionaryRef
+        return try {
+            block(dictionary)
+        } finally {
+            CFRelease(dictionary)
         }
     }
 }
