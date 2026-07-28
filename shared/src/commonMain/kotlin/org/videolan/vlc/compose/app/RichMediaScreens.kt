@@ -56,6 +56,7 @@ import org.videolan.vlc.compose.artwork.MediaArtwork
 import org.videolan.vlc.compose.components.DisplaySettingsSheet
 import org.videolan.vlc.compose.components.DisplaySettingsState
 import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.repository.MediaSort
 import org.videolan.vlc.viewmodel.toMediaSort
@@ -140,6 +141,7 @@ fun RichMediaListPane(
     defaultActionOptions: List<String> = listOf("PLAY", "PLAY_ALL", "ADD_TO_QUEUE", "INSERT_NEXT"),
     emptyActionText: String? = null,
     onEmptyAction: () -> Unit = {},
+    emptySymbol: MaterialIcon = MaterialSymbols.Filled.VideoLibrary,
     modifier: Modifier = Modifier,
     onRetry: () -> Unit = {},
 ) {
@@ -308,7 +310,7 @@ fun RichMediaListPane(
         }
 
         if (state.loading && !useEmptyPresentation) {
-            LinearProgressIndicator(progress = { 0f }, modifier = Modifier.fillMaxWidth())
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
         }
         state.error?.let { error ->
             RetryMessage(error = error, onRetry = onRetry)
@@ -342,7 +344,8 @@ fun RichMediaListPane(
                     // During first load the spinner is sufficient; do not imply that no media
                     // exists until the repository has delivered its first empty result.
                     text = if (state.loading) "" else emptyLabel,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    symbol = emptySymbol,
                     actionText = emptyActionText.takeIf { !state.loading },
                     onActionClick = onEmptyAction,
                 )
@@ -351,7 +354,7 @@ fun RichMediaListPane(
                 LazyColumn(
                     contentPadding = PaddingValues(bottom = 24.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxWidth().weight(1f),
                 ) {
                     items(groups, key = { "g:${it.id}:${it.path}" }) { folder ->
                         VLCBrowserItemRow(
@@ -385,16 +388,19 @@ fun RichMediaListPane(
                 VLCEmptyState(
                     loading = false,
                     text = emptyLabel,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    symbol = emptySymbol,
                     actionText = emptyActionText,
                     onActionClick = onEmptyAction,
                 )
             }
             usePaging -> {
                 PagedMediaBody(
+                    modifier = Modifier.fillMaxWidth().weight(1f),
                     state = state,
                     lazyPagingItems = lazyPagingItems,
                     emptyLabel = emptyLabel,
+                    emptySymbol = emptySymbol,
                     emptyActionText = emptyActionText,
                     onEmptyAction = onEmptyAction,
                     onPlay = onPlay,
@@ -409,13 +415,15 @@ fun RichMediaListPane(
                 VLCEmptyState(
                     loading = false,
                     text = emptyLabel,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    symbol = emptySymbol,
                     actionText = emptyActionText,
                     onActionClick = onEmptyAction,
                 )
             }
             else -> {
                 SnapshotMediaBody(
+                    modifier = Modifier.fillMaxWidth().weight(1f),
                     state = state,
                     sections = sections,
                     onPlay = onPlay,
@@ -433,9 +441,11 @@ fun RichMediaListPane(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun PagedMediaBody(
+    modifier: Modifier,
     state: MediaListUiState,
     lazyPagingItems: LazyPagingItems<MediaItem>,
     emptyLabel: String,
+    emptySymbol: MaterialIcon,
     emptyActionText: String?,
     onEmptyAction: () -> Unit,
     onPlay: (MediaItem) -> Unit,
@@ -449,7 +459,8 @@ private fun PagedMediaBody(
         VLCEmptyState(
             loading = false,
             text = emptyLabel,
-            modifier = Modifier.fillMaxSize(),
+            modifier = modifier,
+            symbol = emptySymbol,
             actionText = emptyActionText,
             onActionClick = onEmptyAction,
         )
@@ -461,7 +472,7 @@ private fun PagedMediaBody(
             contentPadding = PaddingValues(bottom = 80.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxSize(),
+            modifier = modifier,
         ) {
             items(lazyPagingItems.itemCount, key = { index ->
                 val item = lazyPagingItems.peek(index)
@@ -477,7 +488,6 @@ private fun PagedMediaBody(
                         else onPlay(item)
                     },
                     onLongClick = { onToggleSelect(item) },
-                    onMore = { /* card uses row menu in list mode */ },
                     onCtx = onCtx,
                     canHandleHostAction = canHandleHostAction,
                 )
@@ -487,7 +497,7 @@ private fun PagedMediaBody(
         LazyColumn(
             contentPadding = PaddingValues(bottom = 80.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxSize(),
+            modifier = modifier,
         ) {
             items(lazyPagingItems.itemCount, key = { index ->
                 val item = lazyPagingItems.peek(index)
@@ -514,6 +524,7 @@ private fun PagedMediaBody(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun SnapshotMediaBody(
+    modifier: Modifier,
     state: MediaListUiState,
     sections: List<Pair<String, List<MediaItem>>>,
     onPlay: (MediaItem) -> Unit,
@@ -532,7 +543,7 @@ private fun SnapshotMediaBody(
             contentPadding = PaddingValues(bottom = 80.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxSize(),
+            modifier = modifier,
         ) {
             displaySections.forEach { (section, items) ->
                 if (section.isNotBlank()) {
@@ -554,7 +565,6 @@ private fun SnapshotMediaBody(
                             else onPlay(item)
                         },
                         onLongClick = { onToggleSelect(item) },
-                        onMore = {},
                         onCtx = onCtx,
                         canHandleHostAction = canHandleHostAction,
                     )
@@ -565,7 +575,7 @@ private fun SnapshotMediaBody(
         LazyColumn(
             contentPadding = PaddingValues(bottom = 80.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxSize(),
+            modifier = modifier,
         ) {
             displaySections.forEach { (section, items) ->
                 if (section.isNotBlank()) {
@@ -732,7 +742,6 @@ fun MediaGridCard(
     showTrackNumbers: Boolean = false,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
-    onMore: () -> Unit,
     onCtx: (MediaItem, ContextOption) -> Unit = { _, _ -> },
     canHandleHostAction: (ContextOption) -> Boolean = { false },
 ) {
@@ -755,10 +764,7 @@ fun MediaGridCard(
             ) {
                 MediaArtwork(item = item, size = 112.dp)
                 Box(Modifier.align(Alignment.TopEnd).padding(4.dp)) {
-                    FilledTonalIconButton(onClick = {
-                        menu = true
-                        onMore()
-                    }) {
+                    FilledTonalIconButton(onClick = { menu = true }) {
                         Icon(MaterialSymbols.Filled.MoreVert, contentDescription = ShellStrings.moreOptions())
                     }
                     MediaContextMenu(
@@ -854,6 +860,7 @@ fun BrowserRichPane(
     onDefaultAction: (String) -> Unit = {},
     onShowHiddenFiles: (Boolean) -> Unit = {},
     onShowOnlyMultimedia: (Boolean) -> Unit = {},
+    emptySymbol: MaterialIcon = MaterialSymbols.Filled.Folder,
     modifier: Modifier = Modifier,
     onRetry: () -> Unit = {},
 ) {
@@ -928,14 +935,25 @@ fun BrowserRichPane(
                 onShowOnlyMultimedia = onShowOnlyMultimedia,
             )
         }
-        if (state.loading) LinearProgressIndicator(progress = { 0f }, modifier = Modifier.fillMaxWidth())
+        if (state.loading) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
         state.error?.let { error ->
             RetryMessage(error = error, onRetry = onRetry)
         }
-        LazyColumn(
+        val isEmpty = state.folders.isEmpty() &&
+            state.media.isEmpty() &&
+            state.favorites.isEmpty() &&
+            state.networkRoots.isEmpty()
+        if (!state.loading && isEmpty) {
+            VLCEmptyState(
+                loading = false,
+                text = ShellStrings.nothingHere(),
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                symbol = emptySymbol,
+            )
+        } else LazyColumn(
             contentPadding = PaddingValues(bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxWidth().weight(1f),
         ) {
             if (atRoot && state.favorites.isNotEmpty()) {
                 item {
@@ -1024,16 +1042,6 @@ fun BrowserRichPane(
                     onAppend = onAppend,
                     onToggleSelect = onToggleSelect,
                 )
-            }
-            if (!state.loading &&
-                state.folders.isEmpty() &&
-                state.media.isEmpty() &&
-                state.favorites.isEmpty() &&
-                state.networkRoots.isEmpty()
-            ) {
-                item {
-                    VLCEmptyState(loading = false, text = ShellStrings.nothingHere())
-                }
             }
         }
     }
@@ -1126,6 +1134,7 @@ fun PlaylistsRichPane(
     onMoveTrackUp: (Int) -> Unit = {},
     onMoveTrackDown: (Int) -> Unit = {},
     onBack: () -> Unit,
+    emptySymbol: MaterialIcon = MaterialSymbols.Filled.QueueMusic,
     modifier: Modifier = Modifier,
     onRetry: () -> Unit = {},
 ) {
@@ -1163,12 +1172,13 @@ fun PlaylistsRichPane(
                     loading = false,
                     text = ShellStrings.emptyPlaylist(),
                     modifier = Modifier.fillMaxWidth().weight(1f),
+                    symbol = emptySymbol,
                 )
             } else {
                 LazyColumn(
                     contentPadding = PaddingValues(bottom = 24.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxWidth().weight(1f),
                 ) {
                     itemsIndexed(detailItems, key = { index, item -> "$index:${item.id}:${item.uri}" }) { index, item ->
                         PlaylistTrackRow(
@@ -1272,7 +1282,6 @@ fun PlaylistsRichPane(
 
         if (loading) {
             LinearProgressIndicator(
-                progress = { 0f },
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             )
         }
@@ -1287,6 +1296,7 @@ fun PlaylistsRichPane(
                 loading = false,
                 text = ShellStrings.noPlaylists(),
                 modifier = Modifier.fillMaxWidth().weight(1f),
+                symbol = emptySymbol,
             )
         } else if (state.viewMode == ViewMode.GRID) {
             LazyVerticalGrid(
@@ -1294,7 +1304,7 @@ fun PlaylistsRichPane(
                 contentPadding = PaddingValues(vertical = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxWidth().weight(1f),
             ) {
                 items(playlists, key = { it.id }) { pl ->
                     PlaylistCard(
@@ -1317,7 +1327,7 @@ fun PlaylistsRichPane(
             LazyColumn(
                 contentPadding = PaddingValues(vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxWidth().weight(1f),
             ) {
                 items(playlists, key = { it.id }) { pl ->
                     var menu by remember { mutableStateOf(false) }

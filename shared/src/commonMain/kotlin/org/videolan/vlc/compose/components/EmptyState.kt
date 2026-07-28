@@ -32,6 +32,7 @@ import kotlinx.coroutines.delay
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 
 /**
@@ -52,6 +53,7 @@ fun VLCEmptyState(
     text: String,
     modifier: Modifier = Modifier.fillMaxSize(),
     icon: Painter? = null,
+    symbol: MaterialIcon = MaterialSymbols.Filled.VideoLibrary,
     compact: Boolean = false,
     actionText: String? = null,
     onActionClick: () -> Unit = {}
@@ -75,7 +77,7 @@ fun VLCEmptyState(
                 when {
                     loading -> LoadingIndicator(text = text)
                     else -> {
-                        EmptyIcon(icon = icon)
+                        EmptyIcon(icon = icon, symbol = symbol)
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             text = text,
@@ -141,10 +143,10 @@ private fun LoadingText(text: String) {
 }
 
 @Composable
-private fun EmptyIcon(icon: Painter?) {
-    // Empty libraries need a quiet cue, not a floating gray badge that reads like an error.
-    // The shared symbol keeps video, audio, browser, and playlists visually related without
-    // introducing a separate surface into an otherwise intentionally blank state.
+private fun EmptyIcon(icon: Painter?, symbol: MaterialIcon) {
+    // Empty libraries need a quiet, destination-specific cue, not a floating gray badge that
+    // reads like an error. The symbol keeps each tab recognisable without adding another surface
+    // to an intentionally blank state.
     if (icon != null) {
         Image(
             painter = icon,
@@ -154,7 +156,7 @@ private fun EmptyIcon(icon: Painter?) {
         )
     } else {
         Icon(
-            icon = MaterialSymbols.Filled.VideoLibrary,
+            icon = symbol,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(40.dp),

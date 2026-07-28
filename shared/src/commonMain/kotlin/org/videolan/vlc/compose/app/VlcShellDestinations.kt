@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.player.FallbackPlayerSurface
 import org.videolan.vlc.compose.player.PlayerSurface
 import org.videolan.vlc.compose.player.VideoSurfaceWithHud
@@ -82,6 +83,7 @@ internal fun VideoDestination(
         onSetGroupingMode = viewModel::setGroupingMode,
         showGroupingToggle = true,
         onDefaultAction = viewModel::setDefaultPlaybackAction,
+        emptySymbol = MaterialSymbols.Filled.VideoLibrary,
         emptyActionText = ShellStrings.importMedia().takeIf { hostCallbacks.supportsMediaImport() },
         onEmptyAction = hostCallbacks::onImportMedia,
         modifier = modifier,
@@ -172,6 +174,7 @@ internal fun AudioDestination(
             onShowAllArtists = viewModel::setShowAllArtists,
             onShowTrackNumbers = viewModel::setShowTrackNumbers,
             onDefaultAction = viewModel::setDefaultPlaybackAction,
+            emptySymbol = MaterialSymbols.Filled.MusicNote,
             emptyActionText = ShellStrings.importMedia().takeIf { hostCallbacks.supportsMediaImport() },
             onEmptyAction = hostCallbacks::onImportMedia,
             modifier = Modifier.fillMaxSize(),
