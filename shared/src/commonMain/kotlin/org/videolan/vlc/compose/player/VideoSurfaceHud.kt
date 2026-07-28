@@ -277,6 +277,7 @@ fun VideoSurfaceWithHud(
             bookmarks = bookmarks,
             showVideoOptions = hasVideoOutput,
             onSetRate = onSetRate,
+            onSeekTo = onSeek,
             onPlayQueueItem = {
                 onPlayQueueItem(it)
                 optionsVisible = false

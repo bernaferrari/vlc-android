@@ -76,6 +76,7 @@ import vlc_android.shared.generated.resources.move_down
 import vlc_android.shared.generated.resources.move_up
 import vlc_android.shared.generated.resources.now_playing
 import vlc_android.shared.generated.resources.playback_speed
+import vlc_android.shared.generated.resources.jump_to_time
 import vlc_android.shared.generated.resources.playlist
 import vlc_android.shared.generated.resources.remove_from_playlist
 import vlc_android.shared.generated.resources.reset
@@ -122,6 +123,7 @@ internal fun PlaybackOptionsSheet(
     bookmarks: PlaybackBookmarks,
     showVideoOptions: Boolean,
     onSetRate: (Float) -> Unit,
+    onSeekTo: (Long) -> Unit,
     onPlayQueueItem: (Int) -> Unit,
     onMoveQueueItem: (Int, Int) -> Unit,
     onRemoveQueueItem: (Int) -> Unit,
@@ -159,6 +161,8 @@ internal fun PlaybackOptionsSheet(
     var previewRate by remember(rate) { mutableFloatStateOf(rate) }
     var bookmarkToRename by remember { mutableStateOf<PlaybackBookmark?>(null) }
     var bookmarkName by remember { mutableStateOf("") }
+    var jumpToTimeVisible by remember { mutableStateOf(false) }
+    var jumpToTimeText by remember { mutableStateOf("") }
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
@@ -217,6 +221,9 @@ internal fun PlaybackOptionsSheet(
                         label = { Text(playbackRateLabel(preset)) },
                     )
                 }
+            }
+            TextButton(onClick = { jumpToTimeVisible = true }) {
+                Text(stringResource(Res.string.jump_to_time))
             }
 
             HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
@@ -592,7 +599,55 @@ internal fun PlaybackOptionsSheet(
             },
         )
     }
+
+    if (jumpToTimeVisible) {
+        val targetTime = parsePlaybackTimestamp(jumpToTimeText)
+        AlertDialog(
+            onDismissRequest = { jumpToTimeVisible = false },
+            title = { Text(stringResource(Res.string.jump_to_time)) },
+            text = {
+                OutlinedTextField(
+                    value = jumpToTimeText,
+                    onValueChange = { jumpToTimeText = it },
+                    label = { Text("HH:MM:SS") },
+                    singleLine = true,
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = targetTime != null,
+                    onClick = {
+                        targetTime?.let(onSeekTo)
+                        jumpToTimeVisible = false
+                    },
+                ) { Text(stringResource(Res.string.done)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { jumpToTimeVisible = false }) {
+                    Text(stringResource(Res.string.cancel))
+                }
+            },
+        )
+    }
 }
+
+/** Parses VLC's compact seek notation: seconds, MM:SS, or HH:MM:SS. */
+internal fun parsePlaybackTimestamp(input: String): Long? {
+    val values = input.trim().split(':').takeIf { it.size in 1..3 } ?: return null
+    if (values.any { it.isEmpty() || it.any { char -> !char.isDigit() } }) return null
+    val numbers = values.map { it.toLongOrNull() ?: return null }
+    val seconds = numbers.last()
+    if (values.size > 1 && seconds >= 60) return null
+    val minutes = numbers.getOrNull(numbers.lastIndex - 1) ?: 0L
+    if (values.size > 2 && minutes >= 60) return null
+    val hours = numbers.getOrNull(numbers.lastIndex - 2) ?: 0L
+    val minuteSeconds = minutes.safeMultiplyAdd(60, seconds) ?: return null
+    val totalSeconds = hours.safeMultiplyAdd(3_600, minuteSeconds) ?: return null
+    return totalSeconds.safeMultiplyAdd(1_000, 0)
+}
+
+private fun Long.safeMultiplyAdd(multiplier: Long, addend: Long): Long? =
+    if (this > (Long.MAX_VALUE - addend) / multiplier) null else this * multiplier + addend
 
 @Composable
 private fun EqualizerSlider(
