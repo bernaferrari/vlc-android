@@ -1,8 +1,7 @@
 package org.videolan.vlc.app
 
 import org.videolan.vlc.model.MediaItem
-import org.videolan.vlc.model.MediaType
-import org.videolan.vlc.player.PlaybackController
+import org.videolan.vlc.vehicle.VehicleMediaCatalog
 
 /**
  * Small Objective-C-exportable vehicle surface over the shared catalog and player.
@@ -12,13 +11,10 @@ import org.videolan.vlc.player.PlaybackController
  * sends selections straight back through [PlaybackController].
  */
 object IosVehicleMediaBridge {
-    fun audioItems(): List<MediaItem> = IosMediaLibrary.shared.snapshot()
-        .filter { it.type == MediaType.AUDIO }
+    private val catalog: VehicleMediaCatalog
+        get() = VlcKoin.get().get()
 
-    fun playAudioItem(id: Long): Boolean {
-        val queue = audioItems()
-        val item = queue.firstOrNull { it.id == id } ?: return false
-        PlaybackController.get().play(item, queue)
-        return true
-    }
+    fun audioItems(): List<MediaItem> = catalog.snapshot()
+
+    fun playAudioItem(id: Long): Boolean = catalog.play(id)
 }

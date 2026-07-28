@@ -13,6 +13,7 @@ import org.videolan.vlc.repository.HistoryRepository
 import org.videolan.vlc.repository.MediaRepository
 import org.videolan.vlc.repository.PlaylistRepository
 import org.videolan.vlc.repository.StreamRepository
+import org.videolan.vlc.vehicle.VehicleMediaCatalog
 import org.videolan.vlc.viewmodel.AudioListViewModel
 import org.videolan.vlc.viewmodel.BrowserViewModel
 import org.videolan.vlc.viewmodel.LibraryViewModel
@@ -92,4 +93,5 @@ val sharedModule: Module = module {
 
     // Playback/session/history ownership is app-wide; every screen must share one controller.
     single { PlaybackController(service = get()) }
+    single { VehicleMediaCatalog(media = get(), player = get()) }
 }
