@@ -1158,22 +1158,27 @@ fun PlaylistsRichPane(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            LazyColumn(
-                contentPadding = PaddingValues(bottom = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                itemsIndexed(detailItems, key = { index, item -> "$index:${item.id}:${item.uri}" }) { index, item ->
-                    PlaylistTrackRow(
-                        item = item,
-                        onPlay = onPlayItem,
-                        onRemove = { onRemoveTrack(index) },
-                        onMoveUp = { onMoveTrackUp(index) },
-                        onMoveDown = { onMoveTrackDown(index) },
-                    )
-                }
-                if (detailItems.isEmpty()) {
-                    item { VLCEmptyState(loading = false, text = ShellStrings.emptyPlaylist()) }
+            if (detailItems.isEmpty()) {
+                VLCEmptyState(
+                    loading = false,
+                    text = ShellStrings.emptyPlaylist(),
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                )
+            } else {
+                LazyColumn(
+                    contentPadding = PaddingValues(bottom = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    itemsIndexed(detailItems, key = { index, item -> "$index:${item.id}:${item.uri}" }) { index, item ->
+                        PlaylistTrackRow(
+                            item = item,
+                            onPlay = onPlayItem,
+                            onRemove = { onRemoveTrack(index) },
+                            onMoveUp = { onMoveTrackUp(index) },
+                            onMoveDown = { onMoveTrackDown(index) },
+                        )
+                    }
                 }
             }
             return
