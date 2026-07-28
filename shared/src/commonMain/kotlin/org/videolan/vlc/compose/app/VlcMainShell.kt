@@ -27,6 +27,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
+import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
+import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
+import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneStrategy
 import androidx.compose.material3.adaptive.navigationsuite.ExperimentalMaterial3AdaptiveNavigationSuiteApi
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScope
@@ -37,6 +42,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
@@ -51,6 +57,7 @@ import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.components.VLCSettingsCard
 import org.videolan.vlc.compose.components.VLCIconChip
+import org.videolan.vlc.compose.components.VLCEmptyState
 import org.videolan.vlc.compose.player.FallbackPlayerSurface
 import org.videolan.vlc.compose.player.PlayerSurface
 import org.videolan.vlc.compose.theme.VLCTheme
@@ -76,12 +83,15 @@ import org.videolan.vlc.viewmodel.AudioSection
  * This is the shared product chrome for iOS and the Android main path
  * (when [useSharedMainShell] is enabled). Platform engines feed data via
  * [org.videolan.vlc.repository.MediaRepository] / [org.videolan.vlc.player.PlaybackController].
- * Navigation remains intentionally single-pane on compact and wide hosts;
- * Nav3 owns route restoration and back handling while feature panes provide
- * their own responsive content. A future list-detail layout can reuse these
- * typed routes without changing their serialized form.
+ * Compact hosts use a focused single pane. Wide hosts use Nav3's shared
+ * list-detail scene strategy, keeping the selected library context visible
+ * beside its detail without introducing platform-specific navigation.
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveNavigationSuiteApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3AdaptiveApi::class,
+    ExperimentalMaterial3AdaptiveNavigationSuiteApi::class,
+)
 @Composable
 fun VlcMainShell(
     modifier: Modifier = Modifier,
@@ -120,6 +130,34 @@ fun VlcMainShell(
         val motion = LocalVLCMotion.current
         val initialRoute = remember(initialTab) { initialTab.toVlcShellRoute() }
         val backStack = rememberNavBackStack(vlcShellNavSavedStateConfiguration, initialRoute)
+        val paneScaffoldDirective = calculatePaneScaffoldDirective(currentWindowAdaptiveInfoV2())
+        val singlePaneLayout = paneScaffoldDirective.maxHorizontalPartitions == 1
+        val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>(
+            directive = paneScaffoldDirective,
+        )
+        // QuietGuard keeps root and detail state independent on wide displays. Media routes need
+        // the same separation: a selected album/folder must not replace the library list. These
+        // state owners do not exist on compact hosts, where one pane is both list and detail.
+        val detailVideoVm = remember(singlePaneLayout, videoVm) {
+            if (singlePaneLayout) videoVm else VideoListViewModel()
+        }
+        val detailAudioVm = remember(singlePaneLayout, audioVm) {
+            if (singlePaneLayout) audioVm else AudioListViewModel()
+        }
+        val detailBrowserVm = remember(singlePaneLayout, browserVm) {
+            if (singlePaneLayout) browserVm else BrowserViewModel()
+        }
+        val detailPlaylistsVm = remember(singlePaneLayout, playlistsVm) {
+            if (singlePaneLayout) playlistsVm else PlaylistsViewModel()
+        }
+        DisposableEffect(detailVideoVm, detailAudioVm, detailBrowserVm, detailPlaylistsVm) {
+            onDispose {
+                if (detailVideoVm !== videoVm) detailVideoVm.onCleared()
+                if (detailAudioVm !== audioVm) detailAudioVm.onCleared()
+                if (detailBrowserVm !== browserVm) detailBrowserVm.onCleared()
+                if (detailPlaylistsVm !== playlistsVm) detailPlaylistsVm.onCleared()
+            }
+        }
         val currentRoute = backStack.lastOrNull() as? VlcShellRoute ?: initialRoute
         val currentTab = backStack.filterIsInstance<VlcShellRoute>().activeTab()
         val showPlayer = currentRoute == PlayerRoute
@@ -165,12 +203,44 @@ fun VlcMainShell(
                 )
             }
         }
+        val videoListMetadata = remember(singlePaneLayout, rootTransitionMetadata) {
+            if (singlePaneLayout) rootTransitionMetadata else ListDetailSceneStrategy.listPane(
+                detailPlaceholder = {
+                    LibraryDetailPlaceholder(MaterialSymbols.Filled.VideoLibrary)
+                },
+            )
+        }
+        val audioListMetadata = remember(singlePaneLayout, rootTransitionMetadata) {
+            if (singlePaneLayout) rootTransitionMetadata else ListDetailSceneStrategy.listPane(
+                detailPlaceholder = {
+                    LibraryDetailPlaceholder(MaterialSymbols.Filled.MusicNote)
+                },
+            )
+        }
+        val browserListMetadata = remember(singlePaneLayout, rootTransitionMetadata) {
+            if (singlePaneLayout) rootTransitionMetadata else ListDetailSceneStrategy.listPane(
+                detailPlaceholder = {
+                    LibraryDetailPlaceholder(MaterialSymbols.Filled.Folder)
+                },
+            )
+        }
+        val playlistsListMetadata = remember(singlePaneLayout, rootTransitionMetadata) {
+            if (singlePaneLayout) rootTransitionMetadata else ListDetailSceneStrategy.listPane(
+                detailPlaceholder = {
+                    LibraryDetailPlaceholder(MaterialSymbols.Filled.QueueMusic)
+                },
+            )
+        }
+        val libraryDetailMetadata = remember(singlePaneLayout, detailTransitionMetadata) {
+            val paneMetadata = ListDetailSceneStrategy.detailPane()
+            if (singlePaneLayout) paneMetadata + detailTransitionMetadata else paneMetadata
+        }
 
         fun closeFeatureDetails() {
-            if (videoVm.state.value.containerId != null) videoVm.closeContainer()
-            if (audioVm.state.value.openedEntityTitle != null) audioVm.closeEntity()
-            if (browserVm.state.value.stack.isNotEmpty()) browserVm.openRoot()
-            if (playlistsVm.state.value.openPlaylistId != null) playlistsVm.closeDetail()
+            if (detailVideoVm.state.value.containerId != null) detailVideoVm.closeContainer()
+            if (detailAudioVm.state.value.openedEntityTitle != null) detailAudioVm.closeEntity()
+            if (detailBrowserVm.state.value.stack.isNotEmpty()) detailBrowserVm.openRoot()
+            if (detailPlaylistsVm.state.value.openPlaylistId != null) detailPlaylistsVm.closeDetail()
         }
 
         fun resetToTab(tab: MainTab) {
@@ -187,15 +257,21 @@ fun VlcMainShell(
             if (backStack.size > 1) backStack.removeAt(backStack.lastIndex)
         }
 
+        fun replaceOrPushDetail(route: VlcShellRoute) {
+            val current = backStack.lastOrNull() as? VlcShellRoute
+            val replacesCurrentDetail = shouldReplaceDetailRoute(singlePaneLayout, current, route)
+            if (replacesCurrentDetail) backStack[backStack.lastIndex] = route else backStack.add(route)
+        }
+
         fun openVideoContainer(folder: MediaFolder) {
-            videoVm.openContainer(folder)
-            backStack.add(folder.toVideoContainerRoute())
+            detailVideoVm.openContainer(folder)
+            replaceOrPushDetail(folder.toVideoContainerRoute())
         }
 
         fun openAudioEntity(item: MediaItem) {
             val route = item.toAudioEntityRoute() ?: return
-            audioVm.openAudioEntityFromItem(item)
-            backStack.add(route)
+            detailAudioVm.openAudioEntityFromItem(item)
+            replaceOrPushDetail(route)
         }
 
         fun openBrowserFolder(folder: MediaFolder) {
@@ -203,13 +279,13 @@ fun VlcMainShell(
             if (target.equals("otg://", ignoreCase = true) || target.startsWith("otg://", ignoreCase = true)) {
                 hostCallbacks.onRequestOtgRoot()
             }
-            browserVm.openFolder(folder)
-            backStack.add(BrowserFolderRoute.from(browserVm.state.value.stack))
+            detailBrowserVm.openFolder(folder)
+            replaceOrPushDetail(BrowserFolderRoute.from(detailBrowserVm.state.value.stack))
         }
 
         fun openPlaylist(info: PlaylistInfo) {
-            playlistsVm.openPlaylist(info)
-            backStack.add(PlaylistDetailRoute(id = info.id, name = info.name))
+            detailPlaylistsVm.openPlaylist(info)
+            replaceOrPushDetail(PlaylistDetailRoute(id = info.id, name = info.name))
         }
 
         LaunchedEffect(tab) {
@@ -221,42 +297,52 @@ fun VlcMainShell(
         }
         val playerState by playerVm.state.collectAsState()
         val videoState by videoVm.state.collectAsState()
+        val detailVideoState by detailVideoVm.state.collectAsState()
         val audioState by audioVm.state.collectAsState()
+        val detailAudioState by detailAudioVm.state.collectAsState()
         val audioSection by audioVm.section.collectAsState()
+        val detailAudioSection by detailAudioVm.section.collectAsState()
         val browserState by browserVm.state.collectAsState()
+        val detailBrowserState by detailBrowserVm.state.collectAsState()
         val playlistsState by playlistsVm.state.collectAsState()
+        val detailPlaylistsState by detailPlaylistsVm.state.collectAsState()
         val settingsState by settingsVm.state.collectAsState()
         val appLocked = settingsState.appLock.supported &&
             settingsState.appLock.enabled &&
             settingsState.appLock.locked
         val detailBackTarget = shellBackTarget(
             showOverlay = false,
-            hasPlaylistDetail = playlistsState.openPlaylistId != null,
-            hasBrowserFolder = browserState.stack.isNotEmpty(),
-            hasAudioEntity = audioState.openedEntityTitle != null,
-            hasVideoContainer = videoState.containerId != null,
+            hasPlaylistDetail = detailPlaylistsState.openPlaylistId != null,
+            hasBrowserFolder = detailBrowserState.stack.isNotEmpty(),
+            hasAudioEntity = detailAudioState.openedEntityTitle != null,
+            hasVideoContainer = detailVideoState.containerId != null,
         )
         val canNavigateBack = backStack.size > 1 || detailBackTarget != null
 
         fun navigateBack() {
             when (currentRoute) {
                 is VideoContainerRoute -> {
-                    videoVm.closeContainer()
+                    detailVideoVm.closeContainer()
                     popRoute()
                     return
                 }
                 is AudioEntityRoute -> {
-                    audioVm.closeEntity()
+                    detailAudioVm.closeEntity()
                     popRoute()
                     return
                 }
                 is BrowserFolderRoute -> {
-                    browserVm.goUp()
-                    popRoute()
+                    val stackSizeBeforeBack = detailBrowserVm.state.value.stack.size
+                    detailBrowserVm.goUp()
+                    if (shouldReplaceBrowserDetailAfterBack(singlePaneLayout, stackSizeBeforeBack)) {
+                        replaceOrPushDetail(BrowserFolderRoute.from(detailBrowserVm.state.value.stack))
+                    } else {
+                        popRoute()
+                    }
                     return
                 }
                 is PlaylistDetailRoute -> {
-                    playlistsVm.closeDetail()
+                    detailPlaylistsVm.closeDetail()
                     popRoute()
                     return
                 }
@@ -267,10 +353,10 @@ fun VlcMainShell(
                 return
             }
             when (detailBackTarget) {
-                ShellBackTarget.PLAYLIST_DETAIL -> playlistsVm.closeDetail()
-                ShellBackTarget.BROWSER_FOLDER -> browserVm.goUp()
-                ShellBackTarget.AUDIO_ENTITY -> audioVm.closeEntity()
-                ShellBackTarget.VIDEO_CONTAINER -> videoVm.closeContainer()
+                ShellBackTarget.PLAYLIST_DETAIL -> detailPlaylistsVm.closeDetail()
+                ShellBackTarget.BROWSER_FOLDER -> detailBrowserVm.goUp()
+                ShellBackTarget.AUDIO_ENTITY -> detailAudioVm.closeEntity()
+                ShellBackTarget.VIDEO_CONTAINER -> detailVideoVm.closeContainer()
                 ShellBackTarget.OVERLAY -> Unit
                 null -> Unit
             }
@@ -382,11 +468,12 @@ fun VlcMainShell(
                 NavDisplay(
                     backStack = backStack,
                     modifier = contentMod,
+                    sceneStrategies = listOf(listDetailStrategy),
                     entryDecorators = listOf(
                         rememberSaveableStateHolderNavEntryDecorator(),
                     ),
                     entryProvider = entryProvider {
-                    entry<VideoRoute>(metadata = rootTransitionMetadata) {
+                    entry<VideoRoute>(metadata = videoListMetadata) {
                         VideoDestination(
                             modifier = Modifier.fillMaxSize(),
                             state = videoState,
@@ -396,22 +483,23 @@ fun VlcMainShell(
                             onOpenContainer = ::openVideoContainer,
                         )
                     }
-                    entry<VideoContainerRoute>(metadata = detailTransitionMetadata) { route ->
+                    entry<VideoContainerRoute>(metadata = libraryDetailMetadata) { route ->
                         LaunchedEffect(route) {
-                            if (videoVm.state.value.containerId != route.id) {
-                                videoVm.openContainer(route.toMediaFolder())
+                            if (detailVideoVm.state.value.containerId != route.id) {
+                                detailVideoVm.openContainer(route.toMediaFolder())
                             }
                         }
                         VideoDestination(
                             modifier = Modifier.fillMaxSize(),
-                            state = videoState,
-                            viewModel = videoVm,
+                            state = detailVideoState,
+                            viewModel = detailVideoVm,
                             hostCallbacks = hostCallbacks,
                             onOpenPlayer = ::openPlayer,
                             onOpenContainer = ::openVideoContainer,
+                            onNavigateBack = ::navigateBack,
                         )
                     }
-                    entry<AudioRoute>(metadata = rootTransitionMetadata) {
+                    entry<AudioRoute>(metadata = audioListMetadata) {
                         AudioDestination(
                             modifier = Modifier.fillMaxSize(),
                             state = audioState,
@@ -422,23 +510,24 @@ fun VlcMainShell(
                             onOpenEntity = ::openAudioEntity,
                         )
                     }
-                    entry<AudioEntityRoute>(metadata = detailTransitionMetadata) { route ->
+                    entry<AudioEntityRoute>(metadata = libraryDetailMetadata) { route ->
                         LaunchedEffect(route) {
-                            if (audioVm.state.value.containerId != route.id) {
-                                audioVm.openAudioEntity(route.toAudioEntity())
+                            if (detailAudioVm.state.value.containerId != route.id) {
+                                detailAudioVm.openAudioEntity(route.toAudioEntity())
                             }
                         }
                         AudioDestination(
                             modifier = Modifier.fillMaxSize(),
-                            state = audioState,
-                            section = audioSection,
-                            viewModel = audioVm,
+                            state = detailAudioState,
+                            section = detailAudioSection,
+                            viewModel = detailAudioVm,
                             hostCallbacks = hostCallbacks,
                             onOpenPlayer = ::openPlayer,
                             onOpenEntity = ::openAudioEntity,
+                            onNavigateBack = ::navigateBack,
                         )
                     }
-                    entry<BrowserRoute>(metadata = rootTransitionMetadata) {
+                    entry<BrowserRoute>(metadata = browserListMetadata) {
                         BrowserDestination(
                             modifier = Modifier.fillMaxSize(),
                             state = browserState,
@@ -447,19 +536,20 @@ fun VlcMainShell(
                             onOpenFolder = ::openBrowserFolder,
                         )
                     }
-                    entry<BrowserFolderRoute>(metadata = detailTransitionMetadata) { route ->
+                    entry<BrowserFolderRoute>(metadata = libraryDetailMetadata) { route ->
                         LaunchedEffect(route) {
-                            browserVm.restoreFolderStack(route.toMediaFolders())
+                            detailBrowserVm.restoreFolderStack(route.toMediaFolders())
                         }
                         BrowserDestination(
                             modifier = Modifier.fillMaxSize(),
-                            state = browserState,
-                            viewModel = browserVm,
+                            state = detailBrowserState,
+                            viewModel = detailBrowserVm,
                             onOpenPlayer = ::openPlayer,
                             onOpenFolder = ::openBrowserFolder,
+                            onNavigateUp = ::navigateBack,
                         )
                     }
-                    entry<PlaylistsRoute>(metadata = rootTransitionMetadata) {
+                    entry<PlaylistsRoute>(metadata = playlistsListMetadata) {
                         PlaylistsDestination(
                             modifier = Modifier.fillMaxSize(),
                             state = playlistsState,
@@ -468,18 +558,19 @@ fun VlcMainShell(
                             onOpenPlaylist = ::openPlaylist,
                         )
                     }
-                    entry<PlaylistDetailRoute>(metadata = detailTransitionMetadata) { route ->
+                    entry<PlaylistDetailRoute>(metadata = libraryDetailMetadata) { route ->
                         LaunchedEffect(route) {
-                            if (playlistsVm.state.value.openPlaylistId != route.id) {
-                                playlistsVm.openPlaylist(route.toPlaylistInfo())
+                            if (detailPlaylistsVm.state.value.openPlaylistId != route.id) {
+                                detailPlaylistsVm.openPlaylist(route.toPlaylistInfo())
                             }
                         }
                         PlaylistsDestination(
                             modifier = Modifier.fillMaxSize(),
-                            state = playlistsState,
-                            viewModel = playlistsVm,
+                            state = detailPlaylistsState,
+                            viewModel = detailPlaylistsVm,
                             onOpenPlayer = ::openPlayer,
                             onOpenPlaylist = ::openPlaylist,
+                            onNavigateBack = ::navigateBack,
                         )
                     }
                     entry<MoreRoute>(metadata = rootTransitionMetadata) {
@@ -527,6 +618,16 @@ fun VlcMainShell(
             AppLockGate(onUnlock = settingsVm::unlockAppLock)
         }
     }
+}
+
+@Composable
+private fun LibraryDetailPlaceholder(icon: MaterialIcon) {
+    VLCEmptyState(
+        loading = false,
+        text = ShellStrings.selectLibraryItem(),
+        symbol = icon,
+        modifier = Modifier.fillMaxSize(),
+    )
 }
 
 @Composable

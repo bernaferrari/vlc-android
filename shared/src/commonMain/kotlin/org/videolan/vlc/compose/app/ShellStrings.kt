@@ -113,6 +113,7 @@ object ShellStrings {
     @Composable fun emptyPlaylist(): String = stringResource(Res.string.empty_playlist)
     @Composable fun noPlaylists(): String = stringResource(Res.string.no_playlists)
     @Composable fun nothingHere(): String = stringResource(Res.string.nothing_here)
+    @Composable fun selectLibraryItem(): String = stringResource(Res.string.select_library_item)
     @Composable fun favoritesOnly(): String = stringResource(Res.string.favorites_only)
     @Composable fun showAllArtists(): String = stringResource(Res.string.show_all_artists)
     @Composable fun showTrackNumbers(): String = stringResource(Res.string.show_track_numbers)

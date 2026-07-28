@@ -137,6 +137,24 @@ fun VlcShellRoute.toMainTabOrNull(): MainTab? = when (this) {
     PlayerRoute, SettingsRoute, AboutRoute -> null
 }
 
+/** A wide list-detail layout has one detail slot, so selecting a sibling replaces it. */
+internal fun shouldReplaceDetailRoute(
+    singlePaneLayout: Boolean,
+    current: VlcShellRoute?,
+    next: VlcShellRoute,
+): Boolean =
+    !singlePaneLayout && when {
+        current is VideoContainerRoute && next is VideoContainerRoute -> true
+        current is AudioEntityRoute && next is AudioEntityRoute -> true
+        current is BrowserFolderRoute && next is BrowserFolderRoute -> true
+        current is PlaylistDetailRoute && next is PlaylistDetailRoute -> true
+        else -> false
+    }
+
+/** Browser Up stays in the detail slot until it reaches the root library. */
+internal fun shouldReplaceBrowserDetailAfterBack(singlePaneLayout: Boolean, stackSize: Int): Boolean =
+    !singlePaneLayout && stackSize > 1
+
 /** Returns the root tab represented by a Navigation 3 back stack. */
 fun List<VlcShellRoute>.activeTab(): MainTab =
     asReversed().firstNotNullOfOrNull(VlcShellRoute::toMainTabOrNull) ?: MainTab.VIDEO

@@ -2,6 +2,8 @@ package org.videolan.vlc.compose.app
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import org.videolan.vlc.model.FolderKind
 import org.videolan.vlc.model.MediaFolder
 import org.videolan.vlc.viewmodel.MainTab
@@ -57,5 +59,22 @@ class VlcShellRouteTest {
     @Test
     fun emptyStackFallsBackToVideo() {
         assertEquals(MainTab.VIDEO, emptyList<VlcShellRoute>().activeTab())
+    }
+
+    @Test
+    fun wideLayoutReplacesSiblingDetailsInsteadOfGrowingTheBackStack() {
+        val current = VideoContainerRoute(3L, "Movies", VideoContainerRouteKind.FOLDER)
+        val sibling = VideoContainerRoute(4L, "Series", VideoContainerRouteKind.FOLDER)
+
+        assertTrue(shouldReplaceDetailRoute(singlePaneLayout = false, current = current, next = sibling))
+        assertFalse(shouldReplaceDetailRoute(singlePaneLayout = true, current = current, next = sibling))
+        assertFalse(shouldReplaceDetailRoute(singlePaneLayout = false, current = current, next = AudioRoute))
+    }
+
+    @Test
+    fun wideBrowserBackKeepsTheDetailPaneUntilTheRoot() {
+        assertTrue(shouldReplaceBrowserDetailAfterBack(singlePaneLayout = false, stackSize = 2))
+        assertFalse(shouldReplaceBrowserDetailAfterBack(singlePaneLayout = false, stackSize = 1))
+        assertFalse(shouldReplaceBrowserDetailAfterBack(singlePaneLayout = true, stackSize = 2))
     }
 }

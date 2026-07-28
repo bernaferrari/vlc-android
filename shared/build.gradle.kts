@@ -93,6 +93,8 @@ kotlin {
                 api(libs.jetbrains.navigation3.ui)
                 // Uses a bottom bar on compact layouts and a navigation rail on wider hosts.
                 api(libs.compose.adaptive.navigation.suite)
+                // Nav3 list-detail scenes keep a library visible beside its selected detail on wide hosts.
+                api(libs.compose.adaptive.navigation3)
                 // Paging 3 — KMP common + Compose Multiplatform integration
                 api(libs.androidx.paging.common)
                 api(libs.androidx.paging.compose)

@@ -1492,6 +1492,7 @@
     <string name="empty_playlist">Empty playlist</string>
     <string name="no_playlists">No playlists</string>
     <string name="nothing_here">Nothing here</string>
+    <string name="select_library_item">Select an item to see its details</string>
     <string name="unfavorite">Remove from favorites</string>
     <string name="favorites_only">Favorites only</string>
     <string name="show_all_artists">Show all artists</string>

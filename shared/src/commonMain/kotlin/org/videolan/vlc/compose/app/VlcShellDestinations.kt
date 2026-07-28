@@ -33,6 +33,7 @@ internal fun VideoDestination(
     hostCallbacks: ShellHostCallbacks,
     onOpenPlayer: () -> Unit,
     onOpenContainer: (MediaFolder) -> Unit,
+    onNavigateBack: () -> Unit = viewModel::closeContainer,
 ) {
     RichMediaListPane(
         state = state,
@@ -79,7 +80,7 @@ internal fun VideoDestination(
             }
         },
         onOpenGroup = onOpenContainer,
-        onCloseContainer = viewModel::closeContainer,
+        onCloseContainer = onNavigateBack,
         onSetGroupingMode = viewModel::setGroupingMode,
         showGroupingToggle = true,
         onDefaultAction = viewModel::setDefaultPlaybackAction,
@@ -99,6 +100,7 @@ internal fun AudioDestination(
     hostCallbacks: ShellHostCallbacks,
     onOpenPlayer: () -> Unit,
     onOpenEntity: (MediaItem) -> Unit,
+    onNavigateBack: () -> Unit = viewModel::closeEntity,
 ) {
     Column(modifier) {
         // Section tabs are filters, not onboarding. An empty music library has
@@ -168,7 +170,7 @@ internal fun AudioDestination(
                     }
                 }
             },
-            onCloseContainer = viewModel::closeEntity,
+            onCloseContainer = onNavigateBack,
             showAllArtistsToggle = true,
             showTrackNumbersToggle = true,
             onShowAllArtists = viewModel::setShowAllArtists,
@@ -189,10 +191,11 @@ internal fun BrowserDestination(
     viewModel: BrowserViewModel,
     onOpenPlayer: () -> Unit,
     onOpenFolder: (MediaFolder) -> Unit,
+    onNavigateUp: () -> Unit = viewModel::goUp,
 ) {
     BrowserRichPane(
         state = state,
-        onUp = viewModel::goUp,
+        onUp = onNavigateUp,
         onRetry = viewModel::refresh,
         onOpenFolder = onOpenFolder,
         onPlay = { viewModel.play(it); onOpenPlayer() },
@@ -216,6 +219,7 @@ internal fun PlaylistsDestination(
     viewModel: PlaylistsViewModel,
     onOpenPlayer: () -> Unit,
     onOpenPlaylist: (PlaylistInfo) -> Unit,
+    onNavigateBack: () -> Unit = viewModel::closeDetail,
 ) {
     PlaylistsRichPane(
         state = state,
@@ -236,7 +240,7 @@ internal fun PlaylistsDestination(
         onRemoveTrack = viewModel::removeTrackAt,
         onMoveTrackUp = viewModel::moveTrackUp,
         onMoveTrackDown = viewModel::moveTrackDown,
-        onBack = viewModel::closeDetail,
+        onBack = onNavigateBack,
         onRetry = viewModel::refresh,
         modifier = modifier,
     )
