@@ -31,7 +31,7 @@ xcodegen generate
 
 # Resolve once into a deterministic cache, then keep the actual build pinned
 # to Package.resolved. This fails loudly when the checked-in resolution is not
-# reproducible instead of silently selecting a new MobileVLCKit revision.
+# reproducible instead of silently selecting a new VLCKit revision.
 xcodebuild \
   -project VLC-iOS.xcodeproj \
   -scheme VLC-iOS \

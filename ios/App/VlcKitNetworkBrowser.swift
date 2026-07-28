@@ -1,7 +1,7 @@
 //
 //  VlcKitNetworkBrowser.swift
 //
-//  Native MobileVLCKit LAN discovery and server-folder parsing for the shared
+//  Native VLCKit LAN discovery and server-folder parsing for the shared
 //  Compose browser. Product state remains in common Kotlin; this file owns only
 //  opaque VLCMedia lifecycle and asynchronous Objective-C callbacks.
 //
@@ -9,8 +9,8 @@
 import Foundation
 import VLCShared
 
-#if canImport(MobileVLCKit)
-import MobileVLCKit
+#if canImport(VLCKit)
+import VLCKit
 #endif
 
 final class VlcKitNetworkBrowser: NSObject, IosNetworkBrowserBackend {
@@ -19,7 +19,7 @@ final class VlcKitNetworkBrowser: NSObject, IosNetworkBrowserBackend {
     private var discoveryListener: IosNetworkBrowserBackendDiscoveryListener?
     private var browseListener: IosNetworkBrowserBackendBrowseListener?
 
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
     private var discoverers: [VLCMediaDiscoverer] = []
     private var discoveryTimer: Timer?
     private var browsingMedia: VLCMedia?
@@ -31,7 +31,7 @@ final class VlcKitNetworkBrowser: NSObject, IosNetworkBrowserBackend {
 
     func startDiscovery(listener: IosNetworkBrowserBackendDiscoveryListener?) {
         discoveryListener = listener
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         discoveryTimer?.invalidate()
         discoverers.forEach { $0.stop() }
         discoverers.removeAll()
@@ -53,14 +53,14 @@ final class VlcKitNetworkBrowser: NSObject, IosNetworkBrowserBackend {
             repeats: true
         )
 #else
-        listener?.onError(message: "MobileVLCKit is unavailable in this build.")
+        listener?.onError(message: "VLCKit is unavailable in this build.")
 #endif
     }
 
     func browse(uri: String, listener: IosNetworkBrowserBackendBrowseListener?) {
         cancelBrowse()
         browseListener = listener
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         guard let url = URL(string: uri) else {
             listener?.onError(message: "Invalid network address.")
             return
@@ -68,19 +68,19 @@ final class VlcKitNetworkBrowser: NSObject, IosNetworkBrowserBackend {
         let media = VLCMedia(url: url)
         media.delegate = self
         browsingMedia = media
-        // MobileVLCKit parses server trees asynchronously and supplies their
+        // VLCKit parses server trees asynchronously and supplies their
         // children through `subitems`, exactly as upstream iOS does.
         guard media.parse(options: .parseNetwork) == 0 else {
             finishBrowse(error: "Unable to open this network location.")
             return
         }
 #else
-        listener?.onError(message: "MobileVLCKit is unavailable in this build.")
+        listener?.onError(message: "VLCKit is unavailable in this build.")
 #endif
     }
 
     func cancelBrowse() {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         browsingMedia?.parseStop()
         browsingMedia?.delegate = nil
         browsingMedia = nil
@@ -88,7 +88,7 @@ final class VlcKitNetworkBrowser: NSObject, IosNetworkBrowserBackend {
         browseListener = nil
     }
 
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
     @objc private func refreshDiscovery() {
         publishRoots()
     }
@@ -139,7 +139,7 @@ final class VlcKitNetworkBrowser: NSObject, IosNetworkBrowserBackend {
 #endif
 }
 
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
 extension VlcKitNetworkBrowser: VLCMediaDelegate {
     func mediaDidFinishParsing(_ aMedia: VLCMedia) {
         guard aMedia === browsingMedia else { return }

@@ -1,7 +1,7 @@
 //
 //  VlcKitBackend.swift
 //
-//  Bridge from shared IosPlaybackService → MobileVLCKit.
+//  Bridge from shared IosPlaybackService → VLCKit.
 //  Linked via SPM (see ios/project.yml). Auto-attached from App launch.
 //
 
@@ -11,8 +11,8 @@ import MediaPlayer
 import UIKit
 import VLCShared
 
-#if canImport(MobileVLCKit)
-import MobileVLCKit
+#if canImport(VLCKit)
+import VLCKit
 #endif
 
 /// Swift implementation of the Kotlin `VlcKitPlayerBackend` interface.
@@ -35,10 +35,11 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     private var externalSubtitleURL: URL?
     private var selectedRendererId: String?
 
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
     private var player: VLCMediaPlayer?
     private var rendererDiscoverers: [VLCRendererDiscoverer] = []
     private var rendererItems: [String: VLCRendererItem] = [:]
+    private let pipDrawable = VlcKitPipDrawable.shared
 #endif
 
     private override init() {
@@ -62,7 +63,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     /// Attach the Compose-owned UIView as VLCKit's drawable surface.
     func attachDrawable(view: UIView?) {
         drawableView = view
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         updateDrawable()
 #endif
     }
@@ -72,13 +73,13 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     /// playback state is created outside the common KMP controller.
     func attachExternalDrawable(view: UIView?) {
         externalDrawableView = view
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         updateDrawable()
 #endif
     }
 
     func play(uri: String, title: String?) {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         activateAudioSession()
         guard let media = makeMedia(uri: uri, title: title) else {
             listener?.onError(message: "Invalid URI: \(uri)")
@@ -92,12 +93,12 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
 #else
         // A shipping build must not simulate success when its decoder package is
         // absent: surface an actionable error to the shared player instead.
-        listener?.onError(message: "MobileVLCKit is unavailable in this build.")
+        listener?.onError(message: "VLCKit is unavailable in this build.")
 #endif
     }
 
     func preparePaused(uri: String, title: String?, positionMs: Int64) -> Bool {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         guard let media = makeMedia(uri: uri, title: title) else { return false }
         externalSubtitleURL = nil
         let player = ensurePlayer()
@@ -113,7 +114,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 
     func pause() {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         player?.pause()
         publishNowPlayingInfo(isPlaying: false)
         listener?.onPaused()
@@ -121,7 +122,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 
     func resume() {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         activateAudioSession()
         player?.play()
         publishNowPlayingInfo(isPlaying: true)
@@ -130,7 +131,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 
     func stop() {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         player?.stop()
 #endif
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
@@ -139,7 +140,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 
     func seekTo(positionMs: Int64) {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         // A live/non-seekable input must not make the shared slider pretend it moved.
         guard let player, player.isSeekable else { return }
         let length = max(0, Int64(player.media?.length.intValue ?? 0))
@@ -156,14 +157,14 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
 
     func setVolume(volume: Int32) {
         configuredVolume = min(200, max(0, volume))
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         // VLCKit audio.volume is 0...200
         player?.audio?.volume = configuredVolume
 #endif
     }
 
     func getVolume() -> Int32 {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         player?.audio?.volume ?? configuredVolume
 #else
         configuredVolume
@@ -172,32 +173,32 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
 
     func setRate(rate: Float) {
         configuredRate = min(4, max(0.25, rate))
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         player?.rate = configuredRate
         publishNowPlayingInfo()
 #endif
     }
 
     func getRate() -> Float {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         player?.rate ?? configuredRate
 #else
         configuredRate
 #endif
     }
 
-    /// Applies the shared Compose resize choice using MobileVLCKit's native video controls.
+    /// Applies the shared Compose resize choice using VLCKit's native video controls.
     /// A nil ratio resets LibVLC's forced aspect ratio; scale 0 asks it to fit its drawable.
     func setVideoOutput(aspectRatio: String?, scale: Float) {
         videoOutputAspectRatio = aspectRatio
         videoOutputScale = scale
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         applyVideoOutput(to: player)
 #endif
     }
 
     func videoCrop() -> PlaybackVideoCrop {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         PlaybackVideoCrop(supported: true, mode: videoCropMode)
 #else
         PlaybackVideoCrop()
@@ -206,13 +207,13 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
 
     func setVideoCrop(mode: VideoCropMode) {
         videoCropMode = mode
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         applyVideoCrop(to: player)
 #endif
     }
 
     func videoAdjust() -> PlaybackVideoAdjust {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         guard let filter = player?.adjustFilter else {
             return PlaybackVideoAdjust(
                 supported: true, enabled: false, brightness: 1, contrast: 1,
@@ -234,13 +235,13 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 
     func setVideoAdjustEnabled(enabled: Bool) {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         player?.adjustFilter.isEnabled = enabled
 #endif
     }
 
     func setVideoAdjust(parameter: VideoAdjustParameter, value: Float) {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         guard let filter = player?.adjustFilter else { return }
         let safe = min(parameter.maximum, max(parameter.minimum, value))
         switch parameter {
@@ -256,7 +257,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 
     func resetVideoAdjust() {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         guard let filter = player?.adjustFilter else { return }
         filter.brightness.value = NSNumber(value: 1)
         filter.contrast.value = NSNumber(value: 1)
@@ -268,7 +269,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 
     func tracks() -> PlaybackTracks {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         guard let player else { return PlaybackTracks(audio: [], subtitles: []) }
         return PlaybackTracks(
             audio: makeTracks(
@@ -288,21 +289,21 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 
     func selectAudioTrack(id: String) {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         guard let trackID = Int32(id) else { return }
         player?.currentAudioTrackIndex = trackID
 #endif
     }
 
     func selectSubtitleTrack(id: String) {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         guard let trackID = Int32(id) else { return }
         player?.currentVideoSubTitleIndex = trackID
 #endif
     }
 
     func delays() -> PlaybackDelays {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         return PlaybackDelays(
             audioUs: Int64(player?.currentAudioPlaybackDelay ?? 0),
             subtitleUs: Int64(player?.currentVideoSubTitleDelay ?? 0),
@@ -314,19 +315,19 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 
     func setAudioDelay(delayUs: Int64) {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         player?.currentAudioPlaybackDelay = Int(delayUs)
 #endif
     }
 
     func setSubtitleDelay(delayUs: Int64) {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         player?.currentVideoSubTitleDelay = Int(delayUs)
 #endif
     }
 
     func chapters() -> PlaybackChapters {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         guard let player else { return PlaybackChapters(entries: []) }
         let selected = Int(player.currentChapterIndex)
         let count = max(0, Int(player.numberOfChapters(forTitle: -1)))
@@ -339,13 +340,13 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 
     func selectChapter(index: Int32) {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         player?.currentChapterIndex = index
 #endif
     }
 
     func loadExternalSubtitle(uri: String) -> Bool {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         guard let url = URL(string: uri) ?? URL(string: uri.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? "") else { return false }
         let loaded = player?.addPlaybackSlave(url, type: .subtitle, enforce: true) == 0
         if loaded { externalSubtitleURL = url }
@@ -356,7 +357,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 
     func equalizer() -> PlaybackEqualizer {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         let active = player?.equalizer
         let presets = VLCAudioEqualizer.presets.map {
             PlaybackEqualizerPreset(id: String($0.index), label: $0.name)
@@ -378,7 +379,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 
     func setEqualizerEnabled(enabled: Bool) {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         if enabled {
             let equalizer = player?.equalizer ?? VLCAudioEqualizer()
             player?.equalizer = equalizer
@@ -390,7 +391,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 
     func selectEqualizerPreset(id: String) {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         guard let index = UInt(id),
               let preset = VLCAudioEqualizer.presets.first(where: { $0.index == index }) else { return }
         player?.equalizer = VLCAudioEqualizer(preset: preset)
@@ -399,7 +400,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 
     func setEqualizerPreamp(preampDb: Float) {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         let equalizer = player?.equalizer ?? VLCAudioEqualizer()
         equalizer.preAmplification = min(20, max(-20, preampDb))
         player?.equalizer = equalizer
@@ -408,7 +409,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 
     func setEqualizerBand(index: Int32, amplificationDb: Float) {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         let equalizer = player?.equalizer ?? VLCAudioEqualizer()
         guard index >= 0, Int(index) < equalizer.bands.count else { return }
         let band = equalizer.bands[Int(index)]
@@ -423,7 +424,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 
     func dispose() {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         player?.stop()
         player?.delegate = nil
         player?.drawable = nil
@@ -437,7 +438,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     // MARK: - Shared renderer bridge
 
     func startRendererDiscovery() {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         stopRendererDiscovery()
         guard let descriptions = VLCRendererDiscoverer.list() else { return }
         rendererDiscoverers = descriptions.compactMap { description in
@@ -451,7 +452,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 
     func stopRendererDiscovery() {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         rendererDiscoverers.forEach {
             $0.delegate = nil
             $0.stop()
@@ -462,7 +463,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 
     func renderers() -> [VlcKitRendererInfo] {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         let items = rendererDiscoverers.flatMap(\.renderers)
         // Different libVLC discoverers can report the same physical target.
         // Keep the latest item rather than crashing on duplicate dictionary keys.
@@ -477,10 +478,10 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 
     func selectRenderer(id: String?) -> Bool {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         let item = id.flatMap { rendererItems[$0] }
         guard id == nil || item != nil else { return false }
-        // MobileVLCKit only honours this before the first play on a player. Rebuild the
+        // VLCKit only honours this before the first play on a player. Rebuild the
         // native player transactionally so choosing or disconnecting a renderer during
         // playback actually changes the output without losing the current item or time.
         let applied = replacePlayer(renderer: item)
@@ -494,7 +495,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     func currentRendererId() -> String? { selectedRendererId }
 
     var isVlcKitLinked: Bool {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         true
 #else
         false
@@ -513,7 +514,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
         }
     }
 
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
     private func makeTracks(names: [Any], indexes: [Any], selected: Int) -> [PlaybackTrack] {
         let labels = names.compactMap { $0 as? String }
         let ids = indexes.map { String(describing: $0) }
@@ -532,9 +533,11 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     private func makePlayer() -> VLCMediaPlayer {
         let player = VLCMediaPlayer()
         player.delegate = self
-        if let activeDrawableView {
-            player.drawable = activeDrawableView
-        }
+        // The PiP drawable is also the normal native video host.  VLCKit creates
+        // its video view inside it, which means PiP never needs a second decoder
+        // or a parallel AVPlayer pipeline.
+        pipDrawable.attach(backend: self)
+        player.drawable = pipDrawable
         player.audio?.volume = configuredVolume
         player.rate = configuredRate
         applyVideoOutput(to: player)
@@ -547,11 +550,36 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 
     private func updateDrawable() {
-        player?.drawable = activeDrawableView
+        pipDrawable.updateHostView(activeDrawableView)
     }
 
+    // MARK: - PiP drawable callbacks
+
+    func pipAddVideoSubview(_ view: UIView) {
+        guard let host = activeDrawableView else { return }
+        view.frame = host.bounds
+        view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        host.addSubview(view)
+    }
+
+    func pipPlay() { resume() }
+    func pipPause() { pause() }
+
+    func pipSeek(by offsetMs: Int64, completion: @escaping () -> Void) {
+        guard let player, player.isSeekable else {
+            completion()
+            return
+        }
+        player.jump(withOffset: Int32(clamping: offsetMs), completion: completion)
+    }
+
+    func pipMediaLength() -> Int64 { Int64(player?.media?.length.intValue ?? 0) }
+    func pipMediaTime() -> Int64 { Int64(player?.time.intValue ?? 0) }
+    func pipIsSeekable() -> Bool { player?.isSeekable == true }
+    func pipIsPlaying() -> Bool { player?.isPlaying == true }
+
     /**
-     * Renderer assignment is a construction-time option in MobileVLCKit. Create and validate
+     * Renderer assignment is a construction-time option in VLCKit. Create and validate
      * the replacement first, then detach the previous player so a failed selection never
      * interrupts playback. The native player owns decoder/output state; the shared queue and
      * UI state deliberately remain untouched.
@@ -634,13 +662,13 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
         frequency >= 1_000 ? String(format: "%.1f kHz", frequency / 1_000) : String(format: "%.0f Hz", frequency)
     }
 
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
     private func rendererId(for item: VLCRendererItem) -> String {
         "\(item.type)|\(item.name)|\(item.iconURI)"
     }
 #endif
 
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
     private func filterFloat(_ parameter: VLCFilterParameterProtocol, fallback: Float) -> Float {
         (parameter.value as? NSNumber)?.floatValue ?? fallback
     }
@@ -689,7 +717,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
         }
         center.togglePlayPauseCommand.addTarget { [weak self] _ in
             guard let self else { return .commandFailed }
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
             self.player?.isPlaying == true ? self.pause() : self.resume()
             return .success
 #else
@@ -737,14 +765,14 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 
     private func seekRelative(milliseconds: Int64) {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         let current = Int64(player?.time.intValue ?? 0)
         seekTo(positionMs: max(0, current + milliseconds))
 #endif
     }
 
     private func publishNowPlayingInfo(isPlaying: Bool? = nil) {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         guard let player, player.media != nil else { return }
         let length = max(0, Int64(player.media?.length.intValue ?? 0))
         let time = max(0, Int64(player.time.intValue))
@@ -762,7 +790,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 
     @objc private func handleAudioInterruption(_ notification: Notification) {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         guard let rawType = notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
               let type = AVAudioSession.InterruptionType(rawValue: rawType) else { return }
         switch type {
@@ -784,7 +812,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 
     @objc private func handleAudioRouteChange(_ notification: Notification) {
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
         guard let rawReason = notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt,
               let reason = AVAudioSession.RouteChangeReason(rawValue: rawReason) else { return }
         // Never blast sound through the speaker after headphones / an external route disappear.
@@ -795,7 +823,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 }
 
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
 extension VlcKitBackend: VLCMediaPlayerDelegate {
     func mediaPlayerStateChanged(_ aNotification: Notification) {
         guard let player else { return }
@@ -815,6 +843,7 @@ extension VlcKitBackend: VLCMediaPlayerDelegate {
         case .error: listener?.onError(message: "VLCKit error")
         default: break
         }
+        VlcKitPipDrawable.shared.invalidatePlaybackState()
     }
 
     func mediaPlayerTimeChanged(_ aNotification: Notification) {
@@ -823,10 +852,11 @@ extension VlcKitBackend: VLCMediaPlayerDelegate {
         let length = Int64(player.media?.length.intValue ?? 0)
         listener?.onTimeChanged(timeMs: time, lengthMs: length)
         publishNowPlayingInfo()
+        VlcKitPipDrawable.shared.invalidatePlaybackState()
     }
 }
 
-#if canImport(MobileVLCKit)
+#if canImport(VLCKit)
 extension VlcKitBackend: VLCRendererDiscovererDelegate {
     func rendererDiscovererItemAdded(_ rendererDiscoverer: VLCRendererDiscoverer, item: VLCRendererItem) {
         rendererItems[rendererId(for: item)] = item

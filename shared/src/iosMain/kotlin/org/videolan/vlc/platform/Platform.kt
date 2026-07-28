@@ -2,15 +2,20 @@ package org.videolan.vlc.platform
 
 import platform.UIKit.UIAccessibilityIsReduceMotionEnabled
 
-actual val platformCapabilities = VlcPlatformCapabilities(
-    // The iOS host links MobileVLCKit through Swift Package Manager.
-    nativePlayback = true,
-    rendererSelection = true,
-    // Native MobileVLCKit discovery and folder parsing is bridged by Swift.
-    networkBrowsing = true,
-    // Network.framework powers authenticated local Wi-Fi transfer uploads.
-    remoteAccessServer = true,
-)
+actual val platformCapabilities: VlcPlatformCapabilities
+    get() = VlcPlatformCapabilities(
+        // The iOS host links VLCKit through Swift Package Manager.
+        nativePlayback = true,
+        // The public VLCKit PiP drawable is linked by the iOS host. Keeping
+        // readiness in IosPipController prevents a call before VLCKit hands us
+        // its window controller.
+        pictureInPicture = IosPipController.isSupported,
+        rendererSelection = true,
+        // Native VLCKit discovery and folder parsing is bridged by Swift.
+        networkBrowsing = true,
+        // Network.framework powers authenticated local Wi-Fi transfer uploads.
+        remoteAccessServer = true,
+    )
 
 actual fun prefersReducedMotion(): Boolean = UIAccessibilityIsReduceMotionEnabled()
 

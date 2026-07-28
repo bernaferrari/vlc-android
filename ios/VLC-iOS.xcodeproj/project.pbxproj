@@ -7,10 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		04D62390FB3F076A51C9B942 /* MobileVLCKit in Frameworks */ = {isa = PBXBuildFile; productRef = C8F715C12898A655F10889FC /* MobileVLCKit */; };
+		04D62390FB3F076A51C9B942 /* VLCKit in Frameworks */ = {isa = PBXBuildFile; productRef = 335187A134082E869E357489 /* VLCKit */; };
 		3D520F3C55284134956991B7 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E48BF24C81066D3E9B9920D5 /* AppDelegate.swift */; };
 		42556EC0547AA003AEB1BA22 /* CarPlay.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52EAA4B4703AC5A1E3678DE3 /* CarPlay.framework */; };
 		82389E7E85899602B1EE3A09 /* $(VLC_SHARED_FRAMEWORK_PATH) in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0EF723608B7873844B8658BC /* $(VLC_SHARED_FRAMEWORK_PATH) */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		9DDD10A1BBFE08AFE22891FD /* VlcKitPipBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 399847AE7520F5D9D0EC7CD7 /* VlcKitPipBridge.swift */; };
 		A4C394D7E43ADA8CE0FF07BF /* VlcKitNetworkBrowser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607C8408946D36A7E750425A /* VlcKitNetworkBrowser.swift */; };
 		B8A2D11D4CE19ECCEED4B486 /* $(VLC_SHARED_FRAMEWORK_PATH) in Frameworks */ = {isa = PBXBuildFile; fileRef = 0EF723608B7873844B8658BC /* $(VLC_SHARED_FRAMEWORK_PATH) */; };
 		BFE8BDF267FAB7F638FC4494 /* VlcExternalDisplayController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4939DA2549803F7D1EBDE79C /* VlcExternalDisplayController.swift */; };
@@ -37,6 +38,7 @@
 
 /* Begin PBXFileReference section */
 		0EF723608B7873844B8658BC /* $(VLC_SHARED_FRAMEWORK_PATH) */ = {isa = PBXFileReference; path = "$(VLC_SHARED_FRAMEWORK_PATH)"; sourceTree = "<group>"; };
+		399847AE7520F5D9D0EC7CD7 /* VlcKitPipBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VlcKitPipBridge.swift; sourceTree = "<group>"; };
 		3F15D2B0CA4AC7F6830CBF4A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		4939DA2549803F7D1EBDE79C /* VlcExternalDisplayController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VlcExternalDisplayController.swift; sourceTree = "<group>"; };
 		52EAA4B4703AC5A1E3678DE3 /* CarPlay.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CarPlay.framework; path = System/Library/Frameworks/CarPlay.framework; sourceTree = SDKROOT; };
@@ -56,7 +58,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				04D62390FB3F076A51C9B942 /* MobileVLCKit in Frameworks */,
+				04D62390FB3F076A51C9B942 /* VLCKit in Frameworks */,
 				42556EC0547AA003AEB1BA22 /* CarPlay.framework in Frameworks */,
 				B8A2D11D4CE19ECCEED4B486 /* $(VLC_SHARED_FRAMEWORK_PATH) in Frameworks */,
 			);
@@ -78,6 +80,7 @@
 				4939DA2549803F7D1EBDE79C /* VlcExternalDisplayController.swift */,
 				C39A17B3461CF8B76D62B858 /* VlcKitBackend.swift */,
 				607C8408946D36A7E750425A /* VlcKitNetworkBrowser.swift */,
+				399847AE7520F5D9D0EC7CD7 /* VlcKitPipBridge.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -126,7 +129,7 @@
 			);
 			name = "VLC-iOS";
 			packageProductDependencies = (
-				C8F715C12898A655F10889FC /* MobileVLCKit */,
+				335187A134082E869E357489 /* VLCKit */,
 			);
 			productName = "VLC-iOS";
 			productReference = 872AE79B2B54F682D91B6907 /* VLC-iOS.app */;
@@ -157,7 +160,7 @@
 			mainGroup = EDF1B72A46F1201E8FC854B4;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				C0C3C8FC0354A3B049DAD692 /* XCRemoteSwiftPackageReference "MobileVLCKit-SPM" */,
+				2920353C025CCCB9D83D616E /* XCRemoteSwiftPackageReference "VLCKit" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 1F19D0F9383705786F5E94D9 /* Products */;
@@ -204,6 +207,7 @@
 				BFE8BDF267FAB7F638FC4494 /* VlcExternalDisplayController.swift in Sources */,
 				EAF63E4A768514B75A1F59DD /* VlcKitBackend.swift in Sources */,
 				A4C394D7E43ADA8CE0FF07BF /* VlcKitNetworkBrowser.swift in Sources */,
+				9DDD10A1BBFE08AFE22891FD /* VlcKitPipBridge.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -447,21 +451,21 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		C0C3C8FC0354A3B049DAD692 /* XCRemoteSwiftPackageReference "MobileVLCKit-SPM" */ = {
+		2920353C025CCCB9D83D616E /* XCRemoteSwiftPackageReference "VLCKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/MobileVLCKit-SPM/MobileVLCKit-SPM";
+			repositoryURL = "https://code.videolan.org/videolan/VLCKit.git";
 			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 3.6.0;
+				kind = exactVersion;
+				version = "4.0.0-a22";
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		C8F715C12898A655F10889FC /* MobileVLCKit */ = {
+		335187A134082E869E357489 /* VLCKit */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = C0C3C8FC0354A3B049DAD692 /* XCRemoteSwiftPackageReference "MobileVLCKit-SPM" */;
-			productName = MobileVLCKit;
+			package = 2920353C025CCCB9D83D616E /* XCRemoteSwiftPackageReference "VLCKit" */;
+			productName = VLCKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

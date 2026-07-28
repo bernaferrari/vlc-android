@@ -1,11 +1,11 @@
 #!/bin/bash
 #
-# iOS Xcode project setup for VLC KMP + MobileVLCKit (SPM).
+# iOS Xcode project setup for VLC KMP + pinned upstream VLCKit (SPM).
 #
 # Prerequisites:
 #   - Xcode 15+
 #   - xcodegen (brew install xcodegen)
-#   - network access to resolve MobileVLCKit-SPM on first open
+#   - network access to resolve VLCKit on first open
 #
 set -euo pipefail
 
@@ -62,7 +62,7 @@ cd "$IOS_DIR"
 xcodegen generate
 echo "Xcode project generated at: $IOS_DIR/VLC-iOS.xcodeproj"
 echo ""
-echo "MobileVLCKit is declared via SPM in project.yml."
+echo "Pinned upstream VLCKit (with the public PiP drawable) is declared via SPM in project.yml."
 echo "First Xcode open will resolve the package (needs network)."
 echo ""
 echo "Run:"

@@ -19,7 +19,7 @@ Tester: `________`
 | Android phone | `________` | Where supported: PiP and renderer/cast selection; network browsing; remote-access server | ☐ Pass ☐ Fail ☐ N/A | `________` |
 | iPhone | `________` | Files and Photos import; persistent catalog after relaunch; video decode surface; audio playback; player/back navigation; open-with handoff | ☐ Pass ☐ Fail | `________` |
 | iPad | `________` | Same flow; compact/regular-width navigation and safe-area behavior; Files picker popover; rotation | ☐ Pass ☐ Fail | `________` |
-| iPhone / iPad | `________` | Background/foreground recovery and lock-screen audio controls, if MobileVLCKit exposes them on this build | ☐ Pass ☐ Fail ☐ N/A | `________` |
+| iPhone / iPad | `________` | Background/foreground recovery, lock-screen audio controls, and PiP enter/exit/recovery with local video | ☐ Pass ☐ Fail ☐ N/A | `________` |
 | iPhone / iPad + second device | `________` | Enable local transfer on Wi-Fi; open the authenticated address on the second device; upload a media file; confirm catalog import/playback; disable and verify the address no longer accepts requests | ☐ Pass ☐ Fail | `________` |
 | Wasm browser | `________` | Shared shell renders; import a browser-supported local audio/video file; playback, player collapse, and OPFS-backed relaunch; unsupported native actions remain hidden | ☐ Pass ☐ Fail | `________` |
 
@@ -30,7 +30,7 @@ Tester: `________`
 - `ios/verify.sh simulator`
 - `ios/verify.sh archive`
 
-The iOS checks require Xcode, XcodeGen, and a network-reachable MobileVLCKit
+The iOS checks require Xcode, XcodeGen, and a network-reachable VLCKit
 SPM resolution. Their unsigned builds deliberately do not prove App Store
 signing or real-device decode; the rows above do.
 

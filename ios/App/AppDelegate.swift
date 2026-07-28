@@ -3,7 +3,7 @@
 //  VLC-iOS
 //
 //  Hosts the shared Compose Multiplatform shell (same VlcSharedApp as Android)
-//  with real MobileVLCKit decode + Files/Photos library import.
+//  with real VLCKit decode + Files/Photos library import.
 //
 
 import SwiftUI
@@ -32,8 +32,9 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
         IosKoinBootstrap.shared.start()
-        // Real decode when MobileVLCKit SPM product is linked.
+        // Real decode and PiP when the pinned upstream VLCKit package is linked.
         IosPlaybackService.companion.shared.setBackend(backend: VlcKitBackend.shared)
+        IosPipController.shared.setHandler(handler: VlcKitPipDrawable.shared)
         IosRendererController.shared.setBackend(backend: VlcKitBackend.shared)
         // The same native package owns LAN discovery and folder parsing; the
         // Compose browser receives only portable entries through its repository.

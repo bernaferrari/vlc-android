@@ -1,7 +1,7 @@
 # VLC KMP / iOS app
 
 The iOS app hosts the same Compose Multiplatform VLC shell as Android, with
-Swift limited to iOS integration islands: MobileVLCKit, document/photo intake,
+Swift limited to iOS integration islands: VLCKit, document/photo intake,
 and the SwiftUI application lifecycle.
 
 ## Layout
@@ -84,7 +84,7 @@ Legacy Android `org.videolan.tools.Settings` (SharedPreferences) still powers ma
 ## iOS integration
 
 `ios/App/AppDelegate.swift` starts the iOS Koin module, installs the
-MobileVLCKit playback backend, and asks `MediaImporter` to reconcile Documents
+VLCKit playback backend, and asks `MediaImporter` to reconcile Documents
 and cached imports. `MainViewController()` is the Compose root used by SwiftUI;
 it receives a native video surface only where a video needs one. The shared
 Compose top bar owns the permanent import action; Swift presents only the
@@ -133,7 +133,7 @@ iOS now hosts the **same** `VlcSharedApp` as Android (`Library` / `Player` / `Se
 - A first run stays empty until the user imports media; Documents are scanned
   and reconciled without demo injection.
 - `IosPlaybackService.companion.shared.setBackend(VlcKitBackend.shared)` installs real
-  decode when MobileVLCKit resolves.
+  decode and PiP when VLCKit resolves.
 
 Android's default phone main path hosts the same `VlcKoinMainShell`; its activity
 keeps only Android system, LibVLC, and permission integration islands.
@@ -147,10 +147,11 @@ open ios/VLC-iOS.xcodeproj
 ```
 
 ### What is wired
-1. **MobileVLCKit (SPM)** — `ios/project.yml` packages.MobileVLCKit
+1. **Pinned upstream VLCKit (SPM)** — `ios/project.yml` packages.VLCKit at `4.0.0-a22`
 2. **Real decode** — `AppDelegate` → `IosPlaybackService.companion.shared.setBackend(VlcKitBackend.shared)`
-3. **Drawable** — the shared player route attaches its native `UIView` as the
-   VLCKit drawable and detaches it on disposal
+3. **Drawable + PiP** — the shared player route attaches its native `UIView`
+   through VLCKit's public PiP drawable. The same `VLCMediaPlayer` moves between
+   normal video output and the iOS PiP controller; it never creates an AVPlayer fallback.
 4. **Library intake**
    - Documents/Caches recursive scan (`MediaImporter.rescanLocalFolders`)
    - Files picker (multi-select audiovisual types)
@@ -161,13 +162,13 @@ open ios/VLC-iOS.xcodeproj
 ### Verify decode
 - First Xcode open resolves SPM (network).
 - Run on Simulator; import a file; play.
-- A resolved MobileVLCKit package is required for real decode. If it cannot be
+- A resolved VLCKit package is required for real decode and PiP. If it cannot be
   imported, playback is unavailable rather than silently presenting demo media.
 
 ## Release verification
 
 `verify.sh` is the repeatable unsigned Xcode gate used by CI. It regenerates
-the project, resolves the locked MobileVLCKit package, builds the simulator
+the project, resolves the locked VLCKit package, builds the simulator
 host, and archives the device host against the matching framework variant:
 
 ```bash

@@ -10,7 +10,7 @@ import org.videolan.vlc.platform.MediaSessionBridge
 import org.videolan.vlc.platform.AppLockController
 import org.videolan.vlc.platform.IosAppLockController
 import org.videolan.vlc.platform.NoOpMediaSessionBridge
-import org.videolan.vlc.platform.NoOpPipController
+import org.videolan.vlc.platform.IosPipController
 import org.videolan.vlc.platform.PipController
 import org.videolan.vlc.platform.RendererBridge
 import org.videolan.vlc.platform.IosRemoteAccessServer
@@ -42,7 +42,7 @@ actual val platformModule: Module = module {
     single<PlaybackService> { IosPlaybackService.shared }
     single<AppLockController> { IosAppLockController }
     single<MediaSessionBridge> { IosMediaSessionBridge() }
-    single<PipController> { NoOpPipController }
+    single<PipController> { IosPipController }
     single<RendererBridge> { IosRendererBridge() }
     single<RemoteAccessServerController> { IosRemoteAccessServer }
 }

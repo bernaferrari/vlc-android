@@ -10,9 +10,11 @@ settings:
     TARGETED_DEVICE_FAMILY: "1,2"
     ENABLE_USER_SCRIPT_SANDBOXING: NO
 packages:
-  MobileVLCKit:
-    url: https://github.com/MobileVLCKit-SPM/MobileVLCKit-SPM
-    from: 3.6.0
+  # VLC's maintained framework exposes the public PiP drawable contract used
+  # by VLC for iOS itself.  The older MobileVLCKit SPM wrapper cannot do so.
+  VLCKit:
+    url: https://code.videolan.org/videolan/VLCKit.git
+    exactVersion: 4.0.0-a22
 targets:
   VLC-iOS:
     type: application
@@ -65,8 +67,8 @@ targets:
         Release:
           VLC_SHARED_BUILD_TYPE: release
     dependencies:
-      - package: MobileVLCKit
-        product: MobileVLCKit
+      - package: VLCKit
+        product: VLCKit
       - sdk: CarPlay.framework
       - framework: $(VLC_SHARED_FRAMEWORK_PATH)
         embed: true

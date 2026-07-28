@@ -9,7 +9,7 @@ import UIKit
 
 /**
  * Retains the one native output window for a UIKit external-display scene.
- * The MobileVLCKit player is still the shared KMP player; only its drawable moves.
+ * The VLCKit player is still the shared KMP player; only its drawable moves.
  */
 final class VlcExternalDisplayController {
     static let shared = VlcExternalDisplayController()

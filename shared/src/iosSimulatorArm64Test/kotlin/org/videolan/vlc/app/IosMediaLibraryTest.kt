@@ -12,6 +12,8 @@ import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.MediaType
 import org.videolan.vlc.model.Playlist
 import org.videolan.vlc.model.RepeatMode
+import org.videolan.vlc.platform.IosPipController
+import org.videolan.vlc.platform.IosPipHandler
 import org.videolan.vlc.platform.platformCapabilities
 
 class IosMediaLibraryTest {
@@ -23,6 +25,21 @@ class IosMediaLibraryTest {
         assertTrue(platformCapabilities.networkBrowsing)
         assertTrue(platformCapabilities.remoteAccessServer)
         assertFalse(platformCapabilities.pictureInPicture)
+    }
+
+    @Test
+    fun pipCapabilityOnlyAppearsAfterTheNativeVlckitBridgeBinds() {
+        val handler = RecordingPipHandler()
+        IosPipController.setHandler(handler)
+        try {
+            assertTrue(platformCapabilities.pictureInPicture)
+            assertTrue(IosPipController.enterPip())
+            assertTrue(handler.entered)
+            IosPipController.exitPip()
+            assertTrue(handler.exited)
+        } finally {
+            IosPipController.setHandler(null)
+        }
     }
 
     @Test
@@ -45,6 +62,20 @@ class IosMediaLibraryTest {
         assertEquals(listOf(media.uri), assertNotNull(restored.getPlaylist(playlist.id)).items.map { it.uri })
         assertTrue(restored.observePlaylists().firstValue().single().isFavorite)
         assertEquals(media.uri, restored.observeHistory(1).firstValue().single().item.uri)
+    }
+
+    private class RecordingPipHandler : IosPipHandler {
+        var entered = false
+        var exited = false
+        override val isSupported: Boolean = true
+        override fun enter(): Boolean {
+            entered = true
+            return true
+        }
+        override fun exit() {
+            exited = true
+        }
+        override fun isActive(): Boolean = entered && !exited
     }
 
     @Test
