@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -82,7 +81,7 @@ fun VLCAboutScreen(
     onOpenLicenseLink: () -> Unit,
     modifier: Modifier = Modifier,
     closeIconContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.Close) },
-    logoContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.VideoLibrary, 32) },
+    logoContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.PlayArrow, 28) },
     websiteIconContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.Language) },
     feedbackIconContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.Forum) },
     sourcesIconContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.Code) },
@@ -104,7 +103,7 @@ fun VLCAboutScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(min = 56.dp)
+                        .heightIn(min = 64.dp)
                         .background(colors.backgroundDefault),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -133,63 +132,50 @@ fun VLCAboutScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp),
                 ) {
                     AboutHeroCard(
                         appName = appName,
-                        description = description,
                         version = versionInfo.version,
                         logoContent = logoContent,
                         onVersionClick = { activeSheet = AboutSheet.Version },
-                        modifier = Modifier
-                            .padding(top = 16.dp)
-                            .widthIn(max = 600.dp),
+                        modifier = Modifier.padding(top = 4.dp),
                     )
 
-                    Spacer(Modifier.height(20.dp))
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                    )
 
-                    AboutActionGroup(
-                        modifier = Modifier.widthIn(max = 600.dp)
-                    ) {
-                        AboutActionRow(
-                            title = websiteTitle,
-                            iconContent = websiteIconContent,
-                            onClick = onOpenWebsite
-                        )
-                        AboutRowDivider()
-                        AboutActionRow(
-                            title = feedbackTitle,
-                            iconContent = feedbackIconContent,
-                            onClick = onSendFeedback
-                        )
-                        AboutRowDivider()
-                        AboutActionRow(
-                            title = sourcesTitle,
-                            iconContent = sourcesIconContent,
-                            onClick = onOpenSources
-                        )
-                        AboutRowDivider()
-                        AboutActionRow(
-                            title = librariesTitle,
-                            iconContent = librariesIconContent,
-                            onClick = onOpenLibraries
-                        )
-                        AboutRowDivider()
-                        AboutActionRow(
-                            title = authorsTitle,
-                            iconContent = authorsIconContent,
-                            onClick = onOpenAuthors
-                        )
+                    val destinations = listOf(
+                        AboutDestinationAction(websiteTitle, websiteIconContent, onOpenWebsite),
+                        AboutDestinationAction(feedbackTitle, feedbackIconContent, onSendFeedback),
+                        AboutDestinationAction(sourcesTitle, sourcesIconContent, onOpenSources),
+                        AboutDestinationAction(librariesTitle, librariesIconContent, onOpenLibraries),
+                        AboutDestinationAction(authorsTitle, authorsIconContent, onOpenAuthors),
+                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        destinations.forEachIndexed { index, action ->
+                            AboutActionRow(
+                                title = action.title,
+                                iconContent = action.iconContent,
+                                onClick = action.onClick,
+                                position = aboutItemPosition(index, destinations.size),
+                            )
+                        }
                     }
 
                     AboutLicenseCard(
                         copyright = copyright,
                         licenseTitle = licenseTitle,
                         onClick = { activeSheet = AboutSheet.License },
-                        modifier = Modifier
-                            .padding(top = 8.dp, bottom = 24.dp)
-                            .widthIn(max = 600.dp)
+                        modifier = Modifier.padding(bottom = 24.dp),
                     )
                 }
             }
@@ -225,7 +211,6 @@ fun VLCAboutScreen(
 @Composable
 private fun AboutHeroCard(
     appName: String,
-    description: String,
     version: String,
     logoContent: @Composable () -> Unit,
     onVersionClick: () -> Unit,
@@ -239,82 +224,62 @@ private fun AboutHeroCard(
         color = MaterialTheme.colorScheme.primaryContainer,
         contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+                .padding(horizontal = 20.dp, vertical = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Surface(
+                modifier = Modifier.size(56.dp),
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+            ) {
+                Box(contentAlignment = Alignment.Center) { logoContent() }
+            }
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Text(
+                    text = appName,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
                 Surface(
-                    modifier = Modifier.size(64.dp),
-                    shape = MaterialTheme.shapes.large,
-                    color = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .clickable(role = Role.Button, onClick = onVersionClick),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = .14f),
                 ) {
-                    Box(contentAlignment = Alignment.Center) { logoContent() }
-                }
-                Spacer(Modifier.width(16.dp))
-                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = appName,
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        text = version,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                     )
-                    Surface(
-                        modifier = Modifier
-                            .padding(top = 6.dp)
-                            .clip(CircleShape)
-                            .clickable(role = Role.Button, onClick = onVersionClick),
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = .14f),
-                    ) {
-                        Text(
-                            text = version,
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                        )
-                    }
                 }
             }
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = .82f),
-            )
         }
     }
 }
 
-@Composable
-private fun AboutActionGroup(
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
-) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        contentColor = VLCThemeDefaults.colors.fontDefault
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            content()
-        }
-    }
-}
+private data class AboutDestinationAction(
+    val title: String,
+    val iconContent: @Composable () -> Unit,
+    val onClick: () -> Unit,
+)
 
-@Composable
-private fun AboutRowDivider() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 68.dp)
-            .height(1.dp)
-            .background(VLCThemeDefaults.colors.defaultDivider)
-    )
+private fun aboutItemPosition(index: Int, size: Int): VLCListItemPosition = when {
+    size <= 1 -> VLCListItemPosition.Single
+    index == 0 -> VLCListItemPosition.First
+    index == size - 1 -> VLCListItemPosition.Last
+    else -> VLCListItemPosition.Middle
 }
 
 @Composable
@@ -322,46 +287,54 @@ private fun AboutActionRow(
     title: String,
     iconContent: @Composable () -> Unit,
     onClick: () -> Unit,
+    position: VLCListItemPosition,
     modifier: Modifier = Modifier
 ) {
     val colors = VLCThemeDefaults.colors
 
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = 60.dp)
-            .clickable(role = Role.Button, onClick = onClick)
-            .focusable()
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = position.segmentShape(),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
-        Box(
+        VLCPressableContent(
+            onClick = onClick,
             modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest),
-            contentAlignment = Alignment.Center
+                .fillMaxWidth()
+                .heightIn(min = 72.dp)
+                .padding(horizontal = 16.dp, vertical = 10.dp),
         ) {
-            Box(
-                modifier = Modifier.size(24.dp),
-                contentAlignment = Alignment.Center
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                CompositionLocalProvider(LocalContentColor provides colors.primary) {
-                    iconContent()
+                Surface(
+                    modifier = Modifier.size(44.dp),
+                    shape = MaterialTheme.shapes.large,
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSecondaryContainer) {
+                            iconContent()
+                        }
+                    }
                 }
+                Text(
+                    text = title,
+                    color = colors.fontDefault,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+                Icon(
+                    icon = MaterialSymbols.Filled.OpenInNew,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
-
-        Spacer(Modifier.width(16.dp))
-
-        Text(
-            text = title,
-            color = colors.fontDefault,
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f)
-        )
     }
 }
 
@@ -377,28 +350,47 @@ private fun AboutLicenseCard(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .clip(MaterialTheme.shapes.medium)
+            .clip(VLCListItemPosition.Single.segmentShape())
             .clickable(role = Role.Button, onClick = onClick)
             .focusable(),
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surfaceContainer,
+        shape = VLCListItemPosition.Single.segmentShape(),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
         contentColor = colors.fontDefault
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .heightIn(min = 72.dp)
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text(
-                text = copyright,
-                color = colors.fontDefault,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-            )
-            Text(
-                text = licenseTitle,
-                color = colors.fontLight,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(top = 2.dp)
+            Surface(
+                modifier = Modifier.size(44.dp),
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(MaterialSymbols.Filled.Description, contentDescription = null)
+                }
+            }
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = licenseTitle,
+                    color = colors.fontDefault,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                )
+                Text(
+                    text = copyright,
+                    color = colors.fontLight,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            Icon(
+                MaterialSymbols.Filled.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

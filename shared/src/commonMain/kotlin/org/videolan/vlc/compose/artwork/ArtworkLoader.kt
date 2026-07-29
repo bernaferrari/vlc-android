@@ -121,24 +121,19 @@ fun MediaArtworkUri(
 @Composable
 fun DefaultArtworkFallback(item: MediaItem) {
     val colors = VLCThemeDefaults.colors
-    if (item.isFavorite && item.artworkUri.isNullOrBlank()) {
-        Icon(
-            icon = MaterialSymbols.Filled.Star,
-            contentDescription = null,
-            tint = colors.primary,
-        )
-    } else {
-        Text(
-            when {
-                item.isVideo -> "VID"
-                item.isAudio -> "AUD"
-                item.isStream -> "URL"
-                item.isDirectory -> "DIR"
-                else -> "•"
-            },
-            color = colors.primary,
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.labelMedium,
-        )
-    }
+    // Favourite status is already rendered once as the compact badge in [MediaArtworkUri].
+    // Repeating it as the fallback artwork made a missing-thumbnail favourite look like two
+    // stacked stars, especially in Browse. The artwork should always communicate media type.
+    Text(
+        when {
+            item.isVideo -> "VID"
+            item.isAudio -> "AUD"
+            item.isStream -> "URL"
+            item.isDirectory -> "DIR"
+            else -> "•"
+        },
+        color = colors.primary,
+        fontWeight = FontWeight.Bold,
+        style = MaterialTheme.typography.labelMedium,
+    )
 }

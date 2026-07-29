@@ -1047,7 +1047,9 @@ fun BrowserRichPane(
             )
         } else LazyColumn(
             contentPadding = PaddingValues(bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            // A two-pixel join makes related rows read as one asymmetric group rather than a
+            // vertical pile of independent cards. Section labels create the intentional gaps.
+            verticalArrangement = Arrangement.spacedBy(2.dp),
             modifier = Modifier.fillMaxWidth().weight(1f),
         ) {
             if (atRoot && state.favorites.isNotEmpty()) {
@@ -1056,14 +1058,15 @@ fun BrowserRichPane(
                         ShellStrings.favorites(),
                         style = MaterialTheme.typography.labelLarge,
                         color = colors.primary,
-                        modifier = Modifier.padding(start = 4.dp, top = 8.dp, end = 4.dp, bottom = 2.dp),
+                        modifier = Modifier.padding(start = 4.dp, top = 16.dp, end = 4.dp, bottom = 6.dp),
                     )
                 }
-                items(state.favorites, key = { "fav:${it.id}:${it.uri}" }) { item ->
+                itemsIndexed(state.favorites, key = { _, item -> "fav:${item.id}:${item.uri}" }) { index, item ->
                     BrowserMediaRow(
                         item = item,
                         selected = item.uri in state.selection,
                         selecting = state.selection.isNotEmpty(),
+                        position = sectionListItemPosition(index, state.favorites.size),
                         onPlay = onPlay,
                         onPlayNext = onPlayNext,
                         onAppend = onAppend,
@@ -1077,29 +1080,29 @@ fun BrowserRichPane(
                         ShellStrings.storage(),
                         style = MaterialTheme.typography.labelLarge,
                         color = colors.primary,
-                        modifier = Modifier.padding(start = 4.dp, top = 8.dp, end = 4.dp, bottom = 2.dp),
+                        modifier = Modifier.padding(start = 4.dp, top = 16.dp, end = 4.dp, bottom = 6.dp),
                     )
                 }
             }
-            items(state.folders, key = { "f:${it.id}:${it.path}" }) { folder ->
+            itemsIndexed(state.folders, key = { _, folder -> "f:${folder.id}:${folder.path}" }) { index, folder ->
                 VLCBrowserItemRow(
                     title = folder.title,
                     subtitle = if (folder.childCount > 0) ShellStrings.itemsCount(folder.childCount) else ShellStrings.folder(),
+                    position = if (atRoot) {
+                        sectionListItemPosition(index, state.folders.size)
+                    } else {
+                        sectionListItemPosition(index, state.folders.size + state.media.size)
+                    },
                     onClick = { onOpenFolder(folder) },
                     artworkContent = {
-                        if (folder.isFavorite) {
-                            Icon(
-                                icon = MaterialSymbols.Filled.Star,
-                                contentDescription = ShellStrings.favorites(),
-                                tint = colors.primary,
-                            )
-                        } else {
-                            Icon(
-                                icon = MaterialSymbols.Filled.Folder,
-                                contentDescription = null,
-                                tint = colors.primary,
-                            )
-                        }
+                        // Folder identity stays stable here. Favourites already live in their
+                        // own section above, so a second star is visual noise rather than useful
+                        // state information.
+                        Icon(
+                            icon = MaterialSymbols.Filled.Folder,
+                            contentDescription = null,
+                            tint = colors.primary,
+                        )
                     },
                 )
             }
@@ -1109,13 +1112,14 @@ fun BrowserRichPane(
                         ShellStrings.network(),
                         style = MaterialTheme.typography.labelLarge,
                         color = colors.primary,
-                        modifier = Modifier.padding(start = 4.dp, top = 8.dp, end = 4.dp, bottom = 2.dp),
+                        modifier = Modifier.padding(start = 4.dp, top = 16.dp, end = 4.dp, bottom = 6.dp),
                     )
                 }
-                items(state.networkRoots, key = { "n:${it.id}:${it.path}" }) { folder ->
+                itemsIndexed(state.networkRoots, key = { _, folder -> "n:${folder.id}:${folder.path}" }) { index, folder ->
                     VLCBrowserItemRow(
                         title = folder.title,
                         subtitle = ShellStrings.network(),
+                        position = sectionListItemPosition(index, state.networkRoots.size),
                         onClick = { onOpenFolder(folder) },
                         artworkContent = {
                             Icon(
@@ -1127,11 +1131,16 @@ fun BrowserRichPane(
                     )
                 }
             }
-            items(state.media, key = { "m:${it.id}:${it.uri}" }) { item ->
+            itemsIndexed(state.media, key = { _, item -> "m:${item.id}:${item.uri}" }) { index, item ->
                 BrowserMediaRow(
                     item = item,
                     selected = item.uri in state.selection,
                     selecting = state.selection.isNotEmpty(),
+                    position = if (atRoot) {
+                        sectionListItemPosition(index, state.media.size)
+                    } else {
+                        sectionListItemPosition(index + state.folders.size, state.folders.size + state.media.size)
+                    },
                     onPlay = onPlay,
                     onPlayNext = onPlayNext,
                     onAppend = onAppend,
@@ -1147,6 +1156,7 @@ private fun BrowserMediaRow(
     item: MediaItem,
     selected: Boolean,
     selecting: Boolean,
+    position: VLCListItemPosition,
     onPlay: (MediaItem) -> Unit,
     onPlayNext: (MediaItem) -> Unit,
     onAppend: (MediaItem) -> Unit,
@@ -1158,6 +1168,7 @@ private fun BrowserMediaRow(
             title = item.displayTitle,
             subtitle = formatDuration(item.duration),
             selected = selected,
+            position = position,
             onClick = { if (selecting) onToggleSelect(item) else onPlay(item) },
             onLongClick = { onToggleSelect(item) },
             artworkContent = { MediaArtworkSlot(item) },
