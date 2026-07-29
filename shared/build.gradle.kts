@@ -89,6 +89,9 @@ kotlin {
                 api(libs.jetbrains.compose.animation)
                 api(libs.jetbrains.compose.ui)
                 api(libs.jetbrains.compose.resources)
+                // QuietGuard's common, deterministic tonal scheme generator. It keeps every
+                // selected VLC seed coherent on Android, iOS, JVM, and Wasm.
+                api(libs.material.kolor)
                 // Navigation 3 is available for Android, iOS, JVM, and Wasm on Compose 1.10+.
                 api(libs.jetbrains.navigation3.ui)
                 // Uses a bottom bar on compact layouts and a navigation rail on wider hosts.

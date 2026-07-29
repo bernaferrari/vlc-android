@@ -20,6 +20,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.materialkolor.PaletteStyle
+import com.materialkolor.dynamicColorScheme
 import org.videolan.vlc.platform.prefersReducedMotion
 
 /**
@@ -561,10 +563,11 @@ private fun VLCColorScheme.withAccent(accent: VLCThemeAccent, darkTheme: Boolean
 }
 
 /**
- * Dynamic colour owns Material's complete tonal surface ladder on Android. The semantic VLC
- * aliases follow those roles so media rows and older migrated components do not remain orange.
+ * A generated tonal scheme owns Material's complete surface ladder. The semantic VLC aliases
+ * follow those roles so library rows and older migrated components stay coherent for every
+ * palette, whether the scheme came from an Android wallpaper or a shared VLC seed.
  */
-private fun VLCColorScheme.withDynamicMaterialColors(colors: androidx.compose.material3.ColorScheme): VLCColorScheme =
+private fun VLCColorScheme.withMaterialColors(colors: androidx.compose.material3.ColorScheme): VLCColorScheme =
     copy(
         primary = colors.primary,
         onPrimary = colors.onPrimary,
@@ -619,15 +622,25 @@ fun VLCTheme(
     val resolvedAccent = accent
         ?: inheritedConfiguration.takeIf { it.isProvided }?.accent
         ?: VLCThemeAccent.Default
-    val dynamicColorScheme = if (resolvedAccent == VLCThemeAccent.Dynamic) {
+    val nativeDynamicColorScheme = if (resolvedAccent == VLCThemeAccent.Dynamic) {
         platformDynamicColorScheme(resolvedDarkTheme)
     } else {
         null
     }
     val baseColors = if (resolvedDarkTheme) DarkVLCColors else LightVLCColors
-    val vlcColors = dynamicColorScheme?.let { baseColors.withDynamicMaterialColors(it) }
+    val seededColorScheme = if (resolvedAccent == VLCThemeAccent.Dynamic) {
+        null
+    } else {
+        dynamicColorScheme(
+            seedColor = resolvedAccent.primary(resolvedDarkTheme),
+            isDark = resolvedDarkTheme,
+            style = PaletteStyle.TonalSpot,
+        )
+    }
+    val materialColors = nativeDynamicColorScheme ?: seededColorScheme
+    val vlcColors = materialColors?.let { baseColors.withMaterialColors(it) }
         ?: baseColors.withAccent(resolvedAccent, resolvedDarkTheme)
-    val colorScheme = dynamicColorScheme ?: buildColorScheme(vlcColors, resolvedDarkTheme)
+    val colorScheme = materialColors ?: buildColorScheme(vlcColors, resolvedDarkTheme)
 
     CompositionLocalProvider(
         LocalVLCColors provides vlcColors,
