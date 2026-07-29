@@ -199,6 +199,8 @@ object VlcKmpInitializer {
             org.videolan.tools.KEY_DEFAULT_PLAYBACK_ACTION_PLAYLIST,
             org.videolan.tools.KEY_ARTISTS_SHOW_ALL,
             org.videolan.tools.BROWSER_SHOW_ONLY_MULTIMEDIA,
+            org.videolan.tools.KEY_SHARED_THEME_APPEARANCE,
+            org.videolan.tools.KEY_SHARED_THEME_ACCENT,
         )
         for (key in keys) {
             if (!shared.contains(key)) continue

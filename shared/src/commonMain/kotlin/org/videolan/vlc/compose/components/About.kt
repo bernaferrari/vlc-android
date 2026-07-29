@@ -66,10 +66,15 @@ fun VLCAboutScreen(
     licenseTitle: String,
     licenseText: String,
     websiteTitle: String,
+    websiteSummary: String = "",
     feedbackTitle: String,
+    feedbackSummary: String = "",
     sourcesTitle: String,
+    sourcesSummary: String = "",
     librariesTitle: String,
+    librariesSummary: String = "",
     authorsTitle: String,
+    authorsSummary: String = "",
     closeContentDescription: String,
     openLinkContentDescription: String,
     onClose: () -> Unit,
@@ -154,16 +159,42 @@ fun VLCAboutScreen(
                     )
 
                     val destinations = listOf(
-                        AboutDestinationAction(websiteTitle, websiteIconContent, onOpenWebsite),
-                        AboutDestinationAction(feedbackTitle, feedbackIconContent, onSendFeedback),
-                        AboutDestinationAction(sourcesTitle, sourcesIconContent, onOpenSources),
-                        AboutDestinationAction(librariesTitle, librariesIconContent, onOpenLibraries),
-                        AboutDestinationAction(authorsTitle, authorsIconContent, onOpenAuthors),
+                        AboutDestinationAction(
+                            websiteTitle,
+                            websiteSummary,
+                            websiteIconContent,
+                            onOpenWebsite,
+                        ),
+                        AboutDestinationAction(
+                            feedbackTitle,
+                            feedbackSummary,
+                            feedbackIconContent,
+                            onSendFeedback,
+                        ),
+                        AboutDestinationAction(
+                            sourcesTitle,
+                            sourcesSummary,
+                            sourcesIconContent,
+                            onOpenSources,
+                        ),
+                        AboutDestinationAction(
+                            librariesTitle,
+                            librariesSummary,
+                            librariesIconContent,
+                            onOpenLibraries,
+                        ),
+                        AboutDestinationAction(
+                            authorsTitle,
+                            authorsSummary,
+                            authorsIconContent,
+                            onOpenAuthors,
+                        ),
                     )
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         destinations.forEachIndexed { index, action ->
                             AboutActionRow(
                                 title = action.title,
+                                summary = action.summary,
                                 iconContent = action.iconContent,
                                 onClick = action.onClick,
                                 position = aboutItemPosition(index, destinations.size),
@@ -271,6 +302,7 @@ private fun AboutHeroCard(
 
 private data class AboutDestinationAction(
     val title: String,
+    val summary: String,
     val iconContent: @Composable () -> Unit,
     val onClick: () -> Unit,
 )
@@ -285,6 +317,7 @@ private fun aboutItemPosition(index: Int, size: Int): VLCListItemPosition = when
 @Composable
 private fun AboutActionRow(
     title: String,
+    summary: String,
     iconContent: @Composable () -> Unit,
     onClick: () -> Unit,
     position: VLCListItemPosition,
@@ -301,15 +334,15 @@ private fun AboutActionRow(
             onClick = onClick,
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 72.dp)
-                .padding(horizontal = 16.dp, vertical = 10.dp),
+                .heightIn(min = 80.dp)
+                .padding(start = 16.dp, top = 12.dp, end = 8.dp, bottom = 12.dp),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Surface(
-                    modifier = Modifier.size(44.dp),
+                    modifier = Modifier.size(48.dp),
                     shape = MaterialTheme.shapes.large,
                     color = MaterialTheme.colorScheme.secondaryContainer,
                     contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -320,14 +353,27 @@ private fun AboutActionRow(
                         }
                     }
                 }
-                Text(
-                    text = title,
-                    color = colors.fontDefault,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                Column(
                     modifier = Modifier.weight(1f),
-                )
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    Text(
+                        text = title,
+                        color = colors.fontDefault,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    summary.takeIf { it.isNotBlank() }?.let {
+                        Text(
+                            text = it,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
                 Icon(
                     icon = MaterialSymbols.Filled.OpenInNew,
                     contentDescription = null,
@@ -360,13 +406,13 @@ private fun AboutLicenseCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 72.dp)
-                .padding(horizontal = 16.dp, vertical = 10.dp),
+                .heightIn(min = 80.dp)
+                .padding(start = 16.dp, top = 12.dp, end = 8.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Surface(
-                modifier = Modifier.size(44.dp),
+                modifier = Modifier.size(48.dp),
                 shape = MaterialTheme.shapes.large,
                 color = MaterialTheme.colorScheme.secondaryContainer,
                 contentColor = MaterialTheme.colorScheme.onSecondaryContainer,

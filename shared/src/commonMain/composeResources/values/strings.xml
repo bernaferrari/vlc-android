@@ -6,6 +6,7 @@
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="settings">Settings</string>
+    <string name="settings_summary">Appearance, playback, library and privacy</string>
     <string name="select">Select</string>
     <string name="back">Back</string>
     <string name="app_name" translatable="false">VLC</string>
@@ -332,6 +333,12 @@
     <string name="app_name_full">VLC for Android</string>
     <string name="revision">Revision</string>
     <string name="about">About</string>
+    <string name="about_summary">Version, source code, licenses and contributors</string>
+    <string name="about_website_summary">Visit videolan.org</string>
+    <string name="about_feedback_summary">Share feedback with the VLC team</string>
+    <string name="about_sources_summary">Browse VLC's open source code</string>
+    <string name="about_libraries_summary">Open-source components used by VLC</string>
+    <string name="about_authors_summary">The people who make VLC possible</string>
     <string name="about_vlc_text">VLC is a free, open source media player that plays local files and network streams.</string>
     <string name="authors">Authors</string>
     <string name="about_copyright" translatable="false">Copyleft &#169; 1996&#8211;2026 by VideoLAN</string>
@@ -381,6 +388,21 @@
     <string name="enable_black_theme">Black theme</string>
     <string name="dark_theme">Dark theme</string>
     <string name="theme_auto">Auto theme</string>
+    <string name="theme_appearance">Appearance</string>
+    <string name="theme_mode">Theme mode</string>
+    <string name="theme_color">Theme color</string>
+    <string name="theme_system">System</string>
+    <string name="theme_dynamic">Wallpaper</string>
+    <string name="theme_orange">Orange</string>
+    <string name="theme_amber">Amber</string>
+    <string name="theme_lime">Lime</string>
+    <string name="theme_green">Green</string>
+    <string name="theme_teal">Teal</string>
+    <string name="theme_cyan">Cyan</string>
+    <string name="theme_blue">Blue</string>
+    <string name="theme_indigo">Indigo</string>
+    <string name="theme_purple">Purple</string>
+    <string name="theme_pink">Pink</string>
     <string name="subtitle_text_encoding">Subtitle text encoding</string>
     <string name="subtitle_preferred_language">Preferred subtitle language</string>
     <string name="daynight_title">DayNight mode</string>

@@ -20,6 +20,10 @@ const val KEY_SHOW_HEADERS = "show_headers"
 const val KEY_APP_THEME = "app_theme"
 const val KEY_BLACK_THEME = "enable_black_theme"
 const val KEY_DAYNIGHT = "daynight"
+/** Shared Compose shell appearance: system, light, or dark. Kept separate from legacy Android UI prefs. */
+const val KEY_SHARED_THEME_APPEARANCE = "shared_theme_appearance"
+/** Shared Compose shell accent: orange by default, plus the curated cross-platform palette. */
+const val KEY_SHARED_THEME_ACCENT = "shared_theme_accent"
 const val SHOW_VIDEO_THUMBNAILS = "show_video_thumbnails"
 const val KEY_VIDEO_CONFIRM_RESUME = "video_confirm_resume"
 const val KEY_AUDIO_CONFIRM_RESUME = "audio_confirm_resume"

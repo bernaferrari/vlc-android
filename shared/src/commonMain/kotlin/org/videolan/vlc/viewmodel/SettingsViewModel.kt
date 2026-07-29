@@ -16,6 +16,8 @@ import org.videolan.tools.KEY_PLAYBACK_SPEED_AUDIO_GLOBAL_VALUE
 import org.videolan.tools.KEY_PLAYBACK_SPEED_VIDEO_GLOBAL
 import org.videolan.tools.KEY_PLAYBACK_SPEED_VIDEO_GLOBAL_VALUE
 import org.videolan.tools.KEY_SHOW_HEADERS
+import org.videolan.tools.KEY_SHARED_THEME_ACCENT
+import org.videolan.tools.KEY_SHARED_THEME_APPEARANCE
 import org.videolan.tools.VIDEO_HUD_TIMEOUT
 import org.videolan.tools.PLAYBACK_HISTORY
 import org.videolan.tools.SHOW_VIDEO_THUMBNAILS
@@ -31,6 +33,9 @@ import org.videolan.vlc.platform.platformCapabilities
 import org.videolan.vlc.platform.AppLockController
 import org.videolan.vlc.platform.AppLockState
 import org.videolan.vlc.platform.NoOpAppLockController
+import org.videolan.vlc.compose.theme.VLCThemeAccent
+import org.videolan.vlc.compose.theme.VLCThemeAppearance
+import org.videolan.vlc.compose.theme.resolveVLCThemePreference
 import org.videolan.vlc.player.PlaybackRate
 
 data class SettingsUiState(
@@ -54,6 +59,8 @@ data class SettingsUiState(
     val supportsNetworkBrowsing: Boolean = false,
     /** The common video HUD observes this live; Android and iOS therefore share its timeout. */
     val videoHudTimeoutSeconds: Int = 4,
+    val themeAppearance: VLCThemeAppearance = VLCThemeAppearance.System,
+    val themeAccent: VLCThemeAccent = VLCThemeAccent.Default,
     val platformLabel: String = "",
     val appLock: AppLockState = AppLockState(),
 )
@@ -88,6 +95,14 @@ class SettingsViewModel(
             browseNetwork = VlcSettings.browseNetwork.value,
             supportsNetworkBrowsing = capabilities.networkBrowsing,
             videoHudTimeoutSeconds = VlcSettings.videoHudDelay.value.coerceIn(1, 10),
+            themeAppearance = resolveVLCThemePreference(
+                VlcSettings.themeAppearance.value,
+                VlcSettings.themeAccent.value,
+            ).appearance,
+            themeAccent = resolveVLCThemePreference(
+                VlcSettings.themeAppearance.value,
+                VlcSettings.themeAccent.value,
+            ).accent,
             appLock = appLock.state.value,
         )
     )
@@ -140,6 +155,30 @@ class SettingsViewModel(
             }
         }
         launch {
+            VlcSettings.themeAppearance.collect { appearance ->
+                _state.update {
+                    it.copy(
+                        themeAppearance = resolveVLCThemePreference(
+                            appearance,
+                            VlcSettings.themeAccent.value,
+                        ).appearance,
+                    )
+                }
+            }
+        }
+        launch {
+            VlcSettings.themeAccent.collect { accent ->
+                _state.update {
+                    it.copy(
+                        themeAccent = resolveVLCThemePreference(
+                            VlcSettings.themeAppearance.value,
+                            accent,
+                        ).accent,
+                    )
+                }
+            }
+        }
+        launch {
             appLock.state.collect { lock -> _state.update { it.copy(appLock = lock) } }
         }
         if (capabilities.remoteAccessServer) {
@@ -188,6 +227,14 @@ class SettingsViewModel(
                         false
                     },
                     videoHudTimeoutSeconds = p.getInt(VIDEO_HUD_TIMEOUT, 4).coerceIn(1, 10),
+                    themeAppearance = resolveVLCThemePreference(
+                        p.getString(KEY_SHARED_THEME_APPEARANCE, "system"),
+                        p.getString(KEY_SHARED_THEME_ACCENT, "orange"),
+                    ).appearance,
+                    themeAccent = resolveVLCThemePreference(
+                        p.getString(KEY_SHARED_THEME_APPEARANCE, "system"),
+                        p.getString(KEY_SHARED_THEME_ACCENT, "orange"),
+                    ).accent,
                 )
             }
         }
@@ -276,6 +323,16 @@ class SettingsViewModel(
         }
     }
 
+    fun setThemeAppearance(appearance: VLCThemeAppearance) =
+        setString(KEY_SHARED_THEME_APPEARANCE, appearance.storageValue) {
+            _state.update { it.copy(themeAppearance = appearance) }
+        }
+
+    fun setThemeAccent(accent: VLCThemeAccent) =
+        setString(KEY_SHARED_THEME_ACCENT, accent.storageValue) {
+            _state.update { it.copy(themeAccent = accent) }
+        }
+
     private fun setBool(key: String, value: Boolean, local: () -> Unit) {
         local()
         SettingsWriteBridge.onBoolean?.invoke(key, value)
@@ -308,6 +365,19 @@ class SettingsViewModel(
         launchIo {
             try {
                 VlcSettings.updateFloat(p, key, normalized)
+            } catch (_: Exception) {
+            }
+        }
+    }
+
+    private fun setString(key: String, value: String, local: () -> Unit) {
+        local()
+        VlcSettings.updateStringCache(key, value)
+        SettingsWriteBridge.onString?.invoke(key, value)
+        val p = prefs ?: return
+        launchIo {
+            try {
+                VlcSettings.updateString(p, key, value)
             } catch (_: Exception) {
             }
         }

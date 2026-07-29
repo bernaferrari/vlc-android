@@ -49,6 +49,7 @@ object MaterialSymbols {
         val Groups: MaterialIcon get() = MaterialIcon(filledGroups)
         val OpenInNew: MaterialIcon get() = MaterialIcon(filledOpenInNew)
         val ChevronRight: MaterialIcon get() = MaterialIcon(filledChevronRight)
+        val Palette: MaterialIcon get() = MaterialIcon(filledPalette)
         val FileUpload: MaterialIcon get() = MaterialIcon(filledFileUpload)
         val IosShare: MaterialIcon get() = MaterialIcon(filledIosShare)
         val Undo: MaterialIcon get() = MaterialIcon(filledUndo)

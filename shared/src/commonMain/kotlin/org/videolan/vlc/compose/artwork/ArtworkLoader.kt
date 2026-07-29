@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -18,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.icons.Icon
@@ -56,6 +54,7 @@ fun MediaArtwork(
     modifier: Modifier = Modifier,
     size: Dp = 48.dp,
     contentScale: ContentScale = ContentScale.Crop,
+    showFallbackContainer: Boolean = true,
     fallback: @Composable () -> Unit = { DefaultArtworkFallback(item) },
 ) {
     MediaArtworkUri(
@@ -65,6 +64,7 @@ fun MediaArtwork(
         modifier = modifier,
         size = size,
         contentScale = contentScale,
+        showFallbackContainer = showFallbackContainer,
         fallback = fallback,
     )
 }
@@ -77,6 +77,7 @@ fun MediaArtworkUri(
     modifier: Modifier = Modifier,
     size: Dp = 48.dp,
     contentScale: ContentScale = ContentScale.Crop,
+    showFallbackContainer: Boolean = true,
     fallback: @Composable () -> Unit,
 ) {
     val loader = ArtworkLoaderHolder.loader
@@ -90,10 +91,17 @@ fun MediaArtworkUri(
             bitmap = runCatching { loader.loadBitmap(uri, requestedWidthPx) }.getOrNull()
         }
     }
+    val artworkModifier = modifier
+        .size(size)
+        .let { base ->
+            if (showFallbackContainer) {
+                base.background(MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.shapes.small)
+            } else {
+                base
+            }
+        }
     Box(
-        modifier = modifier
-            .size(size)
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.shapes.small),
+        modifier = artworkModifier,
         contentAlignment = Alignment.Center,
     ) {
         val bmp = bitmap
@@ -121,19 +129,18 @@ fun MediaArtworkUri(
 @Composable
 fun DefaultArtworkFallback(item: MediaItem) {
     val colors = VLCThemeDefaults.colors
-    // Favourite status is already rendered once as the compact badge in [MediaArtworkUri].
-    // Repeating it as the fallback artwork made a missing-thumbnail favourite look like two
-    // stacked stars, especially in Browse. The artwork should always communicate media type.
-    Text(
-        when {
-            item.isVideo -> "VID"
-            item.isAudio -> "AUD"
-            item.isStream -> "URL"
-            item.isDirectory -> "DIR"
-            else -> "•"
+    // A media-type symbol remains legible at every artwork size. The former VID/AUD text made
+    // a missing thumbnail look like debug content in an otherwise polished grid.
+    Icon(
+        icon = when {
+            item.isVideo -> MaterialSymbols.Filled.VideoLibrary
+            item.isAudio -> MaterialSymbols.Filled.MusicNote
+            item.isStream -> MaterialSymbols.Filled.Devices
+            item.isDirectory -> MaterialSymbols.Filled.Folder
+            else -> MaterialSymbols.Filled.PlayArrow
         },
-        color = colors.primary,
-        fontWeight = FontWeight.Bold,
-        style = MaterialTheme.typography.labelMedium,
+        contentDescription = null,
+        tint = colors.primary,
+        modifier = Modifier.size(36.dp),
     )
 }

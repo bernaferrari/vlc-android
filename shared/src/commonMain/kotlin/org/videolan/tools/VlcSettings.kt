@@ -53,6 +53,11 @@ object VlcSettings {
     private val _fastplaySpeed = MutableStateFlow(2f)
     private val _defaultAudioPlaybackSpeed = MutableStateFlow(1f)
     private val _defaultVideoPlaybackSpeed = MutableStateFlow(1f)
+    private val _themeAppearance = MutableStateFlow("system")
+    private val _themeAccent = MutableStateFlow("orange")
+    // A person can open Settings before an async platform DataStore hydration finishes. Preserve
+    // their in-session choice instead of letting that older startup snapshot flash it back.
+    private var hasThemeSelectionInSession = false
 
     // --- Public read-only StateFlows (reactive) ---
 
@@ -92,6 +97,10 @@ object VlcSettings {
     val defaultAudioPlaybackSpeed: StateFlow<Float> = _defaultAudioPlaybackSpeed.asStateFlow()
     /** Preferred rate for every newly started video or stream item. */
     val defaultVideoPlaybackSpeed: StateFlow<Float> = _defaultVideoPlaybackSpeed.asStateFlow()
+    /** Shared-shell appearance mode; use [org.videolan.vlc.compose.theme.VLCThemeAppearance] to parse it. */
+    val themeAppearance: StateFlow<String> = _themeAppearance.asStateFlow()
+    /** Shared-shell accent; use [org.videolan.vlc.compose.theme.VLCThemeAccent] to parse it. */
+    val themeAccent: StateFlow<String> = _themeAccent.asStateFlow()
 
     /**
      * Platform-specific device info. Set by platform code at startup.
@@ -209,6 +218,12 @@ object VlcSettings {
         _defaultVideoPlaybackSpeed.value = normalizePlaybackSpeed(
             prefs.getFloat(KEY_PLAYBACK_SPEED_VIDEO_GLOBAL_VALUE, 1f)
         )
+        val persistedThemeAppearance = prefs.getString(KEY_SHARED_THEME_APPEARANCE, "system")
+        val persistedThemeAccent = prefs.getString(KEY_SHARED_THEME_ACCENT, "orange")
+        if (!hasThemeSelectionInSession) {
+            _themeAppearance.value = persistedThemeAppearance
+            _themeAccent.value = persistedThemeAccent
+        }
     }
 
     /**
@@ -269,6 +284,29 @@ object VlcSettings {
         when (key) {
             KEY_PLAYBACK_SPEED_AUDIO_GLOBAL_VALUE -> _defaultAudioPlaybackSpeed.value = normalized
             KEY_PLAYBACK_SPEED_VIDEO_GLOBAL_VALUE -> _defaultVideoPlaybackSpeed.value = normalized
+        }
+    }
+
+    /** Update a shared string setting in cache and DataStore. */
+    suspend fun updateString(prefs: VlcPreferences, key: String, value: String) {
+        prefs.putString(key, value)
+        updateStringCache(key, value)
+    }
+
+    /**
+     * Applies the UI-facing portion of a string update immediately. Settings uses this before its
+     * asynchronous DataStore write so a selected theme never waits for disk I/O to appear.
+     */
+    fun updateStringCache(key: String, value: String) {
+        when (key) {
+            KEY_SHARED_THEME_APPEARANCE -> {
+                hasThemeSelectionInSession = true
+                _themeAppearance.value = value
+            }
+            KEY_SHARED_THEME_ACCENT -> {
+                hasThemeSelectionInSession = true
+                _themeAccent.value = value
+            }
         }
     }
 

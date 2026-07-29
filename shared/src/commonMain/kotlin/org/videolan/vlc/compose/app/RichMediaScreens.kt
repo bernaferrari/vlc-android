@@ -46,6 +46,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -844,7 +845,7 @@ fun MediaGridCard(
         modifier = Modifier.combinedClickable(onClick = onClick, onLongClick = onLongClick),
         // A media grid repeats this shape many times. The large token still feels expressive
         // without turning dense libraries into a field of oversized pills.
-        shape = MaterialTheme.shapes.large,
+        shape = RoundedCornerShape(20.dp),
         color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
         contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
     ) {
@@ -853,11 +854,13 @@ fun MediaGridCard(
                 Modifier
                     .fillMaxWidth()
                     .height(120.dp)
-                    .clip(MaterialTheme.shapes.large)
+                    .clip(RoundedCornerShape(16.dp))
                     .background(MaterialTheme.colorScheme.surfaceContainerHighest),
                 contentAlignment = Alignment.Center,
             ) {
-                MediaArtwork(item = item, size = 112.dp)
+                // The card already owns the artwork well. Avoid a second dark rounded tile when
+                // a thumbnail is unavailable; a single type symbol reads as intentional.
+                MediaArtwork(item = item, size = 112.dp, showFallbackContainer = false)
                 Box(Modifier.align(Alignment.TopEnd).padding(4.dp)) {
                     FilledTonalIconButton(onClick = { menu = true }) {
                         Icon(MaterialSymbols.Filled.MoreVert, contentDescription = ShellStrings.moreOptions())

@@ -25,6 +25,10 @@ import org.videolan.vlc.platform.PipController
 class SharedAppActivity : BaseActivity() {
 
     override val displayTitle = true
+    // NavigationSuiteScaffold is the single owner of edge-to-edge system insets, just like the
+    // MainActivity shared-shell path. Letting BaseActivity consume them first creates a second
+    // bottom safe area and makes navigation geometry differ between the two Android entry points.
+    override fun ownsSystemBarInsetsInCompose(): Boolean = true
     private var root: ComposeView? = null
 
     override fun getSnackAnchorView(overAudioPlayer: Boolean): View? = root ?: window.decorView

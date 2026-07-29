@@ -62,11 +62,39 @@ internal fun MorePane(
     var newStreamUri by remember { mutableStateOf("") }
     var streamAddressError by remember { mutableStateOf(false) }
     val navigationActions = buildList {
-        add(MoreHubAction(MaterialSymbols.Filled.Settings, ShellStrings.settings(), onOpenSettings))
-        add(MoreHubAction(MaterialSymbols.Filled.Info, ShellStrings.about(), onOpenAbout))
-        add(MoreHubAction(MaterialSymbols.Filled.Star, ShellStrings.donate(), onOpenDonate))
+        add(
+            MoreHubAction(
+                MaterialSymbols.Filled.Settings,
+                ShellStrings.settings(),
+                ShellStrings.settingsSummary(),
+                onOpenSettings,
+            ),
+        )
+        add(
+            MoreHubAction(
+                MaterialSymbols.Filled.Info,
+                ShellStrings.about(),
+                ShellStrings.aboutSummary(),
+                onOpenAbout,
+            ),
+        )
+        add(
+            MoreHubAction(
+                MaterialSymbols.Filled.Star,
+                ShellStrings.donate(),
+                ShellStrings.donateSummary(),
+                onOpenDonate,
+            ),
+        )
         onOpenRemote?.let { remote ->
-            add(MoreHubAction(MaterialSymbols.Filled.Devices, ShellStrings.remoteAccess(), remote))
+            add(
+                MoreHubAction(
+                    MaterialSymbols.Filled.Devices,
+                    ShellStrings.remoteAccess(),
+                    ShellStrings.remoteAccessSummary(),
+                    remote,
+                ),
+            )
         }
     }
     VLCUtilityPane(modifier = modifier) {
@@ -88,6 +116,7 @@ internal fun MorePane(
                 MoreAction(
                     icon = action.icon,
                     label = action.label,
+                    summary = action.summary,
                     onClick = action.onClick,
                     position = moreActionPosition(index, navigationActions.size),
                 )
@@ -313,6 +342,7 @@ internal fun MorePane(
 private data class MoreHubAction(
     val icon: MaterialIcon,
     val label: String,
+    val summary: String,
     val onClick: () -> Unit,
 )
 
@@ -327,6 +357,7 @@ private fun moreActionPosition(index: Int, size: Int): VLCListItemPosition = whe
 private fun MoreAction(
     icon: MaterialIcon,
     label: String,
+    summary: String,
     onClick: () -> Unit,
     position: VLCListItemPosition,
 ) {
@@ -340,30 +371,32 @@ private fun MoreAction(
             onClick = onClick,
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 64.dp)
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .heightIn(min = 80.dp)
+                .padding(start = 16.dp, top = 12.dp, end = 8.dp, bottom = 12.dp),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                VLCIconChip(
-                    size = 48.dp,
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                VLCIconChip(size = 48.dp, containerColor = MaterialTheme.colorScheme.secondaryContainer) {
+                    Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                }
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
                 ) {
-                    Icon(
-                        icon,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    Text(
+                        label,
+                        color = colors.listTitle,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        summary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
                     )
                 }
-                Text(
-                    label,
-                    color = colors.listTitle,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.weight(1f),
-                )
                 Icon(
                     MaterialSymbols.Filled.ChevronRight,
                     contentDescription = null,
@@ -382,7 +415,7 @@ private fun MoreEmptySection(
 ) {
     Surface(
         shape = VLCListItemPosition.Single.segmentShape(),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
     ) {
         VLCEmptyState(
             loading = false,
@@ -391,7 +424,7 @@ private fun MoreEmptySection(
             compact = true,
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 176.dp),
+                .heightIn(min = 128.dp),
         )
     }
 }

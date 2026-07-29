@@ -14,6 +14,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -288,6 +289,26 @@ val LocalVLCColors = staticCompositionLocalOf { LightVLCColors }
 // Backwards-compatible object (expanded). Components can use VLCThemeDefaults.colors.xxx
 val LocalVLCTheme = staticCompositionLocalOf { VLCThemeDefaults }
 
+/**
+ * Resolved app-level appearance. Some shared leaves also establish a [VLCTheme] boundary for
+ * previews and legacy hosts; this lets those leaves inherit the active application palette rather
+ * than quietly resetting to system/orange inside an already themed screen.
+ */
+@Immutable
+data class VLCThemeConfiguration(
+    val darkTheme: Boolean,
+    val accent: VLCThemeAccent,
+    val isProvided: Boolean,
+)
+
+val LocalVLCThemeConfiguration = staticCompositionLocalOf {
+    VLCThemeConfiguration(
+        darkTheme = false,
+        accent = VLCThemeAccent.Default,
+        isProvided = false,
+    )
+}
+
 object VLCThemeDefaults {
     val colors: VLCColorScheme
         @Composable
@@ -444,20 +465,22 @@ val LocalVLCMotion = staticCompositionLocalOf { VLCMotionPreferences() }
 // ============================================================
 private fun buildColorScheme(vlc: VLCColorScheme, dark: Boolean) =
     if (dark) {
+        val primaryContainer = vlc.primary.copy(alpha = 0.24f).compositeOver(DarkBackground)
+        val tertiaryContainer = vlc.primary.copy(alpha = 0.18f).compositeOver(DarkBackground)
         darkColorScheme(
             primary = vlc.primary,
             onPrimary = vlc.onPrimary,
-            primaryContainer = Color(0xFF5C3500),
-            onPrimaryContainer = Orange100,
-            inversePrimary = Orange800,
+            primaryContainer = primaryContainer,
+            onPrimaryContainer = vlc.primary,
+            inversePrimary = vlc.primary,
             secondary = vlc.secondary,
             onSecondary = vlc.onSecondary,
             secondaryContainer = Grey850,
             onSecondaryContainer = Grey50,
-            tertiary = Orange300,
+            tertiary = vlc.primary,
             onTertiary = Black,
-            tertiaryContainer = Color(0xFF4A3000),
-            onTertiaryContainer = Orange100,
+            tertiaryContainer = tertiaryContainer,
+            onTertiaryContainer = vlc.primary,
             background = vlc.backgroundDefault,
             onBackground = vlc.fontDefault,
             surface = vlc.backgroundDefault,
@@ -482,20 +505,22 @@ private fun buildColorScheme(vlc: VLCColorScheme, dark: Boolean) =
             onErrorContainer = Color(0xFFFFDAD6),
             scrim = Black)
     } else {
+        val primaryContainer = vlc.primary.copy(alpha = 0.14f).compositeOver(White)
+        val tertiaryContainer = vlc.primary.copy(alpha = 0.10f).compositeOver(White)
         lightColorScheme(
             primary = vlc.primary,
             onPrimary = vlc.onPrimary,
-            primaryContainer = Orange100,
-            onPrimaryContainer = Color(0xFF4D2600),
-            inversePrimary = Orange300,
+            primaryContainer = primaryContainer,
+            onPrimaryContainer = vlc.primary,
+            inversePrimary = vlc.primary,
             secondary = vlc.secondary,
             onSecondary = vlc.onSecondary,
-            secondaryContainer = Orange50,
-            onSecondaryContainer = Color(0xFF4D2600),
-            tertiary = Orange700,
+            secondaryContainer = tertiaryContainer,
+            onSecondaryContainer = vlc.primary,
+            tertiary = vlc.primary,
             onTertiary = White,
-            tertiaryContainer = Orange50,
-            onTertiaryContainer = Color(0xFF4D2600),
+            tertiaryContainer = tertiaryContainer,
+            onTertiaryContainer = vlc.primary,
             background = vlc.backgroundDefault,
             onBackground = vlc.fontDefault,
             surface = vlc.backgroundDefault,
@@ -521,17 +546,97 @@ private fun buildColorScheme(vlc: VLCColorScheme, dark: Boolean) =
             scrim = Black)
     }
 
+/** Keeps VLC's semantic tokens in step with the selected Material accent. */
+private fun VLCColorScheme.withAccent(accent: VLCThemeAccent, darkTheme: Boolean): VLCColorScheme {
+    val primary = accent.primary(darkTheme)
+    return copy(
+        primary = primary,
+        onPrimary = if (darkTheme) Black else White,
+        secondary = primary,
+        onSecondary = if (darkTheme) Black else White,
+        aboutTextPrimary = if (darkTheme) primary else fontDefault,
+        audioBrowserSeparator = primary,
+        primaryFocus = primary.copy(alpha = 0.20f),
+    )
+}
+
+/**
+ * Dynamic colour owns Material's complete tonal surface ladder on Android. The semantic VLC
+ * aliases follow those roles so media rows and older migrated components do not remain orange.
+ */
+private fun VLCColorScheme.withDynamicMaterialColors(colors: androidx.compose.material3.ColorScheme): VLCColorScheme =
+    copy(
+        primary = colors.primary,
+        onPrimary = colors.onPrimary,
+        secondary = colors.secondary,
+        onSecondary = colors.onSecondary,
+        background = colors.background,
+        onBackground = colors.onBackground,
+        surface = colors.surface,
+        onSurface = colors.onSurface,
+        backgroundDefault = colors.background,
+        backgroundDefaultDarker = colors.surfaceContainer,
+        listTitle = colors.onSurface,
+        listSubtitle = colors.onSurfaceVariant,
+        fontDefault = colors.onSurface,
+        fontLight = colors.onSurfaceVariant,
+        fontAudioLight = colors.onSurfaceVariant,
+        fontDisabled = colors.onSurface.copy(alpha = 0.38f),
+        defaultDivider = colors.outlineVariant,
+        playerIconColor = colors.onSurface,
+        audioMenuIcon = colors.onSurfaceVariant,
+        aboutTextPrimary = colors.primary,
+        cardBackground = colors.surfaceContainerLow,
+        cardBorder = colors.outlineVariant,
+        audioHeaderBackground = colors.surface,
+        audioHeaderDivider = colors.outlineVariant,
+        audioPlayerGradientColor = colors.surface.copy(alpha = 0.82f),
+        audioSeekTrack = colors.onSurface.copy(alpha = 0.20f),
+        bottomNavigationBackground = colors.surface,
+        audioChipsColor = colors.secondaryContainer,
+        audioChipsTextColor = colors.onSecondaryContainer,
+        audioChipBackground = colors.secondaryContainer,
+        audioChipTextColor = colors.onSecondaryContainer,
+        subtleSelection = colors.primary.copy(alpha = 0.10f),
+        primaryFocus = colors.primary.copy(alpha = 0.20f),
+        emptyBackground = colors.surfaceContainer,
+        emptyForeground = colors.surfaceContainerHighest,
+        emptyTitle = colors.onSurfaceVariant,
+        headerBackground = colors.surface,
+        audioBrowserSeparator = colors.primary,
+    )
+
 @Composable
 fun VLCTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkTheme: Boolean? = null,
+    accent: VLCThemeAccent? = null,
     content: @Composable () -> Unit
 ) {
-    val vlcColors = if (darkTheme) DarkVLCColors else LightVLCColors
-    val colorScheme = buildColorScheme(vlcColors, darkTheme)
+    val inheritedConfiguration = LocalVLCThemeConfiguration.current
+    val resolvedDarkTheme = darkTheme
+        ?: inheritedConfiguration.takeIf { it.isProvided }?.darkTheme
+        ?: isSystemInDarkTheme()
+    val resolvedAccent = accent
+        ?: inheritedConfiguration.takeIf { it.isProvided }?.accent
+        ?: VLCThemeAccent.Default
+    val dynamicColorScheme = if (resolvedAccent == VLCThemeAccent.Dynamic) {
+        platformDynamicColorScheme(resolvedDarkTheme)
+    } else {
+        null
+    }
+    val baseColors = if (resolvedDarkTheme) DarkVLCColors else LightVLCColors
+    val vlcColors = dynamicColorScheme?.let { baseColors.withDynamicMaterialColors(it) }
+        ?: baseColors.withAccent(resolvedAccent, resolvedDarkTheme)
+    val colorScheme = dynamicColorScheme ?: buildColorScheme(vlcColors, resolvedDarkTheme)
 
     CompositionLocalProvider(
         LocalVLCColors provides vlcColors,
         LocalVLCTheme provides VLCThemeDefaults,
+        LocalVLCThemeConfiguration provides VLCThemeConfiguration(
+            darkTheme = resolvedDarkTheme,
+            accent = resolvedAccent,
+            isProvided = true,
+        ),
         LocalVLCMotion provides VLCMotionPreferences(prefersReducedMotion()),
     ) {
         MaterialTheme(

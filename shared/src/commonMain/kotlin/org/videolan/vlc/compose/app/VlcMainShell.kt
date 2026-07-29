@@ -1,28 +1,41 @@
 package org.videolan.vlc.compose.app
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ripple
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -50,6 +63,16 @@ import androidx.navigation3.ui.NavDisplay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -58,15 +81,19 @@ import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDe
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
-import org.videolan.vlc.compose.components.VLCSettingsCard
 import org.videolan.vlc.compose.components.VLCIconChip
 import org.videolan.vlc.compose.components.VLCEmptyState
+import org.videolan.vlc.compose.components.VLCListItemPosition
+import org.videolan.vlc.compose.components.segmentShape
 import org.videolan.vlc.compose.player.FallbackPlayerSurface
 import org.videolan.vlc.compose.player.PlayerSurface
-import org.videolan.vlc.compose.theme.VLCTheme
+import org.videolan.vlc.compose.theme.VLCAppTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.compose.theme.VLCMotion
 import org.videolan.vlc.compose.theme.LocalVLCMotion
+import org.videolan.vlc.compose.theme.VLCThemeAccent
+import org.videolan.vlc.compose.theme.VLCThemeAppearance
+import org.videolan.vlc.compose.theme.availableVLCThemeAccents
 import org.videolan.vlc.model.MediaFolder
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.PlaylistInfo
@@ -128,7 +155,7 @@ fun VlcMainShell(
         }
     }
 
-    VLCTheme {
+    VLCAppTheme {
         val colors = VLCThemeDefaults.colors
         val motion = LocalVLCMotion.current
         val initialRoute = remember(initialTab) { initialTab.toVlcShellRoute() }
@@ -692,11 +719,13 @@ private fun VlcAdaptiveNavigationSuite(
         ) {
             NavigationSuiteScaffold(
                 navigationSuiteItems = navigationSuiteItems,
-                // Android's hybrid host deliberately leaves system insets unconsumed for the
-                // shared shell. Treat library screens like QuietGuard's regular activity: their
-                // title, compact bar, and content stay inside the complete safe drawing area.
-                // Full-screen media playback opts out by disabling this adaptive suite.
-                modifier = Modifier.fillMaxSize().safeDrawingPadding(),
+                // QuietGuard's direct Compose activity forwards navigation insets to the suite.
+                // VLC's shared shell also runs inside MainActivity's legacy CoordinatorLayout,
+                // which consumes that child inset before it reaches the nested ComposeView on
+                // some Android devices. Bridge only the missing bottom system inset here: the
+                // app remains edge-to-edge at the top and on wide rails, while compact labels
+                // can never sit under gesture/three-button controls.
+                modifier = Modifier.fillMaxSize().navigationBarsPadding(),
                 content = content,
             )
         }
@@ -733,8 +762,16 @@ internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
     VLCUtilityPane(modifier = modifier) {
         LazyColumn(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
+        item {
+            AppearanceSettingsGroup(
+                appearance = state.themeAppearance,
+                accent = state.themeAccent,
+                onAppearanceChange = vm::setThemeAppearance,
+                onAccentChange = vm::setThemeAccent,
+            )
+        }
         item {
             SettingsGroup(title = ShellStrings.playback()) {
                 row { ToggleRow(ShellStrings.resumeAudio(), state.audioResume, vm::setAudioResume) }
@@ -855,6 +892,184 @@ internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
     }
 }
 
+/**
+ * VLC's shared theme control. The two surfaces form one small asymmetric group: choosing an
+ * appearance is a mode decision, while the palette below is a separate colour decision.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun AppearanceSettingsGroup(
+    appearance: VLCThemeAppearance,
+    accent: VLCThemeAccent,
+    onAppearanceChange: (VLCThemeAppearance) -> Unit,
+    onAccentChange: (VLCThemeAccent) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(
+            ShellStrings.appearance(),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = VLCThemeDefaults.colors.primary,
+            modifier = Modifier.padding(horizontal = 16.dp),
+        )
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = VLCListItemPosition.First.segmentShape(),
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+        ) {
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Text(ShellStrings.themeMode(), style = MaterialTheme.typography.titleSmall)
+                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                    val modes = listOf(
+                        VLCThemeAppearance.Light to ShellStrings.lightTheme(),
+                        VLCThemeAppearance.Dark to ShellStrings.darkTheme(),
+                        VLCThemeAppearance.System to ShellStrings.systemTheme(),
+                    )
+                    modes.forEachIndexed { index, (mode, label) ->
+                        SegmentedButton(
+                            selected = appearance == mode,
+                            onClick = { onAppearanceChange(mode) },
+                            shape = SegmentedButtonDefaults.itemShape(index, modes.size),
+                            label = { Text(label, maxLines = 1) },
+                        )
+                    }
+                }
+            }
+        }
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = VLCListItemPosition.Last.segmentShape(),
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+        ) {
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Text(ShellStrings.themeColor(), style = MaterialTheme.typography.titleSmall)
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    availableVLCThemeAccents().forEach { option ->
+                        ThemeAccentSwatch(
+                            accent = option,
+                            selected = option == accent,
+                            contentDescription = ShellStrings.themeAccent(option),
+                            onClick = { onAccentChange(option) },
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ThemeAccentSwatch(
+    accent: VLCThemeAccent,
+    selected: Boolean,
+    contentDescription: String,
+    onClick: () -> Unit,
+) {
+    val swatchColor = if (accent == VLCThemeAccent.Dynamic) MaterialTheme.colorScheme.primary else accent.swatchColor
+    val isDynamic = accent == VLCThemeAccent.Dynamic
+    val orbCornerFraction by animateFloatAsState(
+        targetValue = if (selected) .5f else .26f,
+        animationSpec = spring(dampingRatio = .7f, stiffness = 520f),
+        label = "themeOrbCorner_${accent.storageValue}",
+    )
+    val orbScale by animateFloatAsState(
+        targetValue = if (selected) 1.02f else .86f,
+        animationSpec = spring(dampingRatio = .56f, stiffness = 600f),
+        label = "themeOrbScale_${accent.storageValue}",
+    )
+    val orbRotation by animateFloatAsState(
+        targetValue = if (selected) 8f else 0f,
+        animationSpec = spring(dampingRatio = .66f, stiffness = 420f),
+        label = "themeOrbRotation_${accent.storageValue}",
+    )
+    val glowAlpha by animateFloatAsState(
+        targetValue = if (selected) 1f else 0f,
+        animationSpec = tween(durationMillis = 240, easing = FastOutSlowInEasing),
+        label = "themeOrbGlow_${accent.storageValue}",
+    )
+    val iconAlpha by animateFloatAsState(
+        targetValue = if (selected || isDynamic) 1f else 0f,
+        animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing),
+        label = "themeOrbIcon_${accent.storageValue}",
+    )
+    val interactionSource = remember { MutableInteractionSource() }
+    val orbShape = RoundedCornerShape(percent = (orbCornerFraction * 100).toInt())
+    val iconTint = if (accent == VLCThemeAccent.Amber || accent == VLCThemeAccent.Lime) Color.Black else Color.White
+    Box(
+        modifier = Modifier
+            .size(50.dp)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick,
+            )
+            .semantics {
+                role = Role.RadioButton
+                this.contentDescription = "$contentDescription, ${if (selected) ShellStrings.selected() else ShellStrings.select()}"
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .graphicsLayer { alpha = glowAlpha }
+                .drawBehind {
+                    drawCircle(
+                        color = swatchColor.copy(alpha = .44f),
+                        radius = size.minDimension * .5f,
+                    )
+                },
+        )
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .graphicsLayer {
+                    scaleX = orbScale
+                    scaleY = orbScale
+                    rotationZ = orbRotation
+                }
+                .clip(orbShape)
+                .indication(
+                    interactionSource = interactionSource,
+                    indication = ripple(bounded = true, radius = 18.dp, color = Color.White.copy(alpha = .32f)),
+                )
+                .background(
+                    color = swatchColor,
+                    shape = orbShape,
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        brush = Brush.linearGradient(
+                            colors = listOf(Color.White.copy(alpha = .28f), Color.Transparent),
+                            start = Offset.Zero,
+                            end = Offset(60f, 60f),
+                        ),
+                    ),
+            )
+            if (selected || isDynamic) {
+                Icon(
+                    if (selected) MaterialSymbols.Filled.CheckCircle else MaterialSymbols.Filled.Palette,
+                    contentDescription = null,
+                    tint = iconTint.copy(alpha = iconAlpha),
+                )
+            }
+        }
+    }
+}
+
 private class SettingsGroupScope {
     val rows = mutableListOf<@Composable () -> Unit>()
     fun row(content: @Composable () -> Unit) { rows += content }
@@ -871,7 +1086,23 @@ private fun SettingsGroup(title: String, content: SettingsGroupScope.() -> Unit)
             color = VLCThemeDefaults.colors.primary,
             modifier = Modifier.padding(horizontal = 16.dp),
         )
-        VLCSettingsCard(rows = scope.rows, dividerInset = 20.dp)
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            scope.rows.forEachIndexed { index, row ->
+                val position = when {
+                    scope.rows.size == 1 -> VLCListItemPosition.Single
+                    index == 0 -> VLCListItemPosition.First
+                    index == scope.rows.lastIndex -> VLCListItemPosition.Last
+                    else -> VLCListItemPosition.Middle
+                }
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = position.segmentShape(),
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                ) {
+                    row()
+                }
+            }
+        }
     }
 }
 

@@ -3,6 +3,7 @@ package org.videolan.vlc.compose.app
 import androidx.compose.runtime.Composable
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
+import org.videolan.vlc.compose.theme.VLCThemeAccent
 import vlc_android.shared.generated.resources.Res
 import vlc_android.shared.generated.resources.*
 
@@ -32,7 +33,33 @@ object ShellStrings {
     @Composable fun markPlayed(): String = stringResource(Res.string.mark_as_played)
     @Composable fun markUnplayed(): String = stringResource(Res.string.mark_as_not_played)
     @Composable fun settings(): String = stringResource(Res.string.settings)
+    @Composable fun settingsSummary(): String = stringResource(Res.string.settings_summary)
+    @Composable fun appearance(): String = stringResource(Res.string.theme_appearance)
+    @Composable fun themeMode(): String = stringResource(Res.string.theme_mode)
+    @Composable fun themeColor(): String = stringResource(Res.string.theme_color)
+    @Composable fun lightTheme(): String = stringResource(Res.string.light_theme)
+    @Composable fun darkTheme(): String = stringResource(Res.string.dark_theme)
+    @Composable fun systemTheme(): String = stringResource(Res.string.theme_system)
+    @Composable fun themeAccent(accent: VLCThemeAccent): String = when (accent) {
+        VLCThemeAccent.Dynamic -> stringResource(Res.string.theme_dynamic)
+        VLCThemeAccent.Orange -> stringResource(Res.string.theme_orange)
+        VLCThemeAccent.Amber -> stringResource(Res.string.theme_amber)
+        VLCThemeAccent.Lime -> stringResource(Res.string.theme_lime)
+        VLCThemeAccent.Green -> stringResource(Res.string.theme_green)
+        VLCThemeAccent.Teal -> stringResource(Res.string.theme_teal)
+        VLCThemeAccent.Cyan -> stringResource(Res.string.theme_cyan)
+        VLCThemeAccent.Blue -> stringResource(Res.string.theme_blue)
+        VLCThemeAccent.Indigo -> stringResource(Res.string.theme_indigo)
+        VLCThemeAccent.Purple -> stringResource(Res.string.theme_purple)
+        VLCThemeAccent.Pink -> stringResource(Res.string.theme_pink)
+    }
     @Composable fun about(): String = stringResource(Res.string.about)
+    @Composable fun aboutSummary(): String = stringResource(Res.string.about_summary)
+    @Composable fun aboutWebsiteSummary(): String = stringResource(Res.string.about_website_summary)
+    @Composable fun aboutFeedbackSummary(): String = stringResource(Res.string.about_feedback_summary)
+    @Composable fun aboutSourcesSummary(): String = stringResource(Res.string.about_sources_summary)
+    @Composable fun aboutLibrariesSummary(): String = stringResource(Res.string.about_libraries_summary)
+    @Composable fun aboutAuthorsSummary(): String = stringResource(Res.string.about_authors_summary)
     @Composable fun aboutDescription(): String = stringResource(Res.string.about_vlc_text)
     @Composable fun aboutCopyright(): String = stringResource(Res.string.about_copyright)
     @Composable fun aboutLicense(): String = stringResource(Res.string.about_license)
@@ -85,6 +112,7 @@ object ShellStrings {
     @Composable fun showHeaders(): String = stringResource(Res.string.show_headers)
     @Composable fun network(): String = stringResource(Res.string.network)
     @Composable fun remoteAccess(): String = stringResource(Res.string.remote_access)
+    @Composable fun remoteAccessSummary(): String = stringResource(Res.string.remote_access_status_summary)
     @Composable fun remoteAccessServer(): String = stringResource(Res.string.remote_access_server)
     @Composable fun remoteAccessStarting(): String = stringResource(Res.string.remote_access_starting)
     @Composable fun remoteAccessUploadAddress(): String = stringResource(Res.string.remote_access_upload_address)
@@ -92,6 +120,7 @@ object ShellStrings {
     @Composable fun shuffle(): String = stringResource(Res.string.shuffle_play)
     @Composable fun shuffleAll(): String = stringResource(Res.string.shuffle_all_title)
     @Composable fun donate(): String = stringResource(Res.string.donate)
+    @Composable fun donateSummary(): String = stringResource(Res.string.donate_desc)
     @Composable fun streams(): String = stringResource(Res.string.streams)
     @Composable fun rename(): String = stringResource(Res.string.rename)
     @Composable fun renameStream(): String = stringResource(Res.string.rename_stream)
