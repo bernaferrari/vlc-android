@@ -1,14 +1,12 @@
 package org.videolan.vlc.compose.components
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.snap
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -54,8 +52,10 @@ fun VLCPressableContent(
 }
 
 /**
- * A low-frequency, in-place disclosure transition. It only changes height: screen changes and
- * frequently-used list navigation stay immediate, and reduced-motion users get no movement.
+ * A simple in-place disclosure for utility forms. Forms are often opened and closed repeatedly;
+ * changing layout height there made the surrounding grouped rows jump and compete with the
+ * deliberate Nav3 detail transition. Keeping the state change immediate is calmer and avoids
+ * layout-property animation on a scrolling screen.
  */
 @Composable
 fun VLCExpandableContent(
@@ -63,21 +63,7 @@ fun VLCExpandableContent(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    val motion = LocalVLCMotion.current
-    AnimatedVisibility(
-        visible = visible,
-        modifier = modifier,
-        enter = if (motion.reducedMotion) {
-            androidx.compose.animation.EnterTransition.None
-        } else {
-            expandVertically(animationSpec = spring(dampingRatio = 0.9f, stiffness = 700f))
-        },
-        exit = if (motion.reducedMotion) {
-            androidx.compose.animation.ExitTransition.None
-        } else {
-            shrinkVertically(animationSpec = spring(dampingRatio = 0.9f, stiffness = 700f))
-        },
-    ) {
-        content()
+    if (visible) {
+        Box(modifier = modifier) { content() }
     }
 }
