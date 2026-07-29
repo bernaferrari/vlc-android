@@ -34,7 +34,10 @@ android {
     // (NDK 21); the Android app/library minSdk is now 23 for both VLC 3 and 4.
     minSdk = 23
     targetSdk = 36
-    compileSdk = 36 // Dockers: 3.0=36 / 4.0=36
+    // Adaptive Navigation 3's Android artifact requires API 37 at compile time. This only
+    // expands the available compile surface; targetSdk remains 36 until its runtime-behaviour
+    // migration is separately reviewed.
+    compileSdk = 37 // Dockers: 3.0=36 / 4.0=37
     buildToolsVersion = '36.0.0'
 }
 
