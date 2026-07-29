@@ -3,7 +3,6 @@ package org.videolan.vlc.gui.onboarding
 import android.Manifest
 import android.app.Activity
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
@@ -13,17 +12,14 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.app.ActivityCompat
 import androidx.core.content.edit
-import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import org.videolan.resources.ACTIVITY_RESULT_PREFERENCES
-import org.videolan.resources.AndroidDevices
 import org.videolan.resources.EXTRA_FIRST_RUN
 import org.videolan.resources.EXTRA_UPGRADE
 import org.videolan.resources.KEY_ANIMATED
 import org.videolan.resources.PREF_FIRST_RUN
 import org.videolan.resources.util.startMedialibrary
-import org.videolan.tools.KEY_APP_THEME
 import org.videolan.tools.KEY_NAVIGATION_ID
 import org.videolan.tools.KEY_MEDIALIBRARY_SCAN
 import org.videolan.tools.ML_SCAN_OFF
@@ -48,31 +44,22 @@ class OnboardingActivity : AppCompatActivity() {
     private val viewModel: OnboardingViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        if (AndroidDevices.canUseSystemNightMode()) enableEdgeToEdge()
-        WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightNavigationBars = false
-        WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = false
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
         setContentView(
             ComposeView(this).apply {
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
                 setContent {
-                    VLCTheme(darkTheme = true) {
+                    VLCTheme {
                         OnboardingContent(
                             step = viewModel.currentStep,
-                            permissionType = viewModel.permissionType,
                             scanStorages = viewModel.scanStorages,
-                            theme = viewModel.theme,
                             onSkip = ::onDone,
                             onNext = ::onNext,
-                            onPermissionTypeSelected = { viewModel.permissionType = it },
-                            onGrantPermission = {
-                                viewModel.permissionAlreadyAsked = false
-                                showStep(OnboardingStep.ASK_PERMISSION)
-                            },
+                            onGrantPermission = ::askMediaPermission,
                             onScanStoragesChanged = ::setScanStorages,
                             onCustomizeScan = ::openStorageCustomization,
-                            onThemeSelected = { viewModel.theme = it }
                         )
                     }
                 }
@@ -109,7 +96,6 @@ class OnboardingActivity : AppCompatActivity() {
             putBoolean(ONBOARDING_DONE_KEY, true)
             putInt(KEY_MEDIALIBRARY_SCAN, if (viewModel.scanStorages) ML_SCAN_ON else ML_SCAN_OFF)
             putInt(KEY_NAVIGATION_ID, if (viewModel.scanStorages) R.id.nav_video else R.id.nav_directories)
-            putString(KEY_APP_THEME, viewModel.theme.toString())
         }
         if (!viewModel.scanStorages) MediaParsingService.preselectedStorages.clear()
         startMedialibrary(firstRun = true, upgrade = true, parse = viewModel.scanStorages)
@@ -127,18 +113,18 @@ class OnboardingActivity : AppCompatActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == Permissions.FINE_STORAGE_PERMISSION_REQUEST_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                viewModel.permissionAlreadyAsked = true
-                onNext()
-            }
+            completeMediaPermissionRequest()
         }
     }
 
-    private fun askPermission() {
+    private fun askMediaPermission() {
+        if (viewModel.permissionRequestInFlight) return
+        viewModel.permissionRequestInFlight = true
+        // Permission checks are cached for hot UI paths. A platform callback is an authority
+        // change, so never let a pre-dialog result decide the next onboarding screen.
+        Permissions.emptyCache()
         lifecycleScope.launch {
-            val onlyMedia = viewModel.permissionType == PermissionType.MEDIA
-            viewModel.permissionAlreadyAsked = true
-            if (onlyMedia && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 ActivityCompat.requestPermissions(
                     this@OnboardingActivity,
                     arrayOf(
@@ -150,15 +136,27 @@ class OnboardingActivity : AppCompatActivity() {
                 )
                 return@launch
             }
-            getStoragePermission(withDialog = false, onlyMedia = onlyMedia)
-            onNext()
+            getStoragePermission(withDialog = false, onlyMedia = true)
+            completeMediaPermissionRequest()
         }
     }
 
+    private fun completeMediaPermissionRequest() {
+        Permissions.emptyCache()
+        viewModel.permissionRequestInFlight = false
+        showStep(if (Permissions.canReadStorage(applicationContext, skipCache = true)) {
+            OnboardingStep.SCAN
+        } else {
+            OnboardingStep.NO_PERMISSION
+        })
+    }
+
     private fun askNotificationPermission() {
+        if (viewModel.notificationRequestInFlight) return
+        viewModel.notificationRequestInFlight = true
         lifecycleScope.launch {
-            viewModel.notificationPermissionAlreadyAsked = true
             getNotificationPermission()
+            viewModel.notificationRequestInFlight = false
             Settings.getInstance(this@OnboardingActivity).edit {
                 putBoolean(NOTIFICATION_PERMISSION_ASKED, true)
             }
@@ -169,33 +167,29 @@ class OnboardingActivity : AppCompatActivity() {
     private fun onNext() {
         when (viewModel.currentStep) {
             OnboardingStep.WELCOME -> {
-                showStep(if (Permissions.canReadStorage(this)) OnboardingStep.SCAN else OnboardingStep.ASK_PERMISSION)
+                showStep(if (Permissions.canReadStorage(this, skipCache = true)) OnboardingStep.SCAN else OnboardingStep.ASK_PERMISSION)
             }
             OnboardingStep.ASK_PERMISSION -> {
-                if (viewModel.permissionType != PermissionType.NONE && !viewModel.permissionAlreadyAsked) {
-                    askPermission()
-                } else {
-                    showStep(if (Permissions.canReadStorage(applicationContext)) OnboardingStep.SCAN else OnboardingStep.NO_PERMISSION)
-                }
+                if (Permissions.canReadStorage(applicationContext, skipCache = true)) showStep(OnboardingStep.SCAN)
+                else askMediaPermission()
             }
             OnboardingStep.NO_PERMISSION -> {
-                showStep(if (Permissions.canReadStorage(applicationContext)) OnboardingStep.SCAN else OnboardingStep.THEME)
+                onDone()
             }
             OnboardingStep.NOTIFICATION_PERMISSION -> {
-                if (!Permissions.canSendNotifications(applicationContext) && !viewModel.notificationPermissionAlreadyAsked) {
+                if (!Permissions.canSendNotifications(applicationContext) && !viewModel.notificationRequestInFlight) {
                     askNotificationPermission()
                 } else {
-                    showStep(OnboardingStep.THEME)
+                    onDone()
                 }
             }
             OnboardingStep.SCAN -> {
                 if (Build.VERSION.SDK_INT > Build.VERSION_CODES.S && !Permissions.canSendNotifications(applicationContext)) {
                     showStep(OnboardingStep.NOTIFICATION_PERMISSION)
                 } else {
-                    showStep(OnboardingStep.THEME)
+                    onDone()
                 }
             }
-            OnboardingStep.THEME -> onDone()
         }
     }
 }

@@ -66,6 +66,8 @@ import org.videolan.vlc.compose.components.VLCBrowserItemRow
 import org.videolan.vlc.compose.components.VLCEmptyState
 import org.videolan.vlc.compose.components.VLCIndexScrollTarget
 import org.videolan.vlc.compose.components.VLCIndexedFastScroller
+import org.videolan.vlc.compose.components.VLCListItemPosition
+import org.videolan.vlc.compose.components.vlcIndexLabel
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.model.MediaFolder
 import org.videolan.vlc.model.MediaItem
@@ -472,7 +474,7 @@ private fun PagedMediaBody(
     if (state.viewMode == ViewMode.GRID) {
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 140.dp),
-            contentPadding = PaddingValues(bottom = 80.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 80.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = modifier,
@@ -503,11 +505,17 @@ private fun PagedMediaBody(
                 lazyPagingItems.peek(index)?.let { add(VLCIndexScrollTarget(index, it.displayTitle)) }
             }
         }
+        val hasFastScroller = indexTargets.size >= 24
         Box(modifier = modifier) {
             LazyColumn(
                 state = listState,
-                contentPadding = PaddingValues(bottom = 80.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                // Dedicated space keeps the index clear of a song's overflow action.
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = if (hasFastScroller) 48.dp else 16.dp,
+                    bottom = 80.dp,
+                ),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
                 modifier = Modifier.fillMaxSize(),
             ) {
                 items(lazyPagingItems.itemCount, key = { index ->
@@ -526,6 +534,13 @@ private fun PagedMediaBody(
                         onToggleSelect = onToggleSelect,
                         onCtx = onCtx,
                         canHandleHostAction = canHandleHostAction,
+                        position = pagedListItemPosition(
+                            current = item.displayTitle,
+                            previous = index.takeIf { it > 0 }?.let(lazyPagingItems::peek)?.displayTitle,
+                            next = (index + 1).takeIf { it < lazyPagingItems.itemCount }
+                                ?.let(lazyPagingItems::peek)
+                                ?.displayTitle,
+                        ),
                     )
                 }
             }
@@ -551,6 +566,34 @@ internal fun mediaIndexScrollTargets(sections: List<Pair<String, List<MediaItem>
     }
 }
 
+internal fun sectionListItemPosition(index: Int, size: Int): VLCListItemPosition = when {
+    size <= 1 -> VLCListItemPosition.Single
+    index == 0 -> VLCListItemPosition.First
+    index == size - 1 -> VLCListItemPosition.Last
+    else -> VLCListItemPosition.Middle
+}
+
+/**
+ * Paging only knows its immediate neighbours. That is enough to preserve the
+ * QuietGuard-style grouped silhouette for the loaded portion of an alphabetic
+ * library without making paging wait for every item to arrive.
+ */
+internal fun pagedListItemPosition(
+    current: String,
+    previous: String?,
+    next: String?,
+): VLCListItemPosition {
+    val label = vlcIndexLabel(current)
+    val followsDifferentSection = previous?.let(::vlcIndexLabel) != label
+    val precedesDifferentSection = next?.let(::vlcIndexLabel) != label
+    return when {
+        followsDifferentSection && precedesDifferentSection -> VLCListItemPosition.Single
+        followsDifferentSection -> VLCListItemPosition.First
+        precedesDifferentSection -> VLCListItemPosition.Last
+        else -> VLCListItemPosition.Middle
+    }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun SnapshotMediaBody(
@@ -570,7 +613,7 @@ private fun SnapshotMediaBody(
     if (state.viewMode == ViewMode.GRID) {
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 140.dp),
-            contentPadding = PaddingValues(bottom = 80.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 80.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = modifier,
@@ -604,11 +647,16 @@ private fun SnapshotMediaBody(
     } else {
         val listState = rememberLazyListState()
         val indexTargets = remember(displaySections) { mediaIndexScrollTargets(displaySections) }
+        val hasFastScroller = indexTargets.size >= 24
         Box(modifier = modifier) {
             LazyColumn(
                 state = listState,
-                contentPadding = PaddingValues(bottom = 80.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = if (hasFastScroller) 48.dp else 16.dp,
+                    bottom = 80.dp,
+                ),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
                 modifier = Modifier.fillMaxSize(),
             ) {
                 displaySections.forEach { (section, items) ->
@@ -622,19 +670,22 @@ private fun SnapshotMediaBody(
                             )
                         }
                     }
-                    items(items, key = { "${it.id}:${it.uri}" }) { item ->
-                        MediaListRow(
-                            item = item,
-                            selected = item.uri in state.selection,
-                            selecting = state.selection.isNotEmpty(),
-                            showTrackNumbers = state.showTrackNumbers,
-                            onPlay = onPlay,
-                            onPlayNext = onPlayNext,
-                            onAppend = onAppend,
-                            onToggleSelect = onToggleSelect,
-                            onCtx = onCtx,
-                            canHandleHostAction = canHandleHostAction,
-                        )
+                    items.forEachIndexed { index, media ->
+                        item(key = "${media.id}:${media.uri}") {
+                            MediaListRow(
+                                item = media,
+                                selected = media.uri in state.selection,
+                                selecting = state.selection.isNotEmpty(),
+                                showTrackNumbers = state.showTrackNumbers,
+                                onPlay = onPlay,
+                                onPlayNext = onPlayNext,
+                                onAppend = onAppend,
+                                onToggleSelect = onToggleSelect,
+                                onCtx = onCtx,
+                                canHandleHostAction = canHandleHostAction,
+                                position = sectionListItemPosition(index, items.size),
+                            )
+                        }
                     }
                 }
             }
@@ -660,6 +711,7 @@ private fun MediaListRow(
     onToggleSelect: (MediaItem) -> Unit,
     onCtx: (MediaItem, ContextOption) -> Unit,
     canHandleHostAction: (ContextOption) -> Boolean,
+    position: VLCListItemPosition,
 ) {
     var menu by remember { mutableStateOf(false) }
     val trackNumber = item.trackNumber.takeIf {
@@ -676,6 +728,7 @@ private fun MediaListRow(
                 formatDuration(item.duration),
             ).filter { it.isNotBlank() }.joinToString(" · ").ifBlank { null },
             selected = selected,
+            position = position,
             onClick = {
                 if (selecting) onToggleSelect(item) else onPlay(item)
             },
@@ -789,7 +842,9 @@ fun MediaGridCard(
     var menu by remember { mutableStateOf(false) }
     Surface(
         modifier = Modifier.combinedClickable(onClick = onClick, onLongClick = onLongClick),
-        shape = MaterialTheme.shapes.extraLarge,
+        // A media grid repeats this shape many times. The large token still feels expressive
+        // without turning dense libraries into a field of oversized pills.
+        shape = MaterialTheme.shapes.large,
         color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
         contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
     ) {

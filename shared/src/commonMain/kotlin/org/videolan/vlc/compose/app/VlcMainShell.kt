@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -691,7 +692,11 @@ private fun VlcAdaptiveNavigationSuite(
         ) {
             NavigationSuiteScaffold(
                 navigationSuiteItems = navigationSuiteItems,
-                modifier = Modifier.fillMaxSize(),
+                // Android's hybrid host deliberately leaves system insets unconsumed for the
+                // shared shell. Treat library screens like QuietGuard's regular activity: their
+                // title, compact bar, and content stay inside the complete safe drawing area.
+                // Full-screen media playback opts out by disabling this adaptive suite.
+                modifier = Modifier.fillMaxSize().safeDrawingPadding(),
                 content = content,
             )
         }

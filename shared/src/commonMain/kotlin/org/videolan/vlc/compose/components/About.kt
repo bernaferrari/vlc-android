@@ -82,7 +82,7 @@ fun VLCAboutScreen(
     onOpenLicenseLink: () -> Unit,
     modifier: Modifier = Modifier,
     closeIconContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.Close) },
-    logoContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.VideoLibrary, 96) },
+    logoContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.VideoLibrary, 32) },
     websiteIconContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.Language) },
     feedbackIconContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.Forum) },
     sourcesIconContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.Code) },
@@ -136,52 +136,18 @@ fun VLCAboutScreen(
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .padding(top = 16.dp)
-                            .size(128.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Box(
-                            modifier = Modifier.size(88.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            logoContent()
-                        }
-                    }
-
-                    Text(
-                        text = appName,
-                        color = colors.aboutTextPrimary,
-                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .padding(top = 16.dp)
-                            .widthIn(max = 600.dp)
-                    )
-
-                    Text(
-                        text = description,
-                        color = colors.fontLight,
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .padding(top = 8.dp)
-                            .widthIn(max = 600.dp)
-                    )
-
-                    AboutVersionCard(
+                    AboutHeroCard(
+                        appName = appName,
+                        description = description,
                         version = versionInfo.version,
-                        buildDate = versionInfo.buildDate,
-                        onClick = { activeSheet = AboutSheet.Version },
+                        logoContent = logoContent,
+                        onVersionClick = { activeSheet = AboutSheet.Version },
                         modifier = Modifier
                             .padding(top = 16.dp)
-                            .widthIn(max = 600.dp)
+                            .widthIn(max = 600.dp),
                     )
 
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(20.dp))
 
                     AboutActionGroup(
                         modifier = Modifier.widthIn(max = 600.dp)
@@ -257,46 +223,67 @@ fun VLCAboutScreen(
 }
 
 @Composable
-private fun AboutVersionCard(
+private fun AboutHeroCard(
+    appName: String,
+    description: String,
     version: String,
-    buildDate: String,
-    onClick: () -> Unit,
+    logoContent: @Composable () -> Unit,
+    onVersionClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val colors = VLCThemeDefaults.colors
-
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .clip(MaterialTheme.shapes.medium)
-            .clickable(role = Role.Button, onClick = onClick)
-            .focusable(),
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        contentColor = colors.fontDefault
+            .clip(MaterialTheme.shapes.extraLarge),
+        shape = MaterialTheme.shapes.extraLarge,
+        color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 52.dp)
-                .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(
+                    modifier = Modifier.size(64.dp),
+                    shape = MaterialTheme.shapes.large,
+                    color = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                ) {
+                    Box(contentAlignment = Alignment.Center) { logoContent() }
+                }
+                Spacer(Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = appName,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Surface(
+                        modifier = Modifier
+                            .padding(top = 6.dp)
+                            .clip(CircleShape)
+                            .clickable(role = Role.Button, onClick = onVersionClick),
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = .14f),
+                    ) {
+                        Text(
+                            text = version,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        )
+                    }
+                }
+            }
             Text(
-                text = version,
-                color = colors.aboutTextPrimary,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Text(
-                text = buildDate,
-                color = colors.fontLight,
-                style = MaterialTheme.typography.bodySmall,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(start = 8.dp)
+                text = description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = .82f),
             )
         }
     }

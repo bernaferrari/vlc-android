@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -39,6 +40,27 @@ import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCMotion
 import org.videolan.vlc.compose.theme.LocalVLCMotion
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+
+/**
+ * A row's position inside a visual section. Segmented lists use a deliberately
+ * asymmetric silhouette: soft outside corners and compact corners where items
+ * meet, so a long library reads as a calm collection rather than a pile of pills.
+ */
+enum class VLCListItemPosition {
+    Single,
+    First,
+    Middle,
+    Last,
+}
+
+/** The shared QuietGuard-inspired outer/inner geometry for segmented rows. */
+fun VLCListItemPosition.segmentShape(selected: Boolean = false) = when {
+    selected -> RoundedCornerShape(20.dp)
+    this == VLCListItemPosition.Single -> RoundedCornerShape(24.dp)
+    this == VLCListItemPosition.First -> RoundedCornerShape(24.dp, 24.dp, 6.dp, 6.dp)
+    this == VLCListItemPosition.Last -> RoundedCornerShape(6.dp, 6.dp, 24.dp, 24.dp)
+    else -> RoundedCornerShape(6.dp)
+}
 
 /**
  * Shared Compose row for the core media-browser list item pattern.
@@ -63,6 +85,7 @@ fun VLCBrowserItemRow(
     contentDescription: String? = null,
     titleMaxLines: Int = 2,
     subtitleMaxLines: Int = 1,
+    position: VLCListItemPosition = VLCListItemPosition.Single,
     showArtwork: Boolean = true,
     onClick: () -> Unit = {},
     onLongClick: (() -> Unit)? = null,
@@ -77,7 +100,7 @@ fun VLCBrowserItemRow(
     val motion = LocalVLCMotion.current
     val containerColor by animateColorAsState(
         targetValue = if (selected) {
-            MaterialTheme.colorScheme.primaryContainer
+            MaterialTheme.colorScheme.secondaryContainer
         } else {
             MaterialTheme.colorScheme.surfaceContainerLow
         },
@@ -95,9 +118,9 @@ fun VLCBrowserItemRow(
                 onClick = onClick,
                 onLongClick = onLongClick,
             ),
-        shape = MaterialTheme.shapes.large,
+        shape = position.segmentShape(selected),
         color = containerColor,
-        contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else colors.listTitle,
+        contentColor = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else colors.listTitle,
     ) {
         Row(
             modifier = Modifier.padding(start = 12.dp, end = 6.dp, top = 10.dp, bottom = 10.dp),
@@ -174,7 +197,7 @@ fun VLCBrowserItemCard(
                 onClick = onClick,
                 onLongClick = onLongClick,
             ),
-        shape = MaterialTheme.shapes.extraLarge,
+        shape = MaterialTheme.shapes.large,
         color = containerColor,
         contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
     ) {

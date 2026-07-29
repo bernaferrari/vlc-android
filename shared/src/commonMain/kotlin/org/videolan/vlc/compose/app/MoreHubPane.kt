@@ -26,8 +26,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.videolan.vlc.compose.components.VLCBrowserItemRow
 import org.videolan.vlc.compose.components.VLCExpandableContent
 import org.videolan.vlc.compose.components.VLCIconChip
+import org.videolan.vlc.compose.components.VLCListItemPosition
 import org.videolan.vlc.compose.components.VLCPressableContent
 import org.videolan.vlc.compose.components.VLCSettingsCard
+import org.videolan.vlc.compose.components.segmentShape
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
@@ -60,8 +62,8 @@ internal fun MorePane(
     var streamAddressError by remember { mutableStateOf(false) }
     VLCUtilityPane(modifier = modifier) {
         LazyColumn(
-            modifier = Modifier.padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
+            modifier = Modifier.padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
         item {
             Text(
@@ -71,20 +73,26 @@ internal fun MorePane(
             )
         }
         item {
-            // The shell already owns the VLC title. Group these destinations as a
-            // compact directory instead of repeating the brand in a second
-            // oversized header and rendering each action as an isolated card.
-            VLCSettingsCard(
-                rows = buildList {
-                    add { MoreAction(MaterialSymbols.Filled.Settings, ShellStrings.settings(), onOpenSettings) }
-                    add { MoreAction(MaterialSymbols.Filled.Info, ShellStrings.about(), onOpenAbout) }
-                    add { MoreAction(MaterialSymbols.Filled.Star, ShellStrings.donate(), onOpenDonate) }
-                    onOpenRemote?.let { remote ->
-                        add { MoreAction(MaterialSymbols.Filled.Devices, ShellStrings.remoteAccess(), remote) }
-                    }
-                },
-                dividerInset = 72.dp,
-            )
+            // A small, explicit directory group — the same asymmetric treatment QuietGuard uses
+            // for related settings. It removes the old oversized container-with-dividers look.
+            val actions = buildList {
+                add(MoreHubAction(MaterialSymbols.Filled.Settings, ShellStrings.settings(), onOpenSettings))
+                add(MoreHubAction(MaterialSymbols.Filled.Info, ShellStrings.about(), onOpenAbout))
+                add(MoreHubAction(MaterialSymbols.Filled.Star, ShellStrings.donate(), onOpenDonate))
+                onOpenRemote?.let { remote ->
+                    add(MoreHubAction(MaterialSymbols.Filled.Devices, ShellStrings.remoteAccess(), remote))
+                }
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                actions.forEachIndexed { index, action ->
+                    MoreAction(
+                        icon = action.icon,
+                        label = action.label,
+                        onClick = action.onClick,
+                        position = moreActionPosition(index, actions.size),
+                    )
+                }
+            }
         }
 
         item {
@@ -111,7 +119,7 @@ internal fun MorePane(
         item {
             VLCExpandableContent(visible = addingStream) {
                 Surface(
-                    shape = MaterialTheme.shapes.extraLarge,
+                    shape = MaterialTheme.shapes.large,
                     color = MaterialTheme.colorScheme.surfaceContainerLow,
                 ) {
                     Column(
@@ -124,7 +132,7 @@ internal fun MorePane(
                             modifier = Modifier.fillMaxWidth(),
                             singleLine = true,
                             label = { Text(ShellStrings.streamName()) },
-                            shape = MaterialTheme.shapes.extraLarge,
+                            shape = MaterialTheme.shapes.large,
                         )
                         OutlinedTextField(
                             value = newStreamUri,
@@ -141,7 +149,7 @@ internal fun MorePane(
                                 null
                             },
                             label = { Text(ShellStrings.streamAddress()) },
-                            shape = MaterialTheme.shapes.extraLarge,
+                            shape = MaterialTheme.shapes.large,
                         )
                         Row(
                             modifier = Modifier.align(Alignment.End),
@@ -186,7 +194,7 @@ internal fun MorePane(
                         modifier = Modifier.weight(1f),
                         singleLine = true,
                         label = { Text(ShellStrings.renameStream()) },
-                        shape = MaterialTheme.shapes.extraLarge,
+                        shape = MaterialTheme.shapes.large,
                     )
                     TextButton(onClick = {
                         val id = renameStreamId
@@ -299,29 +307,53 @@ internal fun MorePane(
         }
 }
 
+private data class MoreHubAction(
+    val icon: MaterialIcon,
+    val label: String,
+    val onClick: () -> Unit,
+)
+
+private fun moreActionPosition(index: Int, size: Int): VLCListItemPosition = when {
+    size <= 1 -> VLCListItemPosition.Single
+    index == 0 -> VLCListItemPosition.First
+    index == size - 1 -> VLCListItemPosition.Last
+    else -> VLCListItemPosition.Middle
+}
+
 @Composable
-private fun MoreAction(icon: MaterialIcon, label: String, onClick: () -> Unit) {
+private fun MoreAction(
+    icon: MaterialIcon,
+    label: String,
+    onClick: () -> Unit,
+    position: VLCListItemPosition,
+) {
     val colors = VLCThemeDefaults.colors
-    VLCPressableContent(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 64.dp)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+    Surface(
+        shape = position.segmentShape(),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        modifier = Modifier.fillMaxWidth(),
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        VLCPressableContent(
+            onClick = onClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 64.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
-            VLCIconChip(size = 40.dp) { tint ->
-                Icon(icon, contentDescription = null, tint = tint)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                VLCIconChip(size = 40.dp) { tint ->
+                    Icon(icon, contentDescription = null, tint = tint)
+                }
+                Text(
+                    label,
+                    color = colors.listTitle,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
             }
-            Text(
-                label,
-                color = colors.listTitle,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
         }
     }
 }

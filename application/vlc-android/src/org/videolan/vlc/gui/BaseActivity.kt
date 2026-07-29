@@ -65,6 +65,12 @@ abstract class BaseActivity : AppCompatActivity() {
      * Set it to false if you want to override this behavior.
      */
     open var isEdgeToEdge = true
+    /**
+     * A full-screen Compose host needs the raw insets so Material navigation can keep its own
+     * bottom bar above gesture controls. Legacy view hierarchies retain the historical padded,
+     * consumed-inset contract below.
+     */
+    open fun ownsSystemBarInsetsInCompose(): Boolean = false
     abstract fun getSnackAnchorView(overAudioPlayer:Boolean = false): View?
     private var baseContextWrappingDelegate: AppCompatDelegate? = null
     private var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -86,7 +92,7 @@ abstract class BaseActivity : AppCompatActivity() {
         if (settings.getString("app_theme", "-1") == "0") isEdgeToEdge = false
         if (isEdgeToEdge) enableEdgeToEdge()
         settings = Settings.getInstance(this)
-        if (isEdgeToEdge) ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { v, windowInsets ->
+        if (isEdgeToEdge && !ownsSystemBarInsetsInCompose()) ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { v, windowInsets ->
             val bars = windowInsets.getInsets(
                 WindowInsetsCompat.Type.systemBars()
                         or WindowInsetsCompat.Type.displayCutout()

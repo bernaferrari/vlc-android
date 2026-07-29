@@ -72,9 +72,15 @@ fun VLCIndexedFastScroller(
     val hapticFeedback = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
     val labelToTarget = remember(targets) {
-        buildMap {
-            targets.forEach { target -> putIfAbsent(vlcIndexLabel(target.labelSource), target.itemIndex) }
+        // `buildMap`/`putIfAbsent` is not implemented consistently by the Kotlin/Native
+        // stdlib used for iOS. A plain insertion-ordered map keeps the exact same first-item
+        // contract and lets this shared direct-manipulation control compile on every target.
+        val result = LinkedHashMap<String, Int>()
+        targets.forEach { target ->
+            val label = vlcIndexLabel(target.labelSource)
+            if (label !in result) result[label] = target.itemIndex
         }
+        result
     }
     val labels = remember(labelToTarget) {
         labelToTarget.keys.sortedWith(compareBy<String> { if (it == "#") 0 else 1 }.thenBy { it })

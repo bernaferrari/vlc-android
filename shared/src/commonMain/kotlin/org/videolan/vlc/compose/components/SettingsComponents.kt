@@ -156,7 +156,9 @@ fun VLCSettingsCard(
     if (rows.isEmpty()) return
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.extraLarge,
+        // Grouped settings are structural surfaces, not hero cards. Keep their
+        // radius aligned with QuietGuard's 24dp outer group corners.
+        shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Column {

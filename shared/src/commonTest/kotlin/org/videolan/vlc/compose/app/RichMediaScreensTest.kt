@@ -1,9 +1,11 @@
 package org.videolan.vlc.compose.app
 
 import org.videolan.vlc.model.MediaItem
+import org.videolan.vlc.compose.components.VLCListItemPosition
 import org.videolan.vlc.compose.components.vlcIndexLabel
 import org.videolan.vlc.viewmodel.MediaListUiState
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -79,5 +81,29 @@ class RichMediaScreensTest {
         assertTrue(targets[1].itemIndex == 3)
         assertTrue(vlcIndexLabel(targets[0].labelSource) == "A")
         assertTrue(vlcIndexLabel(targets[1].labelSource) == "#")
+    }
+
+    @Test
+    fun segmented_library_rows_keep_soft_outer_corners_and_compact_joins() {
+        assertEquals(VLCListItemPosition.Single, sectionListItemPosition(index = 0, size = 1))
+        assertEquals(VLCListItemPosition.First, sectionListItemPosition(index = 0, size = 3))
+        assertEquals(VLCListItemPosition.Middle, sectionListItemPosition(index = 1, size = 3))
+        assertEquals(VLCListItemPosition.Last, sectionListItemPosition(index = 2, size = 3))
+    }
+
+    @Test
+    fun paging_uses_alphabetic_neighbours_without_waiting_for_the_entire_library() {
+        assertEquals(
+            VLCListItemPosition.First,
+            pagedListItemPosition(current = "Albatross", previous = "9 Lives", next = "Album"),
+        )
+        assertEquals(
+            VLCListItemPosition.Last,
+            pagedListItemPosition(current = "Album", previous = "Albatross", next = "Beta"),
+        )
+        assertEquals(
+            VLCListItemPosition.Single,
+            pagedListItemPosition(current = "Beta", previous = "Album", next = "1 More"),
+        )
     }
 }

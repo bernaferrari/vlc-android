@@ -102,6 +102,10 @@ class MainActivity : ContentActivity(),
     override fun usesSharedMainShell(): Boolean =
         settings.getBoolean(KEY_USE_SHARED_MAIN_SHELL, true)
 
+    // The shared shell is responsible for Material 3's system-bar insets. Consuming them in the
+    // legacy root before Compose sees them placed the bottom navigation under gesture controls.
+    override fun ownsSystemBarInsetsInCompose(): Boolean = usesSharedMainShell()
+
     override fun getSnackAnchorView(overAudioPlayer:Boolean): View? {
         val view = super.getSnackAnchorView(overAudioPlayer)
         return if (view?.id == android.R.id.content && !isTablet()) {if(overAudioPlayer) findViewById(android.R.id.content) else findViewById(R.id.appbar)} else view

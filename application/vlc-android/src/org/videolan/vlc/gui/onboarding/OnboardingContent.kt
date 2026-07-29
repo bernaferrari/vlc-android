@@ -1,19 +1,12 @@
 package org.videolan.vlc.gui.onboarding
 
 import android.content.res.Configuration
-import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -32,7 +25,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -47,9 +39,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -58,7 +47,6 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import org.videolan.resources.AndroidDevices
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.theme.VLCMotion
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
@@ -66,16 +54,12 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
 @Composable
 fun OnboardingContent(
     step: OnboardingStep,
-    permissionType: PermissionType,
     scanStorages: Boolean,
-    theme: Int,
     onSkip: () -> Unit,
     onNext: () -> Unit,
-    onPermissionTypeSelected: (PermissionType) -> Unit,
     onGrantPermission: () -> Unit,
     onScanStoragesChanged: (Boolean) -> Unit,
     onCustomizeScan: () -> Unit,
-    onThemeSelected: (Int) -> Unit
 ) {
     val colors = VLCThemeDefaults.colors
     Surface(
@@ -114,25 +98,21 @@ fun OnboardingContent(
                     transitionSpec = {
                         val forward = targetState.ordinal >= initialState.ordinal
                         val direction = if (forward) 1 else -1
-                        (slideInHorizontally(
+                        slideInHorizontally(
                             tween(VLCMotion.DurationMedium, easing = VLCMotion.EmphasizedDecelerate)
-                        ) { width -> direction * width / 4 } + fadeIn(tween(VLCMotion.DurationMedium))) togetherWith
-                            (slideOutHorizontally(
+                        ) { width -> direction * width / 5 } togetherWith
+                            slideOutHorizontally(
                                 tween(VLCMotion.DurationMedium, easing = VLCMotion.EmphasizedAccelerate)
-                            ) { width -> -direction * width / 4 } + fadeOut(tween(VLCMotion.DurationShort)))
+                            ) { width -> -direction * width / 5 }
                     },
                     label = "onboardingStep"
                 ) { animatedStep ->
                     OnboardingStepContent(
                         step = animatedStep,
-                        permissionType = permissionType,
                         scanStorages = scanStorages,
-                        theme = theme,
-                        onPermissionTypeSelected = onPermissionTypeSelected,
                         onGrantPermission = onGrantPermission,
                         onScanStoragesChanged = onScanStoragesChanged,
                         onCustomizeScan = onCustomizeScan,
-                        onThemeSelected = onThemeSelected,
                         modifier = Modifier
                             .fillMaxWidth()
                             .verticalScroll(rememberScrollState())
@@ -158,7 +138,7 @@ fun OnboardingContent(
                         contentColor = colors.onPrimary
                     )
                 ) {
-                    Text(stringResource(if (step == OnboardingStep.THEME) R.string.done else R.string.next))
+                    Text(stringResource(step.primaryActionRes))
                 }
             }
         }
@@ -168,23 +148,15 @@ fun OnboardingContent(
 @Composable
 private fun OnboardingStepContent(
     step: OnboardingStep,
-    permissionType: PermissionType,
     scanStorages: Boolean,
-    theme: Int,
-    onPermissionTypeSelected: (PermissionType) -> Unit,
     onGrantPermission: () -> Unit,
     onScanStoragesChanged: (Boolean) -> Unit,
     onCustomizeScan: () -> Unit,
-    onThemeSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     when (step) {
         OnboardingStep.WELCOME -> WelcomeStep(modifier)
-        OnboardingStep.ASK_PERMISSION -> PermissionStep(
-            selected = permissionType,
-            onSelected = onPermissionTypeSelected,
-            modifier = modifier
-        )
+        OnboardingStep.ASK_PERMISSION -> PermissionStep(modifier)
         OnboardingStep.SCAN -> ScanningStep(
             scanStorages = scanStorages,
             onScanStoragesChanged = onScanStoragesChanged,
@@ -196,11 +168,6 @@ private fun OnboardingStepContent(
             modifier = modifier
         )
         OnboardingStep.NOTIFICATION_PERMISSION -> NotificationPermissionStep(modifier)
-        OnboardingStep.THEME -> ThemeStep(
-            selectedTheme = theme,
-            onSelected = onThemeSelected,
-            modifier = modifier
-        )
     }
 }
 
@@ -222,45 +189,18 @@ private fun WelcomeStep(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun PermissionStep(
-    selected: PermissionType,
-    onSelected: (PermissionType) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val options = listOf(
-        PermissionOption(PermissionType.NONE, R.drawable.ic_perm_none, R.string.permission_onboarding_no_perm),
-        PermissionOption(PermissionType.MEDIA, R.drawable.ic_perm_media, R.string.permission_onboarding_perm_media),
-        PermissionOption(PermissionType.ALL, R.drawable.ic_perm_all, R.string.permission_onboarding_perm_all)
-    )
+private fun PermissionStep(modifier: Modifier = Modifier) {
     OnboardingCenterColumn(modifier = modifier) {
+        Image(
+            painter = painterResource(R.drawable.ic_perm_media),
+            contentDescription = null,
+            modifier = Modifier.size(96.dp),
+        )
+        Spacer(modifier = Modifier.height(24.dp))
         OnboardingTitle(text = stringResource(R.string.permission))
         OnboardingBody(
             text = stringResource(R.string.permission_media),
             modifier = Modifier.padding(top = 8.dp)
-        )
-        Row(
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 32.dp)
-        ) {
-            options.forEach { option ->
-                SelectableIconOption(
-                    icon = option.icon,
-                    contentDescription = stringResource(option.description),
-                    selected = selected == option.type,
-                    tintSelectedOnly = true,
-                    onClick = { onSelected(option.type) }
-                )
-            }
-        }
-        Text(
-            text = stringResource(permissionDescriptionRes(selected)),
-            color = VLCThemeDefaults.colors.primary,
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(start = 24.dp, top = 16.dp, end = 24.dp)
         )
     }
 }
@@ -368,47 +308,6 @@ private fun NotificationPermissionStep(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun ThemeStep(
-    selectedTheme: Int,
-    onSelected: (Int) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val autoTheme = if (AndroidDevices.canUseSystemNightMode()) {
-        AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-    } else {
-        AppCompatDelegate.MODE_NIGHT_AUTO
-    }
-    val options = listOf(
-        ThemeOption(autoTheme, R.drawable.ic_theme_daynight, R.string.theme_auto),
-        ThemeOption(AppCompatDelegate.MODE_NIGHT_NO, R.drawable.ic_theme_light, R.string.light_theme),
-        ThemeOption(AppCompatDelegate.MODE_NIGHT_YES, R.drawable.ic_theme_dark, R.string.enable_black_theme)
-    )
-    OnboardingCenterColumn(modifier = modifier) {
-        Row(
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            options.forEach { option ->
-                SelectableIconOption(
-                    icon = option.icon,
-                    contentDescription = stringResource(option.contentDescription),
-                    selected = selectedTheme == option.theme,
-                    tintSelectedOnly = false,
-                    onClick = { onSelected(option.theme) }
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(24.dp))
-        OnboardingTitle(text = stringResource(R.string.onboarding_theme_title))
-        OnboardingBody(
-            text = stringResource(themeDescriptionRes(selectedTheme)),
-            modifier = Modifier.padding(top = 8.dp)
-        )
-    }
-}
-
-@Composable
 private fun OnboardingCenterColumn(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit
@@ -455,103 +354,19 @@ private fun OnboardingBody(
     )
 }
 
-@Composable
-private fun SelectableIconOption(
-    @DrawableRes icon: Int,
-    contentDescription: String,
-    selected: Boolean,
-    tintSelectedOnly: Boolean,
-    onClick: () -> Unit
-) {
-    val colors = VLCThemeDefaults.colors
-    val scale by animateFloatAsState(
-        targetValue = if (selected) 1f else 0.84f,
-        animationSpec = tween(VLCMotion.DurationMedium, easing = VLCMotion.EmphasizedDecelerate),
-        label = "optionScale"
-    )
-    val container by animateColorAsState(
-        targetValue = if (selected) colors.primary.copy(alpha = 0.16f) else Color.Transparent,
-        animationSpec = tween(VLCMotion.DurationShort),
-        label = "optionContainer"
-    )
-    val borderColor by animateColorAsState(
-        targetValue = if (selected) colors.primary else colors.fontDefault.copy(alpha = 0.24f),
-        animationSpec = tween(VLCMotion.DurationShort),
-        label = "optionBorder"
-    )
-    Surface(
-        color = container,
-        border = BorderStroke(if (selected) 2.dp else 1.dp, borderColor),
-        shape = MaterialTheme.shapes.large,
-        modifier = Modifier
-            .padding(horizontal = 6.dp)
-            .scale(scale)
-            .selectable(
-                selected = selected,
-                role = Role.RadioButton,
-                onClick = onClick
-            )
-    ) {
-        Image(
-            painter = painterResource(icon),
-            contentDescription = contentDescription,
-            colorFilter = when {
-                !tintSelectedOnly -> null
-                selected -> ColorFilter.tint(colors.primary)
-                else -> ColorFilter.tint(colors.fontDefault.copy(alpha = 0.6f))
-            },
-            modifier = Modifier
-                .padding(16.dp)
-                .size(72.dp)
-        )
-    }
-}
-
-/**
- * Monotonic progress for the onboarding journey. The flow branches (permission
- * outcomes skip steps), but it always advances toward and completes at THEME, so
- * the indicator never moves backwards on a normal path.
- */
+/** Monotonic progress for the short, system-theme onboarding journey. */
 private val OnboardingStep.onboardingProgress: Float
     get() = when (this) {
-        OnboardingStep.WELCOME -> 0.16f
-        OnboardingStep.ASK_PERMISSION -> 0.33f
-        OnboardingStep.NO_PERMISSION -> 0.5f
-        OnboardingStep.SCAN -> 0.66f
-        OnboardingStep.NOTIFICATION_PERMISSION -> 0.83f
-        OnboardingStep.THEME -> 1f
+        OnboardingStep.WELCOME -> 0.2f
+        OnboardingStep.ASK_PERMISSION -> 0.4f
+        OnboardingStep.NO_PERMISSION -> 0.55f
+        OnboardingStep.SCAN -> 0.7f
+        OnboardingStep.NOTIFICATION_PERMISSION -> 0.9f
     }
 
-@StringRes
-private fun permissionDescriptionRes(permissionType: PermissionType) = when (permissionType) {
-    PermissionType.NONE -> R.string.permission_onboarding_no_perm
-    PermissionType.MEDIA -> R.string.permission_onboarding_perm_media
-    PermissionType.ALL -> R.string.permission_onboarding_perm_all
-}
-
-@StringRes
-private fun themeDescriptionRes(theme: Int): Int {
-    val autoTheme = if (AndroidDevices.canUseSystemNightMode()) {
-        AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
-    } else {
-        AppCompatDelegate.MODE_NIGHT_AUTO
+private val OnboardingStep.primaryActionRes: Int
+    get() = when (this) {
+        OnboardingStep.ASK_PERMISSION -> R.string.permission_ask_again
+        OnboardingStep.NO_PERMISSION -> R.string.start
+        else -> R.string.next
     }
-    return when (theme) {
-        AppCompatDelegate.MODE_NIGHT_NO -> R.string.light_theme
-        AppCompatDelegate.MODE_NIGHT_YES -> R.string.enable_black_theme
-        autoTheme -> if (AndroidDevices.canUseSystemNightMode()) R.string.daynight_system_explanation else R.string.daynight_legacy_explanation
-        else -> if (AndroidDevices.canUseSystemNightMode()) R.string.daynight_system_explanation else R.string.daynight_legacy_explanation
-    }
-}
-
-private data class PermissionOption(
-    val type: PermissionType,
-    @DrawableRes val icon: Int,
-    @StringRes val description: Int
-)
-
-private data class ThemeOption(
-    val theme: Int,
-    @DrawableRes val icon: Int,
-    @StringRes val contentDescription: Int
-)
