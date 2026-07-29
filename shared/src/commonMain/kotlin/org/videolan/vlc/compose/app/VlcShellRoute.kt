@@ -155,6 +155,15 @@ internal fun shouldReplaceDetailRoute(
 internal fun shouldReplaceBrowserDetailAfterBack(singlePaneLayout: Boolean, stackSize: Int): Boolean =
     !singlePaneLayout && stackSize > 1
 
+/**
+ * An empty root library is a single focused state. Reserve the wide detail slot only once there is
+ * a meaningful list to keep visible beside it.
+ */
+internal fun shouldUseWideLibraryDetailLayout(
+    singlePaneLayout: Boolean,
+    hasLibraryContent: Boolean,
+): Boolean = !singlePaneLayout && hasLibraryContent
+
 /** Returns the root tab represented by a Navigation 3 back stack. */
 fun List<VlcShellRoute>.activeTab(): MainTab =
     asReversed().firstNotNullOfOrNull(VlcShellRoute::toMainTabOrNull) ?: MainTab.VIDEO

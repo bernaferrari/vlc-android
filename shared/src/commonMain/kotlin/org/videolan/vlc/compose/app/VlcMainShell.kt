@@ -20,9 +20,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
@@ -33,9 +35,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.ripple
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -192,6 +191,18 @@ fun VlcMainShell(
         val currentTab = backStack.filterIsInstance<VlcShellRoute>().activeTab()
         val showPlayer = currentRoute == PlayerRoute
         val showSettings = currentRoute == SettingsRoute
+        val playerState by playerVm.state.collectAsState()
+        val videoState by videoVm.state.collectAsState()
+        val detailVideoState by detailVideoVm.state.collectAsState()
+        val audioState by audioVm.state.collectAsState()
+        val detailAudioState by detailAudioVm.state.collectAsState()
+        val audioSection by audioVm.section.collectAsState()
+        val detailAudioSection by detailAudioVm.section.collectAsState()
+        val browserState by browserVm.state.collectAsState()
+        val detailBrowserState by detailBrowserVm.state.collectAsState()
+        val playlistsState by playlistsVm.state.collectAsState()
+        val detailPlaylistsState by detailPlaylistsVm.state.collectAsState()
+        val settingsState by settingsVm.state.collectAsState()
         // Root destinations switch immediately: they are frequent mode changes, not a journey.
         val rootTransitionMetadata = remember {
             NavDisplay.transitionSpec {
@@ -233,33 +244,86 @@ fun VlcMainShell(
                 )
             }
         }
-        val videoListMetadata = remember(singlePaneLayout, rootTransitionMetadata) {
-            if (singlePaneLayout) rootTransitionMetadata else ListDetailSceneStrategy.listPane(
-                detailPlaceholder = {
-                    LibraryDetailPlaceholder(MaterialSymbols.Filled.VideoLibrary)
-                },
-            )
+        // Mirror QuietGuard's selective list-detail use: an empty library is one clear state, not
+        // an empty half-screen plus an unrelated "select an item" message. Once a library has
+        // content, wide hosts retain the productive list/detail relationship.
+        val videoHasLibraryContent = videoState.items.isNotEmpty() || videoState.groups.isNotEmpty()
+        val audioHasLibraryContent = audioState.items.isNotEmpty() || audioState.audioEntities.isNotEmpty()
+        val browserHasLibraryContent = browserState.favorites.isNotEmpty() ||
+            browserState.folders.isNotEmpty() ||
+            browserState.networkRoots.isNotEmpty() ||
+            browserState.media.isNotEmpty()
+        val playlistsHaveLibraryContent = playlistsState.playlists.isNotEmpty()
+        val videoListMetadata = remember(
+            singlePaneLayout,
+            rootTransitionMetadata,
+            videoHasLibraryContent,
+        ) {
+            if (
+                !shouldUseWideLibraryDetailLayout(
+                    singlePaneLayout = singlePaneLayout,
+                    hasLibraryContent = videoHasLibraryContent,
+                )
+            ) {
+                rootTransitionMetadata
+            } else {
+                ListDetailSceneStrategy.listPane(
+                    detailPlaceholder = {
+                        LibraryDetailPlaceholder(MaterialSymbols.Filled.VideoLibrary)
+                    },
+                )
+            }
         }
-        val audioListMetadata = remember(singlePaneLayout, rootTransitionMetadata) {
-            if (singlePaneLayout) rootTransitionMetadata else ListDetailSceneStrategy.listPane(
-                detailPlaceholder = {
-                    LibraryDetailPlaceholder(MaterialSymbols.Filled.MusicNote)
-                },
-            )
+        val audioListMetadata = remember(
+            singlePaneLayout,
+            rootTransitionMetadata,
+            audioHasLibraryContent,
+        ) {
+            if (
+                !shouldUseWideLibraryDetailLayout(
+                    singlePaneLayout = singlePaneLayout,
+                    hasLibraryContent = audioHasLibraryContent,
+                )
+            ) {
+                rootTransitionMetadata
+            } else {
+                ListDetailSceneStrategy.listPane(
+                    detailPlaceholder = {
+                        LibraryDetailPlaceholder(MaterialSymbols.Filled.MusicNote)
+                    },
+                )
+            }
         }
-        val browserListMetadata = remember(singlePaneLayout, rootTransitionMetadata) {
-            if (singlePaneLayout) rootTransitionMetadata else ListDetailSceneStrategy.listPane(
-                detailPlaceholder = {
-                    LibraryDetailPlaceholder(MaterialSymbols.Filled.Folder)
-                },
-            )
+        val browserListMetadata = remember(
+            singlePaneLayout,
+            rootTransitionMetadata,
+            browserHasLibraryContent,
+        ) {
+            if (
+                !shouldUseWideLibraryDetailLayout(
+                    singlePaneLayout = singlePaneLayout,
+                    hasLibraryContent = browserHasLibraryContent,
+                )
+            ) {
+                rootTransitionMetadata
+            } else {
+                ListDetailSceneStrategy.listPane(
+                    detailPlaceholder = {
+                        LibraryDetailPlaceholder(MaterialSymbols.Filled.Folder)
+                    },
+                )
+            }
         }
-        val playlistsListMetadata = remember(singlePaneLayout, rootTransitionMetadata) {
-            if (singlePaneLayout) rootTransitionMetadata else ListDetailSceneStrategy.listPane(
-                detailPlaceholder = {
-                    LibraryDetailPlaceholder(MaterialSymbols.Filled.QueueMusic)
-                },
-            )
+        val playlistsListMetadata = remember(singlePaneLayout, rootTransitionMetadata, playlistsHaveLibraryContent) {
+            if (!shouldUseWideLibraryDetailLayout(singlePaneLayout, playlistsHaveLibraryContent)) {
+                rootTransitionMetadata
+            } else {
+                ListDetailSceneStrategy.listPane(
+                    detailPlaceholder = {
+                        LibraryDetailPlaceholder(MaterialSymbols.Filled.QueueMusic)
+                    },
+                )
+            }
         }
         val libraryDetailMetadata = remember(singlePaneLayout, detailTransitionMetadata) {
             val paneMetadata = ListDetailSceneStrategy.detailPane()
@@ -325,18 +389,6 @@ fun VlcMainShell(
         fun selectTab(t: MainTab) {
             if (onTabChange != null) onTabChange(t) else resetToTab(t)
         }
-        val playerState by playerVm.state.collectAsState()
-        val videoState by videoVm.state.collectAsState()
-        val detailVideoState by detailVideoVm.state.collectAsState()
-        val audioState by audioVm.state.collectAsState()
-        val detailAudioState by detailAudioVm.state.collectAsState()
-        val audioSection by audioVm.section.collectAsState()
-        val detailAudioSection by detailAudioVm.section.collectAsState()
-        val browserState by browserVm.state.collectAsState()
-        val detailBrowserState by detailBrowserVm.state.collectAsState()
-        val playlistsState by playlistsVm.state.collectAsState()
-        val detailPlaylistsState by detailPlaylistsVm.state.collectAsState()
-        val settingsState by settingsVm.state.collectAsState()
         val appLocked = settingsState.appLock.supported &&
             settingsState.appLock.enabled &&
             settingsState.appLock.locked
@@ -893,8 +945,8 @@ internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
 }
 
 /**
- * VLC's shared theme control. The two surfaces form one small asymmetric group: choosing an
- * appearance is a mode decision, while the palette below is a separate colour decision.
+ * VLC's shared theme control mirrors QuietGuard's compact, connected appearance group. The
+ * choices read as one decision, without the legacy outlined-control treatment fighting the page.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -917,25 +969,23 @@ private fun AppearanceSettingsGroup(
             shape = VLCListItemPosition.First.segmentShape(),
             color = MaterialTheme.colorScheme.surfaceContainerLow,
         ) {
-            Column(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+            Row(
+                modifier = Modifier.padding(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
             ) {
-                Text(ShellStrings.themeMode(), style = MaterialTheme.typography.titleSmall)
-                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                    val modes = listOf(
-                        VLCThemeAppearance.Light to ShellStrings.lightTheme(),
-                        VLCThemeAppearance.Dark to ShellStrings.darkTheme(),
-                        VLCThemeAppearance.System to ShellStrings.systemTheme(),
+                val modes = listOf(
+                    VLCThemeAppearance.Light to ShellStrings.lightTheme(),
+                    VLCThemeAppearance.Dark to ShellStrings.darkTheme(),
+                    VLCThemeAppearance.System to ShellStrings.systemTheme(),
+                )
+                modes.forEachIndexed { index, (mode, label) ->
+                    AppearanceModeButton(
+                        label = label,
+                        selected = appearance == mode,
+                        position = index,
+                        lastPosition = modes.lastIndex,
+                        onClick = { onAppearanceChange(mode) },
                     )
-                    modes.forEachIndexed { index, (mode, label) ->
-                        SegmentedButton(
-                            selected = appearance == mode,
-                            onClick = { onAppearanceChange(mode) },
-                            shape = SegmentedButtonDefaults.itemShape(index, modes.size),
-                            label = { Text(label, maxLines = 1) },
-                        )
-                    }
                 }
             }
         }
@@ -944,25 +994,90 @@ private fun AppearanceSettingsGroup(
             shape = VLCListItemPosition.Last.segmentShape(),
             color = MaterialTheme.colorScheme.surfaceContainerLow,
         ) {
-            Column(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+            FlowRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(0.dp, Alignment.CenterHorizontally),
+                verticalArrangement = Arrangement.spacedBy(0.dp),
             ) {
-                Text(ShellStrings.themeColor(), style = MaterialTheme.typography.titleSmall)
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    availableVLCThemeAccents().forEach { option ->
-                        ThemeAccentSwatch(
-                            accent = option,
-                            selected = option == accent,
-                            contentDescription = ShellStrings.themeAccent(option),
-                            onClick = { onAccentChange(option) },
-                        )
-                    }
+                availableVLCThemeAccents().forEach { option ->
+                    ThemeAccentSwatch(
+                        accent = option,
+                        selected = option == accent,
+                        contentDescription = ShellStrings.themeAccent(option),
+                        onClick = { onAccentChange(option) },
+                    )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun RowScope.AppearanceModeButton(
+    label: String,
+    selected: Boolean,
+    position: Int,
+    lastPosition: Int,
+    onClick: () -> Unit,
+) {
+    val cornerShape = when (position) {
+        0 -> RoundedCornerShape(
+            topStart = 16.dp,
+            bottomStart = 16.dp,
+            topEnd = 6.dp,
+            bottomEnd = 6.dp,
+        )
+        lastPosition -> RoundedCornerShape(
+            topStart = 6.dp,
+            bottomStart = 6.dp,
+            topEnd = 16.dp,
+            bottomEnd = 16.dp,
+        )
+        else -> RoundedCornerShape(6.dp)
+    }
+    val selectionDescription = if (selected) ShellStrings.selected() else ShellStrings.select()
+    Surface(
+        onClick = onClick,
+        modifier = Modifier
+            .weight(1f)
+            .heightIn(min = 48.dp)
+            .semantics {
+                role = Role.RadioButton
+                contentDescription = "$label, $selectionDescription"
+            },
+        shape = cornerShape,
+        color = if (selected) {
+            MaterialTheme.colorScheme.primaryContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerHigh
+        },
+        contentColor = if (selected) {
+            MaterialTheme.colorScheme.onPrimaryContainer
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        },
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            if (selected) {
+                Icon(
+                    icon = MaterialSymbols.Filled.CheckCircle,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                modifier = if (selected) Modifier.padding(start = 6.dp) else Modifier,
+            )
         }
     }
 }
@@ -1004,6 +1119,7 @@ private fun ThemeAccentSwatch(
     val interactionSource = remember { MutableInteractionSource() }
     val orbShape = RoundedCornerShape(percent = (orbCornerFraction * 100).toInt())
     val iconTint = if (accent == VLCThemeAccent.Amber || accent == VLCThemeAccent.Lime) Color.Black else Color.White
+    val selectionDescription = if (selected) ShellStrings.selected() else ShellStrings.select()
     Box(
         modifier = Modifier
             .size(50.dp)
@@ -1014,7 +1130,7 @@ private fun ThemeAccentSwatch(
             )
             .semantics {
                 role = Role.RadioButton
-                this.contentDescription = "$contentDescription, ${if (selected) ShellStrings.selected() else ShellStrings.select()}"
+                this.contentDescription = "$contentDescription, $selectionDescription"
             },
         contentAlignment = Alignment.Center,
     ) {

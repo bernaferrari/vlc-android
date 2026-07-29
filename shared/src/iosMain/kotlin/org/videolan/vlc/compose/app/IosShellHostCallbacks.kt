@@ -3,8 +3,10 @@
 package org.videolan.vlc.compose.app
 
 import org.videolan.vlc.app.IosMediaLibrary
+import org.videolan.vlc.compose.components.VLCAboutVersionInfo
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.util.ContextOption
+import platform.Foundation.NSBundle
 import platform.Foundation.NSURL
 import platform.UIKit.UIActivityViewController
 import platform.UIKit.UIAlertAction
@@ -22,6 +24,14 @@ import platform.UIKit.popoverPresentationController
 class IosShellHostCallbacks(
     private val hostViewController: () -> UIViewController?,
 ) : ShellHostCallbacks {
+
+    override fun aboutVersionInfo() = VLCAboutVersionInfo(
+        version = NSBundle.mainBundle.objectForInfoDictionaryKey("CFBundleShortVersionString") as? String
+            ?: "VLC for iOS",
+        buildDate = "",
+        changelog = "",
+        detailRows = emptyList(),
+    )
 
     override fun supportsMediaImport(): Boolean = true
 

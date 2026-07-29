@@ -6,12 +6,22 @@ import org.koin.mp.KoinPlatform
 import org.videolan.vlc.app.BrowserMediaRepository
 import org.videolan.vlc.app.openBrowserMediaPicker
 import org.videolan.vlc.app.openBrowserSubtitlePicker
+import org.videolan.vlc.compose.components.VLCAboutVersionInfo
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.util.ContextOption
 
 /** Browser-native equivalents for the shell actions that a Wasm host can perform today. */
 class WasmShellHostCallbacks : ShellHostCallbacks {
     override fun onContextAction(item: MediaItem, option: ContextOption) = Unit
+
+    // The shared hero already says "VLC". Give the Web demo a useful platform label instead of
+    // repeating the app name in its version pill.
+    override fun aboutVersionInfo() = VLCAboutVersionInfo(
+        version = "Web demo",
+        buildDate = "Runs locally in your browser",
+        changelog = "",
+        detailRows = emptyList(),
+    )
 
     override fun supportsMediaImport(): Boolean = true
 

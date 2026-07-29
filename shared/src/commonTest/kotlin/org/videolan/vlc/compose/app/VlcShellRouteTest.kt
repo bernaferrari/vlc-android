@@ -77,4 +77,11 @@ class VlcShellRouteTest {
         assertFalse(shouldReplaceBrowserDetailAfterBack(singlePaneLayout = false, stackSize = 1))
         assertFalse(shouldReplaceBrowserDetailAfterBack(singlePaneLayout = true, stackSize = 2))
     }
+
+    @Test
+    fun wideLibraryDetailIsReservedForPopulatedRoots() {
+        assertTrue(shouldUseWideLibraryDetailLayout(singlePaneLayout = false, hasLibraryContent = true))
+        assertFalse(shouldUseWideLibraryDetailLayout(singlePaneLayout = false, hasLibraryContent = false))
+        assertFalse(shouldUseWideLibraryDetailLayout(singlePaneLayout = true, hasLibraryContent = true))
+    }
 }
