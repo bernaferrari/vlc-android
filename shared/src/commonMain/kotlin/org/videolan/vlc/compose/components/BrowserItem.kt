@@ -28,11 +28,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.icons.Icon
@@ -68,6 +72,47 @@ val VLCMediaCardShape = RoundedCornerShape(18.dp)
 val VLCArtworkTileShape = RoundedCornerShape(14.dp)
 
 /**
+ * Finds every literal, case-insensitive match used by the shared media filters.
+ * Keeping the range calculation separate makes the presentation testable without Compose.
+ */
+internal fun searchMatchRanges(text: String, query: String): List<IntRange> {
+    val needle = query.trim()
+    if (needle.isEmpty()) return emptyList()
+
+    val matches = mutableListOf<IntRange>()
+    var start = text.indexOf(needle, ignoreCase = true)
+    while (start >= 0) {
+        matches += start until start + needle.length
+        start = text.indexOf(needle, startIndex = start + needle.length, ignoreCase = true)
+    }
+    return matches
+}
+
+/** Shared SDKMonitor-style presentation for search results in every supported target. */
+@Composable
+fun highlightedSearchText(text: String, query: String): AnnotatedString {
+    val matches = searchMatchRanges(text, query)
+    if (matches.isEmpty()) return AnnotatedString(text)
+
+    return buildAnnotatedString {
+        var cursor = 0
+        matches.forEach { range ->
+            append(text.substring(cursor, range.first))
+            withStyle(
+                SpanStyle(
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.primary,
+                ),
+            ) {
+                append(text.substring(range))
+            }
+            cursor = range.last + 1
+        }
+        append(text.substring(cursor))
+    }
+}
+
+/**
  * Shared Compose row for the core media-browser list item pattern.
  *
  * Traceability: this replaces the former media-browser row/card XML patterns,
@@ -84,6 +129,7 @@ val VLCArtworkTileShape = RoundedCornerShape(14.dp)
 fun VLCBrowserItemRow(
     title: String,
     subtitle: String?,
+    searchQuery: String = "",
     modifier: Modifier = Modifier,
     selected: Boolean = false,
     enabled: Boolean = true,
@@ -145,6 +191,7 @@ fun VLCBrowserItemRow(
             BrowserItemTexts(
                 title = title,
                 subtitle = subtitle,
+                searchQuery = searchQuery,
                 titleColor = contentColor,
                 subtitleColor = if (selected) contentColor.copy(alpha = 0.72f) else colors.listSubtitle,
                 titleMaxLines = titleMaxLines,
@@ -177,6 +224,7 @@ fun VLCBrowserItemRow(
 fun VLCBrowserItemCard(
     title: String,
     subtitle: String?,
+    searchQuery: String = "",
     modifier: Modifier = Modifier,
     selected: Boolean = false,
     enabled: Boolean = true,
@@ -246,6 +294,7 @@ fun VLCBrowserItemCard(
             BrowserItemTexts(
                 title = title,
                 subtitle = subtitle,
+                searchQuery = searchQuery,
                 titleColor = contentColor,
                 subtitleColor = if (selected) {
                     contentColor.copy(alpha = 0.72f)
@@ -278,6 +327,7 @@ private fun BrowserArtwork(
 private fun BrowserItemTexts(
     title: String,
     subtitle: String?,
+    searchQuery: String = "",
     titleColor: androidx.compose.ui.graphics.Color,
     subtitleColor: androidx.compose.ui.graphics.Color,
     titleMaxLines: Int,
@@ -286,7 +336,7 @@ private fun BrowserItemTexts(
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(
-            text = title,
+            text = highlightedSearchText(title, searchQuery),
             color = titleColor,
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Medium,
@@ -295,7 +345,7 @@ private fun BrowserItemTexts(
         )
         subtitle?.takeIf { it.isNotBlank() }?.let {
             Text(
-                text = it,
+                text = highlightedSearchText(it, searchQuery),
                 color = subtitleColor,
                 style = MaterialTheme.typography.bodySmall,
                 maxLines = subtitleMaxLines,

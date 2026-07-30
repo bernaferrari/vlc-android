@@ -16,6 +16,7 @@ readonly FILLED_ICONS=(
   skip_next skip_previous repeat repeat_one settings info edit delete history check_circle arrow_upward devices add sort close search warning
   forum description mail backspace language code extension groups open_in_new chevron_right palette
   file_upload ios_share undo block notifications arrow_downward stop
+  refresh
   picture_in_picture_alt
   lock lock_open
 )
@@ -27,23 +28,32 @@ readonly OUTLINED_ICONS=(
 readonly AUTO_MIRRORED_FILLED_ICONS=(arrow_back)
 
 CHECK_ONLY=0
+ICON_FILTER=""
 
 usage() {
   cat <<'EOF'
-Usage: scripts/generate-material-symbols.sh [--check]
+Usage: scripts/generate-material-symbols.sh [--check] [--icon <name>]
 
 Regenerate Material Symbols Kotlin sources. With --check, verify that the
 checked-in sources match the endpoint without changing any files.
+
+Use --icon to update one filled symbol and the shared facade without
+re-downloading the full catalogue.
 EOF
 }
 
-case "${1:-}" in
-  "") ;;
-  --check) CHECK_ONLY=1 ;;
-  -h|--help) usage; exit 0 ;;
-  *) usage >&2; exit 2 ;;
-esac
-[[ $# -le 1 ]] || { usage >&2; exit 2; }
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --check) CHECK_ONLY=1; shift ;;
+    --icon)
+      [[ $# -ge 2 ]] || { usage >&2; exit 2; }
+      ICON_FILTER="$2"
+      shift 2
+      ;;
+    -h|--help) usage; exit 0 ;;
+    *) usage >&2; exit 2 ;;
+  esac
+done
 
 require_command() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -381,6 +391,15 @@ check_outputs() {
 validate_icon_lists
 validate_existing_layout
 
+GENERATION_ICONS=("${FILLED_ICONS[@]}")
+if [[ -n "$ICON_FILTER" ]]; then
+  if [[ " ${FILLED_ICONS[*]} " != *" $ICON_FILTER "* ]]; then
+    printf 'Unknown filled icon: %s\n' "$ICON_FILTER" >&2
+    exit 2
+  fi
+  GENERATION_ICONS=("$ICON_FILTER")
+fi
+
 readonly WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/vlc-material-symbols.XXXXXX")"
 readonly STAGING_DIR="$WORK_DIR/output"
 cleanup() {
@@ -392,12 +411,14 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 mkdir -p "$STAGING_DIR" "$WORK_DIR/downloads"
 
-for icon in "${FILLED_ICONS[@]}"; do
+for icon in "${GENERATION_ICONS[@]}"; do
   generate_icon "$icon" "$STAGING_DIR"
 done
 
 generate_facade "$STAGING_DIR"
-validate_outputs "$STAGING_DIR"
+if [[ -z "$ICON_FILTER" ]]; then
+  validate_outputs "$STAGING_DIR"
+fi
 
 if [[ "$CHECK_ONLY" -eq 1 ]]; then
   check_outputs
@@ -408,4 +429,4 @@ fi
 publish_outputs
 
 printf 'Generated %d filled and %d outlined Material Symbols in %s\n' \
-  "${#FILLED_ICONS[@]}" "${#OUTLINED_ICONS[@]}" "$OUTPUT_DIR"
+  "${#GENERATION_ICONS[@]}" "${#OUTLINED_ICONS[@]}" "$OUTPUT_DIR"

@@ -57,6 +57,7 @@ object MaterialSymbols {
         val Notifications: MaterialIcon get() = MaterialIcon(filledNotifications)
         val ArrowDownward: MaterialIcon get() = MaterialIcon(filledArrowDownward)
         val Stop: MaterialIcon get() = MaterialIcon(filledStop)
+        val Refresh: MaterialIcon get() = MaterialIcon(filledRefresh)
         val PictureInPictureAlt: MaterialIcon get() = MaterialIcon(filledPictureInPictureAlt)
         val Lock: MaterialIcon get() = MaterialIcon(filledLock)
         val LockOpen: MaterialIcon get() = MaterialIcon(filledLockOpen)

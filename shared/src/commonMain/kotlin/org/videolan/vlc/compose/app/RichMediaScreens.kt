@@ -6,6 +6,11 @@
 package org.videolan.vlc.compose.app
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -33,21 +38,31 @@ import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -70,6 +85,7 @@ import org.videolan.vlc.compose.components.VLCIndexedFastScroller
 import org.videolan.vlc.compose.components.VLCListItemPosition
 import org.videolan.vlc.compose.components.VLCArtworkTileShape
 import org.videolan.vlc.compose.components.VLCMediaCardShape
+import org.videolan.vlc.compose.components.highlightedSearchText
 import org.videolan.vlc.compose.components.vlcIndexLabel
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.model.MediaFolder
@@ -160,6 +176,10 @@ fun RichMediaListPane(
 ) {
     val colors = VLCThemeDefaults.colors
     var showDisplaySettings by remember { mutableStateOf(false) }
+    var showLibraryMenu by remember { mutableStateOf(false) }
+    var isSearchOpen by rememberSaveable { mutableStateOf(state.query.isNotBlank()) }
+    val searchFocusRequester = remember { FocusRequester() }
+    val focusManager: FocusManager = LocalFocusManager.current
     val lazyPagingItems = pagingFlow?.let { it.collectAsLazyPagingItems() }
     val usePaging = lazyPagingItems != null &&
         sections.isEmpty() &&
@@ -181,7 +201,7 @@ fun RichMediaListPane(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = if (isDetail) 12.dp else 24.dp, bottom = 12.dp),
+                    .padding(top = if (isDetail) 12.dp else 16.dp, bottom = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
@@ -199,11 +219,80 @@ fun RichMediaListPane(
                 Text(
                     state.openedEntityTitle ?: state.containerTitle ?: title,
                     fontWeight = FontWeight.Bold,
-                    style = if (isDetail) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.headlineLarge,
+                    style = if (isDetail) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.weight(1f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+                IconButton(
+                    onClick = {
+                        isSearchOpen = !isSearchOpen
+                        if (!isSearchOpen) {
+                            onQuery("")
+                            focusManager.clearFocus()
+                        }
+                    },
+                ) {
+                    Icon(
+                        icon = if (isSearchOpen) MaterialSymbols.Filled.Close else MaterialSymbols.Filled.Search,
+                        contentDescription = if (isSearchOpen) ShellStrings.clear() else ShellStrings.search(),
+                    )
+                }
+                Box {
+                    IconButton(onClick = { showLibraryMenu = true }) {
+                        Icon(
+                            icon = MaterialSymbols.Filled.MoreVert,
+                            contentDescription = ShellStrings.moreOptions(),
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = showLibraryMenu,
+                        onDismissRequest = { showLibraryMenu = false },
+                    ) {
+                            DropdownMenuItem(
+                                text = { Text(ShellStrings.playAll()) },
+                                leadingIcon = {
+                                    Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = null)
+                                },
+                                onClick = {
+                                    showLibraryMenu = false
+                                    onPlayAll()
+                                },
+                            )
+                            DropdownMenuItem(
+                                text = { Text(ShellStrings.select()) },
+                                leadingIcon = {
+                                    Icon(MaterialSymbols.Filled.SelectAll, contentDescription = null)
+                                },
+                                onClick = {
+                                    showLibraryMenu = false
+                                    onSelectAll()
+                                },
+                            )
+                            if (state.supportsRescan) {
+                                DropdownMenuItem(
+                                    text = { Text(ShellStrings.refresh()) },
+                                    leadingIcon = {
+                                        Icon(MaterialSymbols.Filled.Refresh, contentDescription = null)
+                                    },
+                                    onClick = {
+                                        showLibraryMenu = false
+                                        onRescan()
+                                    },
+                                )
+                            }
+                            DropdownMenuItem(
+                                text = { Text(ShellStrings.displaySettings()) },
+                                leadingIcon = {
+                                    Icon(MaterialSymbols.Filled.Tune, contentDescription = null)
+                                },
+                                onClick = {
+                                    showLibraryMenu = false
+                                    showDisplaySettings = true
+                                },
+                            )
+                    }
+                }
             }
             headerContent?.invoke()
         }
@@ -227,55 +316,6 @@ fun RichMediaListPane(
                 TextButton(onClick = onClearSelection) {
                     Text(ShellStrings.selectionCount(ShellStrings.clear(), state.selection.size))
                 }
-            }
-        } else if (!useEmptyPresentation) {
-            FlowRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                VLCConnectedIconActionBar(
-                    actions = listOf(
-                        VLCConnectedIconAction(
-                            icon = MaterialSymbols.Filled.SelectAll,
-                            contentDescription = ShellStrings.select(),
-                            onClick = onSelectAll,
-                        ),
-                        VLCConnectedIconAction(
-                            icon = if (state.onlyFavorites) MaterialSymbols.Filled.Star else MaterialSymbols.Outlined.Star,
-                            contentDescription = ShellStrings.favorites(),
-                            selected = state.onlyFavorites,
-                            onClick = onToggleFavorites,
-                        ),
-                        VLCConnectedIconAction(
-                            icon = if (state.viewMode == ViewMode.LIST) MaterialSymbols.Filled.GridView else MaterialSymbols.Filled.ViewList,
-                            contentDescription = if (state.viewMode == ViewMode.LIST) ShellStrings.gridView() else ShellStrings.listView(),
-                            onClick = {
-                                onSetViewMode(if (state.viewMode == ViewMode.LIST) ViewMode.GRID else ViewMode.LIST)
-                            },
-                        ),
-                        VLCConnectedIconAction(
-                            icon = MaterialSymbols.Filled.Tune,
-                            contentDescription = ShellStrings.displaySettings(),
-                            onClick = { showDisplaySettings = true },
-                        ),
-                    ),
-                )
-                if (state.supportsRescan) {
-                    TextButton(onClick = onRescan) { Text(ShellStrings.refresh()) }
-                }
-                VLCConnectedIconActionBar(
-                    actions = listOf(
-                        VLCConnectedIconAction(
-                            icon = MaterialSymbols.Filled.PlayArrow,
-                            contentDescription = ShellStrings.playAll(),
-                            selected = true,
-                            onClick = onPlayAll,
-                        ),
-                    ),
-                )
             }
         }
 
@@ -332,15 +372,38 @@ fun RichMediaListPane(
             )
         }
 
-        if (!useEmptyPresentation) {
-            androidx.compose.material3.OutlinedTextField(
+        AnimatedVisibility(
+            visible = !useEmptyPresentation && isSearchOpen,
+            enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
+            exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(),
+        ) {
+            OutlinedTextField(
                 value = state.query,
                 onValueChange = onQuery,
-                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(searchFocusRequester)
+                    .padding(bottom = 8.dp),
                 singleLine = true,
-                label = { Text(ShellStrings.search()) },
+                placeholder = { Text(ShellStrings.search()) },
+                leadingIcon = {
+                    Icon(MaterialSymbols.Filled.Search, contentDescription = null)
+                },
+                trailingIcon = {
+                    if (state.query.isNotEmpty()) {
+                        IconButton(onClick = { onQuery("") }) {
+                            Icon(MaterialSymbols.Filled.Close, contentDescription = ShellStrings.clear())
+                        }
+                    }
+                },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
                 shape = MaterialTheme.shapes.extraLarge,
             )
+        }
+
+        LaunchedEffect(isSearchOpen) {
+            if (isSearchOpen) searchFocusRequester.requestFocus()
         }
 
         if (state.loading && !useEmptyPresentation) {
@@ -406,6 +469,7 @@ fun RichMediaListPane(
                                     ShellStrings.group()
                                 }
                             },
+                            searchQuery = state.query,
                             position = sectionListItemPosition(index, groups.size),
                             onClick = { onOpenGroup(folder) },
                             artworkContent = {
@@ -437,6 +501,7 @@ fun RichMediaListPane(
                 PagedMediaBody(
                     modifier = Modifier.fillMaxWidth().weight(1f),
                     state = state,
+                    searchQuery = state.query,
                     lazyPagingItems = lazyPagingItems,
                     emptyLabel = emptyLabel,
                     emptySymbol = emptySymbol,
@@ -464,6 +529,7 @@ fun RichMediaListPane(
                 SnapshotMediaBody(
                     modifier = Modifier.fillMaxWidth().weight(1f),
                     state = state,
+                    searchQuery = state.query,
                     sections = sections,
                     onPlay = onPlay,
                     onPlayNext = onPlayNext,
@@ -482,6 +548,7 @@ fun RichMediaListPane(
 private fun PagedMediaBody(
     modifier: Modifier,
     state: MediaListUiState,
+    searchQuery: String,
     lazyPagingItems: LazyPagingItems<MediaItem>,
     emptyLabel: String,
     emptySymbol: MaterialIcon,
@@ -525,6 +592,7 @@ private fun PagedMediaBody(
                 MediaGridCard(
                     item = item,
                     selected = item.uri in state.selection,
+                    searchQuery = searchQuery,
                     showTrackNumbers = state.showTrackNumbers,
                     onClick = {
                         if (state.selection.isNotEmpty()) onToggleSelect(item)
@@ -568,6 +636,7 @@ private fun PagedMediaBody(
                     MediaListRow(
                         item = item,
                         selected = item.uri in state.selection,
+                        searchQuery = searchQuery,
                         selecting = state.selection.isNotEmpty(),
                         showTrackNumbers = state.showTrackNumbers,
                         onPlay = onPlay,
@@ -641,6 +710,7 @@ internal fun pagedListItemPosition(
 private fun SnapshotMediaBody(
     modifier: Modifier,
     state: MediaListUiState,
+    searchQuery: String,
     sections: List<Pair<String, List<MediaItem>>>,
     onPlay: (MediaItem) -> Unit,
     onPlayNext: (MediaItem) -> Unit,
@@ -678,6 +748,7 @@ private fun SnapshotMediaBody(
                     MediaGridCard(
                         item = item,
                         selected = item.uri in state.selection,
+                        searchQuery = searchQuery,
                         showTrackNumbers = state.showTrackNumbers,
                         onClick = {
                             if (state.selection.isNotEmpty()) onToggleSelect(item)
@@ -725,6 +796,7 @@ private fun SnapshotMediaBody(
                             MediaListRow(
                                 item = media,
                                 selected = media.uri in state.selection,
+                                searchQuery = searchQuery,
                                 selecting = state.selection.isNotEmpty(),
                                 showTrackNumbers = state.showTrackNumbers,
                                 onPlay = onPlay,
@@ -753,6 +825,7 @@ private fun SnapshotMediaBody(
 private fun MediaListRow(
     item: MediaItem,
     selected: Boolean,
+    searchQuery: String,
     selecting: Boolean,
     showTrackNumbers: Boolean,
     onPlay: (MediaItem) -> Unit,
@@ -777,6 +850,8 @@ private fun MediaListRow(
                 item.description,
                 formatDuration(item.duration),
             ).filter { it.isNotBlank() }.joinToString(" · ").ifBlank { null },
+            searchQuery = searchQuery,
+            titleMaxLines = 1,
             selected = selected,
             position = position,
             onClick = {
@@ -882,6 +957,7 @@ private fun MediaContextMenu(
 fun MediaGridCard(
     item: MediaItem,
     selected: Boolean,
+    searchQuery: String = "",
     showTrackNumbers: Boolean = false,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
@@ -927,7 +1003,7 @@ fun MediaGridCard(
                 }
             }
             Text(
-                item.displayTitle,
+                highlightedSearchText(item.displayTitle, searchQuery),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 fontWeight = FontWeight.SemiBold,
@@ -941,7 +1017,7 @@ fun MediaGridCard(
                 .joinToString(" · ")
             if (sub.isNotBlank()) {
                 Text(
-                    sub,
+                    highlightedSearchText(sub, searchQuery),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.labelSmall,
