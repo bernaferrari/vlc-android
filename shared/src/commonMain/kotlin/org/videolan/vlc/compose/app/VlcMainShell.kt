@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
@@ -234,6 +235,46 @@ fun VlcMainShell(
             } + NavDisplay.popTransitionSpec {
                 ContentTransform(
                     targetContentEnter = EnterTransition.None,
+                    initialContentExit = slideOutHorizontally(
+                        animationSpec = tween(
+                            durationMillis = if (motion.reducedMotion) 0 else 180,
+                            easing = VLCMotion.EmphasizedAccelerate,
+                        ),
+                        targetOffsetX = { fullWidth -> fullWidth },
+                    ),
+                )
+            }
+        }
+        // Settings leaves the hub entirely, so give it a complete forward/back page transition
+        // rather than a one-sided detail entrance. The navigation chrome can change with the
+        // destination without making the content jump or cross-fade.
+        val settingsTransitionMetadata = remember(motion) {
+            NavDisplay.transitionSpec {
+                ContentTransform(
+                    targetContentEnter = slideInHorizontally(
+                        animationSpec = tween(
+                            durationMillis = if (motion.reducedMotion) 0 else 220,
+                            easing = VLCMotion.EmphasizedDecelerate,
+                        ),
+                        initialOffsetX = { fullWidth -> fullWidth },
+                    ),
+                    initialContentExit = slideOutHorizontally(
+                        animationSpec = tween(
+                            durationMillis = if (motion.reducedMotion) 0 else 180,
+                            easing = VLCMotion.EmphasizedAccelerate,
+                        ),
+                        targetOffsetX = { fullWidth -> -fullWidth / 6 },
+                    ),
+                )
+            } + NavDisplay.popTransitionSpec {
+                ContentTransform(
+                    targetContentEnter = slideInHorizontally(
+                        animationSpec = tween(
+                            durationMillis = if (motion.reducedMotion) 0 else 180,
+                            easing = VLCMotion.EmphasizedDecelerate,
+                        ),
+                        initialOffsetX = { fullWidth -> -fullWidth / 6 },
+                    ),
                     initialContentExit = slideOutHorizontally(
                         animationSpec = tween(
                             durationMillis = if (motion.reducedMotion) 0 else 180,
@@ -691,7 +732,7 @@ fun VlcMainShell(
                             hostCallbacks = hostCallbacks,
                         )
                     }
-                    entry<SettingsRoute>(metadata = detailTransitionMetadata) {
+                    entry<SettingsRoute>(metadata = settingsTransitionMetadata) {
                         SettingsDestination(
                             modifier = Modifier.fillMaxSize(),
                             viewModel = settingsVm,
@@ -970,50 +1011,52 @@ private fun AppearanceSettingsGroup(
             color = VLCThemeDefaults.colors.primary,
             modifier = Modifier.padding(horizontal = 16.dp),
         )
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = VLCListItemPosition.First.segmentShape(),
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
-        ) {
-            Row(
-                modifier = Modifier.padding(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(2.dp),
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = VLCListItemPosition.First.segmentShape(),
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
             ) {
-                val modes = listOf(
-                    VLCThemeAppearance.Light to ShellStrings.lightTheme(),
-                    VLCThemeAppearance.Dark to ShellStrings.darkTheme(),
-                    VLCThemeAppearance.System to ShellStrings.systemTheme(),
-                )
-                modes.forEachIndexed { index, (mode, label) ->
-                    AppearanceModeButton(
-                        label = label,
-                        selected = appearance == mode,
-                        position = index,
-                        lastPosition = modes.lastIndex,
-                        onClick = { onAppearanceChange(mode) },
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    val modes = listOf(
+                        VLCThemeAppearance.Light to ShellStrings.lightTheme(),
+                        VLCThemeAppearance.Dark to ShellStrings.darkTheme(),
+                        VLCThemeAppearance.System to ShellStrings.systemTheme(),
                     )
+                    modes.forEachIndexed { index, (mode, label) ->
+                        AppearanceModeButton(
+                            label = label,
+                            selected = appearance == mode,
+                            position = index,
+                            lastPosition = modes.lastIndex,
+                            onClick = { onAppearanceChange(mode) },
+                        )
+                    }
                 }
             }
-        }
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = VLCListItemPosition.Last.segmentShape(),
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
-        ) {
-            FlowRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
-                horizontalArrangement = Arrangement.spacedBy(0.dp, Alignment.CenterHorizontally),
-                verticalArrangement = Arrangement.spacedBy(0.dp),
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = VLCListItemPosition.Last.segmentShape(),
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
             ) {
-                availableVLCThemeAccents().forEach { option ->
-                    ThemeAccentSwatch(
-                        accent = option,
-                        selected = option == accent,
-                        contentDescription = ShellStrings.themeAccent(option),
-                        onClick = { onAccentChange(option) },
-                    )
+                FlowRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(0.dp, Alignment.CenterHorizontally),
+                    verticalArrangement = Arrangement.spacedBy(0.dp),
+                ) {
+                    availableVLCThemeAccents().forEach { option ->
+                        ThemeAccentSwatch(
+                            accent = option,
+                            selected = option == accent,
+                            contentDescription = ShellStrings.themeAccent(option),
+                            onClick = { onAccentChange(option) },
+                        )
+                    }
                 }
             }
         }
@@ -1255,9 +1298,17 @@ private fun ValueStepperRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-        TextButton(onClick = onDecrease, enabled = decreaseEnabled) { Text("−") }
+        TextButton(
+            onClick = onDecrease,
+            enabled = decreaseEnabled,
+            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 8.dp),
+        ) { Text("−") }
         Text(value, style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(horizontal = 4.dp))
-        TextButton(onClick = onIncrease, enabled = increaseEnabled) { Text("+") }
+        TextButton(
+            onClick = onIncrease,
+            enabled = increaseEnabled,
+            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 8.dp),
+        ) { Text("+") }
     }
 }
 

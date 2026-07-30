@@ -330,9 +330,11 @@ private fun AboutActionRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 80.dp)
-                .padding(start = 16.dp, top = 12.dp, end = 8.dp, bottom = 12.dp),
         ) {
             Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
@@ -370,9 +372,10 @@ private fun AboutActionRow(
                     }
                 }
                 Icon(
-                    icon = MaterialSymbols.Filled.OpenInNew,
+                    icon = MaterialSymbols.Filled.ChevronRight,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(18.dp),
                 )
             }
         }

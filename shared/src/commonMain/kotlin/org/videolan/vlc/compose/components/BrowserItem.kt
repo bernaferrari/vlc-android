@@ -55,17 +55,17 @@ enum class VLCListItemPosition {
 
 /** The shared QuietGuard-inspired outer/inner geometry for segmented rows. */
 fun VLCListItemPosition.segmentShape() = when {
-    this == VLCListItemPosition.Single -> RoundedCornerShape(24.dp)
-    this == VLCListItemPosition.First -> RoundedCornerShape(24.dp, 24.dp, 6.dp, 6.dp)
-    this == VLCListItemPosition.Last -> RoundedCornerShape(6.dp, 6.dp, 24.dp, 24.dp)
-    else -> RoundedCornerShape(6.dp)
+    this == VLCListItemPosition.Single -> RoundedCornerShape(16.dp)
+    this == VLCListItemPosition.First -> RoundedCornerShape(16.dp, 16.dp, 4.dp, 4.dp)
+    this == VLCListItemPosition.Last -> RoundedCornerShape(4.dp, 4.dp, 16.dp, 16.dp)
+    else -> RoundedCornerShape(4.dp)
 }
 
 /** Restrained media-grid geometry, shared by media and playlist cards. */
-val VLCMediaCardShape = RoundedCornerShape(20.dp)
+val VLCMediaCardShape = RoundedCornerShape(18.dp)
 
 /** Artwork is intentionally a little tighter than its containing media card. */
-val VLCArtworkTileShape = RoundedCornerShape(16.dp)
+val VLCArtworkTileShape = RoundedCornerShape(14.dp)
 
 /**
  * Shared Compose row for the core media-browser list item pattern.

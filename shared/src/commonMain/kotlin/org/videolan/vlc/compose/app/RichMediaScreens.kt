@@ -172,7 +172,8 @@ fun RichMediaListPane(
         pagingItemCount = lazyPagingItems?.itemCount ?: 0,
     )
 
-    Column(modifier.padding(horizontal = MediaScreenGutter)) {
+    Column(modifier) {
+        Column(modifier = Modifier.padding(horizontal = MediaScreenGutter)) {
         if (!useEmptyPresentation) {
             val isDetail = state.containerTitle != null || state.openedEntityTitle != null
             // Screen identity comes before filters and controls. This mirrors the quiet hierarchy
@@ -369,6 +370,7 @@ fun RichMediaListPane(
                 modifier = Modifier.padding(bottom = 4.dp),
             )
         }
+        }
 
         when {
             useEmptyPresentation -> {
@@ -387,7 +389,10 @@ fun RichMediaListPane(
                 LazyColumn(
                     contentPadding = PaddingValues(bottom = 24.dp),
                     verticalArrangement = Arrangement.spacedBy(2.dp),
-                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(horizontal = MediaScreenGutter),
                 ) {
                     itemsIndexed(groups, key = { _, folder -> "g:${folder.id}:${folder.path}" }) { index, folder ->
                         VLCBrowserItemRow(
@@ -503,7 +508,11 @@ private fun PagedMediaBody(
     if (state.viewMode == ViewMode.GRID) {
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 140.dp),
-            contentPadding = PaddingValues(bottom = 80.dp),
+            contentPadding = PaddingValues(
+                start = MediaScreenGutter,
+                end = MediaScreenGutter,
+                bottom = 80.dp,
+            ),
             horizontalArrangement = Arrangement.spacedBy(MediaGridGap),
             verticalArrangement = Arrangement.spacedBy(MediaGridGap),
             modifier = modifier,
@@ -540,7 +549,12 @@ private fun PagedMediaBody(
                 state = listState,
                 // Dedicated space keeps the index clear of a song's overflow action.
                 contentPadding = PaddingValues(
-                    end = if (hasFastScroller) FastScrollerContentClearance else 0.dp,
+                    start = MediaScreenGutter,
+                    end = if (hasFastScroller) {
+                        MediaScreenGutter + FastScrollerContentClearance
+                    } else {
+                        MediaScreenGutter
+                    },
                     bottom = 80.dp,
                 ),
                 verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -641,7 +655,11 @@ private fun SnapshotMediaBody(
     if (state.viewMode == ViewMode.GRID) {
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 140.dp),
-            contentPadding = PaddingValues(bottom = 80.dp),
+            contentPadding = PaddingValues(
+                start = MediaScreenGutter,
+                end = MediaScreenGutter,
+                bottom = 80.dp,
+            ),
             horizontalArrangement = Arrangement.spacedBy(MediaGridGap),
             verticalArrangement = Arrangement.spacedBy(MediaGridGap),
             modifier = modifier,
@@ -680,7 +698,12 @@ private fun SnapshotMediaBody(
             LazyColumn(
                 state = listState,
                 contentPadding = PaddingValues(
-                    end = if (hasFastScroller) FastScrollerContentClearance else 0.dp,
+                    start = MediaScreenGutter,
+                    end = if (hasFastScroller) {
+                        MediaScreenGutter + FastScrollerContentClearance
+                    } else {
+                        MediaScreenGutter
+                    },
                     bottom = 80.dp,
                 ),
                 verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -1184,7 +1207,13 @@ private fun BrowserMediaRow(
             position = position,
             onClick = { if (selecting) onToggleSelect(item) else onPlay(item) },
             onLongClick = { onToggleSelect(item) },
-            artworkContent = { MediaArtworkSlot(item) },
+            artworkContent = {
+                if (item.isDirectory && item.isFavorite) {
+                    FavoriteDirectoryArtwork()
+                } else {
+                    MediaArtworkSlot(item)
+                }
+            },
             moreActionContent = { Icon(MaterialSymbols.Filled.MoreVert, contentDescription = null) },
             onMoreClick = { menu = true },
         )
@@ -1193,6 +1222,31 @@ private fun BrowserMediaRow(
             DropdownMenuItem(text = { Text(ShellStrings.insertNext()) }, onClick = { menu = false; onPlayNext(item) })
             DropdownMenuItem(text = { Text(ShellStrings.append()) }, onClick = { menu = false; onAppend(item) })
         }
+    }
+}
+
+@Composable
+private fun FavoriteDirectoryArtwork() {
+    val tint = VLCThemeDefaults.colors.primary
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            icon = MaterialSymbols.Outlined.Folder,
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier.size(30.dp),
+        )
+        Icon(
+            icon = MaterialSymbols.Outlined.Star,
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(2.dp)
+                .size(16.dp),
+        )
     }
 }
 

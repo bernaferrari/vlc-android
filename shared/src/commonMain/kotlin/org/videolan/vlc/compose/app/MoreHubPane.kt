@@ -372,9 +372,11 @@ private fun MoreAction(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 80.dp)
-                .padding(start = 16.dp, top = 12.dp, end = 8.dp, bottom = 12.dp),
         ) {
             Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
