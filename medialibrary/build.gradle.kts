@@ -69,7 +69,6 @@ dependencies {
     }
     debugImplementation("org.videolan.android:libvlc-all:$libvlcVersion")
     api(libs.androidx.core)
-    api(libs.androidx.fragment)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
 }

@@ -28,12 +28,10 @@ import android.content.ContentUris
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
-import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.MediaDescriptionCompat
 import androidx.annotation.StringRes
 import androidx.annotation.WorkerThread
 import androidx.core.net.toUri
-import androidx.media.utils.MediaConstants
+import androidx.media3.session.MediaConstants
 import org.videolan.medialibrary.interfaces.Medialibrary
 import org.videolan.medialibrary.interfaces.media.Album
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
@@ -530,13 +528,13 @@ class MediaSessionBrowser {
                         pct <= 0.00 && libraryItem.playCount > 0 -> 1.0
                         pct <= 0.00 -> 0.0
                         else -> pct
-                    }.also { extras.putDouble(MediaConstants.DESCRIPTION_EXTRAS_KEY_COMPLETION_PERCENTAGE, it) }
+                    }.also { extras.putDouble(MediaConstants.EXTRAS_KEY_COMPLETION_PERCENTAGE, it) }
 
                     when (pct) {
-                        1.0 -> MediaConstants.DESCRIPTION_EXTRAS_VALUE_COMPLETION_STATUS_FULLY_PLAYED
-                        0.0 -> MediaConstants.DESCRIPTION_EXTRAS_VALUE_COMPLETION_STATUS_NOT_PLAYED
-                        else -> MediaConstants.DESCRIPTION_EXTRAS_VALUE_COMPLETION_STATUS_PARTIALLY_PLAYED
-                    }.also { extras.putInt(MediaConstants.DESCRIPTION_EXTRAS_KEY_COMPLETION_STATUS, it) }
+                        1.0 -> MediaConstants.EXTRAS_VALUE_COMPLETION_STATUS_FULLY_PLAYED
+                        0.0 -> MediaConstants.EXTRAS_VALUE_COMPLETION_STATUS_NOT_PLAYED
+                        else -> MediaConstants.EXTRAS_VALUE_COMPLETION_STATUS_PARTIALLY_PLAYED
+                    }.also { extras.putInt(MediaConstants.EXTRAS_KEY_COMPLETION_STATUS, it) }
 
                     // Only Android Auto passes extras to onPlayFromMediaId
                     if (androidAuto) {

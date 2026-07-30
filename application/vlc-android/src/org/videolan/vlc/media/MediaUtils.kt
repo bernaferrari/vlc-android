@@ -49,7 +49,7 @@ import org.videolan.resources.interfaces.ResumableList
 import org.videolan.resources.util.getFromMl
 import org.videolan.tools.AppScope
 import org.videolan.tools.Settings
-import org.videolan.tools.localBroadcastManager
+import org.videolan.tools.InProcessEvents
 import org.videolan.tools.markBidi
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.player.PlaybackController
@@ -481,7 +481,7 @@ object MediaUtils {
         when {
             id.startsWith(CONTENT_PREFIX) -> {
                 val intent = Intent(ACTION_OPEN_CONTENT).putExtra(EXTRA_CONTENT_ID, id)
-                context.localBroadcastManager.sendBroadcast(intent)
+                InProcessEvents.emit(intent)
             }
             else -> { //Media from medialib
                 val mw = context.getFromMl {

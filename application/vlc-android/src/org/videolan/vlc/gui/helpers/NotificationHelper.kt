@@ -30,12 +30,11 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Build
-import android.support.v4.media.session.MediaSessionCompat
-import android.support.v4.media.session.PlaybackStateCompat
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.content.getSystemService
-import androidx.media.session.MediaButtonReceiver
+import androidx.media3.session.MediaLibraryService.MediaLibrarySession
+import androidx.media3.session.MediaStyleNotificationHelper
 import org.videolan.libvlc.util.AndroidUtil
 import org.videolan.resources.ACTION_DISABLE_SERVER
 import org.videolan.resources.ACTION_PAUSE_SCAN
@@ -53,6 +52,7 @@ import org.videolan.tools.DrawableCache
 import org.videolan.tools.Settings
 import org.videolan.tools.getContextWithLocale
 import org.videolan.vlc.R
+import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.StartActivity
 import org.videolan.vlc.util.FlagSet
 import org.videolan.vlc.util.PlaybackAction
@@ -76,10 +76,10 @@ object NotificationHelper {
                                    album: String, cover: Bitmap?, playing: Boolean, pausable: Boolean,
                                    seekable: Boolean, speed: Float, podcastMode: Boolean,
                                    seekInCompactView: Boolean, enabledActions: FlagSet<PlaybackAction>,
-                                   sessionToken: MediaSessionCompat.Token?,
+                                   mediaSession: MediaLibrarySession?,
                                    spi: PendingIntent?): Notification {
 
-        val piStop = MediaButtonReceiver.buildMediaButtonPendingIntent(ctx, PlaybackStateCompat.ACTION_STOP)
+        val piStop = serviceIntent(ctx, org.videolan.resources.ACTION_REMOTE_STOP)
         val builder = NotificationCompat.Builder(ctx, PLAYBACK_SERVICE_CHANNEL_ID)
         builder.setSmallIcon(if (video) R.drawable.ic_notif_video else R.drawable.ic_notif_audio)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -121,9 +121,9 @@ object NotificationHelper {
         /* Play/Pause or Stop */
         if (pausable) {
             if (playing) builder.addAction(NotificationCompat.Action(R.drawable.ic_widget_pause_w, ctx.getString(R.string.pause),
-                    MediaButtonReceiver.buildMediaButtonPendingIntent(ctx, PlaybackStateCompat.ACTION_PLAY_PAUSE)))
+                    serviceIntent(ctx, org.videolan.resources.ACTION_REMOTE_PLAYPAUSE)))
             else builder.addAction(NotificationCompat.Action(R.drawable.ic_widget_play_w, ctx.getString(R.string.play),
-                    MediaButtonReceiver.buildMediaButtonPendingIntent(ctx, PlaybackStateCompat.ACTION_PLAY_PAUSE)))
+                    serviceIntent(ctx, org.videolan.resources.ACTION_REMOTE_PLAYPAUSE)))
         } else builder.addAction(NotificationCompat.Action(R.drawable.ic_widget_close_w, ctx.getString(R.string.stop), piStop))
         /* Fast Forward */
         builder.addAction(NotificationCompat.Action(
@@ -141,21 +141,36 @@ object NotificationHelper {
         }
         if (AndroidDevices.showMediaStyle) {
             val showActions = if (podcastMode || (seekable && seekInCompactView)) intArrayOf(1, 2, 3) else intArrayOf(0, 2, 4)
-            val mediaStyle = androidx.media.app.NotificationCompat.MediaStyle()
-                    .setShowActionsInCompactView(*showActions)
-                    .setShowCancelButton(true)
-                    .setCancelButtonIntent(piStop)
-            sessionToken?.let { mediaStyle.setMediaSession(it) }
-            builder.setStyle(mediaStyle)
+            mediaSession?.let { session ->
+                builder.setStyle(
+                    MediaStyleNotificationHelper.MediaStyle(session)
+                        .setShowActionsInCompactView(*showActions)
+                        .setShowCancelButton(true)
+                        .setCancelButtonIntent(piStop),
+                )
+            }
         }
         return builder.build()
     }
 
     private fun buildMediaButtonPendingIntent(ctx: Context, enabledActions: FlagSet<PlaybackAction>, action: PlaybackAction, allowIntent: Boolean = true): PendingIntent? {
         return if (allowIntent && enabledActions.contains(action))
-            MediaButtonReceiver.buildMediaButtonPendingIntent(ctx, action.toLong())
+            serviceIntent(ctx, when (action) {
+                PlaybackAction.ACTION_SKIP_TO_PREVIOUS -> org.videolan.resources.ACTION_REMOTE_BACKWARD
+                PlaybackAction.ACTION_SKIP_TO_NEXT -> org.videolan.resources.ACTION_REMOTE_FORWARD
+                PlaybackAction.ACTION_REWIND -> org.videolan.resources.ACTION_REMOTE_SEEK_BACKWARD
+                PlaybackAction.ACTION_FAST_FORWARD -> org.videolan.resources.ACTION_REMOTE_SEEK_FORWARD
+                else -> org.videolan.resources.ACTION_REMOTE_PLAYPAUSE
+            })
         else null
     }
+
+    private fun serviceIntent(ctx: Context, action: String): PendingIntent = PendingIntent.getService(
+        ctx,
+        action.hashCode(),
+        Intent(ctx, PlaybackService::class.java).setAction(action),
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+    )
 
     private fun buildCustomButtonPendingIntent(ctx: Context, actionId: String): PendingIntent {
         val intent = Intent(CUSTOM_ACTION)

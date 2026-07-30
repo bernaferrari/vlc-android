@@ -29,27 +29,34 @@ import androidx.paging.DataSource
 import androidx.room.Dao
 import androidx.room.Query
 import androidx.room.RawQuery
+import androidx.room.Transaction
 import androidx.sqlite.db.SupportSQLiteQuery
 import org.videolan.moviepedia.database.models.MediaMetadataWithImages
 
 @Dao
 interface MediaMetadataDataFullDao {
 
+    @Transaction
     @Query("select * from media_metadata where ml_id = :id")
     fun getMetadataLiveByML(id: Long): LiveData<MediaMetadataWithImages?>
 
+    @Transaction
     @Query("select * from media_metadata where moviepedia_id = :id")
     fun getMediaLive(id: String): LiveData<MediaMetadataWithImages?>
 
+    @Transaction
     @Query("select * from media_metadata where show_id = :showId")
     fun getEpisodesLive(showId: String): LiveData<List<MediaMetadataWithImages>>
 
+    @Transaction
     @Query("select * from media_metadata where ml_id = :id")
     fun getMedia(id: Long): MediaMetadataWithImages?
 
+    @Transaction
     @Query("select * from media_metadata where moviepedia_id = :id")
     fun getMediaById(id: String): MediaMetadataWithImages?
 
+    @Transaction
     @Query("select * from media_metadata where moviepedia_id = :id")
     fun getMediaByIdLive(id: String): LiveData<MediaMetadataWithImages>
 
@@ -59,24 +66,31 @@ interface MediaMetadataDataFullDao {
     @Query("select count(moviepedia_id) from media_metadata where type = 2")
     fun getTvshowsCount(): Int
 
+    @Transaction
     @RawQuery(observedEntities = [MediaMetadataWithImages::class])
     fun getAllPaged(query: SupportSQLiteQuery): DataSource.Factory<Int, MediaMetadataWithImages>
 
+    @Transaction
     @Query("select * from media_metadata")
     fun getAllLive(): LiveData<List<MediaMetadataWithImages>>
 
+    @Transaction
     @Query("SELECT * FROM media_metadata WHERE show_id = :showId AND ((season = :season AND episode > :episode) OR (season > :season)) ORDER BY season, episode ASC")
     fun findNextEpisode(showId: String, season: Int, episode: Int): MediaMetadataWithImages?
 
+    @Transaction
     @Query("select * from media_metadata where ml_id IN (:mlids) LIMIT 10")
     fun getByIds(mlids: List<Long>): LiveData<List<MediaMetadataWithImages>>
 
+    @Transaction
     @Query("select * from media_metadata ORDER BY insertDate DESC LIMIT 10")
     fun getRecentlyAdded(): LiveData<List<MediaMetadataWithImages>>
 
+    @Transaction
     @Query("select * from media_metadata WHERE title LIKE :sanitizedQuery")
     fun searchMedia(sanitizedQuery: String): List<MediaMetadataWithImages>
 
+    @Transaction
     @Query("select * from media_metadata WHERE show_id = :tvshowId ORDER by season, episode")
     fun getTvShowEpisodes(tvshowId: String): List<MediaMetadataWithImages>
 

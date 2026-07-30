@@ -2,7 +2,7 @@ package org.videolan.vlc.media
 
 import android.content.Context
 import android.net.Uri
-import android.support.v4.media.session.PlaybackStateCompat
+import org.videolan.resources.VlcPlaybackState as PlaybackStateCompat
 import android.widget.Toast
 import androidx.annotation.MainThread
 import androidx.core.net.toUri

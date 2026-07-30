@@ -30,7 +30,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.support.v4.media.session.PlaybackStateCompat
+import org.videolan.resources.VlcPlaybackState as PlaybackStateCompat
 import android.util.Log
 import android.view.View
 import androidx.core.content.FileProvider
@@ -655,4 +655,3 @@ class BenchActivity : ShallowVideoPlayer() {
         private const val PREFERENCE_OPENGL = "opengl"
     }
 }
-

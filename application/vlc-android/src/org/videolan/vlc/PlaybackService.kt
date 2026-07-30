@@ -20,6 +20,7 @@
 package org.videolan.vlc
 
 import org.videolan.resources.NotificationIds
+import org.videolan.resources.VlcPlaybackState as PlaybackStateCompat
 
 import android.annotation.TargetApi
 import android.app.KeyguardManager
@@ -46,11 +47,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.os.PowerManager
-import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.MediaDescriptionCompat
-import android.support.v4.media.MediaMetadataCompat
-import android.support.v4.media.session.MediaSessionCompat
-import android.support.v4.media.session.PlaybackStateCompat
 import android.text.Spannable
 import android.text.style.RelativeSizeSpan
 import android.text.style.StyleSpan
@@ -73,9 +69,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ServiceLifecycleDispatcher
 import androidx.lifecycle.lifecycleScope
-import androidx.media.MediaBrowserServiceCompat
-import androidx.media.session.MediaButtonReceiver
-import androidx.media.utils.MediaConstants
+import androidx.media3.session.MediaLibraryService
+import androidx.media3.session.MediaLibraryService.MediaLibrarySession
+import androidx.media3.session.MediaConstants
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -175,6 +171,8 @@ import org.videolan.vlc.gui.helpers.getBitmapFromDrawable
 import org.videolan.vlc.gui.preferences.PreferencesActivity
 import org.videolan.vlc.gui.video.PopupManager
 import org.videolan.vlc.gui.video.VideoPlayerActivity
+import org.videolan.vlc.media.MediaBrowserCompat
+import org.videolan.vlc.media.MediaDescriptionCompat
 import org.videolan.vlc.media.MediaSessionBrowser
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.media.NO_LENGTH_PROGRESS_MAX
@@ -204,7 +202,7 @@ import kotlin.math.absoluteValue
 
 private const val TAG = "VLC/PlaybackService"
 
-class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineScope, SchedulerCallback {
+class PlaybackService : MediaLibraryService(), LifecycleOwner, CoroutineScope, SchedulerCallback {
     override val coroutineContext = Dispatchers.IO + SupervisorJob()
     lateinit var scheduler: LifecycleAwareScheduler
 
@@ -240,7 +238,8 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
     var isInPiPMode: MutableLiveData<Boolean> = MutableLiveData(false)
 
     // Playback management
-    internal lateinit var mediaSession: MediaSessionCompat
+    internal lateinit var mediaSession: MediaLibrarySession
+    private lateinit var media3Player: VlcMedia3Player
 
     @Volatile
     private var notificationShowing = false
@@ -265,14 +264,6 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
     private val mediaFactory = FactoryManager.getFactory(IMediaFactory.factoryId) as IMediaFactory
     private lateinit var carConnection: CarConnection
 
-    /**
-     * Binds a [MediaBrowserCompat] to the service to allow receiving the
-     * [MediaSessionCompat.Callback] callbacks even if the service is killed
-     */
-    lateinit var mediaBrowserCompat:MediaBrowserCompat
-
-
-
     private val receiver = object : BroadcastReceiver() {
         private var wasPlaying = false
         override fun onReceive(context: Context, intent: Intent) {
@@ -294,7 +285,7 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
              */
             when (action) {
                 CUSTOM_ACTION -> intent.getStringExtra(EXTRA_CUSTOM_ACTION_ID)?.let { actionId ->
-                    mediaSession.controller.transportControls.sendCustomAction(actionId, null)
+                    handleCustomAction(actionId)
                     executeUpdate()
                     showNotification()
                 }
@@ -728,6 +719,9 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
         return super.getApplicationContext().getContextWithLocale(AppContextProvider.locale)
     }
 
+    override fun onGetSession(controllerInfo: androidx.media3.session.MediaSession.ControllerInfo): MediaLibrarySession? =
+        if (this::mediaSession.isInitialized) mediaSession else null
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate() {
         scheduler = LifecycleAwareScheduler(this)
@@ -745,15 +739,15 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
 
         browserCallback = MediaBrowserCallback(this)
         browserCallback.registerCallback {
-            notifyChildrenChanged(MediaSessionBrowser.ID_HOME)
+            notifyLibraryChildrenChanged(MediaSessionBrowser.ID_HOME)
             when (it.updateType) {
-                UpdateType.MEDIA -> notifyChildrenChanged(MediaSessionBrowser.ID_LAST_ADDED)
-                UpdateType.ARTIST -> notifyChildrenChanged(MediaSessionBrowser.ID_ARTIST)
-                UpdateType.ALBUM -> notifyChildrenChanged(MediaSessionBrowser.ID_ALBUM)
-                UpdateType.GENRE -> notifyChildrenChanged(MediaSessionBrowser.ID_GENRE)
-                UpdateType.PLAYLIST -> notifyChildrenChanged(MediaSessionBrowser.ID_PLAYLIST)
-                UpdateType.HISTORY -> notifyChildrenChanged(MediaSessionBrowser.ID_HISTORY)
-                UpdateType.SHUFFLE -> notifyChildrenChanged(lastParentId)
+                UpdateType.MEDIA -> notifyLibraryChildrenChanged(MediaSessionBrowser.ID_LAST_ADDED)
+                UpdateType.ARTIST -> notifyLibraryChildrenChanged(MediaSessionBrowser.ID_ARTIST)
+                UpdateType.ALBUM -> notifyLibraryChildrenChanged(MediaSessionBrowser.ID_ALBUM)
+                UpdateType.GENRE -> notifyLibraryChildrenChanged(MediaSessionBrowser.ID_GENRE)
+                UpdateType.PLAYLIST -> notifyLibraryChildrenChanged(MediaSessionBrowser.ID_PLAYLIST)
+                UpdateType.HISTORY -> notifyLibraryChildrenChanged(MediaSessionBrowser.ID_HISTORY)
+                UpdateType.SHUFFLE -> notifyLibraryChildrenChanged(lastParentId)
             }
         }
 
@@ -790,7 +784,6 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
         headSetDetection.observe(this, Observer { detectHeadset(it) })
         equalizer.observe(this, Observer { setEqualizer(it) })
         serviceFlow.value = this
-        mediaBrowserCompat = MediaBrowserInstance.getInstance(this)
         PlaylistManager.playingState.value = true
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             NetworkConnectionManager.isMetered.observe(this) {
@@ -864,7 +857,7 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
         setupScope()
         when (intent?.action) {
             Intent.ACTION_MEDIA_BUTTON -> {
-                if (AndroidDevices.hasTsp || AndroidDevices.hasPlayServices) MediaButtonReceiver.handleIntent(mediaSession, intent)
+                // MediaLibraryService routes media buttons to VlcMedia3Player.
             }
             ACTION_REMOTE_PLAYPAUSE,
             ACTION_REMOTE_PLAY,
@@ -883,11 +876,7 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
             ACTION_REMOTE_SEEK_FORWARD -> seek(getTime() + intent.getLongExtra(EXTRA_SEEK_DELAY, 0L) * 1000L)
             ACTION_REMOTE_SEEK_BACKWARD -> seek(getTime() - intent.getLongExtra(EXTRA_SEEK_DELAY, 0L) * 1000L)
             ACTION_PLAY_FROM_SEARCH -> {
-                if (!this::mediaSession.isInitialized) initMediaSession()
-                intent.getBundleExtra(EXTRA_SEARCH_BUNDLE)?.let {
-                    mediaSession.controller.transportControls
-                            .playFromSearch(it.getString(SearchManager.QUERY), it)
-                }
+                loadLastAudioPlaylist()
             }
             ACTION_REMOTE_SWITCH_VIDEO -> {
                 removePopup()
@@ -900,7 +889,7 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
         return START_NOT_STICKY
     }
 
-    override fun onTaskRemoved(rootIntent: Intent) {
+    override fun onTaskRemoved(rootIntent: Intent?) {
         if (HotPlaybackSettings.audioTaskRemoved) stop()
     }
 
@@ -919,9 +908,9 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
         playlistManager.onServiceDestroyed()
     }
 
-    override fun onBind(intent: Intent): IBinder? {
+    override fun onBind(intent: Intent?): IBinder? {
         dispatcher.onServicePreSuperOnBind()
-        return if (SERVICE_INTERFACE == intent.action) super.onBind(intent) else binder
+        return if (MediaLibraryService.SERVICE_INTERFACE == intent?.action) super.onBind(intent) else binder
     }
 
     val vout: IVLCVout?
@@ -1030,18 +1019,15 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
             val coverOnLockscreen = HotPlaybackSettings.lockscreenCover
             val seekInCompactView = HotPlaybackSettings.showSeekInCompactNotification
             val playing = isPlaying
-            val sessionToken = mediaSession.sessionToken
             val ctx = this@PlaybackService
-            val metaData = mediaSession.controller.metadata
             lifecycleScope.launch(Dispatchers.Default) {
                 delay(100)
                 if (isPlayingPopup || !notificationShowing) return@launch
                 try {
-                    val title = if (metaData == null) mw.title else metaData.getString(MediaMetadataCompat.METADATA_KEY_TITLE)
-                    val artist = if (metaData == null) mw.artistName else metaData.getString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST)
-                    val album = if (metaData == null) mw.albumName else metaData.getString(MediaMetadataCompat.METADATA_KEY_ALBUM)
-                    var cover = if (coverOnLockscreen && metaData != null)
-                        metaData.getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART) else null
+                    val title = mw.nowPlaying ?: mw.title
+                    val artist = mw.artistName
+                    val album = mw.albumName
+                    var cover = null as android.graphics.Bitmap?
                     if (coverOnLockscreen && cover == null)
                         cover = AudioUtil.readCoverBitmap(Uri.decode(mw.artworkMrl), 256)
                     if (cover == null || cover.isRecycled)
@@ -1050,7 +1036,7 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
                     notification = NotificationHelper.createPlaybackNotification(ctx,
                             canSwitchToVideo(), title, artist, album, cover, playing, isPausable,
                             isSeekable, speed, isPodcastMode, seekInCompactView, enabledActions,
-                            sessionToken, sessionPendingIntent)
+                            mediaSession, sessionPendingIntent)
                     if (isPlayingPopup) return@launch
                     if (!VlcMigrationHelper.isLolliPopOrLater || playing || audioFocusHelper.lossTransient) {
                         if (!isForeground) {
@@ -1122,30 +1108,35 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
     }
 
     private fun initMediaSession() {
-        val mbrIntent = MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PLAY_PAUSE)
-        val mbrName = ComponentName(this, MediaButtonReceiver::class.java)
-        val playbackState = PlaybackStateCompat.Builder()
-                .setActions(enabledActions.getCapabilities())
-                .setState(PlaybackStateCompat.STATE_NONE, 0, 0f)
-                .build()
-        mediaSession = MediaSessionCompat(this, "VLC", mbrName, mbrIntent).apply {
-            setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
-            setCallback(MediaSessionCallback(this@PlaybackService))
-            setPlaybackState(playbackState)
-        }
-        try {
-            mediaSession.isActive = true
-        } catch (e: NullPointerException) {
-            // Some versions of KitKat do not support AudioManager.registerMediaButtonIntent
-            // with a PendingIntent. They will throw a NullPointerException, in which case
-            // they should be able to activate a MediaSessionCompat with only transport
-            // controls.
-            mediaSession.isActive = false
-            mediaSession.setFlags(MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
-            mediaSession.isActive = true
-        }
+        media3Player = VlcMedia3Player(this)
+        mediaSession = MediaLibrarySession.Builder(
+            this,
+            media3Player,
+            VlcMediaLibraryCallback(this),
+        ).setId("VLC")
+            .setSessionActivity(sessionPendingIntent)
+            .build()
+    }
 
-        sessionToken = mediaSession.sessionToken
+    private fun handleCustomAction(actionId: String) {
+        when (actionId) {
+            CUSTOM_ACTION_REWIND -> seek(getTime() - Settings.audioJumpDelay * 1_000L)
+            CUSTOM_ACTION_FAST_FORWARD -> seek(getTime() + Settings.audioJumpDelay * 1_000L)
+            CUSTOM_ACTION_SHUFFLE -> if (canShuffle()) shuffle()
+            CUSTOM_ACTION_REPEAT -> repeatType = when (repeatType) {
+                PlaybackStateCompat.REPEAT_NONE -> PlaybackStateCompat.REPEAT_ALL
+                PlaybackStateCompat.REPEAT_ALL -> PlaybackStateCompat.REPEAT_ONE
+                else -> PlaybackStateCompat.REPEAT_NONE
+            }
+            CUSTOM_ACTION_SPEED -> {
+                val steps = listOf(0.5f, 0.8f, 1f, 1.1f, 1.2f, 1.5f, 2f)
+                setRate(steps[(steps.indexOf(steps.minBy { (rate - it).absoluteValue }) + 1) % steps.size], save = true)
+            }
+        }
+    }
+
+    private fun notifyLibraryChildrenChanged(parentId: String) {
+        if (this::mediaSession.isInitialized) mediaSession.notifyChildrenChanged(parentId, 0, null)
     }
 
     private fun updateMetadata() {
@@ -1153,98 +1144,11 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
     }
 
     private suspend fun updateMetadataInternal() {
-        val media = playlistManager.getCurrentMedia() ?: return
         if (!this::mediaSession.isInitialized) initMediaSession()
-        val ctx = this@PlaybackService
-        val length = length
         lastLength = length
-        val chapterTitle = if (lastChaptersCount > 0) getCurrentChapter() else null
-        val displayMsg = getSubtitleMessage()
-        displayMsg?.let { scheduler.scheduleAction(UPDATE_META, 5_000L) }
-        val bob = withContext(Dispatchers.Default) {
-            val carMode = isCarMode()
-            val title = media.nowPlaying ?: media.title
-            val coverOnLockscreen = HotPlaybackSettings.lockscreenCover
-            val bob = MediaMetadataCompat.Builder().apply {
-                putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
-                putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, MediaSessionBrowser.generateMediaId(media))
-                putString(MediaMetadataCompat.METADATA_KEY_GENRE, MediaUtils.getMediaGenre(ctx, media))
-                putLong(MediaMetadataCompat.METADATA_KEY_TRACK_NUMBER, media.trackNumber.toLong())
-                putString(MediaMetadataCompat.METADATA_KEY_ARTIST, MediaUtils.getMediaArtist(ctx, media))
-                putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST, MediaUtils.getMediaReferenceArtist(ctx, media))
-                putString(MediaMetadataCompat.METADATA_KEY_ALBUM, MediaUtils.getMediaAlbum(ctx, media))
-                putLong(MediaMetadataCompat.METADATA_KEY_DURATION, if (length != 0L) length else -1L)
-            }
-            if (carMode) {
-                val speedStr = buildString {
-                    append(speed.formatRateString())
-                    if (HotPlaybackSettings.playbackSpeedAudioGlobal)
-                        append(" (${getString(R.string.playback_speed_all_tracks)})")
-                    else
-                        append(" (${getString(R.string.playback_speed_this_track)})")
-                }
-                var carTitle = title
-                var carSubtitle = MediaUtils.getDisplaySubtitle(ctx, media)
-                val shortQueue = settings.getInt(KEY_ANDROID_AUTO_QUEUE_FORMAT_VAL, 1) == 0
-                val queueInfo = MediaUtils.getQueuePosition(currentMediaPosition, mediaListSize, shortQueue)
-
-                /* Add the queue position information to the underlying string */
-                when (settings.getInt(KEY_ANDROID_AUTO_QUEUE_INFO_POS_VAL, 3)) {
-                    1 -> carTitle = TextUtils.separatedString(queueInfo, carTitle.markBidi())
-                    2 -> carTitle = TextUtils.separatedString(carTitle.markBidi(), queueInfo)
-                    3 -> carSubtitle = TextUtils.separatedString(queueInfo, carSubtitle)
-                }
-                if (speed != 1F) carSubtitle = TextUtils.separatedString(speedStr, carSubtitle)
-                /**
-                 * This section allows for variability in the title and subtitle contents.
-                 */
-                // Set Display Title
-                val displayTitle = arrayOf(chapterTitle, carTitle).firstNotNullAsSpannable()?.also {
-                    val titleScaleFactor = settings.getInt(KEY_ANDROID_AUTO_TITLE_SCALE_VAL, 100) / 100f
-                    it.setSpan(RelativeSizeSpan(titleScaleFactor), 0, it.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-                }
-                // Set Display Subtitle Font Size
-                val displaySubtitle = arrayOf(displayMsg, carSubtitle).firstNotNullAsSpannable()?.also {
-                    val subTitleScaleFactor = settings.getInt(KEY_ANDROID_AUTO_SUBTITLE_SCALE_VAL, 100) / 100f
-                    it.setSpan(RelativeSizeSpan(subTitleScaleFactor), 0, it.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-                    // Add italics for subtitle messages
-                    if (displayMsg != null) { it.setSpan(StyleSpan(Typeface.ITALIC), 0, it.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE) }
-                }
-                // Add the data to the Bundle
-                bob.putText(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, displayTitle)
-                bob.putText(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, displaySubtitle)
-                bob.putText(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, MediaUtils.getMediaAlbum(ctx, media))
-            }
-            if (Permissions.canReadStorage(ctx) && coverOnLockscreen) {
-                val albumArtUri = when {
-                    isSchemeHttpOrHttps(media.artworkMrl) -> {
-                        //ArtworkProvider will cache remote images
-                        ArtworkProvider.buildUri(ctx, Uri.Builder()
-                                .appendPath(ArtworkProvider.REMOTE)
-                                .appendQueryParameter(ArtworkProvider.PATH, media.artworkMrl)
-                                .build())
-                    }
-                    else -> {
-                        //The media id may be 0 on resume
-                        val mw = getFromMl { findMedia(media) }
-                        val mediaId = MediaSessionBrowser.generateMediaId(mw)
-                        artworkMap[mediaId] ?: ArtworkProvider.buildMediaUri(ctx, mw)
-                    }
-                }
-                bob.putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, albumArtUri.toString())
-                if (!carMode) {
-                    val cover = AudioUtil.readCoverBitmap(Uri.decode(media.artworkMrl), 512)
-                    val config = cover?.config
-                    if (config != null)
-                    //In case of format not supported
-                        bob.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, cover.copy(config, false))
-                    else
-                        bob.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, ctx.getBitmapFromDrawable(R.drawable.ic_no_media, 512, 512))
-                }
-            }
-            return@withContext bob.build()
-        }
-        if (this@PlaybackService::mediaSession.isInitialized) mediaSession.setMetadata(bob)
+        // Media3 obtains metadata and artwork from VlcMedia3Player's immutable timeline.
+        // State invalidation keeps lock-screen, Android Auto and controllers coherent with libVLC.
+        media3Player.syncState()
     }
 
     private fun publishState(position: Long? = null) {
@@ -1300,7 +1204,7 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
         })
         currentMediaWrapper?.takeIf { it.id != 0L }?.let { mw ->
             pscb.setExtras(Bundle().apply {
-                putString(MediaConstants.PLAYBACK_STATE_EXTRAS_KEY_MEDIA_ID, MediaSessionBrowser.generateMediaId(mw))
+                putString(MediaConstants.EXTRAS_KEY_MEDIA_ID_COMPAT, MediaSessionBrowser.generateMediaId(mw))
             })
         }
         val mediaIsActive = state != PlaybackStateCompat.STATE_STOPPED
@@ -1510,6 +1414,16 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
 
     @MainThread
     fun loadUri(uri: Uri?) = loadLocation(uri!!.toString())
+
+    /** Resolves a Media3 controller request without leaking Media3 into libVLC's playlist API. */
+    internal fun playMedia3Item(item: androidx.media3.common.MediaItem) {
+        item.localConfiguration?.uri?.let(::loadUri)?.also { return }
+        val existingIndex = media.indexOfFirst {
+            MediaSessionBrowser.generateMediaId(it) == item.mediaId
+        }
+        if (existingIndex >= 0) playIndex(existingIndex)
+        else loadLastAudioPlaylist()
+    }
 
     @MainThread
     fun loadLocation(mediaPath: String) = loadLocations(listOf(mediaPath), 0)
@@ -1917,6 +1831,8 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
      * Browsing
      */
 
+    /* MediaBrowserServiceCompat implementation retained here for reference while
+     * VlcMediaLibraryCallback is the active Media3 browser entry point.
     override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot? {
         val ctx = this@PlaybackService
         AccessControl.logCaller(clientUid, clientPackageName)
@@ -1972,6 +1888,7 @@ class PlaybackService : MediaBrowserServiceCompat(), LifecycleOwner, CoroutineSc
             }
         }
     }
+    */
 
     /**
      * Start the loop that checks for the sleep timer consumption

@@ -195,7 +195,7 @@ tasks.withType<Test>().configureEach {
     }
     outputs.upToDateWhen { false }
     javaLauncher.set(javaToolchains.launcherFor {
-        languageVersion.set(JavaLanguageVersion.of(21))
+        languageVersion.set(JavaLanguageVersion.of(17))
     })
 }
 
@@ -235,7 +235,7 @@ dependencies {
     api(libs.androidx.lifecycle.common.java8)
     api(libs.androidx.room.runtime)
     api(libs.androidx.window)
-    api(libs.androidx.media)
+    api(libs.androidx.media3.session)
     api(libs.androidx.gridlayout)
     api(libs.androidx.car.app)
 

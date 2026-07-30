@@ -28,16 +28,15 @@ plugins {
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.ksp)
 }
 
 kotlin {
     android {
         namespace = "org.videolan.shared"
         compileSdk = 37
-        // DataStore 1.2.x / modern AndroidX require API 23+. VLC 3 native still
-        // builds with NDK 21, but the app/shared JVM floor is 23 for both VLC 3 and 4.
-        minSdk = 23
+        // Ktor 3.5's Netty runtime requires API 26+. VLC 3 native still builds with
+        // NDK 21, but the app/shared JVM floor is 26 for both VLC 3 and 4.
+        minSdk = 26
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
         }
@@ -111,7 +110,6 @@ kotlin {
         val commonJvmMain = create("commonJvmMain") {
             dependsOn(commonMain.get())
             dependencies {
-                api(libs.koin.annotations)
                 api(libs.moshi)
                 api(libs.retrofit)
                 api(libs.retrofit.converter.moshi)
@@ -179,11 +177,8 @@ tasks.configureEach {
     }
 }
 
-// Koin compiler — compile-time verification of module bindings via KSP.
 dependencies {
     // Android-KMP has one publishable variant. Keep inspection tooling available
     // to local Android runtime/Preview without leaking it into the shared AAR.
     add("androidRuntimeClasspath", libs.jetbrains.compose.ui.tooling)
-    add("kspAndroid", libs.koin.ksp.compiler)
-    add("kspJvm", libs.koin.ksp.compiler)
 }

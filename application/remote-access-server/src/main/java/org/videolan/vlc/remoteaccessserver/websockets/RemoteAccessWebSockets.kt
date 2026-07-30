@@ -27,7 +27,7 @@ package org.videolan.vlc.remoteaccessserver.websockets
 import android.content.Context
 import android.content.SharedPreferences
 import android.media.AudioManager
-import android.support.v4.media.session.PlaybackStateCompat
+import org.videolan.resources.VlcPlaybackState as PlaybackStateCompat
 import android.util.Log
 import androidx.annotation.MainThread
 import com.squareup.moshi.Moshi

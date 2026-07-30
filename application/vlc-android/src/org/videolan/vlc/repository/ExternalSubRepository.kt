@@ -24,9 +24,10 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import org.videolan.tools.CoroutineContextProvider
 import org.videolan.tools.SingletonHolder
 import org.videolan.tools.livedata.LiveDataMap
@@ -39,6 +40,8 @@ import java.io.File
 
 class ExternalSubRepository(private val externalSubDao: ExternalSubDao, private val coroutineContextProvider: CoroutineContextProvider = CoroutineContextProvider()) {
 
+    private val scope = CoroutineScope(SupervisorJob() + coroutineContextProvider.IO)
+
     private var _downloadingSubtitles = LiveDataMap<Long, SubtitleItem>()
 
     @Suppress("UNCHECKED_CAST")
@@ -46,7 +49,7 @@ class ExternalSubRepository(private val externalSubDao: ExternalSubDao, private 
         get() = _downloadingSubtitles as LiveData<Map<Long, SubtitleItem>>
 
     fun saveDownloadedSubtitle(idSubtitle: String, subtitlePath: String, mediaPath: String, language: String, movieReleaseName: String, hearingImpaired: Boolean): Job {
-        return GlobalScope.launch(coroutineContextProvider.IO) { externalSubDao.insert(ExternalSub(idSubtitle, subtitlePath, mediaPath, language, movieReleaseName, hearingImpaired)) }
+        return scope.launch { externalSubDao.insert(ExternalSub(idSubtitle, subtitlePath, mediaPath, language, movieReleaseName, hearingImpaired)) }
     }
 
     fun getDownloadedSubtitles(mediaUri: Uri): LiveData<List<ExternalSub>> {
@@ -64,7 +67,7 @@ class ExternalSubRepository(private val externalSubDao: ExternalSubDao, private 
     }
 
     fun deleteSubtitle(mediaPath: String, idSubtitle: String) {
-        GlobalScope.launch { externalSubDao.delete(mediaPath, idSubtitle) }
+        scope.launch { externalSubDao.delete(mediaPath, idSubtitle) }
     }
 
     fun addDownloadingItem(key: Long, item: SubtitleItem) {

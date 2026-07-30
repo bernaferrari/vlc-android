@@ -1,14 +1,13 @@
 package org.videolan.vlc.media
 
 import android.content.Intent
-import android.support.v4.media.session.PlaybackStateCompat
+import org.videolan.resources.VlcPlaybackState as PlaybackStateCompat
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.MainThread
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.lifecycle.MutableLiveData
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
@@ -78,6 +77,7 @@ import org.videolan.tools.SLEEP_TIMER_DEFAULT_INTERVAL
 import org.videolan.tools.SLEEP_TIMER_DEFAULT_RESET_INTERACTION
 import org.videolan.tools.SLEEP_TIMER_DEFAULT_WAIT
 import org.videolan.tools.HotPlaybackSettings
+import org.videolan.tools.InProcessEvents
 import org.videolan.tools.Settings
 import org.videolan.tools.VIDEO_PAUSED
 import org.videolan.tools.VIDEO_RESUME_PLAYBACK
@@ -426,7 +426,7 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
         showAudioPlayer.value = false
         service.onPlaybackStopped(systemExit)
         //Close video player if started
-        LocalBroadcastManager.getInstance(ctx).sendBroadcast(Intent(EXIT_PLAYER))
+        InProcessEvents.emit(Intent(EXIT_PLAYER))
         if (systemExit) launch(start = CoroutineStart.UNDISPATCHED) {
             job?.join()
             cancel()
@@ -634,9 +634,9 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
         showAudioPlayer.postValue(false)
         if (player.isVideoPlaying() && !hasRenderer) {//Player is already running, just send it an intent
             player.setVideoTrackEnabled(true)
-            LocalBroadcastManager.getInstance(service).sendBroadcast(
-                    VideoPlayerActivity.getIntent(PLAY_FROM_SERVICE,
-                            media, false, currentIndex))
+            InProcessEvents.emit(
+                VideoPlayerActivity.getIntent(PLAY_FROM_SERVICE, media, false, currentIndex),
+            )
         } else if (!player.switchToVideo) { //Start the video player
             VideoPlayerActivity.startOpened(AppContextProvider.appContext, media.uri, currentIndex)
             if (!hasRenderer) player.switchToVideo = true

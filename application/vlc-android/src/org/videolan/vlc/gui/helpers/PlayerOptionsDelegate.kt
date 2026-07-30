@@ -2,7 +2,7 @@ package org.videolan.vlc.gui.helpers
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.support.v4.media.session.PlaybackStateCompat
+import org.videolan.resources.VlcPlaybackState as PlaybackStateCompat
 import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.FrameLayout

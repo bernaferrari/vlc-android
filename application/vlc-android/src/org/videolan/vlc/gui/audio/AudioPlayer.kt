@@ -32,7 +32,7 @@ import android.os.PowerManager
 import android.os.Handler
 import android.os.Looper
 import android.os.Vibrator
-import android.support.v4.media.session.PlaybackStateCompat
+import org.videolan.resources.VlcPlaybackState as PlaybackStateCompat
 import android.text.format.DateFormat
 import android.view.MotionEvent
 import android.view.View

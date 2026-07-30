@@ -77,7 +77,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.window.layout.FoldingFeature
 import androidx.window.layout.WindowInfoTracker
 import androidx.window.layout.WindowLayoutInfo
@@ -131,6 +130,7 @@ import org.videolan.tools.ENABLE_SEEK_BUTTONS
 import org.videolan.tools.ENABLE_SWIPE_SEEK
 import org.videolan.tools.ENABLE_VOLUME_GESTURE
 import org.videolan.tools.KEY_AUDIO_BOOST
+import org.videolan.tools.InProcessEvents
 import org.videolan.tools.KEY_AUDIO_PREFERRED_LANGUAGE
 import org.videolan.tools.KEY_ENABLE_CLONE_MODE
 import org.videolan.tools.KEY_SUBTITLE_PREFERRED_LANGUAGE
@@ -488,13 +488,6 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
                     }
                 }
             }
-        }
-    }
-
-    private val serviceReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action == PLAY_FROM_SERVICE) onNewIntent(intent)
-            else if (intent.action == EXIT_PLAYER) exitOK()
         }
     }
 
@@ -901,10 +894,11 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
             }
         }
         restoreBrightness()
-        val filter = IntentFilter(PLAY_FROM_SERVICE)
-        filter.addAction(EXIT_PLAYER)
-        LocalBroadcastManager.getInstance(this).registerReceiver(
-                serviceReceiver, filter)
+        InProcessEvents.actions(PLAY_FROM_SERVICE, EXIT_PLAYER)
+            .onEach { intent ->
+                if (intent.action == PLAY_FROM_SERVICE) onNewIntent(intent) else exitOK()
+            }
+            .launchIn(startedScope)
         val btFilter = IntentFilter(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED)
         btFilter.addAction(BluetoothHeadset.ACTION_CONNECTION_STATE_CHANGED)
         registerReceiver(btReceiver, btFilter)
@@ -919,8 +913,6 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
             savedMediaIndex = it.currentIndex
         }
         startedScope.cancel()
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(serviceReceiver)
-
         unregisterReceiver(btReceiver)
         alertDialog?.dismiss()
         val isPlayingPopup = service?.isPlayingPopup == true

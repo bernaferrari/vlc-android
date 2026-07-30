@@ -27,10 +27,12 @@ package org.videolan.vlc.mediadb.models
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 
 @Entity(
         tableName = "equalizer_band",
         primaryKeys = ["index", "equalizer_entry"],
+        indices = [Index(value = ["equalizer_entry"])],
         foreignKeys = [ForeignKey(entity = EqualizerEntry::class,
                 parentColumns = ["id"],
                 childColumns = ["equalizer_entry"],

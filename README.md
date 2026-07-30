@@ -60,8 +60,8 @@ More detail: `application/compose/README.md` (Android interop shim), `ios/README
 
 | Surface | minSdk | Notes |
 |---------|--------|--------|
-| Project default (`settings.gradle`) | **23** | Required by DataStore 1.2.x, modern AndroidX, Compose |
-| `:shared` Android target | **23** | Same floor — avoids manifest merger failures |
+| Project default (`settings.gradle`) | **26** | Required by Ktor 3.5's Netty runtime |
+| `:shared` Android target | **26** | Same floor — avoids manifest merger failures |
 | `vlcBundle` app variant | **30** | Store bundle floor |
 | VLC 3 **native** NDK | NDK 21 | Still used when `vlcMajorVersion == 3` for ABI/native API 17-era toolchains; **Java/Kotlin app code is min 23** |
 
@@ -137,7 +137,7 @@ The major version is chosen once in `settings.gradle` (`gradle.ext.vlcMajorVersi
 
 | | Default (VLC **4**) | Legacy (`-PforceVlc3`) |
 |---|---|---|
-| App `minSdk` | 23 | 23 |
+| App `minSdk` | 26 | 26 |
 | LibVLC / versionName | 4.0 EAP / preview | 3.7.1 |
 | Medialibrary artifact | `…-vlc4` suffix | plain |
 | NDK (native modules) | 28.x | 21.x (API 17-era toolchains) |

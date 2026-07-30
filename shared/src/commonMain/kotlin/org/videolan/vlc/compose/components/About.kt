@@ -49,12 +49,7 @@ import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
-/**
- * Full Compose replacement for:
- * - application/vlc-android/src/org/videolan/vlc/gui/AboutFragment.kt
- * - application/vlc-android/res/layout/about.xml
- * - About screen use of LicenseDialog and AboutVersionDialog bottom-sheet fragments
- */
+/** Shared Compose About screen, including license and version bottom sheets. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VLCAboutScreen(

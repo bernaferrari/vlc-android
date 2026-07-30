@@ -13,7 +13,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.android.settings") version "9.2.1"
+    id("com.android.settings") version "9.3.1"
 }
 
 dependencyResolutionManagement {
@@ -59,15 +59,15 @@ dependencyResolutionManagement {
 }
 
 // Single source of truth for the VLC major-version matrix.
-// Default is VLC 4 (Compose/KMP/minSdk 23 path). Pass -PforceVlc3 to build the
+// Default is VLC 4 (Compose/KMP/minSdk 26 path). Pass -PforceVlc3 to build the
 // legacy VLC 3 dependency line (still needs NDK 21 for native modules).
 val vlcMajorVersion = if (providers.gradleProperty("forceVlc3").orNull == "true") 3 else 4
 gradle.extra["vlcMajorVersion"] = if (providers.gradleProperty("forceVlc4").orNull == "true") 4 else vlcMajorVersion
 
 android {
-    // Shared KMP + DataStore/Compose require API 23+. Historical VLC 3 floor was 17
-    // (NDK 21); the Android app/library minSdk is now 23 for both VLC 3 and 4.
-    minSdk = 23
+    // Ktor 3.5's Netty runtime requires API 26+. Historical VLC 3 native builds can
+    // still use NDK 21, but the Android app/library minSdk is 26 for both VLC 3 and 4.
+    minSdk = 26
     targetSdk = 36
     // Adaptive Navigation 3's Android artifact requires API 37 at compile time. This only
     // expands the available compile surface; targetSdk remains 36 until its runtime-behaviour

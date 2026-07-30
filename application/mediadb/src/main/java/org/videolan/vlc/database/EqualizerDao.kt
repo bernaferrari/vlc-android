@@ -60,15 +60,19 @@ interface EqualizerDao {
     @Query("SELECT * FROM equalizer_entry WHERE is_disabled = 0 ORDER BY preset_index ASC LIMIT 1")
     fun getFirstEqualizerEntry(): EqualizerWithBands
 
+    @Transaction
     @Query("SELECT * FROM equalizer_entry WHERE id = :id")
     fun getCurrentEqualizer(id: Long): EqualizerWithBands?
 
+    @Transaction
     @Query("SELECT * FROM equalizer_entry WHERE preset_index == -1")
     fun getCustomEqualizers(): List<EqualizerWithBands>
 
+    @Transaction
     @Query("SELECT * FROM equalizer_entry WHERE preset_index != -1")
     fun getDefaultEqualizers(): List<EqualizerWithBands>
 
+    @Transaction
     @Query("SELECT * FROM equalizer_entry WHERE name = :name")
     fun getByName(name: String): EqualizerWithBands
 

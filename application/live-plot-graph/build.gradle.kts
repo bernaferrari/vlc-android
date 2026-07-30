@@ -23,7 +23,6 @@ android {
 
 dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
-    implementation(libs.kotlin.stdlib.jdk7)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
     implementation(project(":application:tools"))

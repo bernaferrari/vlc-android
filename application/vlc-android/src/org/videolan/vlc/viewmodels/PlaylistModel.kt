@@ -21,7 +21,7 @@
 package org.videolan.vlc.viewmodels
 
 import android.app.Activity
-import android.support.v4.media.session.PlaybackStateCompat
+import org.videolan.resources.VlcPlaybackState as PlaybackStateCompat
 import androidx.activity.ComponentActivity
 import androidx.annotation.MainThread
 import androidx.lifecycle.MediatorLiveData

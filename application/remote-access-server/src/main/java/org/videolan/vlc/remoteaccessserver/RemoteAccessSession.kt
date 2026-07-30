@@ -32,11 +32,9 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.call
-import io.ktor.server.auth.Principal
 import io.ktor.server.response.respond
+import io.ktor.server.routing.RoutingContext
 import io.ktor.server.sessions.sessions
-import io.ktor.util.pipeline.PipelineContext
 import org.videolan.resources.AppContextProvider
 import org.videolan.vlc.remoteaccessserver.ssl.RemoteAccessSecureStore
 import org.videolan.vlc.remoteaccessserver.ssl.SecretGenerator
@@ -57,7 +55,7 @@ object RemoteAccessSession {
      *
      * @param settings the SharedPreferences to look into
      */
-    suspend fun PipelineContext<Unit, ApplicationCall>.verifyLogin(settings: SharedPreferences) {
+    suspend fun RoutingContext.verifyLogin(settings: SharedPreferences) {
         if (RemoteAccessServer.byPassAuth) return
         val context = appContext()
         val sessions: List<UserSession> = getSessions(context, settings)
@@ -137,4 +135,4 @@ object RemoteAccessSession {
 data class UserSession(
         val id: String,
         var maxAge: Long
-) : Principal
+)

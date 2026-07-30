@@ -93,7 +93,7 @@ import org.videolan.tools.KEY_MEDIALIBRARY_SCAN
 import org.videolan.tools.ML_SCAN_OFF
 import org.videolan.tools.Settings
 import org.videolan.tools.getContextWithLocale
-import org.videolan.tools.localBroadcastManager
+import org.videolan.tools.InProcessEvents
 import org.videolan.tools.removeFileScheme
 import org.videolan.vlc.gui.FeedbackActivity
 import org.videolan.vlc.gui.helpers.NotificationHelper
@@ -497,7 +497,7 @@ class MediaParsingService : LifecycleService(), DevicesDiscoveryCb {
             } catch (t: Throwable) {
                 //catching here as isHeld is not thread safe
             }
-            localBroadcastManager.sendBroadcast(Intent(ACTION_CONTENT_INDEXING))
+            InProcessEvents.emit(Intent(ACTION_CONTENT_INDEXING))
             //todo reenable entry point when ready
             if (::notificationActor.isInitialized) notificationActor.trySend(Hide)
             //Delay service stop to ensure service goes foreground.

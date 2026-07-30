@@ -77,7 +77,7 @@ class MediaMetadataWithImages {
     lateinit var metadata: MediaMetadata
 
     @Relation(parentColumn = "show_id", entityColumn = "moviepedia_id", entity = MediaMetadata::class)
-    lateinit var show: MediaMetadata
+    var show: MediaMetadata? = null
 
     @Ignore
     var media: MediaWrapper? = null
@@ -106,7 +106,7 @@ fun MediaMetadataWithImages.tvshowSubtitle(): String {
     metadata.releaseDate?.let {
         subtitle.add(SimpleDateFormat("yyyy", Locale.getDefault()).format(it))
     }
-    subtitle.add(show.title)
+    subtitle.add(show?.title.orEmpty())
     subtitle.add("S${metadata.season.toString().padStart(2, '0')}E${metadata.episode.toString().padStart(2, '0')}")
 
     return TextUtils.separatedString(subtitle.toTypedArray())

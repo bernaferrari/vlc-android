@@ -36,8 +36,7 @@ android {
 dependencies {
     implementation(project(":application:vlc-android"))
     api(project(":application:moviepedia"))
-    val composeBom = platform(libs.androidx.compose.bom)
-    implementation(composeBom)
+    implementation(platform(libs.androidx.compose.bom))
     implementation(libs.compose.ui)
     implementation(libs.compose.foundation)
     implementation(libs.compose.material3)

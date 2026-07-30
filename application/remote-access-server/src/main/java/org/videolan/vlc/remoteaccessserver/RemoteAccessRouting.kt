@@ -45,7 +45,6 @@ import io.ktor.http.content.OutgoingContent
 import io.ktor.http.content.PartData
 import io.ktor.http.content.TextContent
 import io.ktor.http.content.forEachPart
-import io.ktor.http.content.streamProvider
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
@@ -62,6 +61,7 @@ import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import io.ktor.utils.io.readRemaining
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
@@ -69,6 +69,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import kotlinx.io.readByteArray
 import org.videolan.medialibrary.MLServiceLocator
 import org.videolan.medialibrary.interfaces.Medialibrary
 import org.videolan.medialibrary.interfaces.media.Album
@@ -244,7 +245,7 @@ fun Route.setupRouting(appContext: Context, scope: CoroutineScope) {
                 is PartData.FileItem -> {
                     File("${AndroidDevices.MediaFolders.EXTERNAL_PUBLIC_DOWNLOAD_DIRECTORY_URI.path}/uploads").mkdirs()
                     fileName = part.originalFileName as String
-                    val fileBytes = part.streamProvider().readBytes()
+                    val fileBytes = part.provider().readRemaining().readByteArray()
                     val file = File("${AndroidDevices.MediaFolders.EXTERNAL_PUBLIC_DOWNLOAD_DIRECTORY_URI.path}/uploads/$fileName")
                     if (file.canonicalFile.parent?.startsWith(File("${AndroidDevices.MediaFolders.EXTERNAL_PUBLIC_DOWNLOAD_DIRECTORY_URI.path}/uploads").absolutePath) != true) {
                         call.respond(HttpStatusCode.Unauthorized)

@@ -36,9 +36,9 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
  * Full Compose replacement for:
  * - application/vlc-android/res/layout/dialog_rename.xml
  *
- * The app module owns media type detection and FragmentResult delivery. This
- * content keeps the rename title, current media name, editable new name field,
- * initial focus/selection, and OK action from the former bottom sheet layout.
+ * The app module owns media type detection and rename persistence. This content
+ * keeps the rename title, current media name, editable new-name field, initial
+ * focus/selection, and confirmation action in the shared UI.
  */
 @Composable
 fun VLCRenameDialogContent(

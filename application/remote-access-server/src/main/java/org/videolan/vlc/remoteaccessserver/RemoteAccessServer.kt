@@ -49,14 +49,15 @@ import io.ktor.server.application.createApplicationPlugin
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.session
-import io.ktor.server.engine.applicationEngineEnvironment
+import io.ktor.server.engine.applicationEnvironment
 import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.engine.sslConnector
+import io.ktor.server.engine.EmbeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.netty.NettyApplicationEngine
 import io.ktor.server.plugins.cachingheaders.CachingHeaders
-import io.ktor.server.plugins.callloging.CallLogging
+import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.compression.Compression
 import io.ktor.server.plugins.compression.matchContentType
 import io.ktor.server.plugins.cors.routing.CORS
@@ -75,7 +76,6 @@ import io.ktor.server.sessions.directorySessionStorage
 import io.ktor.server.websocket.WebSockets
 import io.ktor.server.websocket.pingPeriod
 import io.ktor.server.websocket.timeout
-import io.ktor.util.hex
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -142,7 +142,6 @@ import java.security.PrivateKey
 import java.security.SecureRandom
 import java.security.Security
 import java.security.cert.X509Certificate
-import java.time.Duration
 import java.util.Calendar
 import java.util.Collections
 import java.util.Locale
@@ -156,7 +155,9 @@ class RemoteAccessServer(private val context: Context) : PlaybackService.Callbac
     private var lastNowPlayingSendTime: Long = 0L
     private var lastWasPlaying: Boolean = false
     private var settings: SharedPreferences
-    private lateinit var engine: NettyApplicationEngine
+    private lateinit var engine: EmbeddedServer<NettyApplicationEngine, NettyApplicationEngine.Configuration>
+    private var httpPort: Int = 8080
+    private var httpsPort: Int = 8443
     var service: PlaybackService? = null
     private val networkSharesResult = ArrayList<MediaLibraryItem>()
     private val networkDiscoveryRunning = AtomicBoolean(false)
@@ -498,7 +499,7 @@ class RemoteAccessServer(private val context: Context) : PlaybackService.Callbac
      *
      * @return the server engine
      */
-    private fun generateServer(): NettyApplicationEngine {
+    private fun generateServer(): EmbeddedServer<NettyApplicationEngine, NettyApplicationEngine.Configuration> {
         //retrieve the private key from the FS
 
         val keyStoreFile = File(context.filesDir.path, ".keystore")
@@ -535,10 +536,14 @@ class RemoteAccessServer(private val context: Context) : PlaybackService.Callbac
         val out = keyStoreFile.outputStream()
         store.store(out, "store_pass".toCharArray())
 
-        val environment = applicationEngineEnvironment {
+        val environment = applicationEnvironment {
             log = LoggerFactory.getLogger("ktor.application")
+        }
+        httpPort = getFreePort(8080)
+        httpsPort = getFreePort(8443)
+        return embeddedServer(Netty, environment, {
             connector {
-                port = getFreePort(8080)
+                port = httpPort
             }
             sslConnector(
                     store,
@@ -546,10 +551,9 @@ class RemoteAccessServer(private val context: Context) : PlaybackService.Callbac
                     { password },
                     { password }
             ) {
-                this.port = getFreePort(8443)
+                this.port = httpsPort
             }
-            module {
-
+        }) {
                 install(Sessions) {
 
                     // Cookie transform keys are sealed under the Android Keystore.
@@ -559,7 +563,7 @@ class RemoteAccessServer(private val context: Context) : PlaybackService.Callbac
 
                     cookie<UserSession>("user_session", directorySessionStorage(File("${context.filesDir.path}/server/cache"), true)) {
                         cookie.maxAgeInSeconds = RemoteAccessSession.maxAge
-                        transform(SessionTransportTransformerEncrypt(hex(encryptKey), hex(signkey)))
+                        transform(SessionTransportTransformerEncrypt(encryptKey.hexToByteArray(), signkey.hexToByteArray()))
                     }
                 }
                 install(Authentication) {
@@ -574,8 +578,8 @@ class RemoteAccessServer(private val context: Context) : PlaybackService.Callbac
                 }
                 install(InterceptorPlugin)
                 install(WebSockets) {
-                    pingPeriod = Duration.ofSeconds(15)
-                    timeout = Duration.ofSeconds(15)
+                    pingPeriodMillis = 15_000
+                    timeoutMillis = 15_000
                     maxFrameSize = Long.MAX_VALUE
                     masking = false
                 }
@@ -642,11 +646,8 @@ class RemoteAccessServer(private val context: Context) : PlaybackService.Callbac
                     setupRouting(context, scope)
                     setupWebSockets(context, settings)
                 }
-            }
-        }
-        return embeddedServer(Netty, environment) {
         }.apply {
-            environment.monitor.subscribe(ApplicationStarted) {
+            application.monitor.subscribe(ApplicationStarted) {
                 _serverStatus.postValue(ServerStatus.STARTED)
                 Log.i(TAG, "Server started")
                 AppScope.launch(Dispatchers.Main) {
@@ -664,7 +665,7 @@ class RemoteAccessServer(private val context: Context) : PlaybackService.Callbac
                     }
                 }
             }
-            environment.monitor.subscribe(ApplicationStopped) {
+            application.monitor.subscribe(ApplicationStopped) {
                 AppScope.launch(Dispatchers.Main) {
                     PlaylistManager.showAudioPlayer.removeObserver(miniPlayerObserver)
                     DialogActivity.loginDialogShown.removeObserver(loginObserver)
@@ -826,7 +827,7 @@ class RemoteAccessServer(private val context: Context) : PlaybackService.Callbac
                         append("http://")
                     append(it)
                     append(":")
-                        append(engine.environment.connectors[0].port)
+                        append(httpPort)
                 }
             })
         }
@@ -1031,7 +1032,7 @@ class RemoteAccessServer(private val context: Context) : PlaybackService.Callbac
     data class PlaylistResult(val tracks: List<PlayQueueItem>, val name: String)
     data class FeedbackResult(val mail: String, val subject: String, val message: String, val file: String?)
 
-    fun getSecureUrl(call: ApplicationCall) = "https://${call.request.host()}:${engine.environment.connectors.first { it.type.name == "HTTPS" }.port}"
+    fun getSecureUrl(call: ApplicationCall) = "https://${call.request.host()}:$httpsPort"
 
 
     companion object : SingletonHolder<RemoteAccessServer, Context>({ RemoteAccessServer(it.applicationContext) }) {

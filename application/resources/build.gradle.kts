@@ -58,7 +58,6 @@ android {
 
 dependencies {
     val localLibVlc = rootProject.findProject(":libvlcjni:libvlc")
-    api(libs.kotlin.stdlib.jdk7)
     api(libs.androidx.multidex)
     api(libs.kotlinx.coroutines.core)
     api(libs.kotlinx.coroutines.android)

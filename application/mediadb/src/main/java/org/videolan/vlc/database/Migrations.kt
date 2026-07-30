@@ -262,11 +262,17 @@ val migration_35_36 = object:Migration(35, 36) {
 }
 
 val migration_36_37 = object:Migration(36, 37) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("CREATE TABLE `equalizer_entry` (`name` TEXT NOT NULL, `preamp` REAL NOT NULL, `preset_index` INTEGER NOT NULL, `is_disabled` INTEGER NOT NULL, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)")
-        database.execSQL("CREATE UNIQUE INDEX `index_equalizer_entry_name` ON `equalizer_entry` (`name`)")
-        database.execSQL("CREATE TABLE `equalizer_band` (`index` INTEGER NOT NULL, `value` REAL NOT NULL, `equalizer_entry` INTEGER NOT NULL, PRIMARY KEY(`index`, `equalizer_entry`), FOREIGN KEY(`equalizer_entry`) REFERENCES `equalizer_entry`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )")
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("CREATE TABLE `equalizer_entry` (`name` TEXT NOT NULL, `preamp` REAL NOT NULL, `preset_index` INTEGER NOT NULL, `is_disabled` INTEGER NOT NULL, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)")
+        db.execSQL("CREATE UNIQUE INDEX `index_equalizer_entry_name` ON `equalizer_entry` (`name`)")
+        db.execSQL("CREATE TABLE `equalizer_band` (`index` INTEGER NOT NULL, `value` REAL NOT NULL, `equalizer_entry` INTEGER NOT NULL, PRIMARY KEY(`index`, `equalizer_entry`), FOREIGN KEY(`equalizer_entry`) REFERENCES `equalizer_entry`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )")
 
+    }
+}
+
+val migration_37_38 = object:Migration(37, 38) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_equalizer_band_equalizer_entry` ON `equalizer_band` (`equalizer_entry`)")
     }
 }
 

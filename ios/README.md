@@ -79,7 +79,7 @@ Legacy Android `org.videolan.tools.Settings` (SharedPreferences) still powers ma
 
 - Adapters under `application/vlc-android/src/org/videolan/vlc/kmp/`
 - UI components are **not** in `:application:compose` (that module is only `VLCComposeView`)
-- Project **minSdk 23** (DataStore 1.2.x / Compose); see root README
+- Project **minSdk 26** (Ktor 3.5 Netty runtime); see root README
 
 ## iOS integration
 
@@ -111,7 +111,7 @@ configuration. Its pre-build phase invokes the matching Gradle task. Run
 - **Compose Multiplatform in `:shared`**: this is the phone product UI on both
   Android and iOS. SwiftUI is limited to hosting and native integration islands.
 - **FlagSet**: custom bitmask instead of JVM-only `EnumSet`.
-- **DataStore**: Flow/coroutine prefs for common code; minSdk 23 on Android because of androidx.datastore 1.2.x.
+- **Android baseline**: minSdk 26 because Ktor 3.5's embedded Netty server requires it.
 
 
 ## VLCKit integration

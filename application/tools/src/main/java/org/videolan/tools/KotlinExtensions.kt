@@ -43,7 +43,6 @@ import androidx.core.content.getSystemService
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -131,9 +130,6 @@ fun String?.isValidUrl(): Boolean {
 fun Context.isConnected(): Boolean {
     return getSystemService<ConnectivityManager>()?.activeNetworkInfo?.isConnected == true
 }
-
-val Context.localBroadcastManager: LocalBroadcastManager
-    get() = LocalBroadcastManager.getInstance(this)
 
 fun Resources.getResourceUri(@DrawableRes id: Int): Uri = Uri.Builder()
     .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
