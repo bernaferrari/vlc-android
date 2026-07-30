@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -775,13 +774,7 @@ private fun VlcAdaptiveNavigationSuite(
         ) {
             NavigationSuiteScaffold(
                 navigationSuiteItems = navigationSuiteItems,
-                // QuietGuard's direct Compose activity forwards navigation insets to the suite.
-                // VLC's shared shell also runs inside MainActivity's legacy CoordinatorLayout,
-                // which consumes that child inset before it reaches the nested ComposeView on
-                // some Android devices. Bridge only the missing bottom system inset here: the
-                // app remains edge-to-edge at the top and on wide rails, while compact labels
-                // can never sit under gesture/three-button controls.
-                modifier = Modifier.fillMaxSize().navigationBarsPadding(),
+                modifier = Modifier.fillMaxSize(),
                 content = content,
             )
         }

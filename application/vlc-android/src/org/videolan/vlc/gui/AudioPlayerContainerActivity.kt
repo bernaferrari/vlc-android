@@ -200,6 +200,9 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
         registerLiveData()
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content)) { view, windowInsets ->
+            if (this@AudioPlayerContainerActivity is MainActivity && usesSharedMainShell()) {
+                return@setOnApplyWindowInsetsListener windowInsets
+            }
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 if (isTransparent()) {
