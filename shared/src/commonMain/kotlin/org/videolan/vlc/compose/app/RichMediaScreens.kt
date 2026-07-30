@@ -57,6 +57,8 @@ import kotlinx.coroutines.flow.Flow
 import org.videolan.vlc.compose.artwork.MediaArtwork
 import org.videolan.vlc.compose.components.DisplaySettingsSheet
 import org.videolan.vlc.compose.components.DisplaySettingsState
+import org.videolan.vlc.compose.components.VLCConnectedIconAction
+import org.videolan.vlc.compose.components.VLCConnectedIconActionBar
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
@@ -68,6 +70,8 @@ import org.videolan.vlc.compose.components.VLCEmptyState
 import org.videolan.vlc.compose.components.VLCIndexScrollTarget
 import org.videolan.vlc.compose.components.VLCIndexedFastScroller
 import org.videolan.vlc.compose.components.VLCListItemPosition
+import org.videolan.vlc.compose.components.VLCArtworkTileShape
+import org.videolan.vlc.compose.components.VLCMediaCardShape
 import org.videolan.vlc.compose.components.vlcIndexLabel
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.model.MediaFolder
@@ -215,39 +219,53 @@ fun RichMediaListPane(
                 }
             }
         } else if (!useEmptyPresentation) {
-            Row(
+            FlowRow(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                IconButton(onClick = onSelectAll) {
-                    Icon(MaterialSymbols.Filled.SelectAll, contentDescription = ShellStrings.select())
-                }
-                IconButton(onClick = onToggleFavorites) {
-                    Icon(
-                        icon = if (state.onlyFavorites) MaterialSymbols.Filled.Star else MaterialSymbols.Outlined.Star,
-                        contentDescription = ShellStrings.favorites(),
-                    )
-                }
-                IconButton(onClick = {
-                    onSetViewMode(if (state.viewMode == ViewMode.LIST) ViewMode.GRID else ViewMode.LIST)
-                }) {
-                    Icon(
-                        icon = if (state.viewMode == ViewMode.LIST) MaterialSymbols.Filled.GridView else MaterialSymbols.Filled.ViewList,
-                        contentDescription = if (state.viewMode == ViewMode.LIST) ShellStrings.gridView() else ShellStrings.listView(),
-                    )
-                }
-                IconButton(onClick = { showDisplaySettings = true }) {
-                    Icon(MaterialSymbols.Filled.Tune, contentDescription = ShellStrings.displaySettings())
-                }
+                VLCConnectedIconActionBar(
+                    actions = listOf(
+                        VLCConnectedIconAction(
+                            icon = MaterialSymbols.Filled.SelectAll,
+                            contentDescription = ShellStrings.select(),
+                            onClick = onSelectAll,
+                        ),
+                        VLCConnectedIconAction(
+                            icon = if (state.onlyFavorites) MaterialSymbols.Filled.Star else MaterialSymbols.Outlined.Star,
+                            contentDescription = ShellStrings.favorites(),
+                            selected = state.onlyFavorites,
+                            onClick = onToggleFavorites,
+                        ),
+                        VLCConnectedIconAction(
+                            icon = if (state.viewMode == ViewMode.LIST) MaterialSymbols.Filled.GridView else MaterialSymbols.Filled.ViewList,
+                            contentDescription = if (state.viewMode == ViewMode.LIST) ShellStrings.gridView() else ShellStrings.listView(),
+                            onClick = {
+                                onSetViewMode(if (state.viewMode == ViewMode.LIST) ViewMode.GRID else ViewMode.LIST)
+                            },
+                        ),
+                        VLCConnectedIconAction(
+                            icon = MaterialSymbols.Filled.Tune,
+                            contentDescription = ShellStrings.displaySettings(),
+                            onClick = { showDisplaySettings = true },
+                        ),
+                    ),
+                )
                 if (state.supportsRescan) {
                     TextButton(onClick = onRescan) { Text(ShellStrings.refresh()) }
                 }
-                FilledTonalIconButton(onClick = onPlayAll) {
-                    Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = ShellStrings.playAll())
-                }
+                VLCConnectedIconActionBar(
+                    actions = listOf(
+                        VLCConnectedIconAction(
+                            icon = MaterialSymbols.Filled.PlayArrow,
+                            contentDescription = ShellStrings.playAll(),
+                            selected = true,
+                            onClick = onPlayAll,
+                        ),
+                    ),
+                )
             }
         }
 
@@ -359,10 +377,10 @@ fun RichMediaListPane(
             state.groupingMode != VideoGroupingMode.NONE && groups.isNotEmpty() -> {
                 LazyColumn(
                     contentPadding = PaddingValues(bottom = 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
                     modifier = Modifier.fillMaxWidth().weight(1f),
                 ) {
-                    items(groups, key = { "g:${it.id}:${it.path}" }) { folder ->
+                    itemsIndexed(groups, key = { _, folder -> "g:${folder.id}:${folder.path}" }) { index, folder ->
                         VLCBrowserItemRow(
                             title = folder.title,
                             subtitle = if (folder.childCount > 0) ShellStrings.itemsCount(folder.childCount) else {
@@ -374,6 +392,7 @@ fun RichMediaListPane(
                                     ShellStrings.group()
                                 }
                             },
+                            position = sectionListItemPosition(index, groups.size),
                             onClick = { onOpenGroup(folder) },
                             artworkContent = {
                                 Icon(
@@ -845,7 +864,7 @@ fun MediaGridCard(
         modifier = Modifier.combinedClickable(onClick = onClick, onLongClick = onLongClick),
         // A media grid repeats this shape many times. The large token still feels expressive
         // without turning dense libraries into a field of oversized pills.
-        shape = RoundedCornerShape(20.dp),
+        shape = VLCMediaCardShape,
         color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
         contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
     ) {
@@ -854,7 +873,7 @@ fun MediaGridCard(
                 Modifier
                     .fillMaxWidth()
                     .height(120.dp)
-                    .clip(RoundedCornerShape(16.dp))
+                    .clip(VLCArtworkTileShape)
                     .background(MaterialTheme.colorScheme.surfaceContainerHighest),
                 contentAlignment = Alignment.Center,
             ) {
@@ -990,12 +1009,15 @@ fun BrowserRichPane(
                 overflow = TextOverflow.Ellipsis,
             )
             if (state.selection.isEmpty()) {
-                IconButton(onClick = { showDisplaySettings = true }) {
-                    Icon(
-                        icon = MaterialSymbols.Filled.Tune,
-                        contentDescription = ShellStrings.displaySettings(),
-                    )
-                }
+                VLCConnectedIconActionBar(
+                    actions = listOf(
+                        VLCConnectedIconAction(
+                            icon = MaterialSymbols.Filled.Tune,
+                            contentDescription = ShellStrings.displaySettings(),
+                            onClick = { showDisplaySettings = true },
+                        ),
+                    ),
+                )
             }
         }
         if (state.selection.isNotEmpty()) {
@@ -1189,6 +1211,7 @@ private fun BrowserMediaRow(
 @Composable
 private fun PlaylistTrackRow(
     item: MediaItem,
+    position: VLCListItemPosition,
     onPlay: (MediaItem) -> Unit,
     onRemove: (MediaItem) -> Unit,
     onMoveUp: (MediaItem) -> Unit = {},
@@ -1199,6 +1222,7 @@ private fun PlaylistTrackRow(
         VLCBrowserItemRow(
             title = item.displayTitle,
             subtitle = item.artist,
+            position = position,
             onClick = { onPlay(item) },
             artworkContent = { MediaArtworkSlot(item) },
             moreActionContent = { Icon(MaterialSymbols.Filled.MoreVert, contentDescription = null) },
@@ -1286,12 +1310,13 @@ fun PlaylistsRichPane(
             } else {
                 LazyColumn(
                     contentPadding = PaddingValues(bottom = 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
                     modifier = Modifier.fillMaxWidth().weight(1f),
                 ) {
                     itemsIndexed(detailItems, key = { index, item -> "$index:${item.id}:${item.uri}" }) { index, item ->
                         PlaylistTrackRow(
                             item = item,
+                            position = sectionListItemPosition(index, detailItems.size),
                             onPlay = onPlayItem,
                             onRemove = { onRemoveTrack(index) },
                             onMoveUp = { onMoveTrackUp(index) },
@@ -1326,12 +1351,12 @@ fun PlaylistsRichPane(
             }
         }
 
-        Row(
+        FlowRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             if (state.selection.isNotEmpty()) {
                 FilledTonalIconButton(onClick = onDeleteSelection) {
@@ -1341,26 +1366,29 @@ fun PlaylistsRichPane(
                     Text(ShellStrings.selectionCount(ShellStrings.clear(), state.selection.size))
                 }
             } else {
-                IconButton(onClick = onToggleFavorites) {
-                    Icon(
-                        icon = if (state.onlyFavorites) MaterialSymbols.Filled.Star else MaterialSymbols.Outlined.Star,
-                        contentDescription = ShellStrings.favorites(),
-                    )
-                }
-                IconButton(onClick = onToggleSortDesc) {
-                    Icon(
-                        icon = MaterialSymbols.Filled.Sort,
-                        contentDescription = if (state.sortDesc) ShellStrings.descending() else ShellStrings.ascending(),
-                    )
-                }
-                IconButton(onClick = {
-                    onSetViewMode(if (state.viewMode == ViewMode.LIST) ViewMode.GRID else ViewMode.LIST)
-                }) {
-                    Icon(
-                        icon = if (state.viewMode == ViewMode.LIST) MaterialSymbols.Filled.GridView else MaterialSymbols.Filled.ViewList,
-                        contentDescription = if (state.viewMode == ViewMode.LIST) ShellStrings.gridView() else ShellStrings.listView(),
-                    )
-                }
+                VLCConnectedIconActionBar(
+                    actions = listOf(
+                        VLCConnectedIconAction(
+                            icon = if (state.onlyFavorites) MaterialSymbols.Filled.Star else MaterialSymbols.Outlined.Star,
+                            contentDescription = ShellStrings.favorites(),
+                            selected = state.onlyFavorites,
+                            onClick = onToggleFavorites,
+                        ),
+                        VLCConnectedIconAction(
+                            icon = MaterialSymbols.Filled.Sort,
+                            contentDescription = if (state.sortDesc) ShellStrings.descending() else ShellStrings.ascending(),
+                            selected = state.sortDesc,
+                            onClick = onToggleSortDesc,
+                        ),
+                        VLCConnectedIconAction(
+                            icon = if (state.viewMode == ViewMode.LIST) MaterialSymbols.Filled.GridView else MaterialSymbols.Filled.ViewList,
+                            contentDescription = if (state.viewMode == ViewMode.LIST) ShellStrings.gridView() else ShellStrings.listView(),
+                            onClick = {
+                                onSetViewMode(if (state.viewMode == ViewMode.LIST) ViewMode.GRID else ViewMode.LIST)
+                            },
+                        ),
+                    ),
+                )
             }
         }
 
@@ -1435,16 +1463,17 @@ fun PlaylistsRichPane(
         } else {
             LazyColumn(
                 contentPadding = PaddingValues(vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
                 modifier = Modifier.fillMaxWidth().weight(1f),
             ) {
-                items(playlists, key = { it.id }) { pl ->
+                itemsIndexed(playlists, key = { _, playlist -> playlist.id }) { index, pl ->
                     var menu by remember { mutableStateOf(false) }
                     Box {
                         VLCBrowserItemRow(
                             title = pl.name,
                             subtitle = ShellStrings.itemsCount(pl.itemCount),
                             selected = pl.id in state.selection,
+                            position = sectionListItemPosition(index, playlists.size),
                             onClick = {
                                 if (state.selection.isNotEmpty()) onToggleSelect(pl.id)
                                 else onOpen(pl)
@@ -1517,7 +1546,7 @@ private fun PlaylistCard(
     var menu by remember { mutableStateOf(false) }
     Surface(
         modifier = Modifier.combinedClickable(onClick = onOpen, onLongClick = onToggleSelect),
-        shape = MaterialTheme.shapes.extraLarge,
+        shape = VLCMediaCardShape,
         color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
         contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
     ) {
@@ -1529,7 +1558,7 @@ private fun PlaylistCard(
                 Modifier
                     .fillMaxWidth()
                     .height(120.dp)
-                    .clip(MaterialTheme.shapes.large)
+                    .clip(VLCArtworkTileShape)
                     .background(MaterialTheme.colorScheme.surfaceContainerHighest),
                 contentAlignment = Alignment.Center,
             ) {

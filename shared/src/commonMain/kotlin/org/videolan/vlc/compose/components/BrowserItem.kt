@@ -54,13 +54,18 @@ enum class VLCListItemPosition {
 }
 
 /** The shared QuietGuard-inspired outer/inner geometry for segmented rows. */
-fun VLCListItemPosition.segmentShape(selected: Boolean = false) = when {
-    selected -> RoundedCornerShape(20.dp)
+fun VLCListItemPosition.segmentShape() = when {
     this == VLCListItemPosition.Single -> RoundedCornerShape(24.dp)
     this == VLCListItemPosition.First -> RoundedCornerShape(24.dp, 24.dp, 6.dp, 6.dp)
     this == VLCListItemPosition.Last -> RoundedCornerShape(6.dp, 6.dp, 24.dp, 24.dp)
     else -> RoundedCornerShape(6.dp)
 }
+
+/** Restrained media-grid geometry, shared by media and playlist cards. */
+val VLCMediaCardShape = RoundedCornerShape(20.dp)
+
+/** Artwork is intentionally a little tighter than its containing media card. */
+val VLCArtworkTileShape = RoundedCornerShape(16.dp)
 
 /**
  * Shared Compose row for the core media-browser list item pattern.
@@ -107,6 +112,11 @@ fun VLCBrowserItemRow(
         animationSpec = tween(motion.durationShort, easing = VLCMotion.Standard),
         label = "rowContainer",
     )
+    val contentColor = if (selected) {
+        MaterialTheme.colorScheme.onSecondaryContainer
+    } else {
+        colors.listTitle
+    }
     Surface(
         modifier = modifier
             .fillMaxWidth()
@@ -118,9 +128,11 @@ fun VLCBrowserItemRow(
                 onClick = onClick,
                 onLongClick = onLongClick,
             ),
-        shape = position.segmentShape(selected),
+        // Selection is a color state, not a different component. Preserving the group silhouette
+        // stops a selected item from becoming an isolated pill in the middle of a section.
+        shape = position.segmentShape(),
         color = containerColor,
-        contentColor = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else colors.listTitle,
+        contentColor = contentColor,
     ) {
         Row(
             modifier = Modifier.padding(start = 12.dp, end = 6.dp, top = 10.dp, bottom = 10.dp),
@@ -133,6 +145,8 @@ fun VLCBrowserItemRow(
             BrowserItemTexts(
                 title = title,
                 subtitle = subtitle,
+                titleColor = contentColor,
+                subtitleColor = if (selected) contentColor.copy(alpha = 0.72f) else colors.listSubtitle,
                 titleMaxLines = titleMaxLines,
                 subtitleMaxLines = subtitleMaxLines,
                 modifier = Modifier.weight(1f),
@@ -188,6 +202,11 @@ fun VLCBrowserItemCard(
         animationSpec = tween(motion.durationShort, easing = VLCMotion.Standard),
         label = "cardContainer",
     )
+    val contentColor = if (selected) {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    } else {
+        MaterialTheme.colorScheme.onSurface
+    }
     Surface(
         modifier = modifier
             .then(if (contentDescription != null) Modifier.semantics { this.contentDescription = contentDescription } else Modifier)
@@ -197,9 +216,9 @@ fun VLCBrowserItemCard(
                 onClick = onClick,
                 onLongClick = onLongClick,
             ),
-        shape = MaterialTheme.shapes.large,
+        shape = VLCMediaCardShape,
         color = containerColor,
-        contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+        contentColor = contentColor,
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -227,6 +246,12 @@ fun VLCBrowserItemCard(
             BrowserItemTexts(
                 title = title,
                 subtitle = subtitle,
+                titleColor = contentColor,
+                subtitleColor = if (selected) {
+                    contentColor.copy(alpha = 0.72f)
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
                 titleMaxLines = titleMaxLines,
                 subtitleMaxLines = subtitleMaxLines
             )
@@ -242,7 +267,7 @@ private fun BrowserArtwork(
     Box(
         modifier = Modifier
             .size(size)
-            .clip(MaterialTheme.shapes.medium)
+            .clip(VLCArtworkTileShape)
             .background(MaterialTheme.colorScheme.surfaceContainerHighest),
         contentAlignment = Alignment.Center,
         content = content
@@ -253,15 +278,16 @@ private fun BrowserArtwork(
 private fun BrowserItemTexts(
     title: String,
     subtitle: String?,
+    titleColor: androidx.compose.ui.graphics.Color,
+    subtitleColor: androidx.compose.ui.graphics.Color,
     titleMaxLines: Int,
     subtitleMaxLines: Int,
     modifier: Modifier = Modifier
 ) {
-    val colors = VLCThemeDefaults.colors
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(
             text = title,
-            color = colors.listTitle,
+            color = titleColor,
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Medium,
             maxLines = titleMaxLines,
@@ -270,7 +296,7 @@ private fun BrowserItemTexts(
         subtitle?.takeIf { it.isNotBlank() }?.let {
             Text(
                 text = it,
-                color = colors.listSubtitle,
+                color = subtitleColor,
                 style = MaterialTheme.typography.bodySmall,
                 maxLines = subtitleMaxLines,
                 overflow = TextOverflow.Ellipsis
