@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -238,7 +239,9 @@ fun RichMediaListPane(
                         contentDescription = if (isSearchOpen) ShellStrings.clear() else ShellStrings.search(),
                     )
                 }
-                Box {
+                // Keep the full 48dp target, but optically align the three-dot glyph with the
+                // shared screen gutter rather than leaving it inset by the button's inner space.
+                Box(modifier = Modifier.offset(x = 8.dp, y = (-4).dp)) {
                     IconButton(onClick = { showLibraryMenu = true }) {
                         Icon(
                             icon = MaterialSymbols.Filled.MoreVert,
