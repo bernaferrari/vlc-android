@@ -10,12 +10,12 @@ val rootExtra = rootProject.extra
 val appId = rootExtra["appId"] as String
 val appVersionCode = rootExtra["versionCode"] as Int
 val appVersionName = rootExtra["versionName"] as String
-val sharedComposeAssets = rootProject.layout.buildDirectory.dir("generated/assets/sharedComposeResources")
+val sharedComposeAssets = project(":shared").layout.buildDirectory.dir("generated/assets/sharedComposeResources")
 val abiCodes = mapOf("armeabi-v7a" to 5, "arm64-v8a" to 6, "x86" to 7, "x86_64" to 8)
 
-val verifyDebugMedialibraryJni = tasks.register("verifyDebugMedialibraryJni") {
+val verifyDebugApkPackaging = tasks.register("verifyDebugApkPackaging") {
     group = "verification"
-    description = "Verifies that every universal debug APK packages libmla for each supported ABI."
+    description = "Verifies that every universal debug APK packages native media and shared Compose resources."
     dependsOn("packageDebug")
 
     doLast {
@@ -26,13 +26,15 @@ val verifyDebugMedialibraryJni = tasks.register("verifyDebugMedialibraryJni") {
             "No debug APK was produced to verify medialibrary JNI packaging."
         }
 
-        val expectedEntries = listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
-            .map { abi -> "lib/$abi/libmla.so" }
+        val expectedEntries = buildList {
+            addAll(listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64").map { abi -> "lib/$abi/libmla.so" })
+            add("assets/composeResources/vlc_android.shared.generated.resources/values/strings.commonMain.cvr")
+        }
         debugApks.forEach { apk ->
             ZipFile(apk).use { zip ->
                 val missing = expectedEntries.filter { entry -> zip.getEntry(entry) == null }
                 check(missing.isEmpty()) {
-                    "${apk.name} is missing medialibrary JNI entries: ${missing.joinToString()}"
+                    "${apk.name} is missing required packaged entries: ${missing.joinToString()}"
                 }
             }
         }
@@ -40,7 +42,7 @@ val verifyDebugMedialibraryJni = tasks.register("verifyDebugMedialibraryJni") {
 }
 
 tasks.matching { it.name == "assembleDebug" }.configureEach {
-    finalizedBy(verifyDebugMedialibraryJni)
+    finalizedBy(verifyDebugApkPackaging)
 }
 
 android {

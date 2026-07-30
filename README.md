@@ -1,209 +1,124 @@
-# VLC for Android
+# VLC KMP
 
-This is the official **Android** port of [VLC](https://videolan.org/vlc/), with an in-progress Kotlin Multiplatform (KMP) shared layer and a Compose Multiplatform UI stack.
+<p align="center">
+  <strong>A modern, local-first media player built with Kotlin Multiplatform and Compose.</strong><br>
+  One adaptive product experience for Android and iOS, with a browser demo powered by the same shared UI.
+</p>
 
-VLC on Android plays all the same files as the classical version of VLC, and features a media database for Audio and Video files and stream.
+VLC KMP is a new multiplatform media application built around the VLC ecosystem's native playback engines. It is not the legacy VLC Android application: the product UI, navigation, state, preferences, and feature contracts live in shared Kotlin. Android and iOS provide focused native integrations for the capabilities that must remain platform-specific.
 
-- [Project Structure](#project-structure)
-- [minSdk policy](#minsdk-policy)
-- [LibVLC](#libvlc)
-- [License](#license)
-- [Build](#build)
-  - [Build Application](#build-application)
-  - [Build LibVLC](#build-libvlc)
-- [Contribute](#contribute)
-  - [Pull requests](#pull-requests)
-  - [Translations](#translations)
-- [Issues and feature requests](#issues-and-feature-requests)
-- [Support](#support)
+## Highlights
 
-## Project Structure
+- **Shared product, native playback:** The library, playlists, history, favorites, player controls, settings, adaptive navigation, and Material 3 design system are shared Compose Multiplatform code.
+- **Real local media:** Import and organise your own audio and video instead of relying on demo content.
+- **Native where it matters:** Android uses LibVLC; iOS uses upstream VLCKit; the Web demo uses the browser's media engine for formats it supports.
+- **Adaptive by default:** The same Navigation 3 shell scales from compact phones to larger screens.
+- **Local-first:** Media catalogues and preferences stay on the device. There is no account or product backend.
+- **Capability-aware:** The shared UI only offers controls backed by the current target, rather than presenting platform-specific actions as dead ends.
 
+## Targets
+
+| Target | Status | Playback and media intake |
+| --- | --- | --- |
+| Android | Primary native app | LibVLC, media-library scan, Storage Access Framework import, background media session, PiP, renderer and network browsing |
+| iOS | Native host for the shared app | VLCKit, Files and Photos import, media session, PiP, renderer and local-network discovery |
+| Web / Wasm | Shared UI demo | Browser file import and browser-supported audio/video playback |
+| Desktop JVM | Shared code target | No production media engine yet |
+
+The complete target contract is maintained in [shared/CAPABILITIES.md](shared/CAPABILITIES.md). Codec, container, browser-policy, and device support are ultimately determined by the native engine or browser on that target.
+
+## Architecture
+
+```text
+shared/                         Shared Kotlin Multiplatform product
+  commonMain/                   Domain, repositories, Koin, UI, Navigation 3, Material 3
+  androidMain/ iosMain/         Small platform actuals and storage bridges
+
+application/                    Android host and Android-only integrations
+  app/                          Android application packaging
+  vlc-android/                  LibVLC, media service, permissions, system integration
+  remote-access-server/         Authenticated local remote-access server
+
+ios/                            SwiftUI host and VLCKit integration
+webApp/                         Kotlin/Wasm browser host for the shared shell
+medialibrary/                   Android media-library integration
 ```
-vlc-android/
-├── shared/                         # KMP module (commonMain + android/jvm/ios)
-│   ├── domain models, repositories, preferences (DataStore)
-│   ├── Compose Multiplatform UI components + theme
-│   └── expect/actual platform bridges
-├── application/                    # Android app modules
-│   ├── app/                        # Application shell + merged manifest
-│   ├── vlc-android/                # Phone UI hosts, PlaybackService, KMP adapters
-│   ├── compose/                    # Thin Android interop shim (VLCComposeView)
-│   ├── television/                 # Android TV UI
-│   ├── remote-access-server/       # On-device Ktor remote access
-│   ├── remote-access-client/       # Web UI assets + Kotlin HTTP client API
-│   ├── tools/, resources/, mediadb/, moviepedia/, donations/, live-plot-graph/
-│   └── …
-├── ios/                            # Swift host for the shared Compose shell
-├── medialibrary/                   # Medialibrary JNI / gradle module
-├── libvlcjni/ (optional checkout)  # LibVLC gradle module; VLC sources under vlc/
-├── buildsystem/                    # Build scripts, CI, maven publication
-└── settings.gradle
-```
 
-### Current architecture (ground truth)
+The shared shell is the source of truth. Native code is intentionally limited to media decoding, import/pickers, OS media sessions, permissions, system surfaces, and other platform APIs.
 
-| Area | Status |
-|------|--------|
-| Phone UI | Full Jetpack Compose / Compose-hosted screens (no phone Fragments / layout XML left in the active path) |
-| Shared UI components | Live in `:shared` (`org.videolan.vlc.compose.*`) via Compose Multiplatform |
-| `:application:compose` | **Interop shim only** — `VLCComposeView` for embedding Compose in residual Android View hosts. Components do **not** live here. |
-| KMP `:shared` | commonMain models, DataStore preferences, repository/playback contracts, CMP UI; android/jvm/ios actuals |
-| Android KMP adapters | `application/vlc-android/.../kmp/` wired at app startup; Settings dual-writes to DataStore |
-| iOS | Same shared Compose shell in `ios/`, with MobileVLCKit decode, a persistent KMP media catalog, and target-aware `VLCShared.framework` packaging. DI uses Koin (`VlcKoin` / `VlcSharedApi`), not a `VlcAppContainer` type. |
-| Remote access | Server (Ktor) + client module (web assets + `RemoteAccessClient` HTTP API) |
-| Permanent native islands | LibVLC video surface, medialibrary JNI, some system/widget/TV edges |
+## Getting started
 
-More detail: `application/compose/README.md` (Android interop shim), `ios/README.md` (KMP / iOS integration), and [`shared/CAPABILITIES.md`](shared/CAPABILITIES.md) (target feature contract).
+### Prerequisites
 
-## minSdk policy
+- JDK 17 or newer
+- Android Studio with Android SDK Platform 37 for Android development
+- Xcode and XcodeGen for iOS development
 
-| Surface | minSdk | Notes |
-|---------|--------|--------|
-| Project default (`settings.gradle`) | **26** | Required by Ktor 3.5's Netty runtime |
-| `:shared` Android target | **26** | Same floor — avoids manifest merger failures |
-| `vlcBundle` app variant | **30** | Store bundle floor |
-| Native toolchain | NDK 28.x | VLC 4 native build toolchain |
+The project uses the checked-in Gradle wrapper. Gradle provisions the Node, Yarn, and Binaryen tools required by the Wasm target; a separate Node installation is not required for its Gradle tasks.
 
-Optional NDK path: set `android.ndkPath` (and optionally `android.ndkFullVersion`) in `local.properties`. Root ext property is `toolchainNdkPath`.
-
-## LibVLC
-
-LibVLC is the Android library embedding VLC engine, which provides a lot of multimedia features, like:
-
-- Play every media file formats, every codec and every streaming protocols
-- Hardware and efficient decoding on every platform, up to 8K
-- Network browsing for distant filesystems (SMB, FTP, SFTP, NFS...) and servers (UPnP, DLNA)
-- Playback of Audio CD, DVD and Bluray with menu navigation
-- Support for HDR, including tonemapping for SDR streams
-- Audio passthrough with SPDIF and HDMI, including for Audio HD codecs, like DD+, TrueHD or DTS-HD
-- Support for video and audio filters
-- Support for 360 video and 3D audio playback, including Ambisonics
-- Ability to cast and stream to distant renderers, like Chromecast and UPnP renderers.
-
-And more.
-
-![LibVLC stack](https://images.videolan.org/images/libvlc_stack.png)
-
-You can use our LibVLC module to power your own Android media player.
-Download the `.aar` directly from [Maven](https://search.maven.org/artifact/org.videolan.android/libvlc-all) or build from source.
-
-Have a look at our [sample codes](https://code.videolan.org/videolan/libvlc-android-samples).
-
-## License
-
-VLC for Android is licensed under [GPLv2 (or later)](COPYING). Android libraries make this, de facto, a GPLv3 application.
-
-VLC engine *(LibVLC)* for Android is licensed under [LGPLv2](libvlc/COPYING.LIB).
-
-## Build
-
-Native libraries are published on Maven. So you can:
-
-- Build the application and get libraries via gradle dependencies (JVM build only)
-- Build the whole app (LibVLC + Medialibrary + Application)
-- Build LibVLC only, and get an .aar package
-
-### Build Application
-
-VLC-Android build relies on gradle build modes:
-
-- `Release` & `Debug` will get LibVLC and Medialibrary from Maven, and build application source code only.
-- `SignedRelease` also, but it will allow you to sign application apk with a local keystore.
-- `Dev` will build LibVLC, Medialibrary, and then build the application with these binaries. (via build scripts only)
-
-Focused gates used during Compose/KMP work:
+### Android
 
 ```bash
-# Shared KMP Android compile
-./gradlew :shared:compileDebugKotlinAndroid --no-daemon --console=plain
+# Build the debug app
+./gradlew :application:app:assembleDebug --no-daemon --console=plain
 
-# Phone app Kotlin + interop shim
-./gradlew :application:compose:build :application:vlc-android:compileDebugKotlin --no-daemon --console=plain
-
-# Manifest merge (minSdk / DataStore sanity)
-./gradlew :application:app:processDebugMainManifest --no-daemon --console=plain
+# Install on a connected Android device or emulator
+./gradlew :application:app:installDebug --no-daemon --console=plain
 ```
 
-The checked-in GitHub release gate also builds unsigned Android Debug/Release
-artifacts, runs the shared/Wasm suite, and builds/archives the iOS host on a
-macOS runner. For local iOS verification, run
-[`ios/verify.sh`](ios/verify.sh); record hardware evidence in
-[`ios/RELEASE_SMOKE_TEST.md`](ios/RELEASE_SMOKE_TEST.md) before promotion.
+Android requires API 26 or newer. The packaged store-oriented `vlcBundle` variant has its own API 30 floor.
 
-### Build LibVLC
+### Web demo
 
-You will need a recent Linux distribution to build VLC.
-It should work with Windows 10, and macOS, but there is no official support for this.
-
-#### Setup
-
-Check our [AndroidCompile wiki page](https://wiki.videolan.org/AndroidCompile/), especially for build dependencies.
-
-Here are the essential points:
-
-On Debian/Ubuntu, install the required dependencies:
 ```bash
-sudo apt install automake ant autopoint cmake build-essential libtool-bin \
-    patch pkg-config protobuf-compiler ragel subversion unzip git \
-    openjdk-17-jre openjdk-17-jdk flex python3 wget
+# Run the shared app in a local browser development server
+./gradlew :webApp:wasmJsBrowserDevelopmentRun --no-daemon --console=plain
+
+# Produce the optimized browser bundle
+./gradlew :webApp:wasmJsBrowserProductionWebpack --no-daemon --console=plain
 ```
 
-Setup the build environment:
-Set `$ANDROID_SDK` to point to your Android SDK directory
-`export ANDROID_SDK=/path/to/android-sdk`
+The browser target is useful for exploring the shared UI and importing browser-playable files. It is intentionally not a replacement for the Android or iOS native media engines.
 
-Set `$ANDROID_NDK` to point to your Android NDK directory
-`export ANDROID_NDK=/path/to/android-ndk`
+### iOS
 
-Then, you are ready to build!
+```bash
+./ios/setup.sh
+open ios/VLC-iOS.xcodeproj
+```
 
-#### Build
+The setup script builds the Kotlin framework and generates the Xcode project. For repeatable simulator and archive checks:
 
-`buildsystem/compile.sh -l -a <ABI>`
+```bash
+./ios/verify.sh simulator
+./ios/verify.sh archive
+```
 
-ABI can be `arm`, `arm64`, `x86`, `x86_64` or `all` for a multi-abis build
+See [ios/README.md](ios/README.md) for the host layout, VLCKit integration, and framework details.
 
-You can do a library release build with `-r` argument
+## Verification
 
-#### Medialibrary
+Run the checks appropriate to the code you change:
 
-Build Medialibrary with `-ml` instead of `-l`
+```bash
+# Shared Kotlin tests and optimized Wasm bundle
+./gradlew :shared:allTests :webApp:wasmJsBrowserProductionWebpack --no-daemon --console=plain
 
-## Contribute
+# Android app package
+./gradlew :application:app:assembleDebug --no-daemon --console=plain
 
-VLC is a libre and open source project, we welcome all contributions.
+# iOS host (macOS only)
+./ios/verify.sh simulator
+```
 
-Just respect our [Code of Conduct](https://wiki.videolan.org/CoC/), and if you want do contribute to the UI or add a new feature, please open an issue first so there can be a discussion about it.
+Automated builds do not replace device testing for hardware decode, imports, seeking, PiP, system media controls, or browser codec support. Use [ios/RELEASE_SMOKE_TEST.md](ios/RELEASE_SMOKE_TEST.md) and the target capability matrix when preparing a release.
 
+## Contributing
 
-### Pull requests
+Keep product behaviour and UI in `shared/commonMain` whenever a platform API is not required. Add platform bridges only behind a shared contract, expose them through Koin, and update [shared/CAPABILITIES.md](shared/CAPABILITIES.md) when a capability changes.
 
-Pull requests must be proposed on our [gitlab server](https://code.videolan.org/videolan/vlc-android/).
+Before proposing a change, run the narrowest relevant Gradle task and keep Android and iOS behaviour aligned. Use the browser target as a quick shared-UI check, not as proof of native playback behaviour.
 
-So you must create an account, fork vlc-android project, and propose your merge requests from it.
+## License and attribution
 
-**Except for translations**, see the section below.
-
-### Translations
-
-You can help improving translations too by joining the [transifex vlc project](https://app.transifex.com/yaron/vlc-trans/dashboard/)
-
-Translations merge requests are then generated from transifex work.
-
-## Issues and feature requests
-
-VLC for Android bugtracker is hosted on [VideoLAN gitlab](https://code.videolan.org/videolan/vlc-android/issues)  
-Please look for existing issues and provide as much useful details as you can (e.g. vlc app version, device and Android version).
-
-A template is provided, please use it!
-
-Issues without relevant information will be ignored, we cannot help in this case.
-
-## Support
-
-- For usage support, use the in-app feedback option in the `About` screen
-- Android mailing list: android@videolan.org
-- bugtracker: https://code.videolan.org/videolan/vlc-android/issues
-- IRC: *#videolan* channel on [libera](https://libera.chat/)
-- VideoLAN forum: https://forum.videolan.org/viewforum.php?f=35
+This repository is licensed under the [GNU GPL v2 or later](COPYING). It builds on the VLC ecosystem and uses VLC native engines where available; their source and licence terms remain in their respective modules and dependencies.
