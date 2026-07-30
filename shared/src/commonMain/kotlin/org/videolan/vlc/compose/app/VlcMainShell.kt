@@ -245,46 +245,6 @@ fun VlcMainShell(
                 )
             }
         }
-        // Settings leaves the hub entirely, so give it a complete forward/back page transition
-        // rather than a one-sided detail entrance. The navigation chrome can change with the
-        // destination without making the content jump or cross-fade.
-        val settingsTransitionMetadata = remember(motion) {
-            NavDisplay.transitionSpec {
-                ContentTransform(
-                    targetContentEnter = slideInHorizontally(
-                        animationSpec = tween(
-                            durationMillis = if (motion.reducedMotion) 0 else 220,
-                            easing = VLCMotion.EmphasizedDecelerate,
-                        ),
-                        initialOffsetX = { fullWidth -> fullWidth },
-                    ),
-                    initialContentExit = slideOutHorizontally(
-                        animationSpec = tween(
-                            durationMillis = if (motion.reducedMotion) 0 else 180,
-                            easing = VLCMotion.EmphasizedAccelerate,
-                        ),
-                        targetOffsetX = { fullWidth -> -fullWidth / 6 },
-                    ),
-                )
-            } + NavDisplay.popTransitionSpec {
-                ContentTransform(
-                    targetContentEnter = slideInHorizontally(
-                        animationSpec = tween(
-                            durationMillis = if (motion.reducedMotion) 0 else 180,
-                            easing = VLCMotion.EmphasizedDecelerate,
-                        ),
-                        initialOffsetX = { fullWidth -> -fullWidth / 6 },
-                    ),
-                    initialContentExit = slideOutHorizontally(
-                        animationSpec = tween(
-                            durationMillis = if (motion.reducedMotion) 0 else 180,
-                            easing = VLCMotion.EmphasizedAccelerate,
-                        ),
-                        targetOffsetX = { fullWidth -> fullWidth },
-                    ),
-                )
-            }
-        }
         // Mirror QuietGuard's selective list-detail use: an empty library is one clear state, not
         // an empty half-screen plus an unrelated "select an item" message. Once a library has
         // content, wide hosts retain the productive list/detail relationship.
@@ -763,7 +723,7 @@ fun VlcMainShell(
                             hostCallbacks = hostCallbacks,
                         )
                     }
-                    entry<SettingsRoute>(metadata = settingsTransitionMetadata) {
+                    entry<SettingsRoute>(metadata = detailTransitionMetadata) {
                         SettingsDestination(
                             modifier = Modifier.fillMaxSize(),
                             viewModel = settingsVm,
