@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -472,6 +473,9 @@ fun VideoHudOverlay(
                         listOf(Color.Transparent, Color.Black.copy(alpha = 0.82f))
                     )
                 )
+                // The player is intentionally edge-to-edge, but its transport controls are not.
+                // Keep the primary play action clear of gesture and three-button navigation.
+                .navigationBarsPadding()
                 .padding(horizontal = 16.dp, vertical = 16.dp)
         ) {
             // Native decoders do not all tolerate a seek for every pixel of a drag. Keep the
