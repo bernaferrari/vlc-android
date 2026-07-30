@@ -13,7 +13,7 @@ import androidx.compose.ui.platform.AbstractComposeView
  *       android:id="@+id/my_compose_host"
  *       ... />
  *
- * In Kotlin (even inside DataBinding fragments/activities):
+ * In Kotlin from platform-owned activities or fragments:
  *   binding.myComposeHost.setContent {
  *       VLCTheme { MyComposable(...) }
  *   }

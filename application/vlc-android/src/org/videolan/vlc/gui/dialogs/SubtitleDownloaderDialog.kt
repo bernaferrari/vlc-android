@@ -67,11 +67,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.databinding.Observable
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.videolan.resources.opensubtitles.OpenSubtitlesLimit
@@ -133,7 +135,7 @@ private class SubtitleDownloaderComposeDialog(
     private val limitState = mutableStateOf(OpenSubtitlesLimit())
     private val usernameState = mutableStateOf("")
     private val passwordState = mutableStateOf("")
-    private val observableCallbacks = mutableListOf<Pair<Observable, Observable.OnPropertyChangedCallback>>()
+    private val observerJobs = mutableListOf<Job>()
     private val resultObserver = Observer<List<SubtitleItem>> { resultsState.value = it.orEmpty() }
     private val historyObserver = Observer<List<SubtitleItem>> { historyState.value = it.orEmpty() }
     private val loadingObserver = Observer<Boolean> { isLoadingState.value = it == true }
@@ -154,13 +156,13 @@ private class SubtitleDownloaderComposeDialog(
         val token = user.account?.token
         if (!token.isNullOrEmpty()) OpenSubtitleClient.authorizationToken = token
         OpenSubtitleClient.userDomain = user.account?.baseUrl
-        viewModel.observableInEditMode.set(false)
-        viewModel.observableSearchHearingImpaired.set(false)
-        viewModel.observableUser.set(user)
-        viewModel.observableLimit.set(OpenSubtitlesUtils.getLimit(settings))
+        viewModel.inEditMode.value = false
+        viewModel.searchHearingImpaired.value = false
+        viewModel.user.value = user
+        viewModel.limit.value = OpenSubtitlesUtils.getLimit(settings)
         val languages = viewModel.getLastUsedLanguage()
         selectedLanguagesState.value = languages
-        viewModel.observableSearchLanguage.set(languages)
+        viewModel.searchLanguage.value = languages
         if (!token.isNullOrEmpty()) viewModel.checkUserInfos(settings)
     }
 
@@ -168,27 +170,24 @@ private class SubtitleDownloaderComposeDialog(
         viewModel.result.observe(activity, resultObserver)
         viewModel.history.observe(activity, historyObserver)
         viewModel.isApiLoading.observe(activity, loadingObserver)
-        observe(viewModel.observableMessage) { messageState.value = viewModel.observableMessage.get().orEmpty() }
-        observe(viewModel.observableError) { errorState.value = viewModel.observableError.get() == true }
-        observe(viewModel.observableResultDescription) { resultDescriptionState.value = viewModel.observableResultDescription.get().plainText() }
-        observe(viewModel.observableResultDescriptionTalkback) { resultDescriptionTalkbackState.value = viewModel.observableResultDescriptionTalkback.get().orEmpty() }
-        observe(viewModel.observableInEditMode) { inEditModeState.value = viewModel.observableInEditMode.get() == true }
-        observe(viewModel.observableSearchName) { searchNameState.value = viewModel.observableSearchName.get().orEmpty() }
-        observe(viewModel.observableSearchSeason) { searchSeasonState.value = viewModel.observableSearchSeason.get().orEmpty() }
-        observe(viewModel.observableSearchEpisode) { searchEpisodeState.value = viewModel.observableSearchEpisode.get().orEmpty() }
-        observe(viewModel.observableSearchHearingImpaired) { hearingImpairedState.value = viewModel.observableSearchHearingImpaired.get() == true }
-        observe(viewModel.observableSearchLanguage) { selectedLanguagesState.value = viewModel.observableSearchLanguage.get().orEmpty() }
-        observe(viewModel.observableUser) { userState.value = viewModel.observableUser.get() ?: OpenSubtitlesUser() }
-        observe(viewModel.observableLimit) { limitState.value = viewModel.observableLimit.get() ?: OpenSubtitlesLimit() }
+        observe(viewModel.message) { messageState.value = it }
+        observe(viewModel.error) { errorState.value = it }
+        observe(viewModel.resultDescription) { resultDescriptionState.value = it.plainText() }
+        observe(viewModel.resultDescriptionTalkback) { resultDescriptionTalkbackState.value = it }
+        observe(viewModel.inEditMode) { inEditModeState.value = it }
+        observe(viewModel.searchName) { searchNameState.value = it }
+        observe(viewModel.searchSeason) { searchSeasonState.value = it }
+        observe(viewModel.searchEpisode) { searchEpisodeState.value = it }
+        observe(viewModel.searchHearingImpaired) { hearingImpairedState.value = it }
+        observe(viewModel.searchLanguage) { selectedLanguagesState.value = it }
+        observe(viewModel.user) { userState.value = it }
+        observe(viewModel.limit) { limitState.value = it }
     }
 
-    private fun observe(observable: Observable, update: () -> Unit) {
-        val callback = object : Observable.OnPropertyChangedCallback() {
-            override fun onPropertyChanged(sender: Observable?, propertyId: Int) = update()
+    private fun <T> observe(flow: StateFlow<T>, update: (T) -> Unit) {
+        observerJobs += activity.lifecycleScope.launch {
+            flow.collect(update)
         }
-        observable.addOnPropertyChangedCallback(callback)
-        observableCallbacks += observable to callback
-        update()
     }
 
     private fun setupContent() {
@@ -254,42 +253,42 @@ private class SubtitleDownloaderComposeDialog(
 
     private fun setSearchName(value: String) {
         searchNameState.value = value
-        viewModel.observableSearchName.set(value)
+        viewModel.searchName.value = value
     }
 
     private fun setSearchSeason(value: String) {
         searchSeasonState.value = value
-        viewModel.observableSearchSeason.set(value)
+        viewModel.searchSeason.value = value
     }
 
     private fun setSearchEpisode(value: String) {
         searchEpisodeState.value = value
-        viewModel.observableSearchEpisode.set(value)
+        viewModel.searchEpisode.value = value
     }
 
     private fun setHearingImpaired(value: Boolean) {
         hearingImpairedState.value = value
-        viewModel.observableSearchHearingImpaired.set(value)
+        viewModel.searchHearingImpaired.value = value
     }
 
     private fun setSelectedLanguages(values: List<String>) {
         selectedLanguagesState.value = values
-        viewModel.observableSearchLanguage.set(values)
+        viewModel.searchLanguage.value = values
     }
 
     private fun toggleEditMode() {
         if (!inEditModeState.value) {
-            val name = viewModel.observableSearchName.get().takeUnless { it.isNullOrBlank() } ?: mediaTitle
+            val name = viewModel.searchName.value.takeUnless { it.isBlank() } ?: mediaTitle
             setSearchName(name)
-            setSearchSeason(viewModel.observableSearchSeason.get().orEmpty())
-            setSearchEpisode(viewModel.observableSearchEpisode.get().orEmpty())
-            setHearingImpaired(viewModel.observableSearchHearingImpaired.get() == true)
+            setSearchSeason(viewModel.searchSeason.value)
+            setSearchEpisode(viewModel.searchEpisode.value)
+            setHearingImpaired(viewModel.searchHearingImpaired.value)
         }
         setEditMode(!inEditModeState.value)
     }
 
     private fun setEditMode(editing: Boolean) {
-        viewModel.observableInEditMode.set(editing)
+        viewModel.inEditMode.value = editing
         inEditModeState.value = editing
     }
 
@@ -339,7 +338,7 @@ private class SubtitleDownloaderComposeDialog(
                 Log.i("SubtitleDownload", "Subtitle download retrieved: ${downloadLink.link} - ${downloadLink.fileName}")
                 try {
                     OpenSubtitlesUtils.saveLimit(settings, openSubtitlesLimit)
-                    viewModel.observableLimit.set(openSubtitlesLimit)
+                    viewModel.limit.value = openSubtitlesLimit
                     item.zipDownloadLink = downloadLink.link
                     item.fileName = downloadLink.fileName
                     item.downloadError = false
@@ -395,10 +394,8 @@ private class SubtitleDownloaderComposeDialog(
         viewModel.result.removeObserver(resultObserver)
         viewModel.history.removeObserver(historyObserver)
         viewModel.isApiLoading.removeObserver(loadingObserver)
-        observableCallbacks.forEach { (observable, callback) ->
-            observable.removeOnPropertyChangedCallback(callback)
-        }
-        observableCallbacks.clear()
+        observerJobs.forEach(Job::cancel)
+        observerJobs.clear()
         toast?.cancel()
         toast = null
         rootView = null

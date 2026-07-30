@@ -29,7 +29,7 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
  *
  * The app module owns result delivery to SavePlaylistDialog. This content
  * renders the duplicate playlist warning and exposes the same two-option or
- * three-option actions as the former DataBinding layout.
+ * three-option actions in one shared surface.
  */
 @Composable
 fun VLCDuplicationWarningDialogContent(

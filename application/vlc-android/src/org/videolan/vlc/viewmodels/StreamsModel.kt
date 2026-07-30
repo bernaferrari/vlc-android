@@ -22,7 +22,6 @@ package org.videolan.vlc.viewmodels
 
 import android.content.Context
 import android.util.Log
-import androidx.databinding.ObservableField
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -31,6 +30,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.videolan.medialibrary.interfaces.Medialibrary
@@ -44,7 +44,7 @@ import org.videolan.vlc.util.EmptyPBSCallback
 
 class StreamsModel(context: Context, private val showDummy: Boolean = false, coroutineContextProvider: CoroutineContextProvider = CoroutineContextProvider()) : MedialibraryModel<MediaWrapper>(context, coroutineContextProvider) {
     var deletingMedia: MediaWrapper? = null
-    val observableSearchText = ObservableField<String>()
+    val searchText = MutableStateFlow("")
     var service: PlaybackService? = null
 
     private val serviceCb = object : PlaybackService.Callback by EmptyPBSCallback {

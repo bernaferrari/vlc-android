@@ -32,8 +32,7 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
  * - application/vlc-android/res/layout/dialog_auto_info.xml
  *
  * The app module owns the BottomSheetDialog host and localized string formatting.
- * This content renders the Android Auto help sections without requiring a
- * DataBinding layout.
+ * This content renders the Android Auto help sections as a shared surface.
  *
  * Material 3 Expressive redesign: the former flat wall of text is grouped into
  * tonal cards, each headed by an accent indicator + colored section title, so the

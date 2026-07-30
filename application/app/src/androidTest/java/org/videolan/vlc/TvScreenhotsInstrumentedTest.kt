@@ -106,7 +106,7 @@ class TvScreenhotsInstrumentedTest : BaseUITest() {
         waitForActivity(VerticalGridActivity::class.java)
 
         getCurrentActivity()?.let { activity ->
-            UiUtils.waitUntilLoaded { activity.findViewById(org.videolan.television.R.id.list) }
+            UiUtils.waitUntilHasContent { activity.findViewById(org.videolan.television.R.id.list) }
         } ?: throw IllegalStateException("Cannot find activity")
 
         ScreenshotUtil.takeScreenshot(4,"tv_audio_list")
@@ -123,7 +123,7 @@ class TvScreenhotsInstrumentedTest : BaseUITest() {
 
         waitForActivity(VerticalGridActivity::class.java)
         getCurrentActivity()?.let { activity ->
-            UiUtils.waitUntilLoaded { activity.findViewById(org.videolan.television.R.id.list) }
+            UiUtils.waitUntilHasContent { activity.findViewById(org.videolan.television.R.id.list) }
         }
         ScreenshotUtil.takeScreenshot(5,"tv_files")
         pressBack()
@@ -133,7 +133,7 @@ class TvScreenhotsInstrumentedTest : BaseUITest() {
         pressDPadCenter()
         waitForActivity(VerticalGridActivity::class.java)
         getCurrentActivity()?.let { activity ->
-            UiUtils.waitUntilLoaded { activity.findViewById(org.videolan.television.R.id.list) }
+            UiUtils.waitUntilHasContent { activity.findViewById(org.videolan.television.R.id.list) }
         }
         ScreenshotUtil.takeScreenshot(2,"tv_video_list")
         pressDPad(Direction.DOWN, 1)

@@ -21,20 +21,20 @@
  * All dependency versions are tracked in gradle/libs.versions.toml.
  */
 plugins {
-    kotlin("multiplatform")
+    alias(libs.plugins.kotlin.multiplatform)
     // AGP 9 no longer supports the legacy Android-library target alongside
     // Kotlin Multiplatform. This plugin keeps the Android target genuinely KMP.
-    id("com.android.kotlin.multiplatform.library")
-    id("org.jetbrains.compose")
-    id("org.jetbrains.kotlin.plugin.compose")
-    id("org.jetbrains.kotlin.plugin.serialization")
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.android.kotlin.multiplatform.library)
+    alias(libs.plugins.compose.multiplatform)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.ksp)
 }
 
 kotlin {
     android {
         namespace = "org.videolan.shared"
-        compileSdk = 36
+        compileSdk = 37
         // DataStore 1.2.x / modern AndroidX require API 23+. VLC 3 native still
         // builds with NDK 21, but the app/shared JVM floor is 23 for both VLC 3 and 4.
         minSdk = 23
@@ -157,7 +157,7 @@ kotlin {
     }
 }
 
-// Override the root build.gradle's allprojects JVM 1.8 — we use 17 in :shared.
+// Keep explicit Kotlin target metadata close to the KMP target declaration.
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     compilerOptions {
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)

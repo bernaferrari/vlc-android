@@ -26,7 +26,7 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
  *   - Horizontal row: leading icon (ImageView) + vertical (bold title + subtitle)
  *   - Colors: title uses ?attr/font_audio_light (18sp bold), subtitle uses ?attr/list_subtitle
  *
- * This leaf is intentionally presentational and low-coupling (no DataBinding).
+ * This leaf is intentionally presentational and low-coupling.
  * Icon is provided via leadingContent slot for full flexibility (callers supply
  * their own Icon, Image, or custom during migration; no drawable coupling here).
  *

@@ -16,7 +16,6 @@ androidx-lifecycle = "2.10.0"
 androidx-media = "1.6.0"
 androidx-paging = "3.5.0"
 androidx-preference = "1.2.1"
-androidx-recyclerview = "1.3.2"
 androidx-room = "2.8.4"
 androidx-test-core = "1.5.0"
 androidx-test-espresso = "3.5.1"
@@ -51,12 +50,17 @@ version-catalog-update = "1.1.0"
 viewpager2 = "1.0.0"
 
 [plugins]
+android-application = { id = "com.android.application", version.ref = "android-gradle-plugin" }
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "android-gradle-plugin" }
 android-library = { id = "com.android.library", version.ref = "android-gradle-plugin" }
 android-settings = { id = "com.android.settings", version.ref = "android-gradle-plugin" }
+compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+maven-publish = { id = "com.vanniktech.maven.publish", version = "0.36.0" }
 version-catalog-update = { id = "nl.littlerobots.version-catalog-update", version.ref = "version-catalog-update" }
 
 [libraries]

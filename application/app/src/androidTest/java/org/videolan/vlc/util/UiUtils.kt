@@ -27,7 +27,6 @@ package org.videolan.vlc.util
 import android.app.Activity
 import android.os.SystemClock
 import android.view.View
-import androidx.recyclerview.widget.RecyclerView
 import androidx.test.espresso.Espresso
 import androidx.test.espresso.PerformException
 import androidx.test.espresso.UiController
@@ -77,27 +76,6 @@ object UiUtils {
         }
     }
 
-    /**
-     * Stop the test until RecyclerView's data gets loaded.
-     *
-     * Passed [recyclerProvider] will be activated in UI thread, allowing you to retrieve the View.
-     *
-     * Workaround for https://issuetracker.google.com/issues/123653014
-     */
-    inline fun waitUntilLoaded(crossinline recyclerProvider: () -> RecyclerView) {
-        Espresso.onIdle()
-
-        lateinit var recycler: RecyclerView
-
-        InstrumentationRegistry.getInstrumentation().runOnMainSync {
-            recycler = recyclerProvider()
-        }
-
-        while (recycler.hasPendingAdapterUpdates()) {
-            Thread.sleep(10)
-        }
-    }
-
     fun waitForActivity(activityType: Class<out Activity>, timeout: Int = 10): Boolean {
         val endTime = System.currentTimeMillis() + (timeout * 1000)
 
@@ -127,23 +105,17 @@ object UiUtils {
         return activity[0]
     }
 
-    /**
-     * Stop the test until RecyclerView's has children.
-     *
-     * Passed [recyclerProvider] will be activated in UI thread, allowing you to retrieve the View.
-     *
-     * Workaround for https://issuetracker.google.com/issues/123653014
-     */
-    inline fun waitUntilHasChildren(crossinline recyclerProvider: () -> RecyclerView) {
+    /** Wait until a platform list host has rendered at least one child. */
+    inline fun waitUntilHasContent(crossinline viewProvider: () -> View) {
         Espresso.onIdle()
 
-        lateinit var recycler: RecyclerView
+        lateinit var view: View
 
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
-            recycler = recyclerProvider()
+            view = viewProvider()
         }
 
-        while (recycler.childCount == 0) {
+        while ((view as? android.view.ViewGroup)?.childCount == 0) {
             Thread.sleep(10)
         }
     }

@@ -37,7 +37,7 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
  * - application/vlc-android/res/layout/activity_beta_welcome.xml
  *
  * This is intentionally a full dialog Activity surface rather than an interop leaf:
- * BetaWelcomeActivity can drop DataBinding and the XML layout entirely while keeping
+ * BetaWelcomeActivity can use this shared screen while keeping
  * its existing dialog theme, localized text, VLC icon slot, and finish-on-OK behavior.
  *
  * Material 3 Expressive redesign: a branded hero icon disc + title lead into the

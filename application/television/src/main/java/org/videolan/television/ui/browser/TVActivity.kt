@@ -74,7 +74,7 @@ class TVActivity : BaseTvActivity() {
         streamsModel = model
         val itemsState = mutableStateOf<List<MediaWrapper>>(emptyList())
         val loadingState = mutableStateOf(false)
-        val searchTextState = mutableStateOf(model.observableSearchText.get().orEmpty())
+        val searchTextState = mutableStateOf(model.searchText.value)
         val clipboardTextState = mutableStateOf<String?>(null)
         streamsSearchText = searchTextState
         streamsClipboardText = clipboardTextState
@@ -95,7 +95,7 @@ class TVActivity : BaseTvActivity() {
                             tvOverscanVertical = resources.getDimensionPixelSize(R.dimen.tv_overscan_vertical),
                             onSearchTextChanged = {
                                 searchTextState.value = it
-                                model.observableSearchText.set(it)
+                                model.searchText.value = it
                             },
                             onSubmit = { playStreamUri(searchTextState.value) },
                             onStreamClicked = ::playStream,
@@ -112,7 +112,7 @@ class TVActivity : BaseTvActivity() {
         PlaybackService.lastError.observe(this) {
             if (it != null && streamsModel != null) {
                 searchTextState.value = it
-                model.observableSearchText.set(it)
+                model.searchText.value = it
                 PlaybackService.lastError.value = null
             }
         }
@@ -128,7 +128,7 @@ class TVActivity : BaseTvActivity() {
             if (text.isValidUrl()) {
                 streamsSearchText?.value = text
                 streamsClipboardText?.value = text
-                model.observableSearchText.set(text)
+                model.searchText.value = text
             }
         } catch (e: Exception) {
         }
@@ -139,7 +139,7 @@ class TVActivity : BaseTvActivity() {
         if (trimmed.isEmpty()) return false
         playStream(MLServiceLocator.getAbstractMediaWrapper(trimmed.toUri()))
         streamsSearchText?.value = ""
-        streamsModel?.observableSearchText?.set("")
+        streamsModel?.searchText?.value = ""
         return true
     }
 
