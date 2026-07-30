@@ -14,7 +14,6 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        // Target-scoped repositories keep the Kotlin/Wasm toolchain reproducible.
         ivy {
             name = "Node.js"
             url = uri("https://nodejs.org/dist/")
@@ -46,12 +45,8 @@ dependencyResolutionManagement {
 }
 
 android {
-    // Ktor 3.5's Netty runtime requires API 26+.
     minSdk = 26
     targetSdk = 36
-    // Adaptive Navigation 3's Android artifact requires API 37 at compile time. This only
-    // expands the available compile surface; targetSdk remains 36 until its runtime-behaviour
-    // migration is separately reviewed.
     compileSdk = 37
     buildToolsVersion = "36.0.0"
 }

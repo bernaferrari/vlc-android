@@ -34,7 +34,6 @@ kotlin {
     android {
         namespace = "org.videolan.shared"
         compileSdk = 37
-        // Ktor 3.5's Netty runtime requires API 26+.
         minSdk = 26
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
