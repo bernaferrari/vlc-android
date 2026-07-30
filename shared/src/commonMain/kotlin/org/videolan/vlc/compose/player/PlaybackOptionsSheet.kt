@@ -33,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -807,6 +808,8 @@ private fun QueueItem(
     ) {
         Row(
             modifier = Modifier
+                .fillMaxWidth()
+                .clip(MaterialTheme.shapes.large)
                 .clickable(enabled = !selected, onClick = onPlay)
                 .padding(start = 12.dp, top = 6.dp, bottom = 6.dp),
             verticalAlignment = Alignment.CenterVertically,

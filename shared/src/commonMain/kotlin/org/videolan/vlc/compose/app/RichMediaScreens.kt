@@ -961,7 +961,9 @@ fun MediaGridCard(
     val colors = VLCThemeDefaults.colors
     var menu by remember { mutableStateOf(false) }
     Surface(
-        modifier = Modifier.combinedClickable(onClick = onClick, onLongClick = onLongClick),
+        modifier = Modifier
+            .clip(VLCMediaCardShape)
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
         // A media grid repeats this shape many times. The large token still feels expressive
         // without turning dense libraries into a field of oversized pills.
         shape = VLCMediaCardShape,
@@ -1656,7 +1658,9 @@ private fun PlaylistCard(
     val colors = VLCThemeDefaults.colors
     var menu by remember { mutableStateOf(false) }
     Surface(
-        modifier = Modifier.combinedClickable(onClick = onOpen, onLongClick = onToggleSelect),
+        modifier = Modifier
+            .clip(VLCMediaCardShape)
+            .combinedClickable(onClick = onOpen, onLongClick = onToggleSelect),
         shape = VLCMediaCardShape,
         color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
         contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,

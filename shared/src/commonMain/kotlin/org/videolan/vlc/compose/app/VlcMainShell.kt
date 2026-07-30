@@ -1329,6 +1329,7 @@ private fun MiniBar(
 ) {
     val colors = VLCThemeDefaults.colors
     Surface(
+        onClick = onExpand,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -1338,7 +1339,6 @@ private fun MiniBar(
         Row(
             Modifier
                 .fillMaxWidth()
-                .clickable(onClick = onExpand)
                 .padding(horizontal = 20.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

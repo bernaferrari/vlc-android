@@ -9,6 +9,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.theme.VLCTheme
@@ -37,7 +38,9 @@ fun VLCAudioResumeVideoHint(
             shape = RoundedCornerShape(20.dp),
             shadowElevation = 4.dp,
             modifier = if (onClick != null) {
-                modifier.clickable(role = Role.Button, onClick = onClick)
+                modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .clickable(role = Role.Button, onClick = onClick)
             } else {
                 modifier
             }

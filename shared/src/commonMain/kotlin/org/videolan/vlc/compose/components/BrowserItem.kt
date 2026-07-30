@@ -261,6 +261,7 @@ fun VLCBrowserItemCard(
     Surface(
         modifier = modifier
             .then(if (contentDescription != null) Modifier.semantics { this.contentDescription = contentDescription } else Modifier)
+            .clip(VLCMediaCardShape)
             .combinedClickable(
                 enabled = enabled,
                 role = Role.Button,
