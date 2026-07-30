@@ -3,11 +3,6 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
-val rootExtra = rootProject.extra
-val desugarLib = rootExtra["desugarLib"] as String
-val remoteAccessVersion = rootExtra["remoteAccessVersion"] as String
-val ktorVersion = rootExtra["ktorVersion"] as String
-val composeBomVersion = rootExtra["composeBomVersion"] as String
 val remoteAccessDebug = providers.gradleProperty("vlc_remote_access_debug").orNull ?: "false"
 
 android {
@@ -45,36 +40,36 @@ android {
 }
 
 dependencies {
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:$desugarLib")
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
     api(project(":shared"))
     add("devImplementation", project(":application:remote-access-client"))
     debugImplementation(project(":application:remote-access-client"))
     releaseImplementation(project(":application:remote-access-client"))
-    releaseImplementation("org.videolan.android:remote-access:$remoteAccessVersion")
-    add("vlcBundleImplementation", "org.videolan.android:remote-access:$remoteAccessVersion")
+    releaseImplementation(libs.vlc.remote.access)
+    add("vlcBundleImplementation", libs.vlc.remote.access)
     implementation(project(":application:vlc-android"))
-    implementation("io.ktor:ktor:$ktorVersion")
-    implementation("io.ktor:ktor-server-netty:$ktorVersion")
-    implementation("io.ktor:ktor-server-websockets:$ktorVersion")
-    implementation("io.ktor:ktor-server-caching-headers:$ktorVersion")
-    implementation("io.ktor:ktor-server-compression:$ktorVersion")
-    implementation("io.ktor:ktor-server-cors:$ktorVersion")
-    implementation("io.ktor:ktor-server-auth:$ktorVersion")
-    implementation("io.ktor:ktor-server-partial-content:$ktorVersion")
-    implementation("io.ktor:ktor-server-auto-head-response:$ktorVersion")
-    implementation("io.ktor:ktor-network-tls-certificates:$ktorVersion")
-    implementation("org.bouncycastle:bcpkix-jdk18on:1.79")
-    implementation("io.ktor:ktor-server-call-logging:$ktorVersion")
-    implementation("io.ktor:ktor-server-sessions:$ktorVersion")
-    debugImplementation("org.slf4j:slf4j-android:1.7.36")
-    val composeBom = platform("androidx.compose:compose-bom:$composeBomVersion")
+    implementation(libs.ktor.core)
+    implementation(libs.ktor.server.netty)
+    implementation(libs.ktor.server.websockets)
+    implementation(libs.ktor.server.caching.headers)
+    implementation(libs.ktor.server.compression)
+    implementation(libs.ktor.server.cors)
+    implementation(libs.ktor.server.auth)
+    implementation(libs.ktor.server.partial.content)
+    implementation(libs.ktor.server.auto.head.response)
+    implementation(libs.ktor.network.tls.certificates)
+    implementation(libs.bouncycastle.pkix)
+    implementation(libs.ktor.server.call.logging)
+    implementation(libs.ktor.server.sessions)
+    debugImplementation(libs.slf4j.android)
+    val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.foundation:foundation")
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.animation:animation")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    implementation(libs.compose.ui)
+    implementation(libs.compose.foundation)
+    implementation(libs.compose.material3)
+    implementation(libs.compose.animation)
+    debugImplementation(libs.compose.ui.tooling)
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.espresso.core)
 }

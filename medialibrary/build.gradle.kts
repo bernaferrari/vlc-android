@@ -9,9 +9,6 @@ val toolchainNdkVersion = rootExtra["toolchainNdkVersion"] as String
 val toolchainNdkPath = rootExtra["toolchainNdkPath"] as String?
 val vlcMajorVersion = rootExtra["vlcMajorVersion"] as Int
 val libvlcVersion = rootExtra["libvlcVersion"] as String
-val androidxCoreVersion = rootExtra["androidxCoreVersion"] as String
-val androidxFragmentVersion = rootExtra["androidxFragmentVersion"] as String
-val junitVersion = rootExtra["junitVersion"] as String
 
 group = "org.videolan.android"
 version = medialibraryVersion
@@ -71,8 +68,8 @@ dependencies {
         add("devImplementation", "org.videolan.android:libvlc-all:$libvlcVersion")
     }
     debugImplementation("org.videolan.android:libvlc-all:$libvlcVersion")
-    api("androidx.core:core:$androidxCoreVersion")
-    api("androidx.fragment:fragment:$androidxFragmentVersion")
-    testImplementation("junit:junit:$junitVersion")
-    testImplementation("org.robolectric:robolectric:4.3.1")
+    api(libs.androidx.core)
+    api(libs.androidx.fragment)
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
 }

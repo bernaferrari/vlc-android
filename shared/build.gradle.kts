@@ -114,7 +114,7 @@ kotlin {
                 api(libs.koin.annotations)
                 api(libs.moshi)
                 api(libs.retrofit)
-                api("com.squareup.retrofit2:converter-moshi:${libs.versions.retrofit.get()}")
+                api(libs.retrofit.converter.moshi)
             }
         }
 
@@ -151,7 +151,7 @@ kotlin {
         commonTest {
             dependencies {
                 implementation(kotlin("test"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
+                implementation(libs.kotlinx.coroutines.test)
             }
         }
     }

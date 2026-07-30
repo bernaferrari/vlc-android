@@ -6,17 +6,6 @@ plugins {
 
 val rootExtra = rootProject.extra
 val versionCode = rootExtra["versionCode"] as Int
-val kotlinxVersion = rootExtra["kotlinx_version"] as String
-val pagingVersion = rootExtra["pagingVersion"] as String
-val lifecycleVersion = rootExtra["lifecycleVersion"] as String
-val composeBomVersion = rootExtra["composeBomVersion"] as String
-val roomVersion = rootExtra["roomVersion"] as String
-val jdbcVersion = rootExtra["jdbcVersion"] as String
-val retrofitVersion = rootExtra["retrofit"] as String
-val moshiVersion = rootExtra["moshi"] as String
-val junitVersion = rootExtra["junitVersion"] as String
-val junitExtVersion = rootExtra["junitExtVersion"] as String
-val espressoVersion = rootExtra["espressoVersion"] as String
 val moviepediaUrl = providers.gradleProperty("moviepedia_api_url").orNull ?: "https://localhost/"
 
 android {
@@ -57,26 +46,26 @@ dependencies {
     implementation(project(":application:tools"))
     implementation(project(":application:vlc-android"))
     implementation(project(":application:compose"))
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:${libs.versions.kotlin.get()}")
-    implementation("org.jetbrains.kotlin:kotlin-reflect:${libs.versions.kotlin.get()}")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxVersion")
-    implementation("androidx.paging:paging-runtime-ktx:$pagingVersion")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion")
-    val composeBom = platform("androidx.compose:compose-bom:$composeBomVersion")
+    implementation(libs.kotlin.stdlib.jdk7)
+    implementation(libs.kotlin.reflect)
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.androidx.paging.runtime)
+    implementation(libs.androidx.lifecycle.viewmodel)
+    val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.foundation:foundation")
-    implementation("androidx.compose.material3:material3")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    implementation("androidx.room:room-runtime:$roomVersion")
-    ksp("org.xerial:sqlite-jdbc:$jdbcVersion")
-    ksp("androidx.room:room-compiler:$roomVersion")
-    implementation("com.squareup.retrofit2:retrofit:$retrofitVersion")
-    implementation("com.squareup.retrofit2:converter-moshi:$retrofitVersion")
-    implementation("com.squareup.moshi:moshi-adapters:$moshiVersion")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.2.1")
-    testImplementation("junit:junit:$junitVersion")
-    androidTestImplementation("androidx.test.ext:junit:$junitExtVersion")
-    androidTestImplementation("androidx.test.espresso:espresso-core:$espressoVersion")
+    implementation(libs.compose.ui)
+    implementation(libs.compose.foundation)
+    implementation(libs.compose.material3)
+    debugImplementation(libs.compose.ui.tooling)
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.sqlite.jdbc)
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.moshi)
+    implementation(libs.moshi.adapters)
+    implementation(libs.okhttp.tools.logging.interceptor)
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.espresso.core)
 }
