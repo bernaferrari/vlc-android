@@ -441,8 +441,32 @@ fun VlcMainShell(
             hasVideoContainer = detailVideoState.containerId != null,
         )
         val canNavigateBack = backStack.size > 1 || detailBackTarget != null
+        val hasActiveSelection = when (currentRoute) {
+            VideoRoute -> videoState.selection.isNotEmpty()
+            is VideoContainerRoute -> detailVideoState.selection.isNotEmpty()
+            AudioRoute -> audioState.selection.isNotEmpty()
+            is AudioEntityRoute -> detailAudioState.selection.isNotEmpty()
+            BrowserRoute -> browserState.selection.isNotEmpty()
+            is BrowserFolderRoute -> detailBrowserState.selection.isNotEmpty()
+            PlaylistsRoute -> playlistsState.selection.isNotEmpty()
+            is PlaylistDetailRoute -> detailPlaylistsState.selection.isNotEmpty()
+            MoreRoute, PlayerRoute, SettingsRoute, AboutRoute -> false
+        }
+
+        fun clearCurrentSelection(): Boolean = when (currentRoute) {
+            VideoRoute -> videoState.selection.isNotEmpty().also { if (it) videoVm.clearSelection() }
+            is VideoContainerRoute -> detailVideoState.selection.isNotEmpty().also { if (it) detailVideoVm.clearSelection() }
+            AudioRoute -> audioState.selection.isNotEmpty().also { if (it) audioVm.clearSelection() }
+            is AudioEntityRoute -> detailAudioState.selection.isNotEmpty().also { if (it) detailAudioVm.clearSelection() }
+            BrowserRoute -> browserState.selection.isNotEmpty().also { if (it) browserVm.clearSelection() }
+            is BrowserFolderRoute -> detailBrowserState.selection.isNotEmpty().also { if (it) detailBrowserVm.clearSelection() }
+            PlaylistsRoute -> playlistsState.selection.isNotEmpty().also { if (it) playlistsVm.clearSelection() }
+            is PlaylistDetailRoute -> detailPlaylistsState.selection.isNotEmpty().also { if (it) detailPlaylistsVm.clearSelection() }
+            MoreRoute, PlayerRoute, SettingsRoute, AboutRoute -> false
+        }
 
         fun navigateBack() {
+            if (clearCurrentSelection()) return
             when (currentRoute) {
                 is VideoContainerRoute -> {
                     detailVideoVm.closeContainer()
@@ -485,7 +509,14 @@ fun VlcMainShell(
             }
         }
 
-        HandleShellBackPress(enabled = canNavigateBack && !appLocked, onBack = ::navigateBack)
+        HandleShellBackPress(
+            enabled = shouldInterceptShellBack(
+                appLocked = appLocked,
+                hasActiveSelection = hasActiveSelection,
+                canNavigateBack = canNavigateBack,
+            ),
+            onBack = ::navigateBack,
+        )
 
         VlcAdaptiveNavigationSuite(
             modifier = modifier,

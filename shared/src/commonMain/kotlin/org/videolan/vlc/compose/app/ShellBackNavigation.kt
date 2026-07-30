@@ -27,3 +27,10 @@ internal fun shellBackTarget(
     hasVideoContainer -> ShellBackTarget.VIDEO_CONTAINER
     else -> null
 }
+
+/** Selection is temporary screen state and must consume Back before navigation or app exit. */
+internal fun shouldInterceptShellBack(
+    appLocked: Boolean,
+    hasActiveSelection: Boolean,
+    canNavigateBack: Boolean,
+): Boolean = !appLocked && (hasActiveSelection || canNavigateBack)

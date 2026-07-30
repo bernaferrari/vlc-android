@@ -84,6 +84,7 @@ import org.videolan.vlc.compose.components.VLCEmptyState
 import org.videolan.vlc.compose.components.VLCIndexScrollTarget
 import org.videolan.vlc.compose.components.VLCIndexedFastScroller
 import org.videolan.vlc.compose.components.VLCListItemPosition
+import org.videolan.vlc.compose.components.VLCSelectionContextBar
 import org.videolan.vlc.compose.components.VLCArtworkTileShape
 import org.videolan.vlc.compose.components.VLCMediaCardShape
 import org.videolan.vlc.compose.components.highlightedSearchText
@@ -195,7 +196,24 @@ fun RichMediaListPane(
 
     Column(modifier) {
         Column(modifier = Modifier.padding(horizontal = MediaScreenGutter)) {
-        if (!useEmptyPresentation) {
+        if (!useEmptyPresentation && state.selection.isNotEmpty()) {
+            VLCSelectionContextBar(
+                title = "${state.selection.size} ${ShellStrings.selected()}",
+                clearContentDescription = ShellStrings.clear(),
+                onClearSelection = onClearSelection,
+                modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
+            ) {
+                IconButton(onClick = onPlaySelection) {
+                    Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = ShellStrings.play())
+                }
+                IconButton(onClick = onAppendSelection) {
+                    Icon(MaterialSymbols.Filled.QueueMusic, contentDescription = ShellStrings.append())
+                }
+                IconButton(onClick = { onFavoriteSelection(true) }) {
+                    Icon(MaterialSymbols.Filled.Star, contentDescription = ShellStrings.favorites())
+                }
+            }
+        } else if (!useEmptyPresentation) {
             val isDetail = state.containerTitle != null || state.openedEntityTitle != null
             // Screen identity comes before filters and controls. This mirrors the quiet hierarchy
             // used by SDKMonitor and avoids the old VLC pattern of tabs floating above the title.
@@ -299,29 +317,6 @@ fun RichMediaListPane(
             }
             headerContent?.invoke()
         }
-        if (state.selection.isNotEmpty()) {
-            // Text actions can grow with translations and selection counts. Wrapping keeps the
-            // shared action strip touchable on narrow phones instead of clipping its last action.
-            FlowRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                FilledTonalIconButton(onClick = onPlaySelection) {
-                    Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = ShellStrings.play())
-                }
-                TextButton(onClick = onAppendSelection) { Text(ShellStrings.append()) }
-                IconButton(onClick = { onFavoriteSelection(true) }) {
-                    Icon(MaterialSymbols.Filled.Star, contentDescription = ShellStrings.favorites())
-                }
-                TextButton(onClick = onClearSelection) {
-                    Text(ShellStrings.selectionCount(ShellStrings.clear(), state.selection.size))
-                }
-            }
-        }
-
         if (showDisplaySettings) {
             val groupingOptions = if (showGroupingToggle) {
                 VideoGroupingMode.entries.map(VideoGroupingMode::name)
@@ -376,7 +371,7 @@ fun RichMediaListPane(
         }
 
         AnimatedVisibility(
-            visible = !useEmptyPresentation && isSearchOpen,
+            visible = !useEmptyPresentation && state.selection.isEmpty() && isSearchOpen,
             enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
             exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(),
         ) {
@@ -416,7 +411,7 @@ fun RichMediaListPane(
             RetryMessage(error = error, onRetry = onRetry)
         }
 
-        if (!useEmptyPresentation) {
+        if (!useEmptyPresentation && state.selection.isEmpty()) {
             val countLabel = when {
                 groups.isNotEmpty() -> ShellStrings.groupsCount(groups.size)
                 usePaging -> {
@@ -426,11 +421,7 @@ fun RichMediaListPane(
                 else -> ShellStrings.itemsCount(state.count)
             }
             Text(
-                if (state.selection.isNotEmpty()) {
-                    ShellStrings.selectedItemsSummary(countLabel, state.selection.size)
-                } else {
-                    countLabel
-                },
+                countLabel,
                 color = colors.fontLight,
                 style = MaterialTheme.typography.labelMedium,
                 modifier = Modifier.padding(bottom = 4.dp),
@@ -1075,7 +1066,21 @@ fun BrowserRichPane(
     val atRoot = state.currentFolder == null
     var showDisplaySettings by remember { mutableStateOf(false) }
     Column(modifier.padding(horizontal = 16.dp)) {
-        Row(
+        if (state.selection.isNotEmpty()) {
+            VLCSelectionContextBar(
+                title = "${state.selection.size} ${ShellStrings.selected()}",
+                clearContentDescription = ShellStrings.clear(),
+                onClearSelection = onClearSelection,
+                modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
+            ) {
+                IconButton(onClick = onPlaySelection) {
+                    Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = ShellStrings.play())
+                }
+                IconButton(onClick = onAppendSelection) {
+                    Icon(MaterialSymbols.Filled.QueueMusic, contentDescription = ShellStrings.append())
+                }
+            }
+        } else Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 12.dp, bottom = 8.dp),
@@ -1098,34 +1103,15 @@ fun BrowserRichPane(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            if (state.selection.isEmpty()) {
-                VLCConnectedIconActionBar(
-                    actions = listOf(
-                        VLCConnectedIconAction(
-                            icon = MaterialSymbols.Filled.Tune,
-                            contentDescription = ShellStrings.displaySettings(),
-                            onClick = { showDisplaySettings = true },
-                        ),
+            VLCConnectedIconActionBar(
+                actions = listOf(
+                    VLCConnectedIconAction(
+                        icon = MaterialSymbols.Filled.Tune,
+                        contentDescription = ShellStrings.displaySettings(),
+                        onClick = { showDisplaySettings = true },
                     ),
-                )
-            }
-        }
-        if (state.selection.isNotEmpty()) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                FilledTonalIconButton(onClick = onPlaySelection) {
-                    Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = ShellStrings.play())
-                }
-                TextButton(onClick = onAppendSelection) { Text(ShellStrings.append()) }
-                TextButton(onClick = onClearSelection) {
-                    Text(ShellStrings.selectionCount(ShellStrings.clear(), state.selection.size))
-                }
-            }
+                ),
+            )
         }
         if (showDisplaySettings) {
             DisplaySettingsSheet(
@@ -1449,44 +1435,48 @@ fun PlaylistsRichPane(
             return
         }
 
-        Row(
-            modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            androidx.compose.material3.OutlinedTextField(
-                value = newName,
-                onValueChange = { newName = it },
-                modifier = Modifier.weight(1f),
-                singleLine = true,
-                label = { Text(ShellStrings.newPlaylist()) },
-                shape = MaterialTheme.shapes.extraLarge,
-            )
-            FilledTonalIconButton(onClick = {
-                if (newName.isNotBlank()) {
-                    onCreate(newName.trim())
-                    newName = ""
-                }
-            }) {
-                Icon(MaterialSymbols.Filled.Add, contentDescription = ShellStrings.addPlaylist())
-            }
-        }
-
-        FlowRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            if (state.selection.isNotEmpty()) {
-                FilledTonalIconButton(onClick = onDeleteSelection) {
+        if (state.selection.isNotEmpty()) {
+            VLCSelectionContextBar(
+                title = "${state.selection.size} ${ShellStrings.selected()}",
+                clearContentDescription = ShellStrings.clear(),
+                onClearSelection = onClearSelection,
+                modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
+            ) {
+                IconButton(onClick = onDeleteSelection) {
                     Icon(MaterialSymbols.Filled.Delete, contentDescription = ShellStrings.delete())
                 }
-                TextButton(onClick = onClearSelection) {
-                    Text(ShellStrings.selectionCount(ShellStrings.clear(), state.selection.size))
+            }
+        } else {
+            Row(
+                modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                androidx.compose.material3.OutlinedTextField(
+                    value = newName,
+                    onValueChange = { newName = it },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    label = { Text(ShellStrings.newPlaylist()) },
+                    shape = MaterialTheme.shapes.extraLarge,
+                )
+                FilledTonalIconButton(onClick = {
+                    if (newName.isNotBlank()) {
+                        onCreate(newName.trim())
+                        newName = ""
+                    }
+                }) {
+                    Icon(MaterialSymbols.Filled.Add, contentDescription = ShellStrings.addPlaylist())
                 }
-            } else {
+            }
+
+            FlowRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 VLCConnectedIconActionBar(
                     actions = listOf(
                         VLCConnectedIconAction(

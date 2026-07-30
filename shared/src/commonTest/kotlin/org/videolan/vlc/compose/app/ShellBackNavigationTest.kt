@@ -7,6 +7,30 @@ import kotlin.test.assertNull
 class ShellBackNavigationTest {
 
     @Test
+    fun `selection consumes back before root app exit`() {
+        assertEquals(
+            true,
+            shouldInterceptShellBack(
+                appLocked = false,
+                hasActiveSelection = true,
+                canNavigateBack = false,
+            ),
+        )
+    }
+
+    @Test
+    fun `app lock keeps back disabled even during selection`() {
+        assertEquals(
+            false,
+            shouldInterceptShellBack(
+                appLocked = true,
+                hasActiveSelection = true,
+                canNavigateBack = true,
+            ),
+        )
+    }
+
+    @Test
     fun `back unwinds nested destinations in visual stack order`() {
         assertEquals(
             ShellBackTarget.OVERLAY,
