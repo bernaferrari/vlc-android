@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -29,11 +31,13 @@ import org.videolan.vlc.compose.components.VLCExpandableContent
 import org.videolan.vlc.compose.components.VLCEmptyState
 import org.videolan.vlc.compose.components.VLCIconChip
 import org.videolan.vlc.compose.components.VLCListItemPosition
+import org.videolan.vlc.compose.components.VLCSelectionContextBar
 import org.videolan.vlc.compose.components.segmentShape
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.compose.theme.VLCLayout
 import org.videolan.vlc.model.HistoryEntry
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.viewmodel.MoreHubViewModel
@@ -60,6 +64,8 @@ internal fun MorePane(
     var newStreamName by remember { mutableStateOf("") }
     var newStreamUri by remember { mutableStateOf("") }
     var streamAddressError by remember { mutableStateOf(false) }
+    var confirmHistoryRemoval by remember { mutableStateOf(false) }
+    var confirmHistoryClear by remember { mutableStateOf(false) }
     val navigationActions = buildList {
         add(
             MoreHubAction(
@@ -98,7 +104,7 @@ internal fun MorePane(
     }
     VLCUtilityPane(modifier = modifier) {
         LazyColumn(
-            modifier = Modifier.padding(horizontal = 16.dp),
+            modifier = Modifier.padding(horizontal = VLCLayout.ScreenGutter),
             // A group is joined by 2dp; section headers own the breathable gaps between groups.
             // This is the same quiet hierarchy as QuietGuard rather than a page of loose cards.
             verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -270,19 +276,24 @@ internal fun MorePane(
             }
 
             item {
-                MoreSectionHeader(
-                    title = ShellStrings.history(),
-                    modifier = Modifier.padding(top = 22.dp, bottom = 6.dp),
-                ) {
-                    Row {
-                        if (state.historySelection.isNotEmpty()) {
-                            TextButton(onClick = vm::removeSelectedHistory) {
-                                Text(ShellStrings.selectionCount(ShellStrings.remove(), state.historySelection.size))
-                            }
-                            TextButton(onClick = vm::clearHistorySelection) { Text(ShellStrings.clear()) }
+                if (state.historySelection.isNotEmpty()) {
+                    VLCSelectionContextBar(
+                        title = ShellStrings.selectionCount(ShellStrings.selected(), state.historySelection.size),
+                        clearContentDescription = ShellStrings.clear(),
+                        onClearSelection = vm::clearHistorySelection,
+                        modifier = Modifier.padding(top = 22.dp, bottom = 6.dp),
+                    ) {
+                        IconButton(onClick = { confirmHistoryRemoval = true }) {
+                            Icon(MaterialSymbols.Filled.Delete, contentDescription = ShellStrings.remove())
                         }
+                    }
+                } else {
+                    MoreSectionHeader(
+                        title = ShellStrings.history(),
+                        modifier = Modifier.padding(top = 22.dp, bottom = 6.dp),
+                    ) {
                         if (state.history.isNotEmpty()) {
-                            TextButton(onClick = vm::clearHistory) { Text(ShellStrings.clear()) }
+                            TextButton(onClick = { confirmHistoryClear = true }) { Text(ShellStrings.clear()) }
                         }
                     }
                 }
@@ -303,7 +314,10 @@ internal fun MorePane(
                     subtitle = listOfNotNull(entry.item.artist, entry.item.album).joinToString(" · ").ifBlank { null },
                     selected = selected,
                     position = moreActionPosition(index, state.history.size),
-                    onClick = { onPlayHistory(entry) },
+                    onClick = {
+                        if (state.historySelection.isNotEmpty()) vm.toggleHistorySelect(entry)
+                        else onPlayHistory(entry)
+                    },
                     artworkContent = {
                         Icon(
                             if (entry.item.isVideo) MaterialSymbols.Filled.VideoLibrary else MaterialSymbols.Filled.MusicNote,
@@ -335,6 +349,30 @@ internal fun MorePane(
                 item { RetryMessage(error = error, onRetry = vm::retryHistory) }
             }
         }
+    }
+    if (confirmHistoryRemoval || confirmHistoryClear) {
+        val isBulkRemoval = confirmHistoryRemoval
+        AlertDialog(
+            onDismissRequest = {
+                confirmHistoryRemoval = false
+                confirmHistoryClear = false
+            },
+            title = { Text(if (isBulkRemoval) ShellStrings.remove() else ShellStrings.clear()) },
+            text = { Text(ShellStrings.confirmDeleteMessage()) },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (isBulkRemoval) vm.removeSelectedHistory() else vm.clearHistory()
+                    confirmHistoryRemoval = false
+                    confirmHistoryClear = false
+                }) { Text(if (isBulkRemoval) ShellStrings.remove() else ShellStrings.clear()) }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    confirmHistoryRemoval = false
+                    confirmHistoryClear = false
+                }) { Text(ShellStrings.cancel()) }
+            },
+        )
     }
 }
 
@@ -370,7 +408,7 @@ private fun MoreAction(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 80.dp)
+                .heightIn(min = VLCLayout.MediaRowHeight)
                 .padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp),

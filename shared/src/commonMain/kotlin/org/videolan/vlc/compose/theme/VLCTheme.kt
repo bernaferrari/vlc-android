@@ -616,6 +616,13 @@ fun VLCTheme(
     content: @Composable () -> Unit
 ) {
     val inheritedConfiguration = LocalVLCThemeConfiguration.current
+    // A production host already establishes VLCAppTheme once.  A number of legacy-compatible
+    // leaf composables still call VLCTheme so that they can render in isolation or in previews;
+    // do not create another MaterialTheme boundary for those regular app calls.
+    if (shouldProvideVLCTheme(inheritedConfiguration.isProvided, darkTheme, accent).not()) {
+        content()
+        return
+    }
     val resolvedDarkTheme = darkTheme
         ?: inheritedConfiguration.takeIf { it.isProvided }?.darkTheme
         ?: isSystemInDarkTheme()
@@ -660,3 +667,13 @@ fun VLCTheme(
         )
     }
 }
+
+/**
+ * A regular screen must use the one root Material boundary installed by VLCAppTheme.  Explicit
+ * overrides remain valid for previews, TV surfaces, and independently hosted components.
+ */
+internal fun shouldProvideVLCTheme(
+    inheritedThemeIsProvided: Boolean,
+    darkTheme: Boolean?,
+    accent: VLCThemeAccent?,
+): Boolean = !inheritedThemeIsProvided || darkTheme != null || accent != null

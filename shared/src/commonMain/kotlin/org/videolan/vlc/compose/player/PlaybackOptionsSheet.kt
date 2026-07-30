@@ -1,14 +1,18 @@
 package org.videolan.vlc.compose.player
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.FilterChip
@@ -24,7 +28,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -41,6 +44,10 @@ import kotlin.math.roundToInt
 import org.jetbrains.compose.resources.stringResource
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialSymbols
+import org.videolan.vlc.compose.components.VLCSettingsCard
+import org.videolan.vlc.compose.components.VLCSettingsToggleRow
+import org.videolan.vlc.compose.components.VLCExpandableContent
+import org.videolan.vlc.compose.theme.VLCLayout
 import org.videolan.vlc.model.ABRepeat
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.player.VideoScaleMode
@@ -97,6 +104,17 @@ import vlc_android.shared.generated.resources.previous_bookmark
 import vlc_android.shared.generated.resources.next_bookmark
 
 private val PlaybackRatePresets = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f, 4f, 8f)
+
+private enum class PlaybackOptionsSection {
+    VIDEO,
+    TRACKS,
+    DELAYS,
+    EQUALIZER,
+    SLEEP,
+    CHAPTERS,
+    BOOKMARKS,
+    QUEUE,
+}
 
 /**
  * Shared advanced playback entry point.
@@ -168,11 +186,17 @@ internal fun PlaybackOptionsSheet(
     var jumpToTimeText by remember { mutableStateOf("") }
     var savePlaylistVisible by remember { mutableStateOf(false) }
     var playlistName by remember { mutableStateOf("") }
+    var expandedSection by remember { mutableStateOf<PlaybackOptionsSection?>(null) }
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 20.dp, end = 20.dp, bottom = 20.dp),
+                .verticalScroll(rememberScrollState())
+                .padding(
+                    start = VLCLayout.SheetHorizontalPadding,
+                    end = VLCLayout.SheetHorizontalPadding,
+                    bottom = VLCLayout.SheetBottomPadding,
+                ),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Row(
@@ -301,12 +325,13 @@ internal fun PlaybackOptionsSheet(
             }
 
             if (showVideoOptions) {
-                HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
-                Text(
-                    stringResource(Res.string.aspect_ratio),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold,
-                )
+                PlaybackOptionsSection(
+                    title = stringResource(Res.string.aspect_ratio),
+                    expanded = expandedSection == PlaybackOptionsSection.VIDEO,
+                    onToggle = {
+                        expandedSection = expandedSection.toggle(PlaybackOptionsSection.VIDEO)
+                    },
+                ) {
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -342,18 +367,16 @@ internal fun PlaybackOptionsSheet(
                 }
                 if (videoAdjust.supported) {
                     HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            stringResource(Res.string.video_adjust),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        Switch(checked = videoAdjust.enabled, onCheckedChange = onSetVideoAdjustEnabled)
-                    }
+                    VLCSettingsCard(
+                        rows = listOf {
+                            VLCSettingsToggleRow(
+                                title = stringResource(Res.string.video_adjust),
+                                checked = videoAdjust.enabled,
+                                onCheckedChange = onSetVideoAdjustEnabled,
+                            )
+                        },
+                        dividerInset = 20.dp,
+                    )
                     if (videoAdjust.enabled) {
                         VideoAdjustParameter.entries.forEach { parameter ->
                             val value = videoAdjust.value(parameter)
@@ -374,10 +397,18 @@ internal fun PlaybackOptionsSheet(
                         }
                     }
                 }
+                }
             }
 
-            if (tracks.hasSelectableTracks) {
-                HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
+            if (tracks.hasSelectableTracks || showSubtitleImport) {
+                PlaybackOptionsSection(
+                    title = stringResource(Res.string.audio),
+                    expanded = expandedSection == PlaybackOptionsSection.TRACKS,
+                    onToggle = {
+                        expandedSection = expandedSection.toggle(PlaybackOptionsSection.TRACKS)
+                    },
+                ) {
+                if (tracks.hasSelectableTracks) {
                 if (tracks.audio.size > 1) {
                     Text(
                         stringResource(Res.string.audio),
@@ -394,48 +425,51 @@ internal fun PlaybackOptionsSheet(
                     )
                     TrackChoices(tracks.subtitles, onSelectSubtitleTrack)
                 }
-            }
-            if (showSubtitleImport) {
+                }
+                if (showSubtitleImport) {
                 TextButton(onClick = onImportSubtitle, modifier = Modifier.align(Alignment.Start)) {
                     Text(stringResource(Res.string.subtitle_select))
+                }
+                }
                 }
             }
 
             if (delays.supported) {
-                HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
-                DelayChoices(
+                PlaybackOptionsSection(
                     title = stringResource(Res.string.audio_delay),
-                    delayUs = delays.audioUs,
-                    onSetDelay = onSetAudioDelay,
-                )
-                DelayChoices(
-                    title = stringResource(Res.string.spu_delay),
-                    delayUs = delays.subtitleUs,
-                    onSetDelay = onSetSubtitleDelay,
-                )
+                    expanded = expandedSection == PlaybackOptionsSection.DELAYS,
+                    onToggle = { expandedSection = expandedSection.toggle(PlaybackOptionsSection.DELAYS) },
+                ) {
+                    DelayChoices(
+                        title = stringResource(Res.string.audio_delay),
+                        delayUs = delays.audioUs,
+                        onSetDelay = onSetAudioDelay,
+                    )
+                    DelayChoices(
+                        title = stringResource(Res.string.spu_delay),
+                        delayUs = delays.subtitleUs,
+                        onSetDelay = onSetSubtitleDelay,
+                    )
+                }
             }
 
             if (equalizer.supported) {
-                HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
+                PlaybackOptionsSection(
+                    title = stringResource(Res.string.equalizer),
+                    expanded = expandedSection == PlaybackOptionsSection.EQUALIZER,
+                    onToggle = { expandedSection = expandedSection.toggle(PlaybackOptionsSection.EQUALIZER) },
                 ) {
-                    Column {
-                        Text(
-                            stringResource(Res.string.equalizer),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.SemiBold,
+                VLCSettingsCard(
+                    rows = listOf {
+                        VLCSettingsToggleRow(
+                            title = stringResource(Res.string.equalizer),
+                            summary = stringResource(Res.string.enable_equalizer),
+                            checked = equalizer.enabled,
+                            onCheckedChange = onSetEqualizerEnabled,
                         )
-                        Text(
-                            stringResource(Res.string.enable_equalizer),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    Switch(checked = equalizer.enabled, onCheckedChange = onSetEqualizerEnabled)
-                }
+                    },
+                    dividerInset = 20.dp,
+                )
                 if (equalizer.enabled) {
                     FlowRow(
                         modifier = Modifier.fillMaxWidth(),
@@ -463,14 +497,20 @@ internal fun PlaybackOptionsSheet(
                         )
                     }
                 }
+                }
             }
 
-            HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
-            SleepTimerChoices(
-                state = sleepTimer,
-                onSetTimer = onSetSleepTimer,
-                onClear = onClearSleepTimer,
-            )
+            PlaybackOptionsSection(
+                title = stringResource(Res.string.sleep_title),
+                expanded = expandedSection == PlaybackOptionsSection.SLEEP,
+                onToggle = { expandedSection = expandedSection.toggle(PlaybackOptionsSection.SLEEP) },
+            ) {
+                SleepTimerChoices(
+                    state = sleepTimer,
+                    onSetTimer = onSetSleepTimer,
+                    onClear = onClearSleepTimer,
+                )
+            }
 
             if (chapters.entries.isNotEmpty()) {
                 HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
@@ -543,16 +583,20 @@ internal fun PlaybackOptionsSheet(
                 }
             }
 
-            HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
-            Text(
-                "${stringResource(Res.string.playlist)} · ${queue.size}",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
-            )
-            FilterChip(
-                selected = stopAfterCurrent,
-                onClick = onToggleStopAfterCurrent,
-                label = { Text(stringResource(Res.string.stop_after_this)) },
+            PlaybackOptionsSection(
+                title = "${stringResource(Res.string.playlist)} · ${queue.size}",
+                expanded = expandedSection == PlaybackOptionsSection.QUEUE,
+                onToggle = { expandedSection = expandedSection.toggle(PlaybackOptionsSection.QUEUE) },
+            ) {
+            VLCSettingsCard(
+                rows = listOf {
+                    VLCSettingsToggleRow(
+                        title = stringResource(Res.string.stop_after_this),
+                        checked = stopAfterCurrent,
+                        onCheckedChange = { onToggleStopAfterCurrent() },
+                    )
+                },
+                dividerInset = 20.dp,
             )
 
             LazyColumn(
@@ -576,6 +620,7 @@ internal fun PlaybackOptionsSheet(
                         onRemove = { onRemoveQueueItem(index) },
                     )
                 }
+            }
             }
 
             TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) {
@@ -667,6 +712,64 @@ internal fun PlaybackOptionsSheet(
                 }
             },
         )
+    }
+}
+
+private fun PlaybackOptionsSection?.toggle(target: PlaybackOptionsSection): PlaybackOptionsSection? =
+    if (this == target) null else target
+
+/**
+ * Keeps the player sheet scannable: deep media controls are disclosed deliberately instead of
+ * presenting every possible platform capability as one very tall wall of chips and sliders.
+ */
+@Composable
+private fun PlaybackOptionsSection(
+    title: String,
+    expanded: Boolean,
+    onToggle: () -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Surface(
+            onClick = onToggle,
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = VLCLayout.RowHeight)
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    title,
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Icon(
+                    MaterialSymbols.Filled.ChevronRight,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                )
+            }
+        }
+        VLCExpandableContent(visible = expanded) {
+            Surface(
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    content = content,
+                )
+            }
+        }
     }
 }
 

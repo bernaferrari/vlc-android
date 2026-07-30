@@ -32,4 +32,12 @@ class VLCThemePreferenceTest {
         assertEquals(VLCThemeAccent.Orange, preference.accent)
         assertFalse(VLCThemeAppearance.Light.resolveDarkTheme(systemIsDark = true))
     }
+
+    @Test
+    fun rootThemeOwnsRegularScreenMaterialBoundary() {
+        assertFalse(shouldProvideVLCTheme(inheritedThemeIsProvided = true, darkTheme = null, accent = null))
+        assertTrue(shouldProvideVLCTheme(inheritedThemeIsProvided = false, darkTheme = null, accent = null))
+        assertTrue(shouldProvideVLCTheme(inheritedThemeIsProvided = true, darkTheme = true, accent = null))
+        assertTrue(shouldProvideVLCTheme(inheritedThemeIsProvided = true, darkTheme = null, accent = VLCThemeAccent.Teal))
+    }
 }

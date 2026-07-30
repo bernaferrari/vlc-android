@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialIcon
+import org.videolan.vlc.compose.theme.VLCLayout
 
 /**
  * One action in a compact, connected control group. Library screens use this
@@ -147,8 +148,18 @@ private fun VLCConnectedControlSurface(
 }
 
 private fun connectedActionShape(index: Int, count: Int): RoundedCornerShape = when {
-    count <= 1 -> RoundedCornerShape(20.dp)
-    index == 0 -> RoundedCornerShape(topStart = 20.dp, topEnd = 6.dp, bottomEnd = 6.dp, bottomStart = 20.dp)
-    index == count - 1 -> RoundedCornerShape(topStart = 6.dp, topEnd = 20.dp, bottomEnd = 20.dp, bottomStart = 6.dp)
-    else -> RoundedCornerShape(6.dp)
+    count <= 1 -> RoundedCornerShape(VLCLayout.GroupOuterCorner)
+    index == 0 -> RoundedCornerShape(
+        topStart = VLCLayout.GroupOuterCorner,
+        topEnd = VLCLayout.GroupInnerCorner,
+        bottomEnd = VLCLayout.GroupInnerCorner,
+        bottomStart = VLCLayout.GroupOuterCorner,
+    )
+    index == count - 1 -> RoundedCornerShape(
+        topStart = VLCLayout.GroupInnerCorner,
+        topEnd = VLCLayout.GroupOuterCorner,
+        bottomEnd = VLCLayout.GroupOuterCorner,
+        bottomStart = VLCLayout.GroupInnerCorner,
+    )
+    else -> RoundedCornerShape(VLCLayout.GroupInnerCorner)
 }

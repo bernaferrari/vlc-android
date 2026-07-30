@@ -2,6 +2,7 @@ package org.videolan.vlc.compose.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -506,12 +507,16 @@ private fun LabeledCheckbox(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(role = Role.Checkbox) { onCheckedChange(!checked) },
+            .toggleable(
+                value = checked,
+                role = Role.Checkbox,
+                onValueChange = onCheckedChange,
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Checkbox(
             checked = checked,
-            onCheckedChange = onCheckedChange
+            onCheckedChange = null,
         )
         Text(
             text = text,

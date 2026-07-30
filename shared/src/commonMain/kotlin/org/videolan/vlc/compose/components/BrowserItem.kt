@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCMotion
+import org.videolan.vlc.compose.theme.VLCLayout
 import org.videolan.vlc.compose.theme.LocalVLCMotion
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
@@ -59,17 +60,17 @@ enum class VLCListItemPosition {
 
 /** The shared QuietGuard-inspired outer/inner geometry for segmented rows. */
 fun VLCListItemPosition.segmentShape() = when {
-    this == VLCListItemPosition.Single -> RoundedCornerShape(16.dp)
-    this == VLCListItemPosition.First -> RoundedCornerShape(16.dp, 16.dp, 4.dp, 4.dp)
-    this == VLCListItemPosition.Last -> RoundedCornerShape(4.dp, 4.dp, 16.dp, 16.dp)
-    else -> RoundedCornerShape(4.dp)
+    this == VLCListItemPosition.Single -> RoundedCornerShape(VLCLayout.GroupOuterCorner)
+    this == VLCListItemPosition.First -> RoundedCornerShape(VLCLayout.GroupOuterCorner, VLCLayout.GroupOuterCorner, VLCLayout.GroupInnerCorner, VLCLayout.GroupInnerCorner)
+    this == VLCListItemPosition.Last -> RoundedCornerShape(VLCLayout.GroupInnerCorner, VLCLayout.GroupInnerCorner, VLCLayout.GroupOuterCorner, VLCLayout.GroupOuterCorner)
+    else -> RoundedCornerShape(VLCLayout.GroupInnerCorner)
 }
 
 /** Restrained media-grid geometry, shared by media and playlist cards. */
-val VLCMediaCardShape = RoundedCornerShape(18.dp)
+val VLCMediaCardShape = RoundedCornerShape(VLCLayout.MediaCardCorner)
 
 /** Artwork is intentionally a little tighter than its containing media card. */
-val VLCArtworkTileShape = RoundedCornerShape(14.dp)
+val VLCArtworkTileShape = RoundedCornerShape(VLCLayout.ArtworkCorner)
 
 /**
  * Finds every literal, case-insensitive match used by the shared media filters.

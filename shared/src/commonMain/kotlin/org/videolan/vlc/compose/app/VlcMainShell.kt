@@ -84,6 +84,7 @@ import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.components.VLCIconChip
 import org.videolan.vlc.compose.components.VLCEmptyState
 import org.videolan.vlc.compose.components.VLCListItemPosition
+import org.videolan.vlc.compose.components.VLCSettingsToggleRow
 import org.videolan.vlc.compose.components.segmentShape
 import org.videolan.vlc.compose.player.FallbackPlayerSurface
 import org.videolan.vlc.compose.player.PlayerSurface
@@ -203,6 +204,7 @@ fun VlcMainShell(
         val detailBrowserState by detailBrowserVm.state.collectAsState()
         val playlistsState by playlistsVm.state.collectAsState()
         val detailPlaylistsState by detailPlaylistsVm.state.collectAsState()
+        val moreState by moreVm.state.collectAsState()
         val settingsState by settingsVm.state.collectAsState()
         // Root destinations switch immediately: they are frequent mode changes, not a journey.
         val rootTransitionMetadata = remember {
@@ -410,7 +412,8 @@ fun VlcMainShell(
             is BrowserFolderRoute -> detailBrowserState.selection.isNotEmpty()
             PlaylistsRoute -> playlistsState.selection.isNotEmpty()
             is PlaylistDetailRoute -> detailPlaylistsState.selection.isNotEmpty()
-            MoreRoute, PlayerRoute, SettingsRoute, AboutRoute -> false
+            MoreRoute -> moreState.historySelection.isNotEmpty()
+            PlayerRoute, SettingsRoute, AboutRoute -> false
         }
 
         fun clearCurrentSelection(): Boolean = when (currentRoute) {
@@ -422,7 +425,8 @@ fun VlcMainShell(
             is BrowserFolderRoute -> detailBrowserState.selection.isNotEmpty().also { if (it) detailBrowserVm.clearSelection() }
             PlaylistsRoute -> playlistsState.selection.isNotEmpty().also { if (it) playlistsVm.clearSelection() }
             is PlaylistDetailRoute -> detailPlaylistsState.selection.isNotEmpty().also { if (it) detailPlaylistsVm.clearSelection() }
-            MoreRoute, PlayerRoute, SettingsRoute, AboutRoute -> false
+            MoreRoute -> moreState.historySelection.isNotEmpty().also { if (it) moreVm.clearHistorySelection() }
+            PlayerRoute, SettingsRoute, AboutRoute -> false
         }
 
         fun navigateBack() {
@@ -1264,14 +1268,7 @@ private fun SettingsGroup(title: String, content: SettingsGroupScope.() -> Unit)
 
 @Composable
 private fun ToggleRow(title: String, checked: Boolean, onChange: (Boolean) -> Unit) {
-    Row(
-        Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, top = 6.dp, bottom = 6.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-        androidx.compose.material3.Switch(checked = checked, onCheckedChange = onChange)
-    }
+    VLCSettingsToggleRow(title = title, checked = checked, onCheckedChange = onChange)
 }
 
 @Composable

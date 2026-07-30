@@ -1,27 +1,17 @@
 package org.videolan.vlc.compose.components
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -65,7 +55,7 @@ data class DisplaySettingsState(
  * optional browser/audio/video toggles. Internal labels are composeResources-backed;
  * hosts may override the title and supply custom grouping/action option tokens.
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DisplaySettingsSheet(
     state: DisplaySettingsState,
@@ -104,102 +94,66 @@ fun DisplaySettingsSheet(
             )
 
             if (state.supportsViewMode) {
-                Text(stringResource(Res.string.layout), style = MaterialTheme.typography.titleSmall, color = colors.primary)
-                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                    SegmentedButton(
-                        selected = state.viewMode == ViewMode.LIST,
-                        onClick = { onViewMode(ViewMode.LIST) },
-                        shape = SegmentedButtonDefaults.itemShape(0, 2),
-                        label = { Text(stringResource(Res.string.list)) },
-                    )
-                    SegmentedButton(
-                        selected = state.viewMode == ViewMode.GRID,
-                        onClick = { onViewMode(ViewMode.GRID) },
-                        shape = SegmentedButtonDefaults.itemShape(1, 2),
-                        label = { Text(stringResource(Res.string.grid)) },
-                    )
-                }
+                DisplaySectionTitle(stringResource(Res.string.layout))
+                VLCSettingsCard(
+                    rows = listOf(
+                        { VLCSettingsChoiceRow(stringResource(Res.string.list), state.viewMode == ViewMode.LIST, { onViewMode(ViewMode.LIST) }) },
+                        { VLCSettingsChoiceRow(stringResource(Res.string.grid), state.viewMode == ViewMode.GRID, { onViewMode(ViewMode.GRID) }) },
+                    ),
+                    dividerInset = 20.dp,
+                )
             }
 
-            if (state.supportsFavorites) {
-                SwitchRow(stringResource(Res.string.favorites_only), state.onlyFavorites, onOnlyFavorites)
+            val filterRows = buildList<@Composable () -> Unit> {
+                if (state.supportsFavorites) add { VLCSettingsToggleRow(stringResource(Res.string.favorites_only), state.onlyFavorites, onOnlyFavorites) }
+                state.showAllArtists?.let { checked -> add { VLCSettingsToggleRow(stringResource(Res.string.show_all_artists), checked, onShowAllArtists) } }
+                state.showTrackNumbers?.let { checked -> add { VLCSettingsToggleRow(stringResource(Res.string.show_track_numbers), checked, onShowTrackNumbers) } }
+                state.showOnlyMultimedia?.let { checked -> add { VLCSettingsToggleRow(stringResource(Res.string.multimedia_files_only), checked, onShowOnlyMultimedia) } }
+                state.showHiddenFiles?.let { checked -> add { VLCSettingsToggleRow(stringResource(Res.string.show_hidden_files), checked, onShowHiddenFiles) } }
             }
-
-            state.showAllArtists?.let { SwitchRow(stringResource(Res.string.show_all_artists), it, onShowAllArtists) }
-            state.showTrackNumbers?.let { SwitchRow(stringResource(Res.string.show_track_numbers), it, onShowTrackNumbers) }
-            state.showOnlyMultimedia?.let { SwitchRow(stringResource(Res.string.multimedia_files_only), it, onShowOnlyMultimedia) }
-            state.showHiddenFiles?.let { SwitchRow(stringResource(Res.string.show_hidden_files), it, onShowHiddenFiles) }
+            if (filterRows.isNotEmpty()) {
+                DisplaySectionTitle(stringResource(Res.string.filters))
+                VLCSettingsCard(rows = filterRows, dividerInset = 20.dp)
+            }
 
             if (state.groupingOptions.isNotEmpty()) {
-                Text(
-                    state.groupingLabel ?: stringResource(Res.string.grouping),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = colors.primary,
+                DisplaySectionTitle(state.groupingLabel ?: stringResource(Res.string.grouping))
+                VLCSettingsCard(
+                    rows = state.groupingOptions.map { option ->
+                        { VLCSettingsChoiceRow(option.displayLabel(), option == state.selectedGrouping, { onGrouping(option) }) }
+                    },
+                    dividerInset = 20.dp,
                 )
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    state.groupingOptions.forEach { option ->
-                        FilterChip(
-                            selected = option == state.selectedGrouping,
-                            onClick = { onGrouping(option) },
-                            label = { Text(option.displayLabel()) },
-                        )
-                    }
-                }
             }
 
             if (state.defaultActionOptions.isNotEmpty()) {
-                Text(
-                    state.defaultActionLabel ?: stringResource(Res.string.default_action),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = colors.primary,
+                DisplaySectionTitle(state.defaultActionLabel ?: stringResource(Res.string.default_action))
+                VLCSettingsCard(
+                    rows = state.defaultActionOptions.map { option ->
+                        { VLCSettingsChoiceRow(option.displayLabel(), option == state.selectedDefaultAction, { onDefaultAction(option) }) }
+                    },
+                    dividerInset = 20.dp,
                 )
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    state.defaultActionOptions.forEach { option ->
-                        FilterChip(
-                            selected = option == state.selectedDefaultAction,
-                            onClick = { onDefaultAction(option) },
-                            label = { Text(option.displayLabel()) },
-                        )
-                    }
-                }
             }
 
             if (state.supportsSorting) {
-                Text(stringResource(Res.string.sort), style = MaterialTheme.typography.titleSmall, color = colors.primary)
-                state.availableSorts.forEach { sort ->
-                    val selected = sort == state.sort
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                if (selected) onSortDesc(!state.sortDesc) else onSort(sort)
-                            }
-                            .padding(vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Text(
-                            sort.displayLabel(),
-                            color = if (selected) colors.primary else colors.fontDefault,
-                            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                        )
-                        if (selected) {
-                            Text(
-                                if (state.sortDesc) stringResource(Res.string.descending) else stringResource(Res.string.ascending),
-                                color = colors.primary,
-                                style = MaterialTheme.typography.labelLarge,
+                DisplaySectionTitle(stringResource(Res.string.sort))
+                VLCSettingsCard(
+                    rows = state.availableSorts.map { sort ->
+                        val selected = sort == state.sort
+                        {
+                            VLCSettingsChoiceRow(
+                                title = sort.displayLabel(),
+                                selected = selected,
+                                summary = if (selected) {
+                                    if (state.sortDesc) stringResource(Res.string.descending) else stringResource(Res.string.ascending)
+                                } else null,
+                                onClick = { if (selected) onSortDesc(!state.sortDesc) else onSort(sort) },
                             )
                         }
-                    }
-                }
+                    },
+                    dividerInset = 20.dp,
+                )
             }
 
         }
@@ -207,15 +161,8 @@ fun DisplaySettingsSheet(
 }
 
 @Composable
-private fun SwitchRow(title: String, checked: Boolean, onChange: (Boolean) -> Unit) {
-    Row(
-        Modifier.fillMaxWidth().padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(title, modifier = Modifier.weight(1f))
-        Switch(checked = checked, onCheckedChange = onChange)
-    }
+private fun DisplaySectionTitle(title: String) {
+    Text(title, style = MaterialTheme.typography.titleSmall, color = VLCThemeDefaults.colors.primary)
 }
 
 @Composable

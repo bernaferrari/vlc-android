@@ -3,6 +3,7 @@ package org.videolan.vlc.compose.components
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -863,7 +864,12 @@ private fun EqualizerSwitchRow(
                 } else Modifier
             )
             .heightIn(min = if (tonal) 60.dp else 48.dp)
-            .clickable(enabled = enabled, role = Role.Switch) { onCheckedChange(!checked) }
+            .toggleable(
+                value = checked,
+                enabled = enabled,
+                role = Role.Switch,
+                onValueChange = onCheckedChange,
+            )
             .then(if (tonal) Modifier.padding(horizontal = 20.dp, vertical = 10.dp) else Modifier),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -876,7 +882,7 @@ private fun EqualizerSwitchRow(
         Switch(
             checked = checked,
             enabled = enabled,
-            onCheckedChange = onCheckedChange
+            onCheckedChange = null,
         )
     }
 }

@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -90,6 +91,7 @@ import org.videolan.vlc.compose.components.VLCMediaCardShape
 import org.videolan.vlc.compose.components.highlightedSearchText
 import org.videolan.vlc.compose.components.vlcIndexLabel
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.compose.theme.VLCLayout
 import org.videolan.vlc.model.MediaFolder
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.PlaylistInfo
@@ -101,9 +103,9 @@ import org.videolan.vlc.viewmodel.SortMode
 import org.videolan.vlc.viewmodel.VideoGroupingMode
 import org.videolan.vlc.viewmodel.ViewMode
 
-private val MediaScreenGutter = 16.dp
+private val MediaScreenGutter = VLCLayout.ScreenGutter
 private val MediaGridGap = 12.dp
-private val FastScrollerContentClearance = 32.dp
+private val FastScrollerContentClearance = VLCLayout.FastScrollerClearance
 
 /**
  * A library whose first result has not arrived is not a filtered list.  Treat
@@ -195,7 +197,13 @@ fun RichMediaListPane(
     )
 
     Column(modifier) {
-        Column(modifier = Modifier.padding(horizontal = MediaScreenGutter)) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier
+                    .widthIn(max = VLCLayout.ListMaxWidth)
+                    .align(Alignment.TopCenter)
+                    .padding(horizontal = MediaScreenGutter),
+            ) {
         if (!useEmptyPresentation && state.selection.isNotEmpty()) {
             VLCSelectionContextBar(
                 title = "${state.selection.size} ${ShellStrings.selected()}",
@@ -427,6 +435,7 @@ fun RichMediaListPane(
                 modifier = Modifier.padding(bottom = 4.dp),
             )
         }
+            }
         }
 
         when {
@@ -443,41 +452,44 @@ fun RichMediaListPane(
                 )
             }
             state.groupingMode != VideoGroupingMode.NONE && groups.isNotEmpty() -> {
-                LazyColumn(
-                    contentPadding = PaddingValues(bottom = 24.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .padding(horizontal = MediaScreenGutter),
-                ) {
-                    itemsIndexed(groups, key = { _, folder -> "g:${folder.id}:${folder.path}" }) { index, folder ->
-                        VLCBrowserItemRow(
-                            title = folder.title,
-                            subtitle = if (folder.childCount > 0) ShellStrings.itemsCount(folder.childCount) else {
-                                if (folder.kind == org.videolan.vlc.model.FolderKind.MEDIA_FOLDER ||
-                                    state.groupingMode == VideoGroupingMode.FOLDER
-                                ) {
-                                    ShellStrings.folder()
-                                } else {
-                                    ShellStrings.group()
-                                }
-                            },
-                            searchQuery = state.query,
-                            position = sectionListItemPosition(index, groups.size),
-                            onClick = { onOpenGroup(folder) },
-                            artworkContent = {
-                                Icon(
-                                    icon = if (state.groupingMode == VideoGroupingMode.FOLDER) {
-                                        MaterialSymbols.Filled.Folder
+                Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                    LazyColumn(
+                        contentPadding = PaddingValues(bottom = 24.dp),
+                        verticalArrangement = Arrangement.spacedBy(VLCLayout.GroupGap),
+                        modifier = Modifier
+                            .widthIn(max = VLCLayout.ListMaxWidth)
+                            .fillMaxSize()
+                            .align(Alignment.TopCenter)
+                            .padding(horizontal = MediaScreenGutter),
+                    ) {
+                        itemsIndexed(groups, key = { _, folder -> "g:${folder.id}:${folder.path}" }) { index, folder ->
+                            VLCBrowserItemRow(
+                                title = folder.title,
+                                subtitle = if (folder.childCount > 0) ShellStrings.itemsCount(folder.childCount) else {
+                                    if (folder.kind == org.videolan.vlc.model.FolderKind.MEDIA_FOLDER ||
+                                        state.groupingMode == VideoGroupingMode.FOLDER
+                                    ) {
+                                        ShellStrings.folder()
                                     } else {
-                                        MaterialSymbols.Filled.VideoLibrary
-                                    },
-                                    contentDescription = null,
-                                    tint = colors.primary,
-                                )
-                            },
-                        )
+                                        ShellStrings.group()
+                                    }
+                                },
+                                searchQuery = state.query,
+                                position = sectionListItemPosition(index, groups.size),
+                                onClick = { onOpenGroup(folder) },
+                                artworkContent = {
+                                    Icon(
+                                        icon = if (state.groupingMode == VideoGroupingMode.FOLDER) {
+                                            MaterialSymbols.Filled.Folder
+                                        } else {
+                                            MaterialSymbols.Filled.VideoLibrary
+                                        },
+                                        contentDescription = null,
+                                        tint = colors.primary,
+                                    )
+                                },
+                            )
+                        }
                     }
                 }
             }
@@ -619,8 +631,11 @@ private fun PagedMediaBody(
                     },
                     bottom = 80.dp,
                 ),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(VLCLayout.GroupGap),
+                modifier = Modifier
+                    .widthIn(max = VLCLayout.ListMaxWidth)
+                    .fillMaxSize()
+                    .align(Alignment.TopCenter),
             ) {
                 items(lazyPagingItems.itemCount, key = { index ->
                     val item = lazyPagingItems.peek(index)
@@ -771,8 +786,11 @@ private fun SnapshotMediaBody(
                     },
                     bottom = 80.dp,
                 ),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(VLCLayout.GroupGap),
+                modifier = Modifier
+                    .widthIn(max = VLCLayout.ListMaxWidth)
+                    .fillMaxSize()
+                    .align(Alignment.TopCenter),
             ) {
                 displaySections.forEach { (section, items) ->
                     if (section.isNotBlank()) {

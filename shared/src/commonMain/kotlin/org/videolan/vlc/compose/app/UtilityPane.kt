@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import org.videolan.vlc.compose.theme.VLCLayout
 
 /**
  * Keeps utility screens composed on a rail/tablet layout without constraining media grids or the
@@ -25,7 +25,7 @@ internal fun VLCUtilityPane(
     ) {
         Box(
             modifier = Modifier
-                .widthIn(max = 720.dp)
+                .widthIn(max = VLCLayout.ListMaxWidth)
                 .fillMaxWidth(),
         ) {
             content()
