@@ -51,7 +51,6 @@ import org.videolan.tools.KEY_INCOGNITO
 import org.videolan.tools.KEY_LAST_SESSION_CRASHED
 import org.videolan.tools.KEY_MEDIALIBRARY_AUTO_RESCAN
 import org.videolan.tools.KEY_OBSOLETE_RESTORE_FILE_WARNED
-import org.videolan.tools.KEY_USE_SHARED_MAIN_SHELL
 import org.videolan.tools.KEY_SHOW_UPDATE
 import org.videolan.tools.PERMISSION_NEVER_ASK
 import org.videolan.tools.PERMISSION_NEXT_ASK
@@ -99,8 +98,10 @@ class MainActivity : ContentActivity(),
 
     private lateinit var toolbarIcon: ImageView
 
-    override fun usesSharedMainShell(): Boolean =
-        settings.getBoolean(KEY_USE_SHARED_MAIN_SHELL, true)
+    // The common Compose shell is the Android product surface, not an opt-in experiment. Keeping
+    // this independent of persisted preferences prevents an old installation from resurrecting
+    // the legacy toolbar and tabs after an upgrade.
+    override fun usesSharedMainShell(): Boolean = true
 
     // The shared shell is responsible for Material 3's system-bar insets. Consuming them in the
     // legacy root before Compose sees them placed the bottom navigation under gesture controls.

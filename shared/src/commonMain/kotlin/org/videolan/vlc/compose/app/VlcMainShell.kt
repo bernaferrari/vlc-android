@@ -484,11 +484,15 @@ fun VlcMainShell(
                                 Text(
                                     ShellStrings.settings(),
                                     style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
                                 )
                             },
                             colors = TopAppBarDefaults.topAppBarColors(
-                                containerColor = colors.backgroundDefault,
-                                titleContentColor = colors.fontDefault,
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                titleContentColor = MaterialTheme.colorScheme.onSurface,
+                                navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
                             ),
                             navigationIcon = {
                                 if (canNavigateBack) IconButton(onClick = ::navigateBack) {

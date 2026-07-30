@@ -33,9 +33,7 @@ import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -152,6 +150,7 @@ fun RichMediaListPane(
     emptyActionText: String? = null,
     onEmptyAction: () -> Unit = {},
     emptySymbol: MaterialIcon = MaterialSymbols.Filled.VideoLibrary,
+    headerContent: (@Composable () -> Unit)? = null,
     modifier: Modifier = Modifier,
     onRetry: () -> Unit = {},
 ) {
@@ -171,31 +170,37 @@ fun RichMediaListPane(
 
     Column(modifier.padding(horizontal = 16.dp)) {
         if (!useEmptyPresentation) {
-            // Keep the hierarchy deliberate: identity first, then a compact action strip.
+            val isDetail = state.containerTitle != null || state.openedEntityTitle != null
+            // Screen identity comes before filters and controls. This mirrors the quiet hierarchy
+            // used by SDKMonitor and avoids the old VLC pattern of tabs floating above the title.
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 12.dp, bottom = 8.dp),
+                    .padding(top = if (isDetail) 12.dp else 24.dp, bottom = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                if (state.containerTitle != null || state.openedEntityTitle != null) {
-                    IconButton(onClick = onCloseContainer) {
-                        Icon(
-                            icon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = ShellStrings.back(),
-                        )
-                    }
+                if (isDetail) {
+                    VLCConnectedIconActionBar(
+                        actions = listOf(
+                            VLCConnectedIconAction(
+                                icon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = ShellStrings.back(),
+                                onClick = onCloseContainer,
+                            ),
+                        ),
+                    )
                 }
                 Text(
                     state.openedEntityTitle ?: state.containerTitle ?: title,
                     fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = if (isDetail) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.headlineLarge,
                     modifier = Modifier.weight(1f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
+            headerContent?.invoke()
         }
         if (state.selection.isNotEmpty()) {
             // Text actions can grow with translations and selection counts. Wrapping keeps the
@@ -941,25 +946,6 @@ fun MediaTypeBadge(item: MediaItem) {
         fontWeight = FontWeight.Bold,
         style = MaterialTheme.typography.labelLarge,
     )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SectionTabs(
-    tabs: List<String>,
-    selected: Int,
-    onSelect: (Int) -> Unit,
-) {
-    if (tabs.isEmpty()) return
-    PrimaryScrollableTabRow(selectedTabIndex = selected) {
-        tabs.forEachIndexed { index, label ->
-            Tab(
-                selected = selected == index,
-                onClick = { onSelect(index) },
-                text = { Text(label) },
-            )
-        }
-    }
 }
 
 @Composable

@@ -69,6 +69,20 @@ class RichMediaScreensTest {
     }
 
     @Test
+    fun audio_section_selector_is_only_shown_for_a_filterable_audio_root() {
+        val media = MediaItem(id = 1L, title = "Track", uri = "file:///track.mp3")
+
+        assertTrue(shouldShowAudioSectionSelector(MediaListUiState(items = listOf(media), count = 1)))
+        assertTrue(shouldShowAudioSectionSelector(MediaListUiState(sections = listOf("T" to listOf(media)))))
+        assertFalse(shouldShowAudioSectionSelector(MediaListUiState()))
+        assertFalse(
+            shouldShowAudioSectionSelector(
+                MediaListUiState(items = listOf(media), count = 1, openedEntityTitle = "Album"),
+            ),
+        )
+    }
+
+    @Test
     fun alphabetic_fast_scroll_targets_account_for_visible_section_headers() {
         val alpha = MediaItem(id = 1L, title = "Alpha", uri = "file:///alpha.mp3")
         val beta = MediaItem(id = 2L, title = "2 Fast", uri = "file:///two.mp3")

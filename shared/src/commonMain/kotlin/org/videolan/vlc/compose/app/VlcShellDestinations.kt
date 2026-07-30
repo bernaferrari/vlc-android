@@ -1,10 +1,13 @@
 package org.videolan.vlc.compose.app
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.icons.MaterialSymbols
+import org.videolan.vlc.compose.components.VLCSectionOption
+import org.videolan.vlc.compose.components.VLCSectionSelector
 import org.videolan.vlc.compose.player.FallbackPlayerSurface
 import org.videolan.vlc.compose.player.PlayerSurface
 import org.videolan.vlc.compose.player.VideoSurfaceWithHud
@@ -102,87 +105,93 @@ internal fun AudioDestination(
     onOpenEntity: (MediaItem) -> Unit,
     onNavigateBack: () -> Unit = viewModel::closeEntity,
 ) {
-    Column(modifier) {
-        // Section tabs are filters, not onboarding. An empty music library has
-        // nothing to filter, so leave the import affordance as the only action.
-        if (state.openedEntityTitle == null && (state.count > 0 || state.items.isNotEmpty() || state.sections.isNotEmpty())) {
-            SectionTabs(
-                tabs = listOf("Tracks", "Artists", "Albums", "Genres", "Playlists"),
-                selected = section.ordinal,
-                onSelect = { viewModel.setSection(AudioSection.entries[it]) },
-            )
-        }
-        RichMediaListPane(
-            state = state,
-            title = "Audio",
-            emptyLabel = "No audio",
-            sections = state.sections,
-            pagingFlow = if (section == AudioSection.TRACKS && state.openedEntityTitle == null) {
-                viewModel.pagingFlow
+    RichMediaListPane(
+        state = state,
+        title = "Audio",
+        emptyLabel = "No audio",
+        sections = state.sections,
+        pagingFlow = if (section == AudioSection.TRACKS && state.openedEntityTitle == null) {
+            viewModel.pagingFlow
+        } else {
+            null
+        },
+        headerContent = if (shouldShowAudioSectionSelector(state)) {
+            {
+                VLCSectionSelector(
+                    options = listOf("Tracks", "Artists", "Albums", "Genres", "Playlists").map(::VLCSectionOption),
+                    selectedIndex = section.ordinal,
+                    onSelect = { viewModel.setSection(AudioSection.entries[it]) },
+                    modifier = Modifier.padding(bottom = 12.dp),
+                )
+            }
+        } else {
+            null
+        },
+        onQuery = viewModel::setQuery,
+        onRetry = viewModel::refresh,
+        onPlay = { item ->
+            val isEntity = item.uri.startsWith("artist://") ||
+                item.uri.startsWith("album://") ||
+                item.uri.startsWith("genre://")
+            if (isEntity && section != AudioSection.TRACKS) {
+                onOpenEntity(item)
             } else {
-                null
-            },
-            onQuery = viewModel::setQuery,
-            onRetry = viewModel::refresh,
-            onPlay = { item ->
-                val isEntity = item.uri.startsWith("artist://") ||
-                    item.uri.startsWith("album://") ||
-                    item.uri.startsWith("genre://")
-                if (isEntity && section != AudioSection.TRACKS) {
-                    onOpenEntity(item)
-                } else {
-                    viewModel.play(item)
-                    onOpenPlayer()
-                }
-            },
-            onPlayAll = { viewModel.playAll(); onOpenPlayer() },
-            onPlayNext = viewModel::playNext,
-            onAppend = viewModel::append,
-            onToggleSelect = viewModel::toggleSelect,
-            onSelectAll = viewModel::selectAll,
-            onClearSelection = viewModel::clearSelection,
-            onPlaySelection = { viewModel.playSelection(); onOpenPlayer() },
-            onAppendSelection = viewModel::appendSelection,
-            onFavoriteSelection = viewModel::favoriteSelection,
-            onSetViewMode = viewModel::setViewMode,
-            onSetSort = viewModel::setSort,
-            onToggleSortDesc = viewModel::toggleSortDesc,
-            onToggleFavorites = viewModel::toggleOnlyFavorites,
-            onRescan = viewModel::rescan,
-            canHandleHostAction = hostCallbacks::supportsContextAction,
-            onCtx = { item, option ->
-                when (option) {
-                    ContextOption.CTX_DELETE,
-                    ContextOption.CTX_RENAME,
-                    ContextOption.CTX_INFORMATION,
-                    ContextOption.CTX_SHARE,
-                    ContextOption.CTX_DOWNLOAD_SUBTITLES,
-                    ContextOption.CTX_ADD_SHORTCUT,
-                    ContextOption.CTX_SET_RINGTONE,
-                    ContextOption.CTX_BAN_FOLDER,
-                    ContextOption.CTX_ADD_TO_PLAYLIST,
-                    -> hostCallbacks.dispatch(item, option)
-                    else -> {
-                        viewModel.handleCtx(item, option)
-                        if (option == ContextOption.CTX_PLAY || option == ContextOption.CTX_PLAY_ALL) {
-                            onOpenPlayer()
-                        }
+                viewModel.play(item)
+                onOpenPlayer()
+            }
+        },
+        onPlayAll = { viewModel.playAll(); onOpenPlayer() },
+        onPlayNext = viewModel::playNext,
+        onAppend = viewModel::append,
+        onToggleSelect = viewModel::toggleSelect,
+        onSelectAll = viewModel::selectAll,
+        onClearSelection = viewModel::clearSelection,
+        onPlaySelection = { viewModel.playSelection(); onOpenPlayer() },
+        onAppendSelection = viewModel::appendSelection,
+        onFavoriteSelection = viewModel::favoriteSelection,
+        onSetViewMode = viewModel::setViewMode,
+        onSetSort = viewModel::setSort,
+        onToggleSortDesc = viewModel::toggleSortDesc,
+        onToggleFavorites = viewModel::toggleOnlyFavorites,
+        onRescan = viewModel::rescan,
+        canHandleHostAction = hostCallbacks::supportsContextAction,
+        onCtx = { item, option ->
+            when (option) {
+                ContextOption.CTX_DELETE,
+                ContextOption.CTX_RENAME,
+                ContextOption.CTX_INFORMATION,
+                ContextOption.CTX_SHARE,
+                ContextOption.CTX_DOWNLOAD_SUBTITLES,
+                ContextOption.CTX_ADD_SHORTCUT,
+                ContextOption.CTX_SET_RINGTONE,
+                ContextOption.CTX_BAN_FOLDER,
+                ContextOption.CTX_ADD_TO_PLAYLIST,
+                -> hostCallbacks.dispatch(item, option)
+                else -> {
+                    viewModel.handleCtx(item, option)
+                    if (option == ContextOption.CTX_PLAY || option == ContextOption.CTX_PLAY_ALL) {
+                        onOpenPlayer()
                     }
                 }
-            },
-            onCloseContainer = onNavigateBack,
-            showAllArtistsToggle = true,
-            showTrackNumbersToggle = true,
-            onShowAllArtists = viewModel::setShowAllArtists,
-            onShowTrackNumbers = viewModel::setShowTrackNumbers,
-            onDefaultAction = viewModel::setDefaultPlaybackAction,
-            emptySymbol = MaterialSymbols.Filled.MusicNote,
-            emptyActionText = ShellStrings.importMedia().takeIf { hostCallbacks.supportsMediaImport() },
-            onEmptyAction = hostCallbacks::onImportMedia,
-            modifier = Modifier.fillMaxSize(),
-        )
-    }
+            }
+        },
+        onCloseContainer = onNavigateBack,
+        showAllArtistsToggle = true,
+        showTrackNumbersToggle = true,
+        onShowAllArtists = viewModel::setShowAllArtists,
+        onShowTrackNumbers = viewModel::setShowTrackNumbers,
+        onDefaultAction = viewModel::setDefaultPlaybackAction,
+        emptySymbol = MaterialSymbols.Filled.MusicNote,
+        emptyActionText = ShellStrings.importMedia().takeIf { hostCallbacks.supportsMediaImport() },
+        onEmptyAction = hostCallbacks::onImportMedia,
+        modifier = modifier.fillMaxSize(),
+    )
 }
+
+/** A library selector is useful only while the shared Audio root has content to filter. */
+internal fun shouldShowAudioSectionSelector(state: MediaListUiState): Boolean =
+    state.openedEntityTitle == null &&
+        (state.count > 0 || state.items.isNotEmpty() || state.sections.isNotEmpty())
 
 @Composable
 internal fun BrowserDestination(

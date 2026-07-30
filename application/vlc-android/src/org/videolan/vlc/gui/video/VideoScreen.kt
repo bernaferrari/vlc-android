@@ -38,13 +38,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryScrollableTabRow
-import androidx.compose.material3.Tab
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -55,7 +50,6 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -97,6 +91,8 @@ import org.videolan.tools.retrieveParent
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.components.VLCEmptyState
+import org.videolan.vlc.compose.components.VLCSectionOption
+import org.videolan.vlc.compose.components.VLCSectionSelector
 import org.videolan.vlc.compose.components.VLCRenameDialogContent
 import org.videolan.vlc.compose.components.VLCBrowserItemCard
 import org.videolan.vlc.compose.components.VLCBrowserItemRow
@@ -1242,35 +1238,15 @@ private fun VideoScreenContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun VideoTabs(selectedTab: Int, onTabSelected: (Int) -> Unit) {
-    val colors = VLCThemeDefaults.colors
     val tabs = listOf(stringResource(R.string.videos), stringResource(R.string.playlists))
-    PrimaryScrollableTabRow(
-        selectedTabIndex = selectedTab.coerceIn(0, (tabs.size - 1).coerceAtLeast(0)),
-        containerColor = colors.backgroundDefault,
-        contentColor = colors.primary,
-        edgePadding = 12.dp
-    ) {
-        tabs.forEachIndexed { index, title ->
-            val selected = selectedTab == index
-            Tab(
-                selected = selected,
-                onClick = { onTabSelected(index) },
-                text = {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-                        maxLines = 1
-                    )
-                },
-                selectedContentColor = colors.primary,
-                unselectedContentColor = colors.listSubtitle
-            )
-        }
-    }
+    VLCSectionSelector(
+        options = tabs.map(::VLCSectionOption),
+        selectedIndex = selectedTab.coerceIn(0, (tabs.size - 1).coerceAtLeast(0)),
+        onSelect = onTabSelected,
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+    )
 }
 
 @Composable

@@ -1,18 +1,40 @@
 package org.videolan.vlc.compose.components
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialIcon
+import org.videolan.vlc.compose.theme.LocalVLCMotion
 
 /**
  * One action in a compact, connected control group. Library screens use this
@@ -23,6 +45,12 @@ data class VLCConnectedIconAction(
     val contentDescription: String,
     val selected: Boolean = false,
     val onClick: () -> Unit,
+)
+
+/** A text filter in a horizontally scrollable, connected section selector. */
+data class VLCSectionOption(
+    val label: String,
+    val contentDescription: String = label,
 )
 
 /**
@@ -42,30 +70,104 @@ fun VLCConnectedIconActionBar(
         horizontalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         actions.forEachIndexed { index, action ->
-            val selected = action.selected
-            Surface(
+            VLCConnectedControlSurface(
+                selected = action.selected,
+                shape = connectedActionShape(index = index, count = actions.size),
                 onClick = action.onClick,
                 modifier = Modifier.size(48.dp),
-                shape = connectedActionShape(index = index, count = actions.size),
-                color = if (selected) {
-                    MaterialTheme.colorScheme.secondaryContainer
-                } else {
-                    MaterialTheme.colorScheme.surfaceContainerLow
-                },
-                contentColor = if (selected) {
-                    MaterialTheme.colorScheme.onSecondaryContainer
-                } else {
-                    MaterialTheme.colorScheme.onSurface
-                },
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        icon = action.icon,
-                        contentDescription = action.contentDescription,
-                    )
-                }
+                Icon(
+                    icon = action.icon,
+                    contentDescription = action.contentDescription,
+                )
             }
         }
+    }
+}
+
+/**
+ * Replaces the legacy underline tab row with a compact selector that can safely overflow on a
+ * narrow phone. A selector remains a selector on every target—there is no Web-only tab design.
+ */
+@Composable
+fun VLCSectionSelector(
+    options: List<VLCSectionOption>,
+    selectedIndex: Int,
+    onSelect: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (options.isEmpty()) return
+
+    LazyRow(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        contentPadding = PaddingValues(end = 16.dp),
+    ) {
+        itemsIndexed(options, key = { _, option -> option.label }) { index, option ->
+            val selected = index == selectedIndex
+            VLCConnectedControlSurface(
+                selected = selected,
+                shape = connectedActionShape(index = index, count = options.size),
+                onClick = { onSelect(index) },
+                modifier = Modifier
+                    .heightIn(min = 48.dp)
+                    .semantics {
+                        role = Role.Tab
+                        this.selected = selected
+                        this.contentDescription = option.contentDescription
+                    },
+            ) {
+                Text(
+                    text = option.label,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun VLCConnectedControlSurface(
+    selected: Boolean,
+    shape: RoundedCornerShape,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    val motion = LocalVLCMotion.current
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val pressScale by animateFloatAsState(
+        targetValue = if (pressed) 0.97f else 1f,
+        animationSpec = if (motion.reducedMotion) {
+            snap()
+        } else {
+            spring(dampingRatio = 0.6f, stiffness = 700f)
+        },
+        label = "connectedControlPressScale",
+    )
+    Surface(
+        onClick = onClick,
+        interactionSource = interactionSource,
+        modifier = modifier.graphicsLayer {
+            scaleX = pressScale
+            scaleY = pressScale
+        },
+        shape = shape,
+        color = if (selected) {
+            MaterialTheme.colorScheme.secondaryContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerLow
+        },
+        contentColor = if (selected) {
+            MaterialTheme.colorScheme.onSecondaryContainer
+        } else {
+            MaterialTheme.colorScheme.onSurface
+        },
+    ) {
+        Box(contentAlignment = Alignment.Center) { content() }
     }
 }
 

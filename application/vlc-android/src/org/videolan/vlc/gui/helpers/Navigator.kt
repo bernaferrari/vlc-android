@@ -32,7 +32,6 @@ import org.videolan.resources.EXTRA_FOR_ESPRESSO
 import org.videolan.resources.EXTRA_TARGET
 import org.videolan.resources.util.parcelableList
 import org.videolan.tools.KEY_NAVIGATION_ID
-import org.videolan.tools.KEY_USE_SHARED_MAIN_SHELL
 import org.videolan.tools.setGone
 import org.videolan.tools.setVisible
 import org.videolan.vlc.R
@@ -89,7 +88,9 @@ class Navigator : DefaultLifecycleObserver, INavigator {
         appbarLayout = findViewById(R.id.appbar)
         navChrome = mainNavChromeState
         navChrome?.onDestinationSelected = { id -> onDestinationSelected(id) }
-        useSharedShell = settings.getBoolean(KEY_USE_SHARED_MAIN_SHELL, true)
+        // KMP is the product surface on both Android and iOS. Do not honour an old internal
+        // rollout preference here: it would split the visual language and revive legacy chrome.
+        useSharedShell = true
         if (!VlcKmpInitializer.isInitialized) {
             VlcKmpInitializer.initialize(applicationContext)
         }
@@ -296,7 +297,7 @@ class Navigator : DefaultLifecycleObserver, INavigator {
 
     override fun reloadPreferences() {
         currentDestinationId = settings.getInt(KEY_NAVIGATION_ID, defaultDestinationId)
-        useSharedShell = settings.getBoolean(KEY_USE_SHARED_MAIN_SHELL, true)
+        useSharedShell = true
     }
 
     override fun configurationChanged(size: Int) {
