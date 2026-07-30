@@ -168,6 +168,9 @@ fun VLCBrowserItemRow(
             .fillMaxWidth()
             .heightIn(min = 72.dp)
             .then(if (contentDescription != null) Modifier.semantics { this.contentDescription = contentDescription } else Modifier)
+            // The click indication belongs to the asymmetric row silhouette, not its rectangular
+            // layout bounds. This is especially visible for hover on desktop/Wasm history rows.
+            .clip(position.segmentShape())
             .combinedClickable(
                 enabled = enabled,
                 role = Role.Button,

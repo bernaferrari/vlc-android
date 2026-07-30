@@ -322,22 +322,18 @@ private fun AboutActionRow(
 
     Surface(
         modifier = modifier.fillMaxWidth(),
+        onClick = onClick,
         shape = position.segmentShape(),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
-        VLCPressableContent(
-            onClick = onClick,
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 80.dp)
+                .padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
                 Surface(
                     modifier = Modifier.size(48.dp),
                     shape = MaterialTheme.shapes.large,
@@ -377,7 +373,6 @@ private fun AboutActionRow(
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(18.dp),
                 )
-            }
         }
     }
 }

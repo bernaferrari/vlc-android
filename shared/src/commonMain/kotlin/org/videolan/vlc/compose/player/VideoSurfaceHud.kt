@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.IconButton
@@ -399,6 +400,9 @@ fun VideoHudOverlay(
                         listOf(Color.Black.copy(alpha = 0.72f), Color.Transparent)
                     )
                 )
+                // Preserve the edge-to-edge artwork while keeping close/title actions below
+                // status bars and display cutouts on every shared target.
+                .statusBarsPadding()
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
             Row(

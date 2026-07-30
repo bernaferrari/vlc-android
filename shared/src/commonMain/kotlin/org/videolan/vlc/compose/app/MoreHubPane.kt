@@ -29,7 +29,6 @@ import org.videolan.vlc.compose.components.VLCExpandableContent
 import org.videolan.vlc.compose.components.VLCEmptyState
 import org.videolan.vlc.compose.components.VLCIconChip
 import org.videolan.vlc.compose.components.VLCListItemPosition
-import org.videolan.vlc.compose.components.VLCPressableContent
 import org.videolan.vlc.compose.components.segmentShape
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialIcon
@@ -363,23 +362,19 @@ private fun MoreAction(
 ) {
     val colors = VLCThemeDefaults.colors
     Surface(
+        onClick = onClick,
         shape = position.segmentShape(),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        VLCPressableContent(
-            onClick = onClick,
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 80.dp)
+                .padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
                 VLCIconChip(size = 48.dp, containerColor = MaterialTheme.colorScheme.secondaryContainer) {
                     Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
                 }
@@ -405,7 +400,6 @@ private fun MoreAction(
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(24.dp),
                 )
-            }
         }
     }
 }
