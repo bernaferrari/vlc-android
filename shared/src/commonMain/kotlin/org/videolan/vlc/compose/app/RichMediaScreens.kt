@@ -83,6 +83,10 @@ import org.videolan.vlc.viewmodel.SortMode
 import org.videolan.vlc.viewmodel.VideoGroupingMode
 import org.videolan.vlc.viewmodel.ViewMode
 
+private val MediaScreenGutter = 16.dp
+private val MediaGridGap = 12.dp
+private val FastScrollerContentClearance = 32.dp
+
 /**
  * A library whose first result has not arrived is not a filtered list.  Treat
  * it like a dedicated loading/empty surface instead of briefly exposing
@@ -168,7 +172,7 @@ fun RichMediaListPane(
         pagingItemCount = lazyPagingItems?.itemCount ?: 0,
     )
 
-    Column(modifier.padding(horizontal = 16.dp)) {
+    Column(modifier.padding(horizontal = MediaScreenGutter)) {
         if (!useEmptyPresentation) {
             val isDetail = state.containerTitle != null || state.openedEntityTitle != null
             // Screen identity comes before filters and controls. This mirrors the quiet hierarchy
@@ -499,9 +503,9 @@ private fun PagedMediaBody(
     if (state.viewMode == ViewMode.GRID) {
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 140.dp),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 80.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(bottom = 80.dp),
+            horizontalArrangement = Arrangement.spacedBy(MediaGridGap),
+            verticalArrangement = Arrangement.spacedBy(MediaGridGap),
             modifier = modifier,
         ) {
             items(lazyPagingItems.itemCount, key = { index ->
@@ -536,8 +540,7 @@ private fun PagedMediaBody(
                 state = listState,
                 // Dedicated space keeps the index clear of a song's overflow action.
                 contentPadding = PaddingValues(
-                    start = 16.dp,
-                    end = if (hasFastScroller) 48.dp else 16.dp,
+                    end = if (hasFastScroller) FastScrollerContentClearance else 0.dp,
                     bottom = 80.dp,
                 ),
                 verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -572,7 +575,7 @@ private fun PagedMediaBody(
             VLCIndexedFastScroller(
                 targets = indexTargets,
                 listState = listState,
-                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 4.dp),
+                modifier = Modifier.align(Alignment.CenterEnd).padding(vertical = 8.dp),
             )
         }
     }
@@ -638,9 +641,9 @@ private fun SnapshotMediaBody(
     if (state.viewMode == ViewMode.GRID) {
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 140.dp),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 80.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(bottom = 80.dp),
+            horizontalArrangement = Arrangement.spacedBy(MediaGridGap),
+            verticalArrangement = Arrangement.spacedBy(MediaGridGap),
             modifier = modifier,
         ) {
             displaySections.forEach { (section, items) ->
@@ -677,8 +680,7 @@ private fun SnapshotMediaBody(
             LazyColumn(
                 state = listState,
                 contentPadding = PaddingValues(
-                    start = 16.dp,
-                    end = if (hasFastScroller) 48.dp else 16.dp,
+                    end = if (hasFastScroller) FastScrollerContentClearance else 0.dp,
                     bottom = 80.dp,
                 ),
                 verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -717,7 +719,7 @@ private fun SnapshotMediaBody(
             VLCIndexedFastScroller(
                 targets = indexTargets,
                 listState = listState,
-                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 4.dp),
+                modifier = Modifier.align(Alignment.CenterEnd).padding(vertical = 8.dp),
             )
         }
     }

@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
@@ -549,7 +550,15 @@ fun VlcMainShell(
                     }
                 },
             ) { padding ->
-                val contentMod = Modifier.padding(padding).fillMaxSize()
+                // NavigationSuiteScaffold owns the bottom safe area. Library destinations still
+                // need the top safe area because they intentionally provide their own headers;
+                // settings already receives it through TopAppBar and the player stays immersive.
+                val contentMod = Modifier
+                    .padding(padding)
+                    .then(
+                        if (showPlayer || showSettings) Modifier else Modifier.statusBarsPadding(),
+                    )
+                    .fillMaxSize()
                 NavDisplay(
                     backStack = backStack,
                     modifier = contentMod,
