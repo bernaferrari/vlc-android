@@ -3,12 +3,6 @@ pluginManagement {
         google()
         mavenCentral()
         gradlePluginPortal()
-        maven(url = "https://maven.pkg.jetbrains.space/public/p/compose/maven2/")
-    }
-    plugins {
-        id("org.jetbrains.kotlin.plugin.compose") version "2.4.0"
-        id("org.jetbrains.compose") version "1.10.3"
-        id("org.jetbrains.kotlin.plugin.serialization") version "2.4.0"
     }
 }
 
@@ -20,14 +14,7 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        mavenLocal()
-        maven(url = "https://maven.pkg.jetbrains.space/public/p/compose/maven2/") {
-            content {
-                includeGroupByRegex("org\\.jetbrains\\.(compose|skiko|androidx)(\\..*)?")
-            }
-        }
-        // Keep the Kotlin/Wasm toolchain in settings-owned repositories, as in QuietGuard.
-        // This prevents plugin-added project repositories from bypassing the dependency policy.
+        // Target-scoped repositories keep the Kotlin/Wasm toolchain reproducible.
         ivy {
             name = "Node.js"
             url = uri("https://nodejs.org/dist/")
@@ -58,15 +45,8 @@ dependencyResolutionManagement {
     }
 }
 
-// Single source of truth for the VLC major-version matrix.
-// Default is VLC 4 (Compose/KMP/minSdk 26 path). Pass -PforceVlc3 to build the
-// legacy VLC 3 dependency line (still needs NDK 21 for native modules).
-val vlcMajorVersion = if (providers.gradleProperty("forceVlc3").orNull == "true") 3 else 4
-gradle.extra["vlcMajorVersion"] = if (providers.gradleProperty("forceVlc4").orNull == "true") 4 else vlcMajorVersion
-
 android {
-    // Ktor 3.5's Netty runtime requires API 26+. Historical VLC 3 native builds can
-    // still use NDK 21, but the Android app/library minSdk is 26 for both VLC 3 and 4.
+    // Ktor 3.5's Netty runtime requires API 26+.
     minSdk = 26
     targetSdk = 36
     // Adaptive Navigation 3's Android artifact requires API 37 at compile time. This only

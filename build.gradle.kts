@@ -82,17 +82,15 @@ versionCatalogUpdate {
 val localProperties = Properties().apply {
     rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use(::load)
 }
-val vlcMajorVersion = gradle.extra["vlcMajorVersion"] as Int
 val versionCode = 3_070_100
-val versionName = if (vlcMajorVersion == 3) "3.7.1" else "4.0.0-preview - $versionCode"
+val versionName = "4.0.0-preview - $versionCode"
 
 extra.apply {
     set("appId", "org.videolan.vlc")
     set("versionCode", versionCode)
-    set("vlcMajorVersion", vlcMajorVersion)
     set("versionName", versionName)
-    set("libvlcVersion", if (vlcMajorVersion == 3) "3.7.1" else "4.0.0-eap25")
-    set("medialibraryVersion", "0.13.18" + if (vlcMajorVersion == 3) "" else "-vlc4")
-    set("toolchainNdkVersion", localProperties.getProperty("android.ndkFullVersion") ?: if (vlcMajorVersion == 3) "21.4.7075529" else "28.2.13676358")
+    set("libvlcVersion", "4.0.0-eap25")
+    set("medialibraryVersion", "0.13.18-vlc4")
+    set("toolchainNdkVersion", localProperties.getProperty("android.ndkFullVersion") ?: "28.2.13676358")
     set("toolchainNdkPath", localProperties.getProperty("android.ndkPath"))
 }

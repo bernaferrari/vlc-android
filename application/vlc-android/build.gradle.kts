@@ -16,7 +16,6 @@ val rootExtra = rootProject.extra
 val appId = rootExtra["appId"] as String
 val appVersionCode = rootExtra["versionCode"] as Int
 val appVersionName = rootExtra["versionName"] as String
-val vlcMajorVersion = rootExtra["vlcMajorVersion"] as Int
 val libvlcVersion = rootExtra["libvlcVersion"] as String
 val medialibraryVersion = rootExtra["medialibraryVersion"] as String
 val buildRevision = providers.exec {
@@ -97,7 +96,6 @@ android {
         buildConfigField("int", "VLC_VERSION_CODE", appVersionCode.toString())
         buildConfigField("String", "VLC_VERSION_NAME", "\"$appVersionName\"")
         buildConfigField("String[]", "TRANSLATION_ARRAY", generateTranslation())
-        buildConfigField("int", "VLC_MAJOR_VERSION", vlcMajorVersion.toString())
         testInstrumentationRunner = "org.videolan.vlc.MultidexTestRunner"
         testInstrumentationRunnerArguments["clearPackageData"] = "true"
         vectorDrawables.useSupportLibrary = true
@@ -148,9 +146,8 @@ android {
     sourceSets {
         named("main") {
             manifest.srcFile("AndroidManifest.xml")
-            val versionedSources = if (vlcMajorVersion == 4) listOf("src", "vlc4/src") else listOf("src", "vlc3/src")
-            java.directories.apply { clear(); addAll(versionedSources) }
-            kotlin.directories.apply { clear(); addAll(versionedSources) }
+            java.directories.apply { clear(); addAll(listOf("src", "vlc4/src")) }
+            kotlin.directories.apply { clear(); addAll(listOf("src", "vlc4/src")) }
             resources.directories.apply { clear(); add("src") }
             aidl.directories.apply { clear(); add("src") }
             res.directories.apply { clear(); add("res") }

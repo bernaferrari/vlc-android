@@ -63,7 +63,7 @@ More detail: `application/compose/README.md` (Android interop shim), `ios/README
 | Project default (`settings.gradle`) | **26** | Required by Ktor 3.5's Netty runtime |
 | `:shared` Android target | **26** | Same floor — avoids manifest merger failures |
 | `vlcBundle` app variant | **30** | Store bundle floor |
-| VLC 3 **native** NDK | NDK 21 | Still used when `vlcMajorVersion == 3` for ABI/native API 17-era toolchains; **Java/Kotlin app code is min 23** |
+| Native toolchain | NDK 28.x | VLC 4 native build toolchain |
 
 Optional NDK path: set `android.ndkPath` (and optionally `android.ndkFullVersion`) in `local.properties`. Root ext property is `toolchainNdkPath`.
 
@@ -130,31 +130,6 @@ artifacts, runs the shared/Wasm suite, and builds/archives the iOS host on a
 macOS runner. For local iOS verification, run
 [`ios/verify.sh`](ios/verify.sh); record hardware evidence in
 [`ios/RELEASE_SMOKE_TEST.md`](ios/RELEASE_SMOKE_TEST.md) before promotion.
-
-### VLC 3 vs VLC 4 dependency matrix
-
-The major version is chosen once in `settings.gradle` (`gradle.ext.vlcMajorVersion`) and consumed from root `build.gradle` `ext`:
-
-| | Default (VLC **4**) | Legacy (`-PforceVlc3`) |
-|---|---|---|
-| App `minSdk` | 26 | 26 |
-| LibVLC / versionName | 4.0 EAP / preview | 3.7.1 |
-| Medialibrary artifact | `…-vlc4` suffix | plain |
-| NDK (native modules) | 28.x | 21.x (API 17-era toolchains) |
-| Source sets | `vlc4/src` | `vlc3/src` |
-
-`vlc3/src` and `vlc4/src` under `application/vlc-android`, `application/resources`, and `medialibrary` encode **real libVLC ABI differences** (track selection APIs) and are not dead duplicates.
-
-```bash
-# Default = VLC 4
-./gradlew :application:app:assembleDebug
-
-# Legacy VLC 3 dependency line
-./gradlew :application:app:assembleDebug -PforceVlc3
-
-# -PforceVlc4 remains accepted as an explicit no-op (default is already 4)
-./gradlew :application:app:assembleDebug -PforceVlc4
-```
 
 ### Build LibVLC
 

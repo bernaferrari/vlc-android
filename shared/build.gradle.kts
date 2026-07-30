@@ -34,8 +34,7 @@ kotlin {
     android {
         namespace = "org.videolan.shared"
         compileSdk = 37
-        // Ktor 3.5's Netty runtime requires API 26+. VLC 3 native still builds with
-        // NDK 21, but the app/shared JVM floor is 26 for both VLC 3 and 4.
+        // Ktor 3.5's Netty runtime requires API 26+.
         minSdk = 26
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)

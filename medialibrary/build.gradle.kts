@@ -7,7 +7,6 @@ val rootExtra = rootProject.extra
 val medialibraryVersion = rootExtra["medialibraryVersion"] as String
 val toolchainNdkVersion = rootExtra["toolchainNdkVersion"] as String
 val toolchainNdkPath = rootExtra["toolchainNdkPath"] as String?
-val vlcMajorVersion = rootExtra["vlcMajorVersion"] as Int
 val libvlcVersion = rootExtra["libvlcVersion"] as String
 
 group = "org.videolan.android"
@@ -23,8 +22,7 @@ android {
         named("main") {
             jniLibs.directories.add("jni/libs")
             manifest.srcFile("AndroidManifest.xml")
-            val versionedSources = if (vlcMajorVersion == 4) listOf("src", "vlc4/src") else listOf("src", "vlc3/src")
-            java.directories.apply { clear(); addAll(versionedSources) }
+            java.directories.apply { clear(); addAll(listOf("src", "vlc4/src")) }
             resources.directories.apply { clear(); add("src") }
             aidl.directories.apply { clear(); add("src") }
             res.directories.apply { clear(); add("res") }

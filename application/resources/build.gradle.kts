@@ -4,7 +4,6 @@ plugins {
 
 val rootExtra = rootProject.extra
 val appId = rootExtra["appId"] as String
-val vlcMajorVersion = rootExtra["vlcMajorVersion"] as Int
 val libvlcVersion = rootExtra["libvlcVersion"] as String
 val medialibraryVersion = rootExtra["medialibraryVersion"] as String
 val openSubtitlesApiKey = providers.environmentVariable("VLC_OPEN_SUBTITLES_API_KEY")
@@ -39,9 +38,8 @@ android {
     }
     sourceSets {
         named("main") {
-            val versionedSources = if (vlcMajorVersion == 4) listOf("src", "vlc4/src") else listOf("src", "vlc3/src")
-            java.directories.apply { clear(); addAll(versionedSources) }
-            kotlin.directories.apply { clear(); addAll(versionedSources) }
+            java.directories.apply { clear(); addAll(listOf("src", "vlc4/src")) }
+            kotlin.directories.apply { clear(); addAll(listOf("src", "vlc4/src")) }
         }
         named("debug") {
             res.directories.apply { clear(); add("flavors/debug/res") }
