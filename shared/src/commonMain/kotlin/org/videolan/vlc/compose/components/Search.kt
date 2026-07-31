@@ -47,8 +47,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialSymbols
+import org.videolan.vlc.compose.app.ShellStrings
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.compose.theme.VLCLayout
 
 data class VLCSearchResultRow(
     val id: String,
@@ -159,7 +161,11 @@ fun VLCSearchScreen(
                         sections = sections,
                         onResultClick = onResultClick,
                         thumbnailContent = thumbnailContent,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .widthIn(max = VLCLayout.ListMaxWidth)
+                            .align(Alignment.CenterHorizontally)
+                            .fillMaxSize()
                     )
                 }
             }
@@ -273,7 +279,7 @@ private fun SearchResults(
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = section.rows.size.toString(),
+                        text = ShellStrings.itemsCount(section.rows.size),
                         color = VLCThemeDefaults.colors.fontLight,
                         style = MaterialTheme.typography.labelMedium
                     )

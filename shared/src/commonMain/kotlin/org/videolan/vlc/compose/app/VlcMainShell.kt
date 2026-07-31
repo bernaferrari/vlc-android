@@ -1,6 +1,5 @@
 package org.videolan.vlc.compose.app
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.EnterTransition
@@ -8,12 +7,15 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -26,6 +28,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -1021,9 +1024,14 @@ private fun AppearanceSettingsGroup(
                 shape = VLCListItemPosition.First.segmentShape(),
                 color = MaterialTheme.colorScheme.surfaceContainerLow,
             ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
+                FlowRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp)
+                        .selectableGroup(),
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                    maxItemsInEachRow = 3,
                 ) {
                     val modes = listOf(
                         VLCThemeAppearance.Light to ShellStrings.lightTheme(),
@@ -1049,15 +1057,16 @@ private fun AppearanceSettingsGroup(
                 FlowRow(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                        .padding(horizontal = 12.dp, vertical = 10.dp)
+                        .selectableGroup(),
                     horizontalArrangement = Arrangement.spacedBy(0.dp, Alignment.CenterHorizontally),
                     verticalArrangement = Arrangement.spacedBy(0.dp),
+                    maxItemsInEachRow = 6,
                 ) {
                     availableVLCThemeAccents().forEach { option ->
                         ThemeAccentSwatch(
                             accent = option,
                             selected = option == accent,
-                            contentDescription = ShellStrings.themeAccent(option),
                             onClick = { onAccentChange(option) },
                         )
                     }
@@ -1068,7 +1077,7 @@ private fun AppearanceSettingsGroup(
 }
 
 @Composable
-private fun RowScope.AppearanceModeButton(
+private fun AppearanceModeButton(
     label: String,
     selected: Boolean,
     position: Int,
@@ -1090,16 +1099,11 @@ private fun RowScope.AppearanceModeButton(
         )
         else -> RoundedCornerShape(6.dp)
     }
-    val selectionDescription = if (selected) ShellStrings.selected() else ShellStrings.select()
     Surface(
-        onClick = onClick,
         modifier = Modifier
-            .weight(1f)
+            .widthIn(min = 92.dp)
             .heightIn(min = 48.dp)
-            .semantics {
-                role = Role.RadioButton
-                contentDescription = "$label, $selectionDescription"
-            },
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
         shape = cornerShape,
         color = if (selected) {
             MaterialTheme.colorScheme.primaryContainer
@@ -1128,7 +1132,8 @@ private fun RowScope.AppearanceModeButton(
                 text = label,
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
                 modifier = if (selected) Modifier.padding(start = 6.dp) else Modifier,
             )
         }
@@ -1139,52 +1144,51 @@ private fun RowScope.AppearanceModeButton(
 private fun ThemeAccentSwatch(
     accent: VLCThemeAccent,
     selected: Boolean,
-    contentDescription: String,
     onClick: () -> Unit,
 ) {
+    val motion = LocalVLCMotion.current
     val swatchColor = if (accent == VLCThemeAccent.Dynamic) MaterialTheme.colorScheme.primary else accent.swatchColor
     val isDynamic = accent == VLCThemeAccent.Dynamic
     val orbCornerFraction by animateFloatAsState(
         targetValue = if (selected) .5f else .26f,
-        animationSpec = spring(dampingRatio = .7f, stiffness = 520f),
+        animationSpec = if (motion.reducedMotion) snap() else spring(dampingRatio = .7f, stiffness = 520f),
         label = "themeOrbCorner_${accent.storageValue}",
     )
     val orbScale by animateFloatAsState(
         targetValue = if (selected) 1.02f else .86f,
-        animationSpec = spring(dampingRatio = .56f, stiffness = 600f),
+        animationSpec = if (motion.reducedMotion) snap() else spring(dampingRatio = .56f, stiffness = 600f),
         label = "themeOrbScale_${accent.storageValue}",
     )
     val orbRotation by animateFloatAsState(
         targetValue = if (selected) 8f else 0f,
-        animationSpec = spring(dampingRatio = .66f, stiffness = 420f),
+        animationSpec = if (motion.reducedMotion) snap() else spring(dampingRatio = .66f, stiffness = 420f),
         label = "themeOrbRotation_${accent.storageValue}",
     )
     val glowAlpha by animateFloatAsState(
         targetValue = if (selected) 1f else 0f,
-        animationSpec = tween(durationMillis = 240, easing = FastOutSlowInEasing),
+        animationSpec = tween(durationMillis = if (motion.reducedMotion) 0 else 240, easing = FastOutSlowInEasing),
         label = "themeOrbGlow_${accent.storageValue}",
     )
     val iconAlpha by animateFloatAsState(
         targetValue = if (selected || isDynamic) 1f else 0f,
-        animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing),
+        animationSpec = tween(durationMillis = if (motion.reducedMotion) 0 else 180, easing = FastOutSlowInEasing),
         label = "themeOrbIcon_${accent.storageValue}",
     )
     val interactionSource = remember { MutableInteractionSource() }
+    val label = ShellStrings.themeAccent(accent)
     val orbShape = RoundedCornerShape(percent = (orbCornerFraction * 100).toInt())
     val iconTint = if (accent == VLCThemeAccent.Amber || accent == VLCThemeAccent.Lime) Color.Black else Color.White
-    val selectionDescription = if (selected) ShellStrings.selected() else ShellStrings.select()
     Box(
         modifier = Modifier
             .size(50.dp)
-            .clickable(
+            .selectable(
+                selected = selected,
+                role = Role.RadioButton,
                 interactionSource = interactionSource,
                 indication = null,
                 onClick = onClick,
             )
-            .semantics {
-                role = Role.RadioButton
-                this.contentDescription = "$contentDescription, $selectionDescription"
-            },
+            .semantics { contentDescription = label },
         contentAlignment = Alignment.Center,
     ) {
         Box(

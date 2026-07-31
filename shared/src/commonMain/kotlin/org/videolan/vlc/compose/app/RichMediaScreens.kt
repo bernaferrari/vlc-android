@@ -208,7 +208,7 @@ fun RichMediaListPane(
             ) {
         if (!useEmptyPresentation && state.selection.isNotEmpty()) {
             VLCSelectionContextBar(
-                title = "${state.selection.size} ${ShellStrings.selected()}",
+                title = ShellStrings.selectionCount(ShellStrings.selected(), state.selection.size),
                 clearContentDescription = ShellStrings.clear(),
                 onClearSelection = onClearSelection,
                 modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
@@ -451,7 +451,11 @@ fun RichMediaListPane(
                     // During first load the spinner is sufficient; do not imply that no media
                     // exists until the repository has delivered its first empty result.
                     text = if (state.loading) "" else emptyLabel,
-                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .widthIn(max = VLCLayout.ListMaxWidth)
+                        .align(Alignment.CenterHorizontally)
+                        .weight(1f),
                     symbol = emptySymbol,
                     actionText = emptyActionText.takeIf { !state.loading },
                     onActionClick = onEmptyAction,
@@ -1118,7 +1122,7 @@ fun BrowserRichPane(
     Column(modifier) {
         if (state.selection.isNotEmpty()) {
             VLCSelectionContextBar(
-                title = "${state.selection.size} ${ShellStrings.selected()}",
+                title = ShellStrings.selectionCount(ShellStrings.selected(), state.selection.size),
                 clearContentDescription = ShellStrings.clear(),
                 onClearSelection = onClearSelection,
                 modifier = Modifier.padding(
@@ -1198,7 +1202,11 @@ fun BrowserRichPane(
             // A two-pixel join makes related rows read as one asymmetric group rather than a
             // vertical pile of independent cards. Section labels create the intentional gaps.
             verticalArrangement = Arrangement.spacedBy(2.dp),
-            modifier = Modifier.fillMaxWidth().weight(1f),
+            modifier = Modifier
+                .fillMaxWidth()
+                .widthIn(max = VLCLayout.ListMaxWidth)
+                .align(Alignment.CenterHorizontally)
+                .weight(1f),
             ) {
             if (atRoot && state.favorites.isNotEmpty()) {
                 item {
@@ -1456,7 +1464,11 @@ fun PlaylistsRichPane(
                 VLCEmptyState(
                     loading = false,
                     text = ShellStrings.emptyPlaylist(),
-                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .widthIn(max = VLCLayout.ListMaxWidth)
+                        .align(Alignment.CenterHorizontally)
+                        .weight(1f),
                     symbol = emptySymbol,
                 )
             } else {
@@ -1467,7 +1479,11 @@ fun PlaylistsRichPane(
                         bottom = 24.dp,
                     ),
                     verticalArrangement = Arrangement.spacedBy(2.dp),
-                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .widthIn(max = VLCLayout.ListMaxWidth)
+                        .align(Alignment.CenterHorizontally)
+                        .weight(1f),
                 ) {
                     itemsIndexed(detailItems, key = { index, item -> "$index:${item.id}:${item.uri}" }) { index, item ->
                         PlaylistTrackRow(
@@ -1504,7 +1520,7 @@ fun PlaylistsRichPane(
 
         if (state.selection.isNotEmpty()) {
             VLCSelectionContextBar(
-                title = "${state.selection.size} ${ShellStrings.selected()}",
+                title = ShellStrings.selectionCount(ShellStrings.selected(), state.selection.size),
                 clearContentDescription = ShellStrings.clear(),
                 onClearSelection = onClearSelection,
                 modifier = Modifier.padding(
@@ -1670,7 +1686,11 @@ fun PlaylistsRichPane(
                     bottom = 24.dp,
                 ),
                 verticalArrangement = Arrangement.spacedBy(2.dp),
-                modifier = Modifier.fillMaxWidth().weight(1f),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = VLCLayout.ListMaxWidth)
+                    .align(Alignment.CenterHorizontally)
+                    .weight(1f),
             ) {
                 itemsIndexed(playlists, key = { _, playlist -> playlist.id }) { index, pl ->
                     var menu by remember { mutableStateOf(false) }

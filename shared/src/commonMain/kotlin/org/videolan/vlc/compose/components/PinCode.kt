@@ -62,6 +62,7 @@ import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.compose.app.ShellStrings
 
 /**
  * Full Compose replacement for:
@@ -267,7 +268,7 @@ private fun PinBoxes(pin: String, modifier: Modifier = Modifier) {
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         val spacing = 8.dp
         val tileSize = pinTileSize(maxWidth, spacing)
-        val pinSemantics = "${pin.length} of 4 PIN digits entered"
+        val pinSemantics = ShellStrings.pinDigitsEntered(pin.length)
 
         Row(
             modifier = Modifier

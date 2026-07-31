@@ -46,6 +46,7 @@ import kotlinx.coroutines.delay
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import kotlin.math.min
+import org.videolan.vlc.compose.theme.LocalVLCMotion
 
 /**
  * Full Compose replacement for:
@@ -72,9 +73,10 @@ fun VLCWidgetExplanationDialogContent(
 ) {
     var step by remember { mutableIntStateOf(1) }
     var sizePreviewIndex by remember { mutableIntStateOf(0) }
+    val motion = LocalVLCMotion.current
 
-    LaunchedEffect(step, sizePreviewCount) {
-        while (step == 1 && sizePreviewCount > 1) {
+    LaunchedEffect(step, sizePreviewCount, motion.reducedMotion) {
+        while (!motion.reducedMotion && step == 1 && sizePreviewCount > 1) {
             delay(2000)
             sizePreviewIndex = (sizePreviewIndex + 1) % sizePreviewCount
         }
@@ -168,61 +170,91 @@ private fun WidgetResizeStep(
     resizePreviewContent: @Composable (Modifier) -> Unit,
     tapIconContent: @Composable (Modifier) -> Unit
 ) {
-    val transition = rememberInfiniteTransition(label = "widgetResize")
-    val widthFraction by transition.animateFloat(
-        initialValue = 0.58f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1500, delayMillis = 2500),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "widgetWidth"
-    )
-    val tapAlpha by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 800, delayMillis = 2500),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "tapAlpha"
-    )
-    val handleAlpha by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 200, delayMillis = 3300),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "handleAlpha"
-    )
+    val reducedMotion = LocalVLCMotion.current.reducedMotion
+    if (reducedMotion) {
+        WidgetResizeStepContent(
+            text = text,
+            widthFraction = 0.72f,
+            tapAlpha = 1f,
+            handleAlpha = 1f,
+            resizePreviewContent = resizePreviewContent,
+            tapIconContent = tapIconContent,
+        )
+    } else {
+        val transition = rememberInfiniteTransition(label = "widgetResize")
+        val widthFraction by transition.animateFloat(
+            initialValue = 0.58f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 1500, delayMillis = 2500),
+                repeatMode = RepeatMode.Restart,
+            ),
+            label = "widgetWidth",
+        )
+        val tapAlpha by transition.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 800, delayMillis = 2500),
+                repeatMode = RepeatMode.Reverse,
+            ),
+            label = "tapAlpha",
+        )
+        val handleAlpha by transition.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 200, delayMillis = 3300),
+                repeatMode = RepeatMode.Reverse,
+            ),
+            label = "handleAlpha",
+        )
+        WidgetResizeStepContent(
+            text = text,
+            widthFraction = widthFraction,
+            tapAlpha = tapAlpha,
+            handleAlpha = handleAlpha,
+            resizePreviewContent = resizePreviewContent,
+            tapIconContent = tapIconContent,
+        )
+    }
+}
 
+@Composable
+private fun WidgetResizeStepContent(
+    text: String,
+    widthFraction: Float,
+    tapAlpha: Float,
+    handleAlpha: Float,
+    resizePreviewContent: @Composable (Modifier) -> Unit,
+    tapIconContent: @Composable (Modifier) -> Unit,
+) {
     Text(
         text = text,
         color = VLCThemeDefaults.colors.fontDefault,
         style = MaterialTheme.typography.bodyLarge,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 16.dp)
+            .padding(top = 16.dp),
     )
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(256.dp)
             .padding(top = 16.dp, bottom = 16.dp),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth(widthFraction)
                 .padding(8.dp),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             resizePreviewContent(Modifier.fillMaxWidth())
             WidgetResizeHandleOverlay(
                 modifier = Modifier
                     .matchParentSize()
-                    .alpha(handleAlpha)
+                    .alpha(handleAlpha),
             )
             tapIconContent(
                 Modifier
@@ -230,8 +262,8 @@ private fun WidgetResizeStep(
                     .graphicsLayer(
                         alpha = tapAlpha,
                         scaleX = 0.9f + (tapAlpha * 0.1f),
-                        scaleY = 0.9f + (tapAlpha * 0.1f)
-                    )
+                        scaleY = 0.9f + (tapAlpha * 0.1f),
+                    ),
             )
         }
     }

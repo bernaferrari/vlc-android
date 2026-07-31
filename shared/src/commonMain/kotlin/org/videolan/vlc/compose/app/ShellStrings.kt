@@ -79,6 +79,8 @@ object ShellStrings {
     @Composable fun cancel(): String = stringResource(Res.string.cancel)
     @Composable fun ok(): String = stringResource(Res.string.ok)
     @Composable fun unlock(): String = stringResource(Res.string.unlock)
+    @Composable fun locked(): String = stringResource(Res.string.locked)
+    @Composable fun unlocked(): String = stringResource(Res.string.unlocked)
     @Composable fun displaySettings(): String = stringResource(Res.string.display_settings)
     @Composable fun clear(): String = stringResource(Res.string.clear)
     @Composable fun select(): String = stringResource(Res.string.select)
@@ -90,7 +92,14 @@ object ShellStrings {
     @Composable fun notPlaying(): String = stringResource(Res.string.not_playing)
     @Composable fun pause(): String = stringResource(Res.string.pause)
     @Composable fun video(): String = stringResource(Res.string.video)
+    @Composable fun videosTitle(): String = stringResource(Res.string.library_videos)
+    @Composable fun noVideos(): String = stringResource(Res.string.no_videos)
     @Composable fun audio(): String = stringResource(Res.string.audio)
+    @Composable fun noAudio(): String = stringResource(Res.string.no_audio_library)
+    @Composable fun tracks(): String = stringResource(Res.string.tracks)
+    @Composable fun artists(): String = stringResource(Res.string.artists)
+    @Composable fun albums(): String = stringResource(Res.string.albums)
+    @Composable fun genres(): String = stringResource(Res.string.genres)
     @Composable fun browse(): String = stringResource(Res.string.browse)
     @Composable fun playlists(): String = stringResource(Res.string.playlists)
     @Composable fun more(): String = stringResource(Res.string.more)
@@ -175,4 +184,6 @@ object ShellStrings {
         stringResource(Res.string.selection_action_count, action, count)
     @Composable fun selectedItemsSummary(items: String, count: Int): String =
         stringResource(Res.string.selected_items_summary, items, count)
+    @Composable fun pinDigitsEntered(count: Int): String =
+        stringResource(Res.string.pin_digits_entered, count)
 }

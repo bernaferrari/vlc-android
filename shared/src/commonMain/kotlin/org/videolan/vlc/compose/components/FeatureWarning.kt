@@ -63,6 +63,7 @@ import kotlinx.coroutines.launch
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.compose.theme.LocalVLCMotion
+import org.videolan.vlc.compose.app.ShellStrings
 import kotlin.math.roundToInt
 
 /**
@@ -219,6 +220,8 @@ private fun VLCSwipeUnlockControl(
         if (offset.value > maxOffset) offset.snapTo(maxOffset)
     }
 
+    val lockStateDescription = if (unlocked) ShellStrings.unlocked() else ShellStrings.locked()
+
     Box(
         modifier = modifier
             .onSizeChanged { widthPx = it.width.toFloat() }
@@ -229,7 +232,7 @@ private fun VLCSwipeUnlockControl(
             .semantics(mergeDescendants = true) {
                 role = Role.Button
                 contentDescription = text
-                stateDescription = if (unlocked) "Unlocked" else "Locked"
+                stateDescription = lockStateDescription
                 onClick {
                     if (!unlocked) {
                         unlock()

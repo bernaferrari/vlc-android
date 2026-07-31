@@ -146,6 +146,9 @@
     <string name="internal_memory">Internal memory</string>
     <string name="audio">Audio</string>
     <string name="video">Video</string>
+    <string name="library_videos">Videos</string>
+    <string name="no_videos">No videos</string>
+    <string name="no_audio_library">No audio</string>
     <string name="bookmarks">Bookmarks</string>
     <string name="equalizer">Equalizer</string>
     <string name="import_equalizer">Import equalizer</string>
@@ -1145,6 +1148,8 @@
     <string name="app_lock">App lock</string>
     <string name="app_lock_summary">Require your app lock before showing VLC</string>
     <string name="app_locked">VLC is locked</string>
+    <string name="locked">Locked</string>
+    <string name="unlocked">Unlocked</string>
     <string name="use_biometrics">Use biometrics</string>
     <string name="use_biometrics_summary">Use your device biometric instead of entering the app-lock PIN</string>
     <string name="safe_mode">Safe mode</string>
@@ -1539,6 +1544,7 @@
     <string name="by_name">By name</string>
     <string name="by_folder">By folder</string>
     <string name="selected_items_summary">%1$s · %2$d selected</string>
+    <string name="pin_digits_entered">%1$d of 4 PIN digits entered</string>
     <plurals name="groups_count">
         <item quantity="one">%1$d group</item>
         <item quantity="other">%1$d groups</item>

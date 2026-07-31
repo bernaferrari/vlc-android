@@ -41,8 +41,8 @@ internal fun VideoDestination(
 ) {
     RichMediaListPane(
         state = state,
-        title = "Videos",
-        emptyLabel = "No videos",
+        title = ShellStrings.videosTitle(),
+        emptyLabel = ShellStrings.noVideos(),
         pagingFlow = viewModel.pagingFlow,
         groups = state.groups,
         onQuery = viewModel::setQuery,
@@ -114,8 +114,8 @@ internal fun AudioDestination(
 ) {
     RichMediaListPane(
         state = state,
-        title = "Audio",
-        emptyLabel = "No audio",
+        title = ShellStrings.audio(),
+        emptyLabel = ShellStrings.noAudio(),
         sections = state.sections,
         pagingFlow = if (section == AudioSection.TRACKS && state.openedEntityTitle == null) {
             viewModel.pagingFlow
@@ -125,7 +125,13 @@ internal fun AudioDestination(
         headerContent = if (shouldShowAudioSectionSelector(state)) {
             {
                 VLCSectionSelector(
-                    options = listOf("Tracks", "Artists", "Albums", "Genres", "Playlists").map(::VLCSectionOption),
+                    options = listOf(
+                        ShellStrings.tracks(),
+                        ShellStrings.artists(),
+                        ShellStrings.albums(),
+                        ShellStrings.genres(),
+                        ShellStrings.playlists(),
+                    ).map(::VLCSectionOption),
                     selectedIndex = section.ordinal,
                     onSelect = { viewModel.setSection(AudioSection.entries[it]) },
                     modifier = Modifier.padding(bottom = 8.dp),
