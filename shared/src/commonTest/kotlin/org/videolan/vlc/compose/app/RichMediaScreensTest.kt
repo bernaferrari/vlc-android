@@ -70,6 +70,28 @@ class RichMediaScreensTest {
     }
 
     @Test
+    fun query_refresh_keeps_existing_content_visible_while_loading() {
+        val media = MediaItem(id = 1L, title = "Clip", uri = "file:///clip.mp4")
+
+        assertTrue(
+            hasVisibleMediaContent(
+                state = MediaListUiState(loading = true, count = 1, items = listOf(media)),
+                sections = emptyList(),
+                groups = emptyList(),
+                pagingItemCount = 0,
+            ),
+        )
+        assertFalse(
+            hasVisibleMediaContent(
+                state = MediaListUiState(loading = true),
+                sections = emptyList(),
+                groups = emptyList(),
+                pagingItemCount = 0,
+            ),
+        )
+    }
+
+    @Test
     fun audio_section_selector_is_only_shown_for_a_filterable_audio_root() {
         val media = MediaItem(id = 1L, title = "Track", uri = "file:///track.mp3")
 

@@ -133,6 +133,22 @@ internal fun shouldUseEmptyMediaPresentation(
         groups.isEmpty()
 
 /**
+ * Query changes briefly put the repository into a loading state. Keep the previous result on
+ * screen while that replacement is being resolved; dropping the body to a blank box is
+ * especially noticeable when the user closes search and returns to the library.
+ */
+internal fun hasVisibleMediaContent(
+    state: MediaListUiState,
+    sections: List<Pair<String, List<MediaItem>>>,
+    groups: List<MediaFolder>,
+    pagingItemCount: Int,
+): Boolean =
+    state.items.isNotEmpty() ||
+        sections.any { it.second.isNotEmpty() } ||
+        groups.isNotEmpty() ||
+        pagingItemCount > 0
+
+/**
  * Rich media browser pane — grid/list, sort, multi-select, context actions, paging.
  * Used by Video and Audio tabs of [VlcMainShell].
  */
@@ -197,6 +213,13 @@ fun RichMediaListPane(
         groups = groups,
         pagingItemCount = lazyPagingItems?.itemCount ?: 0,
     )
+    val hasVisibleContent = hasVisibleMediaContent(
+        state = state,
+        sections = sections,
+        groups = groups,
+        pagingItemCount = lazyPagingItems?.itemCount ?: 0,
+    )
+    val showLoadingPlaceholder = state.loading && !useEmptyPresentation && !hasVisibleContent
 
     Column(modifier) {
         Box(modifier = Modifier.fillMaxWidth()) {
@@ -442,7 +465,7 @@ fun RichMediaListPane(
         }
 
         when {
-            state.error != null || (state.loading && !useEmptyPresentation) -> {
+            state.error != null || showLoadingPlaceholder -> {
                 Box(modifier = Modifier.fillMaxWidth().weight(1f))
             }
             useEmptyPresentation -> {
