@@ -29,5 +29,6 @@ object VlcTextUtils {
      * Accepts an array of optional strings; blank values are filtered out.
      */
     fun separatedString(separator: Char, pieces: Array<String?>) =
-        pieces.filter { it?.isNotBlank() == true }.joinToString(separator = " $separator ")
+        pieces.mapNotNull { it?.trim()?.takeIf(String::isNotBlank) }
+            .joinToString(separator = " $separator ")
 }

@@ -43,6 +43,7 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.compose.theme.VLCLayout
 import org.videolan.vlc.model.HistoryEntry
 import org.videolan.vlc.model.MediaItem
+import org.videolan.vlc.util.VlcTextUtils
 import org.videolan.vlc.viewmodel.MoreHubViewModel
 import org.videolan.vlc.viewmodel.isPlayableStreamUri
 
@@ -265,7 +266,9 @@ internal fun MorePane(
                 val selected = key in state.historySelection
                 VLCBrowserItemRow(
                     title = entry.item.displayTitle,
-                    subtitle = listOfNotNull(entry.item.artist, entry.item.album).joinToString(" · ").ifBlank { null },
+                    subtitle = VlcTextUtils.separatedString(
+                        arrayOf(entry.item.artist, entry.item.album),
+                    ).ifBlank { null },
                     selected = selected,
                     position = moreActionPosition(index, state.history.size),
                     onClick = {

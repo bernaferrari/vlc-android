@@ -72,6 +72,7 @@ import org.videolan.vlc.player.PlaybackEqualizer
 import org.videolan.vlc.player.PlaybackBookmarks
 import org.videolan.vlc.player.PlaybackBookmark
 import org.videolan.vlc.player.PlaybackRate
+import org.videolan.vlc.util.VlcTextUtils
 import vlc_android.shared.generated.resources.Res
 import vlc_android.shared.generated.resources.done
 import vlc_android.shared.generated.resources.ab_repeat
@@ -987,7 +988,7 @@ private fun QueueItem(
                 val supportingText = if (selected) {
                     stringResource(Res.string.now_playing)
                 } else {
-                    listOfNotNull(item.artist, item.album).joinToString(" · ")
+                    VlcTextUtils.separatedString(arrayOf(item.artist, item.album))
                 }
                 if (supportingText.isNotBlank()) {
                     Text(

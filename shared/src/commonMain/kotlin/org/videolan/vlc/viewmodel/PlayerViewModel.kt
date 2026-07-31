@@ -28,6 +28,7 @@ import org.videolan.vlc.player.PlaybackBookmarks
 import org.videolan.vlc.player.PlaybackRate
 import org.videolan.vlc.platform.RendererInfo
 import org.videolan.vlc.repository.PlaylistRepository
+import org.videolan.vlc.util.VlcTextUtils
 import org.videolan.tools.VlcSettings
 
 data class PlayerUiState(
@@ -154,7 +155,9 @@ class PlayerViewModel(
                 _state.update {
                     it.copy(
                         title = item?.displayTitle.orEmpty(),
-                        subtitle = listOfNotNull(item?.artist, item?.album).joinToString(" · "),
+                        subtitle = VlcTextUtils.separatedString(
+                            arrayOf(item?.artist, item?.album),
+                        ),
                         uri = item?.uri.orEmpty(),
                         artworkUri = item?.artworkUri,
                         playing = st is PlaybackState.Playing,
