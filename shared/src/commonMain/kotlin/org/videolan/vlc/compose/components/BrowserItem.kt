@@ -247,7 +247,7 @@ fun VLCBrowserItemCard(
     val motion = LocalVLCMotion.current
     val containerColor by animateColorAsState(
         targetValue = if (selected) {
-            MaterialTheme.colorScheme.primaryContainer
+            MaterialTheme.colorScheme.secondaryContainer
         } else {
             MaterialTheme.colorScheme.surfaceContainer
         },
@@ -255,7 +255,7 @@ fun VLCBrowserItemCard(
         label = "cardContainer",
     )
     val contentColor = if (selected) {
-        MaterialTheme.colorScheme.onPrimaryContainer
+        MaterialTheme.colorScheme.onSecondaryContainer
     } else {
         MaterialTheme.colorScheme.onSurface
     }
@@ -286,12 +286,12 @@ fun VLCBrowserItemCard(
                     content = badgeContent
                 )
                 primaryActionContent?.let { content ->
-                    IconButton(onClick = onPrimaryActionClick, modifier = Modifier.size(36.dp)) {
+                    IconButton(onClick = onPrimaryActionClick, modifier = Modifier.size(48.dp)) {
                         content()
                     }
                 }
                 moreActionContent?.let { content ->
-                    IconButton(onClick = onMoreClick, modifier = Modifier.size(36.dp)) {
+                    IconButton(onClick = onMoreClick, modifier = Modifier.size(48.dp)) {
                         content()
                     }
                 }

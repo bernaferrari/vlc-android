@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -52,6 +51,7 @@ import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.compose.theme.VLCLayout
 
 /**
  * Full Compose replacement for:
@@ -130,7 +130,8 @@ fun VLCFeedbackScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(min = 56.dp)
+                        .height(VLCLayout.RowHeight)
+                        .padding(vertical = 8.dp)
                         .background(colors.backgroundDefault),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -148,7 +149,7 @@ fun VLCFeedbackScreen(
                     Text(
                         text = title,
                         color = colors.fontDefault,
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium),
+                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(end = 16.dp)

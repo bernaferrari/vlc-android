@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -72,7 +73,8 @@ fun VLCAuthorsScreen(
                 if (showHeader) Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(min = 56.dp)
+                        .height(VLCLayout.RowHeight)
+                        .padding(vertical = 8.dp)
                         .background(colors.backgroundDefault),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -90,7 +92,7 @@ fun VLCAuthorsScreen(
                     Text(
                         text = title,
                         color = colors.fontDefault,
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium),
+                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                         modifier = Modifier.padding(end = 16.dp)
                     )
                 }

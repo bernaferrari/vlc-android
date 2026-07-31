@@ -21,6 +21,8 @@ object VLCLayout {
     val RowHeight = 64.dp
     val MediaRowHeight = 72.dp
     val IconChip = 40.dp
+    /** Minimum touch target for standalone icon actions. */
+    val IconTouchTarget = 48.dp
     val DestinationIconChip = 48.dp
     val ListMaxWidth = 720.dp
     val FastScrollerClearance = 32.dp

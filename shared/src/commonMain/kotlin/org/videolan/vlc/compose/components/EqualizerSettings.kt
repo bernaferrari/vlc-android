@@ -63,6 +63,7 @@ import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.compose.theme.VLCLayout
 import kotlin.math.roundToInt
 
 data class VLCEqualizerBand(
@@ -383,7 +384,8 @@ private fun EqualizerTopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 56.dp)
+            .height(VLCLayout.RowHeight)
+            .padding(vertical = 8.dp)
             .background(colors.backgroundDefault)
             .padding(start = 4.dp, end = 4.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -397,7 +399,7 @@ private fun EqualizerTopBar(
         Text(
             text = strings.title,
             color = colors.fontDefault,
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier

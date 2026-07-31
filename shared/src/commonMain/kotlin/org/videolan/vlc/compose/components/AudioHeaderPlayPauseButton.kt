@@ -12,6 +12,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.theme.VLCTheme
+import org.videolan.vlc.compose.theme.VLCLayout
 
 /**
  * Compose equivalent of the collapsed audio-player header play/pause button:
@@ -33,7 +34,7 @@ fun VLCAudioHeaderPlayPauseButton(
     VLCTheme {
         Box(
             modifier = modifier
-                .size(38.dp)
+                .size(VLCLayout.IconTouchTarget)
                 .combinedClickable(
                     role = Role.Button,
                     onClick = onClick,

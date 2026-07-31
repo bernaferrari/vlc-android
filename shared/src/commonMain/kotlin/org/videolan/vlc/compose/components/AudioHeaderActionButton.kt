@@ -11,6 +11,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.theme.VLCTheme
+import org.videolan.vlc.compose.theme.VLCLayout
 
 /**
  * Compose equivalent of the collapsed audio-player header action ImageViews:
@@ -34,7 +35,7 @@ fun VLCAudioHeaderActionButton(
     VLCTheme {
         Box(
             modifier = modifier
-                .size(40.dp)
+                .size(VLCLayout.IconTouchTarget)
                 .clickable(role = Role.Button, onClick = onClick)
                 .semantics { this.contentDescription = contentDescription },
             contentAlignment = Alignment.Center

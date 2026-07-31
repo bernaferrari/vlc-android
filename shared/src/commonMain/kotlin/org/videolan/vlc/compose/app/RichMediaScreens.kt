@@ -7,6 +7,8 @@ package org.videolan.vlc.compose.app
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -93,6 +95,8 @@ import org.videolan.vlc.compose.components.highlightedSearchText
 import org.videolan.vlc.compose.components.vlcIndexLabel
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.compose.theme.VLCLayout
+import org.videolan.vlc.compose.theme.LocalVLCMotion
+import org.videolan.vlc.compose.theme.VLCMotion
 import org.videolan.vlc.model.MediaFolder
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.PlaylistInfo
@@ -1012,7 +1016,17 @@ fun MediaGridCard(
     canHandleHostAction: (ContextOption) -> Boolean = { false },
 ) {
     val colors = VLCThemeDefaults.colors
+    val motion = LocalVLCMotion.current
     var menu by remember { mutableStateOf(false) }
+    val containerColor by animateColorAsState(
+        targetValue = if (selected) {
+            MaterialTheme.colorScheme.secondaryContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerHigh
+        },
+        animationSpec = tween(motion.durationShort, easing = VLCMotion.Standard),
+        label = "mediaGridSelection",
+    )
     Surface(
         modifier = Modifier
             .clip(VLCMediaCardShape)
@@ -1020,8 +1034,8 @@ fun MediaGridCard(
         // A media grid repeats this shape many times. The large token still feels expressive
         // without turning dense libraries into a field of oversized pills.
         shape = VLCMediaCardShape,
-        color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
-        contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+        color = containerColor,
+        contentColor = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface,
     ) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Box(
@@ -1847,14 +1861,24 @@ private fun PlaylistCard(
     onDelete: () -> Unit,
 ) {
     val colors = VLCThemeDefaults.colors
+    val motion = LocalVLCMotion.current
     var menu by remember { mutableStateOf(false) }
+    val containerColor by animateColorAsState(
+        targetValue = if (selected) {
+            MaterialTheme.colorScheme.secondaryContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerHigh
+        },
+        animationSpec = tween(motion.durationShort, easing = VLCMotion.Standard),
+        label = "playlistSelection",
+    )
     Surface(
         modifier = Modifier
             .clip(VLCMediaCardShape)
             .combinedClickable(onClick = onOpen, onLongClick = onToggleSelect),
         shape = VLCMediaCardShape,
-        color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
-        contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+        color = containerColor,
+        contentColor = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface,
     ) {
         Column(
             modifier = Modifier.padding(12.dp),

@@ -92,7 +92,8 @@ fun VLCLibrariesScreen(
                 if (showHeader) Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(min = 56.dp)
+                        .height(VLCLayout.RowHeight)
+                        .padding(vertical = 8.dp)
                         .background(colors.backgroundDefault),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -110,7 +111,7 @@ fun VLCLibrariesScreen(
                     Text(
                         text = title,
                         color = colors.fontDefault,
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium),
+                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(end = 16.dp)

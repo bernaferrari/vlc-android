@@ -48,6 +48,7 @@ import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.compose.theme.VLCLayout
 
 /** Shared Compose About screen, including license and version bottom sheets. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -105,7 +106,8 @@ fun VLCAboutScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .heightIn(min = 64.dp)
+                            .height(VLCLayout.RowHeight)
+                            .padding(vertical = 8.dp)
                             .background(colors.backgroundDefault),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -123,7 +125,7 @@ fun VLCAboutScreen(
                         Text(
                             text = title,
                             color = colors.fontDefault,
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium),
+                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.padding(end = 16.dp)
