@@ -26,6 +26,7 @@ object VLCLayout {
     val DestinationIconChip = 48.dp
     val ListMaxWidth = 720.dp
     val FastScrollerClearance = 32.dp
-    val SheetHorizontalPadding = 20.dp
+    // QuietGuard's sheet rhythm uses the same 24dp edge as its grouped settings cards.
+    val SheetHorizontalPadding = 24.dp
     val SheetBottomPadding = 32.dp
 }

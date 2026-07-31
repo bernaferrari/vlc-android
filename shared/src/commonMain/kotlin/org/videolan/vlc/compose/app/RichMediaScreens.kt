@@ -251,6 +251,23 @@ fun RichMediaListPane(
                                 },
                             ),
                             VLCConnectedIconAction(
+                                icon = if (state.viewMode == ViewMode.LIST) {
+                                    MaterialSymbols.Filled.GridView
+                                } else {
+                                    MaterialSymbols.Filled.ViewList
+                                },
+                                contentDescription = if (state.viewMode == ViewMode.LIST) {
+                                    ShellStrings.grid()
+                                } else {
+                                    ShellStrings.list()
+                                },
+                                onClick = {
+                                    onSetViewMode(
+                                        if (state.viewMode == ViewMode.LIST) ViewMode.GRID else ViewMode.LIST,
+                                    )
+                                },
+                            ),
+                            VLCConnectedIconAction(
                                 icon = MaterialSymbols.Filled.MoreVert,
                                 contentDescription = ShellStrings.moreOptions(),
                                 onClick = { showLibraryMenu = true },
