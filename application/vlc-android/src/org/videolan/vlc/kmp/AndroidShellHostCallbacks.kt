@@ -10,6 +10,8 @@ import androidx.core.net.toUri
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -22,10 +24,12 @@ import org.videolan.vlc.R
 import org.videolan.vlc.compose.app.AboutAction
 import org.videolan.vlc.compose.app.ShellHostCallbacks
 import org.videolan.vlc.compose.components.VLCAboutVersionInfo
+import org.videolan.vlc.compose.components.VLCLibraryLicense
 import org.videolan.vlc.gui.AuthorsActivity
 import org.videolan.vlc.gui.FeedbackActivity
 import org.videolan.vlc.gui.InfoActivity
 import org.videolan.vlc.gui.LibrariesActivity
+import org.videolan.vlc.gui.Licenses
 import org.videolan.vlc.gui.dialogs.showConfirmDeleteComposeDialog
 import org.videolan.vlc.gui.dialogs.showRenameComposeDialog
 import org.videolan.vlc.gui.helpers.AudioUtil.setRingtone
@@ -212,6 +216,42 @@ class AndroidShellHostCallbacks(
 
     override suspend fun loadAboutLicenseText(): String = withContext(Dispatchers.IO) {
         activity.resources.openRawResource(R.raw.vlc_license).bufferedReader().use { it.readText() }
+    }
+
+    override suspend fun loadAboutLibraries(): List<VLCLibraryLicense> = withContext(Dispatchers.IO) {
+        runCatching {
+            val raw = activity.resources.openRawResource(R.raw.libraries).bufferedReader().use { it.readText() }
+            val licenses = Moshi.Builder().build().adapter(Licenses::class.java).fromJson(raw) ?: return@runCatching emptyList()
+            licenses.libraries.mapNotNull { library ->
+                licenses.licenses.firstOrNull { it.id == library.license }?.let { license ->
+                    VLCLibraryLicense(
+                        title = library.title,
+                        copyright = library.copyright,
+                        licenseTitle = license.name,
+                        licenseDescription = license.description,
+                        licenseLink = license.link,
+                    )
+                }
+            }
+        }.getOrElse { error ->
+            Log.w(TAG, "Could not load bundled library licenses", error)
+            emptyList()
+        }
+    }
+
+    override suspend fun loadAboutAuthors(): List<String> = withContext(Dispatchers.IO) {
+        runCatching {
+            val raw = activity.resources.openRawResource(R.raw.authors).bufferedReader().use { it.readText() }
+            val type = Types.newParameterizedType(List::class.java, String::class.java)
+            Moshi.Builder().build().adapter<List<String>>(type).fromJson(raw).orEmpty()
+        }.getOrElse { error ->
+            Log.w(TAG, "Could not load bundled authors", error)
+            emptyList()
+        }
+    }
+
+    override fun onOpenExternalUrl(url: String) {
+        activity.openLinkIfPossible(url)
     }
 
     override fun onOpenAboutAction(action: AboutAction) {

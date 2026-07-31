@@ -21,6 +21,8 @@ import org.videolan.vlc.compose.icons.MaterialSymbols
 internal fun AboutDestination(
     hostCallbacks: ShellHostCallbacks,
     onBack: () -> Unit,
+    onOpenLibraries: () -> Unit,
+    onOpenAuthors: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var licenseText by remember(hostCallbacks) { mutableStateOf(VLC_DEFAULT_LICENSE_TEXT) }
@@ -53,8 +55,8 @@ internal fun AboutDestination(
             onOpenWebsite = { hostCallbacks.onOpenAboutAction(AboutAction.WEBSITE) },
             onSendFeedback = { hostCallbacks.onOpenAboutAction(AboutAction.FEEDBACK) },
             onOpenSources = { hostCallbacks.onOpenAboutAction(AboutAction.SOURCES) },
-            onOpenLibraries = { hostCallbacks.onOpenAboutAction(AboutAction.LIBRARIES) },
-            onOpenAuthors = { hostCallbacks.onOpenAboutAction(AboutAction.AUTHORS) },
+            onOpenLibraries = onOpenLibraries,
+            onOpenAuthors = onOpenAuthors,
             onOpenLicenseLink = { hostCallbacks.onOpenAboutAction(AboutAction.LICENSE) },
             // This is a Nav3 detail, so use a spatial Back affordance rather than a dialog close.
             closeIconContent = {
@@ -63,6 +65,7 @@ internal fun AboutDestination(
                     contentDescription = null,
                 )
             },
+            showHeader = false,
             modifier = Modifier.fillMaxSize(),
         )
     }

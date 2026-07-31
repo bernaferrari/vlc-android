@@ -80,6 +80,7 @@ fun VLCAboutScreen(
     onOpenAuthors: () -> Unit,
     onOpenLicenseLink: () -> Unit,
     modifier: Modifier = Modifier,
+    showHeader: Boolean = true,
     closeIconContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.Close) },
     logoContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.PlayArrow, 28) },
     websiteIconContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.Language) },
@@ -100,32 +101,34 @@ fun VLCAboutScreen(
             contentColor = colors.fontDefault
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 64.dp)
-                        .background(colors.backgroundDefault),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(
-                        onClick = onClose,
-                        modifier = Modifier.semantics {
-                            contentDescription = closeContentDescription
-                        }
+                if (showHeader) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 64.dp)
+                            .background(colors.backgroundDefault),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        CompositionLocalProvider(LocalContentColor provides colors.fontDefault) {
-                            closeIconContent()
+                        IconButton(
+                            onClick = onClose,
+                            modifier = Modifier.semantics {
+                                contentDescription = closeContentDescription
+                            }
+                        ) {
+                            CompositionLocalProvider(LocalContentColor provides colors.fontDefault) {
+                                closeIconContent()
+                            }
                         }
-                    }
 
-                    Text(
-                        text = title,
-                        color = colors.fontDefault,
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(end = 16.dp)
-                    )
+                        Text(
+                            text = title,
+                            color = colors.fontDefault,
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(end = 16.dp)
+                        )
+                    }
                 }
 
                 Column(

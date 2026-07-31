@@ -42,6 +42,13 @@ data object SettingsRoute : VlcShellRoute
 @Serializable
 data object AboutRoute : VlcShellRoute
 
+/** Shared About detail destinations. These stay inside Nav3 instead of launching Android-only activities. */
+@Serializable
+data object AboutLibrariesRoute : VlcShellRoute
+
+@Serializable
+data object AboutAuthorsRoute : VlcShellRoute
+
 @Serializable
 enum class VideoContainerRouteKind { FOLDER, VIDEO_GROUP }
 
@@ -134,7 +141,7 @@ fun VlcShellRoute.toMainTabOrNull(): MainTab? = when (this) {
     PlaylistsRoute -> MainTab.PLAYLISTS
     is PlaylistDetailRoute -> MainTab.PLAYLISTS
     MoreRoute -> MainTab.MORE
-    PlayerRoute, SettingsRoute, AboutRoute -> null
+    PlayerRoute, SettingsRoute, AboutRoute, AboutLibrariesRoute, AboutAuthorsRoute -> null
 }
 
 /** A wide list-detail layout has one detail slot, so selecting a sibling replaces it. */
@@ -180,6 +187,8 @@ val vlcShellNavSavedStateConfiguration = SavedStateConfiguration {
             subclass(PlayerRoute::class, PlayerRoute.serializer())
             subclass(SettingsRoute::class, SettingsRoute.serializer())
             subclass(AboutRoute::class, AboutRoute.serializer())
+            subclass(AboutLibrariesRoute::class, AboutLibrariesRoute.serializer())
+            subclass(AboutAuthorsRoute::class, AboutAuthorsRoute.serializer())
             subclass(VideoContainerRoute::class, VideoContainerRoute.serializer())
             subclass(AudioEntityRoute::class, AudioEntityRoute.serializer())
             subclass(BrowserFolderRoute::class, BrowserFolderRoute.serializer())

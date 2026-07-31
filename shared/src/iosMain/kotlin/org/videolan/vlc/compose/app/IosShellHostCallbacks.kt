@@ -90,6 +90,10 @@ class IosShellHostCallbacks(
         }
     }
 
+    override fun onOpenExternalUrl(url: String) {
+        NSURL.URLWithString(url)?.let { UIApplication.sharedApplication.openURL(it) }
+    }
+
     override fun onOpenAboutAction(action: AboutAction) {
         val url = when (action) {
             AboutAction.WEBSITE -> VLC_WEBSITE_URL

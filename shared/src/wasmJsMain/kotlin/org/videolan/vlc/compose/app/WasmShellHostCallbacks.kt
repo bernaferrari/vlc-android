@@ -52,11 +52,15 @@ class WasmShellHostCallbacks : ShellHostCallbacks {
     }
 
     override fun onOpenDonate() {
-        openExternalUrl(VLC_DONATION_URL)
+        launchExternalUrl(VLC_DONATION_URL)
+    }
+
+    override fun onOpenExternalUrl(url: String) {
+        launchExternalUrl(url)
     }
 
     override fun onOpenAboutAction(action: AboutAction) {
-        openExternalUrl(
+        launchExternalUrl(
             when (action) {
                 AboutAction.WEBSITE -> VLC_WEBSITE_URL
                 AboutAction.FEEDBACK -> "mailto:android@videolan.org"
@@ -70,6 +74,6 @@ class WasmShellHostCallbacks : ShellHostCallbacks {
 
 private fun showBrowserDialog(message: String): Unit = js("{ globalThis.alert?.(message); }")
 
-private fun openExternalUrl(url: String): Unit = js(
+private fun launchExternalUrl(url: String): Unit = js(
     "{ globalThis.open?.(url, '_blank', 'noopener,noreferrer'); }",
 )

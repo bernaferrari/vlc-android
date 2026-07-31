@@ -27,6 +27,8 @@ class VlcShellRouteTest {
                 PlayerRoute,
                 SettingsRoute,
                 AboutRoute,
+                AboutLibrariesRoute,
+                AboutAuthorsRoute,
             ).activeTab(),
         )
     }
@@ -59,6 +61,16 @@ class VlcShellRouteTest {
     @Test
     fun emptyStackFallsBackToVideo() {
         assertEquals(MainTab.VIDEO, emptyList<VlcShellRoute>().activeTab())
+    }
+
+    @Test
+    fun aboutDetailsAreDedicatedNav3Levels() {
+        val stack = mutableListOf<VlcShellRoute>(MoreRoute, AboutRoute, AboutLibrariesRoute)
+
+        stack.removeAt(stack.lastIndex)
+
+        assertEquals(listOf(MoreRoute, AboutRoute), stack)
+        assertEquals(MainTab.MORE, stack.activeTab())
     }
 
     @Test

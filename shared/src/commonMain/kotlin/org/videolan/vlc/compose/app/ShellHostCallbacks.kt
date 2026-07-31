@@ -4,6 +4,7 @@ import org.videolan.vlc.model.MediaFolder
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.PlaylistInfo
 import org.videolan.vlc.compose.components.VLCAboutVersionInfo
+import org.videolan.vlc.compose.components.VLCLibraryLicense
 import org.videolan.vlc.util.ContextOption
 
 /**
@@ -86,6 +87,12 @@ fun interface ShellHostCallbacks {
     )
     /** May read a platform-packaged license off the main thread. */
     suspend fun loadAboutLicenseText(): String = VLC_DEFAULT_LICENSE_TEXT
+    /** Platform packages supply dependency metadata; presentation and navigation stay shared. */
+    suspend fun loadAboutLibraries(): List<VLCLibraryLicense> = emptyList()
+    /** Platform packages supply their contributor roster; presentation and navigation stay shared. */
+    suspend fun loadAboutAuthors(): List<String> = emptyList()
+    /** Opens an explicitly supplied external destination, such as a dependency's own license. */
+    fun onOpenExternalUrl(url: String) = Unit
     fun onOpenAboutAction(action: AboutAction) = Unit
     fun onAddToPlaylist(items: List<MediaItem>) = Unit
     fun onOpenPlaylistEditor(playlist: PlaylistInfo) = Unit

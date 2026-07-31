@@ -72,6 +72,7 @@ fun VLCLibrariesScreen(
     onClose: () -> Unit,
     onOpenLicenseLink: (String) -> Unit,
     modifier: Modifier = Modifier,
+    showHeader: Boolean = true,
     closeIconContent: @Composable () -> Unit = { DefaultLibrariesIcon(MaterialSymbols.Filled.Close) },
     sourceIconContent: @Composable () -> Unit = { DefaultLibrariesIcon(MaterialSymbols.Filled.Code) },
     linkIconContent: @Composable () -> Unit = { DefaultLibrariesIcon(MaterialSymbols.Filled.OpenInNew) }
@@ -87,7 +88,7 @@ fun VLCLibrariesScreen(
             contentColor = colors.fontDefault
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                Row(
+                if (showHeader) Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 56.dp)

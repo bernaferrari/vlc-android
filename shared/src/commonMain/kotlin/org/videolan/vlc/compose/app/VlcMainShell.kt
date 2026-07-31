@@ -192,7 +192,14 @@ fun VlcMainShell(
         val currentRoute = backStack.lastOrNull() as? VlcShellRoute ?: initialRoute
         val currentTab = backStack.filterIsInstance<VlcShellRoute>().activeTab()
         val showPlayer = currentRoute == PlayerRoute
-        val showSettings = currentRoute == SettingsRoute
+        val secondaryTitle = when (currentRoute) {
+            SettingsRoute -> ShellStrings.settings()
+            AboutRoute -> ShellStrings.about()
+            AboutLibrariesRoute -> ShellStrings.libraries()
+            AboutAuthorsRoute -> ShellStrings.authors()
+            else -> null
+        }
+        val showSecondaryChrome = secondaryTitle != null
         val playerState by playerVm.state.collectAsState()
         val videoState by videoVm.state.collectAsState()
         val detailVideoState by detailVideoVm.state.collectAsState()
@@ -413,7 +420,7 @@ fun VlcMainShell(
             PlaylistsRoute -> playlistsState.selection.isNotEmpty()
             is PlaylistDetailRoute -> detailPlaylistsState.selection.isNotEmpty()
             MoreRoute -> moreState.historySelection.isNotEmpty()
-            PlayerRoute, SettingsRoute, AboutRoute -> false
+            PlayerRoute, SettingsRoute, AboutRoute, AboutLibrariesRoute, AboutAuthorsRoute -> false
         }
 
         fun clearCurrentSelection(): Boolean = when (currentRoute) {
@@ -426,7 +433,7 @@ fun VlcMainShell(
             PlaylistsRoute -> playlistsState.selection.isNotEmpty().also { if (it) playlistsVm.clearSelection() }
             is PlaylistDetailRoute -> detailPlaylistsState.selection.isNotEmpty().also { if (it) detailPlaylistsVm.clearSelection() }
             MoreRoute -> moreState.historySelection.isNotEmpty().also { if (it) moreVm.clearHistorySelection() }
-            PlayerRoute, SettingsRoute, AboutRoute -> false
+            PlayerRoute, SettingsRoute, AboutRoute, AboutLibrariesRoute, AboutAuthorsRoute -> false
         }
 
         fun navigateBack() {
@@ -484,7 +491,7 @@ fun VlcMainShell(
 
         VlcAdaptiveNavigationSuite(
             modifier = modifier,
-            enabled = showBottomBar && !showPlayer && !showSettings,
+            enabled = showBottomBar && !showPlayer,
             navigationSuiteItems = {
                 MainTab.entries.forEach { t ->
                     item(
@@ -510,15 +517,14 @@ fun VlcMainShell(
                 contentWindowInsets = WindowInsets(0, 0, 0, 0),
                 containerColor = colors.backgroundDefault,
                 topBar = {
-                    // Root destinations own their hierarchy (Videos, Audio, Browse, More).
-                    // A permanent "VLC" app bar above them duplicates that hierarchy and leaves
-                    // empty libraries with three unrelated headers. Only Settings needs shell
-                    // chrome while the player owns its immersive HUD.
-                    if (showSettings) {
+                    // Root destinations own their hierarchy. Every secondary route uses this
+                    // one bar, so its title, safe inset, back target and horizontal rhythm stay
+                    // identical as Nav3 pushes Settings, About, Libraries, or Authors.
+                    secondaryTitle?.let { title ->
                         TopAppBar(
                             title = {
                                 Text(
-                                    ShellStrings.settings(),
+                                    title,
                                     style = MaterialTheme.typography.titleLarge,
                                     fontWeight = FontWeight.Bold,
                                     maxLines = 1,
@@ -542,7 +548,7 @@ fun VlcMainShell(
                     }
                 },
                 floatingActionButton = {
-                    if (!showPlayer && !showSettings) {
+                    if (!showPlayer && !showSecondaryChrome) {
                         when (currentTab) {
                             MainTab.VIDEO -> {
                                 if (videoState.count > 0 || videoState.items.isNotEmpty()) {
@@ -575,7 +581,7 @@ fun VlcMainShell(
                     }
                 },
                 bottomBar = {
-                    if (showBottomBar && !showPlayer && !showSettings && playerState.hasMedia) {
+                    if (showBottomBar && !showPlayer && playerState.hasMedia) {
                         MiniBar(
                             title = playerState.title.ifBlank { ShellStrings.notPlaying() },
                             subtitle = playerState.subtitle,
@@ -586,13 +592,13 @@ fun VlcMainShell(
                     }
                 },
             ) { padding ->
-                // NavigationSuiteScaffold owns the bottom safe area. Library destinations still
-                // need the top safe area because they intentionally provide their own headers;
-                // settings already receives it through TopAppBar and the player stays immersive.
+                // NavigationSuiteScaffold owns the bottom safe area. Root library destinations
+                // provide their own headers; every Nav3 secondary destination receives the same
+                // shared TopAppBar safe inset, while the player remains immersive.
                 val contentMod = Modifier
                     .padding(padding)
                     .then(
-                        if (showPlayer || showSettings) Modifier else Modifier.statusBarsPadding(),
+                        if (showPlayer || showSecondaryChrome) Modifier else Modifier.statusBarsPadding(),
                     )
                     .fillMaxSize()
                 NavDisplay(
@@ -708,9 +714,7 @@ fun VlcMainShell(
                         MoreDestination(
                             modifier = Modifier.fillMaxSize(),
                             viewModel = moreVm,
-                            onOpenSettings = {
-                                if (onOpenSettings != null) onOpenSettings() else backStack.add(SettingsRoute)
-                            },
+                            onOpenSettings = { backStack.add(SettingsRoute) },
                             onOpenAbout = { backStack.add(AboutRoute) },
                             onOpenRemote = onOpenRemoteClient,
                             hostCallbacks = hostCallbacks,
@@ -737,6 +741,20 @@ fun VlcMainShell(
                         AboutDestination(
                             hostCallbacks = hostCallbacks,
                             onBack = ::navigateBack,
+                            onOpenLibraries = { backStack.add(AboutLibrariesRoute) },
+                            onOpenAuthors = { backStack.add(AboutAuthorsRoute) },
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
+                    entry<AboutLibrariesRoute>(metadata = detailTransitionMetadata) {
+                        AboutLibrariesDestination(
+                            hostCallbacks = hostCallbacks,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
+                    entry<AboutAuthorsRoute>(metadata = detailTransitionMetadata) {
+                        AboutAuthorsDestination(
+                            hostCallbacks = hostCallbacks,
                             modifier = Modifier.fillMaxSize(),
                         )
                     }

@@ -55,6 +55,7 @@ fun VLCAuthorsScreen(
     closeContentDescription: String,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    showHeader: Boolean = true,
     closeIconContent: @Composable () -> Unit = { DefaultAuthorsCloseIcon() },
     authorIconContent: (@Composable () -> Unit)? = null
 ) {
@@ -67,7 +68,7 @@ fun VLCAuthorsScreen(
             contentColor = colors.fontDefault
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                Row(
+                if (showHeader) Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 56.dp)
