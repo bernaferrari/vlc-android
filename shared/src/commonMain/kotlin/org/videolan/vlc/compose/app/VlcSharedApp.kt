@@ -24,15 +24,11 @@ fun VlcSharedApp(
     title: String = "VLC",
     initialTab: MainTab = MainTab.VIDEO,
     hostCallbacks: ShellHostCallbacks = ShellHostCallbacks.NoOp,
-    onOpenSettings: (() -> Unit)? = null,
-    onOpenRemoteClient: (() -> Unit)? = null,
 ) {
     VlcKoinMainShell(
         modifier = modifier,
         title = title,
         initialTab = initialTab,
         hostCallbacks = hostCallbacks,
-        onOpenSettings = onOpenSettings,
-        onOpenRemoteClient = onOpenRemoteClient,
     )
 }

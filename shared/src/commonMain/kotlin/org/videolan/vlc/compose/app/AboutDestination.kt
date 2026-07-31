@@ -53,7 +53,9 @@ internal fun AboutDestination(
             openLinkContentDescription = ShellStrings.openInBrowser(),
             onClose = onBack,
             onOpenWebsite = { hostCallbacks.onOpenAboutAction(AboutAction.WEBSITE) },
-            onSendFeedback = { hostCallbacks.onOpenAboutAction(AboutAction.FEEDBACK) },
+            // Feedback opens the platform mail/share surface, not a second in-app Activity.
+            // All in-app destinations remain on this Nav3 stack.
+            onSendFeedback = { hostCallbacks.onOpenExternalUrl("mailto:android@videolan.org") },
             onOpenSources = { hostCallbacks.onOpenAboutAction(AboutAction.SOURCES) },
             onOpenLibraries = onOpenLibraries,
             onOpenAuthors = onOpenAuthors,

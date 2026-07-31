@@ -29,8 +29,6 @@ fun VlcKoinMainShell(
     onTabChange: ((MainTab) -> Unit)? = null,
     showBottomBar: Boolean = true,
     title: String = "VLC",
-    onOpenSettings: (() -> Unit)? = null,
-    onOpenRemoteClient: (() -> Unit)? = null,
     hostCallbacks: ShellHostCallbacks = ShellHostCallbacks.NoOp,
     playerSurface: PlayerSurface = FallbackPlayerSurface,
 ) {
@@ -56,8 +54,6 @@ fun VlcKoinMainShell(
         playerVm = playerVm,
         settingsVm = settingsVm,
         title = title,
-        onOpenSettings = onOpenSettings,
-        onOpenRemoteClient = onOpenRemoteClient,
         hostCallbacks = hostCallbacks,
         playerSurface = playerSurface,
     )

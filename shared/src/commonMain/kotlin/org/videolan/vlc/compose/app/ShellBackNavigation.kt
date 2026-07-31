@@ -1,31 +1,20 @@
 package org.videolan.vlc.compose.app
 
 /**
- * The shared shell's transient destinations, in the order Back must unwind
- * them. Keeping this decision outside the composable makes the priority
- * explicit and testable while the larger Navigation 3 migration is staged.
+ * The Nav3 stack is the shell's only screen-navigation authority. A push cannot duplicate the
+ * current route, and a pop can never remove the root. Dialogs and sheets dismiss themselves
+ * before the shell sees Back, so every remaining Back action removes exactly one route.
  */
-internal enum class ShellBackTarget {
-    OVERLAY,
-    PLAYLIST_DETAIL,
-    BROWSER_FOLDER,
-    AUDIO_ENTITY,
-    VIDEO_CONTAINER,
+internal fun <T> pushNav3Route(backStack: MutableList<T>, route: T): Boolean {
+    if (backStack.lastOrNull() == route) return false
+    backStack.add(route)
+    return true
 }
 
-internal fun shellBackTarget(
-    showOverlay: Boolean,
-    hasPlaylistDetail: Boolean,
-    hasBrowserFolder: Boolean,
-    hasAudioEntity: Boolean,
-    hasVideoContainer: Boolean,
-): ShellBackTarget? = when {
-    showOverlay -> ShellBackTarget.OVERLAY
-    hasPlaylistDetail -> ShellBackTarget.PLAYLIST_DETAIL
-    hasBrowserFolder -> ShellBackTarget.BROWSER_FOLDER
-    hasAudioEntity -> ShellBackTarget.AUDIO_ENTITY
-    hasVideoContainer -> ShellBackTarget.VIDEO_CONTAINER
-    else -> null
+internal fun <T> popNav3Route(backStack: MutableList<T>): Boolean {
+    if (backStack.size <= 1) return false
+    backStack.removeAt(backStack.lastIndex)
+    return true
 }
 
 /** Selection is temporary screen state and must consume Back before navigation or app exit. */

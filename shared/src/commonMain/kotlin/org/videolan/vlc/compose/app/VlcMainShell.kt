@@ -139,8 +139,6 @@ fun VlcMainShell(
     playerVm: PlayerViewModel = remember { PlayerViewModel() },
     settingsVm: SettingsViewModel = remember { SettingsViewModel() },
     title: String = "",
-    onOpenSettings: (() -> Unit)? = null,
-    onOpenRemoteClient: (() -> Unit)? = null,
     hostCallbacks: ShellHostCallbacks = ShellHostCallbacks.NoOp,
     playerSurface: PlayerSurface = FallbackPlayerSurface,
 ) {
@@ -354,17 +352,15 @@ fun VlcMainShell(
         }
 
         fun openPlayer() {
-            if (!showPlayer) backStack.add(PlayerRoute)
+            if (!showPlayer) pushNav3Route(backStack, PlayerRoute)
         }
 
-        fun popRoute() {
-            if (backStack.size > 1) backStack.removeAt(backStack.lastIndex)
-        }
+        fun popRoute(): Boolean = popNav3Route(backStack)
 
         fun replaceOrPushDetail(route: VlcShellRoute) {
             val current = backStack.lastOrNull() as? VlcShellRoute
             val replacesCurrentDetail = shouldReplaceDetailRoute(singlePaneLayout, current, route)
-            if (replacesCurrentDetail) backStack[backStack.lastIndex] = route else backStack.add(route)
+            if (replacesCurrentDetail) backStack[backStack.lastIndex] = route else pushNav3Route(backStack, route)
         }
 
         fun openVideoContainer(folder: MediaFolder) {
@@ -402,14 +398,7 @@ fun VlcMainShell(
         val appLocked = settingsState.appLock.supported &&
             settingsState.appLock.enabled &&
             settingsState.appLock.locked
-        val detailBackTarget = shellBackTarget(
-            showOverlay = false,
-            hasPlaylistDetail = detailPlaylistsState.openPlaylistId != null,
-            hasBrowserFolder = detailBrowserState.stack.isNotEmpty(),
-            hasAudioEntity = detailAudioState.openedEntityTitle != null,
-            hasVideoContainer = detailVideoState.containerId != null,
-        )
-        val canNavigateBack = backStack.size > 1 || detailBackTarget != null
+        val canNavigateBack = backStack.size > 1
         val hasActiveSelection = when (currentRoute) {
             VideoRoute -> videoState.selection.isNotEmpty()
             is VideoContainerRoute -> detailVideoState.selection.isNotEmpty()
@@ -466,18 +455,7 @@ fun VlcMainShell(
                 }
                 else -> Unit
             }
-            if (backStack.size > 1) {
-                popRoute()
-                return
-            }
-            when (detailBackTarget) {
-                ShellBackTarget.PLAYLIST_DETAIL -> detailPlaylistsVm.closeDetail()
-                ShellBackTarget.BROWSER_FOLDER -> detailBrowserVm.goUp()
-                ShellBackTarget.AUDIO_ENTITY -> detailAudioVm.closeEntity()
-                ShellBackTarget.VIDEO_CONTAINER -> detailVideoVm.closeContainer()
-                ShellBackTarget.OVERLAY -> Unit
-                null -> Unit
-            }
+            popRoute()
         }
 
         HandleShellBackPress(
@@ -714,9 +692,9 @@ fun VlcMainShell(
                         MoreDestination(
                             modifier = Modifier.fillMaxSize(),
                             viewModel = moreVm,
-                            onOpenSettings = { backStack.add(SettingsRoute) },
-                            onOpenAbout = { backStack.add(AboutRoute) },
-                            onOpenRemote = onOpenRemoteClient,
+                            onOpenSettings = { pushNav3Route(backStack, SettingsRoute) },
+                            onOpenAbout = { pushNav3Route(backStack, AboutRoute) },
+                            onOpenRemote = null,
                             hostCallbacks = hostCallbacks,
                             onOpenPlayer = ::openPlayer,
                         )
@@ -741,8 +719,8 @@ fun VlcMainShell(
                         AboutDestination(
                             hostCallbacks = hostCallbacks,
                             onBack = ::navigateBack,
-                            onOpenLibraries = { backStack.add(AboutLibrariesRoute) },
-                            onOpenAuthors = { backStack.add(AboutAuthorsRoute) },
+                            onOpenLibraries = { pushNav3Route(backStack, AboutLibrariesRoute) },
+                            onOpenAuthors = { pushNav3Route(backStack, AboutAuthorsRoute) },
                             modifier = Modifier.fillMaxSize(),
                         )
                     }
