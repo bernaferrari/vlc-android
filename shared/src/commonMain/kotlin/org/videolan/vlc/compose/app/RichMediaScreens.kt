@@ -85,6 +85,7 @@ import org.videolan.vlc.compose.components.VLCEmptyState
 import org.videolan.vlc.compose.components.VLCIndexScrollTarget
 import org.videolan.vlc.compose.components.VLCIndexedFastScroller
 import org.videolan.vlc.compose.components.VLCListItemPosition
+import org.videolan.vlc.compose.components.VLCPageHeader
 import org.videolan.vlc.compose.components.VLCSelectionContextBar
 import org.videolan.vlc.compose.components.VLCArtworkTileShape
 import org.videolan.vlc.compose.components.VLCMediaCardShape
@@ -1069,13 +1070,18 @@ fun BrowserRichPane(
     val colors = VLCThemeDefaults.colors
     val atRoot = state.currentFolder == null
     var showDisplaySettings by remember { mutableStateOf(false) }
-    Column(modifier.padding(horizontal = 16.dp)) {
+    Column(modifier) {
         if (state.selection.isNotEmpty()) {
             VLCSelectionContextBar(
                 title = "${state.selection.size} ${ShellStrings.selected()}",
                 clearContentDescription = ShellStrings.clear(),
                 onClearSelection = onClearSelection,
-                modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
+                modifier = Modifier.padding(
+                    start = VLCLayout.ScreenGutter,
+                    top = 12.dp,
+                    end = VLCLayout.ScreenGutter,
+                    bottom = 8.dp,
+                ),
             ) {
                 IconButton(onClick = onPlaySelection) {
                     Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = ShellStrings.play())
@@ -1084,29 +1090,13 @@ fun BrowserRichPane(
                     Icon(MaterialSymbols.Filled.QueueMusic, contentDescription = ShellStrings.append())
                 }
             }
-        } else Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 12.dp, bottom = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        } else VLCPageHeader(
+            title = state.currentFolder?.title ?: ShellStrings.browser(),
+            navigationIcon = MaterialSymbols.AutoMirrored.Filled.ArrowBack.takeIf { state.stack.isNotEmpty() },
+            navigationContentDescription = ShellStrings.up(),
+            onNavigate = onUp.takeIf { state.stack.isNotEmpty() },
+            compact = state.currentFolder != null,
         ) {
-            if (state.stack.isNotEmpty()) {
-                IconButton(onClick = onUp) {
-                    Icon(
-                        icon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = ShellStrings.up(),
-                    )
-                }
-            }
-            Text(
-                state.currentFolder?.title ?: ShellStrings.browser(),
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.weight(1f),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
             VLCConnectedIconActionBar(
                 actions = listOf(
                     VLCConnectedIconAction(
@@ -1151,7 +1141,11 @@ fun BrowserRichPane(
                 symbol = emptySymbol,
             )
         } else LazyColumn(
-            contentPadding = PaddingValues(bottom = 24.dp),
+            contentPadding = PaddingValues(
+                start = VLCLayout.ScreenGutter,
+                end = VLCLayout.ScreenGutter,
+                bottom = 24.dp,
+            ),
             // A two-pixel join makes related rows read as one asymmetric group rather than a
             // vertical pile of independent cards. Section labels create the intentional gaps.
             verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -1383,6 +1377,8 @@ fun PlaylistsRichPane(
     onRetry: () -> Unit = {},
 ) {
     var newName by remember { mutableStateOf("") }
+    var showCreateSheet by remember { mutableStateOf(false) }
+    var showPlaylistOptionsMenu by remember { mutableStateOf(false) }
     var renameTarget by remember { mutableStateOf<PlaylistInfo?>(null) }
     var renameText by remember { mutableStateOf("") }
     val playlists = state.playlists
@@ -1390,27 +1386,15 @@ fun PlaylistsRichPane(
     val detailItems = state.openItems
     val detailName = state.openPlaylistName
 
-    Column(modifier.padding(horizontal = 16.dp)) {
+    Column(modifier) {
         if (detailName != null) {
-            Row(
-                modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                IconButton(onClick = onBack) {
-                    Icon(
-                        icon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = ShellStrings.back(),
-                    )
-                }
-                Text(
-                    detailName,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+            VLCPageHeader(
+                title = detailName,
+                navigationIcon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
+                navigationContentDescription = ShellStrings.back(),
+                onNavigate = onBack,
+                compact = true,
+            )
             if (detailItems.isEmpty()) {
                 VLCEmptyState(
                     loading = false,
@@ -1420,7 +1404,11 @@ fun PlaylistsRichPane(
                 )
             } else {
                 LazyColumn(
-                    contentPadding = PaddingValues(bottom = 24.dp),
+                    contentPadding = PaddingValues(
+                        start = VLCLayout.ScreenGutter,
+                        end = VLCLayout.ScreenGutter,
+                        bottom = 24.dp,
+                    ),
                     verticalArrangement = Arrangement.spacedBy(2.dp),
                     modifier = Modifier.fillMaxWidth().weight(1f),
                 ) {
@@ -1444,72 +1432,82 @@ fun PlaylistsRichPane(
                 title = "${state.selection.size} ${ShellStrings.selected()}",
                 clearContentDescription = ShellStrings.clear(),
                 onClearSelection = onClearSelection,
-                modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
+                modifier = Modifier.padding(
+                    start = VLCLayout.ScreenGutter,
+                    top = 12.dp,
+                    end = VLCLayout.ScreenGutter,
+                    bottom = 8.dp,
+                ),
             ) {
                 IconButton(onClick = onDeleteSelection) {
                     Icon(MaterialSymbols.Filled.Delete, contentDescription = ShellStrings.delete())
                 }
             }
         } else {
-            Row(
-                modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                androidx.compose.material3.OutlinedTextField(
-                    value = newName,
-                    onValueChange = { newName = it },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                    label = { Text(ShellStrings.newPlaylist()) },
-                    shape = MaterialTheme.shapes.extraLarge,
-                )
-                FilledTonalIconButton(onClick = {
-                    if (newName.isNotBlank()) {
-                        onCreate(newName.trim())
-                        newName = ""
-                    }
-                }) {
-                    Icon(MaterialSymbols.Filled.Add, contentDescription = ShellStrings.addPlaylist())
-                }
-            }
-
-            FlowRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
+            VLCPageHeader(title = ShellStrings.playlists()) {
+                Box {
                 VLCConnectedIconActionBar(
                     actions = listOf(
                         VLCConnectedIconAction(
-                            icon = if (state.onlyFavorites) MaterialSymbols.Filled.Star else MaterialSymbols.Outlined.Star,
-                            contentDescription = ShellStrings.favorites(),
-                            selected = state.onlyFavorites,
-                            onClick = onToggleFavorites,
+                            icon = MaterialSymbols.Filled.Add,
+                            contentDescription = ShellStrings.addPlaylist(),
+                            onClick = { showCreateSheet = true },
                         ),
                         VLCConnectedIconAction(
-                            icon = MaterialSymbols.Filled.Sort,
-                            contentDescription = if (state.sortDesc) ShellStrings.descending() else ShellStrings.ascending(),
-                            selected = state.sortDesc,
-                            onClick = onToggleSortDesc,
-                        ),
-                        VLCConnectedIconAction(
-                            icon = if (state.viewMode == ViewMode.LIST) MaterialSymbols.Filled.GridView else MaterialSymbols.Filled.ViewList,
-                            contentDescription = if (state.viewMode == ViewMode.LIST) ShellStrings.gridView() else ShellStrings.listView(),
-                            onClick = {
-                                onSetViewMode(if (state.viewMode == ViewMode.LIST) ViewMode.GRID else ViewMode.LIST)
-                            },
+                            icon = MaterialSymbols.Filled.MoreVert,
+                            contentDescription = ShellStrings.moreOptions(),
+                            onClick = { showPlaylistOptionsMenu = true },
                         ),
                     ),
                 )
+                    DropdownMenu(
+                        expanded = showPlaylistOptionsMenu,
+                        onDismissRequest = { showPlaylistOptionsMenu = false },
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(ShellStrings.favorites()) },
+                            leadingIcon = {
+                                Icon(
+                                    if (state.onlyFavorites) MaterialSymbols.Filled.Star else MaterialSymbols.Outlined.Star,
+                                    contentDescription = null,
+                                )
+                            },
+                            onClick = {
+                                showPlaylistOptionsMenu = false
+                                onToggleFavorites()
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text(if (state.sortDesc) ShellStrings.descending() else ShellStrings.ascending()) },
+                            leadingIcon = { Icon(MaterialSymbols.Filled.Sort, contentDescription = null) },
+                            onClick = {
+                                showPlaylistOptionsMenu = false
+                                onToggleSortDesc()
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text(if (state.viewMode == ViewMode.LIST) ShellStrings.gridView() else ShellStrings.listView()) },
+                            leadingIcon = {
+                                Icon(
+                                    if (state.viewMode == ViewMode.LIST) MaterialSymbols.Filled.GridView else MaterialSymbols.Filled.ViewList,
+                                    contentDescription = null,
+                                )
+                            },
+                            onClick = {
+                                showPlaylistOptionsMenu = false
+                                onSetViewMode(if (state.viewMode == ViewMode.LIST) ViewMode.GRID else ViewMode.LIST)
+                            },
+                        )
+                    }
+                }
             }
         }
 
         renameTarget?.let { target ->
             Row(
-                Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = VLCLayout.ScreenGutter, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 androidx.compose.material3.OutlinedTextField(
@@ -1553,7 +1551,12 @@ fun PlaylistsRichPane(
         } else if (state.viewMode == ViewMode.GRID) {
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(minSize = 140.dp),
-                contentPadding = PaddingValues(vertical = 12.dp),
+                contentPadding = PaddingValues(
+                    start = VLCLayout.ScreenGutter,
+                    end = VLCLayout.ScreenGutter,
+                    top = 8.dp,
+                    bottom = 24.dp,
+                ),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxWidth().weight(1f),
@@ -1577,7 +1580,12 @@ fun PlaylistsRichPane(
             }
         } else {
             LazyColumn(
-                contentPadding = PaddingValues(vertical = 12.dp),
+                contentPadding = PaddingValues(
+                    start = VLCLayout.ScreenGutter,
+                    end = VLCLayout.ScreenGutter,
+                    top = 8.dp,
+                    bottom = 24.dp,
+                ),
                 verticalArrangement = Arrangement.spacedBy(2.dp),
                 modifier = Modifier.fillMaxWidth().weight(1f),
             ) {
@@ -1638,6 +1646,43 @@ fun PlaylistsRichPane(
                             })
                         }
                     }
+                }
+            }
+        }
+    }
+
+    if (showCreateSheet) {
+        androidx.compose.material3.ModalBottomSheet(
+            onDismissRequest = { showCreateSheet = false },
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 24.dp, top = 8.dp, end = 24.dp, bottom = 32.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Text(ShellStrings.newPlaylist(), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                OutlinedTextField(
+                    value = newName,
+                    onValueChange = { newName = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    label = { Text(ShellStrings.newPlaylist()) },
+                    shape = MaterialTheme.shapes.large,
+                )
+                Row(
+                    modifier = Modifier.align(Alignment.End),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    TextButton(onClick = { showCreateSheet = false }) { Text(ShellStrings.cancel()) }
+                    TextButton(
+                        enabled = newName.isNotBlank(),
+                        onClick = {
+                            onCreate(newName.trim())
+                            newName = ""
+                            showCreateSheet = false
+                        },
+                    ) { Text(ShellStrings.addPlaylist()) }
                 }
             }
         }
