@@ -5,7 +5,6 @@ plugins {
 val rootExtra = rootProject.extra
 val appId = rootExtra["appId"] as String
 val libvlcVersion = rootExtra["libvlcVersion"] as String
-val medialibraryVersion = rootExtra["medialibraryVersion"] as String
 val openSubtitlesApiKey = providers.environmentVariable("VLC_OPEN_SUBTITLES_API_KEY")
     .orElse(providers.gradleProperty("vlc_open_subtitles_api_key"))
     .orNull
@@ -66,13 +65,12 @@ dependencies {
     } else {
         add("devApi", "org.videolan.android:libvlc-all:$libvlcVersion")
     }
-    add("devApi", project(":medialibrary"))
-    add("debugApi", "org.videolan.android:libvlc-all:$libvlcVersion")
-    add("debugApi", "org.videolan.android:medialibrary-all:$medialibraryVersion")
-    add("releaseApi", "org.videolan.android:libvlc-all:$libvlcVersion")
-    add("releaseApi", "org.videolan.android:medialibrary-all:$medialibraryVersion")
-    add("vlcBundleApi", "org.videolan.android:libvlc-all:$libvlcVersion")
-    add("vlcBundleApi", "org.videolan.android:medialibrary-all:$medialibraryVersion")
+    listOf("devApi", "debugApi", "releaseApi", "vlcBundleApi").forEach { configuration ->
+        add(configuration, project(":medialibrary"))
+    }
+    listOf("debugApi", "releaseApi", "vlcBundleApi").forEach { configuration ->
+        add(configuration, "org.videolan.android:libvlc-all:$libvlcVersion")
+    }
     api(libs.androidx.material)
     api(libs.androidx.preference)
     api(libs.androidx.leanback)

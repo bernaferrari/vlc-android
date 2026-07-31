@@ -9,6 +9,28 @@ val toolchainNdkVersion = rootExtra["toolchainNdkVersion"] as String
 val toolchainNdkPath = rootExtra["toolchainNdkPath"] as String?
 val libvlcVersion = rootExtra["libvlcVersion"] as String
 
+// The Java callback bridge is maintained in this module, while the published medialibrary
+// artifact still provides the prebuilt native mla binaries. Keeping the native payload separate
+// lets every Android variant use the patched Java bridge without checking large binaries into git.
+val nativeMedialibrary = configurations.create("nativeMedialibrary") {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+}
+val nativeMedialibraryOutput = layout.buildDirectory.dir("generated/medialibrary-native-libs").get().asFile
+val extractNativeMedialibrary = tasks.register<Sync>("extractNativeMedialibrary") {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from(nativeMedialibrary.elements.map { archives -> archives.map(::zipTree) }) {
+        include("jni/**/*.so")
+        eachFile { path = path.removePrefix("jni/") }
+        includeEmptyDirs = false
+    }
+    into(nativeMedialibraryOutput)
+}
+
+dependencies {
+    add(nativeMedialibrary.name, "org.videolan.android:medialibrary-all:$medialibraryVersion")
+}
+
 group = "org.videolan.android"
 version = medialibraryVersion
 
@@ -21,6 +43,7 @@ android {
     sourceSets {
         named("main") {
             jniLibs.directories.add("jni/libs")
+            jniLibs.directories.add(nativeMedialibraryOutput.path)
             manifest.srcFile("AndroidManifest.xml")
             java.directories.apply { clear(); addAll(listOf("src", "vlc4/src")) }
             resources.directories.apply { clear(); add("src") }
@@ -49,6 +72,10 @@ android {
     buildFeatures {
         aidl = true
     }
+}
+
+tasks.named("preBuild") {
+    dependsOn(extractNativeMedialibrary)
 }
 
 tasks.named<Delete>("clean") {

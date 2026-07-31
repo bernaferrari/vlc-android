@@ -203,13 +203,15 @@ dependencies {
         localLibVlc?.let { dependencies.project(mapOf("path" to it.path)) }
             ?: "org.videolan.android:libvlc-all:$libvlcVersion",
     )
-    add("devApi", project(":medialibrary"))
+    // Use the in-tree medialibrary bridge for every Android variant. The published artifact's
+    // native binaries are extracted by :medialibrary, while its callback implementation is kept
+    // in sync with this app and cannot reintroduce the playback-time JNI race.
+    listOf("devApi", "debugApi", "releaseApi", "signedReleaseApi").forEach { configuration ->
+        add(configuration, project(":medialibrary"))
+    }
     testImplementation(project(":medialibrary"))
-    add("debugApi", "org.videolan.android:libvlc-all:$libvlcVersion")
-    add("debugApi", "org.videolan.android:medialibrary-all:$medialibraryVersion")
     listOf("releaseApi", "signedReleaseApi").forEach { configuration ->
         add(configuration, "org.videolan.android:libvlc-all:$libvlcVersion")
-        add(configuration, "org.videolan.android:medialibrary-all:$medialibraryVersion")
     }
 
     api(project(":application:tools"))

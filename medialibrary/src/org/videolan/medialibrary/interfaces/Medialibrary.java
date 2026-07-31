@@ -51,6 +51,7 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 abstract public class Medialibrary {
 
@@ -107,19 +108,27 @@ abstract public class Medialibrary {
     protected volatile boolean mIsWorking = false;
     protected static final MutableLiveData<Boolean> sRunning = new MutableLiveData<>();
 
-    protected final List<ArtistsCb> mArtistsCbs = new ArrayList<>();
-    protected final List<AlbumsCb> mAlbumsCbs = new ArrayList<>();
-    protected final List<MediaCb> mMediaCbs = new ArrayList<>();
-    protected final List<GenresCb> mGenreCbs = new ArrayList<>();
-    protected final List<PlaylistsCb> mPlaylistCbs = new ArrayList<>();
-    protected final List<HistoryCb> mHistoryCbs = new ArrayList<>();
-    protected final List<MediaGroupCb> mMediaGroupCbs = new ArrayList<>();
-    protected final List<FoldersCb> mFoldersCbs = new ArrayList<>();
-    protected final List<OnMedialibraryReadyListener> onMedialibraryReadyListeners = new ArrayList<>();
-    protected final List<OnDeviceChangeListener> onDeviceChangeListeners = new ArrayList<>();
+    /*
+     * Callbacks can unregister themselves while handling a notification (for example when a
+     * playback screen is disposed after a media update).  A synchronized ArrayList is not enough
+     * for that case: synchronized is re-entrant, so removing from inside a callback still changes
+     * the iterator currently dispatching the event and causes ConcurrentModificationException.
+     * CopyOnWriteArrayList gives each dispatch a stable snapshot while keeping registration safe
+     * from the medialibrary and UI threads.
+     */
+    protected final List<ArtistsCb> mArtistsCbs = new CopyOnWriteArrayList<>();
+    protected final List<AlbumsCb> mAlbumsCbs = new CopyOnWriteArrayList<>();
+    protected final List<MediaCb> mMediaCbs = new CopyOnWriteArrayList<>();
+    protected final List<GenresCb> mGenreCbs = new CopyOnWriteArrayList<>();
+    protected final List<PlaylistsCb> mPlaylistCbs = new CopyOnWriteArrayList<>();
+    protected final List<HistoryCb> mHistoryCbs = new CopyOnWriteArrayList<>();
+    protected final List<MediaGroupCb> mMediaGroupCbs = new CopyOnWriteArrayList<>();
+    protected final List<FoldersCb> mFoldersCbs = new CopyOnWriteArrayList<>();
+    protected final List<OnMedialibraryReadyListener> onMedialibraryReadyListeners = new CopyOnWriteArrayList<>();
+    protected final List<OnDeviceChangeListener> onDeviceChangeListeners = new CopyOnWriteArrayList<>();
     protected volatile boolean isMedialibraryStarted = false;
-    protected final List<DevicesDiscoveryCb> devicesDiscoveryCbList = new ArrayList<>();
-    protected final List<RootsEventsCb> rootsEventsCbList = new ArrayList<>();
+    protected final List<DevicesDiscoveryCb> devicesDiscoveryCbList = new CopyOnWriteArrayList<>();
+    protected final List<RootsEventsCb> rootsEventsCbList = new CopyOnWriteArrayList<>();
     private MedialibraryExceptionHandler mExceptionHandler;
 
     protected static final Medialibrary instance = MLServiceLocator.getAbstractMedialibrary();
