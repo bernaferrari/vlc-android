@@ -162,4 +162,26 @@ class RichMediaScreensTest {
             pagedListItemPosition(current = "Beta", previous = "Album", next = "1 More"),
         )
     }
+
+    @Test
+    fun paging_does_not_round_page_tails_before_append_reaches_end() {
+        assertEquals(
+            VLCListItemPosition.Middle,
+            pagedListItemPosition(
+                current = "Audio 24",
+                previous = "Audio 23",
+                next = null,
+                isLastItem = false,
+            ),
+        )
+        assertEquals(
+            VLCListItemPosition.Last,
+            pagedListItemPosition(
+                current = "Audio 24",
+                previous = "Audio 23",
+                next = null,
+                isLastItem = true,
+            ),
+        )
+    }
 }

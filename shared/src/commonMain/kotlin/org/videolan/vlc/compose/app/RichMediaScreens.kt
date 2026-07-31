@@ -52,6 +52,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.ImeAction
 import androidx.paging.PagingData
+import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import kotlinx.coroutines.flow.Flow
@@ -714,6 +715,7 @@ private fun PagedMediaBody(
                     item?.let { "${it.id}:${it.uri}" } ?: "placeholder-$index"
                 }) { index ->
                     val item = lazyPagingItems[index] ?: return@items
+                    val appendReachedEnd = lazyPagingItems.appendReachedEnd()
                     MediaListRow(
                         item = item,
                         selected = item.uri in state.selection,
@@ -732,6 +734,8 @@ private fun PagedMediaBody(
                             next = (index + 1).takeIf { it < lazyPagingItems.itemCount }
                                 ?.let(lazyPagingItems::peek)
                                 ?.displayTitle,
+                            isFirstItem = index == 0,
+                            isLastItem = appendReachedEnd && index == lazyPagingItems.itemCount - 1,
                         ),
                     )
                 }
@@ -792,10 +796,23 @@ internal fun pagedListItemPosition(
     current: String,
     previous: String?,
     next: String?,
+    isFirstItem: Boolean = false,
+    isLastItem: Boolean = false,
 ): VLCListItemPosition {
     val label = vlcIndexLabel(current)
-    val followsDifferentSection = previous?.let(::vlcIndexLabel) != label
-    val precedesDifferentSection = next?.let(::vlcIndexLabel) != label
+    // Paging's peek() returns null for an item that has not arrived yet. An unknown neighbour is
+    // not a section boundary: treating it as one makes every page tail look like a final row
+    // while scrolling. Only the known list edges may open or close a segmented group.
+    val followsDifferentSection = when {
+        previous != null -> previous.let(::vlcIndexLabel) != label
+        isFirstItem -> true
+        else -> false
+    }
+    val precedesDifferentSection = when {
+        next != null -> next.let(::vlcIndexLabel) != label
+        isLastItem -> true
+        else -> false
+    }
     return when {
         followsDifferentSection && precedesDifferentSection -> VLCListItemPosition.Single
         followsDifferentSection -> VLCListItemPosition.First
@@ -803,6 +820,12 @@ internal fun pagedListItemPosition(
         else -> VLCListItemPosition.Middle
     }
 }
+
+private fun <T : Any> LazyPagingItems<T>.appendReachedEnd(): Boolean =
+    when (val append = loadState.append) {
+        is LoadState.NotLoading -> append.endOfPaginationReached
+        else -> false
+    }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
