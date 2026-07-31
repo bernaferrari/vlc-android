@@ -3,6 +3,7 @@ package org.videolan.vlc.compose.app
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -108,18 +109,16 @@ internal fun MorePane(
         }
     }
     VLCUtilityPane(modifier = modifier) {
-        LazyColumn(
-            modifier = Modifier.padding(horizontal = VLCLayout.ScreenGutter),
-            // A group is joined by 2dp; section headers own the breathable gaps between groups.
-            // This is the same quiet hierarchy as QuietGuard rather than a page of loose cards.
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-        ) {
-            item {
-                VLCPageHeader(
-                    title = ShellStrings.more(),
-                    horizontalPadding = 0.dp,
-                )
-            }
+        Column(modifier = Modifier.fillMaxSize()) {
+            VLCPageHeader(title = ShellStrings.more())
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = VLCLayout.ScreenGutter),
+                // A group is joined by 2dp; section headers own the breathable gaps between groups.
+                // This is the same quiet hierarchy as QuietGuard rather than a page of loose cards.
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
             itemsIndexed(navigationActions) { index, action ->
                 MoreAction(
                     icon = action.icon,
@@ -297,6 +296,7 @@ internal fun MorePane(
             }
             state.historyError?.let { error ->
                 item { RetryMessage(error = error, onRetry = vm::retryHistory) }
+            }
             }
         }
     }

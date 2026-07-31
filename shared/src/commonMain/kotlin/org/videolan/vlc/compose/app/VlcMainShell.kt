@@ -41,8 +41,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
@@ -87,6 +85,7 @@ import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.components.VLCIconChip
 import org.videolan.vlc.compose.components.VLCEmptyState
 import org.videolan.vlc.compose.components.VLCListItemPosition
+import org.videolan.vlc.compose.components.VLCPageHeader
 import org.videolan.vlc.compose.components.VLCSettingsToggleRow
 import org.videolan.vlc.compose.components.segmentShape
 import org.videolan.vlc.compose.player.FallbackPlayerSurface
@@ -203,14 +202,10 @@ fun VlcMainShell(
         val currentRoute = backStack.lastOrNull() as? VlcShellRoute ?: initialRoute
         val currentTab = backStack.filterIsInstance<VlcShellRoute>().activeTab()
         val showPlayer = currentRoute == PlayerRoute
-        val secondaryTitle = when (currentRoute) {
-            SettingsRoute -> ShellStrings.settings()
-            AboutRoute -> ShellStrings.about()
-            AboutLibrariesRoute -> ShellStrings.libraries()
-            AboutAuthorsRoute -> ShellStrings.authors()
-            else -> null
-        }
-        val showSecondaryChrome = secondaryTitle != null
+        val showSecondaryChrome = currentRoute == SettingsRoute ||
+            currentRoute == AboutRoute ||
+            currentRoute == AboutLibrariesRoute ||
+            currentRoute == AboutAuthorsRoute
         val playerState by playerVm.state.collectAsState()
         val videoState by videoVm.state.collectAsState()
         val detailVideoState by detailVideoVm.state.collectAsState()
@@ -238,8 +233,9 @@ fun VlcMainShell(
                 )
             }
         }
-        // Details move in from the right and leave to the right, so navigation is spatial rather
-        // than the default cross-fade that made the shell feel disconnected.
+        // Match QuietGuard's intentionally small Nav3 motion contract: push the new destination
+        // in, and on pop let the old destination leave. Keeping the other surface stationary
+        // prevents a second header from reading as a stacked or expanding app bar.
         val detailTransitionMetadata = remember(motion) {
             NavDisplay.transitionSpec {
                 ContentTransform(
@@ -250,27 +246,11 @@ fun VlcMainShell(
                         ),
                         initialOffsetX = { fullWidth -> fullWidth },
                     ),
-                    // Move the previous surface out of the way as the new one enters. Keeping
-                    // the old More page stationary made its large header read as an expanding
-                    // app bar behind Settings, especially while the new opaque surface was
-                    // still entering.
-                    initialContentExit = slideOutHorizontally(
-                        animationSpec = tween(
-                            durationMillis = if (motion.reducedMotion) 0 else 180,
-                            easing = VLCMotion.EmphasizedAccelerate,
-                        ),
-                        targetOffsetX = { fullWidth -> -fullWidth / 3 },
-                    ),
+                    initialContentExit = ExitTransition.None,
                 )
             } + NavDisplay.popTransitionSpec {
                 ContentTransform(
-                    targetContentEnter = slideInHorizontally(
-                        animationSpec = tween(
-                            durationMillis = if (motion.reducedMotion) 0 else 220,
-                            easing = VLCMotion.EmphasizedDecelerate,
-                        ),
-                        initialOffsetX = { fullWidth -> -fullWidth / 3 },
-                    ),
+                    targetContentEnter = EnterTransition.None,
                     initialContentExit = slideOutHorizontally(
                         animationSpec = tween(
                             durationMillis = if (motion.reducedMotion) 0 else 180,
@@ -526,37 +506,6 @@ fun VlcMainShell(
                 // the shared content and adaptive navigation.
                 contentWindowInsets = WindowInsets(0, 0, 0, 0),
                 containerColor = colors.backgroundDefault,
-                topBar = {
-                    // Root destinations own their hierarchy. Every secondary route uses this
-                    // one bar, so its title, safe inset, back target and horizontal rhythm stay
-                    // identical as Nav3 pushes Settings, About, Libraries, or Authors.
-                    secondaryTitle?.let { title ->
-                        TopAppBar(
-                            title = {
-                                Text(
-                                    title,
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                            },
-                            colors = TopAppBarDefaults.topAppBarColors(
-                                containerColor = MaterialTheme.colorScheme.surface,
-                                titleContentColor = MaterialTheme.colorScheme.onSurface,
-                                navigationIconContentColor = MaterialTheme.colorScheme.onSurface,
-                            ),
-                            navigationIcon = {
-                                if (canNavigateBack) IconButton(onClick = ::navigateBack) {
-                                    Icon(
-                                        icon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = ShellStrings.back(),
-                                    )
-                                }
-                            },
-                        )
-                    }
-                },
                 floatingActionButton = {
                     if (!showPlayer && !showSecondaryChrome) {
                         when (currentTab) {
@@ -602,13 +551,12 @@ fun VlcMainShell(
                     }
                 },
             ) { padding ->
-                // NavigationSuiteScaffold owns the bottom safe area. Root library destinations
-                // provide their own headers; every Nav3 secondary destination receives the same
-                // shared TopAppBar safe inset, while the player remains immersive.
+                // Every non-player route owns its header inside Nav3. Applying the status inset
+                // once here keeps root and secondary destinations on the same safe-area baseline.
                 val contentMod = Modifier
                     .padding(padding)
                     .then(
-                        if (showPlayer || showSecondaryChrome) Modifier else Modifier.statusBarsPadding(),
+                        if (showPlayer) Modifier else Modifier.statusBarsPadding(),
                     )
                     .fillMaxSize()
                 NavDisplay(
@@ -742,31 +690,51 @@ fun VlcMainShell(
                         )
                     }
                     entry<SettingsRoute>(metadata = detailTransitionMetadata) {
-                        SettingsDestination(
-                            modifier = Modifier.fillMaxSize(),
-                            viewModel = settingsVm,
-                        )
+                        SecondaryNav3Destination(
+                            title = ShellStrings.settings(),
+                            onBack = ::navigateBack,
+                        ) {
+                            SettingsDestination(
+                                modifier = Modifier.fillMaxSize(),
+                                viewModel = settingsVm,
+                            )
+                        }
                     }
                     entry<AboutRoute>(metadata = detailTransitionMetadata) {
-                        AboutDestination(
-                            hostCallbacks = hostCallbacks,
+                        SecondaryNav3Destination(
+                            title = ShellStrings.about(),
                             onBack = ::navigateBack,
-                            onOpenLibraries = { pushNav3Route(backStack, AboutLibrariesRoute) },
-                            onOpenAuthors = { pushNav3Route(backStack, AboutAuthorsRoute) },
-                            modifier = Modifier.fillMaxSize(),
-                        )
+                        ) {
+                            AboutDestination(
+                                hostCallbacks = hostCallbacks,
+                                onBack = ::navigateBack,
+                                onOpenLibraries = { pushNav3Route(backStack, AboutLibrariesRoute) },
+                                onOpenAuthors = { pushNav3Route(backStack, AboutAuthorsRoute) },
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        }
                     }
                     entry<AboutLibrariesRoute>(metadata = detailTransitionMetadata) {
-                        AboutLibrariesDestination(
-                            hostCallbacks = hostCallbacks,
-                            modifier = Modifier.fillMaxSize(),
-                        )
+                        SecondaryNav3Destination(
+                            title = ShellStrings.libraries(),
+                            onBack = ::navigateBack,
+                        ) {
+                            AboutLibrariesDestination(
+                                hostCallbacks = hostCallbacks,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        }
                     }
                     entry<AboutAuthorsRoute>(metadata = detailTransitionMetadata) {
-                        AboutAuthorsDestination(
-                            hostCallbacks = hostCallbacks,
-                            modifier = Modifier.fillMaxSize(),
-                        )
+                        SecondaryNav3Destination(
+                            title = ShellStrings.authors(),
+                            onBack = ::navigateBack,
+                        ) {
+                            AboutAuthorsDestination(
+                                hostCallbacks = hostCallbacks,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        }
                     }
                 },
                 )
@@ -774,6 +742,44 @@ fun VlcMainShell(
         }
     }
 }
+}
+
+/**
+ * One Nav3-owned header for every non-library detail route. Keeping it inside the destination
+ * means the header moves with its page during push/pop instead of living outside Nav3 and briefly
+ * stacking with the destination below it.
+ */
+@Composable
+private fun SecondaryNav3Destination(
+    title: String,
+    onBack: () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    // The destination owns an opaque surface so slide transitions never reveal the route below
+    // through an empty/loading state. This is especially important for Settings and About
+    // details, which otherwise appeared transparent until the animation completed.
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = VLCThemeDefaults.colors.backgroundDefault,
+    ) {
+        VLCUtilityPane {
+            Column(modifier = Modifier.fillMaxSize()) {
+                VLCPageHeader(
+                    title = title,
+                    navigationIcon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
+                    navigationContentDescription = ShellStrings.back(),
+                    onNavigate = onBack,
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                ) {
+                    content()
+                }
+            }
+        }
+    }
 }
 
 @Composable

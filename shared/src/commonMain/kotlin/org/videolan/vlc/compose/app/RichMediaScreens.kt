@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -248,115 +247,95 @@ fun RichMediaListPane(
             }
         } else if (!useEmptyPresentation) {
             val isDetail = state.containerTitle != null || state.openedEntityTitle != null
-            // Screen identity comes before filters and controls. This mirrors the quiet hierarchy
-            // used by SDKMonitor and avoids the old VLC pattern of tabs floating above the title.
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = if (isDetail) 12.dp else 16.dp, bottom = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            // Every root library uses the same PageHeader baseline and connected action group.
+            // The detail route only changes the title and adds the standard Nav3 back action.
+            VLCPageHeader(
+                title = state.openedEntityTitle ?: state.containerTitle ?: title,
+                navigationIcon = MaterialSymbols.AutoMirrored.Filled.ArrowBack.takeIf { isDetail },
+                navigationContentDescription = ShellStrings.back().takeIf { isDetail },
+                onNavigate = onCloseContainer.takeIf { isDetail },
+                compact = isDetail,
+                horizontalPadding = 0.dp,
             ) {
-                if (isDetail) {
+                Box {
                     VLCConnectedIconActionBar(
                         actions = listOf(
                             VLCConnectedIconAction(
-                                icon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = ShellStrings.back(),
-                                onClick = onCloseContainer,
+                                icon = if (isSearchOpen) MaterialSymbols.Filled.Close else MaterialSymbols.Filled.Search,
+                                contentDescription = if (isSearchOpen) ShellStrings.clear() else ShellStrings.search(),
+                                onClick = {
+                                    isSearchOpen = !isSearchOpen
+                                    if (!isSearchOpen) {
+                                        onQuery("")
+                                        focusManager.clearFocus()
+                                    }
+                                },
+                            ),
+                            VLCConnectedIconAction(
+                                icon = MaterialSymbols.Filled.MoreVert,
+                                contentDescription = ShellStrings.moreOptions(),
+                                onClick = { showLibraryMenu = true },
                             ),
                         ),
                     )
-                }
-                Text(
-                    state.openedEntityTitle ?: state.containerTitle ?: title,
-                    fontWeight = FontWeight.Bold,
-                    style = if (isDetail) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.weight(1f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                IconButton(
-                    onClick = {
-                        isSearchOpen = !isSearchOpen
-                        if (!isSearchOpen) {
-                            onQuery("")
-                            focusManager.clearFocus()
-                        }
-                    },
-                ) {
-                    Icon(
-                        icon = if (isSearchOpen) MaterialSymbols.Filled.Close else MaterialSymbols.Filled.Search,
-                        contentDescription = if (isSearchOpen) ShellStrings.clear() else ShellStrings.search(),
-                    )
-                }
-                // Keep the full 48dp target, but optically align the three-dot glyph with the
-                // shared screen gutter rather than leaving it inset by the button's inner space.
-                Box(modifier = Modifier.offset(x = 8.dp, y = (-4).dp)) {
-                    IconButton(onClick = { showLibraryMenu = true }) {
-                        Icon(
-                            icon = MaterialSymbols.Filled.MoreVert,
-                            contentDescription = ShellStrings.moreOptions(),
-                        )
-                    }
                     DropdownMenu(
                         expanded = showLibraryMenu,
                         onDismissRequest = { showLibraryMenu = false },
                     ) {
-                            if (emptyActionText != null) {
-                                DropdownMenuItem(
-                                    text = { Text(emptyActionText) },
-                                    leadingIcon = {
-                                        Icon(MaterialSymbols.Filled.Add, contentDescription = null)
-                                    },
-                                    onClick = {
-                                        showLibraryMenu = false
-                                        onEmptyAction()
-                                    },
-                                )
-                            }
+                        if (emptyActionText != null) {
                             DropdownMenuItem(
-                                text = { Text(ShellStrings.playAll()) },
+                                text = { Text(emptyActionText) },
                                 leadingIcon = {
-                                    Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = null)
+                                    Icon(MaterialSymbols.Filled.Add, contentDescription = null)
                                 },
                                 onClick = {
                                     showLibraryMenu = false
-                                    onPlayAll()
+                                    onEmptyAction()
                                 },
                             )
+                        }
+                        DropdownMenuItem(
+                            text = { Text(ShellStrings.playAll()) },
+                            leadingIcon = {
+                                Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = null)
+                            },
+                            onClick = {
+                                showLibraryMenu = false
+                                onPlayAll()
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text(ShellStrings.select()) },
+                            leadingIcon = {
+                                Icon(MaterialSymbols.Filled.SelectAll, contentDescription = null)
+                            },
+                            onClick = {
+                                showLibraryMenu = false
+                                onSelectAll()
+                            },
+                        )
+                        if (state.supportsRescan) {
                             DropdownMenuItem(
-                                text = { Text(ShellStrings.select()) },
+                                text = { Text(ShellStrings.refresh()) },
                                 leadingIcon = {
-                                    Icon(MaterialSymbols.Filled.SelectAll, contentDescription = null)
+                                    Icon(MaterialSymbols.Filled.Refresh, contentDescription = null)
                                 },
                                 onClick = {
                                     showLibraryMenu = false
-                                    onSelectAll()
+                                    onRescan()
                                 },
                             )
-                            if (state.supportsRescan) {
-                                DropdownMenuItem(
-                                    text = { Text(ShellStrings.refresh()) },
-                                    leadingIcon = {
-                                        Icon(MaterialSymbols.Filled.Refresh, contentDescription = null)
-                                    },
-                                    onClick = {
-                                        showLibraryMenu = false
-                                        onRescan()
-                                    },
-                                )
-                            }
-                            DropdownMenuItem(
-                                text = { Text(ShellStrings.displaySettings()) },
-                                leadingIcon = {
-                                    Icon(MaterialSymbols.Filled.Tune, contentDescription = null)
-                                },
-                                onClick = {
-                                    showLibraryMenu = false
-                                    showDisplaySettings = true
-                                },
-                            )
+                        }
+                        DropdownMenuItem(
+                            text = { Text(ShellStrings.displaySettings()) },
+                            leadingIcon = {
+                                Icon(MaterialSymbols.Filled.Tune, contentDescription = null)
+                            },
+                            onClick = {
+                                showLibraryMenu = false
+                                showDisplaySettings = true
+                            },
+                        )
                     }
                 }
             }
