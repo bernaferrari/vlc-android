@@ -121,7 +121,7 @@ internal fun AudioDestination(
                     options = listOf("Tracks", "Artists", "Albums", "Genres", "Playlists").map(::VLCSectionOption),
                     selectedIndex = section.ordinal,
                     onSelect = { viewModel.setSection(AudioSection.entries[it]) },
-                    modifier = Modifier.padding(bottom = 12.dp),
+                    modifier = Modifier.padding(bottom = 8.dp),
                 )
             }
         } else {

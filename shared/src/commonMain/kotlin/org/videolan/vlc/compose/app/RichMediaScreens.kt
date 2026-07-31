@@ -419,22 +419,6 @@ fun RichMediaListPane(
             RetryMessage(error = error, onRetry = onRetry)
         }
 
-        if (!useEmptyPresentation && state.selection.isEmpty()) {
-            val countLabel = when {
-                groups.isNotEmpty() -> ShellStrings.groupsCount(groups.size)
-                usePaging -> {
-                    val n = lazyPagingItems.itemCount
-                    if (n > 0) ShellStrings.itemsPlusCount(n) else ShellStrings.itemsCount(state.count)
-                }
-                else -> ShellStrings.itemsCount(state.count)
-            }
-            Text(
-                countLabel,
-                color = colors.fontLight,
-                style = MaterialTheme.typography.labelMedium,
-                modifier = Modifier.padding(bottom = 4.dp),
-            )
-        }
             }
         }
 

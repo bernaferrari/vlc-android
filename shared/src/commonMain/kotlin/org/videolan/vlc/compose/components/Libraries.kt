@@ -17,7 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -49,6 +49,7 @@ import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.compose.theme.VLCLayout
 
 /**
  * Full Compose replacement for:
@@ -118,14 +119,25 @@ fun VLCLibrariesScreen(
 
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 54.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    contentPadding = PaddingValues(
+                        start = VLCLayout.ScreenGutter,
+                        end = VLCLayout.ScreenGutter,
+                        top = 8.dp,
+                        bottom = 54.dp,
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(VLCLayout.GroupGap),
                 ) {
-                    items(libraries) { library ->
-                        LibraryLicenseCard(
+                    itemsIndexed(libraries) { index, library ->
+                        LibraryLicenseRow(
                             library = library,
                             sourceIconContent = sourceIconContent,
-                            onClick = { selectedLibrary = library }
+                            onClick = { selectedLibrary = library },
+                            position = when {
+                                libraries.size == 1 -> VLCListItemPosition.Single
+                                index == 0 -> VLCListItemPosition.First
+                                index == libraries.lastIndex -> VLCListItemPosition.Last
+                                else -> VLCListItemPosition.Middle
+                            },
                         )
                     }
                 }
@@ -153,28 +165,26 @@ fun VLCLibrariesScreen(
 }
 
 @Composable
-private fun LibraryLicenseCard(
+private fun LibraryLicenseRow(
     library: VLCLibraryLicense,
     sourceIconContent: @Composable () -> Unit,
     onClick: () -> Unit,
+    position: VLCListItemPosition,
     modifier: Modifier = Modifier
 ) {
     val colors = VLCThemeDefaults.colors
 
     Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.large)
-            .clickable(role = Role.Button, onClick = onClick)
-            .focusable(),
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        contentColor = colors.fontDefault
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        shape = position.segmentShape(),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        contentColor = colors.fontDefault,
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 12.dp),
             verticalAlignment = Alignment.Top
         ) {
             AccentIconDisc(iconContent = sourceIconContent)
@@ -202,7 +212,7 @@ private fun LibraryLicenseCard(
                 }
 
                 if (library.licenseTitle.isNotBlank()) {
-                    Spacer(Modifier.height(10.dp))
+                    Spacer(Modifier.height(8.dp))
                     LicenseBadge(text = library.licenseTitle)
                 }
             }

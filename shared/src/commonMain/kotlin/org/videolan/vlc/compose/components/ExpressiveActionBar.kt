@@ -93,7 +93,7 @@ fun VLCSectionSelector(
     LazyRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(2.dp),
-        contentPadding = PaddingValues(end = 16.dp),
+        contentPadding = PaddingValues(end = 8.dp),
     ) {
         itemsIndexed(options, key = { _, option -> option.label }) { index, option ->
             val selected = index == selectedIndex
@@ -113,7 +113,7 @@ fun VLCSectionSelector(
                     text = option.label,
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
                 )
             }
         }

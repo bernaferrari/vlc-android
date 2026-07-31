@@ -321,62 +321,14 @@ private fun AboutActionRow(
     position: VLCListItemPosition,
     modifier: Modifier = Modifier
 ) {
-    val colors = VLCThemeDefaults.colors
-
-    Surface(
-        modifier = modifier.fillMaxWidth(),
+    VLCNavigationRow(
+        title = title,
+        summary = summary,
+        position = position,
         onClick = onClick,
-        shape = position.segmentShape(),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        modifier = modifier,
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 80.dp)
-                .padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-                Surface(
-                    modifier = Modifier.size(48.dp),
-                    shape = MaterialTheme.shapes.large,
-                    color = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        CompositionLocalProvider(LocalContentColor provides MaterialTheme.colorScheme.onSecondaryContainer) {
-                            iconContent()
-                        }
-                    }
-                }
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    Text(
-                        text = title,
-                        color = colors.fontDefault,
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    summary.takeIf { it.isNotBlank() }?.let {
-                        Text(
-                            text = it,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.bodySmall,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
-                Icon(
-                    icon = MaterialSymbols.Filled.ChevronRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(18.dp),
-                )
-        }
+        iconContent()
     }
 }
 

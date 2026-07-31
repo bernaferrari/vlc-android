@@ -31,6 +31,7 @@ import org.videolan.vlc.compose.components.VLCExpandableContent
 import org.videolan.vlc.compose.components.VLCEmptyState
 import org.videolan.vlc.compose.components.VLCIconChip
 import org.videolan.vlc.compose.components.VLCListItemPosition
+import org.videolan.vlc.compose.components.VLCNavigationRow
 import org.videolan.vlc.compose.components.VLCSelectionContextBar
 import org.videolan.vlc.compose.components.segmentShape
 import org.videolan.vlc.compose.icons.Icon
@@ -398,47 +399,13 @@ private fun MoreAction(
     onClick: () -> Unit,
     position: VLCListItemPosition,
 ) {
-    val colors = VLCThemeDefaults.colors
-    Surface(
+    VLCNavigationRow(
+        title = label,
+        summary = summary,
+        position = position,
         onClick = onClick,
-        shape = position.segmentShape(),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = VLCLayout.MediaRowHeight)
-                .padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-                VLCIconChip(size = 48.dp, containerColor = MaterialTheme.colorScheme.secondaryContainer) {
-                    Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer)
-                }
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    Text(
-                        label,
-                        color = colors.listTitle,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    Text(
-                        summary,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-                Icon(
-                    MaterialSymbols.Filled.ChevronRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(24.dp),
-                )
-        }
+    ) { tint ->
+        Icon(icon, contentDescription = null, tint = tint)
     }
 }
 

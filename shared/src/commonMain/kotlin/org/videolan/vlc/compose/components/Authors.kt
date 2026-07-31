@@ -33,6 +33,7 @@ import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.compose.theme.VLCLayout
 
 /**
  * Full Compose replacement for:
@@ -95,16 +96,25 @@ fun VLCAuthorsScreen(
                 }
 
                 LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp),
-                    contentPadding = PaddingValues(top = 4.dp, bottom = 54.dp)
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(
+                        start = VLCLayout.ScreenGutter,
+                        end = VLCLayout.ScreenGutter,
+                        top = 8.dp,
+                        bottom = 54.dp,
+                    ),
+                    verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(VLCLayout.GroupGap),
                 ) {
                     itemsIndexed(authors) { index, author ->
                         AuthorRow(
                             author = author,
                             authorIconContent = authorIconContent,
-                            showDivider = index > 0
+                            position = when {
+                                authors.size == 1 -> VLCListItemPosition.Single
+                                index == 0 -> VLCListItemPosition.First
+                                index == authors.lastIndex -> VLCListItemPosition.Last
+                                else -> VLCListItemPosition.Middle
+                            },
                         )
                     }
                 }
@@ -117,20 +127,22 @@ fun VLCAuthorsScreen(
 private fun AuthorRow(
     author: String,
     authorIconContent: (@Composable () -> Unit)?,
-    showDivider: Boolean,
+    position: VLCListItemPosition,
     modifier: Modifier = Modifier
 ) {
     val colors = VLCThemeDefaults.colors
 
-    Column(modifier = modifier.fillMaxWidth()) {
-        if (showDivider) VLCSettingsCardDivider(startInset = 56.dp)
-
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = position.segmentShape(),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 56.dp)
+                .heightIn(min = VLCLayout.RowHeight)
                 .focusable()
-                .padding(vertical = 6.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             AuthorAvatar(author = author, authorIconContent = authorIconContent)
