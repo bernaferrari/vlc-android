@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -43,6 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.artwork.MediaArtwork
 import org.videolan.vlc.compose.icons.Icon
@@ -50,6 +52,7 @@ import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.components.VLCMediaCardShape
 import org.videolan.vlc.compose.components.VLCListItemPosition
+import org.videolan.vlc.compose.components.VLCSelectionCheckIndicator
 import org.videolan.vlc.compose.components.highlightedSearchText
 import org.videolan.vlc.compose.components.segmentShape
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
@@ -215,22 +218,72 @@ internal fun MediaContextMenu(
                                 style = MaterialTheme.typography.labelLarge,
                                 color = colors.primary,
                                 fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.padding(start = 4.dp),
                             )
-                            Column(verticalArrangement = Arrangement.spacedBy(VLCLayout.GroupGap)) {
-                                section.actions.forEachIndexed { actionIndex, action ->
-                                    val position = when {
-                                        section.actions.size == 1 -> VLCListItemPosition.Single
-                                        actionIndex == 0 -> VLCListItemPosition.First
-                                        actionIndex == section.actions.lastIndex -> VLCListItemPosition.Last
-                                        else -> VLCListItemPosition.Middle
+                            if (sectionIndex == 0) {
+                                // Playback is the frequent path. Four compact icon-over-label
+                                // actions keep the sheet scannable instead of making the user
+                                // scroll through four full-width rows before reaching management.
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                ) {
+                                    section.actions.forEach { action ->
+                                        MediaActionCompactCell(action)
                                     }
-                                    MediaActionSheetRow(action, position)
+                                }
+                            } else {
+                                Column(verticalArrangement = Arrangement.spacedBy(VLCLayout.GroupGap)) {
+                                    section.actions.forEachIndexed { actionIndex, action ->
+                                        val position = when {
+                                            section.actions.size == 1 -> VLCListItemPosition.Single
+                                            actionIndex == 0 -> VLCListItemPosition.First
+                                            actionIndex == section.actions.lastIndex -> VLCListItemPosition.Last
+                                            else -> VLCListItemPosition.Middle
+                                        }
+                                        MediaActionSheetRow(action, position)
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun RowScope.MediaActionCompactCell(action: MediaAction) {
+    val contentColor = if (action.destructive) {
+        MaterialTheme.colorScheme.error
+    } else {
+        MaterialTheme.colorScheme.onSurface
+    }
+    Surface(
+        modifier = Modifier
+            .weight(1f)
+            .heightIn(min = 72.dp)
+            .clip(VLCListItemPosition.Single.segmentShape())
+            .clickable(role = Role.Button, onClick = action.onClick),
+        shape = VLCListItemPosition.Single.segmentShape(),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        contentColor = contentColor,
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Icon(icon = action.icon, contentDescription = null, modifier = Modifier.size(22.dp), tint = contentColor)
+            Text(
+                text = action.label,
+                style = MaterialTheme.typography.labelSmall,
+                color = contentColor,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }
@@ -326,6 +379,9 @@ fun MediaGridCard(
                     showFallbackContainer = false,
                     fillMaxSizeArtwork = true,
                 )
+                if (selected) {
+                    VLCSelectionCheckIndicator(modifier = Modifier.fillMaxSize())
+                }
                 Box(Modifier.align(Alignment.TopEnd).padding(8.dp)) {
                     IconButton(
                         onClick = { menu = true },

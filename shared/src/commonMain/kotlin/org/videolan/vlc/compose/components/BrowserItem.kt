@@ -1,7 +1,12 @@
 package org.videolan.vlc.compose.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -13,6 +18,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -33,6 +39,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -169,6 +176,7 @@ fun VLCBrowserItemRow(
             .fillMaxWidth()
             .heightIn(min = 72.dp)
             .then(if (contentDescription != null) Modifier.semantics { this.contentDescription = contentDescription } else Modifier)
+            .semantics { this.selected = selected }
             // The click indication belongs to the asymmetric row silhouette, not its rectangular
             // layout bounds. This is especially visible for hover on desktop/Wasm history rows.
             .clip(position.segmentShape())
@@ -189,7 +197,10 @@ fun VLCBrowserItemRow(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (showArtwork) {
-                BrowserArtwork(size = 48.dp, content = artworkContent)
+                BrowserArtwork(size = 48.dp, selected = selected, content = artworkContent)
+                Spacer(modifier = Modifier.width(16.dp))
+            } else if (selected) {
+                VLCSelectionCheckIndicator(modifier = Modifier.size(48.dp))
                 Spacer(modifier = Modifier.width(16.dp))
             }
             BrowserItemTexts(
@@ -262,6 +273,7 @@ fun VLCBrowserItemCard(
     Surface(
         modifier = modifier
             .then(if (contentDescription != null) Modifier.semantics { this.contentDescription = contentDescription } else Modifier)
+            .semantics { this.selected = selected }
             .clip(VLCMediaCardShape)
             .combinedClickable(
                 enabled = enabled,
@@ -278,7 +290,7 @@ fun VLCBrowserItemCard(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                BrowserArtwork(size = 64.dp, content = artworkContent)
+                BrowserArtwork(size = 64.dp, selected = selected, content = artworkContent)
                 Spacer(modifier = Modifier.width(12.dp))
                 Row(
                     modifier = Modifier.weight(1f),
@@ -316,16 +328,48 @@ fun VLCBrowserItemCard(
 @Composable
 private fun BrowserArtwork(
     size: Dp,
+    selected: Boolean = false,
     content: @Composable BoxScope.() -> Unit
 ) {
     Box(
         modifier = Modifier
             .size(size)
             .clip(VLCArtworkTileShape)
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+        .background(MaterialTheme.colorScheme.surfaceContainerHighest),
         contentAlignment = Alignment.Center,
-        content = content
-    )
+    ) {
+        content()
+        AnimatedVisibility(
+            visible = selected,
+            enter = fadeIn() + scaleIn(),
+            exit = fadeOut() + scaleOut(),
+        ) {
+            VLCSelectionCheckIndicator(modifier = Modifier.fillMaxSize())
+        }
+    }
+}
+
+/**
+ * A selection state should be recognizable at a glance, even when the row's
+ * background is only a subtle tonal shift. Keeping the check on the artwork
+ * preserves the text layout and makes list and grid selection identical.
+ */
+@Composable
+internal fun VLCSelectionCheckIndicator(modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier,
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.88f),
+        contentColor = MaterialTheme.colorScheme.onPrimary,
+        shape = VLCArtworkTileShape,
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                icon = MaterialSymbols.Filled.CheckCircle,
+                contentDescription = null,
+                modifier = Modifier.size(26.dp),
+            )
+        }
+    }
 }
 
 @Composable

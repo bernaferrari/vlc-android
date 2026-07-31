@@ -967,7 +967,9 @@ private fun MediaListRow(
     Box {
         VLCBrowserItemRow(
             title = item.displayTitle,
-            subtitle = mediaSecondaryText(item, showTrackNumbers).ifBlank { null },
+            // Keep the duration in its own stable trailing slot. Hiding it in the metadata
+            // sentence made long filenames push the only playback cue off-screen.
+            subtitle = mediaSecondaryText(item, showTrackNumbers, includeDuration = false).ifBlank { null },
             searchQuery = searchQuery,
             titleMaxLines = 1,
             selected = selected,
@@ -977,6 +979,17 @@ private fun MediaListRow(
             },
             onLongClick = { onToggleSelect(item) },
             artworkContent = { MediaArtworkSlot(item) },
+            badgeContent = {
+                formatDuration(item.duration).takeIf { it.isNotBlank() }?.let { duration ->
+                    Text(
+                        text = duration,
+                        color = VLCThemeDefaults.colors.fontLight,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(end = 4.dp),
+                    )
+                }
+            },
             moreActionContent = { Icon(MaterialSymbols.Filled.MoreVert, contentDescription = null) },
             onMoreClick = { menu = true },
         )

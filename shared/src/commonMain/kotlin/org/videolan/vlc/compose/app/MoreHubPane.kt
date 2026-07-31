@@ -283,11 +283,31 @@ internal fun MorePane(
                         )
                     },
                     badgeContent = {
-                        Text(
-                            if (entry.item.present) ShellStrings.present() else ShellStrings.missing(),
-                            color = if (entry.item.present) colors.fontLight else MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.labelSmall,
-                        )
+                        if (entry.item.present) {
+                            Icon(
+                                MaterialSymbols.Filled.CheckCircle,
+                                contentDescription = ShellStrings.present(),
+                                tint = colors.primary,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        } else {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                Icon(
+                                    MaterialSymbols.Filled.Warning,
+                                    contentDescription = ShellStrings.missing(),
+                                    tint = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.size(18.dp),
+                                )
+                                Text(
+                                    ShellStrings.missing(),
+                                    color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            }
+                        }
                     },
                     primaryActionContent = {
                         Icon(
@@ -490,7 +510,9 @@ private fun MoreSectionHeader(
     trailingContent: @Composable () -> Unit = {},
 ) {
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {

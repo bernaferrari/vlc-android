@@ -93,7 +93,9 @@ fun VLCSectionSelector(
     LazyRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(2.dp),
-        contentPadding = PaddingValues(end = 8.dp),
+        // Keep the connected silhouette inside the viewport while it scrolls. Without a
+        // small inset the first/last segment is visually shaved by the parent clip on phones.
+        contentPadding = PaddingValues(horizontal = 4.dp),
     ) {
         itemsIndexed(options, key = { _, option -> option.label }) { index, option ->
             val selected = index == selectedIndex
