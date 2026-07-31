@@ -47,6 +47,8 @@ import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.components.VLCSettingsCard
 import org.videolan.vlc.compose.components.VLCSettingsToggleRow
 import org.videolan.vlc.compose.components.VLCExpandableContent
+import org.videolan.vlc.compose.components.VLCListItemPosition
+import org.videolan.vlc.compose.components.segmentShape
 import org.videolan.vlc.compose.theme.VLCLayout
 import org.videolan.vlc.model.ABRepeat
 import org.videolan.vlc.model.MediaItem
@@ -729,10 +731,10 @@ private fun PlaybackOptionsSection(
     onToggle: () -> Unit,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(VLCLayout.GroupGap)) {
         Surface(
             onClick = onToggle,
-            shape = MaterialTheme.shapes.large,
+            shape = if (expanded) VLCListItemPosition.First.segmentShape() else VLCListItemPosition.Single.segmentShape(),
             color = MaterialTheme.colorScheme.surfaceContainerLow,
             modifier = Modifier.fillMaxWidth(),
         ) {
@@ -759,7 +761,7 @@ private fun PlaybackOptionsSection(
         }
         VLCExpandableContent(visible = expanded) {
             Surface(
-                shape = MaterialTheme.shapes.large,
+                shape = VLCListItemPosition.Last.segmentShape(),
                 color = MaterialTheme.colorScheme.surfaceContainerLow,
                 modifier = Modifier.fillMaxWidth(),
             ) {

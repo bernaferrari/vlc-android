@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.semantics.Role
 import org.videolan.vlc.compose.theme.VLCLayout
+import org.videolan.vlc.compose.theme.VLCMotion
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.compose.theme.LocalVLCMotion
 
@@ -141,8 +142,15 @@ fun VLCMessageCallout(
 
 /** A soft accent wash applied to a selected row inside a grouping card. */
 @Composable
-fun Modifier.vlcSelectionWash(selected: Boolean): Modifier =
-    if (selected) this.background(VLCThemeDefaults.colors.primary.copy(alpha = 0.08f)) else this
+fun Modifier.vlcSelectionWash(selected: Boolean): Modifier {
+    val motion = LocalVLCMotion.current
+    val wash by animateColorAsState(
+        targetValue = if (selected) VLCThemeDefaults.colors.primary.copy(alpha = 0.08f) else Color.Transparent,
+        animationSpec = tween(motion.durationShort, easing = VLCMotion.Standard),
+        label = "vlcSelectionWash",
+    )
+    return background(wash)
+}
 
 /** Hairline divider between rows in a grouping card, inset to clear the leading chip. */
 @Composable
@@ -197,6 +205,9 @@ fun VLCSettingsToggleRow(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = VLCLayout.RowHeight)
+            // Match QuietGuard's quiet state cue: an enabled choice is visible at a glance
+            // without turning the entire settings group into a high-contrast dashboard.
+            .vlcSelectionWash(checked)
             .toggleable(
                 value = checked,
                 enabled = enabled,
@@ -239,6 +250,7 @@ fun VLCSettingsChoiceRow(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = VLCLayout.RowHeight)
+            .vlcSelectionWash(selected)
             .selectable(
                 selected = selected,
                 enabled = enabled,
