@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.map
  * val enabled: Flow<Boolean> = prefs.getFlow(KEY_ENABLE_FASTPLAY, true)
  *
  * // Write (suspend)
- * prefs.put(KEY_ENABLE_FASTPLAY, true)
+ * prefs.putBoolean(KEY_ENABLE_FASTPLAY, true)
  * ```
  *
  * The actual [DataStore] instance is injected via constructor so that each
@@ -104,29 +104,6 @@ class VlcPreferences(private val dataStore: DataStore<Preferences>) {
 
     suspend fun putStringSet(key: String, value: Set<String>) {
         dataStore.edit { it[stringSetPreferencesKey(key)] = value }
-    }
-
-    // --- Generic typed put (mirrors Settings.putSingle) ---
-
-    suspend fun put(key: String, value: Any) {
-        dataStore.edit { prefs ->
-            when (value) {
-                is Boolean -> prefs[booleanPreferencesKey(key)] = value
-                is Int     -> prefs[intPreferencesKey(key)] = value
-                is Float   -> prefs[floatPreferencesKey(key)] = value
-                is Long    -> prefs[longPreferencesKey(key)] = value
-                is String  -> prefs[stringPreferencesKey(key)] = value
-                is Set<*>  -> @Suppress("UNCHECKED_CAST")
-                    prefs[stringSetPreferencesKey(key)] = value as Set<String>
-                else -> throw IllegalArgumentException("value $value class is invalid!")
-            }
-        }
-    }
-
-    // --- Remove ---
-
-    suspend fun remove(key: String) {
-        dataStore.edit { it.remove(stringPreferencesKey(key)) }
     }
 
     suspend fun clear() {

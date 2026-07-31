@@ -206,9 +206,15 @@ object VlcKmpInitializer {
             if (!shared.contains(key)) continue
             val value = shared.all[key] ?: continue
             when (value) {
-                is Boolean, is Int, is Long, is Float, is String -> vlcPrefs.put(key, value)
-                is Set<*> -> @Suppress("UNCHECKED_CAST")
-                vlcPrefs.put(key, value as Set<String>)
+                is Boolean -> vlcPrefs.putBoolean(key, value)
+                is Int -> vlcPrefs.putInt(key, value)
+                is Long -> vlcPrefs.putLong(key, value)
+                is Float -> vlcPrefs.putFloat(key, value)
+                is String -> vlcPrefs.putString(key, value)
+                is Set<*> -> {
+                    val strings = value.filterIsInstance<String>()
+                    if (strings.size == value.size) vlcPrefs.putStringSet(key, strings.toSet())
+                }
             }
         }
     }

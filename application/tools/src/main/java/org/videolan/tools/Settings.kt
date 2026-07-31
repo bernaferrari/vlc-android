@@ -182,7 +182,19 @@ object Settings : SingletonHolder<SharedPreferences, Context>({ init(it.applicat
         }
         AppScope.launch {
             try {
-                bridge.put(key, normalized)
+                when (normalized) {
+                    is Boolean -> bridge.putBoolean(key, normalized)
+                    is Int -> bridge.putInt(key, normalized)
+                    is Long -> bridge.putLong(key, normalized)
+                    is Float -> bridge.putFloat(key, normalized)
+                    is String -> bridge.putString(key, normalized)
+                    is Set<*> -> {
+                        val strings = normalized.filterIsInstance<String>()
+                        if (strings.size == normalized.size) {
+                            bridge.putStringSet(key, strings.toSet())
+                        }
+                    }
+                }
             } catch (_: Exception) {
                 // Best-effort mirror; SharedPreferences remains authoritative.
             }
@@ -198,7 +210,6 @@ class DeviceInfo(context: Context) {
     val isTv = isAndroidTv || !isChromeBook && !hasTsp
 }
 
-@Suppress("UNCHECKED_CAST")
 fun SharedPreferences.putSingle(key: String, value: Any) {
     when(value) {
         is Boolean -> edit { putBoolean(key, value) }
@@ -206,8 +217,16 @@ fun SharedPreferences.putSingle(key: String, value: Any) {
         is Float -> edit { putFloat(key, value) }
         is Long -> edit { putLong(key, value) }
         is String -> edit { putString(key, value) }
-        is List<*> -> edit { putStringSet(key, value.toSet() as Set<String>) }
-        is Set<*> -> edit { putStringSet(key, value.toSet() as Set<String>) }
+        is List<*> -> {
+            val strings = value.filterIsInstance<String>()
+            require(strings.size == value.size) { "value $value must contain only strings" }
+            edit { putStringSet(key, strings.toSet()) }
+        }
+        is Set<*> -> {
+            val strings = value.filterIsInstance<String>()
+            require(strings.size == value.size) { "value $value must contain only strings" }
+            edit { putStringSet(key, strings.toSet()) }
+        }
         else -> throw IllegalArgumentException("value $value class is invalid!")
     }
     // Dual-write to DataStore when the KMP bridge is attached (best-effort async).
