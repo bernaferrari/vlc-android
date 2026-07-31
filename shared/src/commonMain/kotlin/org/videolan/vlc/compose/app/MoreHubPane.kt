@@ -115,6 +115,12 @@ internal fun MorePane(
                 modifier = Modifier
                     .weight(1f)
                     .padding(horizontal = VLCLayout.ScreenGutter),
+                // Keep the last history/stream row above the mini-player and the adaptive
+                // navigation surface on every host. The outer Scaffold owns system insets;
+                // this small gutter is the shared visual breathing room between sections.
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                    bottom = VLCLayout.ScreenGutter,
+                ),
                 // A group is joined by 2dp; section headers own the breathable gaps between groups.
                 // This is the same quiet hierarchy as QuietGuard rather than a page of loose cards.
                 verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -308,7 +314,12 @@ internal fun MorePane(
             },
         ) {
             Column(
-                modifier = Modifier.padding(start = 24.dp, top = 8.dp, end = 24.dp, bottom = 32.dp),
+                modifier = Modifier.padding(
+                    start = VLCLayout.SheetHorizontalPadding,
+                    top = 8.dp,
+                    end = VLCLayout.SheetHorizontalPadding,
+                    bottom = VLCLayout.SheetBottomPadding,
+                ),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Text(ShellStrings.newStream(), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
@@ -467,7 +478,7 @@ private fun MoreEmptySection(
             compact = true,
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 128.dp),
+                .heightIn(min = 160.dp),
         )
     }
 }

@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
@@ -202,6 +204,7 @@ private fun SearchTopBar(
         modifier = Modifier
             .fillMaxWidth()
             .background(colors.backgroundDefault)
+            .statusBarsPadding()
             .padding(start = 4.dp, top = 4.dp, end = 16.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -263,7 +266,9 @@ private fun SearchResults(
     val visibleSections = sections.filter { it.rows.isNotEmpty() }
 
     LazyColumn(
-        modifier = modifier.background(VLCThemeDefaults.colors.backgroundDefault),
+        modifier = modifier
+            .navigationBarsPadding()
+            .background(VLCThemeDefaults.colors.backgroundDefault),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(top = 12.dp, bottom = 24.dp),
     ) {
         visibleSections.forEachIndexed { sectionIndex, section ->

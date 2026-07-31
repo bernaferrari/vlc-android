@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -92,6 +94,7 @@ fun VLCLibrariesScreen(
                 if (showHeader) Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .statusBarsPadding()
                         .height(VLCLayout.RowHeight)
                         .padding(vertical = 8.dp)
                         .background(colors.backgroundDefault),
@@ -119,12 +122,14 @@ fun VLCLibrariesScreen(
                 }
 
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .navigationBarsPadding(),
                     contentPadding = PaddingValues(
                         start = VLCLayout.ScreenGutter,
                         end = VLCLayout.ScreenGutter,
                         top = 8.dp,
-                        bottom = 54.dp,
+                        bottom = VLCLayout.ScreenGutter,
                     ),
                     verticalArrangement = Arrangement.spacedBy(VLCLayout.GroupGap),
                 ) {

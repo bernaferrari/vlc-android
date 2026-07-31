@@ -1,10 +1,5 @@
 package org.videolan.vlc.compose.components
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.snap
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,19 +11,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCLayout
-import org.videolan.vlc.compose.theme.LocalVLCMotion
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
 /**
@@ -36,7 +27,7 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
  *
  * Utility destinations previously each had their own card geometry and press behavior. Keeping
  * this one row across More, About, and future setting directories makes those screens read as
- * one product: asymmetric grouped corners, a full row target, and restrained press feedback.
+ * one product: asymmetric grouped corners, a full row target, and native Material press feedback.
  */
 @Composable
 fun VLCNavigationRow(
@@ -47,28 +38,15 @@ fun VLCNavigationRow(
     modifier: Modifier = Modifier,
     leadingContent: @Composable (Color) -> Unit,
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val pressed by interactionSource.collectIsPressedAsState()
-    val motion = LocalVLCMotion.current
-    val pressScale by animateFloatAsState(
-        targetValue = if (pressed) 0.97f else 1f,
-        animationSpec = if (motion.reducedMotion) snap() else spring(stiffness = 700f, dampingRatio = 0.82f),
-        label = "navigationRowPressScale",
-    )
     val colors = VLCThemeDefaults.colors
 
     Surface(
         onClick = onClick,
-        interactionSource = interactionSource,
         shape = position.segmentShape(),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = VLCLayout.MediaRowHeight)
-            .graphicsLayer {
-                scaleX = pressScale
-                scaleY = pressScale
-            },
+            .heightIn(min = VLCLayout.MediaRowHeight),
     ) {
         Row(
             modifier = Modifier.padding(

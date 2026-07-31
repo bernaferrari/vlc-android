@@ -2,7 +2,6 @@ package org.videolan.vlc.compose.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +13,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -106,6 +107,7 @@ fun VLCAboutScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .statusBarsPadding()
                             .height(VLCLayout.RowHeight)
                             .padding(vertical = 8.dp)
                             .background(colors.backgroundDefault),
@@ -137,6 +139,7 @@ fun VLCAboutScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
+                        .navigationBarsPadding()
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(20.dp),
                 ) {
@@ -344,11 +347,8 @@ private fun AboutLicenseCard(
     val colors = VLCThemeDefaults.colors
 
     Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(VLCListItemPosition.Single.segmentShape())
-            .clickable(role = Role.Button, onClick = onClick)
-            .focusable(),
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
         shape = VLCListItemPosition.Single.segmentShape(),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         contentColor = colors.fontDefault

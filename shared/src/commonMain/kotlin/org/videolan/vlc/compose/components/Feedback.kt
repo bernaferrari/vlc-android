@@ -3,7 +3,6 @@ package org.videolan.vlc.compose.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -130,6 +131,7 @@ fun VLCFeedbackScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .statusBarsPadding()
                         .height(VLCLayout.RowHeight)
                         .padding(vertical = 8.dp)
                         .background(colors.backgroundDefault),
@@ -160,7 +162,13 @@ fun VLCFeedbackScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
-                        .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 54.dp),
+                        .navigationBarsPadding()
+                        .padding(
+                            start = VLCLayout.ScreenGutter,
+                            end = VLCLayout.ScreenGutter,
+                            top = 16.dp,
+                            bottom = VLCLayout.ScreenGutter,
+                        ),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
@@ -257,10 +265,7 @@ private fun FeedbackActionCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .widthIn(max = 600.dp)
-            .clip(MaterialTheme.shapes.medium)
-            .clickable(role = Role.Button, onClick = onClick)
-            .focusable(),
+            .widthIn(max = 600.dp),
         shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainer,
@@ -271,6 +276,10 @@ private fun FeedbackActionCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    // Keep the header action separate from the expandable form below. A
+                    // clickable parent used to steal taps from text fields and made the card
+                    // appear to shrink under its own ripple.
+                    .clickable(role = Role.Button, onClick = onClick)
                     .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {

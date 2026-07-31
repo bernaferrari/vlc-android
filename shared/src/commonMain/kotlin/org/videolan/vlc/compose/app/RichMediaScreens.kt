@@ -8,8 +8,6 @@ package org.videolan.vlc.compose.app
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -377,8 +375,11 @@ fun RichMediaListPane(
 
         AnimatedVisibility(
             visible = !useEmptyPresentation && state.selection.isEmpty() && isSearchOpen,
-            enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
-            exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(),
+            // Search is a frequent, in-place mode switch. A fade briefly exposes the library
+            // behind the field while it is closing; the single-axis reveal keeps the surrounding
+            // content stable and matches the rest of the shared accordion motion.
+            enter = expandVertically(expandFrom = Alignment.Top),
+            exit = shrinkVertically(shrinkTowards = Alignment.Top),
         ) {
             OutlinedTextField(
                 value = state.query,

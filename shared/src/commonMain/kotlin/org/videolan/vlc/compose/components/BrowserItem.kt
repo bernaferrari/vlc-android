@@ -101,8 +101,8 @@ fun highlightedSearchText(text: String, query: String): AnnotatedString {
             append(text.substring(cursor, range.first))
             withStyle(
                 SpanStyle(
-                    fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.primary,
+                    background = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
                 ),
             ) {
                 append(text.substring(range))
