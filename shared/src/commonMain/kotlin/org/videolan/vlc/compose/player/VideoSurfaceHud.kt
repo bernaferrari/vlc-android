@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.IconButton
@@ -556,23 +557,29 @@ fun VideoHudOverlay(
                     markerColor = Color.White.copy(alpha = 0.9f),
                 )
             }
-            Slider(
-                value = (scrubPosition ?: progress.time.toFloat()).coerceIn(0f, length.toFloat()),
-                onValueChange = { scrubPosition = it },
-                onValueChangeFinished = {
-                    scrubPosition?.let { onSeek(it.toLong()) }
-                    scrubPosition = null
-                },
-                valueRange = 0f..length.toFloat(),
-                enabled = seekableLength != null,
-                modifier = Modifier.fillMaxWidth(),
-            )
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(formatPlaybackTime(displayedTime), color = Color.White.copy(alpha = 0.85f), style = MaterialTheme.typography.labelSmall)
-                Text(formatPlaybackTime(progress.length), color = Color.White.copy(alpha = 0.85f), style = MaterialTheme.typography.labelSmall)
+                Slider(
+                    value = (scrubPosition ?: progress.time.toFloat()).coerceIn(0f, length.toFloat()),
+                    onValueChange = { scrubPosition = it },
+                    onValueChangeFinished = {
+                        scrubPosition?.let { onSeek(it.toLong()) }
+                        scrubPosition = null
+                    },
+                    valueRange = 0f..length.toFloat(),
+                    enabled = seekableLength != null,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    text = "${formatPlaybackTime(displayedTime)} / ${formatPlaybackTime(progress.length)}",
+                    color = Color.White.copy(alpha = 0.9f),
+                    style = MaterialTheme.typography.labelSmall,
+                    maxLines = 1,
+                    modifier = Modifier.widthIn(min = 78.dp),
+                )
             }
             Box(modifier = Modifier.height(8.dp))
             Surface(
