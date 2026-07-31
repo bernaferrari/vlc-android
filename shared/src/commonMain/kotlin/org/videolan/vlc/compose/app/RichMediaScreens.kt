@@ -14,6 +14,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,7 +32,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -74,6 +74,7 @@ import org.videolan.vlc.compose.components.VLCIndexedFastScroller
 import org.videolan.vlc.compose.components.VLCListItemPosition
 import org.videolan.vlc.compose.components.VLCPageHeader
 import org.videolan.vlc.compose.components.VLCSelectionContextBar
+import org.videolan.vlc.compose.components.VLCTransientLoadingIndicator
 import org.videolan.vlc.compose.components.vlcIndexLabel
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.compose.theme.VLCLayout
@@ -176,7 +177,6 @@ fun RichMediaListPane(
     modifier: Modifier = Modifier,
     onRetry: () -> Unit = {},
 ) {
-    val colors = VLCThemeDefaults.colors
     var showDisplaySettings by remember { mutableStateOf(false) }
     var showLibraryMenu by remember { mutableStateOf(false) }
     var isSearchOpen by rememberSaveable { mutableStateOf(state.query.isNotBlank()) }
@@ -201,7 +201,8 @@ fun RichMediaListPane(
     )
     val showLoadingPlaceholder = state.loading && !useEmptyPresentation && !hasVisibleContent
 
-    Column(modifier) {
+    Box(modifier) {
+        Column(Modifier.fillMaxSize()) {
         Box(modifier = Modifier.fillMaxWidth()) {
             Column(
                 modifier = Modifier
@@ -413,19 +414,24 @@ fun RichMediaListPane(
             focusManager.clearFocus()
         }
 
-        when {
-            state.error != null ->
-                RetryMessage(error = state.error, onRetry = onRetry)
-            state.loading && !useEmptyPresentation ->
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        state.error?.let { error ->
+            RetryMessage(error = error, onRetry = onRetry)
         }
 
             }
         }
 
         when {
-            state.error != null || showLoadingPlaceholder -> {
+            state.error != null -> {
                 Box(modifier = Modifier.fillMaxWidth().weight(1f))
+            }
+            showLoadingPlaceholder -> {
+                VLCEmptyState(
+                    loading = true,
+                    text = "",
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    symbol = emptySymbol,
+                )
             }
             useEmptyPresentation -> {
                 VLCEmptyState(
@@ -443,64 +449,14 @@ fun RichMediaListPane(
                     onActionClick = onEmptyAction,
                 )
             }
-            state.groupingMode != VideoGroupingMode.NONE && groups.isNotEmpty() -> {
-                Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
-                    LazyColumn(
-                        contentPadding = PaddingValues(bottom = 24.dp),
-                        verticalArrangement = Arrangement.spacedBy(VLCLayout.GroupGap),
-                        modifier = Modifier
-                            .widthIn(max = VLCLayout.ListMaxWidth)
-                            .fillMaxSize()
-                            .align(Alignment.TopCenter)
-                            .padding(horizontal = MediaScreenGutter),
-                    ) {
-                        itemsIndexed(groups, key = { _, folder -> "g:${folder.id}:${folder.path}" }) { index, folder ->
-                            VLCBrowserItemRow(
-                                title = folder.title,
-                                subtitle = if (folder.childCount > 0) ShellStrings.itemsCount(folder.childCount) else {
-                                    if (folder.kind == org.videolan.vlc.model.FolderKind.MEDIA_FOLDER ||
-                                        state.groupingMode == VideoGroupingMode.FOLDER
-                                    ) {
-                                        ShellStrings.folder()
-                                    } else {
-                                        ShellStrings.group()
-                                    }
-                                },
-                                searchQuery = state.query,
-                                position = sectionListItemPosition(index, groups.size),
-                                onClick = { onOpenGroup(folder) },
-                                artworkContent = {
-                                    Icon(
-                                        icon = if (state.groupingMode == VideoGroupingMode.FOLDER) {
-                                            MaterialSymbols.Filled.Folder
-                                        } else {
-                                            MaterialSymbols.Filled.VideoLibrary
-                                        },
-                                        contentDescription = null,
-                                        tint = colors.primary,
-                                    )
-                                },
-                            )
-                        }
-                    }
-                }
-            }
-            state.groupingMode != VideoGroupingMode.NONE && !state.loading && groups.isEmpty() -> {
-                VLCEmptyState(
-                    loading = false,
-                    text = emptyLabel,
-                    modifier = Modifier.fillMaxWidth().weight(1f),
-                    symbol = emptySymbol,
-                    actionText = emptyActionText,
-                    onActionClick = onEmptyAction,
-                )
-            }
-            usePaging -> {
-                PagedMediaBody(
-                    modifier = Modifier.fillMaxWidth().weight(1f),
+            else -> {
+                MediaBody(
                     state = state,
-                    searchQuery = state.query,
+                    sections = sections,
+                    groups = groups,
+                    usePaging = usePaging,
                     lazyPagingItems = lazyPagingItems,
+                    searchQuery = state.query,
                     emptyLabel = emptyLabel,
                     emptySymbol = emptySymbol,
                     emptyActionText = emptyActionText,
@@ -511,32 +467,134 @@ fun RichMediaListPane(
                     onToggleSelect = onToggleSelect,
                     onCtx = onCtx,
                     canHandleHostAction = canHandleHostAction,
+                    onOpenGroup = onOpenGroup,
                 )
             }
-            !state.loading && state.items.isEmpty() && sections.isEmpty() -> {
-                VLCEmptyState(
-                    loading = false,
-                    text = emptyLabel,
-                    modifier = Modifier.fillMaxWidth().weight(1f),
-                    symbol = emptySymbol,
-                    actionText = emptyActionText,
-                    onActionClick = onEmptyAction,
-                )
+        }
+    }
+    VLCTransientLoadingIndicator(
+        loading = state.loading && hasVisibleContent && state.query.isNotBlank(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .align(Alignment.TopCenter),
+    )
+}
+}
+
+/*
+ * Keep the body dispatch in one composable so the outer pane can own a non-layout-shifting
+ * loading rail. The implementation below is intentionally unchanged from the previous body
+ * branches; it only moves them behind the stable loading contract.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun ColumnScope.MediaBody(
+    state: MediaListUiState,
+    sections: List<Pair<String, List<MediaItem>>>,
+    groups: List<MediaFolder>,
+    usePaging: Boolean,
+    lazyPagingItems: LazyPagingItems<MediaItem>?,
+    searchQuery: String,
+    emptyLabel: String,
+    emptySymbol: MaterialIcon,
+    emptyActionText: String?,
+    onEmptyAction: () -> Unit,
+    onPlay: (MediaItem) -> Unit,
+    onPlayNext: (MediaItem) -> Unit,
+    onAppend: (MediaItem) -> Unit,
+    onToggleSelect: (MediaItem) -> Unit,
+    onCtx: (MediaItem, ContextOption) -> Unit,
+    canHandleHostAction: (ContextOption) -> Boolean,
+    onOpenGroup: (MediaFolder) -> Unit,
+) {
+    when {
+        state.groupingMode != VideoGroupingMode.NONE && groups.isNotEmpty() -> {
+            Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                LazyColumn(
+                    contentPadding = PaddingValues(bottom = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(VLCLayout.GroupGap),
+                    modifier = Modifier
+                        .widthIn(max = VLCLayout.ListMaxWidth)
+                        .fillMaxSize()
+                        .align(Alignment.TopCenter)
+                        .padding(horizontal = MediaScreenGutter),
+                ) {
+                    itemsIndexed(groups, key = { _, folder -> "g:${folder.id}:${folder.path}" }) { index, folder ->
+                        VLCBrowserItemRow(
+                            title = folder.title,
+                            subtitle = if (folder.childCount > 0) ShellStrings.itemsCount(folder.childCount) else {
+                                if (folder.kind == org.videolan.vlc.model.FolderKind.MEDIA_FOLDER ||
+                                    state.groupingMode == VideoGroupingMode.FOLDER
+                                ) ShellStrings.folder() else ShellStrings.group()
+                            },
+                            searchQuery = searchQuery,
+                            position = sectionListItemPosition(index, groups.size),
+                            onClick = { onOpenGroup(folder) },
+                            artworkContent = {
+                                Icon(
+                                    icon = if (state.groupingMode == VideoGroupingMode.FOLDER) {
+                                        MaterialSymbols.Filled.Folder
+                                    } else MaterialSymbols.Filled.VideoLibrary,
+                                    contentDescription = null,
+                                    tint = VLCThemeDefaults.colors.primary,
+                                )
+                            },
+                        )
+                    }
+                }
             }
-            else -> {
-                SnapshotMediaBody(
-                    modifier = Modifier.fillMaxWidth().weight(1f),
-                    state = state,
-                    searchQuery = state.query,
-                    sections = sections,
-                    onPlay = onPlay,
-                    onPlayNext = onPlayNext,
-                    onAppend = onAppend,
-                    onToggleSelect = onToggleSelect,
-                    onCtx = onCtx,
-                    canHandleHostAction = canHandleHostAction,
-                )
-            }
+        }
+        state.groupingMode != VideoGroupingMode.NONE && !state.loading -> {
+            VLCEmptyState(
+                loading = false,
+                text = emptyLabel,
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                symbol = emptySymbol,
+                actionText = emptyActionText,
+                onActionClick = onEmptyAction,
+            )
+        }
+        usePaging && lazyPagingItems != null -> {
+            PagedMediaBody(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                state = state,
+                searchQuery = searchQuery,
+                lazyPagingItems = lazyPagingItems,
+                emptyLabel = emptyLabel,
+                emptySymbol = emptySymbol,
+                emptyActionText = emptyActionText,
+                onEmptyAction = onEmptyAction,
+                onPlay = onPlay,
+                onPlayNext = onPlayNext,
+                onAppend = onAppend,
+                onToggleSelect = onToggleSelect,
+                onCtx = onCtx,
+                canHandleHostAction = canHandleHostAction,
+            )
+        }
+        !state.loading && state.items.isEmpty() && sections.isEmpty() -> {
+            VLCEmptyState(
+                loading = false,
+                text = emptyLabel,
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                symbol = emptySymbol,
+                actionText = emptyActionText,
+                onActionClick = onEmptyAction,
+            )
+        }
+        else -> {
+            SnapshotMediaBody(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                state = state,
+                searchQuery = searchQuery,
+                sections = sections,
+                onPlay = onPlay,
+                onPlayNext = onPlayNext,
+                onAppend = onAppend,
+                onToggleSelect = onToggleSelect,
+                onCtx = onCtx,
+                canHandleHostAction = canHandleHostAction,
+            )
         }
     }
 }

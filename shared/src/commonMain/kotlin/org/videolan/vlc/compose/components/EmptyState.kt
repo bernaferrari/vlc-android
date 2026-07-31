@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -26,6 +27,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -149,6 +151,34 @@ fun VLCEmptyState(
         onActionClick = onActionClick.takeIf { actionText != null },
         compact = compact,
     )
+}
+
+/**
+ * A non-layout-shifting progress affordance for replacement loads such as search and filtering.
+ * Fast requests never paint it; slower requests get a two-pixel rail over the existing content.
+ */
+@Composable
+fun VLCTransientLoadingIndicator(
+    loading: Boolean,
+    modifier: Modifier = Modifier,
+    delayMillis: Long = 240L,
+) {
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(loading) {
+        if (loading) {
+            delay(delayMillis)
+            visible = true
+        } else {
+            visible = false
+        }
+    }
+    if (visible) {
+        LinearProgressIndicator(
+            modifier = modifier.height(2.dp),
+            color = VLCThemeDefaults.colors.primary,
+            trackColor = VLCThemeDefaults.colors.backgroundDefault.copy(alpha = .32f),
+        )
+    }
 }
 
 @Composable

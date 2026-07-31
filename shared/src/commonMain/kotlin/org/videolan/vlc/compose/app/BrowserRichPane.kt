@@ -21,7 +21,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,6 +43,7 @@ import org.videolan.vlc.compose.components.VLCEmptyState
 import org.videolan.vlc.compose.components.VLCListItemPosition
 import org.videolan.vlc.compose.components.VLCPageHeader
 import org.videolan.vlc.compose.components.VLCSelectionContextBar
+import org.videolan.vlc.compose.components.VLCTransientLoadingIndicator
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.compose.theme.VLCLayout
 import org.videolan.vlc.model.MediaFolder
@@ -72,7 +72,12 @@ fun BrowserRichPane(
     val colors = VLCThemeDefaults.colors
     val atRoot = state.currentFolder == null
     var showDisplaySettings by remember { mutableStateOf(false) }
-    Column(modifier) {
+    val hasVisibleContent = state.folders.isNotEmpty() ||
+        state.media.isNotEmpty() ||
+        state.favorites.isNotEmpty() ||
+        state.networkRoots.isNotEmpty()
+    Box(modifier) {
+        Column(Modifier.fillMaxSize()) {
         if (state.selection.isNotEmpty()) {
             VLCSelectionContextBar(
                 title = ShellStrings.selectionCount(ShellStrings.selected(), state.selection.size),
@@ -131,9 +136,13 @@ fun BrowserRichPane(
                 RetryMessage(error = state.error, onRetry = onRetry)
                 Box(modifier = Modifier.fillMaxWidth().weight(1f))
             }
-            state.loading -> {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                Box(modifier = Modifier.fillMaxWidth().weight(1f))
+            state.loading && !hasVisibleContent -> {
+                VLCEmptyState(
+                    loading = true,
+                    text = "",
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    symbol = emptySymbol,
+                )
             }
             isEmpty -> VLCEmptyState(
                     loading = false,
@@ -253,6 +262,13 @@ fun BrowserRichPane(
             }
             }
         }
+        }
+        VLCTransientLoadingIndicator(
+            loading = state.loading && hasVisibleContent,
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.TopCenter),
+        )
     }
 }
 

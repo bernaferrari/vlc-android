@@ -58,6 +58,7 @@ import org.videolan.vlc.compose.components.VLCSettingsToggleRow
 import org.videolan.vlc.compose.components.segmentShape
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.compose.theme.LocalVLCMotion
+import org.videolan.vlc.compose.theme.VLCLayout
 import org.videolan.vlc.compose.theme.VLCThemeAccent
 import org.videolan.vlc.compose.theme.VLCThemeAppearance
 import org.videolan.vlc.compose.theme.availableVLCThemeAccents
@@ -73,7 +74,10 @@ internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
         ) {
             LazyColumn(
                 modifier = Modifier.padding(horizontal = 16.dp),
-                contentPadding = PaddingValues(top = 16.dp),
+                contentPadding = PaddingValues(
+                    top = 16.dp,
+                    bottom = VLCLayout.ScreenGutter,
+                ),
                 verticalArrangement = Arrangement.spacedBy(24.dp),
             ) {
                 item {

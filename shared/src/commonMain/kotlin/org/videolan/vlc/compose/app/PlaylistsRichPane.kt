@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,7 +33,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -58,6 +58,7 @@ import org.videolan.vlc.compose.components.VLCBrowserItemRow
 import org.videolan.vlc.compose.components.VLCEmptyState
 import org.videolan.vlc.compose.components.VLCPageHeader
 import org.videolan.vlc.compose.components.VLCSelectionContextBar
+import org.videolan.vlc.compose.components.VLCTransientLoadingIndicator
 import org.videolan.vlc.compose.components.VLCArtworkTileShape
 import org.videolan.vlc.compose.components.VLCMediaCardShape
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
@@ -107,8 +108,10 @@ fun PlaylistsRichPane(
     val loading = state.loading
     val detailItems = state.openItems
     val detailName = state.openPlaylistName
+    val hasVisibleContent = if (detailName != null) detailItems.isNotEmpty() else playlists.isNotEmpty()
 
-    Column(modifier) {
+    Box(modifier) {
+        Column(Modifier.fillMaxSize()) {
         if (detailName != null) {
             VLCPageHeader(
                 title = detailName,
@@ -122,8 +125,8 @@ fun PlaylistsRichPane(
             }
             if (detailItems.isEmpty()) {
                 VLCEmptyState(
-                    loading = false,
-                    text = ShellStrings.emptyPlaylist(),
+                    loading = loading,
+                    text = if (loading) "" else ShellStrings.emptyPlaylist(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .widthIn(max = VLCLayout.ListMaxWidth)
@@ -285,11 +288,13 @@ fun PlaylistsRichPane(
                 RetryMessage(error = state.error, onRetry = onRetry)
                 Box(modifier = Modifier.fillMaxWidth().weight(1f))
             }
-            loading -> {
-                LinearProgressIndicator(
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            loading && !hasVisibleContent -> {
+                VLCEmptyState(
+                    loading = true,
+                    text = "",
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    symbol = emptySymbol,
                 )
-                Box(modifier = Modifier.fillMaxWidth().weight(1f))
             }
             playlists.isEmpty() -> {
             // This is a full library state, not a row in an otherwise scrollable list. Give it
@@ -409,6 +414,13 @@ fun PlaylistsRichPane(
             }
             }
         }
+        }
+        VLCTransientLoadingIndicator(
+            loading = loading && hasVisibleContent,
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.TopCenter),
+        )
     }
 
     if (showCreateSheet) {
