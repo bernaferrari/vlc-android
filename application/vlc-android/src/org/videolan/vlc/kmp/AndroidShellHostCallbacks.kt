@@ -10,8 +10,6 @@ import androidx.core.net.toUri
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.Types
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -29,7 +27,6 @@ import org.videolan.vlc.gui.AuthorsActivity
 import org.videolan.vlc.gui.FeedbackActivity
 import org.videolan.vlc.gui.InfoActivity
 import org.videolan.vlc.gui.LibrariesActivity
-import org.videolan.vlc.gui.Licenses
 import org.videolan.vlc.gui.dialogs.showConfirmDeleteComposeDialog
 import org.videolan.vlc.gui.dialogs.showRenameComposeDialog
 import org.videolan.vlc.gui.helpers.AudioUtil.setRingtone
@@ -49,6 +46,8 @@ import org.videolan.vlc.util.ContextOption
 import org.videolan.vlc.util.openLinkIfPossible
 import org.videolan.vlc.util.share
 import org.videolan.vlc.app.VlcKoin
+import org.json.JSONArray
+import org.json.JSONObject
 import java.io.File
 
 /**
@@ -221,18 +220,26 @@ class AndroidShellHostCallbacks(
     override suspend fun loadAboutLibraries(): List<VLCLibraryLicense> = withContext(Dispatchers.IO) {
         runCatching {
             val raw = activity.resources.openRawResource(R.raw.libraries).bufferedReader().use { it.readText() }
-            val licenses = Moshi.Builder().build().adapter(Licenses::class.java).fromJson(raw) ?: return@runCatching emptyList()
-            licenses.libraries.mapNotNull { library ->
-                licenses.licenses.firstOrNull { it.id == library.license }?.let { license ->
+            val document = JSONObject(raw)
+            val licensesById = document.optJSONArray("licenses")
+                ?.jsonObjects()
+                ?.mapNotNull { license -> license.requiredString("id")?.let { it to license } }
+                ?.toMap()
+                .orEmpty()
+            document.optJSONArray("libraries")
+                ?.jsonObjects()
+                ?.mapNotNull { library ->
+                    val title = library.requiredString("title") ?: return@mapNotNull null
+                    val license = licensesById[library.requiredString("license")] ?: return@mapNotNull null
                     VLCLibraryLicense(
-                        title = library.title,
-                        copyright = library.copyright,
-                        licenseTitle = license.name,
-                        licenseDescription = license.description,
-                        licenseLink = license.link,
+                        title = title,
+                        copyright = library.optString("copyright"),
+                        licenseTitle = license.optString("name"),
+                        licenseDescription = license.optString("description"),
+                        licenseLink = license.optString("link"),
                     )
                 }
-            }
+                .orEmpty()
         }.getOrElse { error ->
             Log.w(TAG, "Could not load bundled library licenses", error)
             emptyList()
@@ -242,8 +249,7 @@ class AndroidShellHostCallbacks(
     override suspend fun loadAboutAuthors(): List<String> = withContext(Dispatchers.IO) {
         runCatching {
             val raw = activity.resources.openRawResource(R.raw.authors).bufferedReader().use { it.readText() }
-            val type = Types.newParameterizedType(List::class.java, String::class.java)
-            Moshi.Builder().build().adapter<List<String>>(type).fromJson(raw).orEmpty()
+            JSONArray(raw).jsonStrings()
         }.getOrElse { error ->
             Log.w(TAG, "Could not load bundled authors", error)
             emptyList()
@@ -397,3 +403,18 @@ class AndroidShellHostCallbacks(
         private const val TAG = "AndroidShellHostCallbacks"
     }
 }
+
+private fun JSONArray.jsonObjects(): List<JSONObject> = buildList {
+    for (index in 0 until length()) {
+        optJSONObject(index)?.let(::add)
+    }
+}
+
+private fun JSONArray.jsonStrings(): List<String> = buildList {
+    for (index in 0 until length()) {
+        optString(index).takeIf(String::isNotBlank)?.let(::add)
+    }
+}
+
+private fun JSONObject.requiredString(name: String): String? =
+    optString(name).takeIf(String::isNotBlank)
