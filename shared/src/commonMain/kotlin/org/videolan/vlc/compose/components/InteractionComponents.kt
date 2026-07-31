@@ -1,14 +1,19 @@
 package org.videolan.vlc.compose.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import org.videolan.vlc.compose.theme.LocalVLCMotion
+import org.videolan.vlc.compose.theme.VLCMotion
 
 /**
- * A simple in-place disclosure for utility forms. Forms are often opened and closed repeatedly;
- * changing layout height there made the surrounding grouped rows jump and compete with the
- * deliberate Nav3 detail transition. Keeping the state change immediate is calmer and avoids
- * layout-property animation on a scrolling screen.
+ * A restrained in-place disclosure for utility forms. The height follows the content with a
+ * short accordion motion, while reduced-motion users get the same state change with no delay.
  */
 @Composable
 fun VLCExpandableContent(
@@ -16,7 +21,19 @@ fun VLCExpandableContent(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    if (visible) {
-        Box(modifier = modifier) { content() }
+    val motion = LocalVLCMotion.current
+    AnimatedVisibility(
+        visible = visible,
+        modifier = modifier,
+        enter = expandVertically(
+            animationSpec = tween(motion.durationShort, easing = VLCMotion.Emphasized),
+            expandFrom = Alignment.Top,
+        ),
+        exit = shrinkVertically(
+            animationSpec = tween(motion.durationShort, easing = VLCMotion.Emphasized),
+            shrinkTowards = Alignment.Top,
+        ),
+    ) {
+        Box { content() }
     }
 }

@@ -10,43 +10,47 @@ import org.videolan.vlc.media.PlaylistManager
 
 /**
  * Coordinates the one native Android video output with the shared Compose
- * PlayerRoute. The legacy playlist manager decides to launch VideoPlayerActivity
- * before Compose has had a chance to create a view; this registry holds that
- * first request until the route-owned [VLCVideoLayout] is ready instead.
+ * PlayerRoute. Playback requests are held until the route-owned [VLCVideoLayout]
+ * is ready, so one player and one native output remain authoritative.
  */
 internal object SharedVideoSurfaceRegistry {
-    private var hostActive = false
-    private var inlinePlaybackRequested = false
+    internal enum class VideoPlaybackRoute {
+        DEFERRED,
+        INLINE,
+    }
+
     private var layout: VLCVideoLayout? = null
     private var displayManager: DisplayManager? = null
     private var attachedPlayer: MediaPlayer? = null
     private var pendingPlayback: (() -> Unit)? = null
 
     fun requestInlinePlayback() {
-        inlinePlaybackRequested = true
+        // A previous Android popup owns a second vout and can remain visible while the shared
+        // player route is being composed. The shared shell is the sole video owner now.
+        AndroidPlaybackHost.instance?.removePopup()
     }
 
     fun activateHost() {
-        hostActive = true
+        AndroidPlaybackHost.instance?.removePopup()
     }
 
     fun deactivateHost() {
-        hostActive = false
-        inlinePlaybackRequested = false
         pendingPlayback = null
         detachSurface()
     }
 
     /**
-     * Returns true when a legacy video launch must wait for the shared surface.
-     * The pending [PlaylistManager.playIndex] call is replayed once attachment
-     * has completed, preserving the existing decoder and playlist machinery.
+     * Chooses exactly one native video owner. A request is either sent through the attached
+     * shared output or held until the route creates it; it never opens a second activity/output.
      */
-    fun deferLegacyVideoPlayback(manager: PlaylistManager, index: Int): Boolean {
-        if (!hostActive && !inlinePlaybackRequested) return false
-        if (hasAttachedSurface()) return false
-        pendingPlayback = { manager.launch { manager.playIndex(index) } }
-        return true
+    fun routeVideoPlayback(manager: PlaylistManager, index: Int): VideoPlaybackRoute {
+        if (hasAttachedSurface()) return VideoPlaybackRoute.INLINE
+        pendingPlayback = {
+            manager.launch {
+                manager.playIndex(index, forceInline = true)
+            }
+        }
+        return VideoPlaybackRoute.DEFERRED
     }
 
     fun attachSurface(surface: VLCVideoLayout) {
@@ -55,9 +59,11 @@ internal object SharedVideoSurfaceRegistry {
             layout = surface
         }
         attachToLivePlayer()
-        pendingPlayback?.let { replay ->
+        // The service can start a frame after Compose has created the view. Keep the request
+        // queued until the vout is really attached; replaying earlier would immediately queue a
+        // second request and leave playback waiting for a future lifecycle event.
+        pendingPlayback?.takeIf { hasAttachedSurface() }?.let { replay ->
             pendingPlayback = null
-            inlinePlaybackRequested = false
             replay()
         }
     }
@@ -79,11 +85,14 @@ internal object SharedVideoSurfaceRegistry {
         displayManager = DisplayManager(
             activity,
             AndroidPlaybackHost.renderer,
-            false,
+            true,
             false,
             false,
         )
-        player.attachViews(surface, displayManager, true, false)
+        // TextureView is deliberately used for the shared Compose route. A SurfaceView is
+        // positioned by SurfaceFlinger outside the Compose hierarchy and can be left offset
+        // after a Nav3 transition or a window-inset change.
+        player.attachViews(surface, displayManager, true, true)
         attachedPlayer = player
     }
 

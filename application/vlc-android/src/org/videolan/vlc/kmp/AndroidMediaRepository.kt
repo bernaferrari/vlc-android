@@ -695,14 +695,19 @@ class AndroidMediaRepository(
                 target == "smb://" ||
                 target == "smb:///" ||
                 target.equals("smb:", ignoreCase = true)
-            if (isNetworkRoot) {
-                browser?.discoverNetworkShares()
-            } else {
-                var flags = MediaBrowser.Flag.Interact
-                if (Settings.showHiddenFiles) {
-                    flags = flags or MediaBrowser.Flag.ShowHiddenFiles
+            // LibVLC's MediaBrowser is a main-thread API. The repository flow itself is
+            // collected on IO, so starting discovery/browse there can silently produce no
+            // callbacks on Android (the Local network row then looks like a dead tap).
+            withContext(Dispatchers.Main.immediate) {
+                if (isNetworkRoot) {
+                    browser?.discoverNetworkShares()
+                } else {
+                    var flags = MediaBrowser.Flag.Interact
+                    if (Settings.showHiddenFiles) {
+                        flags = flags or MediaBrowser.Flag.ShowHiddenFiles
+                    }
+                    browser?.browse(target.toUri(), flags)
                 }
-                browser?.browse(target.toUri(), flags)
             }
         } catch (e: Exception) {
             Log.w(TAG, "browseUri: start failed for $uri", e)

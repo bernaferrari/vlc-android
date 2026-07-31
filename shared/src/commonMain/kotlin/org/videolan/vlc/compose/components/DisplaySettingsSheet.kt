@@ -95,12 +95,11 @@ fun DisplaySettingsSheet(
 
             if (state.supportsViewMode) {
                 DisplaySectionTitle(stringResource(Res.string.layout))
-                VLCSettingsCard(
+                VLCSettingsSegmentedCard(
                     rows = listOf(
                         { VLCSettingsChoiceRow(stringResource(Res.string.list), state.viewMode == ViewMode.LIST, { onViewMode(ViewMode.LIST) }) },
                         { VLCSettingsChoiceRow(stringResource(Res.string.grid), state.viewMode == ViewMode.GRID, { onViewMode(ViewMode.GRID) }) },
                     ),
-                    dividerInset = 20.dp,
                 )
             }
 
@@ -113,32 +112,30 @@ fun DisplaySettingsSheet(
             }
             if (filterRows.isNotEmpty()) {
                 DisplaySectionTitle(stringResource(Res.string.filters))
-                VLCSettingsCard(rows = filterRows, dividerInset = 20.dp)
+                VLCSettingsSegmentedCard(rows = filterRows)
             }
 
             if (state.groupingOptions.isNotEmpty()) {
                 DisplaySectionTitle(state.groupingLabel ?: stringResource(Res.string.grouping))
-                VLCSettingsCard(
+                VLCSettingsSegmentedCard(
                     rows = state.groupingOptions.map { option ->
                         { VLCSettingsChoiceRow(option.displayLabel(), option == state.selectedGrouping, { onGrouping(option) }) }
                     },
-                    dividerInset = 20.dp,
                 )
             }
 
             if (state.defaultActionOptions.isNotEmpty()) {
                 DisplaySectionTitle(state.defaultActionLabel ?: stringResource(Res.string.default_action))
-                VLCSettingsCard(
+                VLCSettingsSegmentedCard(
                     rows = state.defaultActionOptions.map { option ->
                         { VLCSettingsChoiceRow(option.displayLabel(), option == state.selectedDefaultAction, { onDefaultAction(option) }) }
                     },
-                    dividerInset = 20.dp,
                 )
             }
 
             if (state.supportsSorting) {
                 DisplaySectionTitle(stringResource(Res.string.sort))
-                VLCSettingsCard(
+                VLCSettingsSegmentedCard(
                     rows = state.availableSorts.map { sort ->
                         val selected = sort == state.sort
                         {
@@ -152,7 +149,6 @@ fun DisplaySettingsSheet(
                             )
                         }
                     },
-                    dividerInset = 20.dp,
                 )
             }
 

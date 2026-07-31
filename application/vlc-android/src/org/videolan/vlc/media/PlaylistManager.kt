@@ -33,7 +33,6 @@ import org.videolan.resources.AppContextProvider
 import org.videolan.resources.EXIT_PLAYER
 import org.videolan.resources.PLAYLIST_TYPE_AUDIO
 import org.videolan.resources.PLAYLIST_TYPE_VIDEO
-import org.videolan.resources.PLAY_FROM_SERVICE
 import org.videolan.resources.VLCInstance
 import org.videolan.resources.VLCOptions
 import org.videolan.resources.util.VLCCrashHandler
@@ -87,7 +86,6 @@ import org.videolan.tools.putSingle
 import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
-import org.videolan.vlc.gui.video.VideoPlayerActivity
 import org.videolan.vlc.kmp.SharedVideoSurfaceRegistry
 import org.videolan.vlc.util.FileUtils
 import org.videolan.vlc.util.awaitMedialibraryStarted
@@ -499,8 +497,15 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
         showAudioPlayer.value = PlayerController.playbackState != PlaybackStateCompat.STATE_STOPPED && (item !== null || !player.isVideoPlaying())
     }
 
-    suspend fun playIndex(index: Int, flags: Int = 0, forceResume:Boolean = false, forceRestart:Boolean = false) {
-        videoBackground = videoBackground || (!player.isVideoPlaying() && player.canSwitchToVideo())
+    suspend fun playIndex(
+        index: Int,
+        flags: Int = 0,
+        forceResume: Boolean = false,
+        forceRestart: Boolean = false,
+        forceInline: Boolean = false,
+    ) {
+        if (forceInline) videoBackground = false
+        else videoBackground = videoBackground || (!player.isVideoPlaying() && player.canSwitchToVideo())
         val mw = withListLock {
             if (mediaList.size() == 0) {
                 Log.w(TAG, "Warning: empty media list, nothing to play !")
@@ -521,7 +526,9 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
             mw.time = mediaFromMl.time
 
         val isInCustomPiP: Boolean = service.isInPiPMode.value ?: false
-        if (mw.type == MediaWrapper.TYPE_VIDEO && !isAppStarted() && !isInCustomPiP) videoBackground = true
+        if (!forceInline && mw.type == MediaWrapper.TYPE_VIDEO && !isAppStarted() && !isInCustomPiP) {
+            videoBackground = true
+        }
         val isVideoPlaying = mw.type == MediaWrapper.TYPE_VIDEO && player.isVideoPlaying()
         setRepeatTypeFromSettings()
         if (!videoBackground && isVideoPlaying) mw.addFlags(MediaWrapper.MEDIA_VIDEO)
@@ -531,16 +538,12 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
         player.switchToVideo = false
         if (mw.uri.scheme == "content") withContext(Dispatchers.IO) { MediaUtils.retrieveMediaTitle(mw) }
 
-        if (mw.type != MediaWrapper.TYPE_VIDEO || isVideoPlaying || player.hasRenderer
+        if (forceInline || mw.type != MediaWrapper.TYPE_VIDEO || isVideoPlaying || player.hasRenderer
                 || mw.hasFlag(MediaWrapper.MEDIA_FORCE_AUDIO)) {
             var uri = withContext(Dispatchers.IO) { FileUtils.getUri(mw.uri) }
             if (uri == null) {
                 skipMedia()
                 return
-            }
-            //PiP TV
-            if (!isBenchmark && AndroidDevices.isTv && isVideoPlaying) {
-                VideoPlayerActivity.startOpened(ctx, mw.uri, currentIndex)
             }
             val title = mw.getMetaLong(MediaWrapper.META_TITLE)
             if (title > 0) uri = "$uri#$title".toUri()
@@ -596,10 +599,17 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
             newMedia = true
             determinePrevAndNextIndices()
             service.onNewPlayback()
-        } else { //Start VideoPlayer for first video, it will trigger playIndex when ready.
-            if (SharedVideoSurfaceRegistry.deferLegacyVideoPlayback(this, index)) return
-            if (player.isPlaying()) player.stop()
-            VideoPlayerActivity.startOpened(ctx, mw.uri, currentIndex)
+        } else {
+            // Shared Compose owns the only video route. Keep the request pending until its
+            // VLCVideoLayout is attached; launching VideoPlayerActivity here would create a
+            // second native vout and can leave both surfaces visible during auto-advance.
+            when (SharedVideoSurfaceRegistry.routeVideoPlayback(this, index)) {
+                SharedVideoSurfaceRegistry.VideoPlaybackRoute.DEFERRED -> return
+                SharedVideoSurfaceRegistry.VideoPlaybackRoute.INLINE -> {
+                    playIndex(index, flags, forceResume, forceRestart, forceInline = true)
+                    return
+                }
+            }
         }
     }
 
@@ -629,18 +639,13 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
         val media = getCurrentMedia()
         if (media === null || media.hasFlag(MediaWrapper.MEDIA_FORCE_AUDIO) || !player.canSwitchToVideo())
             return false
-        val hasRenderer = player.hasRenderer
+        // The shared Compose player owns the video output. Enabling the track directly keeps
+        // audio-to-video handoff in the same native player instead of opening the old activity.
+        SharedVideoSurfaceRegistry.requestInlinePlayback()
         videoBackground = false
         showAudioPlayer.postValue(false)
-        if (player.isVideoPlaying() && !hasRenderer) {//Player is already running, just send it an intent
-            player.setVideoTrackEnabled(true)
-            InProcessEvents.emit(
-                VideoPlayerActivity.getIntent(PLAY_FROM_SERVICE, media, false, currentIndex),
-            )
-        } else if (!player.switchToVideo) { //Start the video player
-            VideoPlayerActivity.startOpened(AppContextProvider.appContext, media.uri, currentIndex)
-            if (!hasRenderer) player.switchToVideo = true
-        }
+        player.switchToVideo = false
+        player.setVideoTrackEnabled(true)
         return true
     }
 

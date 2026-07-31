@@ -231,6 +231,11 @@ fun VlcMainShell(
                     targetContentEnter = EnterTransition.None,
                     initialContentExit = ExitTransition.None,
                 )
+            } + NavDisplay.predictivePopTransitionSpec {
+                ContentTransform(
+                    targetContentEnter = EnterTransition.None,
+                    initialContentExit = ExitTransition.None,
+                )
             }
         }
         // Match QuietGuard's intentionally small Nav3 motion contract: push the new destination
@@ -249,6 +254,17 @@ fun VlcMainShell(
                     initialContentExit = ExitTransition.None,
                 )
             } + NavDisplay.popTransitionSpec {
+                ContentTransform(
+                    targetContentEnter = EnterTransition.None,
+                    initialContentExit = slideOutHorizontally(
+                        animationSpec = tween(
+                            durationMillis = if (motion.reducedMotion) 0 else 180,
+                            easing = VLCMotion.EmphasizedAccelerate,
+                        ),
+                        targetOffsetX = { fullWidth -> fullWidth },
+                    ),
+                )
+            } + NavDisplay.predictivePopTransitionSpec { _ ->
                 ContentTransform(
                     targetContentEnter = EnterTransition.None,
                     initialContentExit = slideOutHorizontally(
@@ -402,7 +418,11 @@ fun VlcMainShell(
         }
 
         fun selectTab(t: MainTab) {
-            if (onTabChange != null) onTabChange(t) else resetToTab(t)
+            // A navigation-suite item is a root destination, not a secondary action. Always
+            // collapse the current journey first (including Player, Settings, and library
+            // details), then notify a controlled host so its selected-tab state stays in sync.
+            resetToTab(t)
+            if (onTabChange != null && tab != t) onTabChange(t)
         }
         val appLocked = settingsState.appLock.supported &&
             settingsState.appLock.enabled &&

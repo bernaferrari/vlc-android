@@ -189,6 +189,39 @@ fun VLCSettingsCard(
 }
 
 /**
+ * Settings choices that belong to a short, scannable group. Each row is a real segment rather
+ * than a single tall radio-card: the 2dp join and asymmetric outer corners match browser,
+ * playlist, and About rows throughout the shared shell.
+ */
+@Composable
+fun VLCSettingsSegmentedCard(
+    rows: List<@Composable () -> Unit>,
+    modifier: Modifier = Modifier,
+) {
+    if (rows.isEmpty()) return
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        rows.forEachIndexed { index, row ->
+            val position = when {
+                rows.size == 1 -> VLCListItemPosition.Single
+                index == 0 -> VLCListItemPosition.First
+                index == rows.lastIndex -> VLCListItemPosition.Last
+                else -> VLCListItemPosition.Middle
+            }
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = position.segmentShape(),
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+            ) {
+                row()
+            }
+        }
+    }
+}
+
+/**
  * One full-width settings toggle.  The whole row is the target rather than only the small switch,
  * which gives touch, keyboard and accessibility users the same predictable action.
  */

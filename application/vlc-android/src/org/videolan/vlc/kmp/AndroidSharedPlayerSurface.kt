@@ -22,6 +22,13 @@ val AndroidPlayerSurface: PlayerSurface = { state, _ ->
         AndroidView(
             factory = { context ->
                 VLCVideoLayout(context).apply {
+                    // SurfaceView is composed in a separate surface window. During a Nav3
+                    // transition its buffer can retain the previous window position, which
+                    // presents as a video cropped/shifted toward the bottom. TextureView stays
+                    // in the normal Android view hierarchy and follows the Compose bounds.
+                    clipChildren = true
+                    clipToPadding = true
+                    setBackgroundColor(android.graphics.Color.BLACK)
                     layoutParams = ViewGroup.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT,

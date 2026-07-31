@@ -1384,7 +1384,11 @@ class BrowserViewModel(
     }
 
     fun openFolder(folder: MediaFolder) {
-        if (folder.kind == FolderKind.NETWORK && (!capabilities.networkBrowsing || !VlcSettings.browseNetwork.value)) return
+        // The root list and the preference flow are asynchronous. A stale row can remain visible
+        // for one frame while the setting is restored; do not turn that tap into a silent no-op.
+        // Capability is the hard platform gate, while the repository remains responsible for
+        // returning an empty/error listing when network browsing is disabled.
+        if (folder.kind == FolderKind.NETWORK && !capabilities.networkBrowsing) return
         val stack = _state.value.stack + folder
         _state.update {
             it.copy(

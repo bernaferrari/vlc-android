@@ -1,5 +1,6 @@
 package org.videolan.vlc.compose.player
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -262,68 +263,86 @@ internal fun PlaybackOptionsSheet(
                 }
             }
 
-            HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
-            Row(
+            Surface(
+                shape = VLCListItemPosition.Single.segmentShape(),
+                color = if (abRepeatEnabled) {
+                    MaterialTheme.colorScheme.primaryContainer
+                } else {
+                    MaterialTheme.colorScheme.surfaceContainer
+                },
+                border = BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f),
+                ),
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Column {
-                    Text(
-                        stringResource(Res.string.ab_repeat),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    if (abRepeat.start >= 0L) {
-                        Text(
-                            buildString {
-                                append("A  ")
-                                append(formatPlaybackTime(abRepeat.start))
-                                if (abRepeat.stop >= 0L) {
-                                    append("   ·   B  ")
-                                    append(formatPlaybackTime(abRepeat.stop))
-                                }
-                            },
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                    }
-                }
-                if (!abRepeatEnabled) {
-                    FilledTonalButton(onClick = onToggleABRepeat) {
-                        Text(stringResource(Res.string.ab_repeat))
-                    }
-                }
-            }
-            if (abRepeatEnabled) {
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    FilledTonalButton(onClick = onSetABRepeatMarker) {
-                        Text(
-                            stringResource(
-                                if (abRepeat.start < 0L) {
-                                    Res.string.abrepeat_add_first_marker
-                                } else {
-                                    Res.string.abrepeat_add_second_marker
-                                }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column {
+                            Text(
+                                stringResource(Res.string.ab_repeat),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.SemiBold,
                             )
+                            if (abRepeat.start >= 0L) {
+                                Text(
+                                    buildString {
+                                        append("A  ")
+                                        append(formatPlaybackTime(abRepeat.start))
+                                        if (abRepeat.stop >= 0L) {
+                                            append("   ·   B  ")
+                                            append(formatPlaybackTime(abRepeat.stop))
+                                        }
+                                    },
+                                    color = MaterialTheme.colorScheme.primary,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                            }
+                        }
+                        if (!abRepeatEnabled) {
+                            FilledTonalButton(onClick = onToggleABRepeat) {
+                                Text(stringResource(Res.string.ab_repeat))
+                            }
+                        }
+                    }
+                    if (abRepeatEnabled) {
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            FilledTonalButton(onClick = onSetABRepeatMarker) {
+                                Text(
+                                    stringResource(
+                                        if (abRepeat.start < 0L) {
+                                            Res.string.abrepeat_add_first_marker
+                                        } else {
+                                            Res.string.abrepeat_add_second_marker
+                                        }
+                                    )
+                                )
+                            }
+                            TextButton(onClick = onResetABRepeat, enabled = abRepeat.start >= 0L) {
+                                Text(stringResource(Res.string.ab_repeat_reset))
+                            }
+                            TextButton(onClick = onClearABRepeat) {
+                                Text(stringResource(Res.string.ab_repeat_stop))
+                            }
+                        }
+                        Text(
+                            formatPlaybackTime(progressTime),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelMedium,
                         )
                     }
-                    TextButton(onClick = onResetABRepeat, enabled = abRepeat.start >= 0L) {
-                        Text(stringResource(Res.string.ab_repeat_reset))
-                    }
-                    TextButton(onClick = onClearABRepeat) {
-                        Text(stringResource(Res.string.ab_repeat_stop))
-                    }
                 }
-                Text(
-                    formatPlaybackTime(progressTime),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.labelMedium,
-                )
             }
 
             if (showVideoOptions) {
@@ -735,7 +754,11 @@ private fun PlaybackOptionsSection(
         Surface(
             onClick = onToggle,
             shape = if (expanded) VLCListItemPosition.First.segmentShape() else VLCListItemPosition.Single.segmentShape(),
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            color = MaterialTheme.colorScheme.surfaceContainer,
+            border = BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f),
+            ),
             modifier = Modifier.fillMaxWidth(),
         ) {
             Row(
@@ -763,6 +786,10 @@ private fun PlaybackOptionsSection(
             Surface(
                 shape = VLCListItemPosition.Last.segmentShape(),
                 color = MaterialTheme.colorScheme.surfaceContainerLow,
+                border = BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                ),
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Column(
