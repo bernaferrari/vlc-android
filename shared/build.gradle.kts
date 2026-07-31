@@ -86,6 +86,11 @@ kotlin {
                 api(libs.jetbrains.compose.animation)
                 api(libs.jetbrains.compose.ui)
                 api(libs.jetbrains.compose.resources)
+                // Coil 3 is multiplatform: iOS/Web use the same URI artwork pipeline as Android.
+                // Android's native VLC frame provider is registered in the Android host and feeds
+                // the same Coil request/cache lifecycle.
+                api(libs.coil.compose)
+                api(libs.coil.network.ktor3)
                 // QuietGuard's common, deterministic tonal scheme generator. It keeps every
                 // selected VLC seed coherent on Android, iOS, JVM, and Wasm.
                 api(libs.material.kolor)
@@ -117,6 +122,7 @@ kotlin {
             dependencies {
                 implementation(libs.androidx.activity.compose)
                 implementation(libs.androidx.datastore.preferences)
+                implementation(libs.ktor.client.cio)
                 api(libs.koin.android)
                 implementation(libs.jetbrains.compose.ui.tooling.preview)
             }
@@ -128,6 +134,7 @@ kotlin {
 
         wasmJsMain {
             dependencies {
+                implementation(libs.ktor.client.js)
                 // Browser DOM + media declarations used by the Wasm-only player and importer.
                 // This is the same explicit Wasm boundary QuietGuard uses for browser APIs.
                 implementation(libs.kotlinx.browser)
@@ -137,6 +144,9 @@ kotlin {
         // ── iOS intermediate (shared between all iOS architectures) ──
         val iosMain = create("iosMain") {
             dependsOn(commonMain.get())
+            dependencies {
+                implementation(libs.ktor.client.darwin)
+            }
         }
 
         iosArm64Main { dependsOn(iosMain) }

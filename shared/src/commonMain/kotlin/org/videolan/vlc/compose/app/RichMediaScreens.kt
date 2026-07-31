@@ -85,7 +85,8 @@ import org.videolan.vlc.viewmodel.VideoGroupingMode
 import org.videolan.vlc.viewmodel.ViewMode
 
 private val MediaScreenGutter = VLCLayout.ScreenGutter
-private val MediaGridGap = 12.dp
+private val MediaGridGap = 10.dp
+private val MediaGridMinSize = 168.dp
 private val FastScrollerContentClearance = VLCLayout.FastScrollerClearance
 
 /**
@@ -630,7 +631,7 @@ private fun PagedMediaBody(
     }
     if (state.viewMode == ViewMode.GRID) {
         LazyVerticalGrid(
-            columns = GridCells.Adaptive(minSize = 140.dp),
+            columns = GridCells.Adaptive(minSize = MediaGridMinSize),
             contentPadding = PaddingValues(
                 start = MediaScreenGutter,
                 end = MediaScreenGutter,
@@ -805,7 +806,7 @@ private fun SnapshotMediaBody(
 
     if (state.viewMode == ViewMode.GRID) {
         LazyVerticalGrid(
-            columns = GridCells.Adaptive(minSize = 140.dp),
+            columns = GridCells.Adaptive(minSize = MediaGridMinSize),
             contentPadding = PaddingValues(
                 start = MediaScreenGutter,
                 end = MediaScreenGutter,
@@ -923,19 +924,10 @@ private fun MediaListRow(
     position: VLCListItemPosition,
 ) {
     var menu by remember { mutableStateOf(false) }
-    val trackNumber = item.trackNumber.takeIf {
-        showTrackNumbers && item.isAudio && it > 0
-    }?.let { "#$it" }
     Box {
         VLCBrowserItemRow(
             title = item.displayTitle,
-            subtitle = listOfNotNull(
-                trackNumber,
-                item.artist,
-                item.album,
-                item.description,
-                formatDuration(item.duration),
-            ).filter { it.isNotBlank() }.joinToString(" · ").ifBlank { null },
+            subtitle = mediaSecondaryText(item, showTrackNumbers).ifBlank { null },
             searchQuery = searchQuery,
             titleMaxLines = 1,
             selected = selected,

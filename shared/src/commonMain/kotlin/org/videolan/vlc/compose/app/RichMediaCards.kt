@@ -8,19 +8,19 @@ package org.videolan.vlc.compose.app
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -32,13 +32,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.artwork.MediaArtwork
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialSymbols
-import org.videolan.vlc.compose.components.VLCArtworkTileShape
 import org.videolan.vlc.compose.components.VLCMediaCardShape
 import org.videolan.vlc.compose.components.highlightedSearchText
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
@@ -158,21 +158,34 @@ fun MediaGridCard(
         color = containerColor,
         contentColor = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface,
     ) {
-        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        val duration = formatDuration(item.duration)
+        Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .height(120.dp)
-                    .clip(VLCArtworkTileShape)
-                    .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                    .aspectRatio(16f / 9f),
                 contentAlignment = Alignment.Center,
             ) {
-                // The card already owns the artwork well. Avoid a second dark rounded tile when
-                // a thumbnail is unavailable; a single type symbol reads as intentional.
-                MediaArtwork(item = item, size = 112.dp, showFallbackContainer = false)
-                Box(Modifier.align(Alignment.TopEnd).padding(4.dp)) {
-                    FilledTonalIconButton(onClick = { menu = true }) {
-                        Icon(MaterialSymbols.Filled.MoreVert, contentDescription = ShellStrings.moreOptions())
+                // The card owns the clipping. Artwork fills the entire media well so a real
+                // thumbnail reads as content, not as a smaller card nested inside another card.
+                MediaArtwork(
+                    item = item,
+                    modifier = Modifier.fillMaxSize(),
+                    size = 220.dp,
+                    showFallbackContainer = false,
+                    fillMaxSizeArtwork = true,
+                )
+                Box(Modifier.align(Alignment.TopEnd).padding(8.dp)) {
+                    IconButton(
+                        onClick = { menu = true },
+                        modifier = Modifier
+                            .size(40.dp),
+                    ) {
+                        Icon(
+                            MaterialSymbols.Filled.MoreVert,
+                            contentDescription = ShellStrings.moreOptions(),
+                            tint = Color.White,
+                        )
                     }
                     MediaContextMenu(
                         expanded = menu,
@@ -185,31 +198,64 @@ fun MediaGridCard(
                         canHandleHostAction = canHandleHostAction,
                     )
                 }
+                if (duration.isNotBlank()) {
+                    Surface(
+                        modifier = Modifier.align(Alignment.BottomStart).padding(8.dp),
+                        shape = MaterialTheme.shapes.extraSmall,
+                        color = Color.Black.copy(alpha = 0.64f),
+                        contentColor = Color.White,
+                    ) {
+                        Text(
+                            text = duration,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Medium,
+                        )
+                    }
+                }
             }
-            Text(
-                highlightedSearchText(item.displayTitle, searchQuery),
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                fontWeight = FontWeight.SemiBold,
-                style = MaterialTheme.typography.titleSmall,
-            )
-            val trackNumber = item.trackNumber.takeIf {
-                showTrackNumbers && item.isAudio && it > 0
-            }?.let { "#$it" }
-            val sub = listOfNotNull(trackNumber, item.artist, item.description, formatDuration(item.duration))
-                .filter { it.isNotBlank() }
-                .joinToString(" · ")
-            if (sub.isNotBlank()) {
+            Column(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(3.dp),
+            ) {
                 Text(
-                    highlightedSearchText(sub, searchQuery),
-                    maxLines = 1,
+                    highlightedSearchText(item.displayTitle, searchQuery),
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = colors.fontLight,
+                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.titleSmall,
                 )
+                val sub = mediaSecondaryText(item, showTrackNumbers, includeDuration = false)
+                if (sub.isNotBlank()) {
+                    Text(
+                        highlightedSearchText(sub, searchQuery),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = colors.fontLight,
+                    )
+                }
             }
         }
     }
+}
+
+/** A single de-duplicated metadata line shared by grid and list presentations. */
+internal fun mediaSecondaryText(
+    item: MediaItem,
+    showTrackNumbers: Boolean,
+    includeDuration: Boolean = true,
+): String {
+    val trackNumber = item.trackNumber.takeIf {
+        showTrackNumbers && item.isAudio && it > 0
+    }?.let { "#$it" }
+    val durationValue = formatDuration(item.duration)
+    val duration = durationValue.takeIf { includeDuration }
+    return listOfNotNull(trackNumber, item.artist, item.album, item.description, duration)
+        .map(String::trim)
+        .filter { it.isNotBlank() && it != durationValue }
+        .distinct()
+        .joinToString(" · ")
 }
 
 @Composable

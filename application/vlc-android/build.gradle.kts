@@ -257,6 +257,7 @@ dependencies {
     implementation(libs.compose.foundation)
     implementation(libs.compose.material3)
     implementation(libs.androidx.glance.appwidget)
+    implementation(libs.coil.core)
     debugImplementation(libs.compose.ui.tooling)
 
     implementation(libs.konfetti.xml)

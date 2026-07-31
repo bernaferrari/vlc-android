@@ -1,6 +1,7 @@
 package org.videolan.vlc.compose.app
 
 import androidx.compose.foundation.background
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -58,6 +59,7 @@ import org.videolan.vlc.compose.components.VLCSettingsToggleRow
 import org.videolan.vlc.compose.components.segmentShape
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.compose.theme.LocalVLCMotion
+import org.videolan.vlc.compose.theme.VLCMotion
 import org.videolan.vlc.compose.theme.VLCLayout
 import org.videolan.vlc.compose.theme.VLCThemeAccent
 import org.videolan.vlc.compose.theme.VLCThemeAppearance
@@ -548,6 +550,7 @@ internal fun MiniBar(
     onToggle: () -> Unit,
 ) {
     val colors = VLCThemeDefaults.colors
+    val motion = LocalVLCMotion.current
     Surface(
         onClick = onExpand,
         modifier = Modifier.fillMaxWidth(),
@@ -569,10 +572,16 @@ internal fun MiniBar(
                 }
             }
             IconButton(onClick = onToggle) {
-                Icon(
-                    icon = if (playing) MaterialSymbols.Filled.Pause else MaterialSymbols.Filled.PlayArrow,
-                    contentDescription = if (playing) ShellStrings.pause() else ShellStrings.play(),
-                )
+                Crossfade(
+                    targetState = playing,
+                    animationSpec = tween(motion.durationShort, easing = VLCMotion.Emphasized),
+                    label = "mini-player-icon",
+                ) { isPlaying ->
+                    Icon(
+                        icon = if (isPlaying) MaterialSymbols.Filled.Pause else MaterialSymbols.Filled.PlayArrow,
+                        contentDescription = if (isPlaying) ShellStrings.pause() else ShellStrings.play(),
+                    )
+                }
             }
         }
     }

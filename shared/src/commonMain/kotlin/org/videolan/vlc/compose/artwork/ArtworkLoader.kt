@@ -1,5 +1,7 @@
 package org.videolan.vlc.compose.artwork
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -19,14 +21,15 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import coil3.compose.SubcomposeAsyncImage
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.model.MediaItem
 
 /**
- * Platform artwork decoder. Android uses ThumbnailsProvider / file URIs;
- * iOS/JVM return null and the UI falls back to type badges.
+ * Platform artwork decoder. Android uses native VLC/MediaStore frames for video;
+ * all targets additionally get Coil 3 URI artwork in the shared composable.
  */
 interface ArtworkLoader {
     suspend fun loadBitmap(uri: String?, widthPx: Int): ImageBitmap?
@@ -55,16 +58,23 @@ fun MediaArtwork(
     size: Dp = 48.dp,
     contentScale: ContentScale = ContentScale.Crop,
     showFallbackContainer: Boolean = true,
+    fillMaxSizeArtwork: Boolean = false,
     fallback: @Composable () -> Unit = { DefaultArtworkFallback(item) },
 ) {
+    // Video media often has no separate artwork URI. Pass the media URI as a thumbnail source
+    // so Android can ask MediaStore/LibVLC for a frame while iOS/Web can still hand the same URI
+    // to Coil 3 when no platform-native frame loader is installed.
+    val sourceUri = item.artworkUri?.takeIf { it.isNotBlank() }
+        ?: item.uri.takeIf { item.isVideo && it.isNotBlank() }
     MediaArtworkUri(
-        uri = item.artworkUri,
+        uri = sourceUri,
         favorite = item.isFavorite,
         contentDescription = item.displayTitle,
         modifier = modifier,
         size = size,
         contentScale = contentScale,
         showFallbackContainer = showFallbackContainer,
+        fillMaxSizeArtwork = fillMaxSizeArtwork,
         fallback = fallback,
     )
 }
@@ -78,6 +88,7 @@ fun MediaArtworkUri(
     size: Dp = 48.dp,
     contentScale: ContentScale = ContentScale.Crop,
     showFallbackContainer: Boolean = true,
+    fillMaxSizeArtwork: Boolean = false,
     fallback: @Composable () -> Unit,
 ) {
     val loader = ArtworkLoaderHolder.loader
@@ -92,7 +103,7 @@ fun MediaArtworkUri(
         }
     }
     val artworkModifier = modifier
-        .size(size)
+        .let { base -> if (fillMaxSizeArtwork) base.fillMaxSize() else base.size(size) }
         .let { base ->
             if (showFallbackContainer) {
                 base.background(MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.shapes.small)
@@ -104,16 +115,33 @@ fun MediaArtworkUri(
         modifier = artworkModifier,
         contentAlignment = Alignment.Center,
     ) {
-        val bmp = bitmap
-        if (bmp != null) {
-            Image(
-                bitmap = bmp,
-                contentDescription = contentDescription,
-                contentScale = contentScale,
-                modifier = Modifier.fillMaxSize(),
-            )
-        } else {
-            fallback()
+        Crossfade(
+            targetState = bitmap,
+            animationSpec = tween(durationMillis = 180),
+            label = "media-artwork",
+        ) { bmp ->
+            if (bmp != null) {
+                Image(
+                    bitmap = bmp,
+                    contentDescription = contentDescription,
+                    contentScale = contentScale,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            } else if (!uri.isNullOrBlank()) {
+                // Coil 3 is available on every Compose target. Android's loader normally
+                // resolves a native video frame before this branch; iOS/Web can still render
+                // regular local/remote artwork through the same shared pipeline.
+                SubcomposeAsyncImage(
+                    model = uri,
+                    contentDescription = contentDescription,
+                    contentScale = contentScale,
+                    modifier = Modifier.fillMaxSize(),
+                    loading = { fallback() },
+                    error = { fallback() },
+                )
+            } else {
+                fallback()
+            }
         }
         if (favorite) {
             Icon(

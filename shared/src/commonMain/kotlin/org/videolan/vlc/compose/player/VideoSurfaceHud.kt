@@ -1,8 +1,18 @@
 package org.videolan.vlc.compose.player
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -22,6 +32,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.ripple
 import androidx.compose.ui.window.Dialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,12 +45,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.compose.theme.LocalVLCMotion
+import org.videolan.vlc.compose.theme.VLCMotion
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.model.ABRepeat
@@ -206,39 +220,49 @@ fun VideoSurfaceWithHud(
             }
         }
 
-        if (hudVisible && !interfaceLocked) {
-            VideoHudOverlay(
-                title = title,
-                subtitle = subtitle,
-                playing = playing,
-                progress = progress,
-                shuffle = shuffle,
-                repeatMode = repeatMode,
-                rate = rate,
-                queueSize = queue.size,
-                bookmarks = bookmarks,
-                onTogglePlay = onTogglePlay,
-                onSeek = onSeek,
-                onNext = onNext,
-                onPrevious = onPrevious,
-                onToggleShuffle = onToggleShuffle,
-                onCycleRepeat = onCycleRepeat,
-                onOpenOptions = { optionsVisible = true },
-                showPictureInPicture = showPictureInPicture,
-                onEnterPictureInPicture = onEnterPictureInPicture,
-                showRendererSelection = showRendererSelection,
-                onOpenRendererSelection = { rendererPickerVisible = true },
-                showInterfaceLock = hasVideoOutput,
-                onLockInterface = { interfaceLocked = true },
-                onClose = onClose,
-            )
-        }
+        VideoHudOverlay(
+            visible = hudVisible && !interfaceLocked,
+            title = title,
+            subtitle = subtitle,
+            playing = playing,
+            progress = progress,
+            shuffle = shuffle,
+            repeatMode = repeatMode,
+            rate = rate,
+            queueSize = queue.size,
+            bookmarks = bookmarks,
+            onTogglePlay = onTogglePlay,
+            onSeek = onSeek,
+            onNext = onNext,
+            onPrevious = onPrevious,
+            onToggleShuffle = onToggleShuffle,
+            onCycleRepeat = onCycleRepeat,
+            onOpenOptions = { optionsVisible = true },
+            showPictureInPicture = showPictureInPicture,
+            onEnterPictureInPicture = onEnterPictureInPicture,
+            showRendererSelection = showRendererSelection,
+            onOpenRendererSelection = { rendererPickerVisible = true },
+            showInterfaceLock = hasVideoOutput,
+            onLockInterface = { interfaceLocked = true },
+            onClose = onClose,
+        )
 
-        if (interfaceLocked) {
+        AnimatedVisibility(
+            visible = interfaceLocked,
+            modifier = Modifier.align(Alignment.Center),
+            enter = fadeIn(tween(LocalVLCMotion.current.durationShort)) +
+                slideInVertically(
+                    animationSpec = tween(LocalVLCMotion.current.durationShort, easing = VLCMotion.EmphasizedDecelerate),
+                    initialOffsetY = { it / 4 },
+                ),
+            exit = fadeOut(tween(LocalVLCMotion.current.durationShort)) +
+                slideOutVertically(
+                    animationSpec = tween(LocalVLCMotion.current.durationShort, easing = VLCMotion.EmphasizedAccelerate),
+                    targetOffsetY = { it / 5 },
+                ),
+        ) {
             Surface(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .clip(CircleShape),
+                modifier = Modifier.clip(CircleShape),
                 shape = CircleShape,
                 color = Color.Black.copy(alpha = 0.72f),
                 contentColor = Color.White,
@@ -364,6 +388,7 @@ fun VideoSurfaceWithHud(
 
 @Composable
 fun VideoHudOverlay(
+    visible: Boolean = true,
     title: String,
     subtitle: String,
     playing: Boolean,
@@ -389,22 +414,44 @@ fun VideoHudOverlay(
     onClose: (() -> Unit)?,
 ) {
     val colors = VLCThemeDefaults.colors
+    val motion = LocalVLCMotion.current
+    val shuffleTint by animateColorAsState(
+        targetValue = if (shuffle) colors.primary else Color.White,
+        animationSpec = tween(motion.durationShort, easing = VLCMotion.Emphasized),
+        label = "shuffle-tint",
+    )
+    val repeatTint by animateColorAsState(
+        targetValue = if (repeatMode == RepeatMode.NONE) Color.White else colors.primary,
+        animationSpec = tween(motion.durationShort, easing = VLCMotion.Emphasized),
+        label = "repeat-tint",
+    )
     Box(modifier = Modifier.fillMaxSize()) {
         // Top gradient + title
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.TopCenter)
-                .background(
-                    Brush.verticalGradient(
-                        listOf(Color.Black.copy(alpha = 0.72f), Color.Transparent)
-                    )
-                )
-                // Preserve the edge-to-edge artwork while keeping close/title actions below
-                // status bars and display cutouts on every shared target.
-                .statusBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+        AnimatedVisibility(
+            visible = visible,
+            modifier = Modifier.align(Alignment.TopCenter),
+            enter = fadeIn(tween(motion.durationShort)) + slideInVertically(
+                animationSpec = tween(motion.durationShort, easing = VLCMotion.EmphasizedDecelerate),
+                initialOffsetY = { -it / 3 },
+            ),
+            exit = fadeOut(tween(motion.durationShort)) + slideOutVertically(
+                animationSpec = tween(motion.durationShort, easing = VLCMotion.EmphasizedAccelerate),
+                targetOffsetY = { -it / 4 },
+            ),
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(Color.Black.copy(alpha = 0.72f), Color.Transparent)
+                        )
+                    )
+                    // Preserve the edge-to-edge artwork while keeping close/title actions below
+                    // status bars and display cutouts on every shared target.
+                    .statusBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+            ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -464,24 +511,36 @@ fun VideoHudOverlay(
                         )
                     }
                 }
-                }
+            }
+            }
         }
 
         // Bottom gradient + transport
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .background(
-                    Brush.verticalGradient(
-                        listOf(Color.Transparent, Color.Black.copy(alpha = 0.82f))
-                    )
-                )
-                // The player is intentionally edge-to-edge, but its transport controls are not.
-                // Keep the primary play action clear of gesture and three-button navigation.
-                .navigationBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 16.dp)
+        AnimatedVisibility(
+            visible = visible,
+            modifier = Modifier.align(Alignment.BottomCenter),
+            enter = fadeIn(tween(motion.durationShort)) + slideInVertically(
+                animationSpec = tween(motion.durationShort, easing = VLCMotion.EmphasizedDecelerate),
+                initialOffsetY = { it / 3 },
+            ),
+            exit = fadeOut(tween(motion.durationShort)) + slideOutVertically(
+                animationSpec = tween(motion.durationShort, easing = VLCMotion.EmphasizedAccelerate),
+                targetOffsetY = { it / 4 },
+            ),
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(Color.Transparent, Color.Black.copy(alpha = 0.82f))
+                        )
+                    )
+                    // The player is intentionally edge-to-edge, but its transport controls are not.
+                    // Keep the primary play action clear of gesture and three-button navigation.
+                    .navigationBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 16.dp)
+            ) {
             // Native decoders do not all tolerate a seek for every pixel of a drag. Keep the
             // preview local and issue exactly one seek when the gesture finishes; this makes the
             // Android LibVLC and iOS VLCKit surfaces feel equally direct without flooding them.
@@ -549,7 +608,7 @@ fun VideoHudOverlay(
                     Icon(
                         icon = MaterialSymbols.Filled.Shuffle,
                         contentDescription = stringResource(Res.string.shuffle_play),
-                        tint = if (shuffle) colors.primary else Color.White,
+                        tint = shuffleTint,
                     )
                 }
                 IconButton(onClick = onPrevious) {
@@ -559,25 +618,46 @@ fun VideoHudOverlay(
                         tint = Color.White,
                     )
                 }
+                val playInteractionSource = remember { MutableInteractionSource() }
+                val playPressed by playInteractionSource.collectIsPressedAsState()
+                val playScale by animateFloatAsState(
+                    targetValue = if (playPressed) 0.94f else 1f,
+                    animationSpec = tween(motion.durationShort, easing = VLCMotion.Emphasized),
+                    label = "play-button-scale",
+                )
                 Surface(
                     shape = CircleShape,
                     color = colors.primary,
                     modifier = Modifier
                         .size(64.dp)
+                        .graphicsLayer {
+                            scaleX = playScale
+                            scaleY = playScale
+                        }
                         .clip(CircleShape)
-                        .clickable(onClick = onTogglePlay),
+                        .clickable(
+                            interactionSource = playInteractionSource,
+                            indication = ripple(bounded = true),
+                            onClick = onTogglePlay,
+                        ),
                 ) {
                     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                        Icon(
-                            icon = if (playing) MaterialSymbols.Filled.Pause else MaterialSymbols.Filled.PlayArrow,
-                            contentDescription = if (playing) {
-                                stringResource(Res.string.pause)
-                            } else {
-                                stringResource(Res.string.play)
-                            },
-                            tint = colors.onPrimary,
-                            modifier = Modifier.size(32.dp),
-                        )
+                        Crossfade(
+                            targetState = playing,
+                            animationSpec = tween(motion.durationShort, easing = VLCMotion.Emphasized),
+                            label = "playback-icon",
+                        ) { isPlaying ->
+                            Icon(
+                                icon = if (isPlaying) MaterialSymbols.Filled.Pause else MaterialSymbols.Filled.PlayArrow,
+                                contentDescription = if (isPlaying) {
+                                    stringResource(Res.string.pause)
+                                } else {
+                                    stringResource(Res.string.play)
+                                },
+                                tint = colors.onPrimary,
+                                modifier = Modifier.size(32.dp),
+                            )
+                        }
                     }
                 }
                 IconButton(onClick = onNext) {
@@ -595,9 +675,10 @@ fun VideoHudOverlay(
                             RepeatMode.ALL -> stringResource(Res.string.repeat_all)
                             RepeatMode.ONE -> stringResource(Res.string.repeat_single)
                         },
-                        tint = if (repeatMode == RepeatMode.NONE) Color.White else colors.primary,
+                        tint = repeatTint,
                     )
                 }
+            }
             }
         }
     }

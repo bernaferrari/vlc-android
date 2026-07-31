@@ -1,11 +1,16 @@
 package org.videolan.vlc.compose.app
 
 import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -238,6 +243,61 @@ fun VlcMainShell(
                             easing = VLCMotion.EmphasizedAccelerate,
                         ),
                         targetOffsetX = { fullWidth -> fullWidth },
+                    ),
+                )
+            }
+        }
+        // The player is reached from the persistent mini-player, so it should feel like that
+        // surface is expanding into a full-screen destination rather than another horizontal
+        // page being pushed on top of the library. The short fade keeps the native video surface
+        // from flashing through while the vertical travel preserves that spatial relationship.
+        val playerTransitionMetadata = remember(motion) {
+            NavDisplay.transitionSpec {
+                ContentTransform(
+                    targetContentEnter = slideInVertically(
+                        animationSpec = tween(
+                            durationMillis = if (motion.reducedMotion) 0 else 260,
+                            easing = VLCMotion.EmphasizedDecelerate,
+                        ),
+                        initialOffsetY = { fullHeight -> fullHeight },
+                    ) + fadeIn(
+                        animationSpec = tween(
+                            durationMillis = if (motion.reducedMotion) 0 else 150,
+                            easing = VLCMotion.EmphasizedDecelerate,
+                        ),
+                    ),
+                    initialContentExit = ExitTransition.None,
+                )
+            } + NavDisplay.popTransitionSpec {
+                ContentTransform(
+                    targetContentEnter = EnterTransition.None,
+                    initialContentExit = slideOutVertically(
+                        animationSpec = tween(
+                            durationMillis = if (motion.reducedMotion) 0 else 190,
+                            easing = VLCMotion.EmphasizedAccelerate,
+                        ),
+                        targetOffsetY = { fullHeight -> fullHeight },
+                    ) + fadeOut(
+                        animationSpec = tween(
+                            durationMillis = if (motion.reducedMotion) 0 else 120,
+                            easing = VLCMotion.EmphasizedAccelerate,
+                        ),
+                    ),
+                )
+            } + NavDisplay.predictivePopTransitionSpec { _ ->
+                ContentTransform(
+                    targetContentEnter = EnterTransition.None,
+                    initialContentExit = slideOutVertically(
+                        animationSpec = tween(
+                            durationMillis = if (motion.reducedMotion) 0 else 190,
+                            easing = VLCMotion.EmphasizedAccelerate,
+                        ),
+                        targetOffsetY = { fullHeight -> fullHeight },
+                    ) + fadeOut(
+                        animationSpec = tween(
+                            durationMillis = if (motion.reducedMotion) 0 else 120,
+                            easing = VLCMotion.EmphasizedAccelerate,
+                        ),
                     ),
                 )
             }
@@ -525,7 +585,23 @@ fun VlcMainShell(
                     }
                 },
                 bottomBar = {
-                    if (showBottomBar && !showPlayer && playerState.hasMedia) {
+                    AnimatedVisibility(
+                        visible = showBottomBar && !showPlayer && playerState.hasMedia,
+                        enter = slideInVertically(
+                            animationSpec = tween(
+                                durationMillis = motion.durationShort,
+                                easing = VLCMotion.EmphasizedDecelerate,
+                            ),
+                            initialOffsetY = { height -> height / 2 },
+                        ) + fadeIn(animationSpec = tween(motion.durationShort)),
+                        exit = slideOutVertically(
+                            animationSpec = tween(
+                                durationMillis = motion.durationShort,
+                                easing = VLCMotion.EmphasizedAccelerate,
+                            ),
+                            targetOffsetY = { height -> height / 2 },
+                        ) + fadeOut(animationSpec = tween(motion.durationShort)),
+                    ) {
                         MiniBar(
                             title = playerState.title.ifBlank { ShellStrings.notPlaying() },
                             subtitle = playerState.subtitle,
@@ -664,7 +740,7 @@ fun VlcMainShell(
                             onOpenPlayer = ::openPlayer,
                         )
                     }
-                    entry<PlayerRoute>(metadata = detailTransitionMetadata) {
+                    entry<PlayerRoute>(metadata = playerTransitionMetadata) {
                         PlayerDestination(
                             modifier = Modifier.fillMaxSize(),
                             state = playerState,
