@@ -152,7 +152,9 @@ fun VLCBrowserItemRow(
     badgeContent: @Composable RowScope.() -> Unit = {},
     primaryActionContent: (@Composable () -> Unit)? = null,
     onPrimaryActionClick: () -> Unit = {},
+    primaryActionContentDescription: String? = null,
     moreActionContent: (@Composable () -> Unit)? = null,
+    moreActionContentDescription: String? = null,
     onMoreClick: () -> Unit = {}
 ) {
     val colors = VLCThemeDefaults.colors
@@ -218,10 +220,20 @@ fun VLCBrowserItemRow(
                 content = badgeContent,
             )
             primaryActionContent?.let { content ->
-                IconButton(onClick = onPrimaryActionClick) { content() }
+                IconButton(
+                    onClick = onPrimaryActionClick,
+                    modifier = if (primaryActionContentDescription != null) {
+                        Modifier.semantics { this.contentDescription = primaryActionContentDescription }
+                    } else Modifier,
+                ) { content() }
             }
             moreActionContent?.let { content ->
-                IconButton(onClick = onMoreClick) { content() }
+                IconButton(
+                    onClick = onMoreClick,
+                    modifier = if (moreActionContentDescription != null) {
+                        Modifier.semantics { this.contentDescription = moreActionContentDescription }
+                    } else Modifier,
+                ) { content() }
             }
         }
     }
@@ -252,7 +264,9 @@ fun VLCBrowserItemCard(
     badgeContent: @Composable RowScope.() -> Unit = {},
     primaryActionContent: (@Composable () -> Unit)? = null,
     onPrimaryActionClick: () -> Unit = {},
+    primaryActionContentDescription: String? = null,
     moreActionContent: (@Composable () -> Unit)? = null,
+    moreActionContentDescription: String? = null,
     onMoreClick: () -> Unit = {}
 ) {
     val motion = LocalVLCMotion.current
@@ -298,12 +312,30 @@ fun VLCBrowserItemCard(
                     content = badgeContent
                 )
                 primaryActionContent?.let { content ->
-                    IconButton(onClick = onPrimaryActionClick, modifier = Modifier.size(48.dp)) {
+                    IconButton(
+                        onClick = onPrimaryActionClick,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .then(
+                                if (primaryActionContentDescription != null) {
+                                    Modifier.semantics { this.contentDescription = primaryActionContentDescription }
+                                } else Modifier,
+                            ),
+                    ) {
                         content()
                     }
                 }
                 moreActionContent?.let { content ->
-                    IconButton(onClick = onMoreClick, modifier = Modifier.size(48.dp)) {
+                    IconButton(
+                        onClick = onMoreClick,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .then(
+                                if (moreActionContentDescription != null) {
+                                    Modifier.semantics { this.contentDescription = moreActionContentDescription }
+                                } else Modifier,
+                            ),
+                    ) {
                         content()
                     }
                 }

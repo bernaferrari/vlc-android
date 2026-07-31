@@ -3,6 +3,7 @@ package org.videolan.vlc.compose.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -85,7 +86,8 @@ fun DisplaySettingsSheet(
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = VLCLayout.SheetHorizontalPadding, vertical = 8.dp)
-                .padding(bottom = 28.dp),
+                .navigationBarsPadding()
+                .padding(bottom = 20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Text(
@@ -159,7 +161,12 @@ fun DisplaySettingsSheet(
 
 @Composable
 private fun DisplaySectionTitle(title: String) {
-    Text(title, style = MaterialTheme.typography.titleSmall, color = VLCThemeDefaults.colors.primary)
+    Text(
+        title,
+        style = MaterialTheme.typography.titleSmall,
+        color = VLCThemeDefaults.colors.primary,
+        modifier = Modifier.padding(horizontal = 4.dp),
+    )
 }
 
 @Composable

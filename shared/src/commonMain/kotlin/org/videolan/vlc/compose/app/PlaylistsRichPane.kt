@@ -412,6 +412,7 @@ fun PlaylistsRichPane(
                                 }
                             },
                             moreActionContent = { Icon(MaterialSymbols.Filled.MoreVert, contentDescription = null) },
+                            moreActionContentDescription = ShellStrings.moreOptions(),
                             onMoreClick = { menu = true },
                             primaryActionContent = { Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = ShellStrings.play()) },
                             onPrimaryActionClick = { onPlay(pl) },

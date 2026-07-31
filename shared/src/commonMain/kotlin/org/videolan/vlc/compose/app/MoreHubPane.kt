@@ -206,6 +206,7 @@ internal fun MorePane(
                     } else {
                         null
                     },
+                    moreActionContentDescription = ShellStrings.deleteStream().takeIf { state.hasStreamRepository },
                     onMoreClick = { deleteStreamTarget = stream },
                 )
             }
@@ -319,6 +320,7 @@ internal fun MorePane(
                     moreActionContent = {
                         Icon(MaterialSymbols.Filled.ArrowUpward, contentDescription = ShellStrings.moveUp())
                     },
+                    moreActionContentDescription = ShellStrings.moveUp(),
                     onMoreClick = { vm.moveUp(entry) },
                 )
             }

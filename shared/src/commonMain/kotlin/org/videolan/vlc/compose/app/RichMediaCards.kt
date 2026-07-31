@@ -42,6 +42,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
@@ -355,6 +357,7 @@ fun MediaGridCard(
     Surface(
         modifier = Modifier
             .clip(VLCMediaCardShape)
+            .semantics { this.selected = selected }
             .combinedClickable(onClick = onClick, onLongClick = onLongClick),
         // A media grid repeats this shape many times. The large token still feels expressive
         // without turning dense libraries into a field of oversized pills.

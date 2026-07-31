@@ -991,6 +991,7 @@ private fun MediaListRow(
                 }
             },
             moreActionContent = { Icon(MaterialSymbols.Filled.MoreVert, contentDescription = null) },
+            moreActionContentDescription = ShellStrings.moreOptions(),
             onMoreClick = { menu = true },
         )
         MediaContextMenu(

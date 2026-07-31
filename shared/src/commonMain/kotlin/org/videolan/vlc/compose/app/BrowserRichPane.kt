@@ -299,6 +299,7 @@ private fun BrowserMediaRow(
                 }
             },
             moreActionContent = { Icon(MaterialSymbols.Filled.MoreVert, contentDescription = null) },
+            moreActionContentDescription = ShellStrings.moreOptions(),
             onMoreClick = { menu = true },
         )
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
@@ -352,6 +353,7 @@ internal fun PlaylistTrackRow(
             onClick = { onPlay(item) },
             artworkContent = { MediaArtworkSlot(item) },
             moreActionContent = { Icon(MaterialSymbols.Filled.MoreVert, contentDescription = null) },
+            moreActionContentDescription = ShellStrings.moreOptions(),
             onMoreClick = { menu = true },
         )
         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
