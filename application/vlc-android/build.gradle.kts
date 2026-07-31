@@ -247,6 +247,7 @@ dependencies {
     api(libs.kotlin.reflect)
     api(libs.kotlinx.coroutines.core)
     api(libs.kotlinx.coroutines.android)
+    api(libs.ktor.client.cio)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.compose.animation.graphics)

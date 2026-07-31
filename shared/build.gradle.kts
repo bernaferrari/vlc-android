@@ -109,8 +109,6 @@ kotlin {
             dependsOn(commonMain.get())
             dependencies {
                 api(libs.moshi)
-                api(libs.retrofit)
-                api(libs.retrofit.converter.moshi)
             }
         }
 

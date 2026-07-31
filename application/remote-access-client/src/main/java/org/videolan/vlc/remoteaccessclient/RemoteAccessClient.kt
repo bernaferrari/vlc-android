@@ -1,7 +1,7 @@
 package org.videolan.vlc.remoteaccessclient
 
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 import io.ktor.client.plugins.cookies.HttpCookies
 import io.ktor.client.plugins.defaultRequest
@@ -168,8 +168,9 @@ class RemoteAccessClient(
     }
 
     companion object {
-        fun defaultHttpClient(config: RemoteAccessClientConfig): HttpClient = HttpClient(OkHttp) {
+        fun defaultHttpClient(config: RemoteAccessClientConfig): HttpClient = HttpClient(CIO) {
             expectSuccess = false
+            followRedirects = true
             install(HttpCookies) {
                 storage = AcceptAllCookiesStorage()
             }
@@ -179,23 +180,15 @@ class RemoteAccessClient(
                 }
             }
             engine {
-                config {
-                    followRedirects(true)
-                    // Self-signed certs are common on LAN VLC remote access.
-                    if (config.trustAllCertificates) {
-                        val trustAll = object : javax.net.ssl.X509TrustManager {
-                            override fun checkClientTrusted(chain: Array<java.security.cert.X509Certificate>, authType: String) {}
-                            override fun checkServerTrusted(chain: Array<java.security.cert.X509Certificate>, authType: String) {}
-                            override fun getAcceptedIssuers(): Array<java.security.cert.X509Certificate> = arrayOf()
-                        }
-                        sslSocketFactory(
-                            javax.net.ssl.SSLContext.getInstance("TLS").apply {
-                                init(null, arrayOf<javax.net.ssl.TrustManager>(trustAll), java.security.SecureRandom())
-                            }.socketFactory,
-                            trustAll
-                        )
-                        hostnameVerifier { _, _ -> true }
+                // Self-signed certs are common on LAN VLC remote access. CIO exposes the
+                // trust manager directly through its HTTPS engine configuration.
+                if (config.trustAllCertificates) {
+                    val trustAll = object : javax.net.ssl.X509TrustManager {
+                        override fun checkClientTrusted(chain: Array<java.security.cert.X509Certificate>, authType: String) {}
+                        override fun checkServerTrusted(chain: Array<java.security.cert.X509Certificate>, authType: String) {}
+                        override fun getAcceptedIssuers(): Array<java.security.cert.X509Certificate> = arrayOf()
                     }
+                    https { trustManager = trustAll }
                 }
             }
         }
@@ -215,4 +208,3 @@ data class RemoteAccessClientConfig(
 
 class RemoteAccessClientException(message: String, cause: Throwable? = null) :
     Exception(message, cause)
-

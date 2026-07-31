@@ -55,7 +55,7 @@ tasks.named("preBuild") { dependsOn(webCopy) }
 dependencies {
     api(project(":shared"))
     implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.okhttp)
+    implementation(libs.ktor.client.cio)
     implementation(libs.kotlinx.coroutines.core)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)

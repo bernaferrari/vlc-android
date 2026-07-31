@@ -28,7 +28,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -251,11 +250,27 @@ fun VlcMainShell(
                         ),
                         initialOffsetX = { fullWidth -> fullWidth },
                     ),
-                    initialContentExit = ExitTransition.None,
+                    // Move the previous surface out of the way as the new one enters. Keeping
+                    // the old More page stationary made its large header read as an expanding
+                    // app bar behind Settings, especially while the new opaque surface was
+                    // still entering.
+                    initialContentExit = slideOutHorizontally(
+                        animationSpec = tween(
+                            durationMillis = if (motion.reducedMotion) 0 else 180,
+                            easing = VLCMotion.EmphasizedAccelerate,
+                        ),
+                        targetOffsetX = { fullWidth -> -fullWidth / 3 },
+                    ),
                 )
             } + NavDisplay.popTransitionSpec {
                 ContentTransform(
-                    targetContentEnter = EnterTransition.None,
+                    targetContentEnter = slideInHorizontally(
+                        animationSpec = tween(
+                            durationMillis = if (motion.reducedMotion) 0 else 220,
+                            easing = VLCMotion.EmphasizedDecelerate,
+                        ),
+                        initialOffsetX = { fullWidth -> -fullWidth / 3 },
+                    ),
                     initialContentExit = slideOutHorizontally(
                         animationSpec = tween(
                             durationMillis = if (motion.reducedMotion) 0 else 180,
@@ -866,134 +881,155 @@ private fun MainTab.navigationIcon(selected: Boolean): MaterialIcon =
 internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
     val state by vm.state.collectAsStateWithLifecycle()
     VLCUtilityPane(modifier = modifier) {
-        LazyColumn(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = VLCThemeDefaults.colors.backgroundDefault,
         ) {
-        item {
-            AppearanceSettingsGroup(
-                appearance = state.themeAppearance,
-                accent = state.themeAccent,
-                onAppearanceChange = vm::setThemeAppearance,
-                onAccentChange = vm::setThemeAccent,
-            )
-        }
-        item {
-            SettingsGroup(title = ShellStrings.playback()) {
-                row { ToggleRow(ShellStrings.resumeAudio(), state.audioResume, vm::setAudioResume) }
-                row { ToggleRow(ShellStrings.resumeVideo(), state.videoResume, vm::setVideoResume) }
-                row { PlaybackSpeedStepperRow(
-                    title = ShellStrings.defaultAudioPlaybackSpeed(),
-                    rate = state.defaultAudioPlaybackSpeed,
-                    onChange = vm::setDefaultAudioPlaybackSpeed,
-                ) }
-                row { PlaybackSpeedStepperRow(
-                    title = ShellStrings.defaultVideoPlaybackSpeed(),
-                    rate = state.defaultVideoPlaybackSpeed,
-                    onChange = vm::setDefaultVideoPlaybackSpeed,
-                ) }
-                row { ToggleRow(ShellStrings.playbackHistory(), state.playbackHistory, vm::setPlaybackHistory) }
-                row { ToggleRow(ShellStrings.incognito(), state.incognito, vm::setIncognito) }
-                row { ValueStepperRow(
-                    title = ShellStrings.videoHudTimeout(), value = "${state.videoHudTimeoutSeconds}s",
-                    decreaseEnabled = state.videoHudTimeoutSeconds > 1, increaseEnabled = state.videoHudTimeoutSeconds < 10,
-                    onDecrease = { vm.setVideoHudTimeout(state.videoHudTimeoutSeconds - 1) },
-                    onIncrease = { vm.setVideoHudTimeout(state.videoHudTimeoutSeconds + 1) },
-                ) }
-            }
-        }
-        if (state.appLock.supported) item {
-            SettingsGroup(title = ShellStrings.privacy()) {
-                row {
-                    ToggleRow(
-                        title = ShellStrings.appLock(),
-                        checked = state.appLock.enabled,
-                        onChange = { enabled ->
-                            if (enabled) vm.enableAppLock() else vm.disableAppLock()
-                        },
+            LazyColumn(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                contentPadding = PaddingValues(top = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp),
+            ) {
+                item {
+                    AppearanceSettingsGroup(
+                        appearance = state.themeAppearance,
+                        accent = state.themeAccent,
+                        onAppearanceChange = vm::setThemeAppearance,
+                        onAccentChange = vm::setThemeAccent,
                     )
                 }
-                row {
-                    Text(
-                        ShellStrings.appLockSummary(),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = VLCThemeDefaults.colors.fontLight,
-                        modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
-                    )
-                }
-                if (state.appLock.enabled && state.appLock.biometricsAvailable) {
-                    row {
-                        ToggleRow(
-                            title = ShellStrings.useBiometrics(),
-                            checked = state.appLock.biometricsEnabled,
-                            onChange = vm::setAppLockBiometrics,
-                        )
-                    }
-                    row {
-                        Text(
-                            ShellStrings.useBiometricsSummary(),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = VLCThemeDefaults.colors.fontLight,
-                            modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
-                        )
-                    }
-                }
-            }
-        }
-        item {
-            SettingsGroup(title = ShellStrings.library()) {
-                row { ToggleRow(ShellStrings.videoThumbnails(), state.showVideoThumbs, vm::setShowVideoThumbs) }
-                row { ToggleRow(ShellStrings.showHeaders(), state.showHeaders, vm::setShowHeaders) }
-                row { ToggleRow(ShellStrings.showTrackNumbers(), state.showTrackNumbers, vm::setShowTrackNumbers) }
-            }
-        }
-        item {
-            SettingsGroup(title = ShellStrings.browser()) {
-                row { ToggleRow(ShellStrings.showHiddenFiles(), state.showHiddenFiles, vm::setShowHiddenFiles) }
-                row { ToggleRow(ShellStrings.multimediaFilesOnly(), state.showOnlyMultimedia, vm::setShowOnlyMultimedia) }
-            }
-        }
-        if (state.supportsNetworkBrowsing || state.supportsRemoteAccess) item {
-            val remoteAccessAddress = state.remoteAccessAddress
-            val remoteAccessError = state.remoteAccessError
-            SettingsGroup(title = ShellStrings.network()) {
-                if (state.supportsNetworkBrowsing) {
-                    row { ToggleRow(ShellStrings.browseNetwork(), state.browseNetwork, vm::setBrowseNetwork) }
-                }
-                if (state.supportsRemoteAccess) {
-                    row { ToggleRow(ShellStrings.remoteAccessServer(), state.remoteAccess, vm::setRemoteAccess) }
-                    if (state.remoteAccessStarting || remoteAccessAddress != null || remoteAccessError != null) {
+                item {
+                    SettingsGroup(title = ShellStrings.playback()) {
+                        row { ToggleRow(ShellStrings.resumeAudio(), state.audioResume, vm::setAudioResume) }
+                        row { ToggleRow(ShellStrings.resumeVideo(), state.videoResume, vm::setVideoResume) }
                         row {
-                            when {
-                                state.remoteAccessStarting -> Text(
-                                    ShellStrings.remoteAccessStarting(),
-                                    style = MaterialTheme.typography.bodyMedium,
+                            PlaybackSpeedStepperRow(
+                                title = ShellStrings.defaultAudioPlaybackSpeed(),
+                                rate = state.defaultAudioPlaybackSpeed,
+                                onChange = vm::setDefaultAudioPlaybackSpeed,
+                            )
+                        }
+                        row {
+                            PlaybackSpeedStepperRow(
+                                title = ShellStrings.defaultVideoPlaybackSpeed(),
+                                rate = state.defaultVideoPlaybackSpeed,
+                                onChange = vm::setDefaultVideoPlaybackSpeed,
+                            )
+                        }
+                        row { ToggleRow(ShellStrings.playbackHistory(), state.playbackHistory, vm::setPlaybackHistory) }
+                        row { ToggleRow(ShellStrings.incognito(), state.incognito, vm::setIncognito) }
+                        row {
+                            ValueStepperRow(
+                                title = ShellStrings.videoHudTimeout(),
+                                value = "${state.videoHudTimeoutSeconds}s",
+                                decreaseEnabled = state.videoHudTimeoutSeconds > 1,
+                                increaseEnabled = state.videoHudTimeoutSeconds < 10,
+                                onDecrease = { vm.setVideoHudTimeout(state.videoHudTimeoutSeconds - 1) },
+                                onIncrease = { vm.setVideoHudTimeout(state.videoHudTimeoutSeconds + 1) },
+                            )
+                        }
+                    }
+                }
+                if (state.appLock.supported) {
+                    item {
+                        SettingsGroup(title = ShellStrings.privacy()) {
+                            row {
+                                ToggleRow(
+                                    title = ShellStrings.appLock(),
+                                    checked = state.appLock.enabled,
+                                    onChange = { enabled ->
+                                        if (enabled) vm.enableAppLock() else vm.disableAppLock()
+                                    },
+                                )
+                            }
+                            row {
+                                Text(
+                                    ShellStrings.appLockSummary(),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = VLCThemeDefaults.colors.fontLight,
                                     modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
                                 )
-                                remoteAccessAddress != null -> Column(
-                                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
-                                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                                ) {
-                                    Text(ShellStrings.remoteAccessUploadAddress(), style = MaterialTheme.typography.bodyMedium)
-                                    Text(
-                                        remoteAccessAddress,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = VLCThemeDefaults.colors.primary,
+                            }
+                            if (state.appLock.enabled && state.appLock.biometricsAvailable) {
+                                row {
+                                    ToggleRow(
+                                        title = ShellStrings.useBiometrics(),
+                                        checked = state.appLock.biometricsEnabled,
+                                        onChange = vm::setAppLockBiometrics,
                                     )
                                 }
-                                remoteAccessError != null -> Text(
-                                    remoteAccessError,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.error,
-                                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
-                                )
-                                else -> Unit
+                                row {
+                                    Text(
+                                        ShellStrings.useBiometricsSummary(),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = VLCThemeDefaults.colors.fontLight,
+                                        modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                item {
+                    SettingsGroup(title = ShellStrings.library()) {
+                        row { ToggleRow(ShellStrings.videoThumbnails(), state.showVideoThumbs, vm::setShowVideoThumbs) }
+                        row { ToggleRow(ShellStrings.showHeaders(), state.showHeaders, vm::setShowHeaders) }
+                        row { ToggleRow(ShellStrings.showTrackNumbers(), state.showTrackNumbers, vm::setShowTrackNumbers) }
+                    }
+                }
+                item {
+                    SettingsGroup(title = ShellStrings.browser()) {
+                        row { ToggleRow(ShellStrings.showHiddenFiles(), state.showHiddenFiles, vm::setShowHiddenFiles) }
+                        row { ToggleRow(ShellStrings.multimediaFilesOnly(), state.showOnlyMultimedia, vm::setShowOnlyMultimedia) }
+                    }
+                }
+                if (state.supportsNetworkBrowsing || state.supportsRemoteAccess) {
+                    item {
+                        val remoteAccessAddress = state.remoteAccessAddress
+                        val remoteAccessError = state.remoteAccessError
+                        SettingsGroup(title = ShellStrings.network()) {
+                            if (state.supportsNetworkBrowsing) {
+                                row { ToggleRow(ShellStrings.browseNetwork(), state.browseNetwork, vm::setBrowseNetwork) }
+                            }
+                            if (state.supportsRemoteAccess) {
+                                row { ToggleRow(ShellStrings.remoteAccessServer(), state.remoteAccess, vm::setRemoteAccess) }
+                                if (state.remoteAccessStarting || remoteAccessAddress != null || remoteAccessError != null) {
+                                    row {
+                                        when {
+                                            state.remoteAccessStarting -> Text(
+                                                ShellStrings.remoteAccessStarting(),
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
+                                            )
+                                            remoteAccessAddress != null -> Column(
+                                                modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
+                                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                                            ) {
+                                                Text(
+                                                    ShellStrings.remoteAccessUploadAddress(),
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                )
+                                                Text(
+                                                    remoteAccessAddress,
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = VLCThemeDefaults.colors.primary,
+                                                )
+                                            }
+                                            remoteAccessError != null -> Text(
+                                                remoteAccessError,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = MaterialTheme.colorScheme.error,
+                                                modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
+                                            )
+                                            else -> Unit
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
-        }
         }
     }
 }
@@ -1024,14 +1060,12 @@ private fun AppearanceSettingsGroup(
                 shape = VLCListItemPosition.First.segmentShape(),
                 color = MaterialTheme.colorScheme.surfaceContainerLow,
             ) {
-                FlowRow(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(12.dp)
                         .selectableGroup(),
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
-                    maxItemsInEachRow = 3,
                 ) {
                     val modes = listOf(
                         VLCThemeAppearance.Light to ShellStrings.lightTheme(),
@@ -1077,7 +1111,7 @@ private fun AppearanceSettingsGroup(
 }
 
 @Composable
-private fun AppearanceModeButton(
+private fun RowScope.AppearanceModeButton(
     label: String,
     selected: Boolean,
     position: Int,
@@ -1101,7 +1135,7 @@ private fun AppearanceModeButton(
     }
     Surface(
         modifier = Modifier
-            .widthIn(min = 92.dp)
+            .weight(1f)
             .heightIn(min = 48.dp)
             .selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
         shape = cornerShape,
@@ -1132,7 +1166,7 @@ private fun AppearanceModeButton(
                 text = label,
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.SemiBold,
-                maxLines = 2,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = if (selected) Modifier.padding(start = 6.dp) else Modifier,
             )

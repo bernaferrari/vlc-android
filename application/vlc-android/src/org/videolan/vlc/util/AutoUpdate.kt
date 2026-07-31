@@ -30,13 +30,17 @@ import android.content.Intent
 import android.os.Build
 import android.util.Log
 import android.util.Patterns
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsChannel
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.isSuccess
+import io.ktor.utils.io.jvm.javaio.toInputStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okio.BufferedSink
-import okio.buffer
-import okio.sink
 import org.videolan.tools.KEY_LAST_UPDATE_TIME
 import org.videolan.tools.Settings
 import org.videolan.tools.putSingle
@@ -45,15 +49,21 @@ import org.videolan.vlc.R
 import org.videolan.vlc.getUpdateUri
 import java.io.File
 import java.io.IOException
-import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.concurrent.TimeUnit
 
 
 object AutoUpdate {
     private const val TAG = "AutoUpdate"
+    private val http = HttpClient(CIO) {
+        expectSuccess = false
+        install(HttpTimeout) {
+            requestTimeoutMillis = 10_000
+            connectTimeoutMillis = 5_000
+            socketTimeoutMillis = 10_000
+        }
+    }
 
     /**
      * Checks if an update is available in the nightlies
@@ -95,13 +105,10 @@ object AutoUpdate {
             val localFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
             val webFormat = SimpleDateFormat("yyyyMMdd", Locale.US)
             val buildDate = localFormat.parse(buildTime)
-            val url = URL("http://artifacts.videolan.org/vlc-android/nightly-$abi/")
-            val client = OkHttpClient.Builder().readTimeout(10, TimeUnit.SECONDS).connectTimeout(5, TimeUnit.SECONDS).build()
-
-
-            val request = Request.Builder().url(url).build()
-            client.newCall(request).execute().use { response ->
-                val body = response.body?.string() ?: return@withContext
+            val url = "http://artifacts.videolan.org/vlc-android/nightly-$abi/"
+            val response = http.get(url)
+            if (!response.status.isSuccess()) return@withContext
+            val body = response.bodyAsText()
                 val m = Patterns.WEB_URL.matcher(body)
                 var found = false
                 while (m.find() && !found) {
@@ -123,7 +130,6 @@ object AutoUpdate {
                         e.printStackTrace()
                     }
                 }
-            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -150,15 +156,14 @@ object AutoUpdate {
      * @param url URL of the update
      */
     @Throws(IOException::class)
-    private fun download(context: Application, url: String) {
-        val client = OkHttpClient.Builder().readTimeout(10, TimeUnit.SECONDS).connectTimeout(5, TimeUnit.SECONDS).build()
-        val request = Request.Builder().url(url).build()
-        val response = client.newCall(request).execute()
+    private suspend fun download(context: Application, url: String) {
+        val response: HttpResponse = http.get(url)
+        if (!response.status.isSuccess()) throw IOException("Update download failed: HTTP ${response.status.value}")
 
         val downloadedFile = File(context.cacheDir, "update.apk")
-        val sink: BufferedSink = downloadedFile.sink().buffer()
-        sink.writeAll(response.body!!.source())
-        sink.close()
+        response.bodyAsChannel().toInputStream().use { input ->
+            downloadedFile.outputStream().use { output -> input.copyTo(output) }
+        }
     }
 
     /**
