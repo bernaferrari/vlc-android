@@ -102,6 +102,12 @@ fun interface ShellHostCallbacks {
     fun supportsMediaImport(): Boolean = false
     /** Opens the host's media-import chooser. The permanent trigger stays in the shared shell. */
     fun onImportMedia() = Unit
+    /**
+     * Requests immersive system chrome for the shared video player. Hosts that support it may
+     * hide status/navigation bars while video is visible and reveal them transiently by swipe.
+     * Audio playback and hosts without a system-bar API keep their normal chrome.
+     */
+    fun onPlayerImmersiveModeChanged(enabled: Boolean) = Unit
     /** Opens a native subtitle-only document picker and returns a readable URI. */
     fun supportsSubtitleImport(): Boolean = false
     fun onImportSubtitle(onPicked: (String) -> Unit) = Unit

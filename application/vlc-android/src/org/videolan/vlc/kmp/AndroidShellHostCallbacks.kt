@@ -6,6 +6,9 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -124,6 +127,19 @@ class AndroidShellHostCallbacks(
     )
 
     override fun supportsMediaImport(): Boolean = true
+
+    override fun onPlayerImmersiveModeChanged(enabled: Boolean) {
+        val controller = WindowCompat.getInsetsController(activity.window, activity.window.decorView)
+        if (enabled) {
+            controller.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            controller.hide(WindowInsetsCompat.Type.systemBars())
+        } else {
+            controller.show(WindowInsetsCompat.Type.systemBars())
+            controller.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
+        }
+    }
 
     override fun onImportMedia() {
         runCatching {
