@@ -233,7 +233,6 @@ fun RichMediaListPane(
                 title = ShellStrings.selectionCount(ShellStrings.selected(), state.selection.size),
                 clearContentDescription = ShellStrings.clear(),
                 onClearSelection = onClearSelection,
-                modifier = Modifier.padding(top = 12.dp, bottom = 8.dp),
             ) {
                 IconButton(onClick = onPlaySelection) {
                     Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = ShellStrings.play())
@@ -1127,12 +1126,7 @@ fun BrowserRichPane(
                 title = ShellStrings.selectionCount(ShellStrings.selected(), state.selection.size),
                 clearContentDescription = ShellStrings.clear(),
                 onClearSelection = onClearSelection,
-                modifier = Modifier.padding(
-                    start = VLCLayout.ScreenGutter,
-                    top = 12.dp,
-                    end = VLCLayout.ScreenGutter,
-                    bottom = 8.dp,
-                ),
+                modifier = Modifier.padding(horizontal = VLCLayout.ScreenGutter),
             ) {
                 IconButton(onClick = onPlaySelection) {
                     Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = ShellStrings.play())
@@ -1525,12 +1519,7 @@ fun PlaylistsRichPane(
                 title = ShellStrings.selectionCount(ShellStrings.selected(), state.selection.size),
                 clearContentDescription = ShellStrings.clear(),
                 onClearSelection = onClearSelection,
-                modifier = Modifier.padding(
-                    start = VLCLayout.ScreenGutter,
-                    top = 12.dp,
-                    end = VLCLayout.ScreenGutter,
-                    bottom = 8.dp,
-                ),
+                modifier = Modifier.padding(horizontal = VLCLayout.ScreenGutter),
             ) {
                 IconButton(onClick = { confirmDeleteSelection = true }) {
                     Icon(MaterialSymbols.Filled.Delete, contentDescription = ShellStrings.delete())
