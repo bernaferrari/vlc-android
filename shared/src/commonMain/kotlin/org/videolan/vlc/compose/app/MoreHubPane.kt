@@ -36,7 +36,6 @@ import org.videolan.vlc.compose.components.VLCListItemPosition
 import org.videolan.vlc.compose.components.VLCNavigationRow
 import org.videolan.vlc.compose.components.VLCPageHeader
 import org.videolan.vlc.compose.components.VLCSelectionContextBar
-import org.videolan.vlc.compose.components.segmentShape
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
@@ -467,20 +466,18 @@ private fun MoreEmptySection(
     text: String,
     symbol: MaterialIcon,
 ) {
-    Surface(
-        shape = VLCListItemPosition.Single.segmentShape(),
-        color = MaterialTheme.colorScheme.surfaceContainerLowest,
-    ) {
-        VLCEmptyState(
-            loading = false,
-            text = text,
-            symbol = symbol,
-            compact = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 160.dp),
-        )
-    }
+    // QuietGuard keeps empty sections as centered states, not low-contrast cards inside the page.
+    // The old wrapper added a second surface and pinned the message visually to the section
+    // header instead of sharing the page's empty-state rhythm.
+    VLCEmptyState(
+        loading = false,
+        text = text,
+        symbol = symbol,
+        compact = true,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 180.dp),
+    )
 }
 
 @Composable

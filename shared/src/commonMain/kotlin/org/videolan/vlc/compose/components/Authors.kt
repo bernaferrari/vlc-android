@@ -94,7 +94,8 @@ fun VLCAuthorsScreen(
                     Text(
                         text = title,
                         color = colors.fontDefault,
-                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.padding(end = 16.dp)
                     )
                 }

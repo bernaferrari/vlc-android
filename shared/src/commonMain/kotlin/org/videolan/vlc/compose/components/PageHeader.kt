@@ -61,7 +61,8 @@ fun VLCPageHeader(
             // Keep every destination on the same M3 top-app-bar title scale. The old headline
             // styles made root pages noticeably taller/louder than Settings and detail routes.
             style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
+            // QuietGuard keeps destination chrome semibold; reserve bold for content hierarchy.
+            fontWeight = FontWeight.SemiBold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )

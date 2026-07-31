@@ -244,57 +244,43 @@ private fun AppearanceSettingsGroup(
             color = VLCThemeDefaults.colors.primary,
             modifier = Modifier.padding(horizontal = 16.dp),
         )
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = VLCListItemPosition.First.segmentShape(),
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp)
-                        .selectableGroup(),
-                    horizontalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    val modes = listOf(
-                        VLCThemeAppearance.Light to ShellStrings.lightTheme(),
-                        VLCThemeAppearance.Dark to ShellStrings.darkTheme(),
-                        VLCThemeAppearance.System to ShellStrings.systemTheme(),
-                    )
-                    modes.forEachIndexed { index, (mode, label) ->
-                        AppearanceModeButton(
-                            label = label,
-                            selected = appearance == mode,
-                            position = index,
-                            lastPosition = modes.lastIndex,
-                            onClick = { onAppearanceChange(mode) },
-                        )
-                    }
-                }
+        val modes = listOf(
+            VLCThemeAppearance.Light to ShellStrings.lightTheme(),
+            VLCThemeAppearance.Dark to ShellStrings.darkTheme(),
+            VLCThemeAppearance.System to ShellStrings.systemTheme(),
+        )
+        // The choices are the group. An additional rounded container around them created a
+        // card-inside-card effect that QuietGuard deliberately avoids.
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .selectableGroup(),
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            modes.forEachIndexed { index, (mode, label) ->
+                AppearanceModeButton(
+                    label = label,
+                    selected = appearance == mode,
+                    position = index,
+                    lastPosition = modes.lastIndex,
+                    onClick = { onAppearanceChange(mode) },
+                )
             }
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = VLCListItemPosition.Last.segmentShape(),
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-            ) {
-                FlowRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 10.dp)
-                        .selectableGroup(),
-                    horizontalArrangement = Arrangement.spacedBy(0.dp, Alignment.CenterHorizontally),
-                    verticalArrangement = Arrangement.spacedBy(0.dp),
-                    maxItemsInEachRow = 6,
-                ) {
-                    availableVLCThemeAccents().forEach { option ->
-                        ThemeAccentSwatch(
-                            accent = option,
-                            selected = option == accent,
-                            onClick = { onAccentChange(option) },
-                        )
-                    }
-                }
+        }
+        FlowRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .selectableGroup(),
+            horizontalArrangement = Arrangement.spacedBy(0.dp, Alignment.CenterHorizontally),
+            verticalArrangement = Arrangement.spacedBy(0.dp),
+            maxItemsInEachRow = 6,
+        ) {
+            availableVLCThemeAccents().forEach { option ->
+                ThemeAccentSwatch(
+                    accent = option,
+                    selected = option == accent,
+                    onClick = { onAccentChange(option) },
+                )
             }
         }
     }

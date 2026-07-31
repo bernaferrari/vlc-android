@@ -127,7 +127,8 @@ fun VLCAboutScreen(
                         Text(
                             text = title,
                             color = colors.fontDefault,
-                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.padding(end = 16.dp)

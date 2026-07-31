@@ -114,7 +114,8 @@ fun VLCLibrariesScreen(
                     Text(
                         text = title,
                         color = colors.fontDefault,
-                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(end = 16.dp)
@@ -201,7 +202,7 @@ private fun LibraryLicenseRow(
                 Text(
                     text = library.title,
                     color = colors.fontDefault,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )

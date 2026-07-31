@@ -361,15 +361,16 @@ val VLCTypography = Typography(
         fontWeight = FontWeight.SemiBold,
         fontSize = 24.sp,
         lineHeight = 32.sp),
-    // Largest title keeps VLC's signature black weight for brand continuity.
+    // Keep the app chrome close to QuietGuard's M3 hierarchy: titleLarge is a strong
+    // destination label, not a display face. Brand weight belongs to the VLC logo/hero card.
     titleLarge = TextStyle(
         fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.Black,
+        fontWeight = FontWeight.SemiBold,
         fontSize = 22.sp,
         lineHeight = 28.sp),
     titleMedium = TextStyle(
         fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.SemiBold,
+        fontWeight = FontWeight.Medium,
         fontSize = 16.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.15.sp),
