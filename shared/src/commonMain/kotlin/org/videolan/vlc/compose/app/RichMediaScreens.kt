@@ -35,6 +35,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.IconButton
@@ -279,6 +280,18 @@ fun RichMediaListPane(
                         expanded = showLibraryMenu,
                         onDismissRequest = { showLibraryMenu = false },
                     ) {
+                            if (emptyActionText != null) {
+                                DropdownMenuItem(
+                                    text = { Text(emptyActionText) },
+                                    leadingIcon = {
+                                        Icon(MaterialSymbols.Filled.Add, contentDescription = null)
+                                    },
+                                    onClick = {
+                                        showLibraryMenu = false
+                                        onEmptyAction()
+                                    },
+                                )
+                            }
                             DropdownMenuItem(
                                 text = { Text(ShellStrings.playAll()) },
                                 leadingIcon = {
@@ -412,18 +425,26 @@ fun RichMediaListPane(
         LaunchedEffect(isSearchOpen) {
             if (isSearchOpen) searchFocusRequester.requestFocus()
         }
-
-        if (state.loading && !useEmptyPresentation) {
-            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        HandleShellBackPress(enabled = isSearchOpen) {
+            isSearchOpen = false
+            onQuery("")
+            focusManager.clearFocus()
         }
-        state.error?.let { error ->
-            RetryMessage(error = error, onRetry = onRetry)
+
+        when {
+            state.error != null ->
+                RetryMessage(error = state.error, onRetry = onRetry)
+            state.loading && !useEmptyPresentation ->
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
         }
 
             }
         }
 
         when {
+            state.error != null || (state.loading && !useEmptyPresentation) -> {
+                Box(modifier = Modifier.fillMaxWidth().weight(1f))
+            }
             useEmptyPresentation -> {
                 VLCEmptyState(
                     loading = state.loading,
@@ -599,7 +620,11 @@ private fun PagedMediaBody(
         val listState = rememberLazyListState()
         val indexTargets = buildList {
             repeat(lazyPagingItems.itemCount) { index ->
-                lazyPagingItems.peek(index)?.let { add(VLCIndexScrollTarget(index, it.displayTitle)) }
+                lazyPagingItems.peek(index)?.let { item ->
+                    mediaFastScrollLabelSource(item, state.sortMode)?.let { label ->
+                        add(VLCIndexScrollTarget(index, label))
+                    }
+                }
             }
         }
         val hasFastScroller = indexTargets.size >= 24
@@ -659,16 +684,34 @@ private fun PagedMediaBody(
 }
 
 /** Positions alphabetic targets after any visible section headers in [SnapshotMediaBody]. */
-internal fun mediaIndexScrollTargets(sections: List<Pair<String, List<MediaItem>>>): List<VLCIndexScrollTarget> {
+internal fun mediaIndexScrollTargets(
+    sections: List<Pair<String, List<MediaItem>>>,
+    sortMode: SortMode = SortMode.TITLE,
+): List<VLCIndexScrollTarget> {
     var lazyIndex = 0
     return buildList {
         sections.forEach { (section, items) ->
             if (section.isNotBlank()) lazyIndex++
             items.forEach { item ->
-                add(VLCIndexScrollTarget(itemIndex = lazyIndex++, labelSource = item.displayTitle))
+                val labelSource = mediaFastScrollLabelSource(item, sortMode)
+                if (labelSource != null) {
+                    add(VLCIndexScrollTarget(itemIndex = lazyIndex, labelSource = labelSource))
+                }
+                lazyIndex++
             }
         }
     }
+}
+
+/** Uses the field that actually controls list order; non-alphabetic sorts do not show an A–Z index. */
+internal fun mediaFastScrollLabelSource(item: MediaItem, sortMode: SortMode): String? = when (sortMode) {
+    SortMode.TITLE -> item.displayTitle
+    SortMode.FILENAME -> item.fileName ?: item.displayTitle
+    SortMode.ARTIST -> item.artist.orEmpty()
+    SortMode.ALBUM -> item.album.orEmpty()
+    SortMode.DURATION,
+    SortMode.RECENT,
+    -> null
 }
 
 internal fun sectionListItemPosition(index: Int, size: Int): VLCListItemPosition = when {
@@ -757,7 +800,9 @@ private fun SnapshotMediaBody(
         }
     } else {
         val listState = rememberLazyListState()
-        val indexTargets = remember(displaySections) { mediaIndexScrollTargets(displaySections) }
+        val indexTargets = remember(displaySections, state.sortMode) {
+            mediaIndexScrollTargets(displaySections, state.sortMode)
+        }
         val hasFastScroller = indexTargets.size >= 24
         Box(modifier = modifier) {
             LazyColumn(
@@ -1125,22 +1170,26 @@ fun BrowserRichPane(
                 onShowOnlyMultimedia = onShowOnlyMultimedia,
             )
         }
-        if (state.loading) LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-        state.error?.let { error ->
-            RetryMessage(error = error, onRetry = onRetry)
-        }
         val isEmpty = state.folders.isEmpty() &&
             state.media.isEmpty() &&
             state.favorites.isEmpty() &&
             state.networkRoots.isEmpty()
-        if (!state.loading && isEmpty) {
-            VLCEmptyState(
-                loading = false,
-                text = ShellStrings.nothingHere(),
-                modifier = Modifier.fillMaxWidth().weight(1f),
-                symbol = emptySymbol,
-            )
-        } else LazyColumn(
+        when {
+            state.error != null -> {
+                RetryMessage(error = state.error, onRetry = onRetry)
+                Box(modifier = Modifier.fillMaxWidth().weight(1f))
+            }
+            state.loading -> {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                Box(modifier = Modifier.fillMaxWidth().weight(1f))
+            }
+            isEmpty -> VLCEmptyState(
+                    loading = false,
+                    text = ShellStrings.nothingHere(),
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    symbol = emptySymbol,
+                )
+            else -> LazyColumn(
             contentPadding = PaddingValues(
                 start = VLCLayout.ScreenGutter,
                 end = VLCLayout.ScreenGutter,
@@ -1150,7 +1199,7 @@ fun BrowserRichPane(
             // vertical pile of independent cards. Section labels create the intentional gaps.
             verticalArrangement = Arrangement.spacedBy(2.dp),
             modifier = Modifier.fillMaxWidth().weight(1f),
-        ) {
+            ) {
             if (atRoot && state.favorites.isNotEmpty()) {
                 item {
                     Text(
@@ -1245,6 +1294,7 @@ fun BrowserRichPane(
                     onAppend = onAppend,
                     onToggleSelect = onToggleSelect,
                 )
+            }
             }
         }
     }
@@ -1375,12 +1425,16 @@ fun PlaylistsRichPane(
     emptySymbol: MaterialIcon = MaterialSymbols.Filled.QueueMusic,
     modifier: Modifier = Modifier,
     onRetry: () -> Unit = {},
+    onClearActionError: () -> Unit = {},
 ) {
     var newName by remember { mutableStateOf("") }
     var showCreateSheet by remember { mutableStateOf(false) }
     var showPlaylistOptionsMenu by remember { mutableStateOf(false) }
     var renameTarget by remember { mutableStateOf<PlaylistInfo?>(null) }
     var renameText by remember { mutableStateOf("") }
+    var deletePlaylistTarget by remember { mutableStateOf<PlaylistInfo?>(null) }
+    var confirmDeleteSelection by remember { mutableStateOf(false) }
+    var confirmRemoveTrackIndex by remember { mutableStateOf<Int?>(null) }
     val playlists = state.playlists
     val loading = state.loading
     val detailItems = state.openItems
@@ -1395,6 +1449,9 @@ fun PlaylistsRichPane(
                 onNavigate = onBack,
                 compact = true,
             )
+            state.actionError?.let { error ->
+                PlaylistActionError(error = error, onClear = onClearActionError)
+            }
             if (detailItems.isEmpty()) {
                 VLCEmptyState(
                     loading = false,
@@ -1417,12 +1474,30 @@ fun PlaylistsRichPane(
                             item = item,
                             position = sectionListItemPosition(index, detailItems.size),
                             onPlay = onPlayItem,
-                            onRemove = { onRemoveTrack(index) },
+                            onRemove = { confirmRemoveTrackIndex = index },
                             onMoveUp = { onMoveTrackUp(index) },
                             onMoveDown = { onMoveTrackDown(index) },
                         )
                     }
                 }
+            }
+            confirmRemoveTrackIndex?.let { index ->
+                AlertDialog(
+                    onDismissRequest = { confirmRemoveTrackIndex = null },
+                    title = { Text(ShellStrings.remove()) },
+                    text = { Text(ShellStrings.confirmDeleteMessage()) },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            onRemoveTrack(index)
+                            confirmRemoveTrackIndex = null
+                        }) { Text(ShellStrings.remove()) }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { confirmRemoveTrackIndex = null }) {
+                            Text(ShellStrings.cancel())
+                        }
+                    },
+                )
             }
             return
         }
@@ -1439,7 +1514,7 @@ fun PlaylistsRichPane(
                     bottom = 8.dp,
                 ),
             ) {
-                IconButton(onClick = onDeleteSelection) {
+                IconButton(onClick = { confirmDeleteSelection = true }) {
                     Icon(MaterialSymbols.Filled.Delete, contentDescription = ShellStrings.delete())
                 }
             }
@@ -1530,25 +1605,32 @@ fun PlaylistsRichPane(
             }
         }
 
-        if (loading) {
-            LinearProgressIndicator(
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-            )
-        }
-        state.error?.let { error ->
-            RetryMessage(error = error, onRetry = onRetry)
+        state.actionError?.let { error ->
+            PlaylistActionError(error = error, onClear = onClearActionError)
         }
 
-        if (!loading && playlists.isEmpty()) {
+        when {
+            state.error != null -> {
+                RetryMessage(error = state.error, onRetry = onRetry)
+                Box(modifier = Modifier.fillMaxWidth().weight(1f))
+            }
+            loading -> {
+                LinearProgressIndicator(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                )
+                Box(modifier = Modifier.fillMaxWidth().weight(1f))
+            }
+            playlists.isEmpty() -> {
             // This is a full library state, not a row in an otherwise scrollable list. Give it
             // the complete remaining pane so it is visually centred beneath the controls.
-            VLCEmptyState(
-                loading = false,
-                text = ShellStrings.noPlaylists(),
-                modifier = Modifier.fillMaxWidth().weight(1f),
-                symbol = emptySymbol,
-            )
-        } else if (state.viewMode == ViewMode.GRID) {
+                VLCEmptyState(
+                    loading = false,
+                    text = ShellStrings.noPlaylists(),
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    symbol = emptySymbol,
+                )
+            }
+            state.viewMode == ViewMode.GRID -> {
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(minSize = 140.dp),
                 contentPadding = PaddingValues(
@@ -1574,11 +1656,12 @@ fun PlaylistsRichPane(
                             renameTarget = pl
                             renameText = pl.name
                         },
-                        onDelete = { onDelete(pl.id) },
+                        onDelete = { deletePlaylistTarget = pl },
                     )
                 }
             }
-        } else {
+            }
+            else -> {
             LazyColumn(
                 contentPadding = PaddingValues(
                     start = VLCLayout.ScreenGutter,
@@ -1642,11 +1725,13 @@ fun PlaylistsRichPane(
                                 },
                             )
                             DropdownMenuItem(text = { Text(ShellStrings.delete()) }, onClick = {
-                                menu = false; onDelete(pl.id)
+                                menu = false
+                                deletePlaylistTarget = pl
                             })
                         }
                     }
                 }
+            }
             }
         }
     }
@@ -1685,6 +1770,54 @@ fun PlaylistsRichPane(
                     ) { Text(ShellStrings.addPlaylist()) }
                 }
             }
+        }
+    }
+    if (deletePlaylistTarget != null || confirmDeleteSelection) {
+        val deletingSelection = confirmDeleteSelection
+        AlertDialog(
+            onDismissRequest = {
+                deletePlaylistTarget = null
+                confirmDeleteSelection = false
+            },
+            title = { Text(ShellStrings.delete()) },
+            text = { Text(ShellStrings.confirmDeleteMessage()) },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (deletingSelection) {
+                        onDeleteSelection()
+                    } else {
+                        deletePlaylistTarget?.let { onDelete(it.id) }
+                    }
+                    deletePlaylistTarget = null
+                    confirmDeleteSelection = false
+                }) { Text(ShellStrings.delete()) }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    deletePlaylistTarget = null
+                    confirmDeleteSelection = false
+                }) { Text(ShellStrings.cancel()) }
+            },
+        )
+    }
+}
+
+@Composable
+private fun PlaylistActionError(error: String, onClear: () -> Unit) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = VLCLayout.ScreenGutter, vertical = 4.dp),
+        color = MaterialTheme.colorScheme.errorContainer,
+        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+        shape = MaterialTheme.shapes.large,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(error, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+            TextButton(onClick = onClear) { Text(ShellStrings.clear()) }
         }
     }
 }

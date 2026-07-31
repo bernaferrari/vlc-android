@@ -114,6 +114,7 @@ data class PlaylistsUiState(
     val selection: Set<Long> = emptySet(),
     val viewMode: ViewMode = ViewMode.LIST,
     val defaultPlaybackAction: String = DefaultPlaybackAction.PLAY.name,
+    val actionError: String? = null,
 )
 
 private fun mediaRepo() = runCatching { VlcKoin.get().get<MediaRepository>() }
@@ -246,6 +247,18 @@ internal fun applyDefaultPlayback(
         DefaultPlaybackAction.ADD_TO_QUEUE -> player.append(listOf(item))
         DefaultPlaybackAction.INSERT_NEXT -> player.insertNext(listOf(item))
     }
+}
+
+/** Primary queue-only actions mutate playback state without opening the full player route. */
+internal fun defaultPlaybackActionOpensPlayer(name: String?): Boolean = when (
+    DefaultPlaybackAction.fromName(name)
+) {
+    DefaultPlaybackAction.PLAY,
+    DefaultPlaybackAction.PLAY_ALL,
+    -> true
+    DefaultPlaybackAction.ADD_TO_QUEUE,
+    DefaultPlaybackAction.INSERT_NEXT,
+    -> false
 }
 
 private fun isUriBrowseTarget(folder: MediaFolder): Boolean {
@@ -1751,9 +1764,13 @@ class PlaylistsViewModel(
     fun removeTrackAt(index: Int) = launchIo {
         val playlistId = _state.value.openPlaylistId ?: return@launchIo
         if (index !in _state.value.openItems.indices) return@launchIo
-        runCatching { repo.removeFromPlaylistAt(playlistId, index) }
+        val removal = runCatching { repo.removeFromPlaylistAt(playlistId, index) }
+        if (removal.isFailure) {
+            _state.update { it.copy(actionError = removal.exceptionOrNull().playlistActionMessage("remove track")) }
+            return@launchIo
+        }
         val pl = runCatching { repo.getPlaylist(playlistId) }.getOrNull()
-        _state.update { it.copy(openItems = pl?.items.orEmpty()) }
+        _state.update { it.copy(openItems = pl?.items.orEmpty(), actionError = null) }
     }
 
     fun moveTrack(fromIndex: Int, toIndex: Int) = launchIo {
@@ -1792,6 +1809,10 @@ class PlaylistsViewModel(
 
     fun delete(id: Long) = launchIo {
         runCatching { repo.deletePlaylist(id) }
+            .onSuccess { _state.update { state -> state.copy(actionError = null) } }
+            .onFailure { error ->
+                _state.update { state -> state.copy(actionError = error.playlistActionMessage("delete playlist")) }
+            }
     }
 
     fun rename(id: Long, name: String) = launchIo {
@@ -1817,7 +1838,17 @@ class PlaylistsViewModel(
 
     fun deleteSelection() = launchIo {
         val ids = _state.value.selection.toList()
-        ids.forEach { id -> runCatching { repo.deletePlaylist(id) } }
-        _state.update { it.copy(selection = emptySet()) }
+        val failed = ids.filter { id -> runCatching { repo.deletePlaylist(id) }.isFailure }
+        _state.update {
+            it.copy(
+                selection = failed.toSet(),
+                actionError = if (failed.isEmpty()) null else "Couldn’t delete ${failed.size} playlist(s). Try again.",
+            )
+        }
     }
+
+    fun clearActionError() = _state.update { it.copy(actionError = null) }
 }
+
+private fun Throwable?.playlistActionMessage(action: String): String =
+    this?.message?.takeIf { it.isNotBlank() } ?: "Couldn’t $action. Try again."

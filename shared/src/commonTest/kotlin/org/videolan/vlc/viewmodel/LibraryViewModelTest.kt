@@ -79,6 +79,14 @@ class LibraryViewModelTest {
     }
 
     @Test
+    fun queueOnlyDefaultActionsDoNotOpenTheFullPlayer() {
+        assertTrue(defaultPlaybackActionOpensPlayer("PLAY"))
+        assertTrue(defaultPlaybackActionOpensPlayer("PLAY_ALL"))
+        kotlin.test.assertFalse(defaultPlaybackActionOpensPlayer("ADD_TO_QUEUE"))
+        kotlin.test.assertFalse(defaultPlaybackActionOpensPlayer("INSERT_NEXT"))
+    }
+
+    @Test
     fun rescanIsExposedOnlyWhenTheNativeRepositorySupportsIt() = runTest {
         val media = FakeMediaRepository(rescannable = true)
         val vm = LibraryViewModel(media, FakePlaybackService())

@@ -97,6 +97,28 @@ class MoreHubViewModelTest {
         viewModel.onCleared()
     }
 
+    @Test
+    fun destructiveStreamFailuresAreExposedAndDismissible() = runTest {
+        val streams = ToggleStreamRepository().apply {
+            fail = false
+            failDelete = true
+        }
+        val viewModel = MoreHubViewModel(
+            history = ToggleHistoryRepository().apply { fail = false },
+            media = StubMediaRepository(),
+            streamsRepo = streams,
+            player = PlaybackController(service = FakePlaybackService()),
+        )
+
+        viewModel.deleteStream(streams.item.id)
+        val failed = viewModel.state.first { it.streamActionError != null }
+        assertNotNull(failed.streamActionError)
+
+        viewModel.clearStreamActionError()
+        assertNull(viewModel.state.value.streamActionError)
+        viewModel.onCleared()
+    }
+
     private class ToggleHistoryRepository : HistoryRepository {
         var fail = true
         val entry = HistoryEntry(MediaItem(id = 1L, title = "Recent", uri = "file:///recent.mp3"))
@@ -113,6 +135,7 @@ class MoreHubViewModelTest {
 
     private class ToggleStreamRepository : StreamRepository {
         var fail = true
+        var failDelete = false
         val item = MediaItem(id = 2L, title = "Radio", uri = "https://example.invalid/radio")
 
         override fun observeStreams(): Flow<List<MediaItem>> = flow {
@@ -122,6 +145,8 @@ class MoreHubViewModelTest {
 
         override suspend fun addStream(title: String, uri: String): MediaItem? = null
         override suspend fun renameStream(id: Long, title: String) = Unit
-        override suspend fun deleteStream(id: Long) = Unit
+        override suspend fun deleteStream(id: Long) {
+            if (failDelete) error("delete stream failed")
+        }
     }
 }

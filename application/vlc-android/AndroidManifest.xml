@@ -58,6 +58,9 @@
     <uses-feature
         android:name="android.hardware.bluetooth"
         android:required="false"/>
+    <uses-feature
+        android:name="android.software.picture_in_picture"
+        android:required="false"/>
 
     <queries>
         <intent>
@@ -968,9 +971,12 @@
         </activity>
         <activity
             android:name=".gui.MainActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|uiMode|keyboard|keyboardHidden|navigation"
             android:icon="@drawable/icon"
             android:label="@string/app_name"
             android:launchMode="singleTask"
+            android:resizeableActivity="true"
+            android:supportsPictureInPicture="true"
             android:theme="@style/Theme.VLC"
             android:windowSoftInputMode="adjustPan">
             <meta-data
@@ -989,6 +995,9 @@
             android:exported="false" />
         <activity
             android:name=".gui.SharedAppActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|uiMode|keyboard|keyboardHidden|navigation"
+            android:resizeableActivity="true"
+            android:supportsPictureInPicture="true"
             android:theme="@style/Theme.VLC"/>
         <activity
             android:name=".gui.HeaderMediaListActivity"

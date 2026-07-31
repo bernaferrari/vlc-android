@@ -22,6 +22,14 @@ done
 
 cd "$ROOT"
 
+echo "==> Compiling VLC Web/Wasm tests"
+./gradlew :shared:compileTestDevelopmentExecutableKotlinWasmJs \
+  --no-daemon \
+  --parallel \
+  --build-cache \
+  --configuration-cache \
+  --console=plain
+
 echo "==> Building VLC Web/Wasm distribution"
 ./gradlew :webApp:wasmJsBrowserDistribution \
   --no-daemon \

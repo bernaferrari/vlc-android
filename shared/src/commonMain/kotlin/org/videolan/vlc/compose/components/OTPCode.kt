@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -55,51 +57,49 @@ fun VLCOTPCodeScreen(
             modifier = modifier.fillMaxSize(),
             color = colors.backgroundDefault
         ) {
-            Box(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp, vertical = 16.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = title,
-                        color = colors.fontDefault,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Medium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                Text(
+                    text = title,
+                    color = colors.fontDefault,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Medium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                )
 
-                    Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(8.dp))
 
-                    Text(
-                        text = subtitle,
-                        color = colors.fontLight,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
+                Text(
+                    text = subtitle,
+                    color = colors.fontLight,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+
+                Spacer(Modifier.height(32.dp))
 
                 OTPDigits(
                     code = code.orEmpty(),
                     digitColor = colors.primary,
                     tileColor = colors.backgroundDefaultDarker,
-                    modifier = Modifier.align(Alignment.Center)
+                    modifier = Modifier.fillMaxWidth(),
                 )
+
+                Spacer(Modifier.height(32.dp))
 
                 OutlinedButton(
                     onClick = onCancel,
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = colors.primary
+                        contentColor = colors.primary,
                     ),
-                    modifier = Modifier.align(Alignment.BottomCenter)
                 ) {
                     Text(text = cancelText)
                 }

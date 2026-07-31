@@ -2,6 +2,7 @@ package org.videolan.vlc.compose.components
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -27,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCLayout
+import org.videolan.vlc.compose.theme.LocalVLCMotion
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
 /**
@@ -47,9 +49,10 @@ fun VLCNavigationRow(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
+    val motion = LocalVLCMotion.current
     val pressScale by animateFloatAsState(
         targetValue = if (pressed) 0.97f else 1f,
-        animationSpec = spring(stiffness = 700f, dampingRatio = 0.82f),
+        animationSpec = if (motion.reducedMotion) snap() else spring(stiffness = 700f, dampingRatio = 0.82f),
         label = "navigationRowPressScale",
     )
     val colors = VLCThemeDefaults.colors

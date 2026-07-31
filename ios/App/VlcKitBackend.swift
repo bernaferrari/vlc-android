@@ -184,7 +184,8 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     }
 
     func setRate(rate: Float) {
-        configuredRate = min(4, max(0.25, rate))
+        // Match the shared PlaybackRate contract and the Compose preset surface (0.25×…8×).
+        configuredRate = min(8, max(0.25, rate))
 #if canImport(VLCKit)
         player?.rate = configuredRate
         publishNowPlayingInfo()
@@ -771,7 +772,7 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
             self.seekTo(positionMs: Int64(event.positionTime * 1_000))
             return .success
         }
-        center.changePlaybackRateCommand.supportedPlaybackRates = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]
+        center.changePlaybackRateCommand.supportedPlaybackRates = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 4, 8]
         center.changePlaybackRateCommand.addTarget { [weak self] event in
             guard let self, let event = event as? MPChangePlaybackRateCommandEvent else { return .commandFailed }
             self.setRate(rate: event.playbackRate)

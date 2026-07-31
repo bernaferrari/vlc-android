@@ -57,6 +57,24 @@ class PlaybackControllerTest {
     }
 
     @Test
+    fun historyFollowsAuthoritativeQueueTransitionsAndDeduplicatesResume() = runTest {
+        val history = RecordingHistoryRepository()
+        val service = FakePlaybackService()
+        val controller = PlaybackController(service = service, history = history)
+        val first = FakeCatalog.items.first()
+        val second = FakeCatalog.items[1]
+
+        controller.playFromIndex(listOf(first, second), 0)
+        controller.pause()
+        controller.resume()
+        controller.next()
+        controller.pause()
+        controller.resume()
+
+        assertEquals(listOf(first.id, second.id), history.playedIds)
+    }
+
+    @Test
     fun incognitoPlaybackNeverTouchesSharedHistory() = runTest {
         val history = RecordingHistoryRepository()
         val controller = PlaybackController(

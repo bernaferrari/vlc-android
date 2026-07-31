@@ -9,8 +9,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import org.videolan.vlc.compose.components.VLCAuthorsScreen
+import org.videolan.vlc.compose.components.VLCEmptyState
 import org.videolan.vlc.compose.components.VLCLibrariesScreen
 import org.videolan.vlc.compose.components.VLCLibraryLicense
+import org.videolan.vlc.compose.icons.MaterialSymbols
 
 /** About details remain in the same Nav3 stack on Android, iOS, and Wasm. */
 @Composable
@@ -23,16 +25,30 @@ internal fun AboutLibrariesDestination(
         libraries = hostCallbacks.loadAboutLibraries()
     }
     VLCUtilityPane(modifier = modifier) {
-        VLCLibrariesScreen(
-            title = ShellStrings.libraries(),
-            libraries = libraries.orEmpty(),
-            closeContentDescription = ShellStrings.back(),
-            openLinkContentDescription = ShellStrings.openInBrowser(),
-            onClose = {},
-            onOpenLicenseLink = hostCallbacks::onOpenExternalUrl,
-            showHeader = false,
-            modifier = Modifier.fillMaxSize(),
-        )
+        when {
+            libraries == null -> VLCEmptyState(
+                loading = true,
+                text = "",
+                symbol = MaterialSymbols.Filled.Code,
+                modifier = Modifier.fillMaxSize(),
+            )
+            libraries.orEmpty().isEmpty() -> VLCEmptyState(
+                loading = false,
+                text = ShellStrings.nothingHere(),
+                symbol = MaterialSymbols.Filled.Code,
+                modifier = Modifier.fillMaxSize(),
+            )
+            else -> VLCLibrariesScreen(
+                title = ShellStrings.libraries(),
+                libraries = libraries.orEmpty(),
+                closeContentDescription = ShellStrings.back(),
+                openLinkContentDescription = ShellStrings.openInBrowser(),
+                onClose = {},
+                onOpenLicenseLink = hostCallbacks::onOpenExternalUrl,
+                showHeader = false,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
     }
 }
 
@@ -46,13 +62,27 @@ internal fun AboutAuthorsDestination(
         authors = hostCallbacks.loadAboutAuthors()
     }
     VLCUtilityPane(modifier = modifier) {
-        VLCAuthorsScreen(
-            title = ShellStrings.authors(),
-            authors = authors.orEmpty(),
-            closeContentDescription = ShellStrings.back(),
-            onClose = {},
-            showHeader = false,
-            modifier = Modifier.fillMaxSize(),
-        )
+        when {
+            authors == null -> VLCEmptyState(
+                loading = true,
+                text = "",
+                symbol = MaterialSymbols.Filled.Groups,
+                modifier = Modifier.fillMaxSize(),
+            )
+            authors.orEmpty().isEmpty() -> VLCEmptyState(
+                loading = false,
+                text = ShellStrings.nothingHere(),
+                symbol = MaterialSymbols.Filled.Groups,
+                modifier = Modifier.fillMaxSize(),
+            )
+            else -> VLCAuthorsScreen(
+                title = ShellStrings.authors(),
+                authors = authors.orEmpty(),
+                closeContentDescription = ShellStrings.back(),
+                onClose = {},
+                showHeader = false,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
     }
 }

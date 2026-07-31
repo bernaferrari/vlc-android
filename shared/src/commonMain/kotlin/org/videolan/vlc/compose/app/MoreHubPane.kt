@@ -68,6 +68,7 @@ internal fun MorePane(
     var newStreamName by remember { mutableStateOf("") }
     var newStreamUri by remember { mutableStateOf("") }
     var streamAddressError by remember { mutableStateOf(false) }
+    var deleteStreamTarget by remember { mutableStateOf<MediaItem?>(null) }
     var confirmHistoryRemoval by remember { mutableStateOf(false) }
     var confirmHistoryClear by remember { mutableStateOf(false) }
     val navigationActions = buildList {
@@ -200,8 +201,25 @@ internal fun MorePane(
                     } else {
                         null
                     },
-                    onMoreClick = { vm.deleteStream(stream.id) },
+                    onMoreClick = { deleteStreamTarget = stream },
                 )
+            }
+            state.streamActionError?.let { error ->
+                item {
+                    Surface(
+                        color = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                        shape = MaterialTheme.shapes.large,
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(error, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                            TextButton(onClick = vm::clearStreamActionError) { Text(ShellStrings.clear()) }
+                        }
+                    }
+                }
             }
             state.streamsError?.let { error ->
                 item { RetryMessage(error = error, onRetry = vm::retryStreams) }
@@ -380,6 +398,22 @@ internal fun MorePane(
                     confirmHistoryRemoval = false
                     confirmHistoryClear = false
                 }) { Text(ShellStrings.cancel()) }
+            },
+        )
+    }
+    deleteStreamTarget?.let { stream ->
+        AlertDialog(
+            onDismissRequest = { deleteStreamTarget = null },
+            title = { Text(ShellStrings.deleteStream()) },
+            text = { Text(ShellStrings.confirmDeleteMessage()) },
+            confirmButton = {
+                TextButton(onClick = {
+                    vm.deleteStream(stream.id)
+                    deleteStreamTarget = null
+                }) { Text(ShellStrings.delete()) }
+            },
+            dismissButton = {
+                TextButton(onClick = { deleteStreamTarget = null }) { Text(ShellStrings.cancel()) }
             },
         )
     }

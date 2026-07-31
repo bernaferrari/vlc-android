@@ -69,7 +69,7 @@ class VlcShellRouteTest {
 
         stack.removeAt(stack.lastIndex)
 
-        assertEquals(listOf(MoreRoute, AboutRoute), stack)
+        assertEquals(listOf<VlcShellRoute>(MoreRoute, AboutRoute), stack)
         assertEquals(MainTab.MORE, stack.activeTab())
     }
 
@@ -95,5 +95,65 @@ class VlcShellRouteTest {
         assertTrue(shouldUseWideLibraryDetailLayout(singlePaneLayout = false, hasLibraryContent = true))
         assertFalse(shouldUseWideLibraryDetailLayout(singlePaneLayout = false, hasLibraryContent = false))
         assertFalse(shouldUseWideLibraryDetailLayout(singlePaneLayout = true, hasLibraryContent = true))
+    }
+
+    @Test
+    fun restoredStackUsesTheLatestRootAndDropsAnObsoleteHierarchy() {
+        assertEquals(
+            listOf(
+                BrowserRoute,
+                BrowserFolderRoute.from(
+                    listOf(MediaFolder(8L, "Downloads", "/storage/downloads")),
+                ),
+            ),
+            canonicalVlcShellRouteStack(
+                restored = listOf(
+                    MoreRoute,
+                    AboutRoute,
+                    BrowserRoute,
+                    BrowserFolderRoute.from(
+                        listOf(MediaFolder(8L, "Downloads", "/storage/downloads")),
+                    ),
+                ),
+                fallbackRoot = VideoRoute,
+            ),
+        )
+    }
+
+    @Test
+    fun restoredDetailOnlyStackGetsItsRequiredRoot() {
+        assertEquals(
+            listOf(
+                PlaylistsRoute,
+                PlaylistDetailRoute(4L, "Road trip"),
+                PlayerRoute,
+            ),
+            canonicalVlcShellRouteStack(
+                restored = listOf(
+                    PlaylistDetailRoute(4L, "Road trip"),
+                    PlayerRoute,
+                    SettingsRoute,
+                ),
+                fallbackRoot = VideoRoute,
+            ),
+        )
+    }
+
+    @Test
+    fun restoredAboutDetailCannotBypassItsParent() {
+        assertEquals(
+            listOf(MoreRoute, AboutRoute, AboutLibrariesRoute),
+            canonicalVlcShellRouteStack(
+                restored = listOf(AboutLibrariesRoute),
+                fallbackRoot = MoreRoute,
+            ),
+        )
+        assertEquals(
+            listOf(MoreRoute, AboutRoute, AboutAuthorsRoute),
+            canonicalVlcShellRouteStack(
+                restored = listOf(AboutRoute, AboutAuthorsRoute),
+                fallbackRoot = VideoRoute,
+            ),
+        )
     }
 }

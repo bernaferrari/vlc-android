@@ -71,6 +71,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.dialog
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -159,6 +160,16 @@ fun VlcMainShell(
         val motion = LocalVLCMotion.current
         val initialRoute = remember(initialTab) { initialTab.toVlcShellRoute() }
         val backStack = rememberNavBackStack(vlcShellNavSavedStateConfiguration, initialRoute)
+        LaunchedEffect(backStack, initialRoute) {
+            val canonical = canonicalVlcShellRouteStack(
+                restored = backStack.filterIsInstance<VlcShellRoute>(),
+                fallbackRoot = initialRoute,
+            )
+            if (canonical != backStack) {
+                backStack.clear()
+                backStack.addAll(canonical)
+            }
+        }
         val paneScaffoldDirective = calculatePaneScaffoldDirective(currentWindowAdaptiveInfoV2())
         val singlePaneLayout = paneScaffoldDirective.maxHorizontalPartitions == 1
         val listDetailStrategy = rememberListDetailSceneStrategy<NavKey>(
@@ -458,35 +469,38 @@ fun VlcMainShell(
             popRoute()
         }
 
-        HandleShellBackPress(
-            enabled = shouldInterceptShellBack(
-                appLocked = appLocked,
-                hasActiveSelection = hasActiveSelection,
-                canNavigateBack = canNavigateBack,
-            ),
-            onBack = ::navigateBack,
-        )
+        if (appLocked) {
+            AppLockGate(onUnlock = settingsVm::unlockAppLock)
+        } else {
+            HandleShellBackPress(
+                enabled = shouldInterceptShellBack(
+                    appLocked = false,
+                    hasActiveSelection = hasActiveSelection,
+                    canNavigateBack = canNavigateBack,
+                ),
+                onBack = ::navigateBack,
+            )
 
-        VlcAdaptiveNavigationSuite(
-            modifier = modifier,
-            enabled = showBottomBar && !showPlayer,
-            navigationSuiteItems = {
-                MainTab.entries.forEach { t ->
-                    item(
-                        selected = currentTab == t,
-                        onClick = { selectTab(t) },
-                        icon = {
-                            Icon(
-                                icon = t.navigationIcon(selected = currentTab == t),
-                                contentDescription = t.displayName(),
-                            )
-                        },
-                        label = { Text(t.displayName()) },
-                    )
-                }
-            },
-        ) {
-            Scaffold(
+            VlcAdaptiveNavigationSuite(
+                modifier = modifier,
+                enabled = showBottomBar && !showPlayer,
+                navigationSuiteItems = {
+                    MainTab.entries.forEach { t ->
+                        item(
+                            selected = currentTab == t,
+                            onClick = { selectTab(t) },
+                            icon = {
+                                Icon(
+                                    icon = t.navigationIcon(selected = currentTab == t),
+                                    contentDescription = t.displayName(),
+                                )
+                            },
+                            label = { Text(t.displayName()) },
+                        )
+                    }
+                },
+            ) {
+                Scaffold(
                 modifier = Modifier.fillMaxSize(),
                 // NavigationSuiteScaffold owns the system/navigation insets for
                 // its compact bar and wide rail. Keeping this inner scaffold
@@ -737,14 +751,11 @@ fun VlcMainShell(
                         )
                     }
                 },
-            )
-        }
-        }
-
-        if (appLocked) {
-            AppLockGate(onUnlock = settingsVm::unlockAppLock)
+                )
+            }
         }
     }
+}
 }
 
 @Composable
@@ -760,7 +771,9 @@ private fun LibraryDetailPlaceholder(icon: MaterialIcon) {
 @Composable
 private fun AppLockGate(onUnlock: () -> Unit) {
     Surface(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .semantics { dialog() },
         color = VLCThemeDefaults.colors.backgroundDefault,
     ) {
         Box(

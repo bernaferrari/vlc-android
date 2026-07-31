@@ -28,6 +28,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: org.videolan.vlc-ios
         PRODUCT_NAME: VLC-iOS
+        MARKETING_VERSION: "4.0.0"
+        CURRENT_PROJECT_VERSION: "3070100"
         INFOPLIST_FILE: App/Info.plist
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: NO

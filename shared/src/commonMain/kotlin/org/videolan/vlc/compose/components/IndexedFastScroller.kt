@@ -2,10 +2,12 @@ package org.videolan.vlc.compose.components
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.awaitTouchSlopOrCancellation
 import androidx.compose.foundation.gestures.drag
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,12 +36,17 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import org.videolan.vlc.compose.theme.LocalVLCMotion
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -83,7 +90,9 @@ fun VLCIndexedFastScroller(
         result
     }
     val labels = remember(labelToTarget) {
-        labelToTarget.keys.sortedWith(compareBy<String> { if (it == "#") 0 else 1 }.thenBy { it })
+        // Preserve the order supplied by the active sort. Descending libraries must expose Z→A,
+        // and sorting this map independently would make drag direction disagree with list order.
+        labelToTarget.keys.toList()
     }
     if (labels.isEmpty()) return
 
@@ -115,7 +124,26 @@ fun VLCIndexedFastScroller(
         labelToTarget[label]?.let { target -> scope.launch { listState.scrollToItem(target) } }
     }
 
-    Box(modifier = modifier.width(44.dp).height(preferredHeight)) {
+    val motion = LocalVLCMotion.current
+    BoxWithConstraints(modifier = modifier.width(44.dp).fillMaxHeight()) {
+        val actualHeight = minOf(preferredHeight, maxHeight).coerceAtLeast(bubbleSize)
+        Box(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .width(44.dp)
+                .height(actualHeight)
+                .semantics {
+                    contentDescription = "Fast scroll"
+                    customActions = labels.map { label ->
+                        CustomAccessibilityAction("Jump to $label") {
+                            labelToTarget[label]?.let { target ->
+                                scope.launch { listState.scrollToItem(target) }
+                                true
+                            } ?: false
+                        }
+                    }
+                },
+        ) {
         Column(
             modifier = Modifier
                 .fillMaxHeight()
@@ -143,7 +171,7 @@ fun VLCIndexedFastScroller(
                 val distance = abs(labelPosition - progress)
                 val scale by animateFloatAsState(
                     targetValue = if (interacting && distance < .06f) 1.35f else 1f,
-                    animationSpec = spring(dampingRatio = .82f),
+                    animationSpec = if (motion.reducedMotion) snap() else spring(dampingRatio = .82f),
                     label = "vlcIndexScale$index",
                 )
                 Text(
@@ -174,5 +202,6 @@ fun VLCIndexedFastScroller(
                 }
             }
         }
+        }
+        }
     }
-}

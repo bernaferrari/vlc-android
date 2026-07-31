@@ -116,6 +116,10 @@ class AndroidPlaybackService(
         pushStateFromHost(playing == true)
     }
     private val mediaObserver = Observer<MediaWrapper?> { mw ->
+        // Native next/previous/auto-advance changes PlaylistManager.currentIndex outside the
+        // shared queue methods. Refresh the whole snapshot before publishing the new media so
+        // Compose highlights the authoritative queue row.
+        syncPlaylistFromHost()
         pushStateFromHost(PlaylistManager.playingState.value == true, mw)
     }
     private val progressObserver = Observer<org.videolan.vlc.media.Progress> { p ->

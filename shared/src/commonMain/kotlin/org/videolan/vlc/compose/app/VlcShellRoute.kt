@@ -175,6 +175,69 @@ internal fun shouldUseWideLibraryDetailLayout(
 fun List<VlcShellRoute>.activeTab(): MainTab =
     asReversed().firstNotNullOfOrNull(VlcShellRoute::toMainTabOrNull) ?: MainTab.VIDEO
 
+/**
+ * Rebuilds a valid shell hierarchy from a saved Navigation 3 stack.
+ *
+ * Saved state can outlive navigation migrations, and older versions could leave more than one
+ * root destination in the serialized list. The most recent root is authoritative. If a legacy
+ * stack contains only a detail route, its owning root is restored explicitly so Back never exits
+ * directly from a detail screen.
+ */
+internal fun canonicalVlcShellRouteStack(
+    restored: List<VlcShellRoute>,
+    fallbackRoot: VlcShellRoute,
+): List<VlcShellRoute> {
+    require(fallbackRoot.isRootRoute()) { "The fallback Navigation 3 route must be a root" }
+
+    val lastRootIndex = restored.indexOfLast(VlcShellRoute::isRootRoute)
+    val tail = if (lastRootIndex >= 0) restored.drop(lastRootIndex + 1) else restored
+    val root = if (lastRootIndex >= 0) {
+        restored[lastRootIndex]
+    } else {
+        restored.firstNotNullOfOrNull(VlcShellRoute::requiredRootRoute) ?: fallbackRoot
+    }
+    val canonical = mutableListOf(root)
+
+    for (route in tail) {
+        val current = canonical.last()
+        when (route) {
+            VideoRoute, AudioRoute, BrowserRoute, PlaylistsRoute, MoreRoute -> Unit
+            is VideoContainerRoute -> if (
+                root == VideoRoute && (current is VideoContainerRoute || current == root)
+            ) {
+                canonical += route
+            }
+            is AudioEntityRoute -> if (
+                root == AudioRoute && (current is AudioEntityRoute || current == root)
+            ) {
+                canonical += route
+            }
+            is BrowserFolderRoute -> if (
+                root == BrowserRoute && (current is BrowserFolderRoute || current == root)
+            ) {
+                canonical += route
+            }
+            is PlaylistDetailRoute -> if (
+                root == PlaylistsRoute && (current is PlaylistDetailRoute || current == root)
+            ) {
+                canonical += route
+            }
+            SettingsRoute -> if (root == MoreRoute && current == MoreRoute) canonical += route
+            AboutRoute -> if (root == MoreRoute && current == MoreRoute) canonical += route
+            AboutLibrariesRoute, AboutAuthorsRoute -> {
+                if (root == MoreRoute && current == MoreRoute) canonical += AboutRoute
+                if (root == MoreRoute && canonical.last() == AboutRoute) canonical += route
+            }
+            PlayerRoute -> {
+                if (current != PlayerRoute) canonical += route
+                // Player is a terminal overlay. No destination can be opened above it.
+                break
+            }
+        }
+    }
+    return canonical
+}
+
 /** Restores typed routes across process recreation on every supported target. */
 val vlcShellNavSavedStateConfiguration = SavedStateConfiguration {
     serializersModule = SerializersModule {
@@ -195,6 +258,20 @@ val vlcShellNavSavedStateConfiguration = SavedStateConfiguration {
             subclass(PlaylistDetailRoute::class, PlaylistDetailRoute.serializer())
         }
     }
+}
+
+private fun VlcShellRoute.isRootRoute(): Boolean = when (this) {
+    VideoRoute, AudioRoute, BrowserRoute, PlaylistsRoute, MoreRoute -> true
+    else -> false
+}
+
+private fun VlcShellRoute.requiredRootRoute(): VlcShellRoute? = when (this) {
+    VideoRoute, is VideoContainerRoute -> VideoRoute
+    AudioRoute, is AudioEntityRoute -> AudioRoute
+    BrowserRoute, is BrowserFolderRoute -> BrowserRoute
+    PlaylistsRoute, is PlaylistDetailRoute -> PlaylistsRoute
+    MoreRoute, SettingsRoute, AboutRoute, AboutLibrariesRoute, AboutAuthorsRoute -> MoreRoute
+    PlayerRoute -> null
 }
 
 fun MediaFolder.toVideoContainerRoute(): VideoContainerRoute = VideoContainerRoute(

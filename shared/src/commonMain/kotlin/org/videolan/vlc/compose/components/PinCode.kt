@@ -19,10 +19,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -100,16 +102,18 @@ fun VLCPinCodeScreen(
             color = colors.backgroundDefault,
             contentColor = colors.fontDefault
         ) {
-            Box(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 if (showSuccess) {
                     PinUnlockSuccess(
                         successText = successText,
                         iconContent = successIconContent,
-                        modifier = Modifier.align(Alignment.Center)
+                        modifier = Modifier.fillMaxWidth()
                     )
                 } else if (showPinEntry) {
                     PinEntryContent(
@@ -123,10 +127,11 @@ fun VLCPinCodeScreen(
                         onBackspace = onBackspace,
                         onNext = onNext,
                         backspaceIconContent = backspaceIconContent,
-                        modifier = Modifier.align(Alignment.TopCenter)
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
 
+                Spacer(Modifier.height(16.dp))
                 PinActions(
                     cancelText = cancelText,
                     nextText = nextText,
@@ -134,7 +139,7 @@ fun VLCPinCodeScreen(
                     showCancel = showCancel,
                     onCancel = onCancel,
                     onNext = onNext,
-                    modifier = Modifier.align(Alignment.BottomCenter)
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }
@@ -161,7 +166,7 @@ private fun PinEntryContent(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 16.dp)
-            .padding(bottom = 80.dp),
+            .padding(bottom = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         HiddenPinInput(

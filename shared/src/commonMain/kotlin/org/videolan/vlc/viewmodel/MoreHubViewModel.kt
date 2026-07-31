@@ -26,6 +26,7 @@ data class MoreUiState(
     val streams: List<MediaItem> = emptyList(),
     val streamsLoading: Boolean = true,
     val streamsError: String? = null,
+    val streamActionError: String? = null,
     val historySelection: Set<String> = emptySet(),
     val hasStreamRepository: Boolean = false,
 )
@@ -129,11 +130,22 @@ class MoreHubViewModel(
 
     fun deleteStream(id: Long) = launchIo {
         runCatching { streamsRepo?.deleteStream(id) }
+            .onSuccess { _state.update { state -> state.copy(streamActionError = null) } }
+            .onFailure { error ->
+                _state.update { state ->
+                    state.copy(
+                        streamActionError = error.message?.takeIf { it.isNotBlank() }
+                            ?: "Couldn’t delete stream. Try again.",
+                    )
+                }
+            }
     }
 
     fun addStream(title: String, uri: String) = launchIo {
         runCatching { streamsRepo?.addStream(title, uri) }
     }
+
+    fun clearStreamActionError() = _state.update { it.copy(streamActionError = null) }
 
     fun moveUp(entry: HistoryEntry) = launchIo {
         runCatching { history.moveUp(entry.item.id) }

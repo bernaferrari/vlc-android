@@ -4,6 +4,7 @@ import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.compose.components.VLCListItemPosition
 import org.videolan.vlc.compose.components.vlcIndexLabel
 import org.videolan.vlc.viewmodel.MediaListUiState
+import org.videolan.vlc.viewmodel.SortMode
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -95,6 +96,25 @@ class RichMediaScreensTest {
         assertTrue(targets[1].itemIndex == 3)
         assertTrue(vlcIndexLabel(targets[0].labelSource) == "A")
         assertTrue(vlcIndexLabel(targets[1].labelSource) == "#")
+    }
+
+    @Test
+    fun fast_scroll_uses_the_active_sort_field_and_disables_numeric_sorts() {
+        val item = MediaItem(
+            id = 1L,
+            title = "Title",
+            uri = "file:///z-file.mp3",
+            artist = "Artist",
+            album = "Collection",
+            fileName = "z-file.mp3",
+        )
+
+        assertEquals("Title", mediaFastScrollLabelSource(item, SortMode.TITLE))
+        assertEquals("z-file.mp3", mediaFastScrollLabelSource(item, SortMode.FILENAME))
+        assertEquals("Artist", mediaFastScrollLabelSource(item, SortMode.ARTIST))
+        assertEquals("Collection", mediaFastScrollLabelSource(item, SortMode.ALBUM))
+        assertEquals(null, mediaFastScrollLabelSource(item, SortMode.DURATION))
+        assertTrue(mediaIndexScrollTargets(listOf("" to listOf(item)), SortMode.RECENT).isEmpty())
     }
 
     @Test

@@ -47,6 +47,12 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
@@ -56,6 +62,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.compose.theme.LocalVLCMotion
 import kotlin.math.roundToInt
 
 /**
@@ -160,6 +167,7 @@ private fun VLCSwipeUnlockControl(
     thumbContent: @Composable (() -> Unit)? = null
 ) {
     val colors = VLCThemeDefaults.colors
+    val motion = LocalVLCMotion.current
     val density = LocalDensity.current
     val layoutDirection = LocalLayoutDirection.current
     val scope = rememberCoroutineScope()
@@ -199,7 +207,7 @@ private fun VLCSwipeUnlockControl(
 
     fun resetThumb() {
         scope.launch {
-            offset.animateTo(0f, tween(durationMillis = 250))
+            offset.animateTo(0f, tween(durationMillis = motion.durationShort))
         }
     }
 
@@ -216,6 +224,21 @@ private fun VLCSwipeUnlockControl(
             .onSizeChanged { widthPx = it.width.toFloat() }
             .focusRequester(focusRequester)
             .focusable()
+            // Preserve the deliberate drag affordance while exposing a real action to
+            // TalkBack, VoiceOver, switch access, and keyboard users.
+            .semantics(mergeDescendants = true) {
+                role = Role.Button
+                contentDescription = text
+                stateDescription = if (unlocked) "Unlocked" else "Locked"
+                onClick {
+                    if (!unlocked) {
+                        unlock()
+                        true
+                    } else {
+                        false
+                    }
+                }
+            }
             .onKeyEvent { event ->
                 if (!isDpadAllowed || event.key !in acceptedKeys || maxOffset <= 0f || unlocked) {
                     return@onKeyEvent false
@@ -227,7 +250,10 @@ private fun VLCSwipeUnlockControl(
                             keyJob = scope.launch {
                                 offset.animateTo(
                                     targetValue = maxOffset,
-                                    animationSpec = tween(durationMillis = 2_000, easing = LinearEasing)
+                                    animationSpec = tween(
+                                        durationMillis = if (motion.reducedMotion) 0 else 2_000,
+                                        easing = LinearEasing,
+                                    )
                                 )
                                 unlock()
                             }

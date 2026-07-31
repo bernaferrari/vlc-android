@@ -3,6 +3,7 @@ package org.videolan.vlc.kmp
 import android.app.Activity
 import android.app.PictureInPictureParams
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Rational
 import kotlinx.coroutines.launch
@@ -48,17 +49,22 @@ class AndroidPipController : PipController {
     }
 
     override val isSupported: Boolean
-        get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+        get() {
+            val activity = activityRef?.get() ?: return false
+            return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                !activity.isFinishing &&
+                !activity.isDestroyed &&
+                activity.packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
+        }
 
     override fun enterPip(): Boolean {
         val activity = activityRef?.get() ?: return false
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false
+        if (!isSupported) return false
         return try {
             val params = PictureInPictureParams.Builder()
                 .setAspectRatio(Rational(16, 9))
                 .build()
             activity.enterPictureInPictureMode(params)
-            true
         } catch (_: Exception) {
             false
         }

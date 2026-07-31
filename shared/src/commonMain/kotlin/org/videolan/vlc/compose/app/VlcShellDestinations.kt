@@ -27,6 +27,7 @@ import org.videolan.vlc.viewmodel.PlaylistsUiState
 import org.videolan.vlc.viewmodel.PlaylistsViewModel
 import org.videolan.vlc.viewmodel.SettingsViewModel
 import org.videolan.vlc.viewmodel.VideoListViewModel
+import org.videolan.vlc.viewmodel.defaultPlaybackActionOpensPlayer
 
 @Composable
 internal fun VideoDestination(
@@ -46,7 +47,10 @@ internal fun VideoDestination(
         groups = state.groups,
         onQuery = viewModel::setQuery,
         onRetry = viewModel::refresh,
-        onPlay = { viewModel.play(it); onOpenPlayer() },
+        onPlay = {
+            viewModel.play(it)
+            if (defaultPlaybackActionOpensPlayer(state.defaultPlaybackAction)) onOpenPlayer()
+        },
         onPlayAll = { viewModel.playAll(); onOpenPlayer() },
         onPlayNext = viewModel::playNext,
         onAppend = viewModel::append,
@@ -76,7 +80,10 @@ internal fun VideoDestination(
                 -> hostCallbacks.dispatch(item, option)
                 else -> {
                     viewModel.handleCtx(item, option)
-                    if (option == ContextOption.CTX_PLAY || option == ContextOption.CTX_PLAY_ALL) {
+                    if (option == ContextOption.CTX_PLAY_ALL ||
+                        (option == ContextOption.CTX_PLAY &&
+                            defaultPlaybackActionOpensPlayer(state.defaultPlaybackAction))
+                    ) {
                         onOpenPlayer()
                     }
                 }
@@ -137,7 +144,7 @@ internal fun AudioDestination(
                 onOpenEntity(item)
             } else {
                 viewModel.play(item)
-                onOpenPlayer()
+                if (defaultPlaybackActionOpensPlayer(state.defaultPlaybackAction)) onOpenPlayer()
             }
         },
         onPlayAll = { viewModel.playAll(); onOpenPlayer() },
@@ -169,7 +176,10 @@ internal fun AudioDestination(
                 -> hostCallbacks.dispatch(item, option)
                 else -> {
                     viewModel.handleCtx(item, option)
-                    if (option == ContextOption.CTX_PLAY || option == ContextOption.CTX_PLAY_ALL) {
+                    if (option == ContextOption.CTX_PLAY_ALL ||
+                        (option == ContextOption.CTX_PLAY &&
+                            defaultPlaybackActionOpensPlayer(state.defaultPlaybackAction))
+                    ) {
                         onOpenPlayer()
                     }
                 }
@@ -207,7 +217,10 @@ internal fun BrowserDestination(
         onUp = onNavigateUp,
         onRetry = viewModel::refresh,
         onOpenFolder = onOpenFolder,
-        onPlay = { viewModel.play(it); onOpenPlayer() },
+        onPlay = {
+            viewModel.play(it)
+            if (defaultPlaybackActionOpensPlayer(state.defaultPlaybackAction)) onOpenPlayer()
+        },
         onPlayNext = viewModel::playNext,
         onAppend = viewModel::append,
         onToggleSelect = viewModel::toggleSelect,
@@ -234,7 +247,10 @@ internal fun PlaylistsDestination(
         state = state,
         onCreate = viewModel::create,
         onOpen = onOpenPlaylist,
-        onPlay = { viewModel.playPlaylist(it); onOpenPlayer() },
+        onPlay = {
+            viewModel.playPlaylist(it)
+            if (defaultPlaybackActionOpensPlayer(state.defaultPlaybackAction)) onOpenPlayer()
+        },
         onShufflePlay = { viewModel.shufflePlay(it); onOpenPlayer() },
         onDelete = viewModel::delete,
         onRename = viewModel::rename,
@@ -245,12 +261,16 @@ internal fun PlaylistsDestination(
         onToggleFavorites = viewModel::toggleOnlyFavorites,
         onToggleSortDesc = viewModel::toggleSortDesc,
         onSetViewMode = viewModel::setViewMode,
-        onPlayItem = { viewModel.playItem(it); onOpenPlayer() },
+        onPlayItem = {
+            viewModel.playItem(it)
+            if (defaultPlaybackActionOpensPlayer(state.defaultPlaybackAction)) onOpenPlayer()
+        },
         onRemoveTrack = viewModel::removeTrackAt,
         onMoveTrackUp = viewModel::moveTrackUp,
         onMoveTrackDown = viewModel::moveTrackDown,
         onBack = onNavigateBack,
         onRetry = viewModel::refresh,
+        onClearActionError = viewModel::clearActionError,
         modifier = modifier,
     )
 }

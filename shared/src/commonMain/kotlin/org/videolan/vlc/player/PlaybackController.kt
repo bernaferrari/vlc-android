@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
@@ -59,6 +60,8 @@ class PlaybackController(
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var sessionBound = false
+    private var historyTransitionActive = false
+    private var lastHistoryKey: String? = null
 
     val state: Flow<PlaybackState> get() = service.state
     val progress: Flow<Progress> get() = service.progress
@@ -72,6 +75,7 @@ class PlaybackController(
 
     init {
         bindSession()
+        bindHistory()
     }
 
     private fun bindSession() {
@@ -100,14 +104,12 @@ class PlaybackController(
     fun play(item: MediaItem, queue: List<MediaItem> = emptyList()) {
         service.setRateForNextPlayback(defaultRateFor(item))
         service.play(item, queue)
-        rememberPlayback(item)
     }
 
     fun playFromIndex(queue: List<MediaItem>, index: Int) {
         val item = queue.getOrNull(index)
         if (item != null) service.setRateForNextPlayback(defaultRateFor(item))
         service.playFromIndex(queue, index)
-        if (item != null) rememberPlayback(item)
     }
 
     fun pause() = service.pause()
@@ -148,10 +150,44 @@ class PlaybackController(
     fun setABRepeatValue(timeMs: Long) = service.setABRepeatValue(timeMs)
     fun clearABRepeat() = service.clearABRepeat()
 
+    /**
+     * History follows the authoritative playback state, so native next/previous/end transitions
+     * are recorded too. Progress callbacks and pause/resume can repeat Playing for the same item;
+     * keep those inside one transition and write the repository only once.
+     */
+    private fun bindHistory() {
+        scope.launch {
+            service.state.collect { playbackState ->
+                when (playbackState) {
+                    is PlaybackState.Playing -> {
+                        val item = playbackState.item
+                        val key = "${item.id}:${item.uri}"
+                        if (!historyTransitionActive || key != lastHistoryKey) {
+                            rememberPlayback(item)
+                        }
+                        historyTransitionActive = true
+                        lastHistoryKey = key
+                    }
+                    is PlaybackState.Paused,
+                    PlaybackState.Loading,
+                    -> Unit
+                    PlaybackState.Idle,
+                    is PlaybackState.Stopped,
+                    is PlaybackState.Ended,
+                    is PlaybackState.Error,
+                    -> {
+                        historyTransitionActive = false
+                        lastHistoryKey = null
+                    }
+                }
+            }
+        }
+    }
+
     /** Incognito is enforced before any shared history repository is touched. */
-    private fun rememberPlayback(item: MediaItem) {
+    private suspend fun rememberPlayback(item: MediaItem) {
         if (isIncognito() || !isHistoryEnabled()) return
-        scope.launch { runCatching { history?.addToHistory(item) } }
+        runCatching { history?.addToHistory(item) }
     }
 
 

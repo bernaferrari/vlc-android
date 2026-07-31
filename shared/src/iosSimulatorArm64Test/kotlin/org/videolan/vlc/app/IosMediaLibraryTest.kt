@@ -2,12 +2,17 @@ package org.videolan.vlc.app
 
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.flow.first
+import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import okio.FileSystem
+import okio.Path
+import okio.buffer
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.MediaType
 import org.videolan.vlc.model.Playlist
@@ -215,6 +220,61 @@ class IosMediaLibraryTest {
         assertEquals(1, merged.playedCount)
     }
 
+    @Test
+    fun fileCatalogRecoversTheLastKnownGoodSnapshotAfterPrimaryCorruption() {
+        withTemporaryCatalog { path, fileSystem ->
+            val store = FileIosCatalogStore(path, fileSystem)
+            val first = IosCatalogSnapshot(nextId = 11_000L)
+            val second = IosCatalogSnapshot(nextId = 12_000L)
+            store.write(first)
+            store.write(second)
+            fileSystem.writeUtf8(path, "{not-json")
+
+            val recovered = assertNotNull(FileIosCatalogStore(path, fileSystem).read())
+
+            assertEquals(first, recovered)
+        }
+    }
+
+    @Test
+    fun fileCatalogDoesNotTreatUnrecoverableCorruptionAsAnEmptyLibrary() {
+        withTemporaryCatalog { path, fileSystem ->
+            fileSystem.writeUtf8(path, "{not-json")
+
+            assertFailsWith<IosCatalogStorageException> {
+                FileIosCatalogStore(path, fileSystem).read()
+            }
+        }
+    }
+
+    @Test
+    fun fileCatalogSurfacesWriteFailures() {
+        withTemporaryCatalog { path, fileSystem ->
+            val parentFile = assertNotNull(path.parent) / "not-a-directory"
+            fileSystem.writeUtf8(parentFile, "blocking file")
+
+            assertFailsWith<IosCatalogStorageException> {
+                FileIosCatalogStore(parentFile / "catalog.json", fileSystem).write(IosCatalogSnapshot())
+            }
+        }
+    }
+
+    @Test
+    fun fileCatalogMigratesTheLegacyDocumentsSnapshotOnce() {
+        withTemporaryCatalog { path, fileSystem ->
+            val legacy = assertNotNull(path.parent) / "Documents" / "vlc.catalog.v1.json"
+            val destination = assertNotNull(path.parent) / "Application Support" / "VLC" / "vlc.catalog.v1.json"
+            val snapshot = IosCatalogSnapshot(nextId = 14_000L)
+            FileIosCatalogStore(legacy, fileSystem).write(snapshot)
+
+            val restored = FileIosCatalogStore(destination, fileSystem, legacy).read()
+
+            assertEquals(snapshot, restored)
+            assertTrue(fileSystem.exists(destination))
+            assertFalse(fileSystem.exists(legacy))
+        }
+    }
+
     private fun video(
         id: Long,
         uri: String,
@@ -234,3 +294,24 @@ private class InMemoryIosCatalogStore : IosCatalogStore {
 }
 
 private suspend fun <T> kotlinx.coroutines.flow.Flow<T>.firstValue(): T = first()
+
+private inline fun withTemporaryCatalog(block: (Path, FileSystem) -> Unit) {
+    val fileSystem = FileSystem.SYSTEM
+    val directory = FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "vlc-catalog-${Random.nextLong()}"
+    val path = directory / "catalog.json"
+    fileSystem.createDirectories(directory)
+    try {
+        block(path, fileSystem)
+    } finally {
+        fileSystem.deleteRecursively(directory, mustExist = false)
+    }
+}
+
+private fun FileSystem.writeUtf8(path: Path, value: String) {
+    val sink = sink(path).buffer()
+    try {
+        sink.writeUtf8(value)
+    } finally {
+        sink.close()
+    }
+}

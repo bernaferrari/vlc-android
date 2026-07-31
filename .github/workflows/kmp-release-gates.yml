@@ -32,3 +32,10 @@ jobs:
 
       - name: Build and verify web distribution
         run: ./scripts/verify-web-build.sh --ci
+
+      - name: Upload Web distribution
+        uses: actions/upload-artifact@v6
+        with:
+          name: vlc-web-wasm
+          path: webApp/build/dist/wasmJs/productionExecutable
+          if-no-files-found: error
