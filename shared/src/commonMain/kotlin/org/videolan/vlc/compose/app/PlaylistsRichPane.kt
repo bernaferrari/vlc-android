@@ -118,7 +118,6 @@ fun PlaylistsRichPane(
                 navigationIcon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
                 navigationContentDescription = ShellStrings.back(),
                 onNavigate = onBack,
-                compact = true,
             )
             state.actionError?.let { error ->
                 PlaylistActionError(error = error, onClear = onClearActionError)

@@ -112,7 +112,9 @@ fun VLCSectionSelector(
                 Text(
                     text = option.label,
                     style = MaterialTheme.typography.labelLarge,
-                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                    // Selection is already visible through the tonal segment; keep the label
+                    // weight stable so switching tabs never nudges neighboring text.
+                    fontWeight = FontWeight.Medium,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
                 )
             }

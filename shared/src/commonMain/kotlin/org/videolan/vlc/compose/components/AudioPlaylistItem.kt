@@ -125,7 +125,10 @@ fun VLCAudioPlaylistItem(
                         color = if (current) VLCThemeDefaults.colors.primary else VLCThemeDefaults.colors.fontDefault,
                         style = MaterialTheme.typography.bodyLarge.copy(
                             fontSize = 16.sp,
-                            fontWeight = if (current) FontWeight.Bold else FontWeight.Normal
+                            // Current playback is already communicated by the accent wash and
+                            // playing artwork; keeping the weight stable prevents queue text
+                            // from reflowing when playback advances.
+                            fontWeight = FontWeight.Normal,
                         ),
                         maxLines = 1,
                         overflow = if (marqueeTitle) TextOverflow.Clip else TextOverflow.Ellipsis,
@@ -141,7 +144,7 @@ fun VLCAudioPlaylistItem(
                                 color = VLCThemeDefaults.colors.fontAudioLight,
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     fontSize = 12.sp,
-                                    fontWeight = if (current) FontWeight.Bold else FontWeight.Normal
+                                    fontWeight = FontWeight.Normal,
                                 ),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,

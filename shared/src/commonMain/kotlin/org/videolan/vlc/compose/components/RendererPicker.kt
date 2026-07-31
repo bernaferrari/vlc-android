@@ -24,7 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.theme.VLCTheme
@@ -150,9 +149,9 @@ private fun RendererPickerRow(
         Text(
             text = item.displayName,
             color = if (item.isSelected) colors.primary else colors.fontDefault,
-            style = MaterialTheme.typography.bodyLarge.copy(
-                fontWeight = if (item.isSelected) FontWeight.SemiBold else FontWeight.Normal
-            ),
+            // The accent wash and selected icon already carry state; stable metrics keep the
+            // renderer list from shifting as the active device changes.
+            style = MaterialTheme.typography.bodyLarge,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f)

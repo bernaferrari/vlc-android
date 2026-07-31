@@ -1,5 +1,8 @@
 package org.videolan.vlc.compose.player
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
@@ -38,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -51,6 +55,8 @@ import org.videolan.vlc.compose.components.VLCExpandableContent
 import org.videolan.vlc.compose.components.VLCListItemPosition
 import org.videolan.vlc.compose.components.segmentShape
 import org.videolan.vlc.compose.theme.VLCLayout
+import org.videolan.vlc.compose.theme.LocalVLCMotion
+import org.videolan.vlc.compose.theme.VLCMotion
 import org.videolan.vlc.model.ABRepeat
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.player.VideoScaleMode
@@ -750,6 +756,12 @@ private fun PlaybackOptionsSection(
     onToggle: () -> Unit,
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    val motion = LocalVLCMotion.current
+    val chevronRotation by animateFloatAsState(
+        targetValue = if (expanded) 90f else 0f,
+        animationSpec = if (motion.reducedMotion) snap() else tween(motion.durationShort, easing = VLCMotion.Emphasized),
+        label = "playbackSectionChevron",
+    )
     Column(verticalArrangement = Arrangement.spacedBy(VLCLayout.GroupGap)) {
         Surface(
             onClick = onToggle,
@@ -778,7 +790,9 @@ private fun PlaybackOptionsSection(
                 Icon(
                     MaterialSymbols.Filled.ChevronRight,
                     contentDescription = null,
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier
+                        .size(24.dp)
+                        .graphicsLayer { rotationZ = chevronRotation },
                 )
             }
         }
@@ -929,8 +943,16 @@ private fun QueueItem(
     onMoveDown: () -> Unit,
     onRemove: () -> Unit,
 ) {
+    val position = when {
+        isFirst && isLast -> VLCListItemPosition.Single
+        isFirst -> VLCListItemPosition.First
+        isLast -> VLCListItemPosition.Last
+        else -> VLCListItemPosition.Middle
+    }
     Surface(
-        shape = MaterialTheme.shapes.large,
+        // Queue rows are one group. Reusing the shared asymmetric silhouette keeps the player
+        // sheet aligned with library, browser, and settings lists instead of stacking pills.
+        shape = position.segmentShape(),
         color = if (selected) {
             MaterialTheme.colorScheme.secondaryContainer
         } else {
@@ -941,7 +963,7 @@ private fun QueueItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(MaterialTheme.shapes.large)
+                .clip(position.segmentShape())
                 .clickable(enabled = !selected, onClick = onPlay)
                 .padding(start = 12.dp, top = 6.dp, bottom = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -957,7 +979,9 @@ private fun QueueItem(
                     item.displayTitle,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                    // Selection is carried by the tonal surface and play indicator; keep text
+                    // metrics stable as the queue advances.
+                    fontWeight = FontWeight.Normal,
                     style = MaterialTheme.typography.bodyLarge,
                 )
                 val supportingText = if (selected) {

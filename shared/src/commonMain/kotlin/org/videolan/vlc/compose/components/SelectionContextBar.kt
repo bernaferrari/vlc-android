@@ -61,7 +61,7 @@ fun VLCSelectionContextBar(
                 text = title,
                 // This row replaces VLCPageHeader in selection mode; keep the same title scale so
                 // switching modes does not make the top chrome jump or look like a nested card.
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f),
                 maxLines = 1,

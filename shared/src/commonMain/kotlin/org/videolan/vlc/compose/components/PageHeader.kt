@@ -34,7 +34,6 @@ fun VLCPageHeader(
     navigationIcon: MaterialIcon? = null,
     navigationContentDescription: String? = null,
     onNavigate: (() -> Unit)? = null,
-    compact: Boolean = false,
     horizontalPadding: Dp = VLCLayout.ScreenGutter,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
@@ -59,7 +58,9 @@ fun VLCPageHeader(
         Text(
             text = title,
             modifier = Modifier.weight(1f),
-            style = if (compact) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.headlineMedium,
+            // Keep every destination on the same M3 top-app-bar title scale. The old headline
+            // styles made root pages noticeably taller/louder than Settings and detail routes.
+            style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,

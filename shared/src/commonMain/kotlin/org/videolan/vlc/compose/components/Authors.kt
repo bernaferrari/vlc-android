@@ -1,7 +1,6 @@
 package org.videolan.vlc.compose.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -148,7 +147,6 @@ private fun AuthorRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = VLCLayout.RowHeight)
-                .focusable()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {

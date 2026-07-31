@@ -233,7 +233,6 @@ fun RichMediaListPane(
                 navigationIcon = MaterialSymbols.AutoMirrored.Filled.ArrowBack.takeIf { isDetail },
                 navigationContentDescription = ShellStrings.back().takeIf { isDetail },
                 onNavigate = onCloseContainer.takeIf { isDetail },
-                compact = isDetail,
                 horizontalPadding = 0.dp,
             ) {
                 Box {

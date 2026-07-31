@@ -97,7 +97,6 @@ fun BrowserRichPane(
             navigationIcon = MaterialSymbols.AutoMirrored.Filled.ArrowBack.takeIf { state.stack.isNotEmpty() },
             navigationContentDescription = ShellStrings.up(),
             onNavigate = onUp.takeIf { state.stack.isNotEmpty() },
-            compact = state.currentFolder != null,
         ) {
             VLCConnectedIconActionBar(
                 actions = listOf(
