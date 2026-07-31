@@ -740,6 +740,7 @@
 
 
     <!-- Accessibility -->
+    <string name="media_actions_manage">Manage</string>
     <string name="more_actions">More Actions</string>
     <string name="back_quit_lock">Press Back again to quit video</string>
     <string name="stream_deleted">Stream deleted</string>

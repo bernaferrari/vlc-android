@@ -9,16 +9,22 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -28,24 +34,43 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.artwork.MediaArtwork
 import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.components.VLCMediaCardShape
+import org.videolan.vlc.compose.components.VLCListItemPosition
 import org.videolan.vlc.compose.components.highlightedSearchText
+import org.videolan.vlc.compose.components.segmentShape
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.compose.theme.VLCLayout
 import org.videolan.vlc.compose.theme.LocalVLCMotion
 import org.videolan.vlc.compose.theme.VLCMotion
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.util.ContextOption
+import kotlinx.coroutines.launch
+
+private data class MediaAction(
+    val label: String,
+    val icon: MaterialIcon,
+    val onClick: () -> Unit,
+    val destructive: Boolean = false,
+)
+
+private data class MediaActionSection(
+    val title: String,
+    val actions: List<MediaAction>,
+)
 
 @Composable
 internal fun MediaContextMenu(
@@ -58,68 +83,194 @@ internal fun MediaContextMenu(
     onCtx: (MediaItem, ContextOption) -> Unit,
     canHandleHostAction: (ContextOption) -> Boolean,
 ) {
-    DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
-        DropdownMenuItem(text = { Text(ShellStrings.play()) }, onClick = {
-            onDismiss(); onCtx(item, ContextOption.CTX_PLAY)
-        })
-        DropdownMenuItem(text = { Text(ShellStrings.playNext()) }, onClick = {
-            onDismiss(); onPlayNext(item)
-        })
-        DropdownMenuItem(text = { Text(ShellStrings.append()) }, onClick = {
-            onDismiss(); onAppend(item)
-        })
-        DropdownMenuItem(text = { Text(ShellStrings.playAll()) }, onClick = {
-            onDismiss(); onCtx(item, ContextOption.CTX_PLAY_ALL)
-        })
-        if (canHandleHostAction(ContextOption.CTX_ADD_TO_PLAYLIST)) {
-            DropdownMenuItem(text = { Text(ShellStrings.addToPlaylist()) }, onClick = {
-                onDismiss(); onCtx(item, ContextOption.CTX_ADD_TO_PLAYLIST)
-            })
+    if (!expanded) return
+
+    val sheetState = androidx.compose.material3.rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+    val colors = VLCThemeDefaults.colors
+    fun dismissThen(action: () -> Unit): () -> Unit = {
+        scope.launch {
+            sheetState.hide()
+            onDismiss()
+            action()
         }
+    }
+
+    val playbackActions = listOf(
+        MediaAction(ShellStrings.play(), MaterialSymbols.Filled.PlayArrow, dismissThen { onPlay(item) }),
+        MediaAction(ShellStrings.playNext(), MaterialSymbols.Filled.SkipNext, dismissThen { onPlayNext(item) }),
+        MediaAction(ShellStrings.append(), MaterialSymbols.Filled.QueueMusic, dismissThen { onAppend(item) }),
+        MediaAction(ShellStrings.playAll(), MaterialSymbols.Filled.PlayArrow, dismissThen { onCtx(item, ContextOption.CTX_PLAY_ALL) }),
+    )
+    val manageActions = buildList {
+        if (canHandleHostAction(ContextOption.CTX_ADD_TO_PLAYLIST)) {
+            add(MediaAction(ShellStrings.addToPlaylist(), MaterialSymbols.Filled.QueueMusic, dismissThen {
+                onCtx(item, ContextOption.CTX_ADD_TO_PLAYLIST)
+            }))
+        }
+        add(
+            MediaAction(
+                label = if (item.isFavorite) ShellStrings.removeFavorite() else ShellStrings.addFavorite(),
+                icon = MaterialSymbols.Filled.Star,
+                onClick = dismissThen {
+                    onCtx(item, if (item.isFavorite) ContextOption.CTX_FAV_REMOVE else ContextOption.CTX_FAV_ADD)
+                },
+            ),
+        )
+        add(MediaAction(ShellStrings.markPlayed(), MaterialSymbols.Filled.CheckCircle, dismissThen {
+            onCtx(item, ContextOption.CTX_MARK_AS_PLAYED)
+        }))
+        add(MediaAction(ShellStrings.markUnplayed(), MaterialSymbols.Filled.Undo, dismissThen {
+            onCtx(item, ContextOption.CTX_MARK_AS_UNPLAYED)
+        }))
+    }
+    val moreActions = buildList {
         if (item.isVideo && canHandleHostAction(ContextOption.CTX_DOWNLOAD_SUBTITLES)) {
-            DropdownMenuItem(text = { Text(ShellStrings.downloadSubtitles()) }, onClick = {
-                onDismiss(); onCtx(item, ContextOption.CTX_DOWNLOAD_SUBTITLES)
-            })
+            add(MediaAction(ShellStrings.downloadSubtitles(), MaterialSymbols.Filled.Description, dismissThen {
+                onCtx(item, ContextOption.CTX_DOWNLOAD_SUBTITLES)
+            }))
         }
         if (item.isAudio && canHandleHostAction(ContextOption.CTX_SET_RINGTONE)) {
-            DropdownMenuItem(text = { Text(ShellStrings.setRingtone()) }, onClick = {
-                onDismiss(); onCtx(item, ContextOption.CTX_SET_RINGTONE)
-            })
+            add(MediaAction(ShellStrings.setRingtone(), MaterialSymbols.Filled.MusicNote, dismissThen {
+                onCtx(item, ContextOption.CTX_SET_RINGTONE)
+            }))
         }
-        if (item.isFavorite) {
-            DropdownMenuItem(text = { Text(ShellStrings.removeFavorite()) }, onClick = {
-                onDismiss(); onCtx(item, ContextOption.CTX_FAV_REMOVE)
-            })
-        } else {
-            DropdownMenuItem(text = { Text(ShellStrings.addFavorite()) }, onClick = {
-                onDismiss(); onCtx(item, ContextOption.CTX_FAV_ADD)
-            })
-        }
-        DropdownMenuItem(text = { Text(ShellStrings.markPlayed()) }, onClick = {
-            onDismiss(); onCtx(item, ContextOption.CTX_MARK_AS_PLAYED)
-        })
-        DropdownMenuItem(text = { Text(ShellStrings.markUnplayed()) }, onClick = {
-            onDismiss(); onCtx(item, ContextOption.CTX_MARK_AS_UNPLAYED)
-        })
         if (canHandleHostAction(ContextOption.CTX_SHARE)) {
-            DropdownMenuItem(text = { Text(ShellStrings.share()) }, onClick = {
-                onDismiss(); onCtx(item, ContextOption.CTX_SHARE)
-            })
+            add(MediaAction(ShellStrings.share(), MaterialSymbols.Filled.IosShare, dismissThen {
+                onCtx(item, ContextOption.CTX_SHARE)
+            }))
         }
         if (canHandleHostAction(ContextOption.CTX_INFORMATION)) {
-            DropdownMenuItem(text = { Text(ShellStrings.info()) }, onClick = {
-                onDismiss(); onCtx(item, ContextOption.CTX_INFORMATION)
-            })
+            add(MediaAction(ShellStrings.info(), MaterialSymbols.Filled.Info, dismissThen {
+                onCtx(item, ContextOption.CTX_INFORMATION)
+            }))
         }
         if (item.isLocallyRenamable() && canHandleHostAction(ContextOption.CTX_RENAME)) {
-            DropdownMenuItem(text = { Text(ShellStrings.rename()) }, onClick = {
-                onDismiss(); onCtx(item, ContextOption.CTX_RENAME)
-            })
+            add(MediaAction(ShellStrings.rename(), MaterialSymbols.Filled.Edit, dismissThen {
+                onCtx(item, ContextOption.CTX_RENAME)
+            }))
         }
         if (item.isLocallyDeletable() && canHandleHostAction(ContextOption.CTX_DELETE)) {
-            DropdownMenuItem(text = { Text(ShellStrings.delete()) }, onClick = {
-                onDismiss(); onCtx(item, ContextOption.CTX_DELETE)
-            })
+            add(MediaAction(ShellStrings.delete(), MaterialSymbols.Filled.Delete, dismissThen {
+                onCtx(item, ContextOption.CTX_DELETE)
+            }, destructive = true))
+        }
+    }
+    val sections = listOfNotNull(
+        MediaActionSection(ShellStrings.playback(), playbackActions),
+        MediaActionSection(ShellStrings.mediaActionsManage(), manageActions).takeIf { it.actions.isNotEmpty() },
+        MediaActionSection(ShellStrings.moreActions(), moreActions).takeIf { it.actions.isNotEmpty() },
+    )
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = colors.backgroundDefault,
+        dragHandle = { BottomSheetDefaults.DragHandle() },
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = VLCLayout.SheetHorizontalPadding),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp, bottom = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                MediaArtworkSlot(item)
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    Text(
+                        text = item.displayTitle,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        text = if (item.isVideo) ShellStrings.video() else ShellStrings.audio(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.fontLight,
+                    )
+                }
+            }
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 560.dp)
+                    .navigationBarsPadding(),
+                contentPadding = PaddingValues(bottom = VLCLayout.SheetBottomPadding),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                sections.forEachIndexed { sectionIndex, section ->
+                    item(key = "media-action-section-$sectionIndex") {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = section.title,
+                                style = MaterialTheme.typography.labelLarge,
+                                color = colors.primary,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Column(verticalArrangement = Arrangement.spacedBy(VLCLayout.GroupGap)) {
+                                section.actions.forEachIndexed { actionIndex, action ->
+                                    val position = when {
+                                        section.actions.size == 1 -> VLCListItemPosition.Single
+                                        actionIndex == 0 -> VLCListItemPosition.First
+                                        actionIndex == section.actions.lastIndex -> VLCListItemPosition.Last
+                                        else -> VLCListItemPosition.Middle
+                                    }
+                                    MediaActionSheetRow(action, position)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MediaActionSheetRow(action: MediaAction, position: VLCListItemPosition) {
+    val shape = position.segmentShape()
+    val contentColor = if (action.destructive) {
+        MaterialTheme.colorScheme.error
+    } else {
+        MaterialTheme.colorScheme.onSurface
+    }
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .clickable(
+                role = Role.Button,
+                onClick = action.onClick,
+            ),
+        shape = shape,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Icon(
+                icon = action.icon,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                tint = contentColor,
+            )
+            Text(
+                text = action.label,
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.bodyLarge,
+                color = contentColor,
+            )
         }
     }
 }
