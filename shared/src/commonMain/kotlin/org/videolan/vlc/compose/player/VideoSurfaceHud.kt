@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -52,9 +53,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -703,7 +706,7 @@ fun VideoHudOverlay(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .height(244.dp)
+                .height(if (hasVideoOutput) 292.dp else 312.dp)
                 .graphicsLayer { alpha = chromeAlpha }
                 .background(
                     Brush.verticalGradient(
@@ -809,119 +812,199 @@ fun VideoHudOverlay(
                     }
                 }
             }
-            Box(modifier = Modifier.height(4.dp))
+            Box(modifier = Modifier.height(8.dp))
+            val transportSize = if (hasVideoOutput) 60.dp else 68.dp
+            val transportIconSize = if (hasVideoOutput) 26.dp else 28.dp
+            val playSize = if (hasVideoOutput) 76.dp else 84.dp
+            val playIconSize = if (hasVideoOutput) 34.dp else 36.dp
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                horizontalArrangement = Arrangement.spacedBy(if (hasVideoOutput) 14.dp else 16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                IconButton(
+                ExpressivePlayerButton(
+                    modifier = Modifier.size(transportSize),
+                    shape = CircleShape,
+                    containerColor = Color.White.copy(alpha = 0.14f),
+                    contentDescription = stringResource(Res.string.previous),
+                    onClick = {
+                        onUserInteraction()
+                        onPrevious()
+                    },
+                ) {
+                    Icon(
+                        icon = MaterialSymbols.Filled.SkipPrevious,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(transportIconSize),
+                    )
+                }
+                ExpressivePlayerButton(
+                    modifier = Modifier.size(playSize),
+                    shape = RoundedCornerShape(if (hasVideoOutput) 26.dp else 28.dp),
+                    containerColor = colors.primary,
+                    contentDescription = if (playing) {
+                        stringResource(Res.string.pause)
+                    } else {
+                        stringResource(Res.string.play)
+                    },
+                    onClick = {
+                        onUserInteraction()
+                        onTogglePlay()
+                    },
+                ) {
+                    Crossfade(
+                        targetState = playing,
+                        animationSpec = tween(motion.durationShort, easing = VLCMotion.Emphasized),
+                        label = "playback-icon",
+                    ) { isPlaying ->
+                        Icon(
+                            icon = if (isPlaying) MaterialSymbols.Filled.Pause else MaterialSymbols.Filled.PlayArrow,
+                            contentDescription = null,
+                            tint = colors.onPrimary,
+                            modifier = Modifier.size(playIconSize),
+                        )
+                    }
+                }
+                ExpressivePlayerButton(
+                    modifier = Modifier.size(transportSize),
+                    shape = CircleShape,
+                    containerColor = Color.White.copy(alpha = 0.14f),
+                    contentDescription = stringResource(Res.string.next),
+                    onClick = {
+                        onUserInteraction()
+                        onNext()
+                    },
+                ) {
+                    Icon(
+                        icon = MaterialSymbols.Filled.SkipNext,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(transportIconSize),
+                    )
+                }
+            }
+            Box(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                ExpressivePlayerButton(
+                    modifier = Modifier.size(width = 64.dp, height = 48.dp),
+                    shape = RoundedCornerShape(
+                        topStart = 24.dp,
+                        bottomStart = 24.dp,
+                        topEnd = 8.dp,
+                        bottomEnd = 8.dp,
+                    ),
+                    containerColor = if (shuffle) {
+                        colors.primary.copy(alpha = 0.24f)
+                    } else {
+                        Color.White.copy(alpha = 0.10f)
+                    },
+                    contentDescription = if (shuffle) {
+                        stringResource(Res.string.shuffle_on)
+                    } else {
+                        stringResource(Res.string.shuffle)
+                    },
+                    selectedState = shuffle,
+                    stateDescriptionText = if (shuffle) onStateLabel else offStateLabel,
                     onClick = {
                         onUserInteraction()
                         onToggleShuffle()
                     },
-                    modifier = Modifier.semantics {
-                        selected = shuffle
-                        stateDescription = if (shuffle) onStateLabel else offStateLabel
-                    },
                 ) {
                     Icon(
                         icon = MaterialSymbols.Filled.Shuffle,
-                        contentDescription = if (shuffle) {
-                            stringResource(Res.string.shuffle_on)
-                        } else {
-                            stringResource(Res.string.shuffle)
-                        },
+                        contentDescription = null,
                         tint = shuffleTint,
+                        modifier = Modifier.size(22.dp),
                     )
                 }
-                IconButton(onClick = {
-                    onUserInteraction()
-                    onPrevious()
-                }) {
-                    Icon(
-                        icon = MaterialSymbols.Filled.SkipPrevious,
-                        contentDescription = stringResource(Res.string.previous),
-                        tint = Color.White,
-                    )
-                }
-                val playInteractionSource = remember { MutableInteractionSource() }
-                val playPressed by playInteractionSource.collectIsPressedAsState()
-                val playScale by animateFloatAsState(
-                    targetValue = if (playPressed) 0.96f else 1f,
-                    animationSpec = tween(motion.durationShort, easing = VLCMotion.Emphasized),
-                    label = "play-button-scale",
-                )
-                Surface(
-                    shape = CircleShape,
-                    color = colors.primary,
-                    modifier = Modifier
-                        .size(64.dp)
-                        .graphicsLayer {
-                            scaleX = playScale
-                            scaleY = playScale
-                        }
-                        .clip(CircleShape)
-                        .clickable(
-                            interactionSource = playInteractionSource,
-                            indication = ripple(bounded = true),
-                            onClick = {
-                                onUserInteraction()
-                                onTogglePlay()
-                            },
-                        ),
-                ) {
-                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                        Crossfade(
-                            targetState = playing,
-                            animationSpec = tween(motion.durationShort, easing = VLCMotion.Emphasized),
-                            label = "playback-icon",
-                        ) { isPlaying ->
-                            Icon(
-                                icon = if (isPlaying) MaterialSymbols.Filled.Pause else MaterialSymbols.Filled.PlayArrow,
-                                contentDescription = if (isPlaying) {
-                                    stringResource(Res.string.pause)
-                                } else {
-                                    stringResource(Res.string.play)
-                                },
-                                tint = colors.onPrimary,
-                                modifier = Modifier.size(32.dp),
-                            )
-                        }
-                    }
-                }
-                IconButton(onClick = {
-                    onUserInteraction()
-                    onNext()
-                }) {
-                    Icon(
-                        icon = MaterialSymbols.Filled.SkipNext,
-                        contentDescription = stringResource(Res.string.next),
-                        tint = Color.White,
-                    )
-                }
-                IconButton(
+                ExpressivePlayerButton(
+                    modifier = Modifier.size(width = 64.dp, height = 48.dp),
+                    shape = RoundedCornerShape(
+                        topStart = 8.dp,
+                        bottomStart = 8.dp,
+                        topEnd = 24.dp,
+                        bottomEnd = 24.dp,
+                    ),
+                    containerColor = if (repeatMode != RepeatMode.NONE) {
+                        colors.primary.copy(alpha = 0.24f)
+                    } else {
+                        Color.White.copy(alpha = 0.10f)
+                    },
+                    contentDescription = repeatStateLabel,
+                    selectedState = repeatMode != RepeatMode.NONE,
+                    stateDescriptionText = repeatStateLabel,
                     onClick = {
                         onUserInteraction()
                         onCycleRepeat()
                     },
-                    modifier = Modifier.semantics {
-                        selected = repeatMode != RepeatMode.NONE
-                        stateDescription = repeatStateLabel
-                    },
                 ) {
                     Icon(
-                        icon = if (repeatMode == RepeatMode.ONE) MaterialSymbols.Filled.RepeatOne else MaterialSymbols.Filled.Repeat,
-                        contentDescription = when (repeatMode) {
-                            RepeatMode.NONE -> stringResource(Res.string.repeat_none)
-                            RepeatMode.ALL -> stringResource(Res.string.repeat_all)
-                            RepeatMode.ONE -> stringResource(Res.string.repeat_single)
+                        icon = if (repeatMode == RepeatMode.ONE) {
+                            MaterialSymbols.Filled.RepeatOne
+                        } else {
+                            MaterialSymbols.Filled.Repeat
                         },
+                        contentDescription = null,
                         tint = repeatTint,
+                        modifier = Modifier.size(22.dp),
                     )
                 }
             }
             }
+        }
+    }
+}
+
+@Composable
+private fun ExpressivePlayerButton(
+    contentDescription: String,
+    shape: Shape,
+    containerColor: Color = Color.Transparent,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    selectedState: Boolean? = null,
+    stateDescriptionText: String? = null,
+    content: @Composable () -> Unit,
+) {
+    val motion = LocalVLCMotion.current
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (!motion.reducedMotion && pressed) 0.96f else 1f,
+        animationSpec = tween(motion.durationShort, easing = VLCMotion.Emphasized),
+        label = "expressive-player-button-scale",
+    )
+    Surface(
+        shape = shape,
+        color = containerColor,
+        modifier = modifier
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .semantics {
+                this.contentDescription = contentDescription
+                selectedState?.let { selected = it }
+                stateDescriptionText?.let { this.stateDescription = it }
+            }
+            .clip(shape)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = ripple(bounded = true),
+                role = Role.Button,
+                onClick = onClick,
+            ),
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            content()
         }
     }
 }
