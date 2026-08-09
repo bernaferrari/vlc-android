@@ -23,8 +23,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.materialkolor.PaletteStyle
-import com.materialkolor.dynamicColorScheme
 import org.videolan.vlc.platform.prefersReducedMotion
 
 /**
@@ -639,16 +637,10 @@ fun VLCTheme(
         null
     }
     val baseColors = if (resolvedDarkTheme) DarkVLCColors else LightVLCColors
-    val seededColorScheme = if (resolvedAccent == VLCThemeAccent.Dynamic) {
-        null
-    } else {
-        dynamicColorScheme(
-            seedColor = resolvedAccent.primary(resolvedDarkTheme),
-            isDark = resolvedDarkTheme,
-            style = PaletteStyle.TonalSpot,
-        )
-    }
-    val materialColors = nativeDynamicColorScheme ?: seededColorScheme
+    // Curated VLC accents should change the accent, not repaint every neutral surface. Keeping
+    // the hand-authored charcoal/grey ladder makes Orange unmistakably VLC and prevents TonalSpot
+    // from turning the app canvas brown or peach. Wallpaper-driven Dynamic remains opt-in.
+    val materialColors = nativeDynamicColorScheme
     val vlcColors = materialColors?.let { baseColors.withMaterialColors(it) }
         ?: baseColors.withAccent(resolvedAccent, resolvedDarkTheme)
     val colorScheme = materialColors ?: buildColorScheme(vlcColors, resolvedDarkTheme)

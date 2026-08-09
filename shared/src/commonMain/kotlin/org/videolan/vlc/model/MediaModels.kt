@@ -129,7 +129,9 @@ data class MediaItem(
     val isAudio: Boolean get() = type == MediaType.AUDIO
     val isStream: Boolean get() = type == MediaType.STREAM
     val isDirectory: Boolean get() = type == MediaType.DIR
-    val displayTitle: String get() = if (title.isNotBlank()) title else uri.getFileName()
+    val displayTitle: String
+        get() = (title.ifBlank { fileName.orEmpty() }.ifBlank { uri.getFileName() })
+            .toFriendlyMediaTitle(type)
 }
 
 /**
@@ -174,3 +176,31 @@ data class Playlist(
 
 private fun String.getFileName(): String =
     substringBefore('?').substringBefore('#').trimEnd('/').substringAfterLast('/')
+
+private val titleWhitespace = Regex("\\s+")
+
+/**
+ * File providers frequently expose timestamps and recorder IDs as if they were authored titles.
+ * Preserve ordinary names, but collapse separators and turn a long machine-generated number into
+ * a short, stable suffix that users can still use to distinguish nearby recordings.
+ */
+private fun String.toFriendlyMediaTitle(type: MediaType): String {
+    val normalized = trim().replace('_', ' ').replace(titleWhitespace, " ")
+    val tokens = normalized.split(' ').filter(String::isNotBlank)
+    val technicalIndex = tokens.indexOfFirst { token ->
+        val digitCount = token.count(Char::isDigit)
+        val letterCount = token.count(Char::isLetter)
+        digitCount >= 10 && digitCount >= letterCount * 2
+    }
+    if (technicalIndex < 0) return normalized
+
+    val technicalDigits = tokens[technicalIndex].filter(Char::isDigit)
+    val authoredPrefix = tokens.take(technicalIndex).joinToString(" ")
+    val fallback = when (type) {
+        MediaType.VIDEO -> "Video"
+        MediaType.AUDIO -> "Audio"
+        MediaType.STREAM -> "Stream"
+        else -> "Media"
+    }
+    return "${authoredPrefix.ifBlank { fallback }} • ${technicalDigits.takeLast(4)}"
+}

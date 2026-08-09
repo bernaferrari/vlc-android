@@ -2,6 +2,7 @@ package org.videolan.vlc.compose.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -47,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
+import org.videolan.vlc.compose.icons.VlcCone
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.compose.theme.VLCLayout
@@ -84,7 +86,13 @@ fun VLCAboutScreen(
     modifier: Modifier = Modifier,
     showHeader: Boolean = true,
     closeIconContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.Close) },
-    logoContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.PlayArrow, 28) },
+    logoContent: @Composable () -> Unit = {
+        Image(
+            imageVector = VlcCone,
+            contentDescription = null,
+            modifier = Modifier.size(54.dp),
+        )
+    },
     websiteIconContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.Language) },
     feedbackIconContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.Forum) },
     sourcesIconContent: @Composable () -> Unit = { DefaultAboutIcon(MaterialSymbols.Filled.Code) },
@@ -269,7 +277,7 @@ private fun AboutHeroCard(
             Surface(
                 modifier = Modifier.size(56.dp),
                 shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.surfaceContainerHighest,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
             ) {
                 Box(contentAlignment = Alignment.Center) { logoContent() }

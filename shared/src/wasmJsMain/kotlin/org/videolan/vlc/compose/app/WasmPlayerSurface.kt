@@ -26,7 +26,7 @@ import org.w3c.dom.HTMLElement
 val WasmPlayerSurface: PlayerSurface = { state, chromeVisible ->
     Box(Modifier.fillMaxSize()) {
         if (!state.uri.isBrowserPlayableUri() || !state.hasVideoOutput) {
-            PlayerArtworkFallback()
+            PlayerArtworkFallback(state)
         }
         if (state.uri.isBrowserPlayableUri() && state.hasVideoOutput) {
             key(state.hasVideoOutput) {
@@ -82,7 +82,7 @@ private fun configureBrowserMediaElement(
         element.style.height = '100%';
         element.style.objectFit = objectFit;
         element.style.background = 'transparent';
-        element.style.opacity = video && chromeVisible ? '0.18' : '1';
+        element.style.opacity = '1';
         element.style.pointerEvents = 'none';
         if (element.parentElement) element.parentElement.style.pointerEvents = 'none';
         element.playsInline = true;

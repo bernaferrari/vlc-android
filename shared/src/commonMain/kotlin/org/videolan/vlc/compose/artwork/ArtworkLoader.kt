@@ -25,6 +25,7 @@ import coil3.compose.SubcomposeAsyncImage
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.compose.theme.LocalVLCMotion
 import org.videolan.vlc.model.MediaItem
 
 /**
@@ -92,6 +93,7 @@ fun MediaArtworkUri(
     fallback: @Composable () -> Unit,
 ) {
     val loader = ArtworkLoaderHolder.loader
+    val motion = LocalVLCMotion.current
     val requestedWidthPx = with(LocalDensity.current) {
         size.roundToPx().coerceIn(48, 512)
     }
@@ -117,7 +119,7 @@ fun MediaArtworkUri(
     ) {
         Crossfade(
             targetState = bitmap,
-            animationSpec = tween(durationMillis = 180),
+            animationSpec = tween(durationMillis = if (motion.reducedMotion) 0 else 180),
             label = "media-artwork",
         ) { bmp ->
             if (bmp != null) {

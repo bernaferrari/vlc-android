@@ -139,6 +139,7 @@ fun RichMediaListPane(
     state: MediaListUiState,
     title: String,
     emptyLabel: String,
+    emptyMessage: String? = null,
     sections: List<Pair<String, List<MediaItem>>> = emptyList(),
     pagingFlow: Flow<PagingData<MediaItem>>? = null,
     groups: List<MediaFolder> = emptyList(),
@@ -210,7 +211,7 @@ fun RichMediaListPane(
                     .align(Alignment.TopCenter)
                     .padding(horizontal = MediaScreenGutter),
             ) {
-        if (!useEmptyPresentation && state.selection.isNotEmpty()) {
+        if (state.selection.isNotEmpty()) {
             VLCSelectionContextBar(
                 title = ShellStrings.selectionCount(ShellStrings.selected(), state.selection.size),
                 clearContentDescription = ShellStrings.clear(),
@@ -226,7 +227,7 @@ fun RichMediaListPane(
                     Icon(MaterialSymbols.Filled.Star, contentDescription = ShellStrings.favorites())
                 }
             }
-        } else if (!useEmptyPresentation) {
+        } else {
             val isDetail = state.containerTitle != null || state.openedEntityTitle != null
             // Every root library uses the same PageHeader baseline and connected action group.
             // The detail route only changes the title and adds the standard Nav3 back action.
@@ -237,106 +238,108 @@ fun RichMediaListPane(
                 onNavigate = onCloseContainer.takeIf { isDetail },
                 horizontalPadding = 0.dp,
             ) {
-                Box {
-                    VLCConnectedIconActionBar(
-                        actions = listOf(
-                            VLCConnectedIconAction(
-                                icon = if (isSearchOpen) MaterialSymbols.Filled.Close else MaterialSymbols.Filled.Search,
-                                contentDescription = if (isSearchOpen) ShellStrings.clear() else ShellStrings.search(),
-                                onClick = {
-                                    isSearchOpen = !isSearchOpen
-                                    if (!isSearchOpen) {
-                                        onQuery("")
-                                        focusManager.clearFocus()
-                                    }
-                                },
+                if (!useEmptyPresentation) {
+                    Box {
+                        VLCConnectedIconActionBar(
+                            actions = listOf(
+                                VLCConnectedIconAction(
+                                    icon = if (isSearchOpen) MaterialSymbols.Filled.Close else MaterialSymbols.Filled.Search,
+                                    contentDescription = if (isSearchOpen) ShellStrings.clear() else ShellStrings.search(),
+                                    onClick = {
+                                        isSearchOpen = !isSearchOpen
+                                        if (!isSearchOpen) {
+                                            onQuery("")
+                                            focusManager.clearFocus()
+                                        }
+                                    },
+                                ),
+                                VLCConnectedIconAction(
+                                    icon = if (state.viewMode == ViewMode.LIST) {
+                                        MaterialSymbols.Filled.GridView
+                                    } else {
+                                        MaterialSymbols.Filled.ViewList
+                                    },
+                                    contentDescription = if (state.viewMode == ViewMode.LIST) {
+                                        ShellStrings.grid()
+                                    } else {
+                                        ShellStrings.list()
+                                    },
+                                    onClick = {
+                                        onSetViewMode(
+                                            if (state.viewMode == ViewMode.LIST) ViewMode.GRID else ViewMode.LIST,
+                                        )
+                                    },
+                                ),
+                                VLCConnectedIconAction(
+                                    icon = MaterialSymbols.Filled.MoreVert,
+                                    contentDescription = ShellStrings.moreOptions(),
+                                    onClick = { showLibraryMenu = true },
+                                ),
                             ),
-                            VLCConnectedIconAction(
-                                icon = if (state.viewMode == ViewMode.LIST) {
-                                    MaterialSymbols.Filled.GridView
-                                } else {
-                                    MaterialSymbols.Filled.ViewList
-                                },
-                                contentDescription = if (state.viewMode == ViewMode.LIST) {
-                                    ShellStrings.grid()
-                                } else {
-                                    ShellStrings.list()
-                                },
-                                onClick = {
-                                    onSetViewMode(
-                                        if (state.viewMode == ViewMode.LIST) ViewMode.GRID else ViewMode.LIST,
-                                    )
-                                },
-                            ),
-                            VLCConnectedIconAction(
-                                icon = MaterialSymbols.Filled.MoreVert,
-                                contentDescription = ShellStrings.moreOptions(),
-                                onClick = { showLibraryMenu = true },
-                            ),
-                        ),
-                    )
-                    DropdownMenu(
-                        expanded = showLibraryMenu,
-                        onDismissRequest = { showLibraryMenu = false },
-                    ) {
-                        if (emptyActionText != null) {
+                        )
+                        DropdownMenu(
+                            expanded = showLibraryMenu,
+                            onDismissRequest = { showLibraryMenu = false },
+                        ) {
+                            if (emptyActionText != null) {
+                                DropdownMenuItem(
+                                    text = { Text(emptyActionText) },
+                                    leadingIcon = {
+                                        Icon(MaterialSymbols.Filled.Add, contentDescription = null)
+                                    },
+                                    onClick = {
+                                        showLibraryMenu = false
+                                        onEmptyAction()
+                                    },
+                                )
+                            }
                             DropdownMenuItem(
-                                text = { Text(emptyActionText) },
+                                text = { Text(ShellStrings.playAll()) },
                                 leadingIcon = {
-                                    Icon(MaterialSymbols.Filled.Add, contentDescription = null)
+                                    Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = null)
                                 },
                                 onClick = {
                                     showLibraryMenu = false
-                                    onEmptyAction()
+                                    onPlayAll()
                                 },
                             )
-                        }
-                        DropdownMenuItem(
-                            text = { Text(ShellStrings.playAll()) },
-                            leadingIcon = {
-                                Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = null)
-                            },
-                            onClick = {
-                                showLibraryMenu = false
-                                onPlayAll()
-                            },
-                        )
-                        DropdownMenuItem(
-                            text = { Text(ShellStrings.select()) },
-                            leadingIcon = {
-                                Icon(MaterialSymbols.Filled.SelectAll, contentDescription = null)
-                            },
-                            onClick = {
-                                showLibraryMenu = false
-                                onSelectAll()
-                            },
-                        )
-                        if (state.supportsRescan) {
                             DropdownMenuItem(
-                                text = { Text(ShellStrings.refresh()) },
+                                text = { Text(ShellStrings.select()) },
                                 leadingIcon = {
-                                    Icon(MaterialSymbols.Filled.Refresh, contentDescription = null)
+                                    Icon(MaterialSymbols.Filled.SelectAll, contentDescription = null)
                                 },
                                 onClick = {
                                     showLibraryMenu = false
-                                    onRescan()
+                                    onSelectAll()
+                                },
+                            )
+                            if (state.supportsRescan) {
+                                DropdownMenuItem(
+                                    text = { Text(ShellStrings.refresh()) },
+                                    leadingIcon = {
+                                        Icon(MaterialSymbols.Filled.Refresh, contentDescription = null)
+                                    },
+                                    onClick = {
+                                        showLibraryMenu = false
+                                        onRescan()
+                                    },
+                                )
+                            }
+                            DropdownMenuItem(
+                                text = { Text(ShellStrings.displaySettings()) },
+                                leadingIcon = {
+                                    Icon(MaterialSymbols.Filled.Tune, contentDescription = null)
+                                },
+                                onClick = {
+                                    showLibraryMenu = false
+                                    showDisplaySettings = true
                                 },
                             )
                         }
-                        DropdownMenuItem(
-                            text = { Text(ShellStrings.displaySettings()) },
-                            leadingIcon = {
-                                Icon(MaterialSymbols.Filled.Tune, contentDescription = null)
-                            },
-                            onClick = {
-                                showLibraryMenu = false
-                                showDisplaySettings = true
-                            },
-                        )
                     }
                 }
             }
-            headerContent?.invoke()
+            if (!useEmptyPresentation) headerContent?.invoke()
         }
         if (showDisplaySettings) {
             val groupingOptions = if (showGroupingToggle) {
@@ -458,6 +461,7 @@ fun RichMediaListPane(
                     // During first load the spinner is sufficient; do not imply that no media
                     // exists until the repository has delivered its first empty result.
                     text = if (state.loading) "" else emptyLabel,
+                    message = emptyMessage.takeIf { !state.loading },
                     modifier = Modifier
                         .fillMaxWidth()
                         .widthIn(max = VLCLayout.ListMaxWidth)
@@ -466,6 +470,7 @@ fun RichMediaListPane(
                     symbol = emptySymbol,
                     actionText = emptyActionText.takeIf { !state.loading },
                     onActionClick = onEmptyAction,
+                    prominent = true,
                 )
             }
             else -> {

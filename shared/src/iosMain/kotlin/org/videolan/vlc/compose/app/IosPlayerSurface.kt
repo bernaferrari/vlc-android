@@ -19,7 +19,7 @@ import platform.UIKit.UIView
  */
 val IosPlayerSurface: PlayerSurface = { state, _ ->
     if (!state.hasVideoOutput) {
-        PlayerArtworkFallback()
+        PlayerArtworkFallback(state)
     } else {
         UIKitView(
             factory = {

@@ -148,7 +148,9 @@
     <string name="video">Video</string>
     <string name="library_videos">Videos</string>
     <string name="no_videos">No videos</string>
+    <string name="no_videos_message">Import a video or let VLC scan your library to start watching.</string>
     <string name="no_audio_library">No audio</string>
+    <string name="no_audio_library_message">Import music, podcasts, or recordings to build your audio library.</string>
     <string name="bookmarks">Bookmarks</string>
     <string name="equalizer">Equalizer</string>
     <string name="import_equalizer">Import equalizer</string>

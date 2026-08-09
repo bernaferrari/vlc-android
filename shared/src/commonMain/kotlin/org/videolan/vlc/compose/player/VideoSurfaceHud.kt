@@ -28,6 +28,8 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
@@ -46,7 +48,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -168,7 +172,7 @@ fun VideoSurfaceWithHud(
     surface: @Composable BoxScope.(chromeVisible: Boolean) -> Unit,
 ) {
     var hudVisible by remember { mutableStateOf(true) }
-    var optionsVisible by remember { mutableStateOf(false) }
+    var activeSheet by remember { mutableStateOf<PlaybackSheetDestination?>(null) }
     var rendererPickerVisible by remember { mutableStateOf(false) }
     var interfaceLocked by remember { mutableStateOf(false) }
     LaunchedEffect(title) {
@@ -176,7 +180,7 @@ fun VideoSurfaceWithHud(
         hudVisible = true
     }
     LaunchedEffect(hudVisible, playing, hudTimeoutSeconds) {
-        if (hudVisible && playing) {
+        if (hasVideoOutput && hudVisible && playing) {
             delay(hudTimeoutSeconds.coerceIn(1, 10) * 1_000L)
             hudVisible = false
         }
@@ -194,15 +198,27 @@ fun VideoSurfaceWithHud(
         modifier = modifier
             .fillMaxSize()
             .background(Color.Black)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-            ) { if (!interfaceLocked) hudVisible = !hudVisible }
     ) {
         // Video / artwork surface
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            surface(hudVisible || optionsVisible)
+            surface(!hasVideoOutput || hudVisible || activeSheet != null)
         }
+
+        // Keep the full-surface tap affordance behind the HUD. Putting click handling on the
+        // parent also observes taps consumed by child buttons on some Compose targets, which can
+        // hide the chrome at the exact moment a speed or overflow action opens.
+        Box(
+            modifier = if (hasVideoOutput) {
+                Modifier
+                    .fillMaxSize()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                    ) { if (!interfaceLocked) hudVisible = !hudVisible }
+            } else {
+                Modifier.fillMaxSize()
+            },
+        )
 
         if (!error.isNullOrBlank()) {
             Surface(
@@ -222,7 +238,7 @@ fun VideoSurfaceWithHud(
         }
 
         VideoHudOverlay(
-            visible = hudVisible && !interfaceLocked,
+            visible = (!hasVideoOutput || hudVisible) && !interfaceLocked,
             title = title,
             subtitle = subtitle,
             playing = playing,
@@ -231,6 +247,7 @@ fun VideoSurfaceWithHud(
             repeatMode = repeatMode,
             rate = rate,
             queueSize = queue.size,
+            hasVideoOutput = hasVideoOutput,
             bookmarks = bookmarks,
             onTogglePlay = onTogglePlay,
             onSeek = onSeek,
@@ -238,7 +255,7 @@ fun VideoSurfaceWithHud(
             onPrevious = onPrevious,
             onToggleShuffle = onToggleShuffle,
             onCycleRepeat = onCycleRepeat,
-            onOpenOptions = { optionsVisible = true },
+            onOpenOptions = { activeSheet = it },
             showPictureInPicture = showPictureInPicture,
             onEnterPictureInPicture = onEnterPictureInPicture,
             showRendererSelection = showRendererSelection,
@@ -285,8 +302,9 @@ fun VideoSurfaceWithHud(
         }
     }
 
-    if (optionsVisible) {
+    activeSheet?.let { initialDestination ->
         PlaybackOptionsSheet(
+            initialDestination = initialDestination,
             rate = rate,
             queue = queue,
             currentQueueIndex = currentQueueIndex,
@@ -307,10 +325,7 @@ fun VideoSurfaceWithHud(
             onSetRate = onSetRate,
             onSeekTo = onSeek,
             onSavePlaylist = onSavePlaylist,
-            onPlayQueueItem = {
-                onPlayQueueItem(it)
-                optionsVisible = false
-            },
+            onPlayQueueItem = onPlayQueueItem,
             onMoveQueueItem = onMoveQueueItem,
             onRemoveQueueItem = onRemoveQueueItem,
             onToggleABRepeat = onToggleABRepeat,
@@ -342,7 +357,7 @@ fun VideoSurfaceWithHud(
             onNextBookmark = onNextBookmark,
             showSubtitleImport = showSubtitleImport,
             onImportSubtitle = onImportSubtitle,
-            onDismiss = { optionsVisible = false },
+            onDismiss = { activeSheet = null },
         )
     }
 
@@ -398,6 +413,7 @@ fun VideoHudOverlay(
     repeatMode: RepeatMode,
     rate: Float,
     queueSize: Int,
+    hasVideoOutput: Boolean,
     bookmarks: PlaybackBookmarks = PlaybackBookmarks(),
     onTogglePlay: () -> Unit,
     onSeek: (Long) -> Unit,
@@ -405,7 +421,7 @@ fun VideoHudOverlay(
     onPrevious: () -> Unit,
     onToggleShuffle: () -> Unit,
     onCycleRepeat: () -> Unit,
-    onOpenOptions: () -> Unit,
+    onOpenOptions: (PlaybackSheetDestination) -> Unit,
     showPictureInPicture: Boolean,
     onEnterPictureInPicture: () -> Unit,
     showRendererSelection: Boolean,
@@ -416,6 +432,17 @@ fun VideoHudOverlay(
 ) {
     val colors = VLCThemeDefaults.colors
     val motion = LocalVLCMotion.current
+    val density = LocalDensity.current
+    val enterDuration = if (motion.reducedMotion) 0 else 180
+    val exitDuration = if (motion.reducedMotion) 0 else 120
+    val chromeAlpha by animateFloatAsState(
+        targetValue = if (visible) 1f else 0f,
+        animationSpec = tween(
+            durationMillis = if (visible) enterDuration else exitDuration,
+            easing = if (visible) VLCMotion.EmphasizedDecelerate else VLCMotion.EmphasizedAccelerate,
+        ),
+        label = "player-chrome-scrim",
+    )
     val shuffleTint by animateColorAsState(
         targetValue = if (shuffle) colors.primary else Color.White,
         animationSpec = tween(motion.durationShort, easing = VLCMotion.Emphasized),
@@ -426,32 +453,41 @@ fun VideoHudOverlay(
         animationSpec = tween(motion.durationShort, easing = VLCMotion.Emphasized),
         label = "repeat-tint",
     )
+    val bottomScrim = colors.primary.copy(alpha = 0.16f).compositeOver(Color.Black)
     Box(modifier = Modifier.fillMaxSize()) {
-        // Top gradient + title
+        // Gradients stay anchored to the viewport and only change opacity. Foreground controls
+        // travel a fixed 10dp so toggling chrome feels connected without dragging in whole rows.
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .height(128.dp)
+                .graphicsLayer { alpha = chromeAlpha }
+                .background(
+                    Brush.verticalGradient(
+                        listOf(Color.Black.copy(alpha = 0.76f), Color.Transparent)
+                    )
+                )
+        )
         AnimatedVisibility(
             visible = visible,
             modifier = Modifier.align(Alignment.TopCenter),
-            enter = fadeIn(tween(motion.durationShort)) + slideInVertically(
-                animationSpec = tween(motion.durationShort, easing = VLCMotion.EmphasizedDecelerate),
-                initialOffsetY = { -it / 3 },
+            enter = fadeIn(tween(enterDuration, easing = VLCMotion.EmphasizedDecelerate)) + slideInVertically(
+                animationSpec = tween(enterDuration, easing = VLCMotion.EmphasizedDecelerate),
+                initialOffsetY = { with(density) { -10.dp.roundToPx() } },
             ),
-            exit = fadeOut(tween(motion.durationShort)) + slideOutVertically(
-                animationSpec = tween(motion.durationShort, easing = VLCMotion.EmphasizedAccelerate),
-                targetOffsetY = { -it / 4 },
+            exit = fadeOut(tween(exitDuration, easing = VLCMotion.EmphasizedAccelerate)) + slideOutVertically(
+                animationSpec = tween(exitDuration, easing = VLCMotion.EmphasizedAccelerate),
+                targetOffsetY = { with(density) { -8.dp.roundToPx() } },
             ),
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(
-                        Brush.verticalGradient(
-                            listOf(Color.Black.copy(alpha = 0.72f), Color.Transparent)
-                        )
-                    )
                     // Preserve the edge-to-edge artwork while keeping close/title actions below
                     // status bars and display cutouts on every shared target.
                     .statusBarsPadding()
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .padding(horizontal = 8.dp, vertical = 8.dp)
             ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -485,58 +521,121 @@ fun VideoHudOverlay(
                         )
                     }
                 }
-                if (showPictureInPicture) {
-                    IconButton(onClick = onEnterPictureInPicture) {
+                TextButton(
+                    onClick = { onOpenOptions(PlaybackSheetDestination.SPEED) },
+                    modifier = Modifier.height(48.dp),
+                ) {
+                    Text(
+                        text = playbackRateLabel(rate),
+                        color = Color.White,
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+                var overflowVisible by remember { mutableStateOf(false) }
+                Box {
+                    IconButton(onClick = { overflowVisible = true }) {
                         Icon(
-                            icon = MaterialSymbols.Filled.PictureInPictureAlt,
-                            contentDescription = stringResource(Res.string.play_pip_title),
+                            icon = MaterialSymbols.Filled.MoreVert,
+                            contentDescription = stringResource(Res.string.more_options),
                             tint = Color.White,
                         )
                     }
-                }
-                if (showRendererSelection) {
-                    IconButton(onClick = onOpenRendererSelection) {
-                        Icon(
-                            icon = MaterialSymbols.Filled.Devices,
-                            contentDescription = stringResource(Res.string.renderer_list_title),
-                            tint = Color.White,
+                    DropdownMenu(
+                        expanded = overflowVisible,
+                        onDismissRequest = { overflowVisible = false },
+                    ) {
+                        DropdownMenuItem(
+                            text = {
+                                Text("Up next ($queueSize)")
+                            },
+                            leadingIcon = {
+                                Icon(MaterialSymbols.Filled.QueueMusic, contentDescription = null)
+                            },
+                            onClick = {
+                                overflowVisible = false
+                                onOpenOptions(PlaybackSheetDestination.QUEUE)
+                            },
                         )
-                    }
-                }
-                if (showInterfaceLock) {
-                    IconButton(onClick = onLockInterface) {
-                        Icon(
-                            icon = MaterialSymbols.Filled.Lock,
-                            contentDescription = stringResource(Res.string.lock),
-                            tint = Color.White,
+                        DropdownMenuItem(
+                            text = { Text(stringResource(Res.string.player_controls)) },
+                            leadingIcon = {
+                                Icon(MaterialSymbols.Filled.Tune, contentDescription = null)
+                            },
+                            onClick = {
+                                overflowVisible = false
+                                onOpenOptions(PlaybackSheetDestination.TOOLS)
+                            },
                         )
+                        if (showPictureInPicture) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(Res.string.play_pip_title)) },
+                                leadingIcon = {
+                                    Icon(MaterialSymbols.Filled.PictureInPictureAlt, contentDescription = null)
+                                },
+                                onClick = {
+                                    overflowVisible = false
+                                    onEnterPictureInPicture()
+                                },
+                            )
+                        }
+                        if (showRendererSelection) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(Res.string.renderer_list_title)) },
+                                leadingIcon = {
+                                    Icon(MaterialSymbols.Filled.Devices, contentDescription = null)
+                                },
+                                onClick = {
+                                    overflowVisible = false
+                                    onOpenRendererSelection()
+                                },
+                            )
+                        }
+                        if (showInterfaceLock) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(Res.string.lock)) },
+                                leadingIcon = {
+                                    Icon(MaterialSymbols.Filled.Lock, contentDescription = null)
+                                },
+                                onClick = {
+                                    overflowVisible = false
+                                    onLockInterface()
+                                },
+                            )
+                        }
                     }
                 }
             }
             }
         }
 
-        // Bottom gradient + transport
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .height(244.dp)
+                .graphicsLayer { alpha = chromeAlpha }
+                .background(
+                    Brush.verticalGradient(
+                        listOf(Color.Transparent, bottomScrim)
+                    )
+                )
+        )
         AnimatedVisibility(
             visible = visible,
             modifier = Modifier.align(Alignment.BottomCenter),
-            enter = fadeIn(tween(motion.durationShort)) + slideInVertically(
-                animationSpec = tween(motion.durationShort, easing = VLCMotion.EmphasizedDecelerate),
-                initialOffsetY = { it / 3 },
+            enter = fadeIn(tween(enterDuration, easing = VLCMotion.EmphasizedDecelerate)) + slideInVertically(
+                animationSpec = tween(enterDuration, easing = VLCMotion.EmphasizedDecelerate),
+                initialOffsetY = { with(density) { 10.dp.roundToPx() } },
             ),
-            exit = fadeOut(tween(motion.durationShort)) + slideOutVertically(
-                animationSpec = tween(motion.durationShort, easing = VLCMotion.EmphasizedAccelerate),
-                targetOffsetY = { it / 4 },
+            exit = fadeOut(tween(exitDuration, easing = VLCMotion.EmphasizedAccelerate)) + slideOutVertically(
+                animationSpec = tween(exitDuration, easing = VLCMotion.EmphasizedAccelerate),
+                targetOffsetY = { with(density) { 8.dp.roundToPx() } },
             ),
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(
-                        Brush.verticalGradient(
-                            listOf(Color.Transparent, Color.Black.copy(alpha = 0.82f))
-                        )
-                    )
                     // The player is intentionally edge-to-edge, but its transport controls are not.
                     // Keep the primary play action clear of gesture and three-button navigation.
                     .navigationBarsPadding()
@@ -581,31 +680,7 @@ fun VideoHudOverlay(
                     modifier = Modifier.widthIn(min = 78.dp),
                 )
             }
-            Box(modifier = Modifier.height(8.dp))
-            Surface(
-                onClick = onOpenOptions,
-                shape = MaterialTheme.shapes.large,
-                color = Color.White.copy(alpha = 0.14f),
-                contentColor = Color.White,
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        icon = MaterialSymbols.Filled.Tune,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                    )
-                    Text(
-                        text = "${playbackRateLabel(rate)} · ${stringResource(Res.string.playlist)} ($queueSize)",
-                        style = MaterialTheme.typography.labelLarge,
-                    )
-                }
-            }
-            Box(modifier = Modifier.height(8.dp))
+            Box(modifier = Modifier.height(4.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
@@ -628,7 +703,7 @@ fun VideoHudOverlay(
                 val playInteractionSource = remember { MutableInteractionSource() }
                 val playPressed by playInteractionSource.collectIsPressedAsState()
                 val playScale by animateFloatAsState(
-                    targetValue = if (playPressed) 0.94f else 1f,
+                    targetValue = if (playPressed) 0.96f else 1f,
                     animationSpec = tween(motion.durationShort, easing = VLCMotion.Emphasized),
                     label = "play-button-scale",
                 )

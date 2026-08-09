@@ -43,6 +43,7 @@ internal fun VideoDestination(
         state = state,
         title = ShellStrings.videosTitle(),
         emptyLabel = ShellStrings.noVideos(),
+        emptyMessage = ShellStrings.noVideosMessage(),
         pagingFlow = viewModel.pagingFlow,
         groups = state.groups,
         onQuery = viewModel::setQuery,
@@ -116,6 +117,7 @@ internal fun AudioDestination(
         state = state,
         title = ShellStrings.audio(),
         emptyLabel = ShellStrings.noAudio(),
+        emptyMessage = ShellStrings.noAudioMessage(),
         sections = state.sections,
         pagingFlow = if (section == AudioSection.TRACKS && state.openedEntityTitle == null) {
             viewModel.pagingFlow
@@ -124,16 +126,16 @@ internal fun AudioDestination(
         },
         headerContent = if (shouldShowAudioSectionSelector(state)) {
             {
+                val sections = listOf(
+                    AudioSection.TRACKS to ShellStrings.tracks(),
+                    AudioSection.ARTISTS to ShellStrings.artists(),
+                    AudioSection.ALBUMS to ShellStrings.albums(),
+                    AudioSection.GENRES to ShellStrings.genres(),
+                )
                 VLCSectionSelector(
-                    options = listOf(
-                        ShellStrings.tracks(),
-                        ShellStrings.artists(),
-                        ShellStrings.albums(),
-                        ShellStrings.genres(),
-                        ShellStrings.playlists(),
-                    ).map(::VLCSectionOption),
-                    selectedIndex = section.ordinal,
-                    onSelect = { viewModel.setSection(AudioSection.entries[it]) },
+                    options = sections.map { VLCSectionOption(it.second) },
+                    selectedIndex = sections.indexOfFirst { it.first == section }.coerceAtLeast(0),
+                    onSelect = { index -> sections.getOrNull(index)?.first?.let(viewModel::setSection) },
                     modifier = Modifier.padding(bottom = 8.dp),
                 )
             }

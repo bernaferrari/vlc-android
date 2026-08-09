@@ -1,7 +1,9 @@
 package org.videolan.vlc.kmp
 
 import android.content.Intent
+import android.graphics.Color
 import android.net.Uri
+import android.os.Build
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
@@ -64,6 +66,12 @@ class AndroidShellHostCallbacks(
     private val activity: ComponentActivity,
     private val medialibrary: Medialibrary = Medialibrary.getInstance(),
 ) : ShellHostCallbacks {
+
+    private var playerSurfaceActive = false
+    private var restoreNavigationBarColor: Int? = null
+    private var restoreNavigationBarContrastEnforced: Boolean? = null
+    private var restoreLightNavigationBars: Boolean? = null
+    private var restoreLightStatusBars: Boolean? = null
 
     private val appLockController = runCatching {
         VlcKoin.get().get<org.videolan.vlc.platform.AppLockController>() as? AndroidAppLockController
@@ -129,8 +137,43 @@ class AndroidShellHostCallbacks(
     override fun supportsMediaImport(): Boolean = true
 
     override fun onPlayerImmersiveModeChanged(enabled: Boolean) {
+        onPlayerSurfaceChanged(active = enabled, immersive = enabled)
+    }
+
+    override fun onPlayerSurfaceChanged(active: Boolean, immersive: Boolean) {
         val controller = WindowCompat.getInsetsController(activity.window, activity.window.decorView)
-        if (enabled) {
+        if (active) {
+            if (!playerSurfaceActive) {
+                @Suppress("DEPRECATION")
+                restoreNavigationBarColor = activity.window.navigationBarColor
+                restoreNavigationBarContrastEnforced =
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        activity.window.isNavigationBarContrastEnforced
+                    } else {
+                        null
+                    }
+                restoreLightNavigationBars = controller.isAppearanceLightNavigationBars
+                restoreLightStatusBars = controller.isAppearanceLightStatusBars
+            }
+            @Suppress("DEPRECATION")
+            activity.window.navigationBarColor = Color.TRANSPARENT
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                activity.window.isNavigationBarContrastEnforced = false
+            }
+            controller.isAppearanceLightNavigationBars = false
+            controller.isAppearanceLightStatusBars = false
+        } else {
+            @Suppress("DEPRECATION")
+            restoreNavigationBarColor?.let { activity.window.navigationBarColor = it }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                restoreNavigationBarContrastEnforced?.let {
+                    activity.window.isNavigationBarContrastEnforced = it
+                }
+            }
+            restoreLightNavigationBars?.let { controller.isAppearanceLightNavigationBars = it }
+            restoreLightStatusBars?.let { controller.isAppearanceLightStatusBars = it }
+        }
+        if (immersive) {
             controller.systemBarsBehavior =
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             controller.hide(WindowInsetsCompat.Type.systemBars())
@@ -139,6 +182,7 @@ class AndroidShellHostCallbacks(
             controller.systemBarsBehavior =
                 WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
         }
+        playerSurfaceActive = active
     }
 
     override fun onImportMedia() {

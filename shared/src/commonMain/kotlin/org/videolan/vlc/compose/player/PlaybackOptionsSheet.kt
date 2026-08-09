@@ -1,37 +1,59 @@
+@file:OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+
 package org.videolan.vlc.compose.player
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.FilterChip
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonGroup
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.IconButtonShapes
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -40,82 +62,46 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
 import org.jetbrains.compose.resources.stringResource
 import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
-import org.videolan.vlc.compose.components.VLCSettingsCard
-import org.videolan.vlc.compose.components.VLCSettingsToggleRow
 import org.videolan.vlc.compose.components.VLCExpandableContent
-import org.videolan.vlc.compose.components.VLCListItemPosition
-import org.videolan.vlc.compose.components.segmentShape
-import org.videolan.vlc.compose.theme.VLCLayout
 import org.videolan.vlc.compose.theme.LocalVLCMotion
+import org.videolan.vlc.compose.theme.VLCLayout
 import org.videolan.vlc.compose.theme.VLCMotion
 import org.videolan.vlc.model.ABRepeat
 import org.videolan.vlc.model.MediaItem
-import org.videolan.vlc.player.VideoScaleMode
-import org.videolan.vlc.player.PlaybackVideoCrop
-import org.videolan.vlc.player.VideoCropMode
-import org.videolan.vlc.player.PlaybackVideoAdjust
-import org.videolan.vlc.player.VideoAdjustParameter
-import org.videolan.vlc.player.PlaybackTracks
-import org.videolan.vlc.player.PlaybackDelays
-import org.videolan.vlc.player.SleepTimerState
-import org.videolan.vlc.player.PlaybackChapters
-import org.videolan.vlc.player.PlaybackEqualizer
 import org.videolan.vlc.player.PlaybackBookmarks
-import org.videolan.vlc.player.PlaybackBookmark
+import org.videolan.vlc.player.PlaybackChapters
+import org.videolan.vlc.player.PlaybackDelays
+import org.videolan.vlc.player.PlaybackEqualizer
 import org.videolan.vlc.player.PlaybackRate
+import org.videolan.vlc.player.PlaybackTracks
+import org.videolan.vlc.player.PlaybackVideoAdjust
+import org.videolan.vlc.player.PlaybackVideoCrop
+import org.videolan.vlc.player.SleepTimerState
+import org.videolan.vlc.player.VideoAdjustParameter
+import org.videolan.vlc.player.VideoCropMode
+import org.videolan.vlc.player.VideoScaleMode
 import org.videolan.vlc.util.VlcTextUtils
 import vlc_android.shared.generated.resources.Res
-import vlc_android.shared.generated.resources.done
-import vlc_android.shared.generated.resources.ab_repeat
-import vlc_android.shared.generated.resources.aspect_ratio
-import vlc_android.shared.generated.resources.audio
-import vlc_android.shared.generated.resources.subtitles
-import vlc_android.shared.generated.resources.subtitle_select
-import vlc_android.shared.generated.resources.audio_delay
-import vlc_android.shared.generated.resources.spu_delay
-import vlc_android.shared.generated.resources.sleep_title
-import vlc_android.shared.generated.resources.wait_before_sleep
-import vlc_android.shared.generated.resources.cancel
-import vlc_android.shared.generated.resources.go_to_chapter
-import vlc_android.shared.generated.resources.ab_repeat_reset
-import vlc_android.shared.generated.resources.ab_repeat_stop
-import vlc_android.shared.generated.resources.abrepeat_add_first_marker
-import vlc_android.shared.generated.resources.abrepeat_add_second_marker
-import vlc_android.shared.generated.resources.move_down
-import vlc_android.shared.generated.resources.move_up
-import vlc_android.shared.generated.resources.now_playing
-import vlc_android.shared.generated.resources.playback_speed
-import vlc_android.shared.generated.resources.jump_to_time
-import vlc_android.shared.generated.resources.playlist_save
-import vlc_android.shared.generated.resources.playlist
-import vlc_android.shared.generated.resources.remove_from_playlist
-import vlc_android.shared.generated.resources.reset
-import vlc_android.shared.generated.resources.stop_after_this
-import vlc_android.shared.generated.resources.equalizer
-import vlc_android.shared.generated.resources.enable_equalizer
-import vlc_android.shared.generated.resources.preamp
-import vlc_android.shared.generated.resources.video_crop
-import vlc_android.shared.generated.resources.video_adjust
-import vlc_android.shared.generated.resources.bookmarks
-import vlc_android.shared.generated.resources.add_bookmark
-import vlc_android.shared.generated.resources.delete
-import vlc_android.shared.generated.resources.rename
-import vlc_android.shared.generated.resources.save
-import vlc_android.shared.generated.resources.previous_bookmark
-import vlc_android.shared.generated.resources.next_bookmark
+import vlc_android.shared.generated.resources.*
 
-private val PlaybackRatePresets = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f, 4f, 8f)
+enum class PlaybackSheetDestination {
+    SPEED,
+    QUEUE,
+    TOOLS,
+}
 
-private enum class PlaybackOptionsSection {
+private enum class PlaybackToolSection {
+    AB_REPEAT,
     VIDEO,
     TRACKS,
     DELAYS,
@@ -123,18 +109,18 @@ private enum class PlaybackOptionsSection {
     SLEEP,
     CHAPTERS,
     BOOKMARKS,
-    QUEUE,
 }
 
+private val PlaybackRatePresets = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f, 4f, 8f)
+
 /**
- * Shared advanced playback entry point.
- *
- * Both VLC Android and VLC iOS expose rate and queue management from the player. Keeping this
- * sheet in commonMain gives every host the same interaction while queue mutations remain native.
+ * A focused player control center. Speed and queue are first-class destinations; infrequent
+ * decoder tools remain available without forcing every control into one scrolling wall.
  */
 @Composable
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 internal fun PlaybackOptionsSheet(
+    initialDestination: PlaybackSheetDestination,
     rate: Float,
     queue: List<MediaItem>,
     currentQueueIndex: Int,
@@ -189,498 +175,126 @@ internal fun PlaybackOptionsSheet(
     onImportSubtitle: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var previewRate by remember(rate) { mutableFloatStateOf(rate) }
-    var bookmarkToRename by remember { mutableStateOf<PlaybackBookmark?>(null) }
-    var bookmarkName by remember { mutableStateOf("") }
+    var destination by remember(initialDestination) { mutableStateOf(initialDestination) }
+    var previewRate by remember(rate) { mutableFloatStateOf(PlaybackRate.normalize(rate)) }
+    var expandedTool by remember {
+        mutableStateOf<PlaybackToolSection?>(
+            PlaybackToolSection.EQUALIZER.takeIf { equalizer.enabled }
+        )
+    }
     var jumpToTimeVisible by remember { mutableStateOf(false) }
     var jumpToTimeText by remember { mutableStateOf("") }
     var savePlaylistVisible by remember { mutableStateOf(false) }
     var playlistName by remember { mutableStateOf("") }
-    var expandedSection by remember { mutableStateOf<PlaybackOptionsSection?>(null) }
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    var bookmarkToRename by remember { mutableStateOf<org.videolan.vlc.player.PlaybackBookmark?>(null) }
+    var bookmarkName by remember { mutableStateOf("") }
+    val motion = LocalVLCMotion.current
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        dragHandle = null,
+        containerColor = MaterialTheme.colorScheme.surface,
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(
-                    start = VLCLayout.SheetHorizontalPadding,
-                    end = VLCLayout.SheetHorizontalPadding,
-                    bottom = VLCLayout.SheetBottomPadding,
-                ),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .heightIn(max = 720.dp)
+                .animateContentSize(
+                    animationSpec = if (motion.reducedMotion) snap() else spring(
+                        dampingRatio = Spring.DampingRatioNoBouncy,
+                        stiffness = Spring.StiffnessMediumLow,
+                    ),
+                )
+                .padding(bottom = VLCLayout.SheetBottomPadding),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column {
-                    Text(
-                        stringResource(Res.string.playback_speed),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    Text(
-                        playbackRateLabel(previewRate),
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                }
-                TextButton(
-                    onClick = {
-                        previewRate = 1f
-                        onSetRate(1f)
-                    },
-                    enabled = previewRate != 1f,
-                ) {
-                    Text(stringResource(Res.string.reset))
-                }
-            }
-
-            Slider(
-                value = PlaybackRate.normalize(previewRate),
-                onValueChange = { previewRate = it },
-                onValueChangeFinished = { onSetRate(previewRate) },
-                valueRange = PlaybackRate.MIN..PlaybackRate.MAX,
-                steps = 30,
-                modifier = Modifier.fillMaxWidth(),
+            SheetHandle()
+            PlayerSheetHeader(destination = destination, onDismiss = onDismiss)
+            PlayerDestinationBar(
+                selected = destination,
+                onSelect = { destination = it },
+                modifier = Modifier.padding(horizontal = VLCLayout.SheetHorizontalPadding),
             )
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                PlaybackRatePresets.forEach { preset ->
-                    FilterChip(
-                        selected = previewRate == preset,
-                        onClick = {
-                            previewRate = preset
-                            onSetRate(preset)
-                        },
-                        label = { Text(playbackRateLabel(preset)) },
-                    )
-                }
-            }
-            TextButton(onClick = { jumpToTimeVisible = true }) {
-                Text(stringResource(Res.string.jump_to_time))
-            }
-            if (queue.isNotEmpty()) {
-                TextButton(onClick = { savePlaylistVisible = true }) {
-                    Text(stringResource(Res.string.playlist_save))
-                }
-            }
-
-            Surface(
-                shape = VLCListItemPosition.Single.segmentShape(),
-                color = if (abRepeatEnabled) {
-                    MaterialTheme.colorScheme.primaryContainer
-                } else {
-                    MaterialTheme.colorScheme.surfaceContainer
-                },
-                border = BorderStroke(
-                    1.dp,
-                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f),
+            Spacer(Modifier.height(12.dp))
+            Crossfade(
+                targetState = destination,
+                animationSpec = if (motion.reducedMotion) snap() else tween(
+                    durationMillis = motion.durationShort,
+                    easing = VLCMotion.Emphasized,
                 ),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Column {
-                            Text(
-                                stringResource(Res.string.ab_repeat),
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                            if (abRepeat.start >= 0L) {
-                                Text(
-                                    buildString {
-                                        append("A  ")
-                                        append(formatPlaybackTime(abRepeat.start))
-                                        if (abRepeat.stop >= 0L) {
-                                            append("   ·   B  ")
-                                            append(formatPlaybackTime(abRepeat.stop))
-                                        }
-                                    },
-                                    color = MaterialTheme.colorScheme.primary,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                )
-                            }
-                        }
-                        if (!abRepeatEnabled) {
-                            FilledTonalButton(onClick = onToggleABRepeat) {
-                                Text(stringResource(Res.string.ab_repeat))
-                            }
-                        }
-                    }
-                    if (abRepeatEnabled) {
-                        FlowRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            FilledTonalButton(onClick = onSetABRepeatMarker) {
-                                Text(
-                                    stringResource(
-                                        if (abRepeat.start < 0L) {
-                                            Res.string.abrepeat_add_first_marker
-                                        } else {
-                                            Res.string.abrepeat_add_second_marker
-                                        }
-                                    )
-                                )
-                            }
-                            TextButton(onClick = onResetABRepeat, enabled = abRepeat.start >= 0L) {
-                                Text(stringResource(Res.string.ab_repeat_reset))
-                            }
-                            TextButton(onClick = onClearABRepeat) {
-                                Text(stringResource(Res.string.ab_repeat_stop))
-                            }
-                        }
-                        Text(
-                            formatPlaybackTime(progressTime),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.labelMedium,
-                        )
-                    }
-                }
-            }
-
-            if (showVideoOptions) {
-                PlaybackOptionsSection(
-                    title = stringResource(Res.string.aspect_ratio),
-                    expanded = expandedSection == PlaybackOptionsSection.VIDEO,
-                    onToggle = {
-                        expandedSection = expandedSection.toggle(PlaybackOptionsSection.VIDEO)
-                    },
-                ) {
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    VideoScaleMode.entries.forEach { mode ->
-                        FilterChip(
-                            selected = mode == videoScaleMode,
-                            onClick = { onSetVideoScaleMode(mode) },
-                            label = { Text(mode.label) },
-                        )
-                    }
-                }
-                if (videoCrop.supported) {
-                    Text(
-                        stringResource(Res.string.video_crop),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
+                label = "player-sheet-destination",
+            ) { page ->
+                when (page) {
+                    PlaybackSheetDestination.SPEED -> SpeedPage(
+                        rate = previewRate,
+                        onPreviewRate = { previewRate = it },
+                        onCommitRate = onSetRate,
                     )
-                    FlowRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        VideoCropMode.entries.forEach { mode ->
-                            FilterChip(
-                                selected = mode == videoCrop.mode,
-                                onClick = { onSetVideoCrop(mode) },
-                                label = { Text(mode.label) },
-                            )
-                        }
-                    }
-                }
-                if (videoAdjust.supported) {
-                    HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
-                    VLCSettingsCard(
-                        rows = listOf {
-                            VLCSettingsToggleRow(
-                                title = stringResource(Res.string.video_adjust),
-                                checked = videoAdjust.enabled,
-                                onCheckedChange = onSetVideoAdjustEnabled,
-                            )
-                        },
-                        dividerInset = 20.dp,
-                    )
-                    if (videoAdjust.enabled) {
-                        VideoAdjustParameter.entries.forEach { parameter ->
-                            val value = videoAdjust.value(parameter)
-                            Text(
-                                "${parameter.label}  ${value.roundToInt()}",
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            Slider(
-                                value = value.coerceIn(parameter.minimum, parameter.maximum),
-                                onValueChange = { onSetVideoAdjust(parameter, it) },
-                                valueRange = parameter.minimum..parameter.maximum,
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                        }
-                        TextButton(onClick = onResetVideoAdjust, modifier = Modifier.align(Alignment.End)) {
-                            Text(stringResource(Res.string.reset))
-                        }
-                    }
-                }
-                }
-            }
 
-            if (tracks.hasSelectableTracks || showSubtitleImport) {
-                PlaybackOptionsSection(
-                    title = stringResource(Res.string.audio),
-                    expanded = expandedSection == PlaybackOptionsSection.TRACKS,
-                    onToggle = {
-                        expandedSection = expandedSection.toggle(PlaybackOptionsSection.TRACKS)
-                    },
-                ) {
-                if (tracks.hasSelectableTracks) {
-                if (tracks.audio.size > 1) {
-                    Text(
-                        stringResource(Res.string.audio),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold,
+                    PlaybackSheetDestination.QUEUE -> QueuePage(
+                        queue = queue,
+                        currentQueueIndex = currentQueueIndex,
+                        stopAfterCurrent = stopAfterCurrent,
+                        onToggleStopAfterCurrent = onToggleStopAfterCurrent,
+                        onSavePlaylist = { savePlaylistVisible = true },
+                        onPlayQueueItem = onPlayQueueItem,
+                        onMoveQueueItem = onMoveQueueItem,
+                        onRemoveQueueItem = onRemoveQueueItem,
                     )
-                    TrackChoices(tracks.audio, onSelectAudioTrack)
-                }
-                if (tracks.subtitles.isNotEmpty()) {
-                    Text(
-                        stringResource(Res.string.subtitles),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    TrackChoices(tracks.subtitles, onSelectSubtitleTrack)
-                }
-                }
-                if (showSubtitleImport) {
-                TextButton(onClick = onImportSubtitle, modifier = Modifier.align(Alignment.Start)) {
-                    Text(stringResource(Res.string.subtitle_select))
-                }
-                }
-                }
-            }
 
-            if (delays.supported) {
-                PlaybackOptionsSection(
-                    title = stringResource(Res.string.audio_delay),
-                    expanded = expandedSection == PlaybackOptionsSection.DELAYS,
-                    onToggle = { expandedSection = expandedSection.toggle(PlaybackOptionsSection.DELAYS) },
-                ) {
-                    DelayChoices(
-                        title = stringResource(Res.string.audio_delay),
-                        delayUs = delays.audioUs,
-                        onSetDelay = onSetAudioDelay,
-                    )
-                    DelayChoices(
-                        title = stringResource(Res.string.spu_delay),
-                        delayUs = delays.subtitleUs,
-                        onSetDelay = onSetSubtitleDelay,
-                    )
-                }
-            }
-
-            if (equalizer.supported) {
-                PlaybackOptionsSection(
-                    title = stringResource(Res.string.equalizer),
-                    expanded = expandedSection == PlaybackOptionsSection.EQUALIZER,
-                    onToggle = { expandedSection = expandedSection.toggle(PlaybackOptionsSection.EQUALIZER) },
-                ) {
-                VLCSettingsCard(
-                    rows = listOf {
-                        VLCSettingsToggleRow(
-                            title = stringResource(Res.string.equalizer),
-                            summary = stringResource(Res.string.enable_equalizer),
-                            checked = equalizer.enabled,
-                            onCheckedChange = onSetEqualizerEnabled,
-                        )
-                    },
-                    dividerInset = 20.dp,
-                )
-                if (equalizer.enabled) {
-                    FlowRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        equalizer.presets.forEach { preset ->
-                            FilterChip(
-                                selected = preset.id == equalizer.selectedPresetId,
-                                onClick = { onSelectEqualizerPreset(preset.id) },
-                                label = { Text(preset.label) },
-                            )
-                        }
-                    }
-                    EqualizerSlider(
-                        label = stringResource(Res.string.preamp),
-                        value = equalizer.preampDb,
-                        onValueChangeFinished = onSetEqualizerPreamp,
-                    )
-                    equalizer.bands.forEach { band ->
-                        EqualizerSlider(
-                            label = band.label,
-                            value = band.amplificationDb,
-                            onValueChangeFinished = { onSetEqualizerBand(band.index, it) },
-                        )
-                    }
-                }
-                }
-            }
-
-            PlaybackOptionsSection(
-                title = stringResource(Res.string.sleep_title),
-                expanded = expandedSection == PlaybackOptionsSection.SLEEP,
-                onToggle = { expandedSection = expandedSection.toggle(PlaybackOptionsSection.SLEEP) },
-            ) {
-                SleepTimerChoices(
-                    state = sleepTimer,
-                    onSetTimer = onSetSleepTimer,
-                    onClear = onClearSleepTimer,
-                )
-            }
-
-            if (chapters.entries.isNotEmpty()) {
-                HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
-                Text(stringResource(Res.string.go_to_chapter), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    chapters.entries.forEach { chapter ->
-                        FilterChip(
-                            selected = chapter.selected,
-                            onClick = { onSelectChapter(chapter.index) },
-                            label = { Text(chapter.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                        )
-                    }
-                }
-            }
-
-            if (bookmarks.supported) {
-                HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(stringResource(Res.string.bookmarks), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-                    TextButton(onClick = onAddBookmark) { Text(stringResource(Res.string.add_bookmark)) }
-                }
-                if (bookmarks.entries.isNotEmpty()) {
-                    val hasPreviousBookmark = bookmarks.entries.any { it.timeMs < progressTime }
-                    val hasNextBookmark = bookmarks.entries.any { it.timeMs > progressTime }
-                    FlowRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        FilledTonalButton(
-                            onClick = onPreviousBookmark,
-                            enabled = hasPreviousBookmark,
-                        ) {
-                            Text(stringResource(Res.string.previous_bookmark))
-                        }
-                        FilledTonalButton(
-                            onClick = onNextBookmark,
-                            enabled = hasNextBookmark,
-                        ) {
-                            Text(stringResource(Res.string.next_bookmark))
-                        }
-                    }
-                }
-                bookmarks.entries.forEach { bookmark ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        TextButton(onClick = { onSeekBookmark(bookmark.timeMs) }, modifier = Modifier.weight(1f)) {
-                            Text(
-                                "${bookmark.title} · ${formatPlaybackTime(bookmark.timeMs)}",
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                        TextButton(onClick = { onRemoveBookmark(bookmark.id) }) {
-                            Text(stringResource(Res.string.delete))
-                        }
-                        TextButton(onClick = {
+                    PlaybackSheetDestination.TOOLS -> ToolsPage(
+                        expanded = expandedTool,
+                        onExpandedChange = { expandedTool = if (expandedTool == it) null else it },
+                        progressTime = progressTime,
+                        abRepeat = abRepeat,
+                        abRepeatEnabled = abRepeatEnabled,
+                        videoScaleMode = videoScaleMode,
+                        videoCrop = videoCrop,
+                        videoAdjust = videoAdjust,
+                        tracks = tracks,
+                        delays = delays,
+                        sleepTimer = sleepTimer,
+                        chapters = chapters,
+                        equalizer = equalizer,
+                        bookmarks = bookmarks,
+                        showVideoOptions = showVideoOptions,
+                        showSubtitleImport = showSubtitleImport,
+                        onJumpToTime = { jumpToTimeVisible = true },
+                        onToggleABRepeat = onToggleABRepeat,
+                        onSetABRepeatMarker = onSetABRepeatMarker,
+                        onResetABRepeat = onResetABRepeat,
+                        onClearABRepeat = onClearABRepeat,
+                        onSetVideoScaleMode = onSetVideoScaleMode,
+                        onSetVideoCrop = onSetVideoCrop,
+                        onSetVideoAdjustEnabled = onSetVideoAdjustEnabled,
+                        onSetVideoAdjust = onSetVideoAdjust,
+                        onResetVideoAdjust = onResetVideoAdjust,
+                        onSelectAudioTrack = onSelectAudioTrack,
+                        onSelectSubtitleTrack = onSelectSubtitleTrack,
+                        onSetAudioDelay = onSetAudioDelay,
+                        onSetSubtitleDelay = onSetSubtitleDelay,
+                        onSetSleepTimer = onSetSleepTimer,
+                        onClearSleepTimer = onClearSleepTimer,
+                        onSelectChapter = onSelectChapter,
+                        onSetEqualizerEnabled = onSetEqualizerEnabled,
+                        onSelectEqualizerPreset = onSelectEqualizerPreset,
+                        onSetEqualizerPreamp = onSetEqualizerPreamp,
+                        onSetEqualizerBand = onSetEqualizerBand,
+                        onAddBookmark = onAddBookmark,
+                        onRemoveBookmark = onRemoveBookmark,
+                        onRenameBookmark = { bookmark ->
                             bookmarkToRename = bookmark
                             bookmarkName = bookmark.title
-                        }) {
-                            Text(stringResource(Res.string.rename))
-                        }
-                    }
-                }
-            }
-
-            PlaybackOptionsSection(
-                title = "${stringResource(Res.string.playlist)} · ${queue.size}",
-                expanded = expandedSection == PlaybackOptionsSection.QUEUE,
-                onToggle = { expandedSection = expandedSection.toggle(PlaybackOptionsSection.QUEUE) },
-            ) {
-            VLCSettingsCard(
-                rows = listOf {
-                    VLCSettingsToggleRow(
-                        title = stringResource(Res.string.stop_after_this),
-                        checked = stopAfterCurrent,
-                        onCheckedChange = { onToggleStopAfterCurrent() },
-                    )
-                },
-                dividerInset = 20.dp,
-            )
-
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 360.dp),
-            ) {
-                itemsIndexed(
-                    items = queue,
-                    key = { index, item -> "${item.id}:${item.uri}:$index" },
-                ) { index, item ->
-                    QueueItem(
-                        item = item,
-                        index = index,
-                        selected = index == currentQueueIndex,
-                        isFirst = index == 0,
-                        isLast = index == queue.lastIndex,
-                        onPlay = { onPlayQueueItem(index) },
-                        onMoveUp = { onMoveQueueItem(index, index - 1) },
-                        onMoveDown = { onMoveQueueItem(index, index + 1) },
-                        onRemove = { onRemoveQueueItem(index) },
+                        },
+                        onSeekBookmark = onSeekBookmark,
+                        onPreviousBookmark = onPreviousBookmark,
+                        onNextBookmark = onNextBookmark,
+                        onImportSubtitle = onImportSubtitle,
                     )
                 }
-            }
-            }
-
-            TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) {
-                Text(stringResource(Res.string.done))
             }
         }
-    }
-    bookmarkToRename?.let { bookmark ->
-        AlertDialog(
-            onDismissRequest = { bookmarkToRename = null },
-            title = { Text(stringResource(Res.string.rename)) },
-            text = {
-                OutlinedTextField(
-                    value = bookmarkName,
-                    onValueChange = { bookmarkName = it },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onRenameBookmark(bookmark.id, bookmarkName)
-                        bookmarkToRename = null
-                    },
-                    enabled = bookmarkName.isNotBlank(),
-                ) { Text(stringResource(Res.string.save)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { bookmarkToRename = null }) { Text(stringResource(Res.string.cancel)) }
-            },
-        )
     }
 
     if (jumpToTimeVisible) {
@@ -693,7 +307,9 @@ internal fun PlaybackOptionsSheet(
                     value = jumpToTimeText,
                     onValueChange = { jumpToTimeText = it },
                     label = { Text("HH:MM:SS") },
+                    supportingText = { Text("Examples: 90, 12:30, or 1:04:15") },
                     singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             },
             confirmButton = {
@@ -721,15 +337,16 @@ internal fun PlaybackOptionsSheet(
                 OutlinedTextField(
                     value = playlistName,
                     onValueChange = { playlistName = it },
-                    label = { Text(stringResource(Res.string.playlist)) },
+                    label = { Text(stringResource(Res.string.playlist_name_hint)) },
                     singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             },
             confirmButton = {
                 TextButton(
                     enabled = playlistName.isNotBlank(),
                     onClick = {
-                        onSavePlaylist(playlistName)
+                        onSavePlaylist(playlistName.trim())
                         savePlaylistVisible = false
                     },
                 ) { Text(stringResource(Res.string.save)) }
@@ -741,81 +358,1121 @@ internal fun PlaybackOptionsSheet(
             },
         )
     }
+
+    bookmarkToRename?.let { bookmark ->
+        AlertDialog(
+            onDismissRequest = { bookmarkToRename = null },
+            title = { Text(stringResource(Res.string.rename)) },
+            text = {
+                OutlinedTextField(
+                    value = bookmarkName,
+                    onValueChange = { bookmarkName = it },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = bookmarkName.isNotBlank(),
+                    onClick = {
+                        onRenameBookmark(bookmark.id, bookmarkName.trim())
+                        bookmarkToRename = null
+                    },
+                ) { Text(stringResource(Res.string.save)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { bookmarkToRename = null }) {
+                    Text(stringResource(Res.string.cancel))
+                }
+            },
+        )
+    }
 }
 
-private fun PlaybackOptionsSection?.toggle(target: PlaybackOptionsSection): PlaybackOptionsSection? =
-    if (this == target) null else target
-
-/**
- * Keeps the player sheet scannable: deep media controls are disclosed deliberately instead of
- * presenting every possible platform capability as one very tall wall of chips and sliders.
- */
 @Composable
-private fun PlaybackOptionsSection(
-    title: String,
-    expanded: Boolean,
-    onToggle: () -> Unit,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    val motion = LocalVLCMotion.current
-    val chevronRotation by animateFloatAsState(
-        targetValue = if (expanded) 90f else 0f,
-        animationSpec = if (motion.reducedMotion) snap() else tween(motion.durationShort, easing = VLCMotion.Emphasized),
-        label = "playbackSectionChevron",
-    )
-    Column(verticalArrangement = Arrangement.spacedBy(VLCLayout.GroupGap)) {
+private fun SheetHandle() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(20.dp),
+        contentAlignment = Alignment.Center,
+    ) {
         Surface(
-            onClick = onToggle,
-            shape = if (expanded) VLCListItemPosition.First.segmentShape() else VLCListItemPosition.Single.segmentShape(),
-            color = MaterialTheme.colorScheme.surfaceContainer,
-            border = BorderStroke(
-                1.dp,
-                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f),
+            modifier = Modifier.size(width = 36.dp, height = 4.dp),
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.36f),
+        ) {}
+    }
+}
+
+@Composable
+private fun PlayerSheetHeader(
+    destination: PlaybackSheetDestination,
+    onDismiss: () -> Unit,
+) {
+    val title = when (destination) {
+        PlaybackSheetDestination.SPEED -> stringResource(Res.string.playback_speed)
+        PlaybackSheetDestination.QUEUE -> "Up next"
+        PlaybackSheetDestination.TOOLS -> stringResource(Res.string.player_controls)
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 24.dp, end = 12.dp, bottom = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = "PLAYER",
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
+        FilledTonalIconButton(
+            onClick = onDismiss,
+            shapes = IconButtonShapes(
+                shape = RoundedCornerShape(22.dp),
+                pressedShape = RoundedCornerShape(14.dp),
             ),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.size(48.dp),
         ) {
-            Row(
+            Icon(
+                MaterialSymbols.Filled.Close,
+                contentDescription = stringResource(Res.string.close),
+                modifier = Modifier.size(22.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun PlayerDestinationBar(
+    selected: PlaybackSheetDestination,
+    onSelect: (PlaybackSheetDestination) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    ButtonGroup(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+    ) {
+        PlaybackSheetDestination.entries.forEachIndexed { index, destination ->
+            val interactionSource = remember { MutableInteractionSource() }
+            val shapes = when (index) {
+                0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                PlaybackSheetDestination.entries.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+            }
+            ToggleButton(
+                checked = selected == destination,
+                onCheckedChange = { onSelect(destination) },
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = VLCLayout.RowHeight)
-                    .padding(horizontal = 20.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    .weight(1f)
+                    .animateWidth(interactionSource)
+                    .height(52.dp),
+                shapes = shapes,
+                colors = ToggleButtonDefaults.tonalToggleButtonColors(),
+                interactionSource = interactionSource,
             ) {
                 Text(
-                    title,
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                Icon(
-                    MaterialSymbols.Filled.ChevronRight,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(24.dp)
-                        .graphicsLayer { rotationZ = chevronRotation },
-                )
-            }
-        }
-        VLCExpandableContent(visible = expanded) {
-            Surface(
-                shape = VLCListItemPosition.Last.segmentShape(),
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-                border = BorderStroke(
-                    1.dp,
-                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
-                ),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    content = content,
+                    text = when (destination) {
+                        PlaybackSheetDestination.SPEED -> "Speed"
+                        PlaybackSheetDestination.QUEUE -> "Queue"
+                        PlaybackSheetDestination.TOOLS -> "Tools"
+                    },
+                    fontWeight = if (selected == destination) FontWeight.Bold else FontWeight.SemiBold,
                 )
             }
         }
     }
 }
+
+@Composable
+private fun SpeedPage(
+    rate: Float,
+    onPreviewRate: (Float) -> Unit,
+    onCommitRate: (Float) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = VLCLayout.SheetHorizontalPadding),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = playbackRateLabel(rate),
+            style = MaterialTheme.typography.displayMedium,
+            fontWeight = FontWeight.SemiBold,
+        )
+        Text(
+            text = if (rate == 1f) "Normal speed" else if (rate < 1f) "Slower playback" else "Faster playback",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        Spacer(Modifier.height(20.dp))
+        Slider(
+            value = PlaybackRate.normalize(rate),
+            onValueChange = { value ->
+                onPreviewRate(snapPlaybackRate(value))
+            },
+            onValueChangeFinished = { onCommitRate(rate) },
+            valueRange = PlaybackRate.MIN..PlaybackRate.MAX,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text("¼×", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
+            Text("8×", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
+        }
+        Spacer(Modifier.height(20.dp))
+        PlaybackRatePresets.chunked(4).forEachIndexed { rowIndex, presets ->
+            ButtonGroup(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+            ) {
+                presets.forEachIndexed { index, preset ->
+                    val interactionSource = remember { MutableInteractionSource() }
+                    val restingShape = when (index) {
+                        0 -> RoundedCornerShape(topStart = 24.dp, bottomStart = 24.dp, topEnd = 8.dp, bottomEnd = 8.dp)
+                        presets.lastIndex -> RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp, topEnd = 24.dp, bottomEnd = 24.dp)
+                        else -> RoundedCornerShape(8.dp)
+                    }
+                    FilledTonalButton(
+                        onClick = {
+                            onPreviewRate(preset)
+                            onCommitRate(preset)
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .animateWidth(interactionSource)
+                            .height(52.dp),
+                        shapes = androidx.compose.material3.ButtonDefaults.shapes(
+                            shape = restingShape,
+                            pressedShape = RoundedCornerShape(16.dp),
+                        ),
+                        interactionSource = interactionSource,
+                    ) {
+                        Text(
+                            playbackRateLabel(preset),
+                            fontWeight = if (rate == preset) FontWeight.Bold else FontWeight.SemiBold,
+                            color = if (rate == preset) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSecondaryContainer,
+                        )
+                    }
+                }
+            }
+            if (rowIndex == 0) Spacer(Modifier.height(8.dp))
+        }
+        Spacer(Modifier.height(12.dp))
+        Text(
+            text = "Fine-tune the pace for this item.",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodySmall,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Composable
+private fun QueuePage(
+    queue: List<MediaItem>,
+    currentQueueIndex: Int,
+    stopAfterCurrent: Boolean,
+    onToggleStopAfterCurrent: () -> Unit,
+    onSavePlaylist: () -> Unit,
+    onPlayQueueItem: (Int) -> Unit,
+    onMoveQueueItem: (Int, Int) -> Unit,
+    onRemoveQueueItem: (Int) -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = VLCLayout.SheetHorizontalPadding),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = if (queue.size == 1) "1 item" else "${queue.size} items",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = "Tap any item to play it next",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            TextButton(onClick = onSavePlaylist, enabled = queue.isNotEmpty()) {
+                Text(stringResource(Res.string.save))
+            }
+        }
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = VLCLayout.SheetHorizontalPadding, vertical = 12.dp),
+            shape = RoundedCornerShape(18.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onToggleStopAfterCurrent)
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(stringResource(Res.string.stop_after_this), style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        text = "Finish the current item, then pause the queue",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                Switch(checked = stopAfterCurrent, onCheckedChange = { onToggleStopAfterCurrent() })
+            }
+        }
+
+        if (queue.isEmpty()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(220.dp)
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Icon(
+                    MaterialSymbols.Outlined.QueueMusic,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(36.dp),
+                )
+                Spacer(Modifier.height(12.dp))
+                Text("Nothing else is queued", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    "Add media from the library to keep listening.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 430.dp)
+                    .padding(horizontal = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                itemsIndexed(
+                    items = queue,
+                    key = { index, item -> "${item.id}:${item.uri}:$index" },
+                ) { index, item ->
+                    QueueItem(
+                        item = item,
+                        index = index,
+                        selected = index == currentQueueIndex,
+                        isFirst = index == 0,
+                        isLast = index == queue.lastIndex,
+                        onPlay = { onPlayQueueItem(index) },
+                        onMoveUp = { onMoveQueueItem(index, index - 1) },
+                        onMoveDown = { onMoveQueueItem(index, index + 1) },
+                        onRemove = { onRemoveQueueItem(index) },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun QueueItem(
+    item: MediaItem,
+    index: Int,
+    selected: Boolean,
+    isFirst: Boolean,
+    isLast: Boolean,
+    onPlay: () -> Unit,
+    onMoveUp: () -> Unit,
+    onMoveDown: () -> Unit,
+    onRemove: () -> Unit,
+) {
+    var menuVisible by remember { mutableStateOf(false) }
+    val itemShape = when {
+        isFirst && isLast -> RoundedCornerShape(28.dp)
+        isFirst -> RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp, bottomStart = 10.dp, bottomEnd = 10.dp)
+        isLast -> RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp, bottomStart = 28.dp, bottomEnd = 28.dp)
+        else -> RoundedCornerShape(10.dp)
+    }
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = itemShape,
+        color = if (selected) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surfaceContainerLow,
+        contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer
+        else MaterialTheme.colorScheme.onSurface,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(enabled = !selected, onClick = onPlay)
+                .padding(start = 12.dp, end = 4.dp, top = 10.dp, bottom = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Surface(
+                modifier = Modifier.size(48.dp),
+                shape = if (selected) MaterialShapes.Cookie6Sided.toShape() else RoundedCornerShape(16.dp),
+                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest,
+                contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    if (selected) {
+                        Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = null, modifier = Modifier.size(25.dp))
+                    } else {
+                        Text("${index + 1}", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    item.displayTitle,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                )
+                val metadata = if (selected) {
+                    stringResource(Res.string.now_playing)
+                } else {
+                    VlcTextUtils.separatedString(arrayOf(item.artist, item.album))
+                }
+                if (metadata.isNotBlank()) {
+                    Text(
+                        metadata,
+                        color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f)
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            }
+            Box {
+                IconButton(onClick = { menuVisible = true }) {
+                    Icon(MaterialSymbols.Filled.MoreVert, contentDescription = stringResource(Res.string.more_options))
+                }
+                DropdownMenu(expanded = menuVisible, onDismissRequest = { menuVisible = false }) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(Res.string.move_up)) },
+                        leadingIcon = { Icon(MaterialSymbols.Filled.ArrowUpward, contentDescription = null) },
+                        enabled = !isFirst,
+                        onClick = { menuVisible = false; onMoveUp() },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(Res.string.move_down)) },
+                        leadingIcon = { Icon(MaterialSymbols.Filled.ArrowDownward, contentDescription = null) },
+                        enabled = !isLast,
+                        onClick = { menuVisible = false; onMoveDown() },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(Res.string.remove_from_playlist)) },
+                        leadingIcon = { Icon(MaterialSymbols.Filled.Delete, contentDescription = null) },
+                        onClick = { menuVisible = false; onRemove() },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ToolsPage(
+    expanded: PlaybackToolSection?,
+    onExpandedChange: (PlaybackToolSection) -> Unit,
+    progressTime: Long,
+    abRepeat: ABRepeat,
+    abRepeatEnabled: Boolean,
+    videoScaleMode: VideoScaleMode,
+    videoCrop: PlaybackVideoCrop,
+    videoAdjust: PlaybackVideoAdjust,
+    tracks: PlaybackTracks,
+    delays: PlaybackDelays,
+    sleepTimer: SleepTimerState,
+    chapters: PlaybackChapters,
+    equalizer: PlaybackEqualizer,
+    bookmarks: PlaybackBookmarks,
+    showVideoOptions: Boolean,
+    showSubtitleImport: Boolean,
+    onJumpToTime: () -> Unit,
+    onToggleABRepeat: () -> Unit,
+    onSetABRepeatMarker: () -> Unit,
+    onResetABRepeat: () -> Unit,
+    onClearABRepeat: () -> Unit,
+    onSetVideoScaleMode: (VideoScaleMode) -> Unit,
+    onSetVideoCrop: (VideoCropMode) -> Unit,
+    onSetVideoAdjustEnabled: (Boolean) -> Unit,
+    onSetVideoAdjust: (VideoAdjustParameter, Float) -> Unit,
+    onResetVideoAdjust: () -> Unit,
+    onSelectAudioTrack: (String) -> Unit,
+    onSelectSubtitleTrack: (String) -> Unit,
+    onSetAudioDelay: (Long) -> Unit,
+    onSetSubtitleDelay: (Long) -> Unit,
+    onSetSleepTimer: (Long, Boolean) -> Unit,
+    onClearSleepTimer: () -> Unit,
+    onSelectChapter: (Int) -> Unit,
+    onSetEqualizerEnabled: (Boolean) -> Unit,
+    onSelectEqualizerPreset: (String) -> Unit,
+    onSetEqualizerPreamp: (Float) -> Unit,
+    onSetEqualizerBand: (Int, Float) -> Unit,
+    onAddBookmark: () -> Unit,
+    onRemoveBookmark: (String) -> Unit,
+    onRenameBookmark: (org.videolan.vlc.player.PlaybackBookmark) -> Unit,
+    onSeekBookmark: (Long) -> Unit,
+    onPreviousBookmark: () -> Unit,
+    onNextBookmark: () -> Unit,
+    onImportSubtitle: () -> Unit,
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(max = 540.dp)
+            .padding(horizontal = VLCLayout.SheetHorizontalPadding),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        item {
+            QuickToolRow(
+                title = stringResource(Res.string.jump_to_time),
+                summary = "Seek to an exact timestamp",
+                icon = MaterialSymbols.Filled.History,
+                onClick = onJumpToTime,
+            )
+        }
+        item {
+            ToolCard(
+                title = stringResource(Res.string.ab_repeat),
+                icon = MaterialSymbols.Filled.Repeat,
+                summary = when {
+                    !abRepeatEnabled -> "Loop a precise section"
+                    abRepeat.start < 0L -> "Choose the start point"
+                    abRepeat.stop < 0L -> "A · ${formatPlaybackTime(abRepeat.start)} — choose the end"
+                    else -> "A · ${formatPlaybackTime(abRepeat.start)}   B · ${formatPlaybackTime(abRepeat.stop)}"
+                },
+                expanded = expanded == PlaybackToolSection.AB_REPEAT,
+                onClick = { onExpandedChange(PlaybackToolSection.AB_REPEAT) },
+            ) {
+                ABRepeatContent(
+                    progressTime = progressTime,
+                    abRepeat = abRepeat,
+                    enabled = abRepeatEnabled,
+                    onToggle = onToggleABRepeat,
+                    onSetMarker = onSetABRepeatMarker,
+                    onReset = onResetABRepeat,
+                    onClear = onClearABRepeat,
+                )
+            }
+        }
+        if (showVideoOptions) {
+            item {
+                ToolCard(
+                    title = "Video fit & crop",
+                    summary = "${videoScaleMode.label} · ${videoCrop.mode.label}",
+                    icon = MaterialSymbols.Filled.VideoLibrary,
+                    expanded = expanded == PlaybackToolSection.VIDEO,
+                    onClick = { onExpandedChange(PlaybackToolSection.VIDEO) },
+                ) {
+                    VideoContent(
+                        scaleMode = videoScaleMode,
+                        crop = videoCrop,
+                        adjust = videoAdjust,
+                        onSetScaleMode = onSetVideoScaleMode,
+                        onSetCrop = onSetVideoCrop,
+                        onSetAdjustEnabled = onSetVideoAdjustEnabled,
+                        onSetAdjust = onSetVideoAdjust,
+                        onResetAdjust = onResetVideoAdjust,
+                    )
+                }
+            }
+        }
+        if (tracks.hasSelectableTracks || showSubtitleImport) {
+            item {
+                ToolCard(
+                    title = "Tracks",
+                    summary = "Audio, subtitles, and imports",
+                    icon = MaterialSymbols.Filled.MusicNote,
+                    expanded = expanded == PlaybackToolSection.TRACKS,
+                    onClick = { onExpandedChange(PlaybackToolSection.TRACKS) },
+                ) {
+                    TracksContent(
+                        tracks = tracks,
+                        showSubtitleImport = showSubtitleImport,
+                        onSelectAudioTrack = onSelectAudioTrack,
+                        onSelectSubtitleTrack = onSelectSubtitleTrack,
+                        onImportSubtitle = onImportSubtitle,
+                    )
+                }
+            }
+        }
+        if (delays.supported) {
+            item {
+                ToolCard(
+                    title = "Synchronization",
+                    summary = "Audio ${delays.audioUs / 1_000L} ms · Subtitles ${delays.subtitleUs / 1_000L} ms",
+                    icon = MaterialSymbols.Filled.Tune,
+                    expanded = expanded == PlaybackToolSection.DELAYS,
+                    onClick = { onExpandedChange(PlaybackToolSection.DELAYS) },
+                ) {
+                    DelayChoices(stringResource(Res.string.audio_delay), delays.audioUs, onSetAudioDelay)
+                    DelayChoices(stringResource(Res.string.spu_delay), delays.subtitleUs, onSetSubtitleDelay)
+                }
+            }
+        }
+        if (equalizer.supported) {
+            item {
+                ToolCard(
+                    title = stringResource(Res.string.equalizer),
+                    summary = if (equalizer.enabled) "On" else "Off",
+                    icon = MaterialSymbols.Filled.Settings,
+                    expanded = expanded == PlaybackToolSection.EQUALIZER,
+                    onClick = {
+                        if (!equalizer.enabled) onSetEqualizerEnabled(true)
+                        onExpandedChange(PlaybackToolSection.EQUALIZER)
+                    },
+                    trailingAction = {
+                        Switch(
+                            checked = equalizer.enabled,
+                            onCheckedChange = { enabled ->
+                                onSetEqualizerEnabled(enabled)
+                                val isExpanded = expanded == PlaybackToolSection.EQUALIZER
+                                if (enabled != isExpanded) {
+                                    onExpandedChange(PlaybackToolSection.EQUALIZER)
+                                }
+                            },
+                        )
+                    },
+                ) {
+                    EqualizerContent(
+                        equalizer = equalizer,
+                        onSelectPreset = onSelectEqualizerPreset,
+                        onSetPreamp = onSetEqualizerPreamp,
+                        onSetBand = onSetEqualizerBand,
+                    )
+                }
+            }
+        }
+        item {
+            ToolCard(
+                title = stringResource(Res.string.sleep_title),
+                icon = MaterialSymbols.Filled.History,
+                summary = when {
+                    sleepTimer.awaitingCurrentItemEnd -> "After this item"
+                    sleepTimer.isActive -> formatPlaybackTime(sleepTimer.remainingMillis)
+                    else -> "Off"
+                },
+                expanded = expanded == PlaybackToolSection.SLEEP,
+                onClick = { onExpandedChange(PlaybackToolSection.SLEEP) },
+            ) {
+                SleepTimerChoices(sleepTimer, onSetSleepTimer, onClearSleepTimer)
+            }
+        }
+        if (chapters.entries.isNotEmpty()) {
+            item {
+                ToolCard(
+                    title = stringResource(Res.string.go_to_chapter),
+                    summary = chapters.entries.firstOrNull { it.selected }?.title ?: "${chapters.entries.size} chapters",
+                    icon = MaterialSymbols.Filled.ViewList,
+                    expanded = expanded == PlaybackToolSection.CHAPTERS,
+                    onClick = { onExpandedChange(PlaybackToolSection.CHAPTERS) },
+                ) {
+                    ChoiceFlow {
+                        chapters.entries.forEach { chapter ->
+                            FilterChip(
+                                selected = chapter.selected,
+                                onClick = { onSelectChapter(chapter.index) },
+                                label = { Text(chapter.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        if (bookmarks.supported) {
+            item {
+                ToolCard(
+                    title = stringResource(Res.string.bookmarks),
+                    summary = if (bookmarks.entries.isEmpty()) "No bookmarks" else "${bookmarks.entries.size} saved",
+                    icon = MaterialSymbols.Filled.Star,
+                    expanded = expanded == PlaybackToolSection.BOOKMARKS,
+                    onClick = { onExpandedChange(PlaybackToolSection.BOOKMARKS) },
+                ) {
+                    BookmarksContent(
+                        progressTime = progressTime,
+                        bookmarks = bookmarks,
+                        onAdd = onAddBookmark,
+                        onRemove = onRemoveBookmark,
+                        onRename = onRenameBookmark,
+                        onSeek = onSeekBookmark,
+                        onPrevious = onPreviousBookmark,
+                        onNext = onNextBookmark,
+                    )
+                }
+            }
+        }
+        item { Spacer(Modifier.height(2.dp)) }
+    }
+}
+
+@Composable
+private fun QuickToolRow(
+    title: String,
+    summary: String,
+    icon: MaterialIcon,
+    onClick: () -> Unit,
+) {
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Surface(
+                modifier = Modifier.size(52.dp),
+                shape = MaterialShapes.Cookie6Sided.toShape(),
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.12f),
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(icon, contentDescription = null, modifier = Modifier.size(26.dp))
+                }
+            }
+            Spacer(Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text(summary, style = MaterialTheme.typography.bodySmall)
+            }
+            Icon(MaterialSymbols.Filled.ChevronRight, contentDescription = null)
+        }
+    }
+}
+
+@Composable
+private fun ToolCard(
+    title: String,
+    summary: String,
+    icon: MaterialIcon,
+    expanded: Boolean,
+    onClick: () -> Unit,
+    trailingAction: (@Composable () -> Unit)? = null,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val motion = LocalVLCMotion.current
+    val chevronRotation by animateFloatAsState(
+        targetValue = if (expanded) 90f else 0f,
+        animationSpec = if (motion.reducedMotion) snap() else tween(
+            durationMillis = motion.durationShort,
+            easing = VLCMotion.Emphasized,
+        ),
+        label = "player-tool-chevron",
+    )
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
+        color = if (expanded) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainerLow,
+    ) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onClick)
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Surface(
+                    modifier = Modifier.size(52.dp),
+                    shape = if (expanded) MaterialShapes.Cookie6Sided.toShape() else RoundedCornerShape(18.dp),
+                    color = if (expanded) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest,
+                    contentColor = if (expanded) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(icon, contentDescription = null, modifier = Modifier.size(25.dp))
+                    }
+                }
+                Spacer(Modifier.width(14.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        summary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                if (trailingAction != null) {
+                    trailingAction()
+                } else {
+                    Icon(
+                        MaterialSymbols.Filled.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.graphicsLayer { rotationZ = chevronRotation },
+                    )
+                }
+            }
+            VLCExpandableContent(visible = expanded) {
+                Column {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 18.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.46f),
+                    )
+                    Column(
+                        modifier = Modifier.padding(18.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        content = content,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ABRepeatContent(
+    progressTime: Long,
+    abRepeat: ABRepeat,
+    enabled: Boolean,
+    onToggle: () -> Unit,
+    onSetMarker: () -> Unit,
+    onReset: () -> Unit,
+    onClear: () -> Unit,
+) {
+    if (!enabled) {
+        FilledTonalButton(onClick = onToggle) { Text("Start A–B repeat") }
+        return
+    }
+    Text(
+        "Current position · ${formatPlaybackTime(progressTime)}",
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        style = MaterialTheme.typography.bodySmall,
+    )
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        FilledTonalButton(onClick = onSetMarker) {
+            Text(
+                stringResource(
+                    if (abRepeat.start < 0L) Res.string.abrepeat_add_first_marker
+                    else Res.string.abrepeat_add_second_marker
+                )
+            )
+        }
+        TextButton(onClick = onReset, enabled = abRepeat.start >= 0L) { Text(stringResource(Res.string.reset)) }
+        TextButton(onClick = onClear) { Text(stringResource(Res.string.ab_repeat_stop)) }
+    }
+}
+
+@Composable
+private fun VideoContent(
+    scaleMode: VideoScaleMode,
+    crop: PlaybackVideoCrop,
+    adjust: PlaybackVideoAdjust,
+    onSetScaleMode: (VideoScaleMode) -> Unit,
+    onSetCrop: (VideoCropMode) -> Unit,
+    onSetAdjustEnabled: (Boolean) -> Unit,
+    onSetAdjust: (VideoAdjustParameter, Float) -> Unit,
+    onResetAdjust: () -> Unit,
+) {
+    ChoiceFlow {
+        VideoScaleMode.entries.forEach { mode ->
+            FilterChip(selected = mode == scaleMode, onClick = { onSetScaleMode(mode) }, label = { Text(mode.label) })
+        }
+    }
+    if (crop.supported) {
+        Text(stringResource(Res.string.video_crop), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+        ChoiceFlow {
+            VideoCropMode.entries.forEach { mode ->
+                FilterChip(selected = mode == crop.mode, onClick = { onSetCrop(mode) }, label = { Text(mode.label) })
+            }
+        }
+    }
+    if (adjust.supported) {
+        ToggleRow("Image adjustments", adjust.enabled, onSetAdjustEnabled)
+        if (adjust.enabled) {
+            VideoAdjustParameter.entries.forEach { parameter ->
+                LabeledSlider(
+                    label = parameter.label,
+                    valueLabel = formatAdjustValue(adjust.value(parameter)),
+                    value = adjust.value(parameter).coerceIn(parameter.minimum, parameter.maximum),
+                    valueRange = parameter.minimum..parameter.maximum,
+                    onValueChange = { onSetAdjust(parameter, it) },
+                )
+            }
+            TextButton(onClick = onResetAdjust) {
+                Text(stringResource(Res.string.reset))
+            }
+        }
+    }
+}
+
+@Composable
+private fun TracksContent(
+    tracks: PlaybackTracks,
+    showSubtitleImport: Boolean,
+    onSelectAudioTrack: (String) -> Unit,
+    onSelectSubtitleTrack: (String) -> Unit,
+    onImportSubtitle: () -> Unit,
+) {
+    if (tracks.audio.size > 1) {
+        Text(stringResource(Res.string.audio), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+        TrackChoices(tracks.audio, onSelectAudioTrack)
+    }
+    if (tracks.subtitles.isNotEmpty()) {
+        Text(stringResource(Res.string.subtitles), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+        TrackChoices(tracks.subtitles, onSelectSubtitleTrack)
+    }
+    if (showSubtitleImport) {
+        FilledTonalButton(onClick = onImportSubtitle) { Text(stringResource(Res.string.subtitle_select)) }
+    }
+}
+
+@Composable
+private fun EqualizerContent(
+    equalizer: PlaybackEqualizer,
+    onSelectPreset: (String) -> Unit,
+    onSetPreamp: (Float) -> Unit,
+    onSetBand: (Int, Float) -> Unit,
+) {
+    if (!equalizer.enabled) return
+    ChoiceFlow {
+        equalizer.presets.forEach { preset ->
+            FilterChip(
+                selected = preset.id == equalizer.selectedPresetId,
+                onClick = { onSelectPreset(preset.id) },
+                label = { Text(preset.label) },
+            )
+        }
+    }
+    EqualizerSlider(stringResource(Res.string.preamp), equalizer.preampDb, onSetPreamp)
+    equalizer.bands.forEach { band ->
+        EqualizerSlider(band.label, band.amplificationDb) { onSetBand(band.index, it) }
+    }
+}
+
+@Composable
+private fun BookmarksContent(
+    progressTime: Long,
+    bookmarks: PlaybackBookmarks,
+    onAdd: () -> Unit,
+    onRemove: (String) -> Unit,
+    onRename: (org.videolan.vlc.player.PlaybackBookmark) -> Unit,
+    onSeek: (Long) -> Unit,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit,
+) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FilledTonalButton(
+            onClick = onPrevious,
+            enabled = bookmarks.entries.any { it.timeMs < progressTime },
+            modifier = Modifier.weight(1f),
+        ) { Text(stringResource(Res.string.previous_bookmark)) }
+        FilledTonalButton(
+            onClick = onNext,
+            enabled = bookmarks.entries.any { it.timeMs > progressTime },
+            modifier = Modifier.weight(1f),
+        ) { Text(stringResource(Res.string.next_bookmark)) }
+    }
+    bookmarks.entries.forEach { bookmark ->
+        var menuVisible by remember { mutableStateOf(false) }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onSeek(bookmark.timeMs) }
+                .padding(vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(bookmark.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(
+                    formatPlaybackTime(bookmark.timeMs),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            Box {
+                IconButton(onClick = { menuVisible = true }) {
+                    Icon(MaterialSymbols.Filled.MoreVert, contentDescription = stringResource(Res.string.more_options))
+                }
+                DropdownMenu(expanded = menuVisible, onDismissRequest = { menuVisible = false }) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(Res.string.rename)) },
+                        leadingIcon = { Icon(MaterialSymbols.Filled.Edit, contentDescription = null) },
+                        onClick = { menuVisible = false; onRename(bookmark) },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(Res.string.delete)) },
+                        leadingIcon = { Icon(MaterialSymbols.Filled.Delete, contentDescription = null) },
+                        onClick = { menuVisible = false; onRemove(bookmark.id) },
+                    )
+                }
+            }
+        }
+    }
+    FilledTonalButton(onClick = onAdd, modifier = Modifier.fillMaxWidth()) {
+        Text(stringResource(Res.string.add_bookmark))
+    }
+}
+
+@Composable
+private fun ToggleRow(title: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onCheckedChange(!checked) }
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(title, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
+        Switch(checked = checked, onCheckedChange = onCheckedChange)
+    }
+}
+
+@Composable
+private fun LabeledSlider(
+    label: String,
+    valueLabel: String,
+    value: Float,
+    valueRange: ClosedFloatingPointRange<Float>,
+    onValueChange: (Float) -> Unit,
+) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(label, style = MaterialTheme.typography.labelLarge)
+        Text(valueLabel, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
+    }
+    Slider(value = value, onValueChange = onValueChange, valueRange = valueRange, modifier = Modifier.fillMaxWidth())
+}
+
+@Composable
+private fun EqualizerSlider(label: String, value: Float, onCommit: (Float) -> Unit) {
+    var preview by remember(value) { mutableFloatStateOf(value.coerceIn(-20f, 20f)) }
+    LabeledSlider(
+        label = label,
+        valueLabel = "${preview.roundToInt()} dB",
+        value = preview,
+        valueRange = -20f..20f,
+        onValueChange = { preview = it; onCommit(it) },
+    )
+}
+
+@Composable
+@OptIn(ExperimentalLayoutApi::class)
+private fun ChoiceFlow(content: @Composable () -> Unit) {
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) { content() }
+}
+
+@Composable
+private fun TrackChoices(
+    tracks: List<org.videolan.vlc.player.PlaybackTrack>,
+    onSelect: (String) -> Unit,
+) {
+    ChoiceFlow {
+        tracks.forEach { track ->
+            FilterChip(
+                selected = track.selected,
+                onClick = { onSelect(track.id) },
+                label = { Text(track.label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun DelayChoices(title: String, delayUs: Long, onSetDelay: (Long) -> Unit) {
+    val delayMs = delayUs / 1_000L
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+            Text("$delayMs ms", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
+        }
+        ButtonGroup(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+        ) {
+            listOf("−500", stringResource(Res.string.reset), "+500").forEachIndexed { index, label ->
+                val interactionSource = remember { MutableInteractionSource() }
+                val shape = when (index) {
+                    0 -> RoundedCornerShape(topStart = 24.dp, bottomStart = 24.dp, topEnd = 8.dp, bottomEnd = 8.dp)
+                    2 -> RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp, topEnd = 24.dp, bottomEnd = 24.dp)
+                    else -> RoundedCornerShape(8.dp)
+                }
+                FilledTonalButton(
+                    onClick = {
+                        when (index) {
+                            0 -> onSetDelay(delayUs - 500_000L)
+                            1 -> onSetDelay(0L)
+                            else -> onSetDelay(delayUs + 500_000L)
+                        }
+                    },
+                    shapes = androidx.compose.material3.ButtonDefaults.shapes(
+                        shape = shape,
+                        pressedShape = RoundedCornerShape(16.dp),
+                    ),
+                    enabled = index != 1 || delayUs != 0L,
+                    modifier = Modifier
+                        .weight(1f)
+                        .animateWidth(interactionSource)
+                        .height(50.dp),
+                    interactionSource = interactionSource,
+                ) {
+                    Text(label, maxLines = 1)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SleepTimerChoices(
+    state: SleepTimerState,
+    onSetTimer: (Long, Boolean) -> Unit,
+    onClear: () -> Unit,
+) {
+    var waitForCurrentItem by remember(state.isActive) { mutableStateOf(state.waitForCurrentItem) }
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        listOf(15L, 30L, 60L).forEach { minutes ->
+            FilledTonalButton(
+                onClick = { onSetTimer(minutes * 60_000L, waitForCurrentItem) },
+                modifier = Modifier.weight(1f),
+            ) { Text("$minutes min") }
+        }
+    }
+    ToggleRow(stringResource(Res.string.wait_before_sleep), waitForCurrentItem) {
+        waitForCurrentItem = it
+        if (state.isActive && state.durationMillis > 0L) onSetTimer(state.durationMillis, it)
+    }
+    if (state.isActive) {
+        TextButton(onClick = onClear) {
+            Text(stringResource(Res.string.cancel))
+        }
+    }
+}
+
+private fun formatAdjustValue(value: Float): String =
+    ((value * 100f).roundToInt() / 100f).toString().removeSuffix(".0")
+
+internal fun snapPlaybackRate(value: Float): Float =
+    PlaybackRate.normalize((value * 20f).roundToInt() / 20f)
 
 /** Parses VLC's compact seek notation: seconds, MM:SS, or HH:MM:SS. */
 internal fun parsePlaybackTimestamp(input: String): Long? {
@@ -834,190 +1491,3 @@ internal fun parsePlaybackTimestamp(input: String): Long? {
 
 private fun Long.safeMultiplyAdd(multiplier: Long, addend: Long): Long? =
     if (this > (Long.MAX_VALUE - addend) / multiplier) null else this * multiplier + addend
-
-@Composable
-private fun EqualizerSlider(
-    label: String,
-    value: Float,
-    onValueChangeFinished: (Float) -> Unit,
-) {
-    var preview by remember(value) { mutableFloatStateOf(value.coerceIn(-20f, 20f)) }
-    Text(
-        "$label  ${preview.roundToInt()} dB",
-        style = MaterialTheme.typography.labelLarge,
-    )
-    Slider(
-        value = preview,
-        onValueChange = { preview = it },
-        onValueChangeFinished = { onValueChangeFinished(preview) },
-        valueRange = -20f..20f,
-        modifier = Modifier.fillMaxWidth(),
-    )
-}
-
-@Composable
-@OptIn(ExperimentalLayoutApi::class)
-private fun TrackChoices(
-    tracks: List<org.videolan.vlc.player.PlaybackTrack>,
-    onSelect: (String) -> Unit,
-) {
-    FlowRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        tracks.forEach { track ->
-            FilterChip(
-                selected = track.selected,
-                onClick = { onSelect(track.id) },
-                label = { Text(track.label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-            )
-        }
-    }
-}
-
-@Composable
-@OptIn(ExperimentalLayoutApi::class)
-private fun DelayChoices(title: String, delayUs: Long, onSetDelay: (Long) -> Unit) {
-    val delayMs = delayUs / 1_000L
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-            Text("${delayMs} ms", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodyMedium)
-        }
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(selected = false, onClick = { onSetDelay(delayUs - 500_000L) }, label = { Text("−500 ms") })
-            FilterChip(selected = delayUs == 0L, onClick = { onSetDelay(0L) }, label = { Text(stringResource(Res.string.reset)) })
-            FilterChip(selected = false, onClick = { onSetDelay(delayUs + 500_000L) }, label = { Text("+500 ms") })
-        }
-    }
-}
-
-@Composable
-@OptIn(ExperimentalLayoutApi::class)
-private fun SleepTimerChoices(
-    state: SleepTimerState,
-    onSetTimer: (Long, Boolean) -> Unit,
-    onClear: () -> Unit,
-) {
-    var waitForCurrentItem by remember(state.isActive) { mutableStateOf(state.waitForCurrentItem) }
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(stringResource(Res.string.sleep_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-            if (state.isActive) {
-                Text(
-                    if (state.awaitingCurrentItemEnd) "After this item" else formatPlaybackTime(state.remainingMillis),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-        }
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf(15L, 30L, 60L).forEach { minutes ->
-                FilterChip(
-                    selected = state.isActive && state.durationMillis == minutes * 60_000L,
-                    onClick = { onSetTimer(minutes * 60_000L, waitForCurrentItem) },
-                    label = { Text("$minutes min") },
-                )
-            }
-            if (state.isActive) {
-                FilterChip(selected = false, onClick = onClear, label = { Text(stringResource(Res.string.cancel)) })
-            }
-        }
-        FilterChip(
-            selected = waitForCurrentItem,
-            onClick = { waitForCurrentItem = !waitForCurrentItem },
-            label = { Text(stringResource(Res.string.wait_before_sleep)) },
-        )
-    }
-}
-
-@Composable
-private fun QueueItem(
-    item: MediaItem,
-    index: Int,
-    selected: Boolean,
-    isFirst: Boolean,
-    isLast: Boolean,
-    onPlay: () -> Unit,
-    onMoveUp: () -> Unit,
-    onMoveDown: () -> Unit,
-    onRemove: () -> Unit,
-) {
-    val position = when {
-        isFirst && isLast -> VLCListItemPosition.Single
-        isFirst -> VLCListItemPosition.First
-        isLast -> VLCListItemPosition.Last
-        else -> VLCListItemPosition.Middle
-    }
-    Surface(
-        // Queue rows are one group. Reusing the shared asymmetric silhouette keeps the player
-        // sheet aligned with library, browser, and settings lists instead of stacking pills.
-        shape = position.segmentShape(),
-        color = if (selected) {
-            MaterialTheme.colorScheme.secondaryContainer
-        } else {
-            MaterialTheme.colorScheme.surface
-        },
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(position.segmentShape())
-                .clickable(enabled = !selected, onClick = onPlay)
-                .padding(start = 12.dp, top = 6.dp, bottom = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                if (selected) "•" else "${index + 1}",
-                modifier = Modifier.padding(end = 12.dp),
-                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.labelLarge,
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    item.displayTitle,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    // Selection is carried by the tonal surface and play indicator; keep text
-                    // metrics stable as the queue advances.
-                    fontWeight = FontWeight.Normal,
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-                val supportingText = if (selected) {
-                    stringResource(Res.string.now_playing)
-                } else {
-                    VlcTextUtils.separatedString(arrayOf(item.artist, item.album))
-                }
-                if (supportingText.isNotBlank()) {
-                    Text(
-                        supportingText,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-            }
-            IconButton(onClick = onMoveUp, enabled = !isFirst) {
-                Icon(
-                    MaterialSymbols.Filled.ArrowUpward,
-                    contentDescription = stringResource(Res.string.move_up),
-                )
-            }
-            IconButton(onClick = onMoveDown, enabled = !isLast) {
-                Icon(
-                    MaterialSymbols.Filled.ArrowDownward,
-                    contentDescription = stringResource(Res.string.move_down),
-                )
-            }
-            IconButton(onClick = onRemove) {
-                Icon(
-                    MaterialSymbols.Filled.Delete,
-                    contentDescription = stringResource(Res.string.remove_from_playlist),
-                )
-            }
-        }
-    }
-}

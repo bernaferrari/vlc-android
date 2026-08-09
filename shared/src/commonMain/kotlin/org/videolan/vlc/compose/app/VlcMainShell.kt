@@ -189,15 +189,17 @@ fun VlcMainShell(
         val detailPlaylistsState by detailPlaylistsVm.state.collectAsState()
         val moreState by moreVm.state.collectAsState()
         val settingsState by settingsVm.state.collectAsState()
-        // Video owns the full window; audio keeps the normal app/system chrome. The host callback
-        // is intentionally driven by the route and output capability together so a player opened
-        // before native probing completes does not hide bars prematurely.
+        // Video hides system chrome; audio keeps it visible but draws underneath it so the player
+        // gradient reaches the physical screen edge. Native hosts receive both pieces of state.
         val immersiveVideoPlayer = showPlayer && playerState.hasVideoOutput
-        DisposableEffect(hostCallbacks, immersiveVideoPlayer) {
-            hostCallbacks.onPlayerImmersiveModeChanged(immersiveVideoPlayer)
-            onDispose {
-                if (immersiveVideoPlayer) hostCallbacks.onPlayerImmersiveModeChanged(false)
-            }
+        LaunchedEffect(hostCallbacks, showPlayer, immersiveVideoPlayer) {
+            hostCallbacks.onPlayerSurfaceChanged(
+                active = showPlayer,
+                immersive = immersiveVideoPlayer,
+            )
+        }
+        DisposableEffect(hostCallbacks) {
+            onDispose { hostCallbacks.onPlayerSurfaceChanged(active = false, immersive = false) }
         }
         // Root destinations switch immediately: they are frequent mode changes, not a journey.
         val rootTransitionMetadata = remember {

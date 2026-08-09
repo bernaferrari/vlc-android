@@ -108,6 +108,14 @@ fun interface ShellHostCallbacks {
      * Audio playback and hosts without a system-bar API keep their normal chrome.
      */
     fun onPlayerImmersiveModeChanged(enabled: Boolean) = Unit
+    /**
+     * Announces the complete player-surface lifecycle. Audio remains non-immersive but still
+     * needs edge-to-edge system-bar treatment so its artwork/gradient reaches the bottom edge.
+     * The default preserves compatibility with hosts that only implement immersive video.
+     */
+    fun onPlayerSurfaceChanged(active: Boolean, immersive: Boolean) {
+        onPlayerImmersiveModeChanged(active && immersive)
+    }
     /** Opens a native subtitle-only document picker and returns a readable URI. */
     fun supportsSubtitleImport(): Boolean = false
     fun onImportSubtitle(onPicked: (String) -> Unit) = Unit

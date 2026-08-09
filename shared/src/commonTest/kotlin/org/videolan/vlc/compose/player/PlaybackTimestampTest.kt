@@ -5,6 +5,14 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 class PlaybackTimestampTest {
+
+    @Test
+    fun playbackRateSnapsToFiveHundredths() {
+        assertEquals(1.25f, snapPlaybackRate(1.23f))
+        assertEquals(0.25f, snapPlaybackRate(0.01f))
+        assertEquals(8f, snapPlaybackRate(9f))
+    }
+
     @Test
     fun parsesVlcSeekTimestampFormats() {
         assertEquals(42_000L, parsePlaybackTimestamp("42"))

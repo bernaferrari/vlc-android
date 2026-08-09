@@ -17,7 +17,7 @@ val AndroidPlayerSurface: PlayerSurface = { state, _ ->
         onDispose { SharedVideoSurfaceRegistry.deactivateHost() }
     }
     if (!state.hasVideoOutput) {
-        PlayerArtworkFallback()
+        PlayerArtworkFallback(state)
     } else {
         AndroidView(
             factory = { context ->

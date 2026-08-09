@@ -1,12 +1,15 @@
 package org.videolan.vlc.compose.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -69,51 +72,107 @@ fun VLCStatePlaceholder(
     secondaryActionText: String? = null,
     onSecondaryActionClick: (() -> Unit)? = null,
     compact: Boolean = false,
+    prominent: Boolean = false,
 ) {
     VLCTheme {
-        Box(
+        BoxWithConstraints(
             modifier = modifier.padding(
                 horizontal = if (compact) 16.dp else 24.dp,
                 vertical = if (compact) 24.dp else 40.dp,
             ),
             contentAlignment = Alignment.Center,
         ) {
-            Column(
-                modifier = Modifier.widthIn(max = 360.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                if (loading) {
-                    LoadingIndicator(text = title)
-                    return@Column
-                }
-                PlaceholderIcon(icon = icon, symbol = symbol, tone = tone)
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = title,
-                    color = if (tone == VLCStatePlaceholderTone.Error) MaterialTheme.colorScheme.error
-                        else VLCThemeDefaults.colors.fontDefault,
-                    style = MaterialTheme.typography.titleMedium,
-                    textAlign = TextAlign.Center,
-                )
-                message?.takeIf { it.isNotBlank() }?.let {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = it,
-                        color = VLCThemeDefaults.colors.fontLight,
-                        style = MaterialTheme.typography.bodyMedium,
-                        textAlign = TextAlign.Center,
+            val useWideCard = prominent && !compact && maxWidth >= 720.dp
+            if (useWideCard) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .widthIn(max = 560.dp),
+                    shape = MaterialTheme.shapes.extraLarge,
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                    tonalElevation = 1.dp,
+                ) {
+                    PlaceholderContent(
+                        title = title,
+                        message = message,
+                        icon = icon,
+                        symbol = symbol,
+                        loading = loading,
+                        tone = tone,
+                        actionText = actionText,
+                        onActionClick = onActionClick,
+                        secondaryActionText = secondaryActionText,
+                        onSecondaryActionClick = onSecondaryActionClick,
+                        modifier = Modifier.padding(horizontal = 56.dp, vertical = 48.dp),
                     )
                 }
-                if (actionText != null && onActionClick != null) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    FilledTonalButton(onClick = onActionClick) { Text(actionText) }
-                }
-                if (secondaryActionText != null && onSecondaryActionClick != null) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedButton(onClick = onSecondaryActionClick) { Text(secondaryActionText) }
-                }
+            } else {
+                PlaceholderContent(
+                    title = title,
+                    message = message,
+                    icon = icon,
+                    symbol = symbol,
+                    loading = loading,
+                    tone = tone,
+                    actionText = actionText,
+                    onActionClick = onActionClick,
+                    secondaryActionText = secondaryActionText,
+                    onSecondaryActionClick = onSecondaryActionClick,
+                )
             }
+        }
+    }
+}
+
+@Composable
+private fun PlaceholderContent(
+    title: String,
+    message: String?,
+    icon: Painter?,
+    symbol: MaterialIcon,
+    loading: Boolean,
+    tone: VLCStatePlaceholderTone,
+    actionText: String?,
+    onActionClick: (() -> Unit)?,
+    secondaryActionText: String?,
+    onSecondaryActionClick: (() -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.widthIn(max = 400.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        if (loading) {
+            LoadingIndicator(text = title)
+            return@Column
+        }
+        PlaceholderIcon(icon = icon, symbol = symbol, tone = tone)
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = title,
+            color = if (tone == VLCStatePlaceholderTone.Error) MaterialTheme.colorScheme.error
+                else VLCThemeDefaults.colors.fontDefault,
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center,
+        )
+        message?.takeIf { it.isNotBlank() }?.let {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = it,
+                color = VLCThemeDefaults.colors.fontLight,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+            )
+        }
+        if (actionText != null && onActionClick != null) {
+            Spacer(modifier = Modifier.height(20.dp))
+            FilledTonalButton(onClick = onActionClick) { Text(actionText) }
+        }
+        if (secondaryActionText != null && onSecondaryActionClick != null) {
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedButton(onClick = onSecondaryActionClick) { Text(secondaryActionText) }
         }
     }
 }
@@ -138,11 +197,14 @@ fun VLCEmptyState(
     icon: Painter? = null,
     symbol: MaterialIcon = MaterialSymbols.Filled.VideoLibrary,
     compact: Boolean = false,
+    message: String? = null,
+    prominent: Boolean = false,
     actionText: String? = null,
     onActionClick: () -> Unit = {}
 ) {
     VLCStatePlaceholder(
         title = text,
+        message = message,
         modifier = modifier,
         icon = icon,
         symbol = symbol,
@@ -150,6 +212,7 @@ fun VLCEmptyState(
         actionText = actionText,
         onActionClick = onActionClick.takeIf { actionText != null },
         compact = compact,
+        prominent = prominent,
     )
 }
 
