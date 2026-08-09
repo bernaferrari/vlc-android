@@ -10,6 +10,7 @@ import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,6 +28,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed as gridItemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
@@ -52,9 +57,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.material3.VerticalSlider
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberSliderState
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -63,6 +72,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -529,43 +541,55 @@ private fun SpeedPage(
             Text("8×", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
         }
         Spacer(Modifier.height(20.dp))
-        PlaybackRatePresets.chunked(4).forEachIndexed { rowIndex, presets ->
-            ButtonGroup(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-            ) {
-                presets.forEachIndexed { index, preset ->
-                    val interactionSource = remember { MutableInteractionSource() }
-                    val restingShape = when (index) {
-                        0 -> RoundedCornerShape(topStart = 24.dp, bottomStart = 24.dp, topEnd = 8.dp, bottomEnd = 8.dp)
-                        presets.lastIndex -> RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp, topEnd = 24.dp, bottomEnd = 24.dp)
-                        else -> RoundedCornerShape(8.dp)
-                    }
-                    FilledTonalButton(
-                        onClick = {
-                            onPreviewRate(preset)
-                            onCommitRate(preset)
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .animateWidth(interactionSource)
-                            .height(52.dp),
-                        shapes = androidx.compose.material3.ButtonDefaults.shapes(
-                            shape = restingShape,
-                            pressedShape = RoundedCornerShape(16.dp),
-                        ),
-                        interactionSource = interactionSource,
-                    ) {
-                        Text(
-                            playbackRateLabel(preset),
-                            fontWeight = if (rate == preset) FontWeight.Bold else FontWeight.SemiBold,
-                            color = if (rate == preset) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.onSecondaryContainer,
-                        )
+        val presetRows = PlaybackRatePresets.chunked(4)
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+        ) {
+            presetRows.forEachIndexed { rowIndex, presets ->
+                ButtonGroup(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+                ) {
+                    presets.forEachIndexed { columnIndex, preset ->
+                        val interactionSource = remember { MutableInteractionSource() }
+                        FilledTonalButton(
+                            onClick = {
+                                onPreviewRate(preset)
+                                onCommitRate(preset)
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .animateWidth(interactionSource)
+                                .height(52.dp)
+                                .semantics { selected = rate == preset },
+                            shapes = androidx.compose.material3.ButtonDefaults.shapes(
+                                shape = playbackRateGridShape(
+                                    rowIndex = rowIndex,
+                                    columnIndex = columnIndex,
+                                    rowCount = presetRows.size,
+                                    columnCount = presets.size,
+                                ),
+                                pressedShape = playbackRateGridShape(
+                                    rowIndex = rowIndex,
+                                    columnIndex = columnIndex,
+                                    rowCount = presetRows.size,
+                                    columnCount = presets.size,
+                                    pressed = true,
+                                ),
+                            ),
+                            interactionSource = interactionSource,
+                        ) {
+                            Text(
+                                playbackRateLabel(preset),
+                                fontWeight = if (rate == preset) FontWeight.Bold else FontWeight.SemiBold,
+                                color = if (rate == preset) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.onSecondaryContainer,
+                            )
+                        }
                     }
                 }
             }
-            if (rowIndex == 0) Spacer(Modifier.height(8.dp))
         }
         Spacer(Modifier.height(12.dp))
         Text(
@@ -934,26 +958,51 @@ private fun ToolsPage(
         }
         if (equalizer.supported) {
             item {
+                val equalizerExpanded = expanded == PlaybackToolSection.EQUALIZER
+                val selectedPreset = equalizer.presets.firstOrNull { it.id == equalizer.selectedPresetId }?.label
                 ToolCard(
                     title = stringResource(Res.string.equalizer),
-                    summary = if (equalizer.enabled) "On" else "Off",
-                    icon = MaterialSymbols.Filled.Settings,
-                    expanded = expanded == PlaybackToolSection.EQUALIZER,
+                    summary = when {
+                        !equalizer.enabled -> "Equalizer off"
+                        selectedPreset != null -> selectedPreset
+                        else -> "Custom sound"
+                    },
+                    icon = MaterialSymbols.Filled.Tune,
+                    expanded = equalizer.enabled && equalizerExpanded,
                     onClick = {
-                        if (!equalizer.enabled) onSetEqualizerEnabled(true)
-                        onExpandedChange(PlaybackToolSection.EQUALIZER)
+                        if (equalizer.enabled) {
+                            onExpandedChange(PlaybackToolSection.EQUALIZER)
+                        } else {
+                            onSetEqualizerEnabled(true)
+                            if (!equalizerExpanded) onExpandedChange(PlaybackToolSection.EQUALIZER)
+                        }
                     },
                     trailingAction = {
-                        Switch(
-                            checked = equalizer.enabled,
-                            onCheckedChange = { enabled ->
-                                onSetEqualizerEnabled(enabled)
-                                val isExpanded = expanded == PlaybackToolSection.EQUALIZER
-                                if (enabled != isExpanded) {
-                                    onExpandedChange(PlaybackToolSection.EQUALIZER)
-                                }
-                            },
-                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = if (equalizer.enabled) "On" else "Off",
+                                color = if (equalizer.enabled) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                textAlign = TextAlign.End,
+                                modifier = Modifier.width(24.dp),
+                            )
+                            Switch(
+                                checked = equalizer.enabled,
+                                onCheckedChange = { enabled ->
+                                    onSetEqualizerEnabled(enabled)
+                                    if (enabled && !equalizerExpanded) {
+                                        onExpandedChange(PlaybackToolSection.EQUALIZER)
+                                    } else if (!enabled && equalizerExpanded) {
+                                        onExpandedChange(PlaybackToolSection.EQUALIZER)
+                                    }
+                                },
+                            )
+                        }
                     },
                 ) {
                     EqualizerContent(
@@ -1251,18 +1300,103 @@ private fun EqualizerContent(
     onSetBand: (Int, Float) -> Unit,
 ) {
     if (!equalizer.enabled) return
-    ChoiceFlow {
-        equalizer.presets.forEach { preset ->
-            FilterChip(
-                selected = preset.id == equalizer.selectedPresetId,
-                onClick = { onSelectPreset(preset.id) },
-                label = { Text(preset.label) },
+
+    if (equalizer.presets.isNotEmpty()) {
+        val selectedPreset = equalizer.presets.firstOrNull { it.id == equalizer.selectedPresetId }?.label ?: "Custom"
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                "Sound profile",
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                selectedPreset,
+                modifier = Modifier.weight(1f),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.labelLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.End,
             )
         }
+        LazyHorizontalGrid(
+            rows = GridCells.Fixed(3),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(142.dp),
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            gridItemsIndexed(
+                items = equalizer.presets,
+                key = { _, preset -> preset.id },
+            ) { index, preset ->
+                val rowIndex = index % 3
+                val columnStart = (index / 3) * 3
+                val rowCount = minOf(3, equalizer.presets.size - columnStart)
+                val shape = equalizerPresetGridShape(rowIndex, rowCount)
+                ToggleButton(
+                    checked = preset.id == equalizer.selectedPresetId,
+                    onCheckedChange = { onSelectPreset(preset.id) },
+                    modifier = Modifier
+                        .width(116.dp)
+                        .height(46.dp),
+                    shapes = ToggleButtonDefaults.shapes(
+                        shape = shape,
+                        pressedShape = equalizerPresetGridShape(rowIndex, rowCount, pressed = true),
+                        checkedShape = shape,
+                    ),
+                    colors = ToggleButtonDefaults.tonalToggleButtonColors(),
+                ) {
+                    Text(
+                        preset.label,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        fontWeight = if (preset.id == equalizer.selectedPresetId) FontWeight.Bold else FontWeight.Medium,
+                    )
+                }
+            }
+        }
     }
-    EqualizerSlider(stringResource(Res.string.preamp), equalizer.preampDb, onSetPreamp)
-    equalizer.bands.forEach { band ->
-        EqualizerSlider(band.label, band.amplificationDb) { onSetBand(band.index, it) }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text("Fine tune", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+        Text("All frequency bands", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
+    }
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+    ) {
+        Row(
+            modifier = Modifier
+                .horizontalScroll(rememberScrollState())
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            EqualizerBandControl(
+                label = stringResource(Res.string.preamp),
+                value = equalizer.preampDb,
+                emphasized = true,
+                onCommit = onSetPreamp,
+            )
+            equalizer.bands.forEach { band ->
+                EqualizerBandControl(
+                    label = band.label,
+                    value = band.amplificationDb,
+                    onCommit = { onSetBand(band.index, it) },
+                )
+            }
+        }
     }
 }
 
@@ -1360,15 +1494,73 @@ private fun LabeledSlider(
 }
 
 @Composable
-private fun EqualizerSlider(label: String, value: Float, onCommit: (Float) -> Unit) {
+private fun EqualizerBandControl(
+    label: String,
+    value: Float,
+    emphasized: Boolean = false,
+    onCommit: (Float) -> Unit,
+) {
     var preview by remember(value) { mutableFloatStateOf(value.coerceIn(-20f, 20f)) }
-    LabeledSlider(
-        label = label,
-        valueLabel = "${preview.roundToInt()} dB",
+    val sliderState = rememberSliderState(
         value = preview,
         valueRange = -20f..20f,
-        onValueChange = { preview = it; onCommit(it) },
     )
+    sliderState.onValueChange = { updated ->
+        sliderState.value = updated
+        preview = updated
+        onCommit(updated)
+    }
+    LaunchedEffect(value) {
+        val updated = value.coerceIn(-20f, 20f)
+        if (!sliderState.isDragging && sliderState.value != updated) {
+            preview = updated
+            sliderState.value = updated
+        }
+    }
+    Surface(
+        modifier = Modifier.width(66.dp),
+        shape = RoundedCornerShape(18.dp),
+        color = if (emphasized) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surfaceContainerHigh,
+        contentColor = if (emphasized) MaterialTheme.colorScheme.onPrimaryContainer
+        else MaterialTheme.colorScheme.onSurface,
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                text = formatEqualizerDb(preview),
+                color = if (emphasized) MaterialTheme.colorScheme.onPrimaryContainer
+                else MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+            )
+            VerticalSlider(
+                state = sliderState,
+                modifier = Modifier
+                    .height(116.dp)
+                    .semantics { contentDescription = label },
+                reverseDirection = true,
+                track = { state ->
+                    SliderDefaults.CenteredTrack(
+                        sliderState = state,
+                        modifier = Modifier.width(28.dp),
+                        trackCornerSize = 10.dp,
+                    )
+                },
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+    }
 }
 
 @Composable
@@ -1470,6 +1662,47 @@ private fun SleepTimerChoices(
 
 private fun formatAdjustValue(value: Float): String =
     ((value * 100f).roundToInt() / 100f).toString().removeSuffix(".0")
+
+private fun playbackRateGridShape(
+    rowIndex: Int,
+    columnIndex: Int,
+    rowCount: Int,
+    columnCount: Int,
+    pressed: Boolean = false,
+): RoundedCornerShape {
+    val outerCorner = if (pressed) 20.dp else 24.dp
+    val innerCorner = if (pressed) 12.dp else 8.dp
+    return RoundedCornerShape(
+        topStart = if (rowIndex == 0 && columnIndex == 0) outerCorner else innerCorner,
+        topEnd = if (rowIndex == 0 && columnIndex == columnCount - 1) outerCorner else innerCorner,
+        bottomStart = if (rowIndex == rowCount - 1 && columnIndex == 0) outerCorner else innerCorner,
+        bottomEnd = if (rowIndex == rowCount - 1 && columnIndex == columnCount - 1) outerCorner else innerCorner,
+    )
+}
+
+private fun equalizerPresetGridShape(
+    rowIndex: Int,
+    rowCount: Int,
+    pressed: Boolean = false,
+): RoundedCornerShape {
+    val outerCorner = if (pressed) 16.dp else 18.dp
+    val innerCorner = if (pressed) 10.dp else 6.dp
+    return RoundedCornerShape(
+        topStart = if (rowIndex == 0) outerCorner else innerCorner,
+        topEnd = if (rowIndex == 0) outerCorner else innerCorner,
+        bottomStart = if (rowIndex == rowCount - 1) outerCorner else innerCorner,
+        bottomEnd = if (rowIndex == rowCount - 1) outerCorner else innerCorner,
+    )
+}
+
+private fun formatEqualizerDb(value: Float): String {
+    val rounded = value.roundToInt()
+    return when {
+        rounded > 0 -> "+$rounded dB"
+        rounded < 0 -> "−${-rounded} dB"
+        else -> "0 dB"
+    }
+}
 
 internal fun snapPlaybackRate(value: Float): Float =
     PlaybackRate.normalize((value * 20f).roundToInt() / 20f)

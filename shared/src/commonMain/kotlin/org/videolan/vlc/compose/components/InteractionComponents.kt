@@ -22,15 +22,16 @@ fun VLCExpandableContent(
     content: @Composable () -> Unit,
 ) {
     val motion = LocalVLCMotion.current
+    val duration = if (motion.reducedMotion) 0 else motion.durationShort
     AnimatedVisibility(
         visible = visible,
         modifier = modifier,
         enter = expandVertically(
-            animationSpec = tween(motion.durationShort, easing = VLCMotion.Emphasized),
+            animationSpec = tween(duration, easing = VLCMotion.Emphasized),
             expandFrom = Alignment.Top,
         ),
         exit = shrinkVertically(
-            animationSpec = tween(motion.durationShort, easing = VLCMotion.Emphasized),
+            animationSpec = tween(duration, easing = VLCMotion.Emphasized),
             shrinkTowards = Alignment.Top,
         ),
     ) {
