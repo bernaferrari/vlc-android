@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.components.DisplaySettingsSheet
 import org.videolan.vlc.compose.components.DisplaySettingsState
@@ -168,9 +169,10 @@ fun BrowserRichPane(
                 item {
                     Text(
                         ShellStrings.favorites(),
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
                         color = colors.primary,
-                        modifier = Modifier.padding(start = 4.dp, top = 16.dp, end = 4.dp, bottom = 6.dp),
+                        modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 4.dp, bottom = 6.dp),
                     )
                 }
                 itemsIndexed(state.favorites, key = { _, item -> "fav:${item.id}:${item.uri}" }) { index, item ->
@@ -190,9 +192,10 @@ fun BrowserRichPane(
                 item {
                     Text(
                         ShellStrings.storage(),
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
                         color = colors.primary,
-                        modifier = Modifier.padding(start = 4.dp, top = 16.dp, end = 4.dp, bottom = 6.dp),
+                        modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 4.dp, bottom = 6.dp),
                     )
                 }
             }

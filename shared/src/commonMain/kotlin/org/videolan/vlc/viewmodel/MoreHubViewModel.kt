@@ -147,10 +147,6 @@ class MoreHubViewModel(
 
     fun clearStreamActionError() = _state.update { it.copy(streamActionError = null) }
 
-    fun moveUp(entry: HistoryEntry) = launchIo {
-        runCatching { history.moveUp(entry.item.id) }
-    }
-
     fun removeHistory(entry: HistoryEntry) = launchIo {
         runCatching { history.removeHistoryEntry(entry.item.id) }
     }

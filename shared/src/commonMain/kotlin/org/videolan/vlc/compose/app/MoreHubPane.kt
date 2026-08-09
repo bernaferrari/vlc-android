@@ -35,6 +35,7 @@ import org.videolan.vlc.compose.components.VLCListItemPosition
 import org.videolan.vlc.compose.components.VLCNavigationRow
 import org.videolan.vlc.compose.components.VLCPageHeader
 import org.videolan.vlc.compose.components.VLCSelectionContextBar
+import org.videolan.vlc.compose.components.VLCSelectionCheckIndicator
 import org.videolan.vlc.compose.components.VLCRenameItemDialog
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialIcon
@@ -248,22 +249,20 @@ internal fun MorePane(
                         if (state.historySelection.isNotEmpty()) vm.toggleHistorySelect(entry)
                         else onPlayHistory(entry)
                     },
+                    onLongClick = { vm.toggleHistorySelect(entry) },
                     artworkContent = {
-                        Icon(
-                            if (entry.item.isVideo) MaterialSymbols.Filled.VideoLibrary else MaterialSymbols.Filled.MusicNote,
-                            contentDescription = null,
-                            tint = colors.primary,
-                        )
+                        if (selected) {
+                            VLCSelectionCheckIndicator(modifier = Modifier.fillMaxSize())
+                        } else {
+                            Icon(
+                                if (entry.item.isVideo) MaterialSymbols.Filled.VideoLibrary else MaterialSymbols.Filled.MusicNote,
+                                contentDescription = null,
+                                tint = colors.primary,
+                            )
+                        }
                     },
                     badgeContent = {
-                        if (entry.item.present) {
-                            Icon(
-                                MaterialSymbols.Filled.CheckCircle,
-                                contentDescription = ShellStrings.present(),
-                                tint = colors.primary,
-                                modifier = Modifier.size(20.dp),
-                            )
-                        } else {
+                        if (!entry.item.present) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -282,18 +281,6 @@ internal fun MorePane(
                             }
                         }
                     },
-                    primaryActionContent = {
-                        Icon(
-                            MaterialSymbols.Filled.CheckCircle,
-                            contentDescription = if (selected) ShellStrings.selected() else ShellStrings.selectHistoryEntry(),
-                        )
-                    },
-                    onPrimaryActionClick = { vm.toggleHistorySelect(entry) },
-                    moreActionContent = {
-                        Icon(MaterialSymbols.Filled.ArrowUpward, contentDescription = ShellStrings.moveUp())
-                    },
-                    moreActionContentDescription = ShellStrings.moveUp(),
-                    onMoreClick = { vm.moveUp(entry) },
                 )
             }
             state.historyError?.let { error ->
@@ -502,7 +489,7 @@ private fun MoreSectionHeader(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 4.dp),
+            .padding(start = 16.dp, end = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -516,7 +503,7 @@ private fun MoreSectionTitle(title: String) {
     Text(
         title,
         style = MaterialTheme.typography.titleSmall,
-        fontWeight = FontWeight.SemiBold,
+        fontWeight = FontWeight.Bold,
         color = MaterialTheme.colorScheme.primary,
     )
 }
