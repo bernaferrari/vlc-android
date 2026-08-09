@@ -75,12 +75,14 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlin.math.roundToInt
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.pluralStringResource
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
@@ -319,7 +321,7 @@ internal fun PlaybackOptionsSheet(
                     value = jumpToTimeText,
                     onValueChange = { jumpToTimeText = it },
                     label = { Text("HH:MM:SS") },
-                    supportingText = { Text("Examples: 90, 12:30, or 1:04:15") },
+                    supportingText = { Text(stringResource(Res.string.seek_examples)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -424,7 +426,7 @@ private fun PlayerSheetHeader(
 ) {
     val title = when (destination) {
         PlaybackSheetDestination.SPEED -> stringResource(Res.string.playback_speed)
-        PlaybackSheetDestination.QUEUE -> "Up next"
+        PlaybackSheetDestination.QUEUE -> stringResource(Res.string.up_next)
         PlaybackSheetDestination.TOOLS -> stringResource(Res.string.player_controls)
     }
     Row(
@@ -435,7 +437,7 @@ private fun PlayerSheetHeader(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = "PLAYER",
+                text = stringResource(Res.string.player_label).uppercase(),
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
@@ -493,9 +495,9 @@ private fun PlayerDestinationBar(
             ) {
                 Text(
                     text = when (destination) {
-                        PlaybackSheetDestination.SPEED -> "Speed"
-                        PlaybackSheetDestination.QUEUE -> "Queue"
-                        PlaybackSheetDestination.TOOLS -> "Tools"
+                        PlaybackSheetDestination.SPEED -> stringResource(Res.string.speed)
+                        PlaybackSheetDestination.QUEUE -> stringResource(Res.string.queue)
+                        PlaybackSheetDestination.TOOLS -> stringResource(Res.string.tools)
                     },
                     fontWeight = if (selected == destination) FontWeight.Bold else FontWeight.SemiBold,
                 )
@@ -522,7 +524,11 @@ private fun SpeedPage(
             fontWeight = FontWeight.SemiBold,
         )
         Text(
-            text = if (rate == 1f) "Normal speed" else if (rate < 1f) "Slower playback" else "Faster playback",
+            text = stringResource(
+                if (rate == 1f) Res.string.normal_speed
+                else if (rate < 1f) Res.string.slower_playback
+                else Res.string.faster_playback,
+            ),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.bodyMedium,
         )
@@ -593,7 +599,7 @@ private fun SpeedPage(
         }
         Spacer(Modifier.height(12.dp))
         Text(
-            text = "Fine-tune the pace for this item.",
+            text = stringResource(Res.string.fine_tune_pace),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.bodySmall,
             textAlign = TextAlign.Center,
@@ -621,12 +627,12 @@ private fun QueuePage(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = if (queue.size == 1) "1 item" else "${queue.size} items",
+                    text = pluralStringResource(Res.plurals.items_count, queue.size, queue.size),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
                 Text(
-                    text = "Tap any item to play it next",
+                    text = stringResource(Res.string.tap_queue_item),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall,
                 )
@@ -652,7 +658,7 @@ private fun QueuePage(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(stringResource(Res.string.stop_after_this), style = MaterialTheme.typography.bodyLarge)
                     Text(
-                        text = "Finish the current item, then pause the queue",
+                        text = stringResource(Res.string.stop_after_current_summary),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodySmall,
                     )
@@ -677,9 +683,9 @@ private fun QueuePage(
                     modifier = Modifier.size(36.dp),
                 )
                 Spacer(Modifier.height(12.dp))
-                Text("Nothing else is queued", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(Res.string.queue_empty), style = MaterialTheme.typography.titleMedium)
                 Text(
-                    "Add media from the library to keep listening.",
+                    stringResource(Res.string.queue_empty_summary),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
@@ -872,7 +878,7 @@ private fun ToolsPage(
         item {
             QuickToolRow(
                 title = stringResource(Res.string.jump_to_time),
-                summary = "Seek to an exact timestamp",
+                summary = stringResource(Res.string.seek_exact_timestamp),
                 icon = MaterialSymbols.Filled.History,
                 onClick = onJumpToTime,
             )
@@ -882,10 +888,17 @@ private fun ToolsPage(
                 title = stringResource(Res.string.ab_repeat),
                 icon = MaterialSymbols.Filled.Repeat,
                 summary = when {
-                    !abRepeatEnabled -> "Loop a precise section"
-                    abRepeat.start < 0L -> "Choose the start point"
-                    abRepeat.stop < 0L -> "A · ${formatPlaybackTime(abRepeat.start)} — choose the end"
-                    else -> "A · ${formatPlaybackTime(abRepeat.start)}   B · ${formatPlaybackTime(abRepeat.stop)}"
+                    !abRepeatEnabled -> stringResource(Res.string.loop_precise_section)
+                    abRepeat.start < 0L -> stringResource(Res.string.choose_start_point)
+                    abRepeat.stop < 0L -> stringResource(
+                        Res.string.choose_end_point,
+                        formatPlaybackTime(abRepeat.start),
+                    )
+                    else -> stringResource(
+                        Res.string.ab_points,
+                        formatPlaybackTime(abRepeat.start),
+                        formatPlaybackTime(abRepeat.stop),
+                    )
                 },
                 expanded = expanded == PlaybackToolSection.AB_REPEAT,
                 onClick = { onExpandedChange(PlaybackToolSection.AB_REPEAT) },
@@ -904,7 +917,7 @@ private fun ToolsPage(
         if (showVideoOptions) {
             item {
                 ToolCard(
-                    title = "Video fit & crop",
+                    title = stringResource(Res.string.video_fit_crop),
                     summary = "${videoScaleMode.label} · ${videoCrop.mode.label}",
                     icon = MaterialSymbols.Filled.VideoLibrary,
                     expanded = expanded == PlaybackToolSection.VIDEO,
@@ -926,8 +939,8 @@ private fun ToolsPage(
         if (tracks.hasSelectableTracks || showSubtitleImport) {
             item {
                 ToolCard(
-                    title = "Tracks",
-                    summary = "Audio, subtitles, and imports",
+                    title = stringResource(Res.string.tracks),
+                    summary = stringResource(Res.string.tracks_summary),
                     icon = MaterialSymbols.Filled.MusicNote,
                     expanded = expanded == PlaybackToolSection.TRACKS,
                     onClick = { onExpandedChange(PlaybackToolSection.TRACKS) },
@@ -945,8 +958,12 @@ private fun ToolsPage(
         if (delays.supported) {
             item {
                 ToolCard(
-                    title = "Synchronization",
-                    summary = "Audio ${delays.audioUs / 1_000L} ms · Subtitles ${delays.subtitleUs / 1_000L} ms",
+                    title = stringResource(Res.string.synchronization),
+                    summary = stringResource(
+                        Res.string.synchronization_summary,
+                        delays.audioUs / 1_000L,
+                        delays.subtitleUs / 1_000L,
+                    ),
                     icon = MaterialSymbols.Filled.Tune,
                     expanded = expanded == PlaybackToolSection.DELAYS,
                     onClick = { onExpandedChange(PlaybackToolSection.DELAYS) },
@@ -963,9 +980,9 @@ private fun ToolsPage(
                 ToolCard(
                     title = stringResource(Res.string.equalizer),
                     summary = when {
-                        !equalizer.enabled -> "Equalizer off"
+                        !equalizer.enabled -> stringResource(Res.string.equalizer_off)
                         selectedPreset != null -> selectedPreset
-                        else -> "Custom sound"
+                        else -> stringResource(Res.string.custom_sound)
                     },
                     icon = MaterialSymbols.Filled.Tune,
                     expanded = equalizer.enabled && equalizerExpanded,
@@ -983,7 +1000,7 @@ private fun ToolsPage(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
-                                text = if (equalizer.enabled) "On" else "Off",
+                                text = stringResource(if (equalizer.enabled) Res.string.on else Res.string.off),
                                 color = if (equalizer.enabled) MaterialTheme.colorScheme.primary
                                 else MaterialTheme.colorScheme.onSurfaceVariant,
                                 style = MaterialTheme.typography.labelLarge,
@@ -1019,9 +1036,9 @@ private fun ToolsPage(
                 title = stringResource(Res.string.sleep_title),
                 icon = MaterialSymbols.Filled.History,
                 summary = when {
-                    sleepTimer.awaitingCurrentItemEnd -> "After this item"
+                    sleepTimer.awaitingCurrentItemEnd -> stringResource(Res.string.after_this_item)
                     sleepTimer.isActive -> formatPlaybackTime(sleepTimer.remainingMillis)
-                    else -> "Off"
+                    else -> stringResource(Res.string.off)
                 },
                 expanded = expanded == PlaybackToolSection.SLEEP,
                 onClick = { onExpandedChange(PlaybackToolSection.SLEEP) },
@@ -1033,7 +1050,11 @@ private fun ToolsPage(
             item {
                 ToolCard(
                     title = stringResource(Res.string.go_to_chapter),
-                    summary = chapters.entries.firstOrNull { it.selected }?.title ?: "${chapters.entries.size} chapters",
+                    summary = chapters.entries.firstOrNull { it.selected }?.title ?: pluralStringResource(
+                        Res.plurals.chapters_count,
+                        chapters.entries.size,
+                        chapters.entries.size,
+                    ),
                     icon = MaterialSymbols.Filled.ViewList,
                     expanded = expanded == PlaybackToolSection.CHAPTERS,
                     onClick = { onExpandedChange(PlaybackToolSection.CHAPTERS) },
@@ -1054,7 +1075,15 @@ private fun ToolsPage(
             item {
                 ToolCard(
                     title = stringResource(Res.string.bookmarks),
-                    summary = if (bookmarks.entries.isEmpty()) "No bookmarks" else "${bookmarks.entries.size} saved",
+                    summary = if (bookmarks.entries.isEmpty()) {
+                        stringResource(Res.string.no_bookmarks)
+                    } else {
+                        pluralStringResource(
+                            Res.plurals.saved_bookmarks_quantity,
+                            bookmarks.entries.size,
+                            bookmarks.entries.size,
+                        )
+                    },
                     icon = MaterialSymbols.Filled.Star,
                     expanded = expanded == PlaybackToolSection.BOOKMARKS,
                     onClick = { onExpandedChange(PlaybackToolSection.BOOKMARKS) },
@@ -1133,6 +1162,7 @@ private fun ToolCard(
         ),
         label = "player-tool-chevron",
     )
+    val expansionState = stringResource(if (expanded) Res.string.expanded else Res.string.collapsed)
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
@@ -1142,6 +1172,7 @@ private fun ToolCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .semantics { stateDescription = expansionState }
                     .clickable(onClick = onClick)
                     .padding(horizontal = 14.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -1206,11 +1237,11 @@ private fun ABRepeatContent(
     onClear: () -> Unit,
 ) {
     if (!enabled) {
-        FilledTonalButton(onClick = onToggle) { Text("Start A–B repeat") }
+        FilledTonalButton(onClick = onToggle) { Text(stringResource(Res.string.start_ab_repeat)) }
         return
     }
     Text(
-        "Current position · ${formatPlaybackTime(progressTime)}",
+        stringResource(Res.string.current_position_value, formatPlaybackTime(progressTime)),
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         style = MaterialTheme.typography.bodySmall,
     )
@@ -1253,7 +1284,7 @@ private fun VideoContent(
         }
     }
     if (adjust.supported) {
-        ToggleRow("Image adjustments", adjust.enabled, onSetAdjustEnabled)
+        ToggleRow(stringResource(Res.string.image_adjustments), adjust.enabled, onSetAdjustEnabled)
         if (adjust.enabled) {
             VideoAdjustParameter.entries.forEach { parameter ->
                 LabeledSlider(
@@ -1309,7 +1340,7 @@ private fun EqualizerContent(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                "Sound profile",
+                stringResource(Res.string.sound_profile),
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
@@ -1369,8 +1400,8 @@ private fun EqualizerContent(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text("Fine tune", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-        Text("All frequency bands", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
+        Text(stringResource(Res.string.fine_tune), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+        Text(stringResource(Res.string.all_frequency_bands), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium)
     }
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -1646,7 +1677,7 @@ private fun SleepTimerChoices(
             FilledTonalButton(
                 onClick = { onSetTimer(minutes * 60_000L, waitForCurrentItem) },
                 modifier = Modifier.weight(1f),
-            ) { Text("$minutes min") }
+            ) { Text(pluralStringResource(Res.plurals.minutes_count, minutes.toInt(), minutes)) }
         }
     }
     ToggleRow(stringResource(Res.string.wait_before_sleep), waitForCurrentItem) {

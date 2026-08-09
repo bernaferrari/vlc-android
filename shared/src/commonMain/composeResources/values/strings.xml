@@ -1560,4 +1560,56 @@
         <item quantity="other">%1$d items</item>
     </plurals>
     <string name="selection_action_count">%1$s (%2$d)</string>
+    <string name="up_next_count">Up next (%1$d)</string>
+    <string name="up_next">Up next</string>
+    <string name="live_stream">Live</string>
+    <string name="duration_unavailable">Duration unavailable</string>
+    <string name="playback_position">Playback position</string>
+    <string name="expanded">Expanded</string>
+    <string name="collapsed">Collapsed</string>
+    <string name="player_label">Player</string>
+    <string name="speed">Speed</string>
+    <string name="queue">Queue</string>
+    <string name="tools">Tools</string>
+    <string name="normal_speed">Normal speed</string>
+    <string name="slower_playback">Slower playback</string>
+    <string name="faster_playback">Faster playback</string>
+    <string name="fine_tune_pace">Fine-tune the pace for this item.</string>
+    <string name="tap_queue_item">Tap any item to play it next</string>
+    <string name="stop_after_current_summary">Finish the current item, then pause the queue</string>
+    <string name="queue_empty">Nothing else is queued</string>
+    <string name="seek_exact_timestamp">Seek to an exact timestamp</string>
+    <string name="video_fit_crop">Video fit &amp; crop</string>
+    <string name="tracks_summary">Audio, subtitles, and imports</string>
+    <string name="synchronization">Synchronization</string>
+    <string name="equalizer_off">Equalizer off</string>
+    <string name="custom_sound">Custom sound</string>
+    <string name="after_this_item">After this item</string>
+    <string name="off">Off</string>
+    <string name="on">On</string>
+    <string name="no_bookmarks">No bookmarks</string>
+    <string name="fine_tune">Fine tune</string>
+    <string name="all_frequency_bands">All frequency bands</string>
+    <string name="decrease_value">Decrease %1$s</string>
+    <string name="increase_value">Increase %1$s</string>
+    <string name="playback_position_value">Playback position: %1$s of %2$s</string>
+    <string name="seek_examples">Examples: 90, 12:30, or 1:04:15</string>
+    <string name="queue_empty_summary">Add media from the library to keep listening.</string>
+    <string name="loop_precise_section">Loop a precise section</string>
+    <string name="choose_start_point">Choose the start point</string>
+    <string name="choose_end_point">A · %1$s — choose the end</string>
+    <string name="ab_points">A · %1$s   B · %2$s</string>
+    <string name="synchronization_summary">Audio %1$d ms · Subtitles %2$d ms</string>
+    <string name="start_ab_repeat">Start A–B repeat</string>
+    <string name="current_position_value">Current position · %1$s</string>
+    <string name="image_adjustments">Image adjustments</string>
+    <string name="sound_profile">Sound profile</string>
+    <plurals name="chapters_count">
+        <item quantity="one">%1$d chapter</item>
+        <item quantity="other">%1$d chapters</item>
+    </plurals>
+    <plurals name="minutes_count">
+        <item quantity="one">%1$d min</item>
+        <item quantity="other">%1$d min</item>
+    </plurals>
 </resources>

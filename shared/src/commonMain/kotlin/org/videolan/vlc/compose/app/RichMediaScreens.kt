@@ -174,6 +174,7 @@ fun RichMediaListPane(
     emptyActionText: String? = null,
     onEmptyAction: () -> Unit = {},
     emptySymbol: MaterialIcon = MaterialSymbols.Filled.VideoLibrary,
+    gridArtworkAspectRatio: Float = 16f / 9f,
     headerContent: (@Composable () -> Unit)? = null,
     modifier: Modifier = Modifier,
     onRetry: () -> Unit = {},
@@ -492,6 +493,8 @@ fun RichMediaListPane(
                     onCtx = onCtx,
                     canHandleHostAction = canHandleHostAction,
                     onOpenGroup = onOpenGroup,
+                    gridArtworkAspectRatio = gridArtworkAspectRatio,
+                    onClearSearch = { onQuery("") },
                 )
             }
         }
@@ -530,6 +533,8 @@ private fun ColumnScope.MediaBody(
     onCtx: (MediaItem, ContextOption) -> Unit,
     canHandleHostAction: (ContextOption) -> Boolean,
     onOpenGroup: (MediaFolder) -> Unit,
+    gridArtworkAspectRatio: Float,
+    onClearSearch: () -> Unit,
 ) {
     when {
         state.groupingMode != VideoGroupingMode.NONE && groups.isNotEmpty() -> {
@@ -594,16 +599,18 @@ private fun ColumnScope.MediaBody(
                 onToggleSelect = onToggleSelect,
                 onCtx = onCtx,
                 canHandleHostAction = canHandleHostAction,
+                gridArtworkAspectRatio = gridArtworkAspectRatio,
+                onClearSearch = onClearSearch,
             )
         }
         !state.loading && state.items.isEmpty() && sections.isEmpty() -> {
             VLCEmptyState(
                 loading = false,
-                text = emptyLabel,
+                text = if (searchQuery.isNotBlank()) ShellStrings.searchNoResult() else emptyLabel,
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 symbol = emptySymbol,
-                actionText = emptyActionText,
-                onActionClick = onEmptyAction,
+                actionText = if (searchQuery.isNotBlank()) ShellStrings.clear() else emptyActionText,
+                onActionClick = if (searchQuery.isNotBlank()) onClearSearch else onEmptyAction,
             )
         }
         else -> {
@@ -618,6 +625,7 @@ private fun ColumnScope.MediaBody(
                 onToggleSelect = onToggleSelect,
                 onCtx = onCtx,
                 canHandleHostAction = canHandleHostAction,
+                gridArtworkAspectRatio = gridArtworkAspectRatio,
             )
         }
     }
@@ -640,15 +648,17 @@ private fun PagedMediaBody(
     onToggleSelect: (MediaItem) -> Unit,
     onCtx: (MediaItem, ContextOption) -> Unit,
     canHandleHostAction: (ContextOption) -> Boolean,
+    gridArtworkAspectRatio: Float,
+    onClearSearch: () -> Unit,
 ) {
     if (lazyPagingItems.itemCount == 0 && !state.loading) {
         VLCEmptyState(
             loading = false,
-            text = emptyLabel,
+            text = if (searchQuery.isNotBlank()) ShellStrings.searchNoResult() else emptyLabel,
             modifier = modifier,
             symbol = emptySymbol,
-            actionText = emptyActionText,
-            onActionClick = onEmptyAction,
+            actionText = if (searchQuery.isNotBlank()) ShellStrings.clear() else emptyActionText,
+            onActionClick = if (searchQuery.isNotBlank()) onClearSearch else onEmptyAction,
         )
         return
     }
@@ -672,6 +682,7 @@ private fun PagedMediaBody(
                 MediaGridCard(
                     item = item,
                     selected = item.uri in state.selection,
+                    artworkAspectRatio = gridArtworkAspectRatio,
                     searchQuery = searchQuery,
                     showTrackNumbers = state.showTrackNumbers,
                     onClick = {
@@ -845,6 +856,7 @@ private fun SnapshotMediaBody(
     onToggleSelect: (MediaItem) -> Unit,
     onCtx: (MediaItem, ContextOption) -> Unit,
     canHandleHostAction: (ContextOption) -> Boolean,
+    gridArtworkAspectRatio: Float,
 ) {
     val colors = VLCThemeDefaults.colors
     val displaySections = if (sections.isNotEmpty()) sections else listOf("" to state.items)
@@ -875,6 +887,7 @@ private fun SnapshotMediaBody(
                     MediaGridCard(
                         item = item,
                         selected = item.uri in state.selection,
+                        artworkAspectRatio = gridArtworkAspectRatio,
                         searchQuery = searchQuery,
                         showTrackNumbers = state.showTrackNumbers,
                         onClick = {

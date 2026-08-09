@@ -88,8 +88,20 @@ class PlayerViewModelTest {
 
         val networkStream = MediaItem(99, "Live TV", "https://example.test/live", MediaType.STREAM)
         vm.play(networkStream)
-        assertTrue(vm.state.first { it.title == networkStream.title }.hasVideoOutput)
+        assertFalse(vm.state.first { it.title == networkStream.title }.hasVideoOutput)
+
+        playback.reportVideoOutput(true)
+        assertTrue(vm.state.first { it.title == networkStream.title && it.hasVideoOutput }.hasVideoOutput)
         vm.onCleared()
+    }
+
+    @Test
+    fun streamPresentationWaitsForDecoderEvidence() {
+        val stream = MediaItem(99, "Radio", "https://example.test/radio", MediaType.STREAM)
+
+        assertFalse(resolveHasVideoOutput(stream, detected = null))
+        assertFalse(resolveHasVideoOutput(stream, detected = false))
+        assertTrue(resolveHasVideoOutput(stream, detected = true))
     }
 
     @Test

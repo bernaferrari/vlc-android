@@ -118,6 +118,7 @@ internal fun AudioDestination(
         title = ShellStrings.audio(),
         emptyLabel = ShellStrings.noAudio(),
         emptyMessage = ShellStrings.noAudioMessage(),
+        gridArtworkAspectRatio = 1f,
         sections = state.sections,
         pagingFlow = if (section == AudioSection.TRACKS && state.openedEntityTitle == null) {
             viewModel.pagingFlow

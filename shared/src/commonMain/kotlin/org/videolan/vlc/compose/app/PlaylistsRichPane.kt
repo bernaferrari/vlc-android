@@ -27,8 +27,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -69,6 +67,12 @@ import org.videolan.vlc.compose.components.VLCSelectionContextBar
 import org.videolan.vlc.compose.components.VLCTransientLoadingIndicator
 import org.videolan.vlc.compose.components.VLCArtworkTileShape
 import org.videolan.vlc.compose.components.VLCMediaCardShape
+import org.videolan.vlc.compose.components.VLCRenameItemDialog
+import org.videolan.vlc.compose.components.DisplaySettingsSheet
+import org.videolan.vlc.compose.components.DisplaySettingsState
+import org.videolan.vlc.compose.components.VLCActionSheet
+import org.videolan.vlc.compose.components.VLCActionSheetItem
+import org.videolan.vlc.repository.MediaSort
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.compose.theme.VLCLayout
 import org.videolan.vlc.compose.theme.LocalVLCMotion
@@ -108,7 +112,6 @@ fun PlaylistsRichPane(
     var showCreateSheet by remember { mutableStateOf(false) }
     var showPlaylistOptionsMenu by remember { mutableStateOf(false) }
     var renameTarget by remember { mutableStateOf<PlaylistInfo?>(null) }
-    var renameText by remember { mutableStateOf("") }
     var deletePlaylistTarget by remember { mutableStateOf<PlaylistInfo?>(null) }
     var confirmDeleteSelection by remember { mutableStateOf(false) }
     var confirmRemoveTrackIndex by remember { mutableStateOf<Int?>(null) }
@@ -240,73 +243,7 @@ fun PlaylistsRichPane(
                         ),
                     ),
                 )
-                    DropdownMenu(
-                        expanded = showPlaylistOptionsMenu,
-                        onDismissRequest = { showPlaylistOptionsMenu = false },
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text(ShellStrings.favorites()) },
-                            leadingIcon = {
-                                Icon(
-                                    if (state.onlyFavorites) MaterialSymbols.Filled.Star else MaterialSymbols.Outlined.Star,
-                                    contentDescription = null,
-                                )
-                            },
-                            onClick = {
-                                showPlaylistOptionsMenu = false
-                                onToggleFavorites()
-                            },
-                        )
-                        DropdownMenuItem(
-                            text = { Text(if (state.sortDesc) ShellStrings.descending() else ShellStrings.ascending()) },
-                            leadingIcon = { Icon(MaterialSymbols.Filled.Sort, contentDescription = null) },
-                            onClick = {
-                                showPlaylistOptionsMenu = false
-                                onToggleSortDesc()
-                            },
-                        )
-                        DropdownMenuItem(
-                            text = { Text(if (state.viewMode == ViewMode.LIST) ShellStrings.gridView() else ShellStrings.listView()) },
-                            leadingIcon = {
-                                Icon(
-                                    if (state.viewMode == ViewMode.LIST) MaterialSymbols.Filled.GridView else MaterialSymbols.Filled.ViewList,
-                                    contentDescription = null,
-                                )
-                            },
-                            onClick = {
-                                showPlaylistOptionsMenu = false
-                                onSetViewMode(if (state.viewMode == ViewMode.LIST) ViewMode.GRID else ViewMode.LIST)
-                            },
-                        )
-                    }
                 }
-            }
-        }
-
-        renameTarget?.let { target ->
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = VLCLayout.ScreenGutter, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                androidx.compose.material3.OutlinedTextField(
-                    value = renameText,
-                    onValueChange = { renameText = it },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                    label = { Text(ShellStrings.rename()) },
-                    shape = MaterialTheme.shapes.extraLarge,
-                )
-                TextButton(onClick = {
-                    if (renameText.isNotBlank()) onRename(target.id, renameText.trim())
-                    renameTarget = null
-                    renameText = ""
-                }) { Text(ShellStrings.save()) }
-                TextButton(onClick = {
-                    renameTarget = null
-                    renameText = ""
-                }) { Text(ShellStrings.cancel()) }
             }
         }
 
@@ -361,7 +298,6 @@ fun PlaylistsRichPane(
                         onToggleFavorite = { onSetFavorite(pl.id, !pl.isFavorite) },
                         onRename = {
                             renameTarget = pl
-                            renameText = pl.name
                         },
                         onDelete = { deletePlaylistTarget = pl },
                     )
@@ -397,18 +333,20 @@ fun PlaylistsRichPane(
                             },
                             onLongClick = { onToggleSelect(pl.id) },
                             artworkContent = {
-                                if (pl.isFavorite) {
-                                    Icon(
-                                        MaterialSymbols.Filled.Star,
-                                        contentDescription = ShellStrings.favorites(),
-                                        tint = VLCThemeDefaults.colors.primary,
-                                    )
-                                } else {
+                                Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
                                     Icon(
                                         icon = MaterialSymbols.Filled.QueueMusic,
                                         contentDescription = null,
                                         tint = VLCThemeDefaults.colors.primary,
                                     )
+                                    if (pl.isFavorite) {
+                                        Icon(
+                                            MaterialSymbols.Filled.Star,
+                                            contentDescription = ShellStrings.favorites(),
+                                            tint = VLCThemeDefaults.colors.primary,
+                                            modifier = Modifier.align(Alignment.TopEnd).size(16.dp),
+                                        )
+                                    }
                                 }
                             },
                             moreActionContent = { Icon(MaterialSymbols.Filled.MoreVert, contentDescription = null) },
@@ -417,30 +355,16 @@ fun PlaylistsRichPane(
                             primaryActionContent = { Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = ShellStrings.play()) },
                             onPrimaryActionClick = { onPlay(pl) },
                         )
-                        DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                            DropdownMenuItem(text = { Text(ShellStrings.play()) }, onClick = {
-                                menu = false; onPlay(pl)
-                            })
-                            DropdownMenuItem(text = { Text(ShellStrings.shuffle()) }, onClick = {
-                                menu = false; onShufflePlay(pl)
-                            })
-                            DropdownMenuItem(text = { Text(ShellStrings.rename()) }, onClick = {
-                                menu = false
-                                renameTarget = pl
-                                renameText = pl.name
-                            })
-                            DropdownMenuItem(
-                                text = { Text(if (pl.isFavorite) ShellStrings.unfavorite() else ShellStrings.favorite()) },
-                                onClick = {
-                                    menu = false
-                                    onSetFavorite(pl.id, !pl.isFavorite)
-                                },
-                            )
-                            DropdownMenuItem(text = { Text(ShellStrings.delete()) }, onClick = {
-                                menu = false
-                                deletePlaylistTarget = pl
-                            })
-                        }
+                        PlaylistActionsSheet(
+                            visible = menu,
+                            playlist = pl,
+                            onDismiss = { menu = false },
+                            onPlay = { menu = false; onPlay(pl) },
+                            onShuffle = { menu = false; onShufflePlay(pl) },
+                            onRename = { menu = false; renameTarget = pl },
+                            onToggleFavorite = { menu = false; onSetFavorite(pl.id, !pl.isFavorite) },
+                            onDelete = { menu = false; deletePlaylistTarget = pl },
+                        )
                     }
                 }
             }
@@ -500,6 +424,35 @@ fun PlaylistsRichPane(
             }
         }
     }
+    if (showPlaylistOptionsMenu) {
+        DisplaySettingsSheet(
+            state = DisplaySettingsState(
+                viewMode = state.viewMode,
+                onlyFavorites = state.onlyFavorites,
+                sort = MediaSort.TITLE,
+                sortDesc = state.sortDesc,
+                availableSorts = listOf(MediaSort.TITLE),
+            ),
+            title = ShellStrings.displaySettings(),
+            onDismiss = { showPlaylistOptionsMenu = false },
+            onViewMode = onSetViewMode,
+            onOnlyFavorites = { onToggleFavorites() },
+            onSortDesc = { descending -> if (descending != state.sortDesc) onToggleSortDesc() },
+        )
+    }
+    renameTarget?.let { target ->
+        VLCRenameItemDialog(
+            title = ShellStrings.rename(),
+            initialValue = target.name,
+            confirmLabel = ShellStrings.save(),
+            cancelLabel = ShellStrings.cancel(),
+            onConfirm = { value ->
+                onRename(target.id, value)
+                renameTarget = null
+            },
+            onDismiss = { renameTarget = null },
+        )
+    }
     if (deletePlaylistTarget != null || confirmDeleteSelection) {
         val deletingSelection = confirmDeleteSelection
         AlertDialog(
@@ -550,6 +503,42 @@ private fun PlaylistActionError(error: String, onClear: () -> Unit) {
     }
 }
 
+@Composable
+private fun PlaylistActionsSheet(
+    visible: Boolean,
+    playlist: PlaylistInfo,
+    onDismiss: () -> Unit,
+    onPlay: () -> Unit,
+    onShuffle: () -> Unit,
+    onRename: () -> Unit,
+    onToggleFavorite: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    VLCActionSheet(
+        visible = visible,
+        title = playlist.name,
+        subtitle = ShellStrings.itemsCount(playlist.itemCount),
+        headerIcon = MaterialSymbols.Filled.QueueMusic,
+        actions = listOf(
+            VLCActionSheetItem(ShellStrings.play(), MaterialSymbols.Filled.PlayArrow, onClick = onPlay),
+            VLCActionSheetItem(ShellStrings.shuffle(), MaterialSymbols.Filled.Shuffle, onClick = onShuffle),
+            VLCActionSheetItem(ShellStrings.rename(), MaterialSymbols.Filled.Edit, onClick = onRename),
+            VLCActionSheetItem(
+            if (playlist.isFavorite) ShellStrings.unfavorite() else ShellStrings.favorite(),
+            MaterialSymbols.Filled.Star,
+                onClick = onToggleFavorite,
+            ),
+            VLCActionSheetItem(
+                ShellStrings.delete(),
+                MaterialSymbols.Filled.Delete,
+                destructive = true,
+                onClick = onDelete,
+            ),
+        ),
+        onDismiss = onDismiss,
+    )
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun PlaylistCard(
@@ -596,25 +585,33 @@ private fun PlaylistCard(
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    icon = if (playlist.isFavorite) MaterialSymbols.Filled.Star else MaterialSymbols.Filled.QueueMusic,
-                    contentDescription = if (playlist.isFavorite) ShellStrings.favorites() else null,
+                    icon = MaterialSymbols.Filled.QueueMusic,
+                    contentDescription = null,
                     tint = colors.primary,
                     modifier = Modifier.size(48.dp),
                 )
+                if (playlist.isFavorite) {
+                    Icon(
+                        icon = MaterialSymbols.Filled.Star,
+                        contentDescription = ShellStrings.favorites(),
+                        tint = colors.primary,
+                        modifier = Modifier.align(Alignment.TopStart).padding(12.dp).size(20.dp),
+                    )
+                }
                 Box(Modifier.align(Alignment.TopEnd).padding(4.dp)) {
                     FilledTonalIconButton(onClick = { menu = true }) {
                         Icon(MaterialSymbols.Filled.MoreVert, contentDescription = ShellStrings.moreOptions())
                     }
-                    DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                        DropdownMenuItem(text = { Text(ShellStrings.play()) }, onClick = { menu = false; onPlay() })
-                        DropdownMenuItem(text = { Text(ShellStrings.shuffle()) }, onClick = { menu = false; onShuffle() })
-                        DropdownMenuItem(text = { Text(ShellStrings.rename()) }, onClick = { menu = false; onRename() })
-                        DropdownMenuItem(
-                            text = { Text(if (playlist.isFavorite) ShellStrings.unfavorite() else ShellStrings.favorite()) },
-                            onClick = { menu = false; onToggleFavorite() },
-                        )
-                        DropdownMenuItem(text = { Text(ShellStrings.delete()) }, onClick = { menu = false; onDelete() })
-                    }
+                    PlaylistActionsSheet(
+                        visible = menu,
+                        playlist = playlist,
+                        onDismiss = { menu = false },
+                        onPlay = { menu = false; onPlay() },
+                        onShuffle = { menu = false; onShuffle() },
+                        onRename = { menu = false; onRename() },
+                        onToggleFavorite = { menu = false; onToggleFavorite() },
+                        onDelete = { menu = false; onDelete() },
+                    )
                 }
             }
             Text(

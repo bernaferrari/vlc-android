@@ -110,6 +110,7 @@ class FakePlaybackService : PlaybackService {
     private val _state = MutableStateFlow<PlaybackState>(PlaybackState.Idle)
     private val _progress = MutableStateFlow(Progress())
     private val _playlist = MutableStateFlow(Playlist(0, "Current"))
+    private val _videoOutput = MutableStateFlow<Boolean?>(null)
     private val _abRepeat = MutableStateFlow(ABRepeat())
     private val _abRepeatEnabled = MutableStateFlow(false)
     private val _stopAfterCurrent = MutableStateFlow(false)
@@ -123,6 +124,7 @@ class FakePlaybackService : PlaybackService {
     override val state: Flow<PlaybackState> = _state
     override val progress: Flow<Progress> = _progress
     override val currentPlaylist: Flow<Playlist> = _playlist
+    override val videoOutput: Flow<Boolean?> = _videoOutput
     override val abRepeat: Flow<ABRepeat> = _abRepeat
     override val abRepeatEnabled: Flow<Boolean> = _abRepeatEnabled
     override val stopAfterCurrent: Flow<Boolean> = _stopAfterCurrent
@@ -140,6 +142,11 @@ class FakePlaybackService : PlaybackService {
         val i = index.coerceIn(0, playlist.lastIndex)
         _playlist.value = _playlist.value.copy(items = playlist, currentIndex = i)
         val item = playlist[i]
+        _videoOutput.value = when {
+            item.isVideo -> true
+            item.isAudio -> false
+            else -> null
+        }
         val p = Progress(0, item.duration)
         _progress.value = p
         _state.value = PlaybackState.Playing(item, p)
@@ -154,6 +161,10 @@ class FakePlaybackService : PlaybackService {
         val item = _playlist.value.current ?: return
         _state.value = PlaybackState.Paused(item, _progress.value)
         observers.forEach { it.onStateChanged(_state.value) }
+    }
+
+    fun reportVideoOutput(hasVideo: Boolean?) {
+        _videoOutput.value = hasVideo
     }
 
     override fun resume() {

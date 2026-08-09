@@ -29,6 +29,8 @@ interface PlayerBackend {
     fun getVolume(): Int
     fun setRate(rate: Float)
     fun getRate(): Float
+    /** `null` while the native decoder has not discovered tracks for the current item. */
+    fun hasVideoOutput(): Boolean? = null
     fun setVideoOutput(aspectRatio: String?, scale: Float) {}
     fun tracks(): PlaybackTracks = PlaybackTracks()
     fun selectAudioTrack(id: String) {}
@@ -81,6 +83,9 @@ class PlaylistEngine(
 
     private val _playlist = MutableStateFlow(Playlist(0, "Current"))
     override val currentPlaylist: StateFlow<Playlist> = _playlist.asStateFlow()
+
+    private val _videoOutput = MutableStateFlow<Boolean?>(null)
+    override val videoOutput: StateFlow<Boolean?> = _videoOutput.asStateFlow()
 
     private val _abRepeat = MutableStateFlow(ABRepeat())
     override val abRepeat: StateFlow<ABRepeat> = _abRepeat.asStateFlow()
@@ -140,8 +145,10 @@ class PlaylistEngine(
         refreshEqualizer()
         refreshVideoCrop()
         refreshVideoAdjust()
+        refreshVideoOutput()
         backend?.setListener(object : PlayerBackend.Listener {
             override fun onPlaying() {
+                refreshVideoOutput()
                 refreshTracks()
                 refreshDelays()
                 refreshChapters()
@@ -157,6 +164,7 @@ class PlaylistEngine(
             override fun onEnded() = handleEnded()
             override fun onError(message: String) = updateState(PlaybackState.Error(message))
             override fun onTimeChanged(timeMs: Long, lengthMs: Long) {
+                refreshVideoOutput()
                 updateProgress(timeMs, lengthMs)
                 maybeApplyAbRepeat(timeMs)
             }
@@ -400,6 +408,10 @@ class PlaylistEngine(
         _tracks.value = backend?.tracks() ?: PlaybackTracks()
     }
 
+    private fun refreshVideoOutput() {
+        _videoOutput.value = backend?.hasVideoOutput()
+    }
+
     private fun refreshDelays() {
         _delays.value = backend?.delays() ?: PlaybackDelays()
     }
@@ -576,6 +588,11 @@ class PlaylistEngine(
         }
         updateState(PlaybackState.Loading)
         clearABRepeat()
+        _videoOutput.value = when {
+            item.isVideo -> true
+            item.isAudio -> false
+            else -> null
+        }
         _tracks.value = PlaybackTracks()
         _chapters.value = PlaybackChapters()
         val b = backend

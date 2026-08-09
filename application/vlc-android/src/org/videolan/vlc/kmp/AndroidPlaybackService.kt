@@ -71,6 +71,9 @@ class AndroidPlaybackService(
     private val _playlist = MutableStateFlow(Playlist(0, "Current"))
     override val currentPlaylist: Flow<Playlist> = _playlist.asStateFlow()
 
+    private val _videoOutput = MutableStateFlow<Boolean?>(null)
+    override val videoOutput: Flow<Boolean?> = _videoOutput.asStateFlow()
+
     private val _abRepeat = MutableStateFlow(ABRepeat())
     override val abRepeat: Flow<ABRepeat> = _abRepeat.asStateFlow()
 
@@ -123,6 +126,7 @@ class AndroidPlaybackService(
         pushStateFromHost(PlaylistManager.playingState.value == true, mw)
     }
     private val progressObserver = Observer<org.videolan.vlc.media.Progress> { p ->
+        refreshVideoOutputFromHost()
         updateProgress(p.time, p.length)
     }
     private val abRepeatObserver = Observer<org.videolan.vlc.media.ABRepeat> { repeat ->
@@ -178,6 +182,11 @@ class AndroidPlaybackService(
         }
         val wrappers = playlist.map { it.toMediaWrapper() }
         val safeIndex = index.coerceIn(0, (wrappers.size - 1).coerceAtLeast(0))
+        _videoOutput.value = when {
+            playlist[safeIndex].isVideo -> true
+            playlist[safeIndex].isAudio -> false
+            else -> null
+        }
         val requestedRate = rateForNextPlayback
         // Streams can expose video only after LibVLC probes them. Match the
         // shared PlayerUiState contract so they wait for the route-owned
@@ -521,6 +530,7 @@ class AndroidPlaybackService(
 
     private fun pushStateFromHost(playing: Boolean, media: MediaWrapper? = PlaylistManager.currentPlayedMedia.value) {
         ensurePlayerProgressBound()
+        refreshVideoOutputFromHost()
         refreshTracksFromHost()
         refreshDelaysFromHost()
         refreshChaptersFromHost()
@@ -538,6 +548,17 @@ class AndroidPlaybackService(
         if (_state.value != newState) {
             _state.value = newState
             observers.forEach { it.onStateChanged(newState) }
+        }
+    }
+
+    private fun refreshVideoOutputFromHost() {
+        val player = manager()?.player ?: return
+        val videoTracks = player.getVideoTracksCount()
+        val audioTracks = player.getAudioTracksCount()
+        _videoOutput.value = when {
+            videoTracks > 0 -> true
+            audioTracks > 0 -> false
+            else -> _videoOutput.value
         }
     }
 

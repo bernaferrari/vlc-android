@@ -57,6 +57,8 @@ import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.components.VLCListItemPosition
 import org.videolan.vlc.compose.components.VLCSettingsToggleRow
 import org.videolan.vlc.compose.components.segmentShape
+import org.videolan.vlc.compose.artwork.MediaArtwork
+import org.videolan.vlc.compose.player.GenerativeAudioArtwork
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.compose.theme.LocalVLCMotion
 import org.videolan.vlc.compose.theme.VLCMotion
@@ -65,6 +67,7 @@ import org.videolan.vlc.compose.theme.VLCThemeAccent
 import org.videolan.vlc.compose.theme.VLCThemeAppearance
 import org.videolan.vlc.compose.theme.availableVLCThemeAccents
 import org.videolan.vlc.viewmodel.SettingsViewModel
+import org.videolan.vlc.viewmodel.PlayerUiState
 
 @Composable
 internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
@@ -505,6 +508,8 @@ private fun ValueStepperRow(
     onDecrease: () -> Unit,
     onIncrease: () -> Unit,
 ) {
+    val decreaseDescription = ShellStrings.decrease(title)
+    val increaseDescription = ShellStrings.increase(title)
     Row(
         Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, top = 6.dp, bottom = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -514,12 +519,23 @@ private fun ValueStepperRow(
         TextButton(
             onClick = onDecrease,
             enabled = decreaseEnabled,
+            modifier = Modifier
+                .size(48.dp)
+                .semantics { contentDescription = decreaseDescription },
             contentPadding = PaddingValues(horizontal = 6.dp, vertical = 8.dp),
         ) { Text("−") }
-        Text(value, style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(horizontal = 4.dp))
+        Text(
+            value,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(horizontal = 4.dp),
+        )
         TextButton(
             onClick = onIncrease,
             enabled = increaseEnabled,
+            modifier = Modifier
+                .size(48.dp)
+                .semantics { contentDescription = increaseDescription },
             contentPadding = PaddingValues(horizontal = 6.dp, vertical = 8.dp),
         ) { Text("+") }
     }
@@ -543,14 +559,23 @@ private fun PlaybackSpeedStepperRow(title: String, rate: Float, onChange: (Float
 
 @Composable
 internal fun MiniBar(
-    title: String,
-    subtitle: String,
-    playing: Boolean,
+    state: PlayerUiState,
     onExpand: () -> Unit,
     onToggle: () -> Unit,
 ) {
     val colors = VLCThemeDefaults.colors
     val motion = LocalVLCMotion.current
+    val item = state.queue.getOrNull(state.currentQueueIndex)
+    val targetProgress = if (state.progress.length > 0L) {
+        (state.progress.time.toFloat() / state.progress.length.toFloat()).coerceIn(0f, 1f)
+    } else {
+        0f
+    }
+    val animatedProgress by animateFloatAsState(
+        targetValue = targetProgress,
+        animationSpec = if (motion.reducedMotion) snap() else tween(220, easing = VLCMotion.Emphasized),
+        label = "mini-player-progress",
+    )
     Surface(
         onClick = onExpand,
         modifier = Modifier.fillMaxWidth(),
@@ -559,28 +584,93 @@ internal fun MiniBar(
         contentColor = MaterialTheme.colorScheme.onSurface,
         tonalElevation = 2.dp,
     ) {
-        Row(
+        Box(
             Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleSmall)
-                if (subtitle.isNotBlank()) {
-                    Text(subtitle, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodySmall, color = colors.fontLight)
-                }
-            }
-            IconButton(onClick = onToggle) {
-                Crossfade(
-                    targetState = playing,
-                    animationSpec = tween(motion.durationShort, easing = VLCMotion.Emphasized),
-                    label = "mini-player-icon",
-                ) { isPlaying ->
-                    Icon(
-                        icon = if (isPlaying) MaterialSymbols.Filled.Pause else MaterialSymbols.Filled.PlayArrow,
-                        contentDescription = if (isPlaying) ShellStrings.pause() else ShellStrings.play(),
+                .drawBehind {
+                    val progressWidth = size.width * animatedProgress
+                    drawRect(
+                        color = colors.primary.copy(alpha = 0.18f),
+                        topLeft = Offset.Zero,
+                        size = androidx.compose.ui.geometry.Size(size.width, 3.dp.toPx()),
                     )
+                    drawRect(
+                        color = colors.primary,
+                        topLeft = Offset.Zero,
+                        size = androidx.compose.ui.geometry.Size(progressWidth, 3.dp.toPx()),
+                    )
+                }
+        ) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(52.dp)
+                        .clip(RoundedCornerShape(16.dp)),
+                ) {
+                    if (item != null) {
+                        MediaArtwork(
+                            item = item,
+                            contentDescription = null,
+                            size = 52.dp,
+                            modifier = Modifier.fillMaxSize(),
+                            fillMaxSizeArtwork = true,
+                            fallback = { GenerativeAudioArtwork(item, state.progress) },
+                        )
+                    } else {
+                        Surface(
+                            modifier = Modifier.fillMaxSize(),
+                            color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        ) {}
+                    }
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        state.title.ifBlank { ShellStrings.notPlaying() },
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                    if (state.subtitle.isNotBlank()) {
+                        Text(
+                            state.subtitle,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.fontLight,
+                        )
+                    }
+                }
+                if (kotlin.math.abs(state.rate - 1f) > 0.001f) {
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = colors.primary.copy(alpha = 0.14f),
+                        contentColor = colors.primary,
+                    ) {
+                        Text(
+                            text = org.videolan.vlc.compose.player.playbackRateLabel(state.rate),
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                }
+                IconButton(onClick = onToggle) {
+                    Crossfade(
+                        targetState = state.playing,
+                        animationSpec = tween(motion.durationShort, easing = VLCMotion.Emphasized),
+                        label = "mini-player-icon",
+                    ) { isPlaying ->
+                        Icon(
+                            icon = if (isPlaying) MaterialSymbols.Filled.Pause else MaterialSymbols.Filled.PlayArrow,
+                            contentDescription = if (isPlaying) ShellStrings.pause() else ShellStrings.play(),
+                        )
+                    }
                 }
             }
         }

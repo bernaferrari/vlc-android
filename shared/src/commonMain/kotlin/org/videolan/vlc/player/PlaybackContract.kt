@@ -48,6 +48,8 @@ interface PlaybackService {
     val state: Flow<PlaybackState>
     val progress: Flow<Progress>
     val currentPlaylist: Flow<Playlist>
+    /** Decoder-observed visual output. `null` means the current item is not probed yet. */
+    val videoOutput: Flow<Boolean?> get() = flowOf(null)
     val abRepeat: Flow<ABRepeat> get() = flowOf(ABRepeat())
     val abRepeatEnabled: Flow<Boolean> get() = flowOf(false)
     val stopAfterCurrent: Flow<Boolean> get() = flowOf(false)

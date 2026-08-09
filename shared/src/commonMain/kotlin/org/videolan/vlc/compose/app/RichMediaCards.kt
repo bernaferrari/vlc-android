@@ -335,6 +335,7 @@ private fun MediaActionSheetRow(action: MediaAction, position: VLCListItemPositi
 fun MediaGridCard(
     item: MediaItem,
     selected: Boolean,
+    artworkAspectRatio: Float = 16f / 9f,
     searchQuery: String = "",
     showTrackNumbers: Boolean = false,
     onClick: () -> Unit,
@@ -370,7 +371,7 @@ fun MediaGridCard(
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .aspectRatio(16f / 9f),
+                    .aspectRatio(artworkAspectRatio),
                 contentAlignment = Alignment.Center,
             ) {
                 // The card owns the clipping. Artwork fills the entire media well so a real
@@ -386,16 +387,21 @@ fun MediaGridCard(
                     VLCSelectionCheckIndicator(modifier = Modifier.fillMaxSize())
                 }
                 Box(Modifier.align(Alignment.TopEnd).padding(8.dp)) {
-                    IconButton(
+                    Surface(
                         onClick = { menu = true },
                         modifier = Modifier
                             .size(40.dp),
+                        shape = androidx.compose.foundation.shape.CircleShape,
+                        color = Color.Black.copy(alpha = 0.58f),
+                        contentColor = Color.White,
                     ) {
-                        Icon(
-                            MaterialSymbols.Filled.MoreVert,
-                            contentDescription = ShellStrings.moreOptions(),
-                            tint = Color.White,
-                        )
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                MaterialSymbols.Filled.MoreVert,
+                                contentDescription = ShellStrings.moreOptions(),
+                                tint = Color.White,
+                            )
+                        }
                     }
                     MediaContextMenu(
                         expanded = menu,

@@ -615,9 +615,7 @@ fun VlcMainShell(
                         ) + fadeOut(animationSpec = tween(motion.durationShort)),
                     ) {
                         MiniBar(
-                            title = playerState.title.ifBlank { ShellStrings.notPlaying() },
-                            subtitle = playerState.subtitle,
-                            playing = playerState.playing,
+                            state = playerState,
                             onExpand = ::openPlayer,
                             onToggle = playerVm::togglePlayPause,
                         )

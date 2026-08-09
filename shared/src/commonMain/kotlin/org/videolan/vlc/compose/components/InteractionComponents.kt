@@ -2,6 +2,8 @@ package org.videolan.vlc.compose.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
@@ -29,10 +31,12 @@ fun VLCExpandableContent(
         enter = expandVertically(
             animationSpec = tween(duration, easing = VLCMotion.Emphasized),
             expandFrom = Alignment.Top,
-        ),
+        ) + fadeIn(animationSpec = tween(duration, easing = VLCMotion.EmphasizedDecelerate)),
         exit = shrinkVertically(
-            animationSpec = tween(duration, easing = VLCMotion.Emphasized),
+            animationSpec = tween(if (motion.reducedMotion) 0 else (duration * 3 / 4), easing = VLCMotion.EmphasizedAccelerate),
             shrinkTowards = Alignment.Top,
+        ) + fadeOut(
+            animationSpec = tween(if (motion.reducedMotion) 0 else (duration * 3 / 4), easing = VLCMotion.EmphasizedAccelerate),
         ),
     ) {
         Box { content() }

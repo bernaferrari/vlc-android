@@ -29,13 +29,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.videolan.vlc.compose.components.VLCBrowserItemRow
-import org.videolan.vlc.compose.components.VLCExpandableContent
 import org.videolan.vlc.compose.components.VLCEmptyState
 import org.videolan.vlc.compose.components.VLCIconChip
 import org.videolan.vlc.compose.components.VLCListItemPosition
 import org.videolan.vlc.compose.components.VLCNavigationRow
 import org.videolan.vlc.compose.components.VLCPageHeader
 import org.videolan.vlc.compose.components.VLCSelectionContextBar
+import org.videolan.vlc.compose.components.VLCRenameItemDialog
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
@@ -64,7 +64,6 @@ internal fun MorePane(
     val state by vm.state.collectAsStateWithLifecycle()
     val colors = VLCThemeDefaults.colors
     var renameStreamId by remember { mutableStateOf<Long?>(null) }
-    var renameStreamText by remember { mutableStateOf("") }
     var addingStream by remember { mutableStateOf(false) }
     var newStreamName by remember { mutableStateOf("") }
     var newStreamUri by remember { mutableStateOf("") }
@@ -149,32 +148,6 @@ internal fun MorePane(
                     }
                 }
             }
-            item {
-                VLCExpandableContent(visible = renameStreamId != null) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        OutlinedTextField(
-                            value = renameStreamText,
-                            onValueChange = { renameStreamText = it },
-                            modifier = Modifier.weight(1f),
-                            singleLine = true,
-                            label = { Text(ShellStrings.renameStream()) },
-                            shape = MaterialTheme.shapes.large,
-                        )
-                        TextButton(onClick = {
-                            val id = renameStreamId
-                            if (id != null && renameStreamText.isNotBlank()) {
-                                vm.renameStream(id, renameStreamText.trim())
-                            }
-                            renameStreamId = null
-                            renameStreamText = ""
-                        }) { Text(ShellStrings.save()) }
-                        TextButton(onClick = {
-                            renameStreamId = null
-                            renameStreamText = ""
-                        }) { Text(ShellStrings.cancel()) }
-                    }
-                }
-            }
             if (state.streams.isEmpty() && !state.streamsLoading && state.streamsError == null) {
                 item {
                     MoreEmptySection(
@@ -199,7 +172,6 @@ internal fun MorePane(
                     },
                     onPrimaryActionClick = {
                         renameStreamId = stream.id
-                        renameStreamText = stream.title
                     },
                     moreActionContent = if (state.hasStreamRepository) {
                         { Icon(MaterialSymbols.Filled.Delete, contentDescription = ShellStrings.deleteStream()) }
@@ -410,6 +382,22 @@ internal fun MorePane(
                     }
                 }
             }
+        }
+    }
+    renameStreamId?.let { streamId ->
+        val stream = state.streams.firstOrNull { it.id == streamId }
+        if (stream != null) {
+            VLCRenameItemDialog(
+                title = ShellStrings.renameStream(),
+                initialValue = stream.title,
+                confirmLabel = ShellStrings.save(),
+                cancelLabel = ShellStrings.cancel(),
+                onConfirm = { value ->
+                    vm.renameStream(streamId, value)
+                    renameStreamId = null
+                },
+                onDismiss = { renameStreamId = null },
+            )
         }
     }
     if (confirmHistoryRemoval || confirmHistoryClear) {

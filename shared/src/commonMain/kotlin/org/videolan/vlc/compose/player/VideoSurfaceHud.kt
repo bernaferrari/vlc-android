@@ -7,9 +7,13 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animate
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -25,7 +29,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.DropdownMenu
@@ -41,6 +44,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -51,6 +55,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -175,12 +183,32 @@ fun VideoSurfaceWithHud(
     var activeSheet by remember { mutableStateOf<PlaybackSheetDestination?>(null) }
     var rendererPickerVisible by remember { mutableStateOf(false) }
     var interfaceLocked by remember { mutableStateOf(false) }
+    var interactionActive by remember { mutableStateOf(false) }
+    var interactionEpoch by remember { mutableStateOf(0) }
+    var audioDismissOffsetPx by remember { mutableFloatStateOf(0f) }
+    val playerMotion = LocalVLCMotion.current
+    val audioDismissThresholdPx = with(androidx.compose.ui.platform.LocalDensity.current) { 72.dp.toPx() }
+    val audioDismissDragState = rememberDraggableState { delta ->
+        audioDismissOffsetPx = (audioDismissOffsetPx + delta).coerceAtLeast(0f)
+    }
     LaunchedEffect(title) {
         interfaceLocked = false
         hudVisible = true
     }
-    LaunchedEffect(hudVisible, playing, hudTimeoutSeconds) {
-        if (hasVideoOutput && hudVisible && playing) {
+    LaunchedEffect(
+        hudVisible,
+        hasVideoOutput,
+        playing,
+        hudTimeoutSeconds,
+        interactionEpoch,
+        interactionActive,
+        activeSheet,
+        rendererPickerVisible,
+    ) {
+        if (
+            hasVideoOutput && hudVisible && playing && !interactionActive &&
+            activeSheet == null && !rendererPickerVisible
+        ) {
             delay(hudTimeoutSeconds.coerceIn(1, 10) * 1_000L)
             hudVisible = false
         }
@@ -197,6 +225,32 @@ fun VideoSurfaceWithHud(
     Box(
         modifier = modifier
             .fillMaxSize()
+            .graphicsLayer {
+                translationY = audioDismissOffsetPx
+                val progress = (audioDismissOffsetPx / (audioDismissThresholdPx * 4f)).coerceIn(0f, 1f)
+                scaleX = 1f - progress * 0.018f
+                scaleY = 1f - progress * 0.018f
+            }
+            .draggable(
+                state = audioDismissDragState,
+                orientation = Orientation.Vertical,
+                enabled = !hasVideoOutput && onClose != null && activeSheet == null,
+                onDragStopped = { velocity ->
+                    if (audioDismissOffsetPx >= audioDismissThresholdPx || velocity > 1_200f) {
+                        audioDismissOffsetPx = 0f
+                        onClose?.invoke()
+                    } else {
+                        animate(
+                            initialValue = audioDismissOffsetPx,
+                            targetValue = 0f,
+                            animationSpec = tween(
+                                durationMillis = if (playerMotion.reducedMotion) 0 else 180,
+                                easing = VLCMotion.EmphasizedDecelerate,
+                            ),
+                        ) { value, _ -> audioDismissOffsetPx = value }
+                    }
+                },
+            )
             .background(Color.Black)
     ) {
         // Video / artwork surface
@@ -248,6 +302,7 @@ fun VideoSurfaceWithHud(
             rate = rate,
             queueSize = queue.size,
             hasVideoOutput = hasVideoOutput,
+            isLiveStream = queue.getOrNull(currentQueueIndex)?.isStream == true,
             bookmarks = bookmarks,
             onTogglePlay = onTogglePlay,
             onSeek = onSeek,
@@ -256,6 +311,14 @@ fun VideoSurfaceWithHud(
             onToggleShuffle = onToggleShuffle,
             onCycleRepeat = onCycleRepeat,
             onOpenOptions = { activeSheet = it },
+            onUserInteraction = {
+                hudVisible = true
+                interactionEpoch++
+            },
+            onInteractionActiveChanged = { active ->
+                interactionActive = active
+                if (!active) interactionEpoch++
+            },
             showPictureInPicture = showPictureInPicture,
             onEnterPictureInPicture = onEnterPictureInPicture,
             showRendererSelection = showRendererSelection,
@@ -357,7 +420,10 @@ fun VideoSurfaceWithHud(
             onNextBookmark = onNextBookmark,
             showSubtitleImport = showSubtitleImport,
             onImportSubtitle = onImportSubtitle,
-            onDismiss = { activeSheet = null },
+            onDismiss = {
+                activeSheet = null
+                interactionEpoch++
+            },
         )
     }
 
@@ -414,6 +480,7 @@ fun VideoHudOverlay(
     rate: Float,
     queueSize: Int,
     hasVideoOutput: Boolean,
+    isLiveStream: Boolean,
     bookmarks: PlaybackBookmarks = PlaybackBookmarks(),
     onTogglePlay: () -> Unit,
     onSeek: (Long) -> Unit,
@@ -422,6 +489,8 @@ fun VideoHudOverlay(
     onToggleShuffle: () -> Unit,
     onCycleRepeat: () -> Unit,
     onOpenOptions: (PlaybackSheetDestination) -> Unit,
+    onUserInteraction: () -> Unit,
+    onInteractionActiveChanged: (Boolean) -> Unit,
     showPictureInPicture: Boolean,
     onEnterPictureInPicture: () -> Unit,
     showRendererSelection: Boolean,
@@ -453,6 +522,13 @@ fun VideoHudOverlay(
         animationSpec = tween(motion.durationShort, easing = VLCMotion.Emphasized),
         label = "repeat-tint",
     )
+    val onStateLabel = stringResource(Res.string.on)
+    val offStateLabel = stringResource(Res.string.off)
+    val repeatStateLabel = when (repeatMode) {
+        RepeatMode.NONE -> stringResource(Res.string.repeat_none)
+        RepeatMode.ALL -> stringResource(Res.string.repeat_all)
+        RepeatMode.ONE -> stringResource(Res.string.repeat_single)
+    }
     val bottomScrim = colors.primary.copy(alpha = 0.16f).compositeOver(Color.Black)
     Box(modifier = Modifier.fillMaxSize()) {
         // Gradients stay anchored to the viewport and only change opacity. Foreground controls
@@ -522,7 +598,10 @@ fun VideoHudOverlay(
                     }
                 }
                 TextButton(
-                    onClick = { onOpenOptions(PlaybackSheetDestination.SPEED) },
+                    onClick = {
+                        onUserInteraction()
+                        onOpenOptions(PlaybackSheetDestination.SPEED)
+                    },
                     modifier = Modifier.height(48.dp),
                 ) {
                     Text(
@@ -534,7 +613,10 @@ fun VideoHudOverlay(
                 }
                 var overflowVisible by remember { mutableStateOf(false) }
                 Box {
-                    IconButton(onClick = { overflowVisible = true }) {
+                    IconButton(onClick = {
+                        overflowVisible = true
+                        onInteractionActiveChanged(true)
+                    }) {
                         Icon(
                             icon = MaterialSymbols.Filled.MoreVert,
                             contentDescription = stringResource(Res.string.more_options),
@@ -543,17 +625,21 @@ fun VideoHudOverlay(
                     }
                     DropdownMenu(
                         expanded = overflowVisible,
-                        onDismissRequest = { overflowVisible = false },
+                        onDismissRequest = {
+                            overflowVisible = false
+                            onInteractionActiveChanged(false)
+                        },
                     ) {
                         DropdownMenuItem(
                             text = {
-                                Text("Up next ($queueSize)")
+                                Text(stringResource(Res.string.up_next_count, queueSize))
                             },
                             leadingIcon = {
                                 Icon(MaterialSymbols.Filled.QueueMusic, contentDescription = null)
                             },
                             onClick = {
                                 overflowVisible = false
+                                onInteractionActiveChanged(false)
                                 onOpenOptions(PlaybackSheetDestination.QUEUE)
                             },
                         )
@@ -564,6 +650,7 @@ fun VideoHudOverlay(
                             },
                             onClick = {
                                 overflowVisible = false
+                                onInteractionActiveChanged(false)
                                 onOpenOptions(PlaybackSheetDestination.TOOLS)
                             },
                         )
@@ -575,6 +662,7 @@ fun VideoHudOverlay(
                                 },
                                 onClick = {
                                     overflowVisible = false
+                                    onInteractionActiveChanged(false)
                                     onEnterPictureInPicture()
                                 },
                             )
@@ -587,6 +675,7 @@ fun VideoHudOverlay(
                                 },
                                 onClick = {
                                     overflowVisible = false
+                                    onInteractionActiveChanged(false)
                                     onOpenRendererSelection()
                                 },
                             )
@@ -599,6 +688,7 @@ fun VideoHudOverlay(
                                 },
                                 onClick = {
                                     overflowVisible = false
+                                    onInteractionActiveChanged(false)
                                     onLockInterface()
                                 },
                             )
@@ -645,9 +735,10 @@ fun VideoHudOverlay(
             // preview local and issue exactly one seek when the gesture finishes; this makes the
             // Android LibVLC and iOS VLCKit surfaces feel equally direct without flooding them.
             val seekableLength = progress.length.takeIf { it > 0L }
-            val length = seekableLength ?: 1L
             var scrubPosition by remember(progress.length) { mutableStateOf<Float?>(null) }
-            val displayedTime = (scrubPosition?.toLong() ?: progress.time).coerceIn(0L, length)
+            val displayedTime = (scrubPosition?.toLong() ?: progress.time).coerceAtLeast(0L).let {
+                if (seekableLength != null) it.coerceAtMost(seekableLength) else it
+            }
             if (seekableLength != null && bookmarks.entries.isNotEmpty()) {
                 VLCBookmarkMarkers(
                     markerFractions = bookmarks.entries.map { bookmark ->
@@ -656,29 +747,67 @@ fun VideoHudOverlay(
                     markerColor = Color.White.copy(alpha = 0.9f),
                 )
             }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
+            if (seekableLength != null) {
+                val playbackPositionDescription = stringResource(
+                    Res.string.playback_position_value,
+                    formatPlaybackTime(displayedTime),
+                    formatPlaybackTime(seekableLength),
+                )
                 Slider(
-                    value = (scrubPosition ?: progress.time.toFloat()).coerceIn(0f, length.toFloat()),
-                    onValueChange = { scrubPosition = it },
+                    value = (scrubPosition ?: progress.time.toFloat()).coerceIn(0f, seekableLength.toFloat()),
+                    onValueChange = {
+                        scrubPosition = it
+                        onInteractionActiveChanged(true)
+                    },
                     onValueChangeFinished = {
                         scrubPosition?.let { onSeek(it.toLong()) }
                         scrubPosition = null
+                        onInteractionActiveChanged(false)
                     },
-                    valueRange = 0f..length.toFloat(),
-                    enabled = seekableLength != null,
-                    modifier = Modifier.weight(1f),
+                    valueRange = 0f..seekableLength.toFloat(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics {
+                            contentDescription = playbackPositionDescription
+                        },
                 )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Text(
-                    text = "${formatPlaybackTime(displayedTime)} / ${formatPlaybackTime(progress.length)}",
+                    text = formatPlaybackTime(displayedTime),
                     color = Color.White.copy(alpha = 0.9f),
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"),
                     maxLines = 1,
-                    modifier = Modifier.widthIn(min = 78.dp),
                 )
+                if (seekableLength != null) {
+                    Text(
+                        text = "−${formatPlaybackTime((seekableLength - displayedTime).coerceAtLeast(0L))}",
+                        color = Color.White.copy(alpha = 0.72f),
+                        style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"),
+                        maxLines = 1,
+                    )
+                } else {
+                    Surface(
+                        shape = CircleShape,
+                        color = Color.White.copy(alpha = 0.14f),
+                        contentColor = Color.White,
+                    ) {
+                        Text(
+                            text = if (isLiveStream) {
+                                stringResource(Res.string.live_stream)
+                            } else {
+                                stringResource(Res.string.duration_unavailable)
+                            },
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                }
             }
             Box(modifier = Modifier.height(4.dp))
             Row(
@@ -686,14 +815,30 @@ fun VideoHudOverlay(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                IconButton(onClick = onToggleShuffle) {
+                IconButton(
+                    onClick = {
+                        onUserInteraction()
+                        onToggleShuffle()
+                    },
+                    modifier = Modifier.semantics {
+                        selected = shuffle
+                        stateDescription = if (shuffle) onStateLabel else offStateLabel
+                    },
+                ) {
                     Icon(
                         icon = MaterialSymbols.Filled.Shuffle,
-                        contentDescription = stringResource(Res.string.shuffle_play),
+                        contentDescription = if (shuffle) {
+                            stringResource(Res.string.shuffle_on)
+                        } else {
+                            stringResource(Res.string.shuffle)
+                        },
                         tint = shuffleTint,
                     )
                 }
-                IconButton(onClick = onPrevious) {
+                IconButton(onClick = {
+                    onUserInteraction()
+                    onPrevious()
+                }) {
                     Icon(
                         icon = MaterialSymbols.Filled.SkipPrevious,
                         contentDescription = stringResource(Res.string.previous),
@@ -720,7 +865,10 @@ fun VideoHudOverlay(
                         .clickable(
                             interactionSource = playInteractionSource,
                             indication = ripple(bounded = true),
-                            onClick = onTogglePlay,
+                            onClick = {
+                                onUserInteraction()
+                                onTogglePlay()
+                            },
                         ),
                 ) {
                     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
@@ -742,14 +890,26 @@ fun VideoHudOverlay(
                         }
                     }
                 }
-                IconButton(onClick = onNext) {
+                IconButton(onClick = {
+                    onUserInteraction()
+                    onNext()
+                }) {
                     Icon(
                         icon = MaterialSymbols.Filled.SkipNext,
                         contentDescription = stringResource(Res.string.next),
                         tint = Color.White,
                     )
                 }
-                IconButton(onClick = onCycleRepeat) {
+                IconButton(
+                    onClick = {
+                        onUserInteraction()
+                        onCycleRepeat()
+                    },
+                    modifier = Modifier.semantics {
+                        selected = repeatMode != RepeatMode.NONE
+                        stateDescription = repeatStateLabel
+                    },
+                ) {
                     Icon(
                         icon = if (repeatMode == RepeatMode.ONE) MaterialSymbols.Filled.RepeatOne else MaterialSymbols.Filled.Repeat,
                         contentDescription = when (repeatMode) {

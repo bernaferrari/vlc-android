@@ -2,7 +2,9 @@ package org.videolan.vlc.compose.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -11,9 +13,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.theme.VLCLayout
@@ -98,11 +105,11 @@ fun DisplaySettingsSheet(
 
             if (state.supportsViewMode) {
                 DisplaySectionTitle(stringResource(Res.string.layout))
-                VLCSettingsSegmentedCard(
-                    rows = listOf(
-                        { VLCSettingsChoiceRow(stringResource(Res.string.list), state.viewMode == ViewMode.LIST, { onViewMode(ViewMode.LIST) }) },
-                        { VLCSettingsChoiceRow(stringResource(Res.string.grid), state.viewMode == ViewMode.GRID, { onViewMode(ViewMode.GRID) }) },
-                    ),
+                DisplayChoiceGrid(
+                    options = listOf(ViewMode.LIST, ViewMode.GRID),
+                    selected = state.viewMode,
+                    label = { if (it == ViewMode.LIST) stringResource(Res.string.list) else stringResource(Res.string.grid) },
+                    onSelect = onViewMode,
                 )
             }
 
@@ -120,41 +127,107 @@ fun DisplaySettingsSheet(
 
             if (state.groupingOptions.isNotEmpty()) {
                 DisplaySectionTitle(state.groupingLabel ?: stringResource(Res.string.grouping))
-                VLCSettingsSegmentedCard(
-                    rows = state.groupingOptions.map { option ->
-                        { VLCSettingsChoiceRow(option.displayLabel(), option == state.selectedGrouping, { onGrouping(option) }) }
-                    },
+                DisplayChoiceGrid(
+                    options = state.groupingOptions,
+                    selected = state.selectedGrouping,
+                    label = { it.displayLabel() },
+                    onSelect = onGrouping,
                 )
             }
 
             if (state.defaultActionOptions.isNotEmpty()) {
                 DisplaySectionTitle(state.defaultActionLabel ?: stringResource(Res.string.default_action))
-                VLCSettingsSegmentedCard(
-                    rows = state.defaultActionOptions.map { option ->
-                        { VLCSettingsChoiceRow(option.displayLabel(), option == state.selectedDefaultAction, { onDefaultAction(option) }) }
-                    },
+                DisplayChoiceGrid(
+                    options = state.defaultActionOptions,
+                    selected = state.selectedDefaultAction,
+                    label = { it.displayLabel() },
+                    onSelect = onDefaultAction,
                 )
             }
 
             if (state.supportsSorting) {
                 DisplaySectionTitle(stringResource(Res.string.sort))
-                VLCSettingsSegmentedCard(
-                    rows = state.availableSorts.map { sort ->
-                        val selected = sort == state.sort
-                        {
-                            VLCSettingsChoiceRow(
-                                title = sort.displayLabel(),
-                                selected = selected,
-                                summary = if (selected) {
-                                    if (state.sortDesc) stringResource(Res.string.descending) else stringResource(Res.string.ascending)
-                                } else null,
-                                onClick = { if (selected) onSortDesc(!state.sortDesc) else onSort(sort) },
-                            )
-                        }
+                DisplayChoiceGrid(
+                    options = state.availableSorts,
+                    selected = state.sort,
+                    label = { it.displayLabel() },
+                    onSelect = onSort,
+                )
+                DisplayChoiceGrid(
+                    options = listOf(false, true),
+                    selected = state.sortDesc,
+                    label = {
+                        if (it) stringResource(Res.string.descending) else stringResource(Res.string.ascending)
                     },
+                    onSelect = onSortDesc,
+                    cellMinHeight = 48.dp,
                 )
             }
 
+        }
+    }
+}
+
+@Composable
+private fun <T> DisplayChoiceGrid(
+    options: List<T>,
+    selected: T?,
+    label: @Composable (T) -> String,
+    onSelect: (T) -> Unit,
+    cellMinHeight: Dp = 54.dp,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth().selectableGroup(),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        options.chunked(2).forEachIndexed { rowIndex, rowOptions ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                rowOptions.forEachIndexed { columnIndex, option ->
+                    val isSelected = option == selected
+                    val isFirstRow = rowIndex == 0
+                    val isLastRow = rowIndex == (options.size - 1) / 2
+                    val shape = androidx.compose.foundation.shape.RoundedCornerShape(
+                        topStart = if (isFirstRow && columnIndex == 0) 22.dp else 6.dp,
+                        topEnd = if (isFirstRow && (columnIndex == 1 || rowOptions.size == 1)) 22.dp else 6.dp,
+                        bottomStart = if (isLastRow && columnIndex == 0) 22.dp else 6.dp,
+                        bottomEnd = if (isLastRow && (columnIndex == 1 || rowOptions.size == 1)) 22.dp else 6.dp,
+                    )
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .heightIn(min = cellMinHeight)
+                            .selectable(
+                                selected = isSelected,
+                                role = Role.RadioButton,
+                                onClick = { onSelect(option) },
+                            ),
+                        shape = shape,
+                        color = if (isSelected) {
+                            MaterialTheme.colorScheme.secondaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.surfaceContainerLow
+                        },
+                        contentColor = if (isSelected) {
+                            MaterialTheme.colorScheme.onSecondaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        },
+                    ) {
+                        Text(
+                            text = label(option),
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                        )
+                    }
+                }
+                if (rowOptions.size == 1 && options.size > 1) {
+                    androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
+                }
+            }
         }
     }
 }

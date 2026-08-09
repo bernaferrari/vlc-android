@@ -74,6 +74,14 @@ class PlaylistEngineTest {
     }
 
     @Test
+    fun decoderVideoEvidenceIsPublishedSeparatelyFromMediaType() {
+        val backend = RecordingBackend().apply { availableVideoOutput = true }
+        val engine = PlaylistEngine().apply { setBackend(backend) }
+
+        assertEquals(true, engine.videoOutput.value)
+    }
+
+    @Test
     fun playbackRateIsFiniteAndWithinDecoderRange() {
         val engine = PlaylistEngine()
 
@@ -277,6 +285,7 @@ class PlaylistEngineTest {
         var availableEqualizer = PlaybackEqualizer()
         var availableVideoCrop = PlaybackVideoCrop()
         var availableVideoAdjust = PlaybackVideoAdjust()
+        var availableVideoOutput: Boolean? = null
         var equalizerWasEnabled = false
         var selectedEqualizerPreset: String? = null
         var reportedEqualizerPreamp = 0f
@@ -300,6 +309,7 @@ class PlaylistEngineTest {
         override fun getVolume(): Int = reportedVolume
         override fun setRate(rate: Float) { reportedRate = rate }
         override fun getRate(): Float = reportedRate
+        override fun hasVideoOutput(): Boolean? = availableVideoOutput
         override fun setVideoOutput(aspectRatio: String?, scale: Float) {
             reportedAspectRatio = aspectRatio
             reportedScale = scale

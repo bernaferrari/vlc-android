@@ -17,8 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -44,6 +42,8 @@ import org.videolan.vlc.compose.components.VLCListItemPosition
 import org.videolan.vlc.compose.components.VLCPageHeader
 import org.videolan.vlc.compose.components.VLCSelectionContextBar
 import org.videolan.vlc.compose.components.VLCTransientLoadingIndicator
+import org.videolan.vlc.compose.components.VLCActionSheet
+import org.videolan.vlc.compose.components.VLCActionSheetItem
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.compose.theme.VLCLayout
 import org.videolan.vlc.model.MediaFolder
@@ -302,11 +302,18 @@ private fun BrowserMediaRow(
             moreActionContentDescription = ShellStrings.moreOptions(),
             onMoreClick = { menu = true },
         )
-        DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-            DropdownMenuItem(text = { Text(ShellStrings.play()) }, onClick = { menu = false; onPlay(item) })
-            DropdownMenuItem(text = { Text(ShellStrings.insertNext()) }, onClick = { menu = false; onPlayNext(item) })
-            DropdownMenuItem(text = { Text(ShellStrings.append()) }, onClick = { menu = false; onAppend(item) })
-        }
+        VLCActionSheet(
+            visible = menu,
+            title = item.displayTitle,
+            subtitle = formatDuration(item.duration).takeIf(String::isNotBlank),
+            headerIcon = if (item.isVideo) MaterialSymbols.Filled.VideoLibrary else MaterialSymbols.Filled.MusicNote,
+            actions = listOf(
+                VLCActionSheetItem(ShellStrings.play(), MaterialSymbols.Filled.PlayArrow) { menu = false; onPlay(item) },
+                VLCActionSheetItem(ShellStrings.insertNext(), MaterialSymbols.Filled.SkipNext) { menu = false; onPlayNext(item) },
+                VLCActionSheetItem(ShellStrings.append(), MaterialSymbols.Filled.QueueMusic) { menu = false; onAppend(item) },
+            ),
+            onDismiss = { menu = false },
+        )
     }
 }
 
@@ -356,20 +363,18 @@ internal fun PlaylistTrackRow(
             moreActionContentDescription = ShellStrings.moreOptions(),
             onMoreClick = { menu = true },
         )
-        DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-            DropdownMenuItem(text = { Text(ShellStrings.play()) }, onClick = { menu = false; onPlay(item) })
-            DropdownMenuItem(
-                text = { Text(ShellStrings.moveUp()) },
-                onClick = { menu = false; onMoveUp(item) },
-            )
-            DropdownMenuItem(
-                text = { Text(ShellStrings.moveDown()) },
-                onClick = { menu = false; onMoveDown(item) },
-            )
-            DropdownMenuItem(
-                text = { Text(ShellStrings.remove()) },
-                onClick = { menu = false; onRemove(item) },
-            )
-        }
+        VLCActionSheet(
+            visible = menu,
+            title = item.displayTitle,
+            subtitle = item.artist,
+            headerIcon = MaterialSymbols.Filled.MusicNote,
+            actions = listOf(
+                VLCActionSheetItem(ShellStrings.play(), MaterialSymbols.Filled.PlayArrow) { menu = false; onPlay(item) },
+                VLCActionSheetItem(ShellStrings.moveUp(), MaterialSymbols.Filled.ArrowUpward) { menu = false; onMoveUp(item) },
+                VLCActionSheetItem(ShellStrings.moveDown(), MaterialSymbols.Filled.ArrowDownward) { menu = false; onMoveDown(item) },
+                VLCActionSheetItem(ShellStrings.remove(), MaterialSymbols.Filled.Delete, destructive = true) { menu = false; onRemove(item) },
+            ),
+            onDismiss = { menu = false },
+        )
     }
 }

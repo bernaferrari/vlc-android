@@ -82,6 +82,8 @@ class PlayerViewModel(
     }.getOrNull(),
 ) : VlcViewModel() {
 
+    private var observedVideoOutput: Boolean? = null
+
     private val _state = MutableStateFlow(
         PlayerUiState(
             pictureInPictureAvailable = controller?.isPictureInPictureAvailable == true,
@@ -93,6 +95,15 @@ class PlayerViewModel(
     val state: StateFlow<PlayerUiState> = _state.asStateFlow()
 
     init {
+        launch {
+            playback.videoOutput.collect { detected ->
+                observedVideoOutput = detected
+                _state.update { current ->
+                    val item = current.queue.getOrNull(current.currentQueueIndex)
+                    current.copy(hasVideoOutput = resolveHasVideoOutput(item, detected))
+                }
+            }
+        }
         launch {
             playback.equalizer.collect { equalizer ->
                 _state.update { it.copy(equalizer = equalizer) }
@@ -178,7 +189,7 @@ class PlayerViewModel(
                         sleepTimer = sleepTimer,
                         chapters = chapters,
                         hasMedia = item != null || pl.items.isNotEmpty(),
-                        hasVideoOutput = item?.let { it.isVideo || it.isStream } == true,
+                        hasVideoOutput = resolveHasVideoOutput(item, observedVideoOutput),
                         error = (st as? PlaybackState.Error)?.message,
                     )
                 }
@@ -350,6 +361,12 @@ class PlayerViewModel(
         playback.setShuffle(!_state.value.shuffle)
     }
 }
+
+internal fun resolveHasVideoOutput(item: MediaItem?, detected: Boolean?): Boolean =
+    detected ?: (item?.let { media ->
+        media.isVideo || media.mime?.startsWith("video/", ignoreCase = true) == true ||
+            (media.width > 0 && media.height > 0)
+    } == true)
 
 private data class PlayerSnapshot(
     val state: PlaybackState,

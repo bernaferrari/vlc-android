@@ -55,6 +55,7 @@ object ArtworkLoaderHolder {
 @Composable
 fun MediaArtwork(
     item: MediaItem,
+    contentDescription: String? = item.displayTitle,
     modifier: Modifier = Modifier,
     size: Dp = 48.dp,
     contentScale: ContentScale = ContentScale.Crop,
@@ -70,7 +71,7 @@ fun MediaArtwork(
     MediaArtworkUri(
         uri = sourceUri,
         favorite = item.isFavorite,
-        contentDescription = item.displayTitle,
+        contentDescription = contentDescription,
         modifier = modifier,
         size = size,
         contentScale = contentScale,
