@@ -220,7 +220,7 @@ private fun <T> DisplayChoiceGrid(
                             text = label(option),
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
                             style = MaterialTheme.typography.labelLarge,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            fontWeight = FontWeight.Medium,
                         )
                     }
                 }

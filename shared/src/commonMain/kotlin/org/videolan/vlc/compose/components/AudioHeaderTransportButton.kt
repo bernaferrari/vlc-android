@@ -47,10 +47,11 @@ fun VLCAudioHeaderTransportButton(
     onLongClick: (() -> Unit)? = null,
     iconContent: @Composable () -> Unit
 ) {
+    val touchTargetSize = maxOf(size, 48.dp)
     VLCTheme {
         Box(
             modifier = modifier
-                .size(size)
+                .size(touchTargetSize)
                 .combinedClickable(
                     role = Role.Button,
                     onClick = onClick,

@@ -38,6 +38,7 @@ internal fun VideoDestination(
     onOpenPlayer: () -> Unit,
     onOpenContainer: (MediaFolder) -> Unit,
     onNavigateBack: () -> Unit = viewModel::closeContainer,
+    showPlayAllInMenu: Boolean = true,
 ) {
     RichMediaListPane(
         state = state,
@@ -53,6 +54,7 @@ internal fun VideoDestination(
             if (defaultPlaybackActionOpensPlayer(state.defaultPlaybackAction)) onOpenPlayer()
         },
         onPlayAll = { viewModel.playAll(); onOpenPlayer() },
+        showPlayAllInMenu = showPlayAllInMenu,
         onPlayNext = viewModel::playNext,
         onAppend = viewModel::append,
         onToggleSelect = viewModel::toggleSelect,
@@ -112,6 +114,7 @@ internal fun AudioDestination(
     onOpenPlayer: () -> Unit,
     onOpenEntity: (MediaItem) -> Unit,
     onNavigateBack: () -> Unit = viewModel::closeEntity,
+    showPlayAllInMenu: Boolean = true,
 ) {
     RichMediaListPane(
         state = state,
@@ -157,6 +160,7 @@ internal fun AudioDestination(
             }
         },
         onPlayAll = { viewModel.playAll(); onOpenPlayer() },
+        showPlayAllInMenu = showPlayAllInMenu,
         onPlayNext = viewModel::playNext,
         onAppend = viewModel::append,
         onToggleSelect = viewModel::toggleSelect,

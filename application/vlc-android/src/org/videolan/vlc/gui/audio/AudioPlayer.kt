@@ -338,13 +338,13 @@ private fun AudioLandscapeTrackInfoHost(
             if (showChapterControls) {
                 VLCAudioHeaderTransportButton(
                         contentDescription = previousChapterContentDescription,
-                        size = 40.composeDp,
+                        size = 48.composeDp,
                         onClick = onPreviousChapterClick
                 ) {
                     AudioPlayerTransportIcon(R.drawable.ic_chevron_left, size = 24.composeDp)
                 }
             } else {
-                Spacer(Modifier.width(40.composeDp))
+                Spacer(Modifier.width(48.composeDp))
             }
             Box(
                     modifier = Modifier.weight(1F),
@@ -359,13 +359,13 @@ private fun AudioLandscapeTrackInfoHost(
             if (showChapterControls) {
                 VLCAudioHeaderTransportButton(
                         contentDescription = nextChapterContentDescription,
-                        size = 40.composeDp,
+                        size = 48.composeDp,
                         onClick = onNextChapterClick
                 ) {
                     AudioPlayerTransportIcon(R.drawable.ic_chevron_right, size = 24.composeDp)
                 }
             } else {
-                Spacer(Modifier.width(40.composeDp))
+                Spacer(Modifier.width(48.composeDp))
             }
         }
         Spacer(Modifier.height(8.composeDp))
@@ -1436,7 +1436,7 @@ class AudioPlayer(
             VLCTheme {
                 VLCAudioHeaderTransportButton(
                     contentDescription = getString(R.string.audio_hinge_go_left),
-                    size = 40.composeDp,
+                    size = 48.composeDp,
                     onClick = {
                         Settings.getInstance(requireActivity()).putSingle(AUDIO_HINGE_ON_RIGHT, false)
                         manageHinge()
@@ -1450,7 +1450,7 @@ class AudioPlayer(
             VLCTheme {
                 VLCAudioHeaderTransportButton(
                     contentDescription = getString(R.string.audio_hinge_go_right),
-                    size = 40.composeDp,
+                    size = 48.composeDp,
                     onClick = {
                         Settings.getInstance(requireActivity()).putSingle(AUDIO_HINGE_ON_RIGHT, true)
                         manageHinge()

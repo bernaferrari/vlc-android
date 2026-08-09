@@ -476,7 +476,7 @@ private fun MoreEmptySection(
         compact = true,
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 180.dp),
+            .heightIn(min = 112.dp),
     )
 }
 

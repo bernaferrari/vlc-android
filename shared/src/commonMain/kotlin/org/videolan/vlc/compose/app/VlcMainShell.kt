@@ -565,8 +565,8 @@ fun VlcMainShell(
                 containerColor = colors.backgroundDefault,
                 floatingActionButton = {
                     if (!showPlayer && !showSecondaryChrome) {
-                        when (currentTab) {
-                            MainTab.VIDEO -> {
+                        when (currentRoute) {
+                            VideoRoute -> {
                                 if (videoState.count > 0 || videoState.items.isNotEmpty()) {
                                     FloatingActionButton(onClick = {
                                         videoVm.playAll()
@@ -579,7 +579,7 @@ fun VlcMainShell(
                                     }
                                 }
                             }
-                            MainTab.AUDIO -> {
+                            AudioRoute -> {
                                 if (audioSection == AudioSection.TRACKS && audioState.count > 1) {
                                     FloatingActionButton(onClick = {
                                         audioVm.shuffleAll()
@@ -647,6 +647,7 @@ fun VlcMainShell(
                             hostCallbacks = hostCallbacks,
                             onOpenPlayer = ::openPlayer,
                             onOpenContainer = ::openVideoContainer,
+                            showPlayAllInMenu = videoState.count <= 0 && videoState.items.isEmpty(),
                         )
                     }
                     entry<VideoContainerRoute>(metadata = libraryDetailMetadata) { route ->
@@ -674,6 +675,7 @@ fun VlcMainShell(
                             hostCallbacks = hostCallbacks,
                             onOpenPlayer = ::openPlayer,
                             onOpenEntity = ::openAudioEntity,
+                            showPlayAllInMenu = audioSection != AudioSection.TRACKS || audioState.count <= 1,
                         )
                     }
                     entry<AudioEntityRoute>(metadata = libraryDetailMetadata) { route ->

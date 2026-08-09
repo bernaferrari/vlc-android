@@ -6,7 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
@@ -55,9 +55,11 @@ fun VLCAudioTrackInfoText(
             maxLines = 1,
             overflow = TextOverflow.Clip,
             modifier = modifier
-                .then(if (onClick == null) Modifier else Modifier.clickable(onClick = onClick))
+                .then(
+                    if (onClick == null) Modifier
+                    else Modifier.clickable(role = Role.Button, onClick = onClick)
+                )
                 .basicMarquee(iterations = 1)
-                .clearAndSetSemantics { }
         )
     }
 }

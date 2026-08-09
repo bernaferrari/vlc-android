@@ -5,9 +5,15 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,6 +24,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.artwork.MediaArtwork
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
@@ -78,18 +87,56 @@ fun PlayerArtworkFallback(
                     )
                 )
         )
-        val coverSize = minOf(maxWidth - 56.dp, maxHeight * 0.48f, 420.dp).coerceAtLeast(160.dp)
-        MediaArtwork(
-            item = item,
-            contentDescription = null,
-            size = coverSize,
-            modifier = Modifier
-                .size(coverSize)
-                .shadow(24.dp, MaterialTheme.shapes.extraLarge)
-                .clip(MaterialTheme.shapes.extraLarge),
-            contentScale = ContentScale.Crop,
-            fallback = { GenerativeAudioArtwork(item, state.progress) },
+        val coverSize = minOf(
+            maxWidth - 56.dp,
+            (maxHeight - 452.dp).coerceAtLeast(168.dp),
+            380.dp,
         )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 28.dp)
+                .padding(top = 72.dp, bottom = 292.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
+        ) {
+            MediaArtwork(
+                item = item,
+                contentDescription = null,
+                size = coverSize,
+                modifier = Modifier
+                    .size(coverSize)
+                    .shadow(12.dp, MaterialTheme.shapes.extraLarge)
+                    .clip(MaterialTheme.shapes.extraLarge),
+                contentScale = ContentScale.Crop,
+                fallback = { GenerativeAudioArtwork(item, state.progress) },
+            )
+            Spacer(Modifier.height(20.dp))
+            Text(
+                text = item.displayTitle,
+                color = Color.White,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            val supportingText = item.artist?.takeIf(String::isNotBlank)
+                ?: state.subtitle.takeIf(String::isNotBlank)
+            if (supportingText != null) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = supportingText,
+                    color = Color.White.copy(alpha = 0.72f),
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
         Box(
             Modifier
                 .fillMaxSize()

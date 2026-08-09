@@ -146,6 +146,7 @@ fun RichMediaListPane(
     onQuery: (String) -> Unit,
     onPlay: (MediaItem) -> Unit,
     onPlayAll: () -> Unit,
+    showPlayAllInMenu: Boolean = true,
     onPlayNext: (MediaItem) -> Unit = {},
     onAppend: (MediaItem) -> Unit = {},
     onToggleSelect: (MediaItem) -> Unit = {},
@@ -294,16 +295,18 @@ fun RichMediaListPane(
                                     },
                                 )
                             }
-                            DropdownMenuItem(
-                                text = { Text(ShellStrings.playAll()) },
-                                leadingIcon = {
-                                    Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = null)
-                                },
-                                onClick = {
-                                    showLibraryMenu = false
-                                    onPlayAll()
-                                },
-                            )
+                            if (showPlayAllInMenu) {
+                                DropdownMenuItem(
+                                    text = { Text(ShellStrings.playAll()) },
+                                    leadingIcon = {
+                                        Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = null)
+                                    },
+                                    onClick = {
+                                        showLibraryMenu = false
+                                        onPlayAll()
+                                    },
+                                )
+                            }
                             DropdownMenuItem(
                                 text = { Text(ShellStrings.select()) },
                                 leadingIcon = {

@@ -199,8 +199,8 @@ private val LightVLCColors = VLCColorScheme(
     onBackground = Grey900,
     surface = White,
     onSurface = Grey900,
-    error = Color(0xFFBB0000),
-    onError = White,
+    error = Color(0xFFFFB4AB),
+    onError = Color(0xFF690005),
 
     // VLC semantics (light)
     backgroundDefault = White,                    // styles.xml:41
@@ -257,7 +257,7 @@ private val DarkVLCColors = VLCColorScheme(
     listTitle = White,                            // via res/color/list_title_dark.xml + style:262
     listSubtitle = Grey400,                       // via list_subtitle_dark + overrides
     fontDefault = Grey50,                         // :257
-    fontLight = Grey600,                          // :258
+    fontLight = Grey400,                          // Accessible secondary text on the dark canvas
     fontAudioLight = Grey400,                     // :259
     fontDisabled = Color(0x80757575),             // grey600transparent variant
     defaultDivider = WhiteTransparent20,          // :239

@@ -48,6 +48,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.ImeAction
@@ -567,7 +570,12 @@ private fun PlaylistCard(
     Surface(
         modifier = Modifier
             .clip(VLCMediaCardShape)
-            .combinedClickable(onClick = onOpen, onLongClick = onToggleSelect),
+            .semantics { this.selected = selected }
+            .combinedClickable(
+                role = Role.Button,
+                onClick = onOpen,
+                onLongClick = onToggleSelect,
+            ),
         shape = VLCMediaCardShape,
         color = containerColor,
         contentColor = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface,

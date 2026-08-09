@@ -499,7 +499,7 @@ private fun PlayerDestinationBar(
                         PlaybackSheetDestination.QUEUE -> stringResource(Res.string.queue)
                         PlaybackSheetDestination.TOOLS -> stringResource(Res.string.tools)
                     },
-                    fontWeight = if (selected == destination) FontWeight.Bold else FontWeight.SemiBold,
+                    fontWeight = FontWeight.SemiBold,
                 )
             }
         }
@@ -588,7 +588,7 @@ private fun SpeedPage(
                         ) {
                             Text(
                                 playbackRateLabel(preset),
-                                fontWeight = if (rate == preset) FontWeight.Bold else FontWeight.SemiBold,
+                                fontWeight = FontWeight.SemiBold,
                                 color = if (rate == preset) MaterialTheme.colorScheme.primary
                                 else MaterialTheme.colorScheme.onSecondaryContainer,
                             )
@@ -775,7 +775,7 @@ private fun QueueItem(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                    fontWeight = FontWeight.Medium,
                 )
                 val metadata = if (selected) {
                     stringResource(Res.string.now_playing)
@@ -1388,7 +1388,7 @@ private fun EqualizerContent(
                         preset.label,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        fontWeight = if (preset.id == equalizer.selectedPresetId) FontWeight.Bold else FontWeight.Medium,
+                        fontWeight = FontWeight.Medium,
                     )
                 }
             }

@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -306,6 +307,7 @@ fun VideoSurfaceWithHud(
             queueSize = queue.size,
             hasVideoOutput = hasVideoOutput,
             isLiveStream = queue.getOrNull(currentQueueIndex)?.isStream == true,
+            waveformUri = queue.getOrNull(currentQueueIndex)?.uri,
             bookmarks = bookmarks,
             onTogglePlay = onTogglePlay,
             onSeek = onSeek,
@@ -484,6 +486,7 @@ fun VideoHudOverlay(
     queueSize: Int,
     hasVideoOutput: Boolean,
     isLiveStream: Boolean,
+    waveformUri: String?,
     bookmarks: PlaybackBookmarks = PlaybackBookmarks(),
     onTogglePlay: () -> Unit,
     onSeek: (Long) -> Unit,
@@ -581,24 +584,28 @@ fun VideoHudOverlay(
                         )
                     }
                 }
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        title.ifBlank { " " },
-                        color = Color.White,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    if (subtitle.isNotBlank()) {
+                if (hasVideoOutput) {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            subtitle,
-                            color = Color.White.copy(alpha = 0.75f),
+                            title.ifBlank { " " },
+                            color = Color.White,
+                            fontWeight = FontWeight.SemiBold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.titleMedium,
                         )
+                        if (subtitle.isNotBlank()) {
+                            Text(
+                                subtitle,
+                                color = Color.White.copy(alpha = 0.75f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
                     }
+                } else {
+                    Spacer(Modifier.weight(1f))
                 }
                 TextButton(
                     onClick = {
@@ -756,24 +763,39 @@ fun VideoHudOverlay(
                     formatPlaybackTime(displayedTime),
                     formatPlaybackTime(seekableLength),
                 )
-                Slider(
-                    value = (scrubPosition ?: progress.time.toFloat()).coerceIn(0f, seekableLength.toFloat()),
-                    onValueChange = {
-                        scrubPosition = it
-                        onInteractionActiveChanged(true)
-                    },
-                    onValueChangeFinished = {
-                        scrubPosition?.let { onSeek(it.toLong()) }
-                        scrubPosition = null
-                        onInteractionActiveChanged(false)
-                    },
-                    valueRange = 0f..seekableLength.toFloat(),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .semantics {
-                            contentDescription = playbackPositionDescription
-                        },
-                )
+                val timelineValue = (scrubPosition ?: progress.time.toFloat())
+                    .coerceIn(0f, seekableLength.toFloat())
+                val updateTimeline: (Float) -> Unit = {
+                    scrubPosition = it
+                    onInteractionActiveChanged(true)
+                }
+                val commitTimeline = {
+                    scrubPosition?.let { onSeek(it.toLong()) }
+                    scrubPosition = null
+                    onInteractionActiveChanged(false)
+                }
+                if (hasVideoOutput) {
+                    Slider(
+                        value = timelineValue,
+                        onValueChange = updateTimeline,
+                        onValueChangeFinished = commitTimeline,
+                        valueRange = 0f..seekableLength.toFloat(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics { contentDescription = playbackPositionDescription },
+                    )
+                } else {
+                    AudioWaveformSlider(
+                        uri = waveformUri,
+                        durationMs = seekableLength,
+                        valueMs = timelineValue,
+                        playing = playing,
+                        scrubbing = scrubPosition != null,
+                        contentDescription = playbackPositionDescription,
+                        onValueChange = updateTimeline,
+                        onValueChangeFinished = commitTimeline,
+                    )
+                }
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
