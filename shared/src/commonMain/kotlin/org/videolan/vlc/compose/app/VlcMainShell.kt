@@ -1,16 +1,20 @@
 package org.videolan.vlc.compose.app
 
+import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.focusable
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusRestorer
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.foundation.background
 
 import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -57,13 +61,20 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.dialog
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -184,6 +195,13 @@ fun VlcMainShell(
         val currentRoute = backStack.lastOrNull() as? VlcShellRoute ?: initialRoute
         val currentTab = backStack.filterIsInstance<VlcShellRoute>().activeTab()
         val showPlayer = currentRoute == PlayerRoute
+        val playerVisibility = remember { MutableTransitionState(showPlayer) }
+        playerVisibility.targetState = showPlayer
+        val playerPresented = !playerVisibility.isIdle || playerVisibility.currentState || playerVisibility.targetState
+        val playerFocus = remember { FocusRequester() }
+        val libraryFocus = remember { FocusRequester() }
+        val libraryBackStack = backStack.filter { it != PlayerRoute }
+        val libraryRoute = libraryBackStack.lastOrNull() ?: initialRoute
         val showSecondaryChrome = currentRoute == SettingsRoute ||
             currentRoute == AboutRoute ||
             currentRoute == AboutLibrariesRoute ||
@@ -208,10 +226,10 @@ fun VlcMainShell(
         val settingsState by settingsVm.state.collectAsState()
         // Video hides system chrome; audio keeps it visible but draws underneath it so the player
         // gradient reaches the physical screen edge. Native hosts receive both pieces of state.
-        val immersiveVideoPlayer = showPlayer && (if (awaitingMedia) requestedMedia?.isVideo == true else playerState.hasVideoOutput)
-        LaunchedEffect(hostCallbacks, showPlayer, immersiveVideoPlayer) {
+        val immersiveVideoPlayer = playerPresented && (if (awaitingMedia) requestedMedia?.isVideo == true else playerState.hasVideoOutput)
+        LaunchedEffect(hostCallbacks, playerPresented, immersiveVideoPlayer) {
             hostCallbacks.onPlayerSurfaceChanged(
-                active = showPlayer,
+                active = playerPresented,
                 immersive = immersiveVideoPlayer,
             )
         }
@@ -273,53 +291,6 @@ fun VlcMainShell(
                         ),
                         targetOffsetX = { fullWidth -> fullWidth },
                     ),
-                )
-            }
-        }
-        // Lift a solid player surface into place. A small expansion connects the opening to
-        // its trigger without sweeping an entire screen past the library or blending two pages.
-        val playerLiftPx = with(LocalDensity.current) { 20.dp.roundToPx() }
-        val playerTransitionMetadata = remember(motion, playerLiftPx) {
-            val enterDuration = if (motion.reducedMotion) 0 else 240
-            val exitDuration = if (motion.reducedMotion) 0 else 160
-            val origin = TransformOrigin(0.5f, 1f)
-            NavDisplay.transitionSpec {
-                ContentTransform(
-                    targetContentEnter = scaleIn(
-                        initialScale = 0.96f,
-                        transformOrigin = origin,
-                        animationSpec = tween(enterDuration, easing = VLCMotion.EmphasizedDecelerate),
-                    ) + slideInVertically(
-                        initialOffsetY = { playerLiftPx },
-                        animationSpec = tween(enterDuration, easing = VLCMotion.EmphasizedDecelerate),
-                    ),
-                    initialContentExit = ExitTransition.None,
-                )
-            } + NavDisplay.popTransitionSpec {
-                ContentTransform(
-                    targetContentEnter = EnterTransition.None,
-                    initialContentExit = scaleOut(
-                        targetScale = 0.96f,
-                        transformOrigin = origin,
-                        animationSpec = tween(exitDuration, easing = VLCMotion.EmphasizedAccelerate),
-                    ) + slideOutVertically(
-                        targetOffsetY = { playerLiftPx },
-                        animationSpec = tween(exitDuration, easing = VLCMotion.EmphasizedAccelerate),
-                    ),
-                    targetContentZIndex = -1f,
-                )
-            } + NavDisplay.predictivePopTransitionSpec {
-                ContentTransform(
-                    targetContentEnter = EnterTransition.None,
-                    initialContentExit = scaleOut(
-                        targetScale = 0.96f,
-                        transformOrigin = origin,
-                        animationSpec = tween(exitDuration, easing = VLCMotion.EmphasizedAccelerate),
-                    ) + slideOutVertically(
-                        targetOffsetY = { playerLiftPx },
-                        animationSpec = tween(exitDuration, easing = VLCMotion.EmphasizedAccelerate),
-                    ),
-                    targetContentZIndex = -1f,
                 )
             }
         }
@@ -433,6 +404,10 @@ fun VlcMainShell(
         }
 
         fun popRoute(): Boolean = popNav3Route(backStack)
+
+        fun closePlayer() {
+            if (backStack.lastOrNull() == PlayerRoute) popRoute()
+        }
 
         fun replaceOrPushDetail(route: VlcShellRoute) {
             val current = backStack.lastOrNull() as? VlcShellRoute
@@ -564,9 +539,27 @@ fun VlcMainShell(
                     indicatorColor = MaterialTheme.colorScheme.primaryContainer,
                 ),
             )
+            Box(modifier.fillMaxSize().clipToBounds()) {
             VlcAdaptiveNavigationSuite(
-                modifier = modifier,
-                enabled = showBottomBar && !showPlayer,
+                modifier = Modifier.fillMaxSize()
+                    .focusRequester(libraryFocus)
+                    .focusRestorer()
+                    .focusProperties { onEnter = { if (playerPresented) cancelFocusChange() } }
+                    .focusGroup()
+                    .then(
+                    if (playerPresented) Modifier
+                        .clearAndSetSemantics { }
+                        .onPreviewKeyEvent { true }
+                        .pointerInput(Unit) {
+                            awaitPointerEventScope {
+                                while (true) {
+                                    awaitPointerEvent(PointerEventPass.Initial).changes.forEach { it.consume() }
+                                }
+                            }
+                        }
+                    else Modifier,
+                ),
+                enabled = showBottomBar,
                 navigationSuiteItems = {
                     listOf(MainTab.VIDEO, MainTab.AUDIO, MainTab.PLAYLISTS, MainTab.BROWSER, MainTab.MORE).forEach { t ->
                         item(
@@ -593,8 +586,8 @@ fun VlcMainShell(
                 contentWindowInsets = WindowInsets(0, 0, 0, 0),
                 containerColor = colors.backgroundDefault,
                 floatingActionButton = {
-                    if (!showPlayer && !showSecondaryChrome) {
-                        when (currentRoute) {
+                    if (!showSecondaryChrome) {
+                        when (libraryRoute) {
                             VideoRoute -> {
                                 if (videoState.count > 0 || videoState.items.isNotEmpty()) {
                                     FloatingActionButton(onClick = {
@@ -626,7 +619,7 @@ fun VlcMainShell(
                     }
                 },
                 bottomBar = {
-                    if (showBottomBar && !showPlayer && playerState.hasMedia) {
+                    if (showBottomBar && playerState.hasMedia) {
                         MiniBar(
                             state = playerState,
                             onExpand = ::openPlayer,
@@ -639,12 +632,11 @@ fun VlcMainShell(
                 // once here keeps root and secondary destinations on the same safe-area baseline.
                 val contentMod = Modifier
                     .padding(padding)
-                    .then(
-                        if (showPlayer) Modifier else Modifier.statusBarsPadding(),
-                    )
+                    .statusBarsPadding()
                     .fillMaxSize()
                 NavDisplay(
-                    backStack = backStack,
+                    backStack = libraryBackStack,
+                    onBack = { navigateBack() },
                     modifier = contentMod.clipToBounds(),
                     sceneStrategies = listOf(listDetailStrategy),
                     entryDecorators = listOf(
@@ -774,29 +766,6 @@ fun VlcMainShell(
                             onOpenPlayer = ::openPlayer,
                         )
                     }
-                    entry<PlayerRoute>(metadata = playerTransitionMetadata) {
-                        if (awaitingMedia) {
-                            // The requested item has not reached the UI collector yet. Never flash
-                            // the previous media title/artwork while starting a different track or video.
-                            val pendingBackground = if (requestedMedia?.isVideo == true) Color.Black else MaterialTheme.colorScheme.background
-                            val pendingForeground = if (requestedMedia?.isVideo == true) Color.White else MaterialTheme.colorScheme.onBackground
-                            Box(Modifier.fillMaxSize().background(pendingBackground)) {
-                                playerState.error?.let { message ->
-                                    Text(message, color = pendingForeground, modifier = Modifier.align(Alignment.Center).padding(32.dp))
-                                }
-                                IconButton(onClick = ::popRoute, modifier = Modifier.align(Alignment.TopStart).statusBarsPadding()) {
-                                    Icon(MaterialSymbols.AutoMirrored.Filled.ArrowBack, ShellStrings.back(), tint = pendingForeground)
-                                }
-                            }
-                        } else PlayerDestination(
-                            modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
-                            state = playerState,
-                            viewModel = playerVm,
-                            onClose = ::popRoute,
-                            playerSurface = playerSurface,
-                            hostCallbacks = hostCallbacks,
-                        )
-                    }
                     entry<SettingsRoute>(metadata = detailTransitionMetadata) {
                         SecondaryNav3Destination(
                             title = ShellStrings.settings(),
@@ -848,6 +817,61 @@ fun VlcMainShell(
                 )
             }
         }
+            // Registered after library navigation, before player dialogs: back closes the player,
+            // while a second back during its exit cannot pop the covered library route.
+            HandleShellBackPress(enabled = playerPresented, onBack = ::closePlayer)
+            LaunchedEffect(playerPresented) {
+                if (!playerPresented) libraryFocus.requestFocus()
+            }
+            AnimatedVisibility(
+                visibleState = playerVisibility,
+                modifier = Modifier.fillMaxSize(),
+                enter = slideInHorizontally(
+                    animationSpec = tween(if (motion.reducedMotion) 0 else 280, easing = VLCMotion.EmphasizedDecelerate),
+                    initialOffsetX = { it },
+                ),
+                exit = slideOutHorizontally(
+                    animationSpec = tween(if (motion.reducedMotion) 0 else 220, easing = VLCMotion.Standard),
+                    targetOffsetX = { it },
+                ),
+            ) {
+                LaunchedEffect(Unit) { playerFocus.requestFocus() }
+                Box(
+                    Modifier.fillMaxSize()
+                        .focusRequester(playerFocus)
+                        .onKeyEvent {
+                            if (it.key == Key.Escape) {
+                                if (it.type == KeyEventType.KeyUp) closePlayer()
+                                true
+                            } else false
+                        }
+                        .focusable()
+                        .semantics { dialog() },
+                ) {
+                        if (awaitingMedia) {
+                            // The requested item has not reached the UI collector yet. Never flash
+                            // the previous media title/artwork while starting a different track or video.
+                            val pendingBackground = if (requestedMedia?.isVideo == true) Color.Black else MaterialTheme.colorScheme.background
+                            val pendingForeground = if (requestedMedia?.isVideo == true) Color.White else MaterialTheme.colorScheme.onBackground
+                            Box(Modifier.fillMaxSize().background(pendingBackground)) {
+                                playerState.error?.let { message ->
+                                    Text(message, color = pendingForeground, modifier = Modifier.align(Alignment.Center).padding(32.dp))
+                                }
+                                IconButton(onClick = ::closePlayer, modifier = Modifier.align(Alignment.TopStart).statusBarsPadding()) {
+                                    Icon(MaterialSymbols.AutoMirrored.Filled.ArrowBack, ShellStrings.back(), tint = pendingForeground)
+                                }
+                            }
+                        } else PlayerDestination(
+                            modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
+                            state = playerState,
+                            viewModel = playerVm,
+                            onClose = ::closePlayer,
+                            playerSurface = playerSurface,
+                            hostCallbacks = hostCallbacks,
+                        )
+                }
+            }
+            }
     }
 }
 }
