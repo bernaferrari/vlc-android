@@ -1,15 +1,14 @@
 package org.videolan.vlc.compose.app
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.indication
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.layout.Box
@@ -27,26 +26,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ripple
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -54,9 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialSymbols
-import org.videolan.vlc.compose.components.VLCListItemPosition
 import org.videolan.vlc.compose.components.VLCSettingsToggleRow
-import org.videolan.vlc.compose.components.segmentShape
 import org.videolan.vlc.compose.artwork.MediaArtwork
 import org.videolan.vlc.compose.player.GenerativeAudioArtwork
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
@@ -78,7 +69,7 @@ internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
             color = VLCThemeDefaults.colors.backgroundDefault,
         ) {
             LazyColumn(
-                modifier = Modifier.padding(horizontal = 16.dp),
+                modifier = Modifier.padding(horizontal = VLCLayout.ScreenGutter),
                 contentPadding = PaddingValues(
                     top = 16.dp,
                     bottom = VLCLayout.ScreenGutter,
@@ -230,8 +221,8 @@ internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
 }
 
 /**
- * VLC's shared theme control mirrors QuietGuard's compact, connected appearance group. The
- * choices read as one decision, without the legacy outlined-control treatment fighting the page.
+ * Appearance choices use the same calm, grouped surfaces as the library.
+ * The selected option retains both a checkmark and a color cue.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -241,21 +232,20 @@ private fun AppearanceSettingsGroup(
     onAppearanceChange: (VLCThemeAppearance) -> Unit,
     onAccentChange: (VLCThemeAccent) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             ShellStrings.appearance(),
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.SemiBold,
-            color = VLCThemeDefaults.colors.primary,
-            modifier = Modifier.padding(horizontal = 16.dp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 4.dp),
         )
         val modes = listOf(
             VLCThemeAppearance.Light to ShellStrings.lightTheme(),
             VLCThemeAppearance.Dark to ShellStrings.darkTheme(),
             VLCThemeAppearance.System to ShellStrings.systemTheme(),
         )
-        // The choices are the group. An additional rounded container around them created a
-        // card-inside-card effect that QuietGuard deliberately avoids.
+        // A single segmented choice keeps theme selection compact and easy to scan.
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -323,7 +313,7 @@ private fun RowScope.AppearanceModeButton(
         color = if (selected) {
             MaterialTheme.colorScheme.primaryContainer
         } else {
-            MaterialTheme.colorScheme.surfaceContainerHigh
+            MaterialTheme.colorScheme.surfaceContainerLow
         },
         contentColor = if (selected) {
             MaterialTheme.colorScheme.onPrimaryContainer
@@ -361,97 +351,34 @@ private fun ThemeAccentSwatch(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
-    val motion = LocalVLCMotion.current
     val swatchColor = if (accent == VLCThemeAccent.Dynamic) MaterialTheme.colorScheme.primary else accent.swatchColor
-    val isDynamic = accent == VLCThemeAccent.Dynamic
-    val orbCornerFraction by animateFloatAsState(
-        targetValue = if (selected) .5f else .26f,
-        animationSpec = if (motion.reducedMotion) snap() else spring(dampingRatio = .7f, stiffness = 520f),
-        label = "themeOrbCorner_${accent.storageValue}",
-    )
-    val orbScale by animateFloatAsState(
-        targetValue = if (selected) 1.02f else .86f,
-        animationSpec = if (motion.reducedMotion) snap() else spring(dampingRatio = .56f, stiffness = 600f),
-        label = "themeOrbScale_${accent.storageValue}",
-    )
-    val orbRotation by animateFloatAsState(
-        targetValue = if (selected) 8f else 0f,
-        animationSpec = if (motion.reducedMotion) snap() else spring(dampingRatio = .66f, stiffness = 420f),
-        label = "themeOrbRotation_${accent.storageValue}",
-    )
-    val glowAlpha by animateFloatAsState(
-        targetValue = if (selected) 1f else 0f,
-        animationSpec = tween(durationMillis = if (motion.reducedMotion) 0 else 240, easing = FastOutSlowInEasing),
-        label = "themeOrbGlow_${accent.storageValue}",
-    )
-    val iconAlpha by animateFloatAsState(
-        targetValue = if (selected || isDynamic) 1f else 0f,
-        animationSpec = tween(durationMillis = if (motion.reducedMotion) 0 else 180, easing = FastOutSlowInEasing),
-        label = "themeOrbIcon_${accent.storageValue}",
-    )
-    val interactionSource = remember { MutableInteractionSource() }
     val label = ShellStrings.themeAccent(accent)
-    val orbShape = RoundedCornerShape(percent = (orbCornerFraction * 100).toInt())
     val iconTint = if (accent == VLCThemeAccent.Amber || accent == VLCThemeAccent.Lime) Color.Black else Color.White
     Box(
         modifier = Modifier
             .size(50.dp)
-            .selectable(
-                selected = selected,
-                role = Role.RadioButton,
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick,
-            )
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
             .semantics { contentDescription = label },
         contentAlignment = Alignment.Center,
     ) {
         Box(
             modifier = Modifier
-                .size(56.dp)
-                .graphicsLayer { alpha = glowAlpha }
-                .drawBehind {
-                    drawCircle(
-                        color = swatchColor.copy(alpha = .44f),
-                        radius = size.minDimension * .5f,
-                    )
-                },
-        )
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .graphicsLayer {
-                    scaleX = orbScale
-                    scaleY = orbScale
-                    rotationZ = orbRotation
-                }
-                .clip(orbShape)
-                .indication(
-                    interactionSource = interactionSource,
-                    indication = ripple(bounded = true, radius = 18.dp, color = Color.White.copy(alpha = .32f)),
+                .size(38.dp)
+                .border(
+                    width = 2.dp,
+                    color = if (selected) MaterialTheme.colorScheme.onSurface else Color.Transparent,
+                    shape = CircleShape,
                 )
-                .background(
-                    color = swatchColor,
-                    shape = orbShape,
-                ),
+                .padding(4.dp)
+                .background(swatchColor, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        brush = Brush.linearGradient(
-                            colors = listOf(Color.White.copy(alpha = .28f), Color.Transparent),
-                            start = Offset.Zero,
-                            end = Offset(60f, 60f),
-                        ),
-                    ),
-            )
-            if (selected || isDynamic) {
+            if (selected || accent == VLCThemeAccent.Dynamic) {
                 Icon(
                     if (selected) MaterialSymbols.Filled.CheckCircle else MaterialSymbols.Filled.Palette,
                     contentDescription = null,
-                    tint = iconTint.copy(alpha = iconAlpha),
+                    tint = iconTint,
+                    modifier = Modifier.size(18.dp),
                 )
             }
         }
@@ -466,27 +393,27 @@ private class SettingsGroupScope {
 @Composable
 private fun SettingsGroup(title: String, content: SettingsGroupScope.() -> Unit) {
     val scope = SettingsGroupScope().apply(content)
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             title,
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.SemiBold,
-            color = VLCThemeDefaults.colors.primary,
-            modifier = Modifier.padding(horizontal = 16.dp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 4.dp),
         )
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            scope.rows.forEachIndexed { index, row ->
-                val position = when {
-                    scope.rows.size == 1 -> VLCListItemPosition.Single
-                    index == 0 -> VLCListItemPosition.First
-                    index == scope.rows.lastIndex -> VLCListItemPosition.Last
-                    else -> VLCListItemPosition.Middle
-                }
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = position.segmentShape(),
-                    color = MaterialTheme.colorScheme.surfaceContainerLow,
-                ) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(18.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+        ) {
+            Column {
+                scope.rows.forEachIndexed { index, row ->
+                    if (index > 0) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 20.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = .45f),
+                        )
+                    }
                     row()
                 }
             }
@@ -578,11 +505,11 @@ internal fun MiniBar(
     )
     Surface(
         onClick = onExpand,
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
         contentColor = MaterialTheme.colorScheme.onSurface,
-        tonalElevation = 2.dp,
+        tonalElevation = 0.dp,
     ) {
         Box(
             Modifier
@@ -590,34 +517,34 @@ internal fun MiniBar(
                 .drawBehind {
                     val progressWidth = size.width * animatedProgress
                     drawRect(
-                        color = colors.primary.copy(alpha = 0.18f),
-                        topLeft = Offset.Zero,
-                        size = androidx.compose.ui.geometry.Size(size.width, 3.dp.toPx()),
+                        color = colors.primary.copy(alpha = 0.12f),
+                        topLeft = Offset(0f, size.height - 2.dp.toPx()),
+                        size = androidx.compose.ui.geometry.Size(size.width, 2.dp.toPx()),
                     )
                     drawRect(
                         color = colors.primary,
-                        topLeft = Offset.Zero,
-                        size = androidx.compose.ui.geometry.Size(progressWidth, 3.dp.toPx()),
+                        topLeft = Offset(0f, size.height - 2.dp.toPx()),
+                        size = androidx.compose.ui.geometry.Size(progressWidth, 2.dp.toPx()),
                     )
                 }
         ) {
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    .padding(start = 10.dp, end = 4.dp, top = 6.dp, bottom = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(
                     modifier = Modifier
-                        .size(52.dp)
-                        .clip(RoundedCornerShape(16.dp)),
+                        .size(42.dp)
+                        .clip(RoundedCornerShape(9.dp)),
                 ) {
                     if (item != null) {
                         MediaArtwork(
                             item = item,
                             contentDescription = null,
-                            size = 52.dp,
+                            size = 42.dp,
                             modifier = Modifier.fillMaxSize(),
                             fillMaxSizeArtwork = true,
                             fallback = { GenerativeAudioArtwork(item, state.progress) },
@@ -634,7 +561,7 @@ internal fun MiniBar(
                         state.title.ifBlank { ShellStrings.notPlaying() },
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.labelLarge,
                     )
                     if (state.subtitle.isNotBlank()) {
                         Text(
@@ -642,7 +569,7 @@ internal fun MiniBar(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             style = MaterialTheme.typography.bodySmall,
-                            color = colors.fontLight,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }

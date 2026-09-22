@@ -238,9 +238,6 @@ fun VLCSettingsToggleRow(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = VLCLayout.RowHeight)
-            // Match QuietGuard's quiet state cue: an enabled choice is visible at a glance
-            // without turning the entire settings group into a high-contrast dashboard.
-            .vlcSelectionWash(checked)
             .toggleable(
                 value = checked,
                 enabled = enabled,

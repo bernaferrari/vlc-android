@@ -12,6 +12,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,13 +24,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.artwork.MediaArtwork
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
@@ -45,8 +49,8 @@ typealias PlayerSurface = @Composable BoxScope.(state: PlayerUiState, chromeVisi
 
 /**
  * Shared audio artwork stage used by every host when there is no native video output.
- * A quiet full-bleed cover establishes atmosphere while the crisp foreground cover remains the
- * focal point; both resolve through the same platform-aware artwork pipeline as the library.
+ * A neutral canvas keeps artwork and track identity in focus. The artwork resolves through
+ * the same platform-aware pipeline as the library.
  */
 @Composable
 fun PlayerArtworkFallback(
@@ -64,60 +68,46 @@ fun PlayerArtworkFallback(
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.Black),
+            .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center,
     ) {
-        MediaArtwork(
-            item = item,
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop,
-            showFallbackContainer = false,
-            fillMaxSizeArtwork = true,
-            fallback = { GenerativeAudioArtwork(item, state.progress, atmospheric = true) },
-        )
-        Box(
-            Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        0f to Color.Black.copy(alpha = 0.70f),
-                        0.48f to MaterialTheme.colorScheme.surface.copy(alpha = 0.76f),
-                        1f to Color.Black.copy(alpha = 0.90f),
-                    )
-                )
-        )
-        val coverSize = minOf(
-            maxWidth - 56.dp,
-            (maxHeight - 452.dp).coerceAtLeast(168.dp),
-            380.dp,
-        )
+        // Compact windows show track identity in the HUD, beside its close and menu actions.
+        // Do not reserve a portrait artwork stage where it would crowd out that metadata.
+        if (usesCompactAudioLayout(maxHeight)) return@BoxWithConstraints
         Column(
             modifier = Modifier
+                .widthIn(max = 420.dp)
                 .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding()
                 .padding(horizontal = 28.dp)
-                .padding(top = 72.dp, bottom = 292.dp),
+                .padding(top = 64.dp, bottom = 256.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
         ) {
-            MediaArtwork(
-                item = item,
-                contentDescription = null,
-                size = coverSize,
-                modifier = Modifier
-                    .size(coverSize)
-                    .shadow(12.dp, MaterialTheme.shapes.extraLarge)
-                    .clip(MaterialTheme.shapes.extraLarge),
-                contentScale = ContentScale.Crop,
-                fallback = { GenerativeAudioArtwork(item, state.progress) },
-            )
-            Spacer(Modifier.height(20.dp))
+            BoxWithConstraints(
+                modifier = Modifier.weight(1f).fillMaxWidth().padding(bottom = 24.dp),
+                contentAlignment = Alignment.BottomCenter,
+            ) {
+                val coverSize = minOf(maxWidth, maxHeight, 340.dp).coerceAtLeast(0.dp)
+                MediaArtwork(
+                    item = item,
+                    contentDescription = null,
+                    size = coverSize,
+                    modifier = Modifier
+                        .size(coverSize)
+                        .shadow(6.dp, RoundedCornerShape(22.dp))
+                        .clip(RoundedCornerShape(22.dp)),
+                    contentScale = ContentScale.Crop,
+                    fallback = { GenerativeAudioArtwork(item, state.progress) },
+                )
+            }
             Text(
                 text = item.displayTitle,
-                color = Color.White,
-                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold,
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.Start,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.fillMaxWidth(),
@@ -128,26 +118,16 @@ fun PlayerArtworkFallback(
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = supportingText,
-                    color = Color.White.copy(alpha = 0.72f),
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Start,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
-        Box(
-            Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        0f to Color.Transparent,
-                        0.72f to Color.Transparent,
-                        1f to VLCThemeDefaults.colors.primary.copy(alpha = 0.12f),
-                    )
-                )
-        )
+
     }
 }
 
@@ -236,3 +216,6 @@ internal fun rememberAudioIdentitySeed(item: MediaItem): Int =
     }
 
 internal val FallbackPlayerSurface: PlayerSurface = { state, _ -> PlayerArtworkFallback(state) }
+
+/** Shared breakpoint for the audio artwork stage and its independently composed HUD. */
+internal fun usesCompactAudioLayout(height: Dp): Boolean = height < 520.dp

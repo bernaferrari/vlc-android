@@ -46,8 +46,8 @@ enum class VLCThemeAccent(
         lightPrimary = Color(0xFFC44A00),
         darkPrimary = Color(0xFFFF8800),
     ),
-    // VLC's default must remain unmistakably VLC on a dark surface, not a diluted peach.
-    Orange("orange", Color(0xFFFF7200), Color(0xFFC44A00), Color(0xFFFF8800)),
+    // Burnt orange and soft peach echo the reference while keeping readable primary actions.
+    Orange("orange", Color(0xFFDC5B2B), Color(0xFFB84720), Color(0xFFF6986D)),
     Amber("amber", Color(0xFFFFB300), Color(0xFF765800), Color(0xFFFFDEA7)),
     Lime("lime", Color(0xFF8ABF00), Color(0xFF4D6600), Color(0xFFC7ED85)),
     Green("green", Color(0xFF2E9D4C), Color(0xFF006E26), Color(0xFF78DC8B)),

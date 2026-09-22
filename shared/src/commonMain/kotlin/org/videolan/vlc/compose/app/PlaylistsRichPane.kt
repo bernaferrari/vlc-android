@@ -10,6 +10,9 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,7 +20,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -38,11 +40,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -68,8 +70,6 @@ import org.videolan.vlc.compose.components.VLCEmptyState
 import org.videolan.vlc.compose.components.VLCPageHeader
 import org.videolan.vlc.compose.components.VLCSelectionContextBar
 import org.videolan.vlc.compose.components.VLCTransientLoadingIndicator
-import org.videolan.vlc.compose.components.VLCArtworkTileShape
-import org.videolan.vlc.compose.components.VLCMediaCardShape
 import org.videolan.vlc.compose.components.VLCRenameItemDialog
 import org.videolan.vlc.compose.components.DisplaySettingsSheet
 import org.videolan.vlc.compose.components.DisplaySettingsState
@@ -273,6 +273,8 @@ fun PlaylistsRichPane(
                 VLCEmptyState(
                     loading = false,
                     text = ShellStrings.noPlaylists(),
+                    actionText = ShellStrings.addPlaylist(),
+                    onActionClick = { newName = ""; showCreateSheet = true },
                     modifier = Modifier.fillMaxWidth().weight(1f),
                     symbol = emptySymbol,
                 )
@@ -287,7 +289,7 @@ fun PlaylistsRichPane(
                     bottom = 24.dp,
                 ),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp),
                 modifier = Modifier.fillMaxWidth().weight(1f),
             ) {
                 items(playlists, key = { it.id }) { pl ->
@@ -559,43 +561,36 @@ private fun PlaylistCard(
     val motion = LocalVLCMotion.current
     var menu by remember { mutableStateOf(false) }
     val containerColor by animateColorAsState(
-        targetValue = if (selected) {
-            MaterialTheme.colorScheme.secondaryContainer
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerHigh
-        },
+        targetValue = if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
         animationSpec = tween(motion.durationShort, easing = VLCMotion.Standard),
         label = "playlistSelection",
     )
     Surface(
         modifier = Modifier
-            .clip(VLCMediaCardShape)
+            .clip(RoundedCornerShape(12.dp))
             .semantics { this.selected = selected }
             .combinedClickable(
                 role = Role.Button,
                 onClick = onOpen,
                 onLongClick = onToggleSelect,
             ),
-        shape = VLCMediaCardShape,
+        shape = RoundedCornerShape(12.dp),
         color = containerColor,
         contentColor = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface,
     ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
+        Column {
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .height(120.dp)
-                    .clip(VLCArtworkTileShape)
-                    .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                    .aspectRatio(1.25f)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     icon = MaterialSymbols.Filled.QueueMusic,
                     contentDescription = null,
-                    tint = colors.primary,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(48.dp),
                 )
                 if (playlist.isFavorite) {
@@ -606,46 +601,50 @@ private fun PlaylistCard(
                         modifier = Modifier.align(Alignment.TopStart).padding(12.dp).size(20.dp),
                     )
                 }
-                Box(Modifier.align(Alignment.TopEnd).padding(4.dp)) {
-                    FilledTonalIconButton(onClick = { menu = true }) {
-                        Icon(MaterialSymbols.Filled.MoreVert, contentDescription = ShellStrings.moreOptions())
-                    }
-                    PlaylistActionsSheet(
-                        visible = menu,
-                        playlist = playlist,
-                        onDismiss = { menu = false },
-                        onPlay = { menu = false; onPlay() },
-                        onShuffle = { menu = false; onShuffle() },
-                        onRename = { menu = false; onRename() },
-                        onToggleFavorite = { menu = false; onToggleFavorite() },
-                        onDelete = { menu = false; onDelete() },
-                    )
+                FilledTonalIconButton(
+                    onClick = onPlay,
+                    modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp),
+                ) {
+                    Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = ShellStrings.play())
                 }
             }
-            Text(
-                playlist.name,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                fontWeight = FontWeight.SemiBold,
-                style = MaterialTheme.typography.titleSmall,
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    ShellStrings.itemsCount(playlist.itemCount),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = colors.fontLight,
-                    modifier = Modifier.weight(1f),
-                )
-                IconButton(onClick = onShuffle) {
-                    Icon(MaterialSymbols.Filled.Shuffle, contentDescription = ShellStrings.shuffle())
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+                Column(
+                    modifier = Modifier.weight(1f).padding(top = 9.dp, start = 2.dp),
+                    verticalArrangement = Arrangement.spacedBy(3.dp),
+                ) {
+                    Text(
+                        playlist.name,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Text(
+                        ShellStrings.itemsCount(playlist.itemCount),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.fontLight,
+                    )
                 }
-                FilledTonalIconButton(onClick = onPlay) {
-                    Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = ShellStrings.play())
+                IconButton(onClick = { menu = true }, modifier = Modifier.size(48.dp)) {
+                    Icon(
+                        MaterialSymbols.Filled.MoreVert,
+                        contentDescription = ShellStrings.moreOptions(),
+                        tint = colors.fontLight,
+                        modifier = Modifier.size(20.dp),
+                    )
                 }
             }
         }
     }
+    PlaylistActionsSheet(
+        visible = menu,
+        playlist = playlist,
+        onDismiss = { menu = false },
+        onPlay = { menu = false; onPlay() },
+        onShuffle = { menu = false; onShuffle() },
+        onRename = { menu = false; onRename() },
+        onToggleFavorite = { menu = false; onToggleFavorite() },
+        onDelete = { menu = false; onDelete() },
+    )
 }

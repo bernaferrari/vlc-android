@@ -1,5 +1,9 @@
 package org.videolan.vlc.compose.components
 
+import androidx.compose.foundation.Image
+import androidx.compose.material3.Surface
+import androidx.compose.ui.text.font.FontWeight
+import org.videolan.vlc.compose.icons.VlcCone
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -52,10 +56,10 @@ fun VLCOnboardingWelcome(
         Column(
             modifier = modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.height(64.dp)) // approx guide at 25%
+            Spacer(Modifier.height(48.dp))
 
             Box(
                 modifier = Modifier.size(120.dp),
@@ -64,22 +68,23 @@ fun VLCOnboardingWelcome(
                 logoContent()
             }
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(32.dp))
 
             Text(
                 text = title,
                 color = colors.fontDefault,
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 16.dp)
             )
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(16.dp))
 
             Text(
                 text = subtitle,
                 color = colors.fontLight,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 24.dp)
             )
@@ -89,17 +94,17 @@ fun VLCOnboardingWelcome(
 
 @Composable
 private fun DefaultOnboardingLogo() {
-    // Hosts can provide their branded mark; the shared fallback remains a clear
-    // media-library symbol on Android, iOS, and Wasm.
-    Box(
-        modifier = Modifier.size(96.dp),
-        contentAlignment = Alignment.Center
+    Surface(
+        modifier = Modifier.size(112.dp),
+        shape = MaterialTheme.shapes.extraLarge,
+        color = MaterialTheme.colorScheme.primaryContainer,
     ) {
-        Icon(
-            icon = MaterialSymbols.Filled.VideoLibrary,
-            contentDescription = null,
-            modifier = Modifier.size(72.dp),
-            tint = VLCThemeDefaults.colors.primary,
-        )
+        Box(contentAlignment = Alignment.Center) {
+            Image(
+                imageVector = VlcCone,
+                contentDescription = null,
+                modifier = Modifier.size(76.dp),
+            )
+        }
     }
 }

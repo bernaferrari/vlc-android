@@ -43,9 +43,9 @@ fun VLCPageHeader(
             .heightIn(min = VLCLayout.RowHeight)
             .padding(
                 start = if (navigationIcon == null) horizontalPadding else 4.dp,
-                top = 8.dp,
+                top = 16.dp,
                 end = horizontalPadding,
-                bottom = 8.dp,
+                bottom = 16.dp,
             ),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -58,10 +58,9 @@ fun VLCPageHeader(
         Text(
             text = title,
             modifier = Modifier.weight(1f),
-            // Keep every destination on the same M3 top-app-bar title scale. The old headline
-            // styles made root pages noticeably taller/louder than Settings and detail routes.
-            style = MaterialTheme.typography.titleLarge,
-            // QuietGuard keeps destination chrome semibold; reserve bold for content hierarchy.
+            // Root destinations carry the reference’s clear editorial hierarchy.
+            style = if (navigationIcon == null) MaterialTheme.typography.headlineLarge
+                else MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.SemiBold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,

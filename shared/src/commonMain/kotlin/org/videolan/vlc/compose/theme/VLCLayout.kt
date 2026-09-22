@@ -10,13 +10,13 @@ import androidx.compose.ui.unit.dp
  * makes an app feel assembled rather than designed.
  */
 object VLCLayout {
-    val ScreenGutter = 16.dp
+    val ScreenGutter = 20.dp
     val SectionGap = 24.dp
     val GroupGap = 2.dp
-    val GroupOuterCorner = 24.dp
-    val GroupInnerCorner = 6.dp
+    val GroupOuterCorner = 18.dp
+    val GroupInnerCorner = 2.dp
     val MediaCardCorner = 20.dp
-    val ArtworkCorner = 14.dp
+    val ArtworkCorner = 12.dp
     val RowGap = 12.dp
     val RowHeight = 64.dp
     val MediaRowHeight = 72.dp

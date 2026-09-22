@@ -57,6 +57,7 @@ if (file("libvlcjni/libvlc").isDirectory) {
 include(":medialibrary")
 include(":shared")
 include(":webApp")
+include(":desktopApp")
 include(
     ":application:tools",
     ":application:resources",

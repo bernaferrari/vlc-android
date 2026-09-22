@@ -156,8 +156,7 @@ fun BrowserRichPane(
                 end = VLCLayout.ScreenGutter,
                 bottom = 24.dp,
             ),
-            // A two-pixel join makes related rows read as one asymmetric group rather than a
-            // vertical pile of independent cards. Section labels create the intentional gaps.
+            // Section headings and quiet rows keep locations easy to scan.
             verticalArrangement = Arrangement.spacedBy(2.dp),
             modifier = Modifier
                 .fillMaxWidth()
@@ -169,10 +168,10 @@ fun BrowserRichPane(
                 item {
                     Text(
                         ShellStrings.favorites(),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = colors.primary,
-                        modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 4.dp, bottom = 6.dp),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(top = 24.dp, bottom = 12.dp),
                     )
                 }
                 itemsIndexed(state.favorites, key = { _, item -> "fav:${item.id}:${item.uri}" }) { index, item ->
@@ -192,10 +191,10 @@ fun BrowserRichPane(
                 item {
                     Text(
                         ShellStrings.storage(),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = colors.primary,
-                        modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 4.dp, bottom = 6.dp),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(top = 24.dp, bottom = 12.dp),
                     )
                 }
             }
@@ -225,9 +224,10 @@ fun BrowserRichPane(
                 item {
                     Text(
                         ShellStrings.network(),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = colors.primary,
-                        modifier = Modifier.padding(start = 4.dp, top = 16.dp, end = 4.dp, bottom = 6.dp),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(top = 24.dp, bottom = 12.dp),
                     )
                 }
                 itemsIndexed(state.networkRoots, key = { _, folder -> "n:${folder.id}:${folder.path}" }) { index, folder ->

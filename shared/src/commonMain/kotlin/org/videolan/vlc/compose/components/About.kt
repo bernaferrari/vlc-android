@@ -149,7 +149,7 @@ fun VLCAboutScreen(
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
                         .navigationBarsPadding()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                        .padding(horizontal = VLCLayout.ScreenGutter, vertical = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(20.dp),
                 ) {
                     AboutHeroCard(
@@ -259,54 +259,37 @@ private fun AboutHeroCard(
     onVersionClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.extraLarge),
-        shape = MaterialTheme.shapes.extraLarge,
-        color = MaterialTheme.colorScheme.primaryContainer,
-        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+    Column(
+        modifier = modifier.fillMaxWidth().padding(vertical = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 20.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        Surface(
+            modifier = Modifier.size(88.dp),
+            shape = MaterialTheme.shapes.extraLarge,
+            color = MaterialTheme.colorScheme.primaryContainer,
         ) {
-            Surface(
-                modifier = Modifier.size(56.dp),
-                shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
+            Box(contentAlignment = Alignment.Center) { logoContent() }
+        }
+        Text(
+            text = appName,
+            style = MaterialTheme.typography.headlineLarge,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+        )
+        Surface(
+            onClick = onVersionClick,
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        ) {
+            Row(
+                modifier = Modifier.heightIn(min = 48.dp).padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Box(contentAlignment = Alignment.Center) { logoContent() }
-            }
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Text(
-                    text = appName,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Surface(
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .clickable(role = Role.Button, onClick = onVersionClick),
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = .14f),
-                ) {
-                    Text(
-                        text = version,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                    )
-                }
+                Text(version, style = MaterialTheme.typography.labelLarge)
+                Icon(MaterialSymbols.Filled.ChevronRight, contentDescription = null, modifier = Modifier.size(16.dp))
             }
         }
     }
@@ -371,10 +354,10 @@ private fun AboutLicenseCard(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Surface(
-                modifier = Modifier.size(48.dp),
-                shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.size(40.dp),
+                shape = MaterialTheme.shapes.medium,
+                color = MaterialTheme.colorScheme.surfaceContainer,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(MaterialSymbols.Filled.Description, contentDescription = null)

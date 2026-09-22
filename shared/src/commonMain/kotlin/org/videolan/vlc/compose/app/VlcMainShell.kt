@@ -23,6 +23,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.NavigationRailItemDefaults
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -536,11 +539,24 @@ fun VlcMainShell(
                 onBack = ::navigateBack,
             )
 
+            val navigationItemColors = NavigationSuiteDefaults.itemColors(
+                navigationBarItemColors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    selectedTextColor = MaterialTheme.colorScheme.onSurface,
+                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                ),
+                navigationRailItemColors = NavigationRailItemDefaults.colors(
+                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                ),
+            )
             VlcAdaptiveNavigationSuite(
                 modifier = modifier,
                 enabled = showBottomBar && !showPlayer,
                 navigationSuiteItems = {
-                    MainTab.entries.forEach { t ->
+                    listOf(MainTab.VIDEO, MainTab.AUDIO, MainTab.PLAYLISTS, MainTab.BROWSER, MainTab.MORE).forEach { t ->
                         item(
                             selected = currentTab == t,
                             onClick = { selectTab(t) },
@@ -550,7 +566,8 @@ fun VlcMainShell(
                                     contentDescription = t.displayName(),
                                 )
                             },
-                            label = { Text(t.displayName()) },
+                            label = { Text(t.displayName(), style = MaterialTheme.typography.labelSmall) },
+                            colors = navigationItemColors,
                         )
                     }
                 },
@@ -643,6 +660,11 @@ fun VlcMainShell(
                         VideoDestination(
                             modifier = Modifier.fillMaxSize(),
                             state = videoState,
+                            playerState = playerState,
+                            onResumeVideo = {
+                                if (!playerState.playing) playerVm.togglePlayPause()
+                                openPlayer()
+                            },
                             viewModel = videoVm,
                             hostCallbacks = hostCallbacks,
                             onOpenPlayer = ::openPlayer,
@@ -925,6 +947,10 @@ private fun VlcAdaptiveNavigationSuite(
         ) {
             NavigationSuiteScaffold(
                 navigationSuiteItems = navigationSuiteItems,
+                navigationSuiteColors = NavigationSuiteDefaults.colors(
+                    navigationBarContainerColor = MaterialTheme.colorScheme.background,
+                    navigationRailContainerColor = MaterialTheme.colorScheme.background,
+                ),
                 modifier = Modifier.fillMaxSize(),
                 content = content,
             )

@@ -46,7 +46,6 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.IconButtonShapes
 import androidx.compose.material3.OutlinedTextField
@@ -61,7 +60,6 @@ import androidx.compose.material3.VerticalSlider
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSliderState
 import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -734,9 +732,9 @@ private fun QueueItem(
 ) {
     var menuVisible by remember { mutableStateOf(false) }
     val itemShape = when {
-        isFirst && isLast -> RoundedCornerShape(28.dp)
-        isFirst -> RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp, bottomStart = 10.dp, bottomEnd = 10.dp)
-        isLast -> RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp, bottomStart = 28.dp, bottomEnd = 28.dp)
+        isFirst && isLast -> RoundedCornerShape(18.dp)
+        isFirst -> RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp, bottomStart = 10.dp, bottomEnd = 10.dp)
+        isLast -> RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp, bottomStart = 18.dp, bottomEnd = 18.dp)
         else -> RoundedCornerShape(10.dp)
     }
     Surface(
@@ -756,7 +754,7 @@ private fun QueueItem(
         ) {
             Surface(
                 modifier = Modifier.size(48.dp),
-                shape = if (selected) MaterialShapes.Cookie6Sided.toShape() else RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(12.dp),
                 color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest,
                 contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
             ) {
@@ -1115,7 +1113,7 @@ private fun QuickToolRow(
     Surface(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
+        shape = RoundedCornerShape(18.dp),
         color = MaterialTheme.colorScheme.primaryContainer,
         contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
     ) {
@@ -1125,7 +1123,7 @@ private fun QuickToolRow(
         ) {
             Surface(
                 modifier = Modifier.size(52.dp),
-                shape = MaterialShapes.Cookie6Sided.toShape(),
+                shape = RoundedCornerShape(12.dp),
                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.12f),
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
             ) {
@@ -1165,7 +1163,7 @@ private fun ToolCard(
     val expansionState = stringResource(if (expanded) Res.string.expanded else Res.string.collapsed)
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
+        shape = RoundedCornerShape(18.dp),
         color = if (expanded) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Column {
@@ -1179,7 +1177,7 @@ private fun ToolCard(
             ) {
                 Surface(
                     modifier = Modifier.size(52.dp),
-                    shape = if (expanded) MaterialShapes.Cookie6Sided.toShape() else RoundedCornerShape(18.dp),
+                    shape = RoundedCornerShape(12.dp),
                     color = if (expanded) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest,
                     contentColor = if (expanded) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                 ) {

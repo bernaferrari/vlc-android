@@ -4,7 +4,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.IconButton
@@ -50,7 +49,7 @@ fun VLCSelectionContextBar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight()
+                .heightIn(min = VLCLayout.RowHeight)
                 .padding(horizontal = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

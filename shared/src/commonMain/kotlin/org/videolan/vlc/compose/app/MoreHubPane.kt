@@ -122,7 +122,7 @@ internal fun MorePane(
                     bottom = VLCLayout.ScreenGutter,
                 ),
                 // A group is joined by 2dp; section headers own the breathable gaps between groups.
-                // This is the same quiet hierarchy as QuietGuard rather than a page of loose cards.
+                // Connected rows keep the navigation group visually distinct from media history.
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
             itemsIndexed(navigationActions) { index, action ->
@@ -466,18 +466,20 @@ private fun MoreEmptySection(
     text: String,
     symbol: MaterialIcon,
 ) {
-    // QuietGuard keeps empty sections as centered states, not low-contrast cards inside the page.
-    // The old wrapper added a second surface and pinned the message visually to the section
-    // header instead of sharing the page's empty-state rhythm.
-    VLCEmptyState(
-        loading = false,
-        text = text,
-        symbol = symbol,
-        compact = true,
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 112.dp),
-    )
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+    ) {
+        Row(
+            modifier = Modifier.heightIn(min = 80.dp).padding(20.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(symbol, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
 }
 
 @Composable
@@ -489,7 +491,7 @@ private fun MoreSectionHeader(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 4.dp),
+            .padding(start = 4.dp, end = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -502,8 +504,8 @@ private fun MoreSectionHeader(
 private fun MoreSectionTitle(title: String) {
     Text(
         title,
-        style = MaterialTheme.typography.titleSmall,
-        fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.primary,
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onSurface,
     )
 }

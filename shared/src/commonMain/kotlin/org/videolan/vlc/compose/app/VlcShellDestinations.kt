@@ -39,6 +39,8 @@ internal fun VideoDestination(
     onOpenContainer: (MediaFolder) -> Unit,
     onNavigateBack: () -> Unit = viewModel::closeContainer,
     showPlayAllInMenu: Boolean = true,
+    playerState: PlayerUiState? = null,
+    onResumeVideo: (() -> Unit)? = null,
 ) {
     RichMediaListPane(
         state = state,
@@ -47,6 +49,17 @@ internal fun VideoDestination(
         emptyMessage = ShellStrings.noVideosMessage(),
         pagingFlow = viewModel.pagingFlow,
         groups = state.groups,
+        headerContent = if (playerState != null && onResumeVideo != null &&
+            shouldShowContinueWatching(state, playerState)
+        ) {
+            {
+                ContinueWatchingCard(
+                    state = playerState,
+                    onClick = onResumeVideo,
+                    modifier = Modifier.padding(bottom = 12.dp),
+                )
+            }
+        } else null,
         onQuery = viewModel::setQuery,
         onRetry = viewModel::refresh,
         onPlay = {

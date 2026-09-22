@@ -14,6 +14,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.AssistChip
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -86,8 +93,8 @@ import org.videolan.vlc.viewmodel.VideoGroupingMode
 import org.videolan.vlc.viewmodel.ViewMode
 
 private val MediaScreenGutter = VLCLayout.ScreenGutter
-private val MediaGridGap = 10.dp
-private val MediaGridMinSize = 168.dp
+private val MediaGridGap = 12.dp
+private val MediaGridMinSize = 144.dp
 private val FastScrollerContentClearance = VLCLayout.FastScrollerClearance
 
 /**
@@ -343,7 +350,48 @@ fun RichMediaListPane(
                     }
                 }
             }
-            if (!useEmptyPresentation) headerContent?.invoke()
+            if (!useEmptyPresentation) {
+                if (!isDetail && state.query.isBlank() && !state.loading) {
+                    Text(
+                        text = ShellStrings.itemsCount(state.count),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 16.dp),
+                    )
+                }
+                headerContent?.invoke()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState())
+                        .padding(bottom = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    FilterChip(
+                        selected = state.onlyFavorites,
+                        onClick = onToggleFavorites,
+                        label = { Text(ShellStrings.favorites()) },
+                        leadingIcon = {
+                            Icon(MaterialSymbols.Outlined.Star, contentDescription = null, modifier = Modifier.size(16.dp))
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.onSurface,
+                            selectedLabelColor = MaterialTheme.colorScheme.surface,
+                            selectedLeadingIconColor = MaterialTheme.colorScheme.surface,
+                        ),
+                    )
+                    AssistChip(
+                        onClick = { showDisplaySettings = true },
+                        label = { Text(ShellStrings.sort()) },
+                        leadingIcon = {
+                            Icon(MaterialSymbols.Filled.Tune, contentDescription = null, modifier = Modifier.size(16.dp))
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                    )
+                }
+            }
         }
         if (showDisplaySettings) {
             val groupingOptions = if (showGroupingToggle) {
@@ -674,7 +722,7 @@ private fun PagedMediaBody(
                 bottom = 80.dp,
             ),
             horizontalArrangement = Arrangement.spacedBy(MediaGridGap),
-            verticalArrangement = Arrangement.spacedBy(MediaGridGap),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
             modifier = modifier,
         ) {
             items(lazyPagingItems.itemCount, key = { index ->
@@ -861,7 +909,6 @@ private fun SnapshotMediaBody(
     canHandleHostAction: (ContextOption) -> Boolean,
     gridArtworkAspectRatio: Float,
 ) {
-    val colors = VLCThemeDefaults.colors
     val displaySections = if (sections.isNotEmpty()) sections else listOf("" to state.items)
 
     if (state.viewMode == ViewMode.GRID) {
@@ -873,7 +920,7 @@ private fun SnapshotMediaBody(
                 bottom = 80.dp,
             ),
             horizontalArrangement = Arrangement.spacedBy(MediaGridGap),
-            verticalArrangement = Arrangement.spacedBy(MediaGridGap),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
             modifier = modifier,
         ) {
             displaySections.forEach { (section, items) ->
@@ -882,7 +929,8 @@ private fun SnapshotMediaBody(
                         Text(
                             section,
                             fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(vertical = 8.dp),
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(top = 12.dp, bottom = 2.dp),
                         )
                     }
                 }
@@ -934,8 +982,9 @@ private fun SnapshotMediaBody(
                             Text(
                                 section,
                                 fontWeight = FontWeight.SemiBold,
-                                color = colors.primary,
-                                modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp),
+                                color = MaterialTheme.colorScheme.onSurface,
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(top = 24.dp, bottom = 12.dp),
                             )
                         }
                     }

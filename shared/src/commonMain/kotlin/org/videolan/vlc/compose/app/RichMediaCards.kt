@@ -8,6 +8,8 @@ package org.videolan.vlc.compose.app
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,6 +21,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -29,17 +32,19 @@ import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
@@ -48,11 +53,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import org.videolan.vlc.compose.artwork.MediaArtworkUri
 import org.videolan.vlc.compose.artwork.MediaArtwork
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
-import org.videolan.vlc.compose.components.VLCMediaCardShape
 import org.videolan.vlc.compose.components.VLCListItemPosition
 import org.videolan.vlc.compose.components.VLCSelectionCheckIndicator
 import org.videolan.vlc.compose.components.highlightedSearchText
@@ -64,6 +69,8 @@ import org.videolan.vlc.compose.theme.VLCMotion
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.util.ContextOption
 import kotlinx.coroutines.launch
+import org.videolan.vlc.viewmodel.PlayerUiState
+import org.videolan.vlc.viewmodel.MediaListUiState
 
 private data class MediaAction(
     val label: String,
@@ -347,35 +354,28 @@ fun MediaGridCard(
     val motion = LocalVLCMotion.current
     var menu by remember { mutableStateOf(false) }
     val containerColor by animateColorAsState(
-        targetValue = if (selected) {
-            MaterialTheme.colorScheme.secondaryContainer
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerHigh
-        },
+        targetValue = if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
         animationSpec = tween(motion.durationShort, easing = VLCMotion.Standard),
         label = "mediaGridSelection",
     )
     Surface(
         modifier = Modifier
-            .clip(VLCMediaCardShape)
+            .clip(RoundedCornerShape(12.dp))
             .semantics { this.selected = selected }
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick),
-        // A media grid repeats this shape many times. The large token still feels expressive
-        // without turning dense libraries into a field of oversized pills.
-        shape = VLCMediaCardShape,
+            .combinedClickable(role = Role.Button, onClick = onClick, onLongClick = onLongClick),
+        shape = RoundedCornerShape(12.dp),
         color = containerColor,
         contentColor = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface,
     ) {
-        val duration = formatDuration(item.duration)
-        Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
+        Column {
             Box(
-                Modifier
+                modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(artworkAspectRatio),
+                    .aspectRatio(artworkAspectRatio)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
                 contentAlignment = Alignment.Center,
             ) {
-                // The card owns the clipping. Artwork fills the entire media well so a real
-                // thumbnail reads as content, not as a smaller card nested inside another card.
                 MediaArtwork(
                     item = item,
                     modifier = Modifier.fillMaxSize(),
@@ -386,74 +386,71 @@ fun MediaGridCard(
                 if (selected) {
                     VLCSelectionCheckIndicator(modifier = Modifier.fillMaxSize())
                 }
-                Box(Modifier.align(Alignment.TopEnd).padding(8.dp)) {
-                    Surface(
-                        onClick = { menu = true },
-                        modifier = Modifier
-                            .size(40.dp),
-                        shape = androidx.compose.foundation.shape.CircleShape,
-                        color = Color.Black.copy(alpha = 0.58f),
-                        contentColor = Color.White,
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                MaterialSymbols.Filled.MoreVert,
-                                contentDescription = ShellStrings.moreOptions(),
-                                tint = Color.White,
-                            )
-                        }
-                    }
-                    MediaContextMenu(
-                        expanded = menu,
-                        onDismiss = { menu = false },
-                        item = item,
-                        onPlay = { onClick() },
-                        onPlayNext = { media -> onCtx(media, ContextOption.CTX_PLAY_NEXT) },
-                        onAppend = { media -> onCtx(media, ContextOption.CTX_APPEND) },
-                        onCtx = onCtx,
-                        canHandleHostAction = canHandleHostAction,
-                    )
-                }
+                val duration = formatDuration(item.duration)
                 if (duration.isNotBlank()) {
                     Surface(
-                        modifier = Modifier.align(Alignment.BottomStart).padding(8.dp),
-                        shape = MaterialTheme.shapes.extraSmall,
+                        modifier = Modifier.align(Alignment.BottomEnd).padding(7.dp),
+                        shape = RoundedCornerShape(4.dp),
                         color = Color.Black.copy(alpha = 0.64f),
                         contentColor = Color.White,
                     ) {
                         Text(
                             text = duration,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 3.dp),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Medium,
                         )
                     }
                 }
             }
-            Column(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(3.dp),
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top,
             ) {
-                Text(
-                    highlightedSearchText(item.displayTitle, searchQuery),
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    fontWeight = FontWeight.SemiBold,
-                    style = MaterialTheme.typography.titleSmall,
-                )
-                val sub = mediaSecondaryText(item, showTrackNumbers, includeDuration = false)
-                if (sub.isNotBlank()) {
+                Column(
+                    modifier = Modifier.weight(1f).padding(top = 9.dp, bottom = 4.dp, start = 2.dp),
+                    verticalArrangement = Arrangement.spacedBy(3.dp),
+                ) {
                     Text(
-                        highlightedSearchText(sub, searchQuery),
-                        maxLines = 1,
+                        highlightedSearchText(item.displayTitle, searchQuery),
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = colors.fontLight,
+                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    val sub = mediaSecondaryText(item, showTrackNumbers, includeDuration = false)
+                    if (sub.isNotBlank()) {
+                        Text(
+                            highlightedSearchText(sub, searchQuery),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.fontLight,
+                        )
+                    }
+                }
+                // Keep the thumbnail unobstructed and preserve a full touch target for actions.
+                IconButton(onClick = { menu = true }, modifier = Modifier.size(48.dp)) {
+                    Icon(
+                        MaterialSymbols.Filled.MoreVert,
+                        contentDescription = ShellStrings.moreOptions(),
+                        modifier = Modifier.size(20.dp),
+                        tint = colors.fontLight,
                     )
                 }
             }
         }
     }
+    MediaContextMenu(
+        expanded = menu,
+        onDismiss = { menu = false },
+        item = item,
+        onPlay = { onClick() },
+        onPlayNext = { media -> onCtx(media, ContextOption.CTX_PLAY_NEXT) },
+        onAppend = { media -> onCtx(media, ContextOption.CTX_APPEND) },
+        onCtx = onCtx,
+        canHandleHostAction = canHandleHostAction,
+    )
 }
 
 /** A single de-duplicated metadata line shared by grid and list presentations. */
@@ -493,4 +490,98 @@ fun MediaTypeBadge(item: MediaItem) {
         fontWeight = FontWeight.Bold,
         style = MaterialTheme.typography.labelLarge,
     )
+}
+
+/** An active session is resumable only while its known position is inside the video. */
+internal fun shouldShowContinueWatching(library: MediaListUiState, player: PlayerUiState): Boolean =
+    library.containerId == null && library.containerTitle == null && library.openedEntityTitle == null &&
+        library.groupingMode == org.videolan.vlc.viewmodel.VideoGroupingMode.NONE &&
+        library.query.isBlank() && !library.onlyFavorites && library.selection.isEmpty() &&
+        player.hasMedia && player.hasVideoOutput && player.uri.isNotBlank() &&
+        player.progress.time > 0L && player.progress.time < player.progress.length
+
+@Composable
+internal fun ContinueWatchingCard(
+    state: PlayerUiState,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        contentColor = Color.White,
+    ) {
+        Box(Modifier.fillMaxWidth().height(180.dp)) {
+            MediaArtworkUri(
+                uri = state.artworkUri?.takeIf(String::isNotBlank) ?: state.uri,
+                modifier = Modifier.fillMaxSize(),
+                size = 400.dp,
+                showFallbackContainer = false,
+                fillMaxSizeArtwork = true,
+                fallback = {
+                    Icon(
+                        MaterialSymbols.Filled.VideoLibrary,
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                },
+            )
+            Box(
+                Modifier.fillMaxSize().background(
+                    Brush.horizontalGradient(listOf(Color.Black.copy(alpha = 0.82f), Color.Black.copy(alpha = 0.4f))),
+                ),
+            )
+            Column(
+                modifier = Modifier.fillMaxSize().padding(20.dp),
+                verticalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    ShellStrings.resumeVideo(),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color.White.copy(alpha = 0.85f),
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.Bottom,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(
+                            text = state.title.ifBlank {
+                                state.queue.getOrNull(state.currentQueueIndex)?.displayTitle
+                                    ?: state.uri.substringAfterLast('/')
+                            },
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            text = "${formatDuration(state.progress.time)} / ${formatDuration(state.progress.length)}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White.copy(alpha = 0.85f),
+                        )
+                    }
+                    Surface(
+                        shape = androidx.compose.foundation.shape.CircleShape,
+                        color = Color.White.copy(alpha = 0.2f),
+                        modifier = Modifier.size(48.dp),
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(MaterialSymbols.Filled.PlayArrow, contentDescription = null, tint = Color.White)
+                        }
+                    }
+                }
+            }
+            LinearProgressIndicator(
+                progress = { state.progress.progressPercent },
+                modifier = Modifier.fillMaxWidth().height(3.dp).align(Alignment.BottomCenter),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = Color.White.copy(alpha = 0.2f),
+            )
+        }
+    }
 }

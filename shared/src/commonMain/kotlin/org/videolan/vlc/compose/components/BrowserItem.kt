@@ -163,7 +163,7 @@ fun VLCBrowserItemRow(
         targetValue = if (selected) {
             MaterialTheme.colorScheme.secondaryContainer
         } else {
-            MaterialTheme.colorScheme.surfaceContainerLow
+            androidx.compose.ui.graphics.Color.Transparent
         },
         animationSpec = tween(motion.durationShort, easing = VLCMotion.Standard),
         label = "rowContainer",
@@ -176,7 +176,7 @@ fun VLCBrowserItemRow(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 72.dp)
+            .heightIn(min = 64.dp)
             .then(if (contentDescription != null) Modifier.semantics { this.contentDescription = contentDescription } else Modifier)
             .semantics { this.selected = selected }
             // The click indication belongs to the asymmetric row silhouette, not its rectangular
@@ -195,15 +195,15 @@ fun VLCBrowserItemRow(
         contentColor = contentColor,
     ) {
         Row(
-            modifier = Modifier.padding(start = 12.dp, end = 6.dp, top = 10.dp, bottom = 10.dp),
+            modifier = Modifier.padding(start = 0.dp, end = 0.dp, top = 8.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (showArtwork) {
                 BrowserArtwork(size = 48.dp, selected = selected, content = artworkContent)
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(12.dp))
             } else if (selected) {
                 VLCSelectionCheckIndicator(modifier = Modifier.size(48.dp))
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(12.dp))
             }
             BrowserItemTexts(
                 title = title,

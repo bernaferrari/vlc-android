@@ -20,6 +20,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,6 +30,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -55,7 +57,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
@@ -255,7 +256,7 @@ fun VideoSurfaceWithHud(
                     }
                 },
             )
-            .background(Color.Black)
+            .background(if (hasVideoOutput) Color.Black else MaterialTheme.colorScheme.background)
     ) {
         // Video / artwork surface
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -307,7 +308,6 @@ fun VideoSurfaceWithHud(
             queueSize = queue.size,
             hasVideoOutput = hasVideoOutput,
             isLiveStream = queue.getOrNull(currentQueueIndex)?.isStream == true,
-            waveformUri = queue.getOrNull(currentQueueIndex)?.uri,
             bookmarks = bookmarks,
             onTogglePlay = onTogglePlay,
             onSeek = onSeek,
@@ -486,7 +486,6 @@ fun VideoHudOverlay(
     queueSize: Int,
     hasVideoOutput: Boolean,
     isLiveStream: Boolean,
-    waveformUri: String?,
     bookmarks: PlaybackBookmarks = PlaybackBookmarks(),
     onTogglePlay: () -> Unit,
     onSeek: (Long) -> Unit,
@@ -506,6 +505,11 @@ fun VideoHudOverlay(
     onClose: (() -> Unit)?,
 ) {
     val colors = VLCThemeDefaults.colors
+    val chromeColor = if (hasVideoOutput) Color.White else MaterialTheme.colorScheme.onSurface
+    val mutedChromeColor = if (hasVideoOutput) Color.White.copy(alpha = 0.72f)
+        else MaterialTheme.colorScheme.onSurfaceVariant
+    val secondaryControlColor = if (hasVideoOutput) Color.White.copy(alpha = 0.14f)
+        else MaterialTheme.colorScheme.surfaceContainer
     val motion = LocalVLCMotion.current
     val density = LocalDensity.current
     val enterDuration = if (motion.reducedMotion) 0 else 180
@@ -519,12 +523,12 @@ fun VideoHudOverlay(
         label = "player-chrome-scrim",
     )
     val shuffleTint by animateColorAsState(
-        targetValue = if (shuffle) colors.primary else Color.White,
+        targetValue = if (shuffle) colors.primary else chromeColor,
         animationSpec = tween(motion.durationShort, easing = VLCMotion.Emphasized),
         label = "shuffle-tint",
     )
     val repeatTint by animateColorAsState(
-        targetValue = if (repeatMode == RepeatMode.NONE) Color.White else colors.primary,
+        targetValue = if (repeatMode == RepeatMode.NONE) chromeColor else colors.primary,
         animationSpec = tween(motion.durationShort, easing = VLCMotion.Emphasized),
         label = "repeat-tint",
     )
@@ -535,8 +539,10 @@ fun VideoHudOverlay(
         RepeatMode.ALL -> stringResource(Res.string.repeat_all)
         RepeatMode.ONE -> stringResource(Res.string.repeat_single)
     }
-    val bottomScrim = colors.primary.copy(alpha = 0.16f).compositeOver(Color.Black)
-    Box(modifier = Modifier.fillMaxSize()) {
+    val bottomScrim = if (hasVideoOutput) Color.Black.copy(alpha = 0.88f)
+        else MaterialTheme.colorScheme.background
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val compactAudio = !hasVideoOutput && usesCompactAudioLayout(maxHeight)
         // Gradients stay anchored to the viewport and only change opacity. Foreground controls
         // travel a fixed 10dp so toggling chrome feels connected without dragging in whole rows.
         Box(
@@ -547,7 +553,7 @@ fun VideoHudOverlay(
                 .graphicsLayer { alpha = chromeAlpha }
                 .background(
                     Brush.verticalGradient(
-                        listOf(Color.Black.copy(alpha = 0.76f), Color.Transparent)
+                        listOf(if (hasVideoOutput) Color.Black.copy(alpha = 0.76f) else Color.Transparent, Color.Transparent)
                     )
                 )
         )
@@ -578,17 +584,18 @@ fun VideoHudOverlay(
                 if (onClose != null) {
                     IconButton(onClick = onClose) {
                         Icon(
-                            icon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
+                            icon = if (hasVideoOutput) MaterialSymbols.AutoMirrored.Filled.ArrowBack
+                                else MaterialSymbols.Filled.ArrowDownward,
                             contentDescription = stringResource(Res.string.close_player),
-                            tint = Color.White,
+                            tint = chromeColor,
                         )
                     }
                 }
-                if (hasVideoOutput) {
+                if (hasVideoOutput || compactAudio) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             title.ifBlank { " " },
-                            color = Color.White,
+                            color = chromeColor,
                             fontWeight = FontWeight.SemiBold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -597,7 +604,7 @@ fun VideoHudOverlay(
                         if (subtitle.isNotBlank()) {
                             Text(
                                 subtitle,
-                                color = Color.White.copy(alpha = 0.75f),
+                                color = mutedChromeColor,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 style = MaterialTheme.typography.bodySmall,
@@ -605,7 +612,14 @@ fun VideoHudOverlay(
                         }
                     }
                 } else {
-                    Spacer(Modifier.weight(1f))
+                    Text(
+                        text = stringResource(Res.string.now_playing),
+                        modifier = Modifier.weight(1f).padding(start = 8.dp),
+                        color = mutedChromeColor,
+                        style = MaterialTheme.typography.labelLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
                 TextButton(
                     onClick = {
@@ -616,7 +630,7 @@ fun VideoHudOverlay(
                 ) {
                     Text(
                         text = playbackRateLabel(rate),
-                        color = Color.White,
+                        color = chromeColor,
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.SemiBold,
                     )
@@ -630,7 +644,7 @@ fun VideoHudOverlay(
                         Icon(
                             icon = MaterialSymbols.Filled.MoreVert,
                             contentDescription = stringResource(Res.string.more_options),
-                            tint = Color.White,
+                            tint = chromeColor,
                         )
                     }
                     DropdownMenu(
@@ -735,11 +749,12 @@ fun VideoHudOverlay(
         ) {
             Column(
                 modifier = Modifier
+                    .widthIn(max = 560.dp)
                     .fillMaxWidth()
                     // The player is intentionally edge-to-edge, but its transport controls are not.
                     // Keep the primary play action clear of gesture and three-button navigation.
                     .navigationBarsPadding()
-                    .padding(horizontal = 16.dp, vertical = 16.dp)
+                    .padding(horizontal = if (hasVideoOutput) 20.dp else 28.dp, vertical = 16.dp)
             ) {
             // Native decoders do not all tolerate a seek for every pixel of a drag. Keep the
             // preview local and issue exactly one seek when the gesture finishes; this makes the
@@ -754,7 +769,7 @@ fun VideoHudOverlay(
                     markerFractions = bookmarks.entries.map { bookmark ->
                         bookmark.timeMs.toFloat() / seekableLength.toFloat()
                     },
-                    markerColor = Color.White.copy(alpha = 0.9f),
+                    markerColor = chromeColor.copy(alpha = 0.9f),
                 )
             }
             if (seekableLength != null) {
@@ -774,28 +789,15 @@ fun VideoHudOverlay(
                     scrubPosition = null
                     onInteractionActiveChanged(false)
                 }
-                if (hasVideoOutput) {
-                    Slider(
-                        value = timelineValue,
-                        onValueChange = updateTimeline,
-                        onValueChangeFinished = commitTimeline,
-                        valueRange = 0f..seekableLength.toFloat(),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .semantics { contentDescription = playbackPositionDescription },
-                    )
-                } else {
-                    AudioWaveformSlider(
-                        uri = waveformUri,
-                        durationMs = seekableLength,
-                        valueMs = timelineValue,
-                        playing = playing,
-                        scrubbing = scrubPosition != null,
-                        contentDescription = playbackPositionDescription,
-                        onValueChange = updateTimeline,
-                        onValueChangeFinished = commitTimeline,
-                    )
-                }
+                Slider(
+                    value = timelineValue,
+                    onValueChange = updateTimeline,
+                    onValueChangeFinished = commitTimeline,
+                    valueRange = 0f..seekableLength.toFloat(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics { contentDescription = playbackPositionDescription },
+                )
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -804,22 +806,22 @@ fun VideoHudOverlay(
             ) {
                 Text(
                     text = formatPlaybackTime(displayedTime),
-                    color = Color.White.copy(alpha = 0.9f),
+                    color = mutedChromeColor,
                     style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"),
                     maxLines = 1,
                 )
                 if (seekableLength != null) {
                     Text(
                         text = "−${formatPlaybackTime((seekableLength - displayedTime).coerceAtLeast(0L))}",
-                        color = Color.White.copy(alpha = 0.72f),
+                        color = mutedChromeColor,
                         style = MaterialTheme.typography.labelSmall.copy(fontFeatureSettings = "tnum"),
                         maxLines = 1,
                     )
                 } else {
                     Surface(
                         shape = CircleShape,
-                        color = Color.White.copy(alpha = 0.14f),
-                        contentColor = Color.White,
+                        color = secondaryControlColor,
+                        contentColor = chromeColor,
                     ) {
                         Text(
                             text = if (isLiveStream) {
@@ -835,9 +837,9 @@ fun VideoHudOverlay(
                 }
             }
             Box(modifier = Modifier.height(8.dp))
-            val transportSize = if (hasVideoOutput) 60.dp else 68.dp
+            val transportSize = if (hasVideoOutput) 60.dp else 56.dp
             val transportIconSize = if (hasVideoOutput) 26.dp else 28.dp
-            val playSize = if (hasVideoOutput) 76.dp else 84.dp
+            val playSize = 76.dp
             val playIconSize = if (hasVideoOutput) 34.dp else 36.dp
             Row(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
@@ -847,7 +849,7 @@ fun VideoHudOverlay(
                 ExpressivePlayerButton(
                     modifier = Modifier.size(transportSize),
                     shape = CircleShape,
-                    containerColor = Color.White.copy(alpha = 0.14f),
+                    containerColor = if (hasVideoOutput) secondaryControlColor else Color.Transparent,
                     contentDescription = stringResource(Res.string.previous),
                     onClick = {
                         onUserInteraction()
@@ -857,13 +859,13 @@ fun VideoHudOverlay(
                     Icon(
                         icon = MaterialSymbols.Filled.SkipPrevious,
                         contentDescription = null,
-                        tint = Color.White,
+                        tint = chromeColor,
                         modifier = Modifier.size(transportIconSize),
                     )
                 }
                 ExpressivePlayerButton(
-                    modifier = Modifier.size(playSize),
-                    shape = RoundedCornerShape(if (hasVideoOutput) 26.dp else 28.dp),
+                    modifier = Modifier.size(width = playSize, height = if (hasVideoOutput) playSize else 64.dp),
+                    shape = RoundedCornerShape(if (hasVideoOutput) 38.dp else 23.dp),
                     containerColor = colors.primary,
                     contentDescription = if (playing) {
                         stringResource(Res.string.pause)
@@ -891,7 +893,7 @@ fun VideoHudOverlay(
                 ExpressivePlayerButton(
                     modifier = Modifier.size(transportSize),
                     shape = CircleShape,
-                    containerColor = Color.White.copy(alpha = 0.14f),
+                    containerColor = if (hasVideoOutput) secondaryControlColor else Color.Transparent,
                     contentDescription = stringResource(Res.string.next),
                     onClick = {
                         onUserInteraction()
@@ -901,7 +903,7 @@ fun VideoHudOverlay(
                     Icon(
                         icon = MaterialSymbols.Filled.SkipNext,
                         contentDescription = null,
-                        tint = Color.White,
+                        tint = chromeColor,
                         modifier = Modifier.size(transportIconSize),
                     )
                 }
@@ -909,21 +911,16 @@ fun VideoHudOverlay(
             Box(modifier = Modifier.height(12.dp))
             Row(
                 modifier = Modifier.align(Alignment.CenterHorizontally),
-                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 ExpressivePlayerButton(
-                    modifier = Modifier.size(width = 64.dp, height = 48.dp),
-                    shape = RoundedCornerShape(
-                        topStart = 24.dp,
-                        bottomStart = 24.dp,
-                        topEnd = 8.dp,
-                        bottomEnd = 8.dp,
-                    ),
+                    modifier = Modifier.size(48.dp),
+                    shape = RoundedCornerShape(16.dp),
                     containerColor = if (shuffle) {
-                        colors.primary.copy(alpha = 0.24f)
+                        colors.primary.copy(alpha = 0.14f)
                     } else {
-                        Color.White.copy(alpha = 0.10f)
+                        Color.Transparent
                     },
                     contentDescription = if (shuffle) {
                         stringResource(Res.string.shuffle_on)
@@ -945,17 +942,12 @@ fun VideoHudOverlay(
                     )
                 }
                 ExpressivePlayerButton(
-                    modifier = Modifier.size(width = 64.dp, height = 48.dp),
-                    shape = RoundedCornerShape(
-                        topStart = 8.dp,
-                        bottomStart = 8.dp,
-                        topEnd = 24.dp,
-                        bottomEnd = 24.dp,
-                    ),
+                    modifier = Modifier.size(48.dp),
+                    shape = RoundedCornerShape(16.dp),
                     containerColor = if (repeatMode != RepeatMode.NONE) {
-                        colors.primary.copy(alpha = 0.24f)
+                        colors.primary.copy(alpha = 0.14f)
                     } else {
-                        Color.White.copy(alpha = 0.10f)
+                        Color.Transparent
                     },
                     contentDescription = repeatStateLabel,
                     selectedState = repeatMode != RepeatMode.NONE,
@@ -974,6 +966,26 @@ fun VideoHudOverlay(
                         contentDescription = null,
                         tint = repeatTint,
                         modifier = Modifier.size(22.dp),
+                    )
+                }
+                IconButton(onClick = {
+                    onUserInteraction()
+                    onOpenOptions(PlaybackSheetDestination.QUEUE)
+                }) {
+                    Icon(
+                        icon = MaterialSymbols.Filled.QueueMusic,
+                        contentDescription = stringResource(Res.string.up_next_count, queueSize),
+                        tint = mutedChromeColor,
+                    )
+                }
+                IconButton(onClick = {
+                    onUserInteraction()
+                    onOpenOptions(PlaybackSheetDestination.TOOLS)
+                }) {
+                    Icon(
+                        icon = MaterialSymbols.Filled.Tune,
+                        contentDescription = stringResource(Res.string.player_controls),
+                        tint = mutedChromeColor,
                     )
                 }
             }

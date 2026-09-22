@@ -26,7 +26,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialIcon
-import org.videolan.vlc.compose.theme.VLCLayout
 
 /**
  * One action in a compact, connected control group. Library screens use this
@@ -46,8 +45,7 @@ data class VLCSectionOption(
 )
 
 /**
- * QuietGuard-style connected utility controls: a small outer silhouette,
- * compact inner joins, and a single clear selected state. It deliberately
+ * Quiet utility actions keep header chrome secondary to the page title. This deliberately
  * keeps every target at the Material-recommended 48dp touch size.
  */
 @Composable
@@ -61,10 +59,10 @@ fun VLCConnectedIconActionBar(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        actions.forEachIndexed { index, action ->
+        actions.forEach { action ->
             VLCConnectedControlSurface(
                 selected = action.selected,
-                shape = connectedActionShape(index = index, count = actions.size),
+                shape = RoundedCornerShape(24.dp),
                 onClick = action.onClick,
                 modifier = Modifier.size(48.dp),
             ) {
@@ -92,16 +90,14 @@ fun VLCSectionSelector(
 
     LazyRow(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
-        // Keep the connected silhouette inside the viewport while it scrolls. Without a
-        // small inset the first/last segment is visually shaved by the parent clip on phones.
-        contentPadding = PaddingValues(horizontal = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(0.dp),
     ) {
         itemsIndexed(options, key = { _, option -> option.label }) { index, option ->
             val selected = index == selectedIndex
             VLCConnectedControlSurface(
                 selected = selected,
-                shape = connectedActionShape(index = index, count = options.size),
+                shape = RoundedCornerShape(12.dp),
                 onClick = { onSelect(index) },
                 modifier = Modifier
                     .heightIn(min = 48.dp)
@@ -114,7 +110,7 @@ fun VLCSectionSelector(
                 Text(
                     text = option.label,
                     style = MaterialTheme.typography.labelLarge,
-                    // Selection is already visible through the tonal segment; keep the label
+                    // Selection is already visible through the filled chip; keep the label
                     // weight stable so switching tabs never nudges neighboring text.
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
@@ -137,33 +133,16 @@ private fun VLCConnectedControlSurface(
         modifier = modifier,
         shape = shape,
         color = if (selected) {
-            MaterialTheme.colorScheme.secondaryContainer
+            MaterialTheme.colorScheme.onSurface
         } else {
-            MaterialTheme.colorScheme.surfaceContainerLow
+            androidx.compose.ui.graphics.Color.Transparent
         },
         contentColor = if (selected) {
-            MaterialTheme.colorScheme.onSecondaryContainer
+            MaterialTheme.colorScheme.surface
         } else {
             MaterialTheme.colorScheme.onSurface
         },
     ) {
         Box(contentAlignment = Alignment.Center) { content() }
     }
-}
-
-private fun connectedActionShape(index: Int, count: Int): RoundedCornerShape = when {
-    count <= 1 -> RoundedCornerShape(VLCLayout.GroupOuterCorner)
-    index == 0 -> RoundedCornerShape(
-        topStart = VLCLayout.GroupOuterCorner,
-        topEnd = VLCLayout.GroupInnerCorner,
-        bottomEnd = VLCLayout.GroupInnerCorner,
-        bottomStart = VLCLayout.GroupOuterCorner,
-    )
-    index == count - 1 -> RoundedCornerShape(
-        topStart = VLCLayout.GroupInnerCorner,
-        topEnd = VLCLayout.GroupOuterCorner,
-        bottomEnd = VLCLayout.GroupOuterCorner,
-        bottomStart = VLCLayout.GroupInnerCorner,
-    )
-    else -> RoundedCornerShape(VLCLayout.GroupInnerCorner)
 }
