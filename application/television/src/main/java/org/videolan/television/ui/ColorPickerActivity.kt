@@ -384,6 +384,7 @@ private fun ColorSwatch(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .size(size.dp)
+            .clip(CircleShape)
             .onFocusChanged { focused = it.isFocused }
             .then(clickableModifier)
             .border(

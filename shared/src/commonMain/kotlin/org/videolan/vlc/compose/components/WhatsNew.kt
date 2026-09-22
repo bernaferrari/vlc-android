@@ -20,6 +20,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -86,6 +87,7 @@ fun VLCWhatsNewDialogContent(
                 item(key = "never_again") {
                     Row(
                         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
+                            .clip(MaterialTheme.shapes.small)
                             .toggleable(value = neverShowAgain, role = Role.Checkbox, onValueChange = onNeverShowAgainChange),
                         verticalAlignment = Alignment.CenterVertically
                     ) {

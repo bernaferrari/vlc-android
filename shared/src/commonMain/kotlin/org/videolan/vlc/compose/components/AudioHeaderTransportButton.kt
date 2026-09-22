@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -52,6 +54,7 @@ fun VLCAudioHeaderTransportButton(
         Box(
             modifier = modifier
                 .size(touchTargetSize)
+                .clip(CircleShape)
                 .combinedClickable(
                     role = Role.Button,
                     onClick = onClick,

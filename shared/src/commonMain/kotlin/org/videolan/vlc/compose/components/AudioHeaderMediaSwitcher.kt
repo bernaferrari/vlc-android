@@ -25,6 +25,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -117,6 +119,7 @@ fun VLCAudioHeaderMediaSwitcher(
             state = pagerState,
             modifier = modifier
                 .fillMaxSize()
+                .clip(MaterialTheme.shapes.medium)
                 .combinedClickable(
                     role = Role.Button,
                     onClick = onClick,

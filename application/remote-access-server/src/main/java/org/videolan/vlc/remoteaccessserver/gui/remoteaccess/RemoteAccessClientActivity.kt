@@ -41,6 +41,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -260,6 +261,7 @@ private fun RemoteAccessClientScreen(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .clip(MaterialTheme.shapes.medium)
                             .clickable {
                                 runOp("play-media") { c ->
                                     c.sendPlaybackEvent(

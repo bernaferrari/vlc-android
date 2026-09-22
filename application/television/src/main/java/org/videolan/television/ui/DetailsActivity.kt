@@ -705,6 +705,7 @@ private fun DetailImageCard(image: MediaImage, poster: Boolean, onClick: () -> U
         border = BorderStroke(1.dp, VLCThemeDefaults.colors.cardBorder),
         modifier = Modifier
             .width(if (poster) 112.dp else 224.dp)
+            .clip(RoundedCornerShape(12.dp))
             .focusable()
             .clickable(onClick = onClick)
     ) {

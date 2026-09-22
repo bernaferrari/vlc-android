@@ -1,16 +1,13 @@
 package org.videolan.vlc.compose.app
 
+import androidx.compose.foundation.background
+
 import androidx.compose.animation.ContentTransform
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -23,6 +20,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
@@ -39,12 +38,15 @@ import androidx.compose.material3.adaptive.navigation3.rememberListDetailSceneSt
 import androidx.compose.material3.adaptive.navigationsuite.ExperimentalMaterial3AdaptiveNavigationSuiteApi
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScope
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.NavKey
@@ -180,6 +182,11 @@ fun VlcMainShell(
             currentRoute == AboutLibrariesRoute ||
             currentRoute == AboutAuthorsRoute
         val playerState by playerVm.state.collectAsState()
+        var requestedVideoUri by remember { mutableStateOf<String?>(null) }
+        val awaitingVideo = requestedVideoUri != null && requestedVideoUri != playerState.uri
+        LaunchedEffect(currentRoute, playerState.uri) {
+            if (currentRoute != PlayerRoute || requestedVideoUri == playerState.uri) requestedVideoUri = null
+        }
         val videoState by videoVm.state.collectAsState()
         val detailVideoState by detailVideoVm.state.collectAsState()
         val audioState by audioVm.state.collectAsState()
@@ -194,7 +201,7 @@ fun VlcMainShell(
         val settingsState by settingsVm.state.collectAsState()
         // Video hides system chrome; audio keeps it visible but draws underneath it so the player
         // gradient reaches the physical screen edge. Native hosts receive both pieces of state.
-        val immersiveVideoPlayer = showPlayer && playerState.hasVideoOutput
+        val immersiveVideoPlayer = showPlayer && (awaitingVideo || playerState.hasVideoOutput)
         LaunchedEffect(hostCallbacks, showPlayer, immersiveVideoPlayer) {
             hostCallbacks.onPlayerSurfaceChanged(
                 active = showPlayer,
@@ -262,61 +269,8 @@ fun VlcMainShell(
                 )
             }
         }
-        // The player is reached from the persistent mini-player, so it should feel like that
-        // surface is expanding into a full-screen destination rather than another horizontal
-        // page being pushed on top of the library. The short fade keeps the native video surface
-        // from flashing through while the vertical travel preserves that spatial relationship.
-        val playerTransitionMetadata = remember(motion) {
-            NavDisplay.transitionSpec {
-                ContentTransform(
-                    targetContentEnter = slideInVertically(
-                        animationSpec = tween(
-                            durationMillis = if (motion.reducedMotion) 0 else 260,
-                            easing = VLCMotion.EmphasizedDecelerate,
-                        ),
-                        initialOffsetY = { fullHeight -> fullHeight },
-                    ) + fadeIn(
-                        animationSpec = tween(
-                            durationMillis = if (motion.reducedMotion) 0 else 150,
-                            easing = VLCMotion.EmphasizedDecelerate,
-                        ),
-                    ),
-                    initialContentExit = ExitTransition.None,
-                )
-            } + NavDisplay.popTransitionSpec {
-                ContentTransform(
-                    targetContentEnter = EnterTransition.None,
-                    initialContentExit = slideOutVertically(
-                        animationSpec = tween(
-                            durationMillis = if (motion.reducedMotion) 0 else 190,
-                            easing = VLCMotion.EmphasizedAccelerate,
-                        ),
-                        targetOffsetY = { fullHeight -> fullHeight },
-                    ) + fadeOut(
-                        animationSpec = tween(
-                            durationMillis = if (motion.reducedMotion) 0 else 120,
-                            easing = VLCMotion.EmphasizedAccelerate,
-                        ),
-                    ),
-                )
-            } + NavDisplay.predictivePopTransitionSpec { _ ->
-                ContentTransform(
-                    targetContentEnter = EnterTransition.None,
-                    initialContentExit = slideOutVertically(
-                        animationSpec = tween(
-                            durationMillis = if (motion.reducedMotion) 0 else 190,
-                            easing = VLCMotion.EmphasizedAccelerate,
-                        ),
-                        targetOffsetY = { fullHeight -> fullHeight },
-                    ) + fadeOut(
-                        animationSpec = tween(
-                            durationMillis = if (motion.reducedMotion) 0 else 120,
-                            easing = VLCMotion.EmphasizedAccelerate,
-                        ),
-                    ),
-                )
-            }
-        }
+        // Playback opens directly. Moving a full-screen native video surface over the library
+        // makes decoding startup and the navigation chrome read as a second competing animation.
         // Mirror QuietGuard's selective list-detail use: an empty library is one clear state, not
         // an empty half-screen plus an unrelated "select an item" message. Once a library has
         // content, wide hosts retain the productive list/detail relationship.
@@ -340,7 +294,7 @@ fun VlcMainShell(
             ) {
                 rootTransitionMetadata
             } else {
-                ListDetailSceneStrategy.listPane(
+                rootTransitionMetadata + ListDetailSceneStrategy.listPane(
                     detailPlaceholder = {
                         LibraryDetailPlaceholder(MaterialSymbols.Filled.VideoLibrary)
                     },
@@ -360,7 +314,7 @@ fun VlcMainShell(
             ) {
                 rootTransitionMetadata
             } else {
-                ListDetailSceneStrategy.listPane(
+                rootTransitionMetadata + ListDetailSceneStrategy.listPane(
                     detailPlaceholder = {
                         LibraryDetailPlaceholder(MaterialSymbols.Filled.MusicNote)
                     },
@@ -380,7 +334,7 @@ fun VlcMainShell(
             ) {
                 rootTransitionMetadata
             } else {
-                ListDetailSceneStrategy.listPane(
+                rootTransitionMetadata + ListDetailSceneStrategy.listPane(
                     detailPlaceholder = {
                         LibraryDetailPlaceholder(MaterialSymbols.Filled.Folder)
                     },
@@ -391,16 +345,16 @@ fun VlcMainShell(
             if (!shouldUseWideLibraryDetailLayout(singlePaneLayout, playlistsHaveLibraryContent)) {
                 rootTransitionMetadata
             } else {
-                ListDetailSceneStrategy.listPane(
+                rootTransitionMetadata + ListDetailSceneStrategy.listPane(
                     detailPlaceholder = {
                         LibraryDetailPlaceholder(MaterialSymbols.Filled.QueueMusic)
                     },
                 )
             }
         }
-        val libraryDetailMetadata = remember(singlePaneLayout, detailTransitionMetadata) {
+        val libraryDetailMetadata = remember(singlePaneLayout, detailTransitionMetadata, rootTransitionMetadata) {
             val paneMetadata = ListDetailSceneStrategy.detailPane()
-            if (singlePaneLayout) paneMetadata + detailTransitionMetadata else paneMetadata
+            if (singlePaneLayout) paneMetadata + detailTransitionMetadata else paneMetadata + rootTransitionMetadata
         }
 
         fun closeFeatureDetails() {
@@ -416,7 +370,13 @@ fun VlcMainShell(
             backStack.add(tab.toVlcShellRoute())
         }
 
+        fun openVideoPlayer(item: MediaItem) {
+            requestedVideoUri = item.uri
+            if (!showPlayer) pushNav3Route(backStack, PlayerRoute)
+        }
+
         fun openPlayer() {
+            requestedVideoUri = null
             if (!showPlayer) pushNav3Route(backStack, PlayerRoute)
         }
 
@@ -614,23 +574,7 @@ fun VlcMainShell(
                     }
                 },
                 bottomBar = {
-                    AnimatedVisibility(
-                        visible = showBottomBar && !showPlayer && playerState.hasMedia,
-                        enter = slideInVertically(
-                            animationSpec = tween(
-                                durationMillis = motion.durationShort,
-                                easing = VLCMotion.EmphasizedDecelerate,
-                            ),
-                            initialOffsetY = { height -> height / 2 },
-                        ) + fadeIn(animationSpec = tween(motion.durationShort)),
-                        exit = slideOutVertically(
-                            animationSpec = tween(
-                                durationMillis = motion.durationShort,
-                                easing = VLCMotion.EmphasizedAccelerate,
-                            ),
-                            targetOffsetY = { height -> height / 2 },
-                        ) + fadeOut(animationSpec = tween(motion.durationShort)),
-                    ) {
+                    if (showBottomBar && !showPlayer && playerState.hasMedia) {
                         MiniBar(
                             state = playerState,
                             onExpand = ::openPlayer,
@@ -658,8 +602,9 @@ fun VlcMainShell(
                     entryProvider = entryProvider {
                     entry<VideoRoute>(metadata = videoListMetadata) {
                         VideoDestination(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
                             state = videoState,
+                            onOpenVideo = ::openVideoPlayer,
                             playerState = playerState,
                             onResumeVideo = {
                                 if (!playerState.playing) playerVm.togglePlayPause()
@@ -679,8 +624,9 @@ fun VlcMainShell(
                             }
                         }
                         VideoDestination(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
                             state = detailVideoState,
+                            onOpenVideo = ::openVideoPlayer,
                             viewModel = detailVideoVm,
                             hostCallbacks = hostCallbacks,
                             onOpenPlayer = ::openPlayer,
@@ -690,7 +636,7 @@ fun VlcMainShell(
                     }
                     entry<AudioRoute>(metadata = audioListMetadata) {
                         AudioDestination(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
                             state = audioState,
                             section = audioSection,
                             viewModel = audioVm,
@@ -707,7 +653,7 @@ fun VlcMainShell(
                             }
                         }
                         AudioDestination(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
                             state = detailAudioState,
                             section = detailAudioSection,
                             viewModel = detailAudioVm,
@@ -719,7 +665,7 @@ fun VlcMainShell(
                     }
                     entry<BrowserRoute>(metadata = browserListMetadata) {
                         BrowserDestination(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
                             state = browserState,
                             viewModel = browserVm,
                             onOpenPlayer = ::openPlayer,
@@ -731,7 +677,7 @@ fun VlcMainShell(
                             detailBrowserVm.restoreFolderStack(route.toMediaFolders())
                         }
                         BrowserDestination(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
                             state = detailBrowserState,
                             viewModel = detailBrowserVm,
                             onOpenPlayer = ::openPlayer,
@@ -741,7 +687,7 @@ fun VlcMainShell(
                     }
                     entry<PlaylistsRoute>(metadata = playlistsListMetadata) {
                         PlaylistsDestination(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
                             state = playlistsState,
                             viewModel = playlistsVm,
                             onOpenPlayer = ::openPlayer,
@@ -755,7 +701,7 @@ fun VlcMainShell(
                             }
                         }
                         PlaylistsDestination(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
                             state = detailPlaylistsState,
                             viewModel = detailPlaylistsVm,
                             onOpenPlayer = ::openPlayer,
@@ -765,7 +711,7 @@ fun VlcMainShell(
                     }
                     entry<MoreRoute>(metadata = rootTransitionMetadata) {
                         MoreDestination(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
                             viewModel = moreVm,
                             onOpenSettings = { pushNav3Route(backStack, SettingsRoute) },
                             onOpenAbout = { pushNav3Route(backStack, AboutRoute) },
@@ -774,9 +720,20 @@ fun VlcMainShell(
                             onOpenPlayer = ::openPlayer,
                         )
                     }
-                    entry<PlayerRoute>(metadata = playerTransitionMetadata) {
-                        PlayerDestination(
-                            modifier = Modifier.fillMaxSize(),
+                    entry<PlayerRoute>(metadata = rootTransitionMetadata) {
+                        if (awaitingVideo) {
+                            // The requested item has not reached the UI collector yet. Never flash
+                            // the previous media title/artwork while starting a different video.
+                            Box(Modifier.fillMaxSize().background(Color.Black)) {
+                                playerState.error?.let { message ->
+                                    Text(message, color = Color.White, modifier = Modifier.align(Alignment.Center).padding(32.dp))
+                                }
+                                IconButton(onClick = ::popRoute, modifier = Modifier.align(Alignment.TopStart).statusBarsPadding()) {
+                                    Icon(MaterialSymbols.AutoMirrored.Filled.ArrowBack, ShellStrings.back(), tint = Color.White)
+                                }
+                            }
+                        } else PlayerDestination(
+                            modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
                             state = playerState,
                             viewModel = playerVm,
                             onClose = ::popRoute,
@@ -790,7 +747,7 @@ fun VlcMainShell(
                             onBack = ::navigateBack,
                         ) {
                             SettingsDestination(
-                                modifier = Modifier.fillMaxSize(),
+                                modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
                                 viewModel = settingsVm,
                             )
                         }
@@ -805,7 +762,7 @@ fun VlcMainShell(
                                 onBack = ::navigateBack,
                                 onOpenLibraries = { pushNav3Route(backStack, AboutLibrariesRoute) },
                                 onOpenAuthors = { pushNav3Route(backStack, AboutAuthorsRoute) },
-                                modifier = Modifier.fillMaxSize(),
+                                modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
                             )
                         }
                     }
@@ -816,7 +773,7 @@ fun VlcMainShell(
                         ) {
                             AboutLibrariesDestination(
                                 hostCallbacks = hostCallbacks,
-                                modifier = Modifier.fillMaxSize(),
+                                modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
                             )
                         }
                     }
@@ -827,7 +784,7 @@ fun VlcMainShell(
                         ) {
                             AboutAuthorsDestination(
                                 hostCallbacks = hostCallbacks,
-                                modifier = Modifier.fillMaxSize(),
+                                modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
                             )
                         }
                     }
@@ -933,11 +890,6 @@ private fun VlcAdaptiveNavigationSuite(
     navigationSuiteItems: NavigationSuiteScope.() -> Unit,
     content: @Composable () -> Unit,
 ) {
-    if (!enabled) {
-        Box(modifier.fillMaxSize()) { content() }
-        return
-    }
-
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         if (
             constraints.hasBoundedWidth &&
@@ -946,6 +898,7 @@ private fun VlcAdaptiveNavigationSuite(
                 constraints.maxHeight > 0
         ) {
             NavigationSuiteScaffold(
+                layoutType = if (enabled) NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(currentWindowAdaptiveInfoV2()) else NavigationSuiteType.None,
                 navigationSuiteItems = navigationSuiteItems,
                 navigationSuiteColors = NavigationSuiteDefaults.colors(
                     navigationBarContainerColor = MaterialTheme.colorScheme.background,

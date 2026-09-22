@@ -64,6 +64,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
@@ -295,6 +296,7 @@ private fun MoviepediaResultCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(MaterialTheme.shapes.medium)
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         shape = MaterialTheme.shapes.medium

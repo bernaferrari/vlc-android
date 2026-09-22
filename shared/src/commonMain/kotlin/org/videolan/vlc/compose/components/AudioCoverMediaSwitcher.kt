@@ -268,6 +268,7 @@ private fun CoverSwitcherPortraitPage(
                     fontFamily = FontFamily.SansSerif,
                     modifier = Modifier
                         .weight(1f)
+                        .clip(MaterialTheme.shapes.small)
                         .clickable(onClick = onTextClick)
                 )
                 if (item.showChapterButtons) {
@@ -287,6 +288,7 @@ private fun CoverSwitcherPortraitPage(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 8.dp)
+                        .clip(MaterialTheme.shapes.small)
                         .clickable(onClick = onTextClick)
                 )
             }

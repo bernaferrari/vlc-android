@@ -266,9 +266,9 @@ private fun AppearanceSettingsGroup(
             modifier = Modifier
                 .fillMaxWidth()
                 .selectableGroup(),
-            horizontalArrangement = Arrangement.spacedBy(0.dp, Alignment.CenterHorizontally),
-            verticalArrangement = Arrangement.spacedBy(0.dp),
-            maxItemsInEachRow = 6,
+            horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+            maxItemsInEachRow = 5,
         ) {
             availableVLCThemeAccents().forEach { option ->
                 ThemeAccentSwatch(
@@ -308,6 +308,7 @@ private fun RowScope.AppearanceModeButton(
         modifier = Modifier
             .weight(1f)
             .heightIn(min = 48.dp)
+            .clip(cornerShape)
             .selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
         shape = cornerShape,
         color = if (selected) {
@@ -321,25 +322,17 @@ private fun RowScope.AppearanceModeButton(
             MaterialTheme.colorScheme.onSurfaceVariant
         },
     ) {
-        Row(
-            modifier = Modifier.fillMaxSize(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
+        Box(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 12.dp),
+            contentAlignment = Alignment.Center,
         ) {
-            if (selected) {
-                Icon(
-                    icon = MaterialSymbols.Filled.CheckCircle,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                )
-            }
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                modifier = if (selected) Modifier.padding(start = 6.dp) else Modifier,
             )
         }
     }
@@ -351,25 +344,21 @@ private fun ThemeAccentSwatch(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
-    val swatchColor = if (accent == VLCThemeAccent.Dynamic) MaterialTheme.colorScheme.primary else accent.swatchColor
     val label = ShellStrings.themeAccent(accent)
+    val swatchColor = if (accent == VLCThemeAccent.Dynamic) MaterialTheme.colorScheme.primary else accent.swatchColor
     val iconTint = if (accent == VLCThemeAccent.Amber || accent == VLCThemeAccent.Lime) Color.Black else Color.White
     Box(
         modifier = Modifier
-            .size(50.dp)
+            .size(60.dp)
+            .clip(CircleShape)
             .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
             .semantics { contentDescription = label },
         contentAlignment = Alignment.Center,
     ) {
         Box(
-            modifier = Modifier
-                .size(38.dp)
-                .border(
-                    width = 2.dp,
-                    color = if (selected) MaterialTheme.colorScheme.onSurface else Color.Transparent,
-                    shape = CircleShape,
-                )
-                .padding(4.dp)
+            Modifier.size(56.dp)
+                .border(2.dp, if (selected) MaterialTheme.colorScheme.onSurface else Color.Transparent, CircleShape)
+                .padding(5.dp)
                 .background(swatchColor, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
@@ -378,7 +367,7 @@ private fun ThemeAccentSwatch(
                     if (selected) MaterialSymbols.Filled.CheckCircle else MaterialSymbols.Filled.Palette,
                     contentDescription = null,
                     tint = iconTint,
-                    modifier = Modifier.size(18.dp),
+                    modifier = Modifier.size(22.dp),
                 )
             }
         }

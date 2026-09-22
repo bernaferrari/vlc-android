@@ -2,15 +2,13 @@
 
 package org.videolan.vlc.compose.player
 
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.ui.semantics.Role
 import org.videolan.vlc.compose.components.VLCRenameItemDialog
 import org.videolan.vlc.compose.components.VLCModalHeader
@@ -30,6 +28,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -70,6 +69,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
@@ -85,7 +85,6 @@ import org.jetbrains.compose.resources.pluralStringResource
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
-import org.videolan.vlc.compose.components.VLCExpandableContent
 import org.videolan.vlc.compose.theme.LocalVLCMotion
 import org.videolan.vlc.compose.theme.VLCLayout
 import org.videolan.vlc.compose.theme.VLCMotion
@@ -198,7 +197,6 @@ internal fun PlaybackOptionsSheet(
     var jumpToTimeVisible by remember { mutableStateOf(false) }
     var savePlaylistVisible by remember { mutableStateOf(false) }
     var bookmarkToRename by remember { mutableStateOf<org.videolan.vlc.player.PlaybackBookmark?>(null) }
-    val motion = LocalVLCMotion.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     ModalBottomSheet(
@@ -210,13 +208,9 @@ internal fun PlaybackOptionsSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = 720.dp)
-                .animateContentSize(
-                    animationSpec = if (motion.reducedMotion) snap() else spring(
-                        dampingRatio = Spring.DampingRatioNoBouncy,
-                        stiffness = Spring.StiffnessMediumLow,
-                    ),
-                )
+                // Keep the viewport steady while navigating between pages of different lengths.
+                // The native sheet constrains this preferred height on shorter windows.
+                .height(600.dp)
                 .padding(bottom = VLCLayout.SheetBottomPadding),
         ) {
             SheetHandle()
@@ -227,15 +221,10 @@ internal fun PlaybackOptionsSheet(
                 modifier = Modifier.padding(horizontal = VLCLayout.SheetHorizontalPadding),
             )
             Spacer(Modifier.height(12.dp))
-            Crossfade(
-                targetState = destination,
-                animationSpec = if (motion.reducedMotion) snap() else tween(
-                    durationMillis = motion.durationShort,
-                    easing = VLCMotion.Emphasized,
-                ),
-                label = "player-sheet-destination",
-            ) { page ->
-                when (page) {
+            // Tab navigation is immediate: overlapping outgoing/incoming pages made the sheet
+            // look translucent and let its height spring toward two different content sizes.
+            Box(Modifier.weight(1f).fillMaxWidth()) {
+                when (destination) {
                     PlaybackSheetDestination.SPEED -> SpeedPage(
                         rate = previewRate,
                         onPreviewRate = { previewRate = it },
@@ -392,36 +381,40 @@ private fun PlayerDestinationBar(
     onSelect: (PlaybackSheetDestination) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    ButtonGroup(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+    Row(
+        modifier = modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).selectableGroup(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        PlaybackSheetDestination.entries.forEachIndexed { index, destination ->
-            val interactionSource = remember { MutableInteractionSource() }
-            val shapes = when (index) {
-                0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                PlaybackSheetDestination.entries.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-            }
-            ToggleButton(
-                checked = selected == destination,
-                onCheckedChange = { onSelect(destination) },
+        PlaybackSheetDestination.entries.forEach { destination ->
+            val isSelected = selected == destination
+            Surface(
                 modifier = Modifier
-                    .weight(1f)
-                    .animateWidth(interactionSource)
-                    .height(52.dp),
-                shapes = shapes,
-                colors = ToggleButtonDefaults.tonalToggleButtonColors(),
-                interactionSource = interactionSource,
+                    .widthIn(min = 80.dp)
+                    .heightIn(min = 48.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .selectable(
+                        selected = isSelected,
+                        role = Role.Tab,
+                        onClick = { onSelect(destination) },
+                    ),
+                shape = RoundedCornerShape(12.dp),
+                color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.surfaceContainer,
+                contentColor = if (isSelected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface,
             ) {
-                Text(
-                    text = when (destination) {
-                        PlaybackSheetDestination.SPEED -> stringResource(Res.string.speed)
-                        PlaybackSheetDestination.QUEUE -> stringResource(Res.string.queue)
-                        PlaybackSheetDestination.TOOLS -> stringResource(Res.string.tools)
-                    },
-                    fontWeight = FontWeight.SemiBold,
-                )
+                Box(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = when (destination) {
+                            PlaybackSheetDestination.SPEED -> stringResource(Res.string.speed)
+                            PlaybackSheetDestination.QUEUE -> stringResource(Res.string.queue)
+                            PlaybackSheetDestination.TOOLS -> stringResource(Res.string.tools)
+                        },
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                    )
+                }
             }
         }
     }
@@ -488,7 +481,6 @@ private fun SpeedPage(
                             },
                             modifier = Modifier
                                 .weight(1f)
-                                .animateWidth(interactionSource)
                                 .height(52.dp)
                                 .semantics { selected = rate == preset },
                             shapes = androidx.compose.material3.ButtonDefaults.shapes(
@@ -1114,7 +1106,7 @@ private fun ToolCard(
                     )
                 }
             }
-            VLCExpandableContent(visible = expanded) {
+            if (expanded) {
                 Column {
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 18.dp),
@@ -1405,6 +1397,7 @@ private fun ToggleRow(title: String, checked: Boolean, onCheckedChange: (Boolean
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(MaterialTheme.shapes.small)
             .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange)
             .heightIn(min = 56.dp)
             .padding(vertical = 4.dp),
@@ -1560,7 +1553,6 @@ private fun DelayChoices(title: String, delayUs: Long, onSetDelay: (Long) -> Uni
                     enabled = index != 1 || delayUs != 0L,
                     modifier = Modifier
                         .weight(1f)
-                        .animateWidth(interactionSource)
                         .height(50.dp),
                     interactionSource = interactionSource,
                 ) {

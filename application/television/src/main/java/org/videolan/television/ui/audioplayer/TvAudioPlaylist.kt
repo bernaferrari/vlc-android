@@ -56,6 +56,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusProperties
@@ -132,6 +133,7 @@ private fun TvPlaylistRow(
             .fillMaxWidth()
             .heightIn(min = 90.dp)
             .padding(end = dimensionResource(R.dimen.tv_overscan_horizontal))
+            .clip(focusShape)
             .background(rowBackground, focusShape)
             .focusProperties { canFocus = focusEnabled }
             .focusable(enabled = focusEnabled, interactionSource = interactionSource)

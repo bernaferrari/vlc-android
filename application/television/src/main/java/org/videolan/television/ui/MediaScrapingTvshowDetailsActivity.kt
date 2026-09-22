@@ -434,6 +434,7 @@ private fun EpisodeCard(
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier
             .width(156.dp)
+            .clip(RoundedCornerShape(16.dp))
             .focusable()
             .clickable(onClick = onClick)
     ) {

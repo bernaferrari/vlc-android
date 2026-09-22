@@ -17,6 +17,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.ui.semantics.Role
@@ -198,6 +199,7 @@ private fun <T> DisplayChoiceGrid(
                         modifier = Modifier
                             .weight(1f)
                             .heightIn(min = cellMinHeight)
+                            .clip(shape)
                             .selectable(
                                 selected = isSelected,
                                 role = Role.RadioButton,

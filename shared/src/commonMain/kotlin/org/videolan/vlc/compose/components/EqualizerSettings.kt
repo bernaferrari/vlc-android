@@ -410,6 +410,7 @@ private fun EqualizerPresetRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(MaterialTheme.shapes.medium)
             .background(if (preset.isCurrent) colors.subtleSelection else Color.Transparent)
             .clickable(
                 enabled = enabledForSelection,

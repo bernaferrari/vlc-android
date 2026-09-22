@@ -497,6 +497,7 @@ private fun LabeledCheckbox(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(MaterialTheme.shapes.small)
             .toggleable(
                 value = checked,
                 role = Role.Checkbox,

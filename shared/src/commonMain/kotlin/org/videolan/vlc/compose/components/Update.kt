@@ -137,6 +137,7 @@ fun VLCUpdateDialogContent(
                         .fillMaxWidth()
                         .padding(top = 16.dp)
                         .heightIn(min = 48.dp)
+                        .clip(MaterialTheme.shapes.small)
                         .toggleable(value = neverAskAgain, role = Role.Checkbox, onValueChange = onNeverAskAgainChange)
                 ) {
                     Checkbox(

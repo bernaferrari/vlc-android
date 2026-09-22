@@ -36,6 +36,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -350,6 +351,7 @@ private fun SearchResultRow(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = thumbnailHeight + 16.dp)
+            .clip(MaterialTheme.shapes.medium)
             .clickable(role = Role.Button, onClick = onClick)
             .padding(start = 12.dp, top = 8.dp, end = 12.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically

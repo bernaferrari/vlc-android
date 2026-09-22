@@ -4,6 +4,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.sp
 import org.videolan.vlc.compose.theme.VLCTheme
@@ -32,6 +34,7 @@ fun VLCAudioTimelineTimeLabel(
             color = VLCThemeDefaults.colors.fontDefault,
             fontSize = 12.sp,
             modifier = modifier
+                .clip(MaterialTheme.shapes.small)
                 .clickable(onClick = onClick)
                 .clearAndSetSemantics { }
         )

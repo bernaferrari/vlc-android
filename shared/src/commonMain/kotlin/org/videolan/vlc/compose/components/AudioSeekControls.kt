@@ -8,6 +8,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -43,6 +45,7 @@ fun VLCAudioSeekHudButton(
         Box(
             modifier = modifier
                 .size(48.dp)
+                .clip(CircleShape)
                 .combinedClickable(
                     role = Role.Button,
                     onClick = onClick,

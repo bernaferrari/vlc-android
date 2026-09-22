@@ -33,6 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -98,6 +99,7 @@ internal class VideoHudIconButtonHost(private val view: VLCComposeView) {
     fun Content() {
         Box(
             modifier = Modifier
+                .clip(androidx.compose.foundation.shape.CircleShape)
                 .combinedClickable(
                     enabled = enabledState,
                     onClick = { view.performClick() },

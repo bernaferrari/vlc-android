@@ -50,6 +50,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -199,6 +200,7 @@ internal class VideoStatsOverlayHost {
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .size(48.dp)
+                    .clip(androidx.compose.foundation.shape.CircleShape)
                     .clickable { closeClick?.invoke() }
                     .padding(12.dp)
             )

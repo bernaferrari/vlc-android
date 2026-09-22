@@ -41,6 +41,7 @@ internal fun VideoDestination(
     showPlayAllInMenu: Boolean = true,
     playerState: PlayerUiState? = null,
     onResumeVideo: (() -> Unit)? = null,
+    onOpenVideo: ((MediaItem) -> Unit)? = null,
 ) {
     RichMediaListPane(
         state = state,
@@ -64,7 +65,9 @@ internal fun VideoDestination(
         onRetry = viewModel::refresh,
         onPlay = {
             viewModel.play(it)
-            if (defaultPlaybackActionOpensPlayer(state.defaultPlaybackAction)) onOpenPlayer()
+            if (defaultPlaybackActionOpensPlayer(state.defaultPlaybackAction)) {
+                if (onOpenVideo != null) onOpenVideo(it) else onOpenPlayer()
+            }
         },
         onPlayAll = { viewModel.playAll(); onOpenPlayer() },
         showPlayAllInMenu = showPlayAllInMenu,
@@ -96,11 +99,12 @@ internal fun VideoDestination(
                 -> hostCallbacks.dispatch(item, option)
                 else -> {
                     viewModel.handleCtx(item, option)
-                    if (option == ContextOption.CTX_PLAY_ALL ||
-                        (option == ContextOption.CTX_PLAY &&
-                            defaultPlaybackActionOpensPlayer(state.defaultPlaybackAction))
-                    ) {
+                    if (option == ContextOption.CTX_PLAY_ALL) {
                         onOpenPlayer()
+                    } else if (option == ContextOption.CTX_PLAY &&
+                        defaultPlaybackActionOpensPlayer(state.defaultPlaybackAction)
+                    ) {
+                        if (onOpenVideo != null) onOpenVideo(item) else onOpenPlayer()
                     }
                 }
             }
