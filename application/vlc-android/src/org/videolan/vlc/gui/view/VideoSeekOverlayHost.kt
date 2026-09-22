@@ -22,6 +22,7 @@
 
 package org.videolan.vlc.gui.view
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.view.View
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
@@ -98,7 +99,7 @@ internal fun VLCComposeView.installVideoSeekOverlayHost() {
     isClickable = false
     isFocusable = false
     importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-    setContent {
+    setVlcContent {
         VLCTheme {
             host.Content()
         }

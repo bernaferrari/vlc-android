@@ -1,5 +1,6 @@
 package org.videolan.vlc.gui.dialogs
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
@@ -49,7 +50,7 @@ private class NotificationPermissionComposeDialog(private val activity: Componen
     private fun setupContent() {
         rootView = ComposeView(activity).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
+            setVlcContent {
                 VLCNotificationPermissionDialogContent(
                     title = activity.getString(R.string.notification_permission),
                     explanation = activity.getString(R.string.notification_permission_explanation),

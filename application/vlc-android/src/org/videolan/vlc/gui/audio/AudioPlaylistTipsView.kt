@@ -22,6 +22,7 @@
 
 package org.videolan.vlc.gui.audio
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.Context
 import android.util.TypedValue
 import androidx.annotation.StringRes
@@ -88,7 +89,7 @@ private data class AudioPlaylistTipsUiState(
 internal fun VLCComposeView.installAudioPlaylistTipsHost(context: Context) {
     val host = AudioPlaylistTipsHost(context)
     setTag(R.id.audio_playlist_tips, host)
-    setContent {
+    setVlcContent {
         VLCTheme {
             host.Content()
         }

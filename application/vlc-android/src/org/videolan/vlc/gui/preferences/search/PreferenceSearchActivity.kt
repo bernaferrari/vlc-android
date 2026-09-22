@@ -24,6 +24,7 @@
 
 package org.videolan.vlc.gui.preferences.search
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -53,7 +54,7 @@ class PreferenceSearchActivity : BaseActivity() {
                 ComposeView(this).apply {
                     layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
                     setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-                    setContent {
+                    setVlcContent {
                         PreferenceSearchRoute(
                                 viewmodel = viewmodel,
                                 showTranslationToggle = shouldShowTranslationToggle(),

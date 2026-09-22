@@ -22,6 +22,7 @@
 
 package org.videolan.vlc.gui.view
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.graphics.Bitmap
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -33,6 +34,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -80,7 +82,7 @@ private data class VideoScreenshotOverlayState(
 internal fun VLCComposeView.installVideoScreenshotOverlayHost(onHidden: () -> Unit) {
     val host = VideoScreenshotOverlayHost(onHidden)
     setTag(R.id.player_screenshot_stub, host)
-    setContent {
+    setVlcContent {
         VLCTheme {
             host.Content()
         }
@@ -203,7 +205,7 @@ internal class VideoScreenshotOverlayHost(private val onHidden: () -> Unit) {
                         height = with(density) { (state.sourceHeightPx * scale.value + thumbnailPaddingDoublePx).toDp() }
                     )
                     .graphicsLayer { this.alpha = chromeAlpha.value }
-                    .background(Color.White, RoundedCornerShape(6.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainer, RoundedCornerShape(16.dp))
             )
             Image(
                 bitmap = state.bitmap.asImageBitmap(),
@@ -243,19 +245,19 @@ internal class VideoScreenshotOverlayHost(private val onHidden: () -> Unit) {
                 .offset { IntOffset(with(density) { 16.dp.toPx() }.roundToInt(), yPx.roundToInt()) }
                 .size(width = 250.dp, height = 56.dp)
                 .graphicsLayer { this.alpha = alpha }
-                .background(Color.White, RoundedCornerShape(6.dp))
+                .background(MaterialTheme.colorScheme.surfaceContainer, RoundedCornerShape(16.dp))
         ) {
             IconButton(
                 onClick = { state.onShare(state.file) },
                 modifier = Modifier
                     .offset { IntOffset(with(density) { 194.dp.toPx() }.roundToInt(), with(density) { 6.dp.toPx() }.roundToInt()) }
                     .size(44.dp)
-                    .background(Color(0xFFFF610A), RoundedCornerShape(4.dp))
+                    .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_share),
-                    contentDescription = null,
-                    tint = Color.White
+                    contentDescription = androidx.compose.ui.res.stringResource(R.string.share),
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }

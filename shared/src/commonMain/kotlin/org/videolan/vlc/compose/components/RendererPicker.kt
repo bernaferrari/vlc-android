@@ -1,6 +1,7 @@
 package org.videolan.vlc.compose.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,6 +20,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import org.jetbrains.compose.resources.stringResource
+import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialSymbols
+import vlc_android.shared.generated.resources.Res
+import vlc_android.shared.generated.resources.searching_displays
+import vlc_android.shared.generated.resources.displays_network_hint
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,7 +62,7 @@ fun VLCRendererPickerDialogContent(
     VLCTheme {
         val colors = VLCThemeDefaults.colors
         Surface(
-            modifier = modifier.widthIn(min = 320.dp, max = 420.dp),
+            modifier = modifier.widthIn(max = 480.dp).fillMaxWidth(),
             color = colors.backgroundDefault,
             contentColor = colors.fontDefault,
             shape = MaterialTheme.shapes.extraLarge
@@ -63,15 +70,11 @@ fun VLCRendererPickerDialogContent(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 24.dp),
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text(
-                    text = title,
-                    color = colors.fontDefault,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(horizontal = 24.dp)
-                )
+                VLCModalHeader(title = title)
 
                 if (renderers.isEmpty()) {
                     ScanningState()
@@ -79,9 +82,7 @@ fun VLCRendererPickerDialogContent(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .heightIn(max = 360.dp)
-                            .verticalScroll(rememberScrollState())
-                            .padding(horizontal = 16.dp)
+                            .selectableGroup()
                             .vlcSettingsCard()
                     ) {
                         renderers.forEachIndexed { index, item ->
@@ -100,7 +101,7 @@ fun VLCRendererPickerDialogContent(
                         onClick = onDisconnect,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp)
+                            .heightIn(min = 48.dp)
                     ) {
                         Text(disconnectText)
                     }
@@ -112,13 +113,19 @@ fun VLCRendererPickerDialogContent(
 
 @Composable
 private fun ScanningState() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 28.dp),
-        contentAlignment = Alignment.Center
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        CircularProgressIndicator(strokeWidth = 3.dp)
+        CircularProgressIndicator(strokeWidth = 3.dp, modifier = Modifier.size(32.dp))
+        Text(stringResource(Res.string.searching_displays), style = MaterialTheme.typography.titleMedium)
+        Text(
+            stringResource(Res.string.displays_network_hint),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+        )
     }
 }
 
@@ -152,10 +159,13 @@ private fun RendererPickerRow(
             // The accent wash and selected icon already carry state; stable metrics keep the
             // renderer list from shifting as the active device changes.
             style = MaterialTheme.typography.bodyLarge,
-            maxLines = 1,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f)
         )
+        if (item.isSelected) {
+            Icon(MaterialSymbols.Filled.CheckCircle, contentDescription = null, tint = colors.primary, modifier = Modifier.size(24.dp))
+        }
     }
 }
 

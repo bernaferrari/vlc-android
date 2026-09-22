@@ -2,6 +2,9 @@ package org.videolan.vlc.desktop
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
+import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.layout.ContentScale
 import org.videolan.vlc.compose.artwork.MediaArtwork
 import org.videolan.vlc.compose.player.PlayerArtworkFallback
@@ -53,6 +56,8 @@ fun main() {
     }
     application {
         val windowState = rememberWindowState(width = 430.dp, height = 860.dp)
+        var qaSurface by remember { mutableStateOf<QASurface?>(null) }
+        var previewFontScale by remember { mutableStateOf(1f) }
         Window(
             onCloseRequest = ::exitApplication,
             title = "VLC · Design preview",
@@ -64,24 +69,38 @@ fun main() {
                     Item("Narrow · 320 × 700", onClick = { windowState.size = DpSize(320.dp, 700.dp) })
                     Item("Landscape · 850 × 400", onClick = { windowState.size = DpSize(850.dp, 400.dp) })
                     Item("Wide · 1100 × 800", onClick = { windowState.size = DpSize(1100.dp, 800.dp) })
+                    Separator()
+                    Item("Text size · 100%", onClick = { previewFontScale = 1f })
+                    Item("Text size · 150%", onClick = { previewFontScale = 1.5f })
+                }
+                Menu("QA surfaces") {
+                    QASurface.entries.forEach { surface ->
+                        Item(surface.label, onClick = { qaSurface = surface })
+                    }
                 }
             }
-            VlcKoinMainShell(
-                playerSurface = { state, _ ->
-                    val item = state.queue.getOrNull(state.currentQueueIndex)
-                    if (state.hasVideoOutput && item != null) {
-                        MediaArtwork(
-                            item = item,
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop,
-                            fillMaxSizeArtwork = true,
-                        )
-                    } else {
-                        PlayerArtworkFallback(state)
-                    }
-                },
-            )
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, previewFontScale)) {
+                VlcKoinMainShell(
+                    playerSurface = { state, _ ->
+                        val item = state.queue.getOrNull(state.currentQueueIndex)
+                        if (state.hasVideoOutput && item != null) {
+                            MediaArtwork(
+                                item = item,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop,
+                                fillMaxSizeArtwork = true,
+                            )
+                        } else {
+                            PlayerArtworkFallback(state)
+                        }
+                    },
+                )
+            }
+            qaSurface?.let { surface ->
+                SecondarySurfaceGallery(surface, windowState.size, previewFontScale, onClose = { qaSurface = null })
+            }
         }
     }
     app.close()

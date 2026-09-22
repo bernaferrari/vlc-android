@@ -22,6 +22,7 @@
 
 package org.videolan.vlc.gui.view
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,7 +41,7 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
 internal fun VLCComposeView.installVideoHudSeekJumpLabelHost() {
     val host = VideoHudSeekJumpLabelHost()
     setTag(R.id.video_hud_seek_jump_label_host, host)
-    setContent {
+    setVlcContent {
         VLCTheme {
             host.Content()
         }

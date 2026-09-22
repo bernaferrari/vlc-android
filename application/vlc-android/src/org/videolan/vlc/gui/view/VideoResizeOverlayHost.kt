@@ -22,6 +22,7 @@
 
 package org.videolan.vlc.gui.view
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -40,6 +41,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -51,6 +53,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -74,8 +77,8 @@ import org.videolan.vlc.compose.theme.VLCTheme
 internal fun VLCComposeView.installVideoResizeOverlayHost() {
     val host = VideoResizeOverlayHost()
     setTag(R.id.player_resize_stub, host)
-    setContent {
-        VLCTheme {
+    setVlcContent {
+        VLCTheme(darkTheme = true) {
             host.Content()
         }
     }
@@ -149,7 +152,8 @@ internal class VideoResizeOverlayHost {
                     .align(Alignment.CenterEnd)
                     .width(250.dp)
                     .fillMaxHeight()
-                    .background(Color(0xFF202020))
+                    .clip(MaterialTheme.shapes.extraLarge)
+                    .background(MaterialTheme.colorScheme.surfaceContainer)
                     .clickable(
                         interactionSource = panelInteraction,
                         indication = null,
@@ -165,7 +169,7 @@ internal class VideoResizeOverlayHost {
                     Icon(
                         painter = painterResource(R.drawable.ic_popup_close_w),
                         contentDescription = stringResource(R.string.close),
-                        tint = Color.White
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 if (showFoldSection) {
@@ -222,7 +226,7 @@ internal class VideoResizeOverlayHost {
     private fun PanelTitle(text: String) {
         Text(
             text = text,
-            color = Color.White,
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.fillMaxWidth()
@@ -248,7 +252,7 @@ internal class VideoResizeOverlayHost {
             )
             Text(
                 text = text,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 14.sp,
                 modifier = Modifier.padding(start = 4.dp)
             )
@@ -275,7 +279,7 @@ internal class VideoResizeOverlayHost {
                 Icon(
                     painter = painterResource(R.drawable.ic_delay_done),
                     contentDescription = null,
-                    tint = Color.White,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(24.dp)
                 )
             } else {
@@ -283,7 +287,7 @@ internal class VideoResizeOverlayHost {
             }
             Text(
                 text = scaleLabel(scale),
-                color = if (selected) Color.White else Color.White.copy(alpha = 0.5F),
+                color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(start = 16.dp)

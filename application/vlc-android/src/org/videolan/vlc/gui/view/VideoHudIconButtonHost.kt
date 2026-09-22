@@ -22,6 +22,7 @@
 
 package org.videolan.vlc.gui.view
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
@@ -53,7 +54,7 @@ internal fun VLCComposeView.installVideoHudIconButtonHost(
     host.setImageResource(icon)
     host.setContentDescription(contentDescription)
     host.setEnabled(enabled)
-    setContent {
+    setVlcContent {
         VLCTheme {
             host.Content()
         }

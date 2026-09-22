@@ -1,5 +1,6 @@
 package org.videolan.vlc.gui
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -94,7 +95,7 @@ class EqualizerSettingsActivity : BaseActivity() {
 
         rootView = ComposeView(this).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent {
+            setVlcContent {
                 VLCEqualizerSettingsScreen(
                     presets = unfilteredEqualizers.map { it.toPresetUi() },
                     editorState = buildEditorState(),

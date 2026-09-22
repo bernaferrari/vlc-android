@@ -1,6 +1,7 @@
 package org.videolan.vlc.compose.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -25,7 +26,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Button
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -52,6 +53,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -107,14 +109,14 @@ fun VLCPinCodeScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
+                    .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 if (showSuccess) {
                     PinUnlockSuccess(
                         successText = successText,
                         iconContent = successIconContent,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.widthIn(max = 520.dp).fillMaxWidth()
                     )
                 } else if (showPinEntry) {
                     PinEntryContent(
@@ -126,9 +128,9 @@ fun VLCPinCodeScreen(
                         onPinChange = onPinChange,
                         onDigit = onDigit,
                         onBackspace = onBackspace,
-                        onNext = onNext,
+                        onNext = { if (nextEnabled) onNext() },
                         backspaceIconContent = backspaceIconContent,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.widthIn(max = 520.dp).fillMaxWidth()
                     )
                 }
 
@@ -170,13 +172,7 @@ private fun PinEntryContent(
             .padding(bottom = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        HiddenPinInput(
-            pin = pin,
-            enabled = !showVirtualKeyboard,
-            title = title,
-            onPinChange = onPinChange,
-            onNext = onNext
-        )
+
 
         Text(
             text = reasonText,
@@ -188,20 +184,13 @@ private fun PinEntryContent(
 
         Spacer(Modifier.height(16.dp))
 
-        Text(
-            text = title,
-            color = colors.fontDefault,
-            style = MaterialTheme.typography.titleLarge.copy(
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Medium
-            ),
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(Modifier.height(48.dp))
-
-        PinBoxes(pin = pin)
+        VLCModalHeader(title = title)
+        Spacer(Modifier.height(24.dp))
+        if (showVirtualKeyboard) {
+            PinBoxes(pin = pin)
+        } else {
+            PinInput(pin = pin, title = title, onPinChange = onPinChange, onNext = onNext)
+        }
 
         if (showVirtualKeyboard) {
             Spacer(Modifier.height(24.dp))
@@ -217,16 +206,15 @@ private fun PinEntryContent(
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-private fun HiddenPinInput(
+private fun PinInput(
     pin: String,
-    enabled: Boolean,
     title: String,
     onPinChange: (String) -> Unit,
     onNext: () -> Unit
 ) {
-    if (!enabled) return
-
     val focusRequester = remember { FocusRequester() }
+    val interactionSource = remember { MutableInteractionSource() }
+    val focused by interactionSource.collectIsFocusedAsState()
     val keyboardController = LocalSoftwareKeyboardController.current
 
     LaunchedEffect(Unit) {
@@ -235,11 +223,13 @@ private fun HiddenPinInput(
     }
 
     BasicTextField(
+        interactionSource = interactionSource,
         value = pin,
         onValueChange = { value ->
             onPinChange(value.filter { it.isDigit() }.take(4))
         },
         singleLine = true,
+        visualTransformation = PasswordVisualTransformation(),
         textStyle = TextStyle(color = Color.Transparent),
         cursorBrush = SolidColor(Color.Transparent),
         keyboardOptions = KeyboardOptions(
@@ -250,9 +240,18 @@ private fun HiddenPinInput(
             onDone = { onNext() },
             onNext = { onNext() }
         ),
+        decorationBox = { innerTextField ->
+            Box(Modifier.border(
+                width = if (focused) 2.dp else 0.dp,
+                color = if (focused) MaterialTheme.colorScheme.primary else Color.Transparent,
+                shape = MaterialTheme.shapes.large,
+            ).padding(4.dp)) {
+                Box(Modifier.size(1.dp).alpha(0.01f)) { innerTextField() }
+                PinBoxes(pin = pin)
+            }
+        },
         modifier = Modifier
-            .size(1.dp)
-            .alpha(0.01f)
+            .fillMaxWidth()
             .focusRequester(focusRequester)
             .semantics {
                 contentDescription = title
@@ -304,9 +303,9 @@ private fun PinBoxes(pin: String, modifier: Modifier = Modifier) {
 }
 
 private fun pinTileSize(maxWidth: Dp, spacing: Dp): Dp =
-    ((maxWidth - spacing * 3f - 64.dp) / 4f)
+    ((maxWidth - spacing * 3f) / 4f)
         .coerceAtMost(64.dp)
-        .coerceAtLeast(48.dp)
+        .coerceAtLeast(1.dp)
 
 @Composable
 private fun PinKeyboard(
@@ -390,20 +389,20 @@ private fun PinKeyboardButton(
                 role = Role.Button,
                 onClick = onClick
             ),
-        shape = RoundedCornerShape(8.dp),
-        color = if (active) colors.primaryFocus else Color(0xCC000000),
-        contentColor = Color.White,
-        border = if (focused) BorderStroke(1.dp, colors.primary) else null
+        shape = MaterialTheme.shapes.medium,
+        color = if (active) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
+        contentColor = if (active) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+        border = if (focused) BorderStroke(2.dp, colors.primary) else null
     ) {
         Box(contentAlignment = Alignment.Center) {
             if (iconContent != null) {
-                CompositionLocalProvider(LocalContentColor provides Color.White) {
+                CompositionLocalProvider(LocalContentColor provides if (active) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface) {
                     iconContent()
                 }
             } else {
                 Text(
                     text = text,
-                    color = Color.White,
+                    color = if (active) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium)
                 )
             }
@@ -469,13 +468,7 @@ private fun PinActions(
 
         Spacer(Modifier.weight(1f))
 
-        TextButton(
-            onClick = onNext,
-            enabled = nextEnabled,
-            colors = ButtonDefaults.textButtonColors(
-                contentColor = VLCThemeDefaults.colors.primary
-            )
-        ) {
+        Button(onClick = onNext, enabled = nextEnabled) {
             Text(nextText)
         }
     }

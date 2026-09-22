@@ -24,6 +24,7 @@
 
 package org.videolan.vlc.remoteaccessserver.gui.remoteaccess.onboarding
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.app.Activity
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
@@ -122,7 +123,7 @@ class RemoteAccessOnboardingActivity : AppCompatActivity() {
         setContentView(
             ComposeView(this).apply {
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-                setContent {
+                setVlcContent {
                     VLCTheme(darkTheme = true) {
                         var currentPage by rememberSaveable { mutableStateOf(viewModel.currentPage) }
                         LaunchedEffect(currentPage) {
@@ -169,7 +170,7 @@ private fun RemoteAccessOnboardingScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(colors.onboardingBackground)
+            .background(colors.backgroundDefault)
     ) {
         AnimatedContent(
             targetState = currentPage,
@@ -200,7 +201,7 @@ private fun RemoteAccessOnboardingScreen(
                 onClick = onNext,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = colors.primary,
-                    contentColor = Color.White
+                    contentColor = colors.onPrimary
                 )
             ) {
                 Text(stringResource(if (currentPage == OnboardingPage.CONTENT) R.string.done else R.string.next))
@@ -274,7 +275,7 @@ private fun PageCopy(page: OnboardingPage, modifier: Modifier = Modifier) {
         }
         Text(
             text = stringResource(page.title),
-            color = Color.White,
+            color = VLCThemeDefaults.colors.fontDefault,
             fontSize = 28.sp,
             lineHeight = 34.sp,
             fontWeight = FontWeight.Bold,
@@ -287,7 +288,7 @@ private fun PageCopy(page: OnboardingPage, modifier: Modifier = Modifier) {
         Spacer(Modifier.height(8.dp))
         Text(
             text = stringResource(page.description),
-            color = Color.White.copy(alpha = 0.78f),
+            color = VLCThemeDefaults.colors.fontLight,
             fontSize = 18.sp,
             lineHeight = 24.sp,
             textAlign = TextAlign.Center,
@@ -376,7 +377,7 @@ private fun DeviceBrowserVisual(secure: Boolean) {
             if (secure) {
                 Text(
                     text = randomData,
-                    color = Color.White,
+                    color = VLCThemeDefaults.colors.fontDefault,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.align(Alignment.BottomCenter)
@@ -393,7 +394,7 @@ private fun OtpVisual() {
     var browserOtp by remember { mutableStateOf("") }
     var accepted by remember { mutableStateOf(true) }
     var accessVisible by remember { mutableStateOf(false) }
-    val linkColor = if (accessVisible && accepted) Color(0xFF9CCC65) else if (accessVisible) Color(0xFFD50000) else VLCThemeDefaults.colors.primary
+    val linkColor = if (accessVisible && accepted) VLCThemeDefaults.colors.fontDefault else if (accessVisible) VLCThemeDefaults.colors.error else VLCThemeDefaults.colors.primary
     val accessAlpha by animateFloatAsState(if (accessVisible) 1f else 0f, tween(250), label = "accessAlpha")
     val linkScale by animateFloatAsState(if (browserOtp.isNotEmpty() || accessVisible) 1f else 0f, tween(500), label = "otpLink")
 
@@ -461,7 +462,7 @@ private fun OtpEndpoint(icon: Int, label: String) {
         Spacer(Modifier.height(8.dp))
         Text(
             text = label,
-            color = Color.White,
+            color = VLCThemeDefaults.colors.fontDefault,
             fontSize = 18.sp,
             fontWeight = FontWeight.Medium,
             minLines = 1
@@ -512,7 +513,7 @@ private fun ContentAccessItem(icon: Int, label: Int, scale: Float) {
             modifier = Modifier
                 .size(64.dp)
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.16f)),
+                .background(VLCThemeDefaults.colors.backgroundDefaultDarker),
             contentAlignment = Alignment.Center
         ) {
             Image(
@@ -524,7 +525,7 @@ private fun ContentAccessItem(icon: Int, label: Int, scale: Float) {
         Spacer(Modifier.height(8.dp))
         Text(
             text = stringResource(label),
-            color = Color.White,
+            color = VLCThemeDefaults.colors.fontDefault,
             fontSize = 14.sp,
             textAlign = TextAlign.Center,
             modifier = Modifier.widthIn(max = 160.dp)

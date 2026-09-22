@@ -22,6 +22,7 @@
 
 package org.videolan.vlc.gui.video
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.Intent
 import android.view.Menu
 import android.view.MenuItem
@@ -684,7 +685,7 @@ class VideoScreenController(private val activity: MainActivity) : DefaultLifecyc
         var newName by mutableStateOf(TextFieldValue(item.title.orEmpty()))
         val rootView = ComposeView(activity).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
+            setVlcContent {
                 VLCTheme {
                     VLCRenameDialogContent(
                         title = activity.getString(R.string.rename),
@@ -1127,7 +1128,7 @@ class SecondaryVideoScreenController(
         var newName by mutableStateOf(TextFieldValue(item.title.orEmpty()))
         val rootView = ComposeView(activity).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
+            setVlcContent {
                 VLCTheme {
                     VLCRenameDialogContent(
                         title = activity.getString(R.string.rename),

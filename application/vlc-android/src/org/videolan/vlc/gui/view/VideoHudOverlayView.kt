@@ -22,6 +22,7 @@
 
 package org.videolan.vlc.gui.view
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View
@@ -372,7 +373,7 @@ private fun ConstraintLayout.seekJumpLabel(@IdRes id: Int) = VLCComposeView(cont
 
 private fun ConstraintLayout.spacerHost(@IdRes id: Int) = VLCComposeView(context).apply {
     this.id = id
-    setContent {}
+    setVlcContent {}
 }
 
 private fun hudLayout(

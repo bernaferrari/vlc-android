@@ -24,6 +24,7 @@
 
 package org.videolan.vlc.gui
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.os.Bundle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,7 +53,7 @@ class OTPCodeActivity : BaseActivity() {
         setContentView(
             ComposeView(this).apply {
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-                setContent {
+                setVlcContent {
                     VLCOTPCodeScreen(
                         title = getString(R.string.ra_otp_title),
                         subtitle = getString(R.string.ra_otp_subtitle),

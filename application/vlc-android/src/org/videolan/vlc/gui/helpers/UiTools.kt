@@ -143,6 +143,7 @@ import org.videolan.vlc.gui.preferences.PreferencesActivity
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.media.getAll
 import org.videolan.vlc.providers.medialibrary.MedialibraryProvider
+import org.videolan.vlc.util.openLinkIfPossible
 import org.videolan.vlc.util.FileUtils
 import org.videolan.vlc.util.ThumbnailsProvider
 import kotlin.math.min
@@ -547,6 +548,14 @@ object UiTools {
 
     fun ComponentActivity.showDonations() {
         if (!isStarted()) return
+        val contributionUrl = "https://www.videolan.org/contribute.html"
+        showSimpleComposeDialog(
+            title = getString(R.string.donate),
+            message = getString(R.string.donation_description) + "\n\n" + contributionUrl,
+            confirmText = getString(R.string.open_in_browser),
+            dismissText = getString(R.string.close),
+            onConfirm = { openLinkIfPossible(contributionUrl) }
+        )
     }
 
     fun ComponentActivity.showMediaInfo(mediaWrapper: MediaWrapper) {
@@ -923,12 +932,12 @@ fun BaseActivity.applyTheme() {
     val string = settings.getString(KEY_APP_THEME, "-1")
     when (string) {
         "1" -> {
-            window.setBackgroundDrawable(ContextCompat.getColor(this, R.color.white).toDrawable())
+            window.setBackgroundDrawable(ContextCompat.getColor(this, R.color.reimagined_canvas_light).toDrawable())
             WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = true
             WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightNavigationBars = true
         }
         "2" -> {
-            window.setBackgroundDrawable(ContextCompat.getColor(this, R.color.mini_player_dark).toDrawable())
+            window.setBackgroundDrawable(ContextCompat.getColor(this, R.color.reimagined_canvas_dark).toDrawable())
             WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = false
             WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightNavigationBars = false
         }

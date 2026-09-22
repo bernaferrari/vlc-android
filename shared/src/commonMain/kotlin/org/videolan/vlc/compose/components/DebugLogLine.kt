@@ -26,6 +26,7 @@ fun VLCDebugLogLine(
     VLCTheme {
         Text(
             text = text,
+            color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.bodySmall.copy(
                 fontFamily = FontFamily.Monospace
             ),

@@ -2,6 +2,9 @@ package org.videolan.vlc.compose.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,7 +22,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 
@@ -40,7 +42,9 @@ fun VLCPlayerOptionItem(
 ) {
     VLCTheme {
         val rowModifier = modifier
-            .width(224.dp)
+            .widthIn(min = 224.dp, max = 320.dp)
+            .heightIn(min = 56.dp)
+            .clip(MaterialTheme.shapes.medium)
             .then(
                 if (onClick != null) {
                     Modifier.clickable(role = Role.Button, onClick = onClick)
@@ -68,10 +72,9 @@ fun VLCPlayerOptionItem(
                 text = title,
                 color = VLCThemeDefaults.colors.listTitle,
                 style = MaterialTheme.typography.bodyLarge.copy(
-                    fontSize = 17.sp,
                     fontWeight = FontWeight.Medium
                 ),
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
         }

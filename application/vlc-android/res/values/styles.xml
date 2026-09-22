@@ -21,52 +21,52 @@
         <item name="textInputStyle">@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox
         </item>
 
-        <item name="colorPrimary">@color/orange800</item>
+        <item name="colorPrimary">@color/reimagined_primary_light</item>
         <item name="colorPrimaryDark">@color/orange700</item>
-        <item name="colorSecondary">@color/orange800</item>
-        <item name="colorOnSecondary">@color/grey50</item>
+        <item name="colorSecondary">@color/reimagined_primary_light</item>
+        <item name="colorOnSecondary">@color/white</item>
         <item name="colorOnPrimary">@color/white</item>
-        <item name="colorAccent">@color/orange800</item>
+        <item name="colorAccent">@color/reimagined_primary_light</item>
         <item name="windowActionModeOverlay">true</item>
         <item name="actionModeTheme">@style/ThemeOverlay.ActionMode</item>
         <item name="actionModeStyle">@style/ActionMode</item>
-        <item name="colorOnSurface">@color/black</item>
+        <item name="colorOnSurface">@color/reimagined_text_light</item>
         <item name="colorControlHighlight">@color/orange800</item>
-        <item name="colorControlNormal">@color/grey700</item>
+        <item name="colorControlNormal">@color/reimagined_muted_light</item>
 
 
         <item name="actionModeBackground">@color/action_mode_light</item>
-        <item name="background_default">@color/white</item>
+        <item name="background_default">@color/reimagined_canvas_light</item>
         <item name="bottom_navigation_background">@drawable/bottom_navigation_background</item>
-        <item name="audio_header_background">@color/white</item>
-        <item name="audio_header_divider">@color/grey400</item>
-        <item name="default_divider">@color/black_transparent_20</item>
+        <item name="audio_header_background">@color/reimagined_container_light</item>
+        <item name="audio_header_divider">@color/reimagined_border_light</item>
+        <item name="default_divider">@color/reimagined_border_light</item>
         <item name="subtle_selection">@color/black_transparent_10</item>
         <item name="audio_menu_icon">@color/black_transparent_50</item>
         <item name="audio_list_background">@drawable/audio_list_background</item>
         <item name="audio_seek_bar">@drawable/audio_seekbar</item>
         <item name="mini_visualizer_color">@color/mini_visualizer</item>
         <item name="round_background">@drawable/round_background</item>
-        <item name="bottom_sheet_background">@color/white</item>
+        <item name="bottom_sheet_background">@color/reimagined_surface_light</item>
         <item name="bookmark_background">@color/white_transparent_90</item>
-        <item name="bottom_sheet_radius">16dp</item>
-        <item name="bottom_navigation_color">@color/grey700</item>
-        <item name="header_background">@color/whitetransparent_ea</item>
-        <item name="background_default_darker">@color/grey200</item>
-        <item name="background_actionbar">@color/white</item>
+        <item name="bottom_sheet_radius">24dp</item>
+        <item name="bottom_navigation_color">@color/reimagined_muted_light</item>
+        <item name="header_background">@color/reimagined_canvas_light</item>
+        <item name="background_default_darker">@color/reimagined_container_light</item>
+        <item name="background_actionbar">@color/reimagined_canvas_light</item>
         <item name="audio_player_background_tint">@color/white_transparent_75</item>
         <item name="background_audio_tips">@color/white_transparent_95</item>
-        <item name="audio_browser_separator">@color/orange800</item>
+        <item name="audio_browser_separator">@color/reimagined_primary_light</item>
         <item name="dialog_circle_background">@color/dialog_circle_background</item>
-        <item name="font_default">@color/grey900</item>
-        <item name="font_light">@color/grey700</item>
+        <item name="font_default">@color/reimagined_text_light</item>
+        <item name="font_light">@color/reimagined_muted_light</item>
         <item name="font_disabled">@color/grey700transparent</item>
-        <item name="font_audio_light">@color/grey700</item>
-        <item name="list_subtitle">@color/list_subtitle</item>
-        <item name="list_title">@color/list_title</item>
+        <item name="font_audio_light">@color/reimagined_muted_light</item>
+        <item name="list_subtitle">@color/reimagined_muted_light</item>
+        <item name="list_title">@color/reimagined_text_light</item>
         <item name="donate_card">@color/orange500</item>
         <item name="donate_item_background">@drawable/donate_background_color</item>
-        <item name="android:windowBackground">@color/white</item>
+        <item name="android:windowBackground">@color/reimagined_canvas_light</item>
         <item name="audio_chips_color">@color/black_transparent_75</item>
         <item name="audio_chips_text_color">@color/white_transparent_60</item>
         <item name="bottom_navigation_focus">@color/orange_800_transparent_10</item>
@@ -74,7 +74,7 @@
         <item name="primary_focus">@color/orange_800_transparent_20</item>
         <item name="swipe_refresh_background">?attr/background_default</item>
         <item name="dialogButtonStyle">@style/Widget.MaterialComponents.Button.TextButton.Dialog</item>
-        <item name="permission_explanation_background">@color/grey200</item>
+        <item name="permission_explanation_background">@color/reimagined_container_light</item>
 
         <item name="gridview_progressbar">@drawable/gridview_progressbar</item>
         <item name="progress_mini_player">@drawable/progress_mini_player</item>
@@ -82,27 +82,36 @@
         <item name="ic_tips_double_tap">@drawable/tips_double_tap_500</item>
         <item name="ic_tips_tap">@drawable/tips_tap_500</item>
         <item name="ic_passthrough">@drawable/ic_passthrough</item>
-        <item name="ariane_text_color">@color/grey700</item>
+        <item name="ariane_text_color">@color/reimagined_muted_light</item>
         <item name="ariane_text_size">14sp</item>
         <item name="player_icon_color">@color/black</item>
-        <item name="card_background">@color/white</item>
-        <item name="default_separator">@color/grey300</item>
+        <item name="card_background">@color/reimagined_surface_light</item>
+        <item name="default_separator">@color/reimagined_border_light</item>
         <item name="empty_button">@style/Widget.MaterialComponents.Button.OutlinedButton</item>
-        <item name="card_border">@color/grey300</item>
+        <item name="card_border">@color/reimagined_border_light</item>
         <item name="empty_foreground">@color/grey300</item>
-        <item name="empty_background">@color/grey50</item>
+        <item name="empty_background">@color/reimagined_container_light</item>
         <item name="disabled_overlay_color">@color/white_transparent_50</item>
         <item name="video_card_background">@drawable/video_grid_card_background</item>
         <item name="video_list_background">@drawable/video_list_background</item>
         <item name="audio_chip_background">@drawable/rounded_corners_audio</item>
         <item name="audio_chip_text_color">@color/white_transparent_60</item>
-        <item name="empty_title">@color/grey850</item>
+        <item name="empty_title">@color/reimagined_text_light</item>
         <item name="audio_player_gradient_bottom">@drawable/gradient_audio_player_bottom</item>
         <item name="audio_player_gradient_top">@drawable/gradient_audio_player_top</item>
         <item name="tips_item_background">@color/grey300</item>
-        <item name="about_text_primary">@color/black</item>
+        <item name="about_text_primary">@color/reimagined_text_light</item>
         <item name="widget_preview_rounded_bg">@drawable/rounded_top_corners_left_background</item>
         <item name="sliderStyle">@style/VLC.Slider</item>
+            <item name="colorSurface">@color/reimagined_surface_light</item>
+        <item name="android:textColorPrimary">@color/reimagined_text_light</item>
+        <item name="android:textColorSecondary">@color/reimagined_muted_light</item>
+        <item name="android:colorBackground">@color/reimagined_canvas_light</item>
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.VLC.Small</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.VLC.Medium</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.VLC.Large</item>
+        <item name="materialButtonStyle">@style/Widget.VLC.Button</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.VLC.AlertDialog</item>
     </style>
 
     <style name="VLC.Slider" parent="Widget.MaterialComponents.Slider">
@@ -119,11 +128,11 @@
 
     <style name="VLC.Tooltip" parent="Widget.MaterialComponents.Tooltip">
         <item name="android:textAppearance">@style/TextAppearance.VLC.Tooltip</item>
-        <item name="backgroundTint">@color/orange800</item>
+        <item name="backgroundTint">@color/reimagined_primary_light</item>
     </style>
     <style name="VLC.Tooltip.Dark" parent="Widget.MaterialComponents.Tooltip">
         <item name="android:textAppearance">@style/TextAppearance.VLC.Tooltip</item>
-        <item name="backgroundTint">@color/orange500</item>
+        <item name="backgroundTint">@color/reimagined_surface_dark</item>
     </style>
 
     <style name="TextAppearance.VLC.Tooltip" parent="TextAppearance.Material3.BodySmall">
@@ -135,53 +144,117 @@
     <style name="Theme.VLC.PickerDialog.Dark" parent="Theme.VLC.PickerDialog.Dark.7"/>
     <style name="Theme.VLC.PickerDialog.Light" parent="Theme.VLC.PickerDialog.Light.7"/>
     <style name="Theme.VLC.PickerDialog.Dark.7" parent="Theme.MaterialComponents.Dialog">
-        <item name="colorPrimary">@color/orange500</item>
+        <item name="colorPrimary">@color/reimagined_primary_dark</item>
         <item name="colorPrimaryDark">@color/orange700</item>
-        <item name="colorSecondary">@color/orange500</item>
+        <item name="colorSecondary">@color/reimagined_primary_dark</item>
         <item name="windowNoTitle">true</item>
         <item name="android:gridViewStyle">@style/Theme.VLC.List</item>
-        <item name="background_default">@color/grey850</item>
-        <item name="background_default_darker">@color/grey875</item>
-        <item name="font_default">@color/grey50</item>
-        <item name="font_light">@color/grey600</item>
+        <item name="background_default">@color/reimagined_canvas_dark</item>
+        <item name="background_default_darker">@color/reimagined_container_dark</item>
+        <item name="font_default">@color/reimagined_text_dark</item>
+        <item name="font_light">@color/reimagined_muted_dark</item>
         <item name="font_disabled">@color/grey600transparent</item>
-        <item name="list_subtitle">@color/grey400</item>
-        <item name="list_title">@color/white</item>
-        <item name="ariane_text_color">@color/grey50</item>
+        <item name="list_subtitle">@color/reimagined_muted_dark</item>
+        <item name="list_title">@color/reimagined_text_dark</item>
+        <item name="ariane_text_color">@color/reimagined_muted_dark</item>
         <item name="ariane_text_size">14sp</item>
-        <item name="android:windowBackground">@color/grey900</item>
+        <item name="android:windowBackground">@color/reimagined_canvas_dark</item>
         <item name="android:textViewStyle">@style/VLC.TextView</item>
-        <item name="empty_title">@color/grey300</item>
+        <item name="empty_title">@color/reimagined_text_dark</item>
         <item name="gridview_progressbar">@drawable/gridview_progressbar_w</item>
+            <item name="background_actionbar">@color/reimagined_canvas_dark</item>
+        <item name="header_background">@color/reimagined_canvas_dark</item>
+        <item name="audio_header_background">@color/reimagined_container_dark</item>
+        <item name="permission_explanation_background">@color/reimagined_container_dark</item>
+        <item name="empty_background">@color/reimagined_container_dark</item>
+        <item name="bottom_sheet_background">@color/reimagined_surface_dark</item>
+        <item name="card_background">@color/reimagined_surface_dark</item>
+        <item name="colorSurface">@color/reimagined_surface_dark</item>
+        <item name="about_text_primary">@color/reimagined_text_dark</item>
+        <item name="colorOnSurface">@color/reimagined_text_dark</item>
+        <item name="android:textColorPrimary">@color/reimagined_text_dark</item>
+        <item name="font_audio_light">@color/reimagined_muted_dark</item>
+        <item name="bottom_navigation_color">@color/reimagined_muted_dark</item>
+        <item name="colorControlNormal">@color/reimagined_muted_dark</item>
+        <item name="android:textColorSecondary">@color/reimagined_muted_dark</item>
+        <item name="default_divider">@color/reimagined_border_dark</item>
+        <item name="default_separator">@color/reimagined_border_dark</item>
+        <item name="card_border">@color/reimagined_border_dark</item>
+        <item name="audio_header_divider">@color/reimagined_border_dark</item>
+        <item name="colorAccent">@color/reimagined_primary_dark</item>
+        <item name="audio_browser_separator">@color/reimagined_primary_dark</item>
+        <item name="colorOnPrimary">@color/reimagined_canvas_dark</item>
+        <item name="colorOnSecondary">@color/reimagined_canvas_dark</item>
+        <item name="android:colorBackground">@color/reimagined_canvas_dark</item>
+        <item name="bottom_sheet_radius">24dp</item>
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.VLC.Small</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.VLC.Medium</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.VLC.Large</item>
+        <item name="materialButtonStyle">@style/Widget.VLC.Button</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.VLC.AlertDialog</item>
     </style>
 
-    <style name="Theme.VLC.PickerDialog.Light.7" parent="Theme.MaterialComponents.Dialog">
-        <item name="colorPrimary">@color/orange500</item>
+    <style name="Theme.VLC.PickerDialog.Light.7" parent="Theme.MaterialComponents.Light.Dialog">
+        <item name="colorPrimary">@color/reimagined_primary_light</item>
         <item name="colorPrimaryDark">@color/orange700</item>
-        <item name="colorSecondary">@color/orange500</item>
+        <item name="colorSecondary">@color/reimagined_primary_light</item>
         <item name="windowNoTitle">true</item>
         <item name="android:gridViewStyle">@style/Theme.VLC.List</item>
-        <item name="background_default">@color/white</item>
-        <item name="background_default_darker">@color/grey200</item>
-        <item name="font_default">@color/black</item>
-        <item name="font_light">@color/grey300</item>
+        <item name="background_default">@color/reimagined_canvas_light</item>
+        <item name="background_default_darker">@color/reimagined_container_light</item>
+        <item name="font_default">@color/reimagined_text_light</item>
+        <item name="font_light">@color/reimagined_muted_light</item>
         <item name="font_disabled">@color/grey300transparent</item>
-        <item name="list_subtitle">@color/grey600</item>
-        <item name="list_title">@color/black</item>
-        <item name="ariane_text_color">@color/grey900</item>
+        <item name="list_subtitle">@color/reimagined_muted_light</item>
+        <item name="list_title">@color/reimagined_text_light</item>
+        <item name="ariane_text_color">@color/reimagined_muted_light</item>
         <item name="ariane_text_size">14sp</item>
-        <item name="android:windowBackground">@color/grey200</item>
+        <item name="android:windowBackground">@color/reimagined_canvas_light</item>
         <item name="android:textViewStyle">@style/VLC.TextView</item>
-        <item name="empty_title">@color/grey850</item>
+        <item name="empty_title">@color/reimagined_text_light</item>
 
         <item name="gridview_progressbar">@drawable/gridview_progressbar</item>
+            <item name="background_actionbar">@color/reimagined_canvas_light</item>
+        <item name="header_background">@color/reimagined_canvas_light</item>
+        <item name="audio_header_background">@color/reimagined_container_light</item>
+        <item name="permission_explanation_background">@color/reimagined_container_light</item>
+        <item name="empty_background">@color/reimagined_container_light</item>
+        <item name="bottom_sheet_background">@color/reimagined_surface_light</item>
+        <item name="card_background">@color/reimagined_surface_light</item>
+        <item name="colorSurface">@color/reimagined_surface_light</item>
+        <item name="about_text_primary">@color/reimagined_text_light</item>
+        <item name="colorOnSurface">@color/reimagined_text_light</item>
+        <item name="android:textColorPrimary">@color/reimagined_text_light</item>
+        <item name="font_audio_light">@color/reimagined_muted_light</item>
+        <item name="bottom_navigation_color">@color/reimagined_muted_light</item>
+        <item name="colorControlNormal">@color/reimagined_muted_light</item>
+        <item name="android:textColorSecondary">@color/reimagined_muted_light</item>
+        <item name="default_divider">@color/reimagined_border_light</item>
+        <item name="default_separator">@color/reimagined_border_light</item>
+        <item name="card_border">@color/reimagined_border_light</item>
+        <item name="audio_header_divider">@color/reimagined_border_light</item>
+        <item name="colorAccent">@color/reimagined_primary_light</item>
+        <item name="audio_browser_separator">@color/reimagined_primary_light</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="android:colorBackground">@color/reimagined_canvas_light</item>
+        <item name="bottom_sheet_radius">24dp</item>
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.VLC.Small</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.VLC.Medium</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.VLC.Large</item>
+        <item name="materialButtonStyle">@style/Widget.VLC.Button</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.VLC.AlertDialog</item>
     </style>
 
     <style name="Theme.VLC.SendCrashDialog" parent="Theme.MaterialComponents.Dialog">
         <item name="windowNoTitle">true</item>
-        <item name="colorPrimary">@color/orange800</item>
+        <item name="colorPrimary">@color/reimagined_primary_dark</item>
         <item name="colorPrimaryDark">@color/orange700</item>
-        <item name="colorAccent">@color/orange500</item>
+        <item name="colorAccent">@color/reimagined_primary_dark</item>
+            <item name="colorSurface">@color/reimagined_surface_dark</item>
+        <item name="colorOnSurface">@color/reimagined_text_dark</item>
+        <item name="android:colorBackground">@color/reimagined_canvas_dark</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.VLC.Large</item>
     </style>
 
     <style name="Theme.VLC.Black" parent="Theme.VLC.Black.7" />
@@ -209,50 +282,50 @@
         <item name="textInputStyle">@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox
         </item>
 
-        <item name="colorPrimary">@color/orange500</item>
+        <item name="colorPrimary">@color/reimagined_primary_dark</item>
         <item name="colorPrimaryDark">@color/transparent</item>
-        <item name="colorAccent">@color/orange600</item>
-        <item name="colorSecondary">@color/orange600</item>
-        <item name="colorOnSecondary">@color/grey50</item>
-        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorAccent">@color/reimagined_primary_dark</item>
+        <item name="colorSecondary">@color/reimagined_primary_dark</item>
+        <item name="colorOnSecondary">@color/reimagined_canvas_dark</item>
+        <item name="colorOnPrimary">@color/reimagined_canvas_dark</item>
         <item name="colorControlHighlight">@color/orange500</item>
-        <item name="colorControlNormal">@color/grey300</item>
+        <item name="colorControlNormal">@color/reimagined_muted_dark</item>
 
         <item name="windowActionModeOverlay">true</item>
         <item name="actionModeTheme">@style/ThemeOverlay.ActionMode.Dark</item>
         <item name="actionModeStyle">@style/ActionMode.Dark</item>
         <item name="actionModeBackground">@color/action_mode_dark</item>
-        <item name="background_default">@color/dark_background</item>
+        <item name="background_default">@color/reimagined_canvas_dark</item>
         <item name="bottom_navigation_background">@drawable/bottom_navigation_background_dark</item>
-        <item name="audio_header_background">@color/mini_player_dark</item>
-        <item name="audio_header_divider">@color/black</item>
-        <item name="default_divider">@color/white_transparent_20</item>
+        <item name="audio_header_background">@color/reimagined_container_dark</item>
+        <item name="audio_header_divider">@color/reimagined_border_dark</item>
+        <item name="default_divider">@color/reimagined_border_dark</item>
         <item name="subtle_selection">@color/white_transparent_10</item>
         <item name="audio_menu_icon">@color/white_transparent_50</item>
         <item name="audio_list_background">@drawable/audio_list_background_black</item>
         <item name="audio_seek_bar">@drawable/audio_seekbar_black</item>
         <item name="mini_visualizer_color">@color/white_transparent_75</item>
         <item name="round_background">@drawable/round_background_dark</item>
-        <item name="bottom_sheet_background">@color/grey875</item>
+        <item name="bottom_sheet_background">@color/reimagined_surface_dark</item>
         <item name="bookmark_background">@color/black_transparent_80</item>
-        <item name="bottom_sheet_radius">16dp</item>
-        <item name="bottom_navigation_color">@color/grey500</item>
-        <item name="header_background">@color/dark_background</item>
-        <item name="background_default_darker">@color/grey875</item>
-        <item name="background_actionbar">@color/dark_background</item>
+        <item name="bottom_sheet_radius">24dp</item>
+        <item name="bottom_navigation_color">@color/reimagined_muted_dark</item>
+        <item name="header_background">@color/reimagined_canvas_dark</item>
+        <item name="background_default_darker">@color/reimagined_container_dark</item>
+        <item name="background_actionbar">@color/reimagined_canvas_dark</item>
         <item name="background_audio_tips">@color/black_transparent_90</item>
         <item name="audio_player_background_tint">@color/black_transparent_50</item>
-        <item name="audio_browser_separator">@color/orange500</item>
+        <item name="audio_browser_separator">@color/reimagined_primary_dark</item>
         <item name="dialog_circle_background">@color/dialog_circle_background_dark</item>
-        <item name="font_default">@color/grey50</item>
-        <item name="font_light">@color/grey600</item>
+        <item name="font_default">@color/reimagined_text_dark</item>
+        <item name="font_light">@color/reimagined_muted_dark</item>
         <item name="font_disabled">@color/grey600transparent</item>
-        <item name="font_audio_light">@color/grey400</item>
-        <item name="list_subtitle">@color/list_subtitle_dark</item>
-        <item name="list_title">@color/list_title_dark</item>
+        <item name="font_audio_light">@color/reimagined_muted_dark</item>
+        <item name="list_subtitle">@color/reimagined_muted_dark</item>
+        <item name="list_title">@color/reimagined_text_dark</item>
         <item name="donate_card">@color/orange500transparent</item>
         <item name="donate_item_background">@drawable/donate_background_color_dark</item>
-        <item name="android:windowBackground">@color/dark_background</item>
+        <item name="android:windowBackground">@color/reimagined_canvas_dark</item>
         <item name="audio_chips_color">@color/white_transparent_90</item>
         <item name="audio_chips_text_color">@color/black_transparent_60</item>
         <item name="bottom_navigation_focus">@color/white_transparent_10</item>
@@ -260,7 +333,7 @@
         <item name="primary_focus">@color/orange_500_transparent_20</item>
         <item name="swipe_refresh_background">?attr/background_default_darker</item>
         <item name="dialogButtonStyle">@style/Widget.MaterialComponents.Button.TextButton.Dialog</item>
-        <item name="permission_explanation_background">@color/grey800</item>
+        <item name="permission_explanation_background">@color/reimagined_container_dark</item>
 
         <item name="gridview_progressbar">@drawable/gridview_progressbar_w</item>
         <item name="progress_mini_player">@drawable/progress_mini_player_black</item>
@@ -268,60 +341,70 @@
         <item name="ic_tips_double_tap">@drawable/tips_double_tap</item>
         <item name="ic_tips_tap">@drawable/tips_tap</item>
         <item name="ic_passthrough">@drawable/ic_passthrough</item>
-        <item name="ariane_text_color">@color/grey50</item>
+        <item name="ariane_text_color">@color/reimagined_muted_dark</item>
         <item name="ariane_text_size">14sp</item>
         <item name="player_icon_color">@color/white</item>
-        <item name="card_background">@color/black</item>
-        <item name="default_separator">@color/grey700</item>
+        <item name="card_background">@color/reimagined_surface_dark</item>
+        <item name="default_separator">@color/reimagined_border_dark</item>
         <item name="empty_button">@style/Widget.MaterialComponents.Button.OutlinedButton</item>
 
-        <item name="card_border">@color/grey800</item>
+        <item name="card_border">@color/reimagined_border_dark</item>
         <item name="empty_foreground">@color/grey800</item>
-        <item name="empty_background">@color/grey900</item>
+        <item name="empty_background">@color/reimagined_container_dark</item>
         <item name="disabled_overlay_color">@color/black_transparent_50</item>
         <item name="video_card_background">@drawable/video_grid_card_background_dark</item>
         <item name="video_list_background">@drawable/video_list_background_dark</item>
         <item name="audio_chip_background">@drawable/rounded_corners_audio_dark</item>
         <item name="audio_chip_text_color">@color/black_transparent_60</item>
-        <item name="empty_title">@color/grey300</item>
+        <item name="empty_title">@color/reimagined_text_dark</item>
         <item name="audio_player_gradient_bottom">@drawable/gradient_audio_player_bottom_dark</item>
         <item name="audio_player_gradient_top">@drawable/gradient_audio_player_top_dark</item>
         <item name="tips_item_background">@color/grey900</item>
-        <item name="about_text_primary">@color/orange500</item>
+        <item name="about_text_primary">@color/reimagined_text_dark</item>
         <item name="widget_preview_rounded_bg">@drawable/rounded_top_corners_left_background_dark</item>
         <item name="sliderStyle">@style/VLC.Slider.Dark</item>
+            <item name="colorSurface">@color/reimagined_surface_dark</item>
+        <item name="colorOnSurface">@color/reimagined_text_dark</item>
+        <item name="android:textColorPrimary">@color/reimagined_text_dark</item>
+        <item name="android:textColorSecondary">@color/reimagined_muted_dark</item>
+        <item name="android:colorBackground">@color/reimagined_canvas_dark</item>
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.VLC.Small</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.VLC.Medium</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.VLC.Large</item>
+        <item name="materialButtonStyle">@style/Widget.VLC.Button</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.VLC.AlertDialog</item>
     </style>
 
 
     <style name="ActionMode" parent="Widget.AppCompat.ActionBar.Solid">
-        <item name="background">@color/action_mode_light</item>
+        <item name="background">@color/reimagined_container_light</item>
         <item name="titleTextStyle">@style/ActionModeTitleTextStyle</item>
         <item name="subtitleTextStyle">@style/ActionModeSubtitleTextStyle</item>
     </style>
     <style name="ActionModeTitleTextStyle" parent="@style/TextAppearance.AppCompat.Widget.ActionMode.Title">
-        <item name="android:textColor">@color/orange800</item>
+        <item name="android:textColor">@color/reimagined_text_light</item>
     </style>
     <style name="ActionModeSubtitleTextStyle" parent="@style/TextAppearance.AppCompat.Widget.ActionMode.Subtitle">
-        <item name="android:textColor">@color/orange800</item>
+        <item name="android:textColor">@color/reimagined_muted_light</item>
     </style>
 
     <style name="ActionMode.Dark" parent="Widget.AppCompat.ActionBar.Solid">
-        <item name="background">@color/action_mode_dark</item>
+        <item name="background">@color/reimagined_container_dark</item>
         <item name="titleTextStyle">@style/ActionModeTitleTextStyleDark</item>
         <item name="subtitleTextStyle">@style/ActionModeSubtitleTextStyleDark</item>
     </style>
     <style name="ActionModeTitleTextStyleDark" parent="@style/TextAppearance.AppCompat.Widget.ActionMode.Title">
-        <item name="android:textColor">@color/orange500</item>
+        <item name="android:textColor">@color/reimagined_text_dark</item>
     </style>
     <style name="ActionModeSubtitleTextStyleDark" parent="@style/TextAppearance.AppCompat.Widget.ActionMode.Subtitle">
-        <item name="android:textColor">@color/orange500</item>
+        <item name="android:textColor">@color/reimagined_muted_dark</item>
     </style>
 
     <style name="ThemeOverlay.ActionMode" parent="ThemeOverlay.AppCompat.ActionBar">
-        <item name="colorControlNormal">@color/orange800</item>
+        <item name="colorControlNormal">@color/reimagined_primary_light</item>
     </style>
     <style name="ThemeOverlay.ActionMode.Dark" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
-        <item name="colorControlNormal">@color/orange500</item>
+        <item name="colorControlNormal">@color/reimagined_primary_dark</item>
     </style>
 
     <style name="Theme.VLC.Onboarding" parent="Theme.VLC.Onboarding.7"/>
@@ -332,35 +415,35 @@
     </style>
 
     <style name="Theme.VLC.TV" parent="Theme.Leanback">
-        <item name="colorPrimary">@color/orange800</item>
+        <item name="colorPrimary">@color/reimagined_primary_dark</item>
         <item name="colorPrimaryDark">@color/transparent</item>
-        <item name="colorAccent">@color/orange600</item>
-        <item name="font_default">@color/white</item>
-        <item name="font_audio_light">@color/grey600</item>
+        <item name="colorAccent">@color/reimagined_primary_dark</item>
+        <item name="font_default">@color/reimagined_text_dark</item>
+        <item name="font_audio_light">@color/reimagined_muted_dark</item>
         <item name="imageCardViewInfoAreaStyle">@style/VLCardViewInfoStyle</item>
         <item name="imageCardViewTitleStyle">@style/VLCardViewTitleStyle</item>
         <item name="imageCardViewStyle">@style/VLCardView</item>
         <item name="audio_player_background_tint">@color/grey900transparent</item>
         <item name="header_background">@drawable/gradient_background_tv</item>
-        <item name="audio_browser_separator">@color/orange500</item>
+        <item name="audio_browser_separator">@color/reimagined_primary_dark</item>
         <item name="player_icon_color">@color/white</item>
         <item name="ariane_text_color">@color/simple_list_title_tv</item>
-        <item name="list_title">@color/grey50</item>
+        <item name="list_title">@color/reimagined_text_dark</item>
         <item name="ariane_text_size">18sp</item>
-        <item name="font_light">@color/grey50transparent_ea</item>
+        <item name="font_light">@color/reimagined_muted_dark</item>
         <item name="empty_button">@style/Widget.Leanback.DetailsActionButtonStyle</item>
-        <item name="list_subtitle">@color/lb_basic_card_content_text_color</item>
+        <item name="list_subtitle">@color/reimagined_muted_dark</item>
         <item name="disabled_overlay_color">@color/black_transparent_50</item>
         <item name="advanced_options_bg">@drawable/advanced_options_background_dark</item>
         <item name="ic_tips_double_tap">@drawable/tips_double_tap</item>
         <item name="ic_tips_tap">@drawable/tips_tap</item>
         <item name="ic_passthrough">@drawable/ic_passthrough</item>
-        <item name="colorControlNormal">@color/grey700</item>
+        <item name="colorControlNormal">@color/reimagined_muted_dark</item>
         <item name="bookmark_background">@color/black_transparent_80</item>
-        <item name="background_default">@color/grey850</item>
+        <item name="background_default">@color/reimagined_canvas_dark</item>
         <item name="actionBarItemBackground">@drawable/ic_circle_audio_player</item>
         <item name="primary_focus">@color/orange_500_transparent_20</item>
-        <item name="empty_title">@color/grey300</item>
+        <item name="empty_title">@color/reimagined_text_dark</item>
         <item name="selectableItemBackground">?android:attr/selectableItemBackground</item>
         <item name="selectableItemBackgroundBorderless">?android:attr/selectableItemBackgroundBorderless</item>
     </style>
@@ -440,9 +523,9 @@
     </style>
 
     <style name="Theme.VLC.Leanback.Preferences" parent="Theme.Leanback">
-        <item name="colorAccent">@color/orange500</item>
-        <item name="android:colorAccent">@color/orange500</item>
-        <item name="colorControlNormal">@color/grey300</item>
+        <item name="colorAccent">@color/reimagined_primary_dark</item>
+        <item name="android:colorAccent">@color/reimagined_primary_dark</item>
+        <item name="colorControlNormal">@color/reimagined_muted_dark</item>
         <item name="preferenceTheme">@style/PreferenceThemeOverlayLeanback</item>
     </style>
 
@@ -454,9 +537,9 @@
 
     <style name="Theme.VLC.NoTitleBar" parent="Theme.MaterialComponents.Light">
         <item name="android:windowNoTitle">true</item>
-        <item name="font_default">@color/grey900</item>
-        <item name="font_light">@color/grey700</item>
-        <item name="android:windowBackground">@color/grey200</item>
+        <item name="font_default">@color/reimagined_text_light</item>
+        <item name="font_light">@color/reimagined_muted_light</item>
+        <item name="android:windowBackground">@color/reimagined_canvas_light</item>
     </style>
 
     <style name="Theme.VLC.Transparent" parent="Theme.MaterialComponents.NoActionBar">
@@ -488,39 +571,66 @@
         <item name="textInputStyle">@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox
         </item>
 
-        <item name="bottom_sheet_background">@color/black_transparent_80</item>
-        <item name="bottom_sheet_radius">4dp</item>
+        <item name="bottom_sheet_background">@color/reimagined_surface_dark</item>
+        <item name="bottom_sheet_radius">24dp</item>
 
 
-        <item name="colorPrimary">@color/orange800</item>
+        <item name="colorPrimary">@color/reimagined_primary_dark</item>
         <item name="colorPrimaryDark">@color/transparent</item>
-        <item name="colorAccent">@color/orange500</item>
-        <item name="background_default_darker">@color/grey875</item>
+        <item name="colorAccent">@color/reimagined_primary_dark</item>
+        <item name="background_default_darker">@color/reimagined_container_dark</item>
 
-        <item name="background_default">@color/grey850</item>
+        <item name="background_default">@color/reimagined_canvas_dark</item>
         <item name="advanced_options_bg">@drawable/advanced_options_background</item>
         <item name="ic_tips_double_tap">@drawable/tips_double_tap</item>
         <item name="ic_tips_tap">@drawable/tips_tap</item>
         <item name="ic_passthrough">@drawable/ic_passthrough</item>
-        <item name="font_default">@color/grey50</item>
-        <item name="font_light">@color/grey600</item>
+        <item name="font_default">@color/reimagined_text_dark</item>
+        <item name="font_light">@color/reimagined_muted_dark</item>
         <item name="font_disabled">@color/grey600transparent</item>
-        <item name="font_audio_light">@color/grey600</item>
+        <item name="font_audio_light">@color/reimagined_muted_dark</item>
         <item name="dialog_circle_background">@color/dialog_circle_background_dark</item>
         <item name="bookmark_background">@color/black_transparent_80</item>
         <item name="mini_visualizer_color">@color/white_transparent_75</item>
         <item name="video_list_background">@drawable/video_list_background</item>
-        <item name="default_divider">@color/white_transparent_20</item>
-        <item name="card_border">@color/grey800</item>
+        <item name="default_divider">@color/reimagined_border_dark</item>
+        <item name="card_border">@color/reimagined_border_dark</item>
 
-        <item name="list_subtitle">@color/grey400</item>
-        <item name="list_title">@color/white</item>
+        <item name="list_subtitle">@color/reimagined_muted_dark</item>
+        <item name="list_title">@color/reimagined_text_dark</item>
         <item name="android:colorControlHighlight" tools:targetApi="lollipop">@color/orange500
         </item>
         <item name="colorControlHighlight">@color/orange500</item>
         <item name="player_icon_color">@color/grey50</item>
         <item name="background_audio_tips">@color/white_transparent_95</item>
         <item name="audio_seek_bar">@drawable/audio_seekbar_black</item>
+            <item name="background_actionbar">@color/reimagined_canvas_dark</item>
+        <item name="header_background">@color/reimagined_canvas_dark</item>
+        <item name="audio_header_background">@color/reimagined_container_dark</item>
+        <item name="permission_explanation_background">@color/reimagined_container_dark</item>
+        <item name="empty_background">@color/reimagined_container_dark</item>
+        <item name="card_background">@color/reimagined_surface_dark</item>
+        <item name="colorSurface">@color/reimagined_surface_dark</item>
+        <item name="empty_title">@color/reimagined_text_dark</item>
+        <item name="about_text_primary">@color/reimagined_text_dark</item>
+        <item name="colorOnSurface">@color/reimagined_text_dark</item>
+        <item name="android:textColorPrimary">@color/reimagined_text_dark</item>
+        <item name="ariane_text_color">@color/reimagined_muted_dark</item>
+        <item name="bottom_navigation_color">@color/reimagined_muted_dark</item>
+        <item name="colorControlNormal">@color/reimagined_muted_dark</item>
+        <item name="android:textColorSecondary">@color/reimagined_muted_dark</item>
+        <item name="default_separator">@color/reimagined_border_dark</item>
+        <item name="audio_header_divider">@color/reimagined_border_dark</item>
+        <item name="colorSecondary">@color/reimagined_primary_dark</item>
+        <item name="audio_browser_separator">@color/reimagined_primary_dark</item>
+        <item name="colorOnPrimary">@color/reimagined_canvas_dark</item>
+        <item name="colorOnSecondary">@color/reimagined_canvas_dark</item>
+        <item name="android:colorBackground">@color/reimagined_canvas_dark</item>
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.VLC.Small</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.VLC.Medium</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.VLC.Large</item>
+        <item name="materialButtonStyle">@style/Widget.VLC.Button</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.VLC.AlertDialog</item>
     </style>
 
     <style name="VLCTransparentTheme" parent="VLCTransparentThemeLight" />
@@ -683,8 +793,8 @@
 
     <!--Preferences-->
     <style name="VLCPreferenceTheme.Light" parent="PreferenceThemeOverlay">
-        <item name="android:textColorPrimary">@color/grey900</item>
-        <item name="android:textColorSecondary">@color/grey700</item>
+        <item name="android:textColorPrimary">@color/reimagined_text_light</item>
+        <item name="android:textColorSecondary">@color/reimagined_muted_light</item>
         <item name="preferenceStyle">@style/VLCPreferenceStyle</item>
         <item name="editTextPreferenceStyle">@style/VLCEditPreferenceStyle</item>
         <item name="switchPreferenceCompatStyle">@style/VLCSwitchPreferenceStyle</item>
@@ -695,8 +805,8 @@
     </style>
 
     <style name="VLCPreferenceTheme.Dark" parent="PreferenceThemeOverlay">
-        <item name="android:textColorPrimary">@color/grey50</item>
-        <item name="android:textColorSecondary">@color/grey600</item>
+        <item name="android:textColorPrimary">@color/reimagined_text_dark</item>
+        <item name="android:textColorSecondary">@color/reimagined_muted_dark</item>
         <item name="preferenceStyle">@style/VLCPreferenceStyle</item>
         <item name="editTextPreferenceStyle">@style/VLCEditPreferenceStyle</item>
         <item name="switchPreferenceCompatStyle">@style/VLCSwitchPreferenceStyle</item>
@@ -764,7 +874,7 @@
     </style>
 
     <style name="VLCCardView" parent="@style/Widget.MaterialComponents.CardView">
-        <item name="cardCornerRadius">4dp</item>
+        <item name="cardCornerRadius">16dp</item>
         <item name="background">?attr/card_background</item>
         <item name="android:foreground">?android:attr/selectableItemBackground</item>
         <item name="android:clickable">true</item>
@@ -783,7 +893,7 @@
         <item name="android:focusable">true</item>
         <item name="android:clickable">true</item>
         <item name="android:gravity">center_vertical|center_horizontal</item>
-        <item name="android:textAllCaps">true</item>
+        <item name="android:textAllCaps">false</item>
         <item name="android:textColor">@color/white</item>
         <item name="android:background">@drawable/donate_button_background</item>
         <item name="background">@drawable/donate_button_background</item>
@@ -814,8 +924,28 @@
     <style name="Widget.App.CardView" parent="Widget.MaterialComponents.CardView">
         <item name="strokeColor">?attr/font_light</item>
         <item name="strokeWidth">1dp</item>
-        <item name="cardCornerRadius">4dp</item>
+        <item name="cardCornerRadius">16dp</item>
         <item name="cardElevation">0dp</item>
     </style>
 
+    <style name="ShapeAppearance.VLC.Small" parent="ShapeAppearance.MaterialComponents.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">12dp</item>
+    </style>
+    <style name="ShapeAppearance.VLC.Medium" parent="ShapeAppearance.MaterialComponents.MediumComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+    <style name="ShapeAppearance.VLC.Large" parent="ShapeAppearance.MaterialComponents.LargeComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">24dp</item>
+    </style>
+    <style name="Widget.VLC.Button" parent="Widget.MaterialComponents.Button">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="cornerRadius">24dp</item>
+    </style>
+    <style name="ThemeOverlay.VLC.AlertDialog" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.VLC.Large</item>
+    </style>
 </resources>

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SwipeToDismissBox
@@ -126,13 +127,13 @@ private fun AudioPlaylistDismissBackground() {
         contentAlignment = Alignment.CenterEnd,
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFE53935).copy(alpha = 0.22f))
+            .background(MaterialTheme.colorScheme.errorContainer)
             .padding(horizontal = 24.dp)
     ) {
         Icon(
             painter = painterResource(R.drawable.ic_playlist_delete),
             contentDescription = null,
-            tint = Color(0xFFE53935)
+            tint = MaterialTheme.colorScheme.onErrorContainer
         )
     }
 }

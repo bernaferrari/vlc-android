@@ -22,6 +22,7 @@
 
 package org.videolan.vlc.gui.view
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.Context
 import android.content.res.Configuration
 import android.util.TypedValue
@@ -63,7 +64,7 @@ private data class ScanProgressState(
 internal fun VLCComposeView.installScanProgressHost(context: Context) {
     val host = ScanProgressHost(context)
     setTag(R.id.scan_progress_layout, host)
-    setContent {
+    setVlcContent {
         VLCTheme {
             host.Content()
         }

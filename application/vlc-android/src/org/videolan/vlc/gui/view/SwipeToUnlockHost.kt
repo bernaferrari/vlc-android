@@ -24,6 +24,7 @@
 
 package org.videolan.vlc.gui.view
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.animation.ValueAnimator
 import android.util.LayoutDirection
 import android.view.KeyEvent
@@ -79,7 +80,7 @@ internal fun VLCComposeView.installSwipeToUnlockHost() {
         override fun onViewAttachedToWindow(v: View) = Unit
         override fun onViewDetachedFromWindow(v: View) = host.cancelAnimations()
     })
-    setContent {
+    setVlcContent {
         VLCTheme {
             host.Content()
         }

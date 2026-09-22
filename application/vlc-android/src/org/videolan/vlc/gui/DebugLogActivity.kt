@@ -20,6 +20,7 @@
  */
 package org.videolan.vlc.gui
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
@@ -107,7 +108,7 @@ class DebugLogActivity : ComponentActivity(), DebugLogService.Client.Callback {
         snackbarAnchor = ComposeView(this).apply {
             layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent {
+            setVlcContent {
                 DebugLogScreen(
                     logLines = logLines,
                     startEnabled = startEnabled,

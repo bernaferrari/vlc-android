@@ -1,5 +1,6 @@
 package org.videolan.vlc.gui
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Resources
@@ -46,7 +47,7 @@ open class AboutActivity : BaseActivity() {
         setContentView(
             ComposeView(this).apply {
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-                setContent {
+                setVlcContent {
                     VLCAboutScreen(
                         title = getString(R.string.about),
                         appName = getString(R.string.app_name_full),

@@ -9,6 +9,7 @@
 
 package org.videolan.vlc.gui.helpers
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.app.Activity
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -145,7 +146,7 @@ class Navigator : DefaultLifecycleObserver, INavigator {
         container.addView(
             ComposeView(activity).apply {
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-                setContent {
+                setVlcContent {
                     // The host owns an Activity Result launcher; keep it stable across Compose
                     // recompositions so importing media never registers duplicate callbacks.
                     val hostCallbacks = remember(activity) { AndroidShellHostCallbacks(activity) }
@@ -267,7 +268,7 @@ class Navigator : DefaultLifecycleObserver, INavigator {
         container.addView(
             ComposeView(activity).apply {
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-                setContent {
+                setVlcContent {
                     VLCTheme { content() }
                 }
             },

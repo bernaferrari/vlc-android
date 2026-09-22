@@ -6,12 +6,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -107,12 +107,11 @@ private class VlcLoginComposeDialog(
             var login by remember { mutableStateOf(loginDialog.defaultUsername.orEmpty()) }
             var password by remember { mutableStateOf("") }
             var store by remember { mutableStateOf(settings.getBoolean(LOGIN_STORE, true)) }
-            Surface(color = colors.backgroundDefault, contentColor = colors.fontDefault) {
+            Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, contentColor = colors.fontDefault) {
                 Column(
                     modifier = Modifier
-                        .widthIn(min = 320.dp, max = 600.dp)
+                        .fillMaxWidth()
                         .verticalScroll(rememberScrollState())
-                        .padding(16.dp)
                 ) {
                     Text(text = loginDialog.text.orEmpty())
                     OutlinedTextField(
@@ -186,16 +185,15 @@ private class VlcQuestionComposeDialog(
     override fun Content() {
         VLCTheme {
             val colors = VLCThemeDefaults.colors
-            Surface(color = colors.backgroundDefault, contentColor = colors.fontDefault) {
+            Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, contentColor = colors.fontDefault) {
                 Column(
                     modifier = Modifier
-                        .widthIn(min = 320.dp, max = 600.dp)
+                        .fillMaxWidth()
                         .verticalScroll(rememberScrollState())
-                        .padding(16.dp)
                 ) {
                     Text(text = questionDialog.text.orEmpty())
-                    Row(
-                        horizontalArrangement = Arrangement.End,
+                    Column(
+                        horizontalAlignment = Alignment.End,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 16.dp)
@@ -250,12 +248,11 @@ private class VlcProgressComposeDialog(
     override fun Content() {
         VLCTheme {
             val colors = VLCThemeDefaults.colors
-            Surface(color = colors.backgroundDefault, contentColor = colors.fontDefault) {
+            Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, contentColor = colors.fontDefault) {
                 Column(
                     modifier = Modifier
-                        .widthIn(min = 320.dp, max = 600.dp)
+                        .fillMaxWidth()
                         .verticalScroll(rememberScrollState())
-                        .padding(16.dp)
                 ) {
                     Text(text = progressDialog.text.orEmpty())
                     if (indeterminate.value) {

@@ -1,7 +1,6 @@
 package org.videolan.vlc.compose.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -59,14 +58,9 @@ fun VLCAutoInfoDialogContent(
                     .fillMaxWidth()
                     .background(colors.backgroundDefault)
                     .verticalScroll(rememberScrollState())
-                    .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 24.dp)
+                    .padding(24.dp)
             ) {
-                Text(
-                    text = title,
-                    color = colors.fontDefault,
-                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                VLCModalHeader(title = title)
 
                 AutoInfoSection(
                     title = podcastModeTitle,
@@ -94,7 +88,7 @@ private fun AutoInfoSection(
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surfaceContainer,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
         contentColor = colors.fontDefault
     ) {
         Column(modifier = Modifier.padding(16.dp)) {

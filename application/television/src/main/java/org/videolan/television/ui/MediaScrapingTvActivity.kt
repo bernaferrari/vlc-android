@@ -66,6 +66,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import org.videolan.vlc.compose.theme.VLCTheme
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -147,29 +148,31 @@ class MediaScrapingTvActivity : BaseTvActivity() {
             ComposeView(this).apply {
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
                 setContent {
-                    VLCSearchScreen(
-                        query = query,
-                        hint = getString(R.string.search_hint),
-                        emptyText = getString(R.string.no_result),
-                        backContentDescription = getString(R.string.close),
-                        clearContentDescription = getString(R.string.clear),
-                        sections = results.toSearchSections(),
-                        showEmpty = showEmpty,
-                        autoFocus = autoFocus,
-                        onQueryChange = ::onQueryChanged,
-                        onSearchAction = {
-                            UiTools.setKeyboardVisibility(window.decorView, false)
-                            submitQuery(query)
-                        },
-                        onBack = ::finish,
-                        onClear = ::clearQuery,
-                        onResultClick = ::onResultClick,
-                        backIconContent = { SearchIcon(R.drawable.ic_arrow_back) },
-                        clearIconContent = { SearchIcon(R.drawable.ic_close_small) },
-                        thumbnailContent = { _, rowIndex, _ ->
-                            MediaScrapingResultThumbnail(results.getOrNull(rowIndex))
-                        }
-                    )
+                    VLCTheme(darkTheme = true) {
+                        VLCSearchScreen(
+                            query = query,
+                            hint = getString(R.string.search_hint),
+                            emptyText = getString(R.string.no_result),
+                            backContentDescription = getString(R.string.close),
+                            clearContentDescription = getString(R.string.clear),
+                            sections = results.toSearchSections(),
+                            showEmpty = showEmpty,
+                            autoFocus = autoFocus,
+                            onQueryChange = ::onQueryChanged,
+                            onSearchAction = {
+                                UiTools.setKeyboardVisibility(window.decorView, false)
+                                submitQuery(query)
+                            },
+                            onBack = ::finish,
+                            onClear = ::clearQuery,
+                            onResultClick = ::onResultClick,
+                            backIconContent = { SearchIcon(R.drawable.ic_arrow_back) },
+                            clearIconContent = { SearchIcon(R.drawable.ic_close_small) },
+                            thumbnailContent = { _, rowIndex, _ ->
+                                MediaScrapingResultThumbnail(results.getOrNull(rowIndex))
+                            }
+                        )
+                    }
                 }
             }
         )

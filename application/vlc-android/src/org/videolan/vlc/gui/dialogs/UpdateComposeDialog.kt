@@ -1,5 +1,6 @@
 package org.videolan.vlc.gui.dialogs
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES
@@ -70,7 +71,7 @@ private class UpdateComposeDialog(
     private fun setupContent() {
         rootView = ComposeView(activity).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
+            setVlcContent {
                 VLCUpdateDialogContent(
                     title = if (newInstall) activity.getString(R.string.install_nightly_title) else activity.getString(R.string.update_title),
                     description = if (newInstall) {

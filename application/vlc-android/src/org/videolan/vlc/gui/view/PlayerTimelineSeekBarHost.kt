@@ -1,5 +1,6 @@
 package org.videolan.vlc.gui.view
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.app.Activity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,7 +38,7 @@ fun VLCComposeView.installVideoTimelineSeekBarHost() {
     setTag(R.id.player_overlay_seekbar, host)
     isFocusable = true
     isFocusableInTouchMode = true
-    setContent {
+    setVlcContent {
         VLCTheme {
             host.Content()
         }

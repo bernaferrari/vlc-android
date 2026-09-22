@@ -1,5 +1,6 @@
 package org.videolan.vlc.gui.view
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -22,7 +23,7 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
 internal fun VLCComposeView.installAbRepeatControlsHost() {
     val host = AbRepeatControlsHost(this)
     setTag(R.id.ab_repeat_container, host)
-    setContent {
+    setVlcContent {
         VLCTheme {
             host.Content()
         }

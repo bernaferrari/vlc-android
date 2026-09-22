@@ -9,6 +9,11 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
+import org.videolan.vlc.compose.components.VLCRenameItemDialog
+import org.videolan.vlc.compose.components.VLCModalHeader
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -34,21 +39,17 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed as gridItemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.IconButtonShapes
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -60,13 +61,13 @@ import androidx.compose.material3.VerticalSlider
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSliderState
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -195,11 +196,8 @@ internal fun PlaybackOptionsSheet(
         )
     }
     var jumpToTimeVisible by remember { mutableStateOf(false) }
-    var jumpToTimeText by remember { mutableStateOf("") }
     var savePlaylistVisible by remember { mutableStateOf(false) }
-    var playlistName by remember { mutableStateOf("") }
     var bookmarkToRename by remember { mutableStateOf<org.videolan.vlc.player.PlaybackBookmark?>(null) }
-    var bookmarkName by remember { mutableStateOf("") }
     val motion = LocalVLCMotion.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
@@ -297,7 +295,6 @@ internal fun PlaybackOptionsSheet(
                         onRemoveBookmark = onRemoveBookmark,
                         onRenameBookmark = { bookmark ->
                             bookmarkToRename = bookmark
-                            bookmarkName = bookmark.title
                         },
                         onSeekBookmark = onSeekBookmark,
                         onPreviousBookmark = onPreviousBookmark,
@@ -310,93 +307,48 @@ internal fun PlaybackOptionsSheet(
     }
 
     if (jumpToTimeVisible) {
-        val targetTime = parsePlaybackTimestamp(jumpToTimeText)
-        AlertDialog(
-            onDismissRequest = { jumpToTimeVisible = false },
-            title = { Text(stringResource(Res.string.jump_to_time)) },
-            text = {
-                OutlinedTextField(
-                    value = jumpToTimeText,
-                    onValueChange = { jumpToTimeText = it },
-                    label = { Text("HH:MM:SS") },
-                    supportingText = { Text(stringResource(Res.string.seek_examples)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+        VLCRenameItemDialog(
+            title = stringResource(Res.string.jump_to_time),
+            initialValue = "",
+            fieldLabel = "HH:MM:SS",
+            supportingText = stringResource(Res.string.seek_examples),
+            isValid = { parsePlaybackTimestamp(it) != null },
+            confirmLabel = stringResource(Res.string.done),
+            cancelLabel = stringResource(Res.string.cancel),
+            onConfirm = { value ->
+                parsePlaybackTimestamp(value)?.let(onSeekTo)
+                jumpToTimeVisible = false
             },
-            confirmButton = {
-                TextButton(
-                    enabled = targetTime != null,
-                    onClick = {
-                        targetTime?.let(onSeekTo)
-                        jumpToTimeVisible = false
-                    },
-                ) { Text(stringResource(Res.string.done)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { jumpToTimeVisible = false }) {
-                    Text(stringResource(Res.string.cancel))
-                }
-            },
+            onDismiss = { jumpToTimeVisible = false },
         )
     }
 
     if (savePlaylistVisible) {
-        AlertDialog(
-            onDismissRequest = { savePlaylistVisible = false },
-            title = { Text(stringResource(Res.string.playlist_save)) },
-            text = {
-                OutlinedTextField(
-                    value = playlistName,
-                    onValueChange = { playlistName = it },
-                    label = { Text(stringResource(Res.string.playlist_name_hint)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+        VLCRenameItemDialog(
+            title = stringResource(Res.string.playlist_save),
+            initialValue = "",
+            fieldLabel = stringResource(Res.string.playlist_name_hint),
+            confirmLabel = stringResource(Res.string.save),
+            cancelLabel = stringResource(Res.string.cancel),
+            onConfirm = { name ->
+                onSavePlaylist(name)
+                savePlaylistVisible = false
             },
-            confirmButton = {
-                TextButton(
-                    enabled = playlistName.isNotBlank(),
-                    onClick = {
-                        onSavePlaylist(playlistName.trim())
-                        savePlaylistVisible = false
-                    },
-                ) { Text(stringResource(Res.string.save)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { savePlaylistVisible = false }) {
-                    Text(stringResource(Res.string.cancel))
-                }
-            },
+            onDismiss = { savePlaylistVisible = false },
         )
     }
 
     bookmarkToRename?.let { bookmark ->
-        AlertDialog(
-            onDismissRequest = { bookmarkToRename = null },
-            title = { Text(stringResource(Res.string.rename)) },
-            text = {
-                OutlinedTextField(
-                    value = bookmarkName,
-                    onValueChange = { bookmarkName = it },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+        VLCRenameItemDialog(
+            title = stringResource(Res.string.rename),
+            initialValue = bookmark.title,
+            confirmLabel = stringResource(Res.string.save),
+            cancelLabel = stringResource(Res.string.cancel),
+            onConfirm = { name ->
+                onRenameBookmark(bookmark.id, name)
+                bookmarkToRename = null
             },
-            confirmButton = {
-                TextButton(
-                    enabled = bookmarkName.isNotBlank(),
-                    onClick = {
-                        onRenameBookmark(bookmark.id, bookmarkName.trim())
-                        bookmarkToRename = null
-                    },
-                ) { Text(stringResource(Res.string.save)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { bookmarkToRename = null }) {
-                    Text(stringResource(Res.string.cancel))
-                }
-            },
+            onDismiss = { bookmarkToRename = null },
         )
     }
 }
@@ -427,40 +379,11 @@ private fun PlayerSheetHeader(
         PlaybackSheetDestination.QUEUE -> stringResource(Res.string.up_next)
         PlaybackSheetDestination.TOOLS -> stringResource(Res.string.player_controls)
     }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 24.dp, end = 12.dp, bottom = 14.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = stringResource(Res.string.player_label).uppercase(),
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.SemiBold,
-            )
-        }
-        FilledTonalIconButton(
-            onClick = onDismiss,
-            shapes = IconButtonShapes(
-                shape = RoundedCornerShape(22.dp),
-                pressedShape = RoundedCornerShape(14.dp),
-            ),
-            modifier = Modifier.size(48.dp),
-        ) {
-            Icon(
-                MaterialSymbols.Filled.Close,
-                contentDescription = stringResource(Res.string.close),
-                modifier = Modifier.size(22.dp),
-            )
-        }
-    }
+    VLCModalHeader(
+        title = title,
+        onDismiss = onDismiss,
+        modifier = Modifier.padding(start = 24.dp, end = 12.dp, bottom = 14.dp),
+    )
 }
 
 @Composable
@@ -513,6 +436,7 @@ private fun SpeedPage(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = VLCLayout.SheetHorizontalPadding),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -616,103 +540,86 @@ private fun QueuePage(
     onMoveQueueItem: (Int, Int) -> Unit,
     onRemoveQueueItem: (Int) -> Unit,
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = VLCLayout.SheetHorizontalPadding),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = pluralStringResource(Res.plurals.items_count, queue.size, queue.size),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                Text(
-                    text = stringResource(Res.string.tap_queue_item),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
-            TextButton(onClick = onSavePlaylist, enabled = queue.isNotEmpty()) {
-                Text(stringResource(Res.string.save))
-            }
-        }
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = VLCLayout.SheetHorizontalPadding, vertical = 12.dp),
-            shape = RoundedCornerShape(18.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = onToggleStopAfterCurrent)
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
+    LazyColumn(
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = VLCLayout.SheetHorizontalPadding),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        item(key = "queue-header") {
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(stringResource(Res.string.stop_after_this), style = MaterialTheme.typography.bodyLarge)
                     Text(
-                        text = stringResource(Res.string.stop_after_current_summary),
+                        text = pluralStringResource(Res.plurals.items_count, queue.size, queue.size),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Text(
+                        text = stringResource(Res.string.tap_queue_item),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
-                Switch(checked = stopAfterCurrent, onCheckedChange = { onToggleStopAfterCurrent() })
+                TextButton(onClick = onSavePlaylist, enabled = queue.isNotEmpty()) {
+                    Text(stringResource(Res.string.save))
+                }
             }
         }
-
-        if (queue.isEmpty()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(220.dp)
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
+        item(key = "stop-after-current") {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
             ) {
-                Icon(
-                    MaterialSymbols.Outlined.QueueMusic,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(36.dp),
-                )
-                Spacer(Modifier.height(12.dp))
-                Text(stringResource(Res.string.queue_empty), style = MaterialTheme.typography.titleMedium)
-                Text(
-                    stringResource(Res.string.queue_empty_summary),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .toggleable(value = stopAfterCurrent, role = Role.Switch, onValueChange = { onToggleStopAfterCurrent() })
+                        .heightIn(min = 56.dp)
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(stringResource(Res.string.stop_after_this), style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            text = stringResource(Res.string.stop_after_current_summary),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                    Switch(checked = stopAfterCurrent, onCheckedChange = null)
+                }
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 430.dp)
-                    .padding(horizontal = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                itemsIndexed(
-                    items = queue,
-                    key = { index, item -> "${item.id}:${item.uri}:$index" },
-                ) { index, item ->
-                    QueueItem(
-                        item = item,
-                        index = index,
-                        selected = index == currentQueueIndex,
-                        isFirst = index == 0,
-                        isLast = index == queue.lastIndex,
-                        onPlay = { onPlayQueueItem(index) },
-                        onMoveUp = { onMoveQueueItem(index, index - 1) },
-                        onMoveDown = { onMoveQueueItem(index, index + 1) },
-                        onRemove = { onRemoveQueueItem(index) },
+        }
+        if (queue.isEmpty()) {
+            item(key = "empty-queue") {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Icon(MaterialSymbols.Outlined.QueueMusic, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(36.dp))
+                    Text(stringResource(Res.string.queue_empty), style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        stringResource(Res.string.queue_empty_summary),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
                     )
                 }
+            }
+        } else {
+            itemsIndexed(items = queue, key = { index, item -> "${item.id}:${item.uri}:$index" }) { index, item ->
+                QueueItem(
+                    item = item,
+                    index = index,
+                    selected = index == currentQueueIndex,
+                    isFirst = index == 0,
+                    isLast = index == queue.lastIndex,
+                    onPlay = { onPlayQueueItem(index) },
+                    onMoveUp = { onMoveQueueItem(index, index - 1) },
+                    onMoveDown = { onMoveQueueItem(index, index + 1) },
+                    onRemove = { onRemoveQueueItem(index) },
+                )
             }
         }
     }
@@ -1331,7 +1238,7 @@ private fun EqualizerContent(
     if (!equalizer.enabled) return
 
     if (equalizer.presets.isNotEmpty()) {
-        val selectedPreset = equalizer.presets.firstOrNull { it.id == equalizer.selectedPresetId }?.label ?: "Custom"
+        val selectedPreset = equalizer.presets.firstOrNull { it.id == equalizer.selectedPresetId }?.label ?: stringResource(Res.string.custom_sound)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -1357,7 +1264,7 @@ private fun EqualizerContent(
             rows = GridCells.Fixed(3),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(142.dp),
+                .height(148.dp),
             horizontalArrangement = Arrangement.spacedBy(2.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
@@ -1374,7 +1281,7 @@ private fun EqualizerContent(
                     onCheckedChange = { onSelectPreset(preset.id) },
                     modifier = Modifier
                         .width(116.dp)
-                        .height(46.dp),
+                        .height(48.dp),
                     shapes = ToggleButtonDefaults.shapes(
                         shape = shape,
                         pressedShape = equalizerPresetGridShape(rowIndex, rowCount, pressed = true),
@@ -1498,12 +1405,13 @@ private fun ToggleRow(title: String, checked: Boolean, onCheckedChange: (Boolean
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onCheckedChange(!checked) }
+            .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange)
+            .heightIn(min = 56.dp)
             .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(title, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
+        Switch(checked = checked, onCheckedChange = null)
     }
 }
 
@@ -1519,7 +1427,7 @@ private fun LabeledSlider(
         Text(label, style = MaterialTheme.typography.labelLarge)
         Text(valueLabel, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
     }
-    Slider(value = value, onValueChange = onValueChange, valueRange = valueRange, modifier = Modifier.fillMaxWidth())
+    Slider(value = value, onValueChange = onValueChange, valueRange = valueRange, modifier = Modifier.fillMaxWidth().semantics { contentDescription = label })
 }
 
 @Composable

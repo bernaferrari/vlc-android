@@ -20,6 +20,7 @@
 
 package org.videolan.vlc.gui.audio
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.Manifest
 import android.content.Context
 import android.content.Intent
@@ -819,7 +820,7 @@ class AudioPlayer(
 
     private fun setupAudioPlaylistQueue() {
         val showInlineActions = isTablet() || AndroidDevices.isTv
-        binding.songsList.setContent {
+        binding.songsList.setVlcContent {
             VLCTheme {
                 AudioPlaylistQueue(
                     items = playlistItems,
@@ -842,7 +843,7 @@ class AudioPlayer(
 
     private fun setupAudioPlaylistSearchField() {
         val hint = getString(R.string.search_hint)
-        binding.playlistSearchText.setContent {
+        binding.playlistSearchText.setVlcContent {
             VLCAudioPlaylistSearchField(
                     query = playlistSearchQuery,
                     hint = hint,
@@ -856,7 +857,7 @@ class AudioPlayer(
     }
 
     private fun setupAudioHeaderMediaSwitcher() {
-        binding.audioMediaSwitcher.setContent {
+        binding.audioMediaSwitcher.setVlcContent {
             VLCTheme {
                 VLCAudioHeaderMediaSwitcher(
                         state = audioHeaderMediaSwitcherState,
@@ -870,7 +871,7 @@ class AudioPlayer(
     }
 
     private fun setupAudioCoverMediaSwitcher() {
-        binding.coverMediaSwitcher.setContent {
+        binding.coverMediaSwitcher.setVlcContent {
             VLCTheme {
                 VLCAudioCoverMediaSwitcher(
                         state = audioCoverMediaSwitcherState,
@@ -960,7 +961,7 @@ class AudioPlayer(
     }
 
     private fun setupAudioBackgroundDecorations() {
-        binding.backgroundView.setContent {
+        binding.backgroundView.setVlcContent {
             VLCTheme {
                 VLCAudioPlayerBackground(
                         bitmap = audioBackgroundState.bitmap?.asImageBitmap(),
@@ -968,12 +969,12 @@ class AudioPlayer(
                 )
             }
         }
-        binding.topGradient.setContent {
+        binding.topGradient.setVlcContent {
             VLCTheme {
                 VLCAudioPlayerGradient(edge = VLCAudioPlayerGradientEdge.Top)
             }
         }
-        binding.bottomGradient.setContent {
+        binding.bottomGradient.setVlcContent {
             VLCTheme {
                 VLCAudioPlayerGradient(edge = VLCAudioPlayerGradientEdge.Bottom)
             }
@@ -992,12 +993,12 @@ class AudioPlayer(
     }
 
     private fun setupAudioHeaderDecorations() {
-        binding.headerBackground.setContent {
+        binding.headerBackground.setVlcContent {
             VLCTheme {
                 VLCAudioHeaderBackground()
             }
         }
-        binding.headerDivider.setContent {
+        binding.headerDivider.setVlcContent {
             VLCTheme {
                 VLCAudioHeaderDivider()
             }
@@ -1005,7 +1006,7 @@ class AudioPlayer(
     }
 
     private fun setupAudioHeaderTime() {
-        binding.headerTime.setContent {
+        binding.headerTime.setVlcContent {
             VLCTheme {
                 VLCAudioHeaderTimeLabel(
                     text = audioHeaderTimeText,
@@ -1016,7 +1017,7 @@ class AudioPlayer(
     }
 
     private fun setupAudioMiniProgressBar() {
-        binding.progressBar.setContent {
+        binding.progressBar.setVlcContent {
             VLCTheme {
                 val max = audioMiniProgressMax.coerceAtLeast(1)
                 VLCAudioMiniProgressBar(
@@ -1027,7 +1028,7 @@ class AudioPlayer(
     }
 
     private fun setupAudioTimelineSlider() {
-        binding.timeline.setContent {
+        binding.timeline.setVlcContent {
             VLCTheme {
                 VLCAudioTimelineSlider(
                         progress = audioTimelineProgress,
@@ -1042,7 +1043,7 @@ class AudioPlayer(
     }
 
     private fun setupAudioBookmarkMarkers() {
-        binding.bookmarkMarkerContainer.setContent {
+        binding.bookmarkMarkerContainer.setVlcContent {
             VLCTheme {
                 VLCBookmarkMarkers(markerFractions = audioBookmarkMarkerFractions)
             }
@@ -1050,7 +1051,7 @@ class AudioPlayer(
     }
 
     private fun setupAudioAbRepeatHosts() {
-        binding.abRepeatMarkerGuidelineContainer.setContent {
+        binding.abRepeatMarkerGuidelineContainer.setVlcContent {
             VLCTheme {
                 VLCAudioAbRepeatMarkers(
                         startFraction = audioAbRepeatMarkerState.startFraction,
@@ -1065,7 +1066,7 @@ class AudioPlayer(
                 }
             }
         }
-        binding.abRepeatContainer.setContent {
+        binding.abRepeatContainer.setVlcContent {
             VLCTheme {
                 VLCAbRepeatControls(
                         markerText = audioAbRepeatMarkerText,
@@ -1083,7 +1084,7 @@ class AudioPlayer(
     }
 
     private fun setupAudioPanelOverlays() {
-        binding.optionsBackground.setContent {
+        binding.optionsBackground.setVlcContent {
             VLCTheme {
                 if (audioOptionsPanelState.visible) {
                     VLCPlayerOptionsPanelContent(
@@ -1095,7 +1096,7 @@ class AudioPlayer(
                 }
             }
         }
-        binding.bookmarksBackground.setContent {
+        binding.bookmarksBackground.setVlcContent {
             VLCTheme {
                 if (audioBookmarksPanelState.visible) {
                     VLCBookmarksPanelContent(
@@ -1139,7 +1140,7 @@ class AudioPlayer(
     }
 
     private fun setupAudioTimelineTimeLabels() {
-        binding.time.setContent {
+        binding.time.setVlcContent {
             VLCTheme {
                 VLCAudioTimelineTimeLabel(
                     text = audioTimelineTimeText,
@@ -1147,7 +1148,7 @@ class AudioPlayer(
                 )
             }
         }
-        binding.length.setContent {
+        binding.length.setVlcContent {
             VLCTheme {
                 VLCAudioTimelineTimeLabel(
                     text = audioTimelineLengthText,
@@ -1158,7 +1159,7 @@ class AudioPlayer(
     }
 
     private fun setupAudioHeaderActions() {
-        binding.abRepeatReset.setContent {
+        binding.abRepeatReset.setVlcContent {
             VLCTheme {
                 VLCAudioHeaderActionButton(
                     contentDescription = getString(R.string.ab_repeat_reset),
@@ -1168,7 +1169,7 @@ class AudioPlayer(
                 }
             }
         }
-        binding.abRepeatStop.setContent {
+        binding.abRepeatStop.setVlcContent {
             VLCTheme {
                 VLCAudioHeaderActionButton(
                     contentDescription = getString(R.string.ab_repeat_stop),
@@ -1178,7 +1179,7 @@ class AudioPlayer(
                 }
             }
         }
-        binding.playlistSearch.setContent {
+        binding.playlistSearch.setVlcContent {
             VLCTheme {
                 VLCAudioHeaderActionButton(
                     contentDescription = getString(R.string.search),
@@ -1188,7 +1189,7 @@ class AudioPlayer(
                 }
             }
         }
-        binding.playlistSwitch.setContent {
+        binding.playlistSwitch.setVlcContent {
             VLCTheme {
                 val state = audioPlaylistSwitchState
                 VLCAudioHeaderActionButton(
@@ -1199,7 +1200,7 @@ class AudioPlayer(
                 }
             }
         }
-        binding.advFunction.setContent {
+        binding.advFunction.setVlcContent {
             VLCTheme {
                 VLCAudioHeaderActionButton(
                     contentDescription = getString(R.string.advanced),
@@ -1213,7 +1214,7 @@ class AudioPlayer(
     }
 
     private fun setupAudioHeaderPlayPause() {
-        binding.headerPlayPause.setContent {
+        binding.headerPlayPause.setVlcContent {
             VLCTheme {
                 val state = audioPlayPauseState
                 VLCAudioHeaderPlayPauseButton(
@@ -1228,7 +1229,7 @@ class AudioPlayer(
     }
 
     private fun setupAudioHeaderTransportControls() {
-        binding.headerShuffle.setContent {
+        binding.headerShuffle.setVlcContent {
             VLCTheme {
                 val state = audioShuffleState
                 VLCAudioHeaderTransportButton(
@@ -1239,7 +1240,7 @@ class AudioPlayer(
                 }
             }
         }
-        binding.headerPrevious.setContent {
+        binding.headerPrevious.setVlcContent {
             VLCTheme {
                 VLCAudioHeaderTransportButton(
                     contentDescription = getString(R.string.previous),
@@ -1249,7 +1250,7 @@ class AudioPlayer(
                 }
             }
         }
-        binding.headerLargePlayPause.setContent {
+        binding.headerLargePlayPause.setVlcContent {
             VLCTheme {
                 val state = audioPlayPauseState
                 VLCAudioHeaderTransportButton(
@@ -1262,7 +1263,7 @@ class AudioPlayer(
                 }
             }
         }
-        binding.headerNext.setContent {
+        binding.headerNext.setVlcContent {
             VLCTheme {
                 VLCAudioHeaderTransportButton(
                     contentDescription = getString(R.string.next),
@@ -1272,7 +1273,7 @@ class AudioPlayer(
                 }
             }
         }
-        binding.headerRepeat.setContent {
+        binding.headerRepeat.setVlcContent {
             VLCTheme {
                 val state = audioRepeatState
                 VLCAudioHeaderTransportButton(
@@ -1286,7 +1287,7 @@ class AudioPlayer(
     }
 
     private fun setupAudioPlayerTransportControls() {
-        binding.shuffle.setContent {
+        binding.shuffle.setVlcContent {
             VLCTheme {
                 val state = audioShuffleState
                 VLCAudioHeaderTransportButton(
@@ -1297,7 +1298,7 @@ class AudioPlayer(
                 }
             }
         }
-        binding.previous.setContent {
+        binding.previous.setVlcContent {
             VLCTheme {
                 VLCAudioHeaderTransportButton(
                     contentDescription = getString(R.string.previous),
@@ -1307,7 +1308,7 @@ class AudioPlayer(
                 }
             }
         }
-        binding.playPause.setContent {
+        binding.playPause.setVlcContent {
             VLCTheme {
                 val state = audioPlayPauseState
                 VLCAudioHeaderTransportButton(
@@ -1320,7 +1321,7 @@ class AudioPlayer(
                 }
             }
         }
-        binding.next.setContent {
+        binding.next.setVlcContent {
             VLCTheme {
                 VLCAudioHeaderTransportButton(
                     contentDescription = getString(R.string.next),
@@ -1330,7 +1331,7 @@ class AudioPlayer(
                 }
             }
         }
-        binding.repeat.setContent {
+        binding.repeat.setVlcContent {
             VLCTheme {
                 val state = audioRepeatState
                 VLCAudioHeaderTransportButton(
@@ -1344,7 +1345,7 @@ class AudioPlayer(
     }
 
     private fun setupAudioSeekHudControls() {
-        binding.audioRewindBookmark?.setContent {
+        binding.audioRewindBookmark?.setVlcContent {
             VLCTheme {
                 VLCAudioSeekHudButton(
                     contentDescription = getString(R.string.previous_bookmark),
@@ -1354,7 +1355,7 @@ class AudioPlayer(
                 }
             }
         }
-        binding.audioRewind10?.setContent {
+        binding.audioRewind10?.setVlcContent {
             VLCTheme {
                 val state = audioSeekHudState
                 VLCAudioSeekHudButton(
@@ -1366,12 +1367,12 @@ class AudioPlayer(
                 }
             }
         }
-        binding.audioRewindText?.setContent {
+        binding.audioRewindText?.setVlcContent {
             VLCTheme {
                 VLCAudioSeekDelayLabel(text = audioSeekHudState.delayText)
             }
         }
-        binding.audioForward10?.setContent {
+        binding.audioForward10?.setVlcContent {
             VLCTheme {
                 val state = audioSeekHudState
                 VLCAudioSeekHudButton(
@@ -1383,12 +1384,12 @@ class AudioPlayer(
                 }
             }
         }
-        binding.audioForwardText?.setContent {
+        binding.audioForwardText?.setVlcContent {
             VLCTheme {
                 VLCAudioSeekDelayLabel(text = audioSeekHudState.delayText)
             }
         }
-        binding.audioForwardBookmark?.setContent {
+        binding.audioForwardBookmark?.setVlcContent {
             VLCTheme {
                 VLCAudioSeekHudButton(
                     contentDescription = getString(R.string.next_bookmark),
@@ -1402,7 +1403,7 @@ class AudioPlayer(
     }
 
     private fun setupAudioLandscapeTrackInfo() {
-        binding.trackInfoContainer?.setContent {
+        binding.trackInfoContainer?.setVlcContent {
             VLCTheme {
                 AudioLandscapeTrackInfoHost(
                         title = audioTrackTitleText,
@@ -1432,7 +1433,7 @@ class AudioPlayer(
     }
 
     private fun setupAudioHingeControls() {
-        binding.hingeGoLeft.setContent {
+        binding.hingeGoLeft.setVlcContent {
             VLCTheme {
                 VLCAudioHeaderTransportButton(
                     contentDescription = getString(R.string.audio_hinge_go_left),
@@ -1446,7 +1447,7 @@ class AudioPlayer(
                 }
             }
         }
-        binding.hingeGoRight.setContent {
+        binding.hingeGoRight.setVlcContent {
             VLCTheme {
                 VLCAudioHeaderTransportButton(
                     contentDescription = getString(R.string.audio_hinge_go_right),
@@ -1489,7 +1490,7 @@ class AudioPlayer(
     }
 
     private fun setupAudioQueueProgressPill() {
-        binding.audioPlayProgress.setContent {
+        binding.audioPlayProgress.setVlcContent {
             VLCTheme {
                 VLCAudioQueueProgressPill(
                     state = audioQueueProgressPillState,
@@ -1500,7 +1501,7 @@ class AudioPlayer(
     }
 
     private fun setupResumeVideoHint() {
-        binding.resumeVideoHint.setContent {
+        binding.resumeVideoHint.setVlcContent {
             VLCTheme {
                 if (resumeVideoHintVisible) {
                     VLCAudioResumeVideoHint(
@@ -1545,7 +1546,7 @@ class AudioPlayer(
     }
 
     private fun setupPlaybackChips() {
-        binding.playbackChips.setContent {
+        binding.playbackChips.setVlcContent {
             VLCTheme {
                 val state = audioPlayerChipsState
                 VLCAudioPlayerChips(

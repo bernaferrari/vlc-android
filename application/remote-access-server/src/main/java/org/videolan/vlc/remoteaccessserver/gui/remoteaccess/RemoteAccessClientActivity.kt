@@ -1,13 +1,17 @@
 /*
  * RemoteAccessClientActivity.kt — control another VLC instance over the LAN.
  */
+@file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+
 package org.videolan.vlc.remoteaccessserver.gui.remoteaccess
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.os.Bundle
 import android.view.View
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,6 +21,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -74,7 +79,7 @@ class RemoteAccessClientActivity : BaseActivity() {
         val settings = Settings.getInstance(this)
         rootView = ComposeView(this).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent {
+            setVlcContent {
                 VLCTheme {
                     RemoteAccessClientScreen(
                         initialUrl = settings.getString(PREF_LAST_REMOTE_URL, "https://192.168.1.1:8443")
@@ -156,8 +161,8 @@ private fun RemoteAccessClientScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilledTonalButton(
                     enabled = !busy,
                     onClick = {
                         scope.launch {
@@ -183,7 +188,7 @@ private fun RemoteAccessClientScreen(
                         }
                     }
                 ) { Text(stringResource(VR.string.remote_access_client_connect)) }
-                Button(
+                FilledTonalButton(
                     enabled = !busy && client != null,
                     onClick = {
                         runOp("OTP challenge") { c ->
@@ -215,23 +220,23 @@ private fun RemoteAccessClientScreen(
 
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                Button(
+                FilledTonalButton(
                     enabled = !busy && client != null,
                     onClick = { runOp("play") { it.play() } },
                     modifier = Modifier.weight(1f)
                 ) { Text(stringResource(VR.string.play)) }
-                Button(
+                FilledTonalButton(
                     enabled = !busy && client != null,
                     onClick = { runOp("pause") { it.pause() } },
                     modifier = Modifier.weight(1f)
                 ) { Text(stringResource(VR.string.pause)) }
-                Button(
+                FilledTonalButton(
                     enabled = !busy && client != null,
                     onClick = { runOp("next") { it.next() } },
                     modifier = Modifier.weight(1f)
                 ) { Text(stringResource(VR.string.next)) }
             }
-            Button(
+            FilledTonalButton(
                 enabled = !busy && client != null,
                 onClick = {
                     runOp("video-list") { c ->

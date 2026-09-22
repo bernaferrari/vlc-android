@@ -2,6 +2,9 @@
 
 package org.videolan.vlc.compose.components
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,8 +18,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialIcon
@@ -48,36 +49,18 @@ fun VLCActionSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = VLCLayout.SheetHorizontalPadding)
                 .navigationBarsPadding()
                 .padding(bottom = VLCLayout.SheetBottomPadding),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Icon(headerIcon, contentDescription = null, tint = VLCThemeDefaults.colors.primary)
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        title,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    if (!subtitle.isNullOrBlank()) {
-                        Text(
-                            subtitle,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = VLCThemeDefaults.colors.fontLight,
-                        )
-                    }
-                }
-            }
+            VLCModalHeader(
+                title = title,
+                subtitle = subtitle,
+                onDismiss = onDismiss,
+                icon = { VLCIconChip { tint -> Icon(headerIcon, contentDescription = null, tint = tint) } },
+            )
             Column(verticalArrangement = Arrangement.spacedBy(VLCLayout.GroupGap)) {
                 actions.forEachIndexed { index, action ->
                     val position = when {
@@ -93,7 +76,7 @@ fun VLCActionSheet(
                     }
                     Surface(
                         onClick = action.onClick,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                         shape = position.segmentShape(),
                         color = MaterialTheme.colorScheme.surfaceContainerLow,
                         contentColor = contentColor,

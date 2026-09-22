@@ -22,6 +22,7 @@
 
 package org.videolan.vlc.gui.video
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.Context
 import android.view.Gravity
 import android.view.View
@@ -235,7 +236,7 @@ private fun Context.loadingView() = VLCComposeView(this).apply {
 private fun Context.gradientDrawableHost(id: Int, drawable: Int) = VLCComposeView(this).apply {
     this.id = id
     visibility = View.GONE
-    setContent {
+    setVlcContent {
         Image(
                 painter = painterResource(drawable),
                 contentDescription = null,
@@ -269,7 +270,7 @@ private fun Context.hingeArrow(id: Int, icon: Int) = staticIconHost(id, icon, ti
 
 private fun Context.staticIconHost(id: Int, icon: Int, tint: Boolean, sizeDp: Int?) = VLCComposeView(this).apply {
     this.id = id
-    setContent {
+    setVlcContent {
         VLCTheme {
             Box(
                     modifier = sizeDp?.let { Modifier.size(it.composeDp) } ?: Modifier,
@@ -370,7 +371,7 @@ private fun Context.videoPlaylistContainer(primary: Boolean) = ConstraintLayout(
 }
 
 private fun Context.playlistBackground() = VLCComposeView(this).apply {
-    setContent {
+    setVlcContent {
         Box(
                 modifier = Modifier
                         .fillMaxSize()
@@ -392,7 +393,7 @@ private fun Context.playlistCloseButton() = VLCComposeView(this).apply {
     id = R.id.close_button
     background = selectableItemBackgroundBorderless()
     contentDescription = getString(R.string.close)
-    setContent {
+    setVlcContent {
         VLCTheme {
             Box(
                     modifier = Modifier
@@ -412,7 +413,7 @@ private fun Context.playlistCloseButton() = VLCComposeView(this).apply {
 
 private fun Context.playlistHeaderBackground() = VLCComposeView(this).apply {
     id = R.id.video_playlist_header
-    setContent {
+    setVlcContent {
         Box(
                 modifier = Modifier
                         .fillMaxSize()

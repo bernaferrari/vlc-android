@@ -120,10 +120,10 @@ private fun TvPlaylistRow(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
-    val focusShape = RoundedCornerShape(topEnd = 48.dp, bottomEnd = 48.dp)
+    val focusShape = RoundedCornerShape(topEnd = 16.dp, bottomEnd = 16.dp)
     val rowBackground = when {
-        focused -> Color.White.copy(alpha = 0.20F)
-        current -> Color.White.copy(alpha = 0.07F)
+        focused -> MaterialTheme.colorScheme.primaryContainer
+        current -> MaterialTheme.colorScheme.surfaceContainerHigh
         else -> Color.Transparent
     }
 

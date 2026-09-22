@@ -23,6 +23,7 @@
 
 package org.videolan.vlc.gui
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -103,7 +104,7 @@ class DialogActivity : BaseActivity() {
         setContentView(
             ComposeView(this).apply {
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-                setContent(content)
+                setVlcContent(content)
             }
         )
     }

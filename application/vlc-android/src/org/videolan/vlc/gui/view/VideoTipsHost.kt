@@ -22,6 +22,7 @@
 
 package org.videolan.vlc.gui.view
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.Context
 import android.util.TypedValue
 import androidx.annotation.DrawableRes
@@ -106,7 +107,7 @@ internal fun VLCComposeView.installVideoTipsHost() {
     setTag(R.id.player_overlay_tips, host)
     isClickable = true
     setOnTouchListener { _, _ -> true }
-    setContent {
+    setVlcContent {
         VLCTheme {
             host.Content()
         }

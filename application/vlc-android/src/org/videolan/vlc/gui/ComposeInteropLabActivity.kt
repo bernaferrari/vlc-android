@@ -19,6 +19,7 @@
  */
 package org.videolan.vlc.gui
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.os.Bundle
 import android.view.ViewGroup
 import androidx.activity.ComponentActivity
@@ -110,7 +111,7 @@ class ComposeInteropLabActivity : ComponentActivity() {
             ComposeView(this).apply {
                 layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-                setContent {
+                setVlcContent {
                     VLCTheme {
                         ComposeInteropLabContent()
                     }

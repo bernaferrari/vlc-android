@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="searching_displays">Searching for displays…</string>
+    <string name="displays_network_hint">Connect your display to the same Wi-Fi network to cast your media.</string>
+    <string name="remove_history_message">Remove these entries from playback history? Your media files will stay on your device.</string>
+    <string name="remove_stream_message">Remove this saved stream? You can add its address again later.</string>
+    <string name="remove_playlist_track_message">Remove this item from the playlist? Your media file will stay on your device.</string>
+    <string name="delete_playlists_message">Deleting a playlist keeps its media files on your device.</string>
+</resources>

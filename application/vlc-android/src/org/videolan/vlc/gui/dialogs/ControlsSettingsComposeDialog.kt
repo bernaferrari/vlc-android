@@ -1,5 +1,6 @@
 package org.videolan.vlc.gui.dialogs
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.media.AudioManager
 import android.os.Build
 import android.view.View
@@ -115,7 +116,7 @@ private class ControlsSettingsComposeDialog(
         normalizeUnavailableVideoSettings()
         rootView = ComposeView(activity).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
+            setVlcContent {
                 VLCTheme {
                     ControlsSettingsContent(mode = mode)
                 }

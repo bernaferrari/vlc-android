@@ -24,6 +24,7 @@
 
 package org.videolan.moviepedia.ui
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
@@ -122,7 +123,7 @@ open class MediaScrapingActivity : BaseActivity() {
         viewModel = ViewModelProvider(this)[media.uri.path ?: "", MediaScrapingModel::class.java]
         rootView = ComposeView(this).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent {
+            setVlcContent {
                 VLCTheme {
                     MediaScrapingScreen(
                         query = query,

@@ -297,7 +297,7 @@ private fun TvShowOverview(
             modifier = Modifier
                 .width(188.dp)
                 .aspectRatio(2f / 3f)
-                .clip(RoundedCornerShape(6.dp))
+                .clip(RoundedCornerShape(16.dp))
         )
 
         Column(
@@ -431,7 +431,7 @@ private fun EpisodeCard(
     Surface(
         color = colors.backgroundDefaultDarker,
         contentColor = colors.fontDefault,
-        shape = RoundedCornerShape(6.dp),
+        shape = RoundedCornerShape(16.dp),
         modifier = Modifier
             .width(156.dp)
             .focusable()
@@ -446,7 +446,7 @@ private fun EpisodeCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(2f / 3f)
-                        .clip(RoundedCornerShape(4.dp))
+                        .clip(RoundedCornerShape(12.dp))
                 )
                 if ((media?.seen ?: 0L) > 0L) {
                     Icon(
@@ -455,7 +455,7 @@ private fun EpisodeCard(
                         tint = Color.Unspecified,
                         modifier = Modifier
                             .align(Alignment.TopEnd)
-                            .background(colors.primary, RoundedCornerShape(bottomStart = 4.dp))
+                            .background(colors.primary, RoundedCornerShape(bottomStart = 12.dp))
                             .padding(5.dp)
                             .size(18.dp)
                     )
@@ -506,7 +506,7 @@ private fun PersonCard(person: Person) {
     Surface(
         color = colors.backgroundDefaultDarker,
         contentColor = colors.fontDefault,
-        shape = RoundedCornerShape(6.dp),
+        shape = RoundedCornerShape(16.dp),
         modifier = Modifier
             .width(132.dp)
             .focusable()
@@ -519,7 +519,7 @@ private fun PersonCard(person: Person) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(2f / 3f)
-                    .clip(RoundedCornerShape(4.dp))
+                    .clip(RoundedCornerShape(12.dp))
             )
             Spacer(Modifier.height(8.dp))
             Text(
@@ -547,7 +547,7 @@ private fun ImageChoiceCard(
         modifier = Modifier
             .width(width)
             .aspectRatio(aspectRatio)
-            .clip(RoundedCornerShape(6.dp))
+            .clip(RoundedCornerShape(16.dp))
             .focusable()
             .clickable(onClick = onClick)
     )

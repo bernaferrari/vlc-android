@@ -3,6 +3,8 @@ package org.videolan.vlc.compose.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,7 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -25,7 +26,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -45,7 +45,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialIcon
@@ -128,35 +127,12 @@ fun VLCFeedbackScreen(
             contentColor = colors.fontDefault
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .statusBarsPadding()
-                        .height(VLCLayout.RowHeight)
-                        .padding(vertical = 8.dp)
-                        .background(colors.backgroundDefault),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(
-                        onClick = onClose,
-                        modifier = Modifier.semantics {
-                            contentDescription = closeContentDescription
-                        }
-                    ) {
-                        CompositionLocalProvider(LocalContentColor provides colors.fontDefault) {
-                            closeIconContent()
-                        }
-                    }
-
-                    Text(
-                        text = title,
-                        color = colors.fontDefault,
-                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(end = 16.dp)
-                    )
-                }
+                VLCSecondaryHeader(
+                    title = title,
+                    navigationDescription = closeContentDescription,
+                    onNavigate = onClose,
+                    navigationIcon = closeIconContent,
+                )
 
                 Column(
                     modifier = Modifier
@@ -264,8 +240,8 @@ private fun FeedbackActionCard(
 
     Card(
         modifier = modifier
-            .fillMaxWidth()
-            .widthIn(max = 600.dp),
+            .widthIn(max = 600.dp)
+            .fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainer,
@@ -308,6 +284,7 @@ private fun FeedbackActionCard(
 }
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 private fun EmailWarningPanel(
     title: String,
     explanation: String,
@@ -354,9 +331,10 @@ private fun EmailWarningPanel(
             modifier = Modifier.padding(top = 16.dp)
         )
 
-        Row(
+        FlowRow(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             TextButton(onClick = onTryAnyway) {
                 Text(tryAnywayText, color = colors.fontLight)
@@ -415,6 +393,7 @@ private fun FeedbackForm(
             value = subject,
             onValueChange = onSubjectChange,
             label = { Text(subjectLabel) },
+            shape = MaterialTheme.shapes.large,
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
@@ -423,6 +402,7 @@ private fun FeedbackForm(
             value = message,
             onValueChange = onMessageChange,
             label = { Text(messageLabel) },
+            shape = MaterialTheme.shapes.large,
             minLines = 4,
             modifier = Modifier.fillMaxWidth()
         )

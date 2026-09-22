@@ -14,6 +14,8 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -230,15 +232,15 @@ internal fun MediaContextMenu(
                                 modifier = Modifier.padding(start = 4.dp),
                             )
                             if (sectionIndex == 0) {
-                                // Playback is the frequent path. Four compact icon-over-label
-                                // actions keep the sheet scannable instead of making the user
-                                // scroll through four full-width rows before reaching management.
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                ) {
-                                    section.actions.forEach { action ->
-                                        MediaActionCompactCell(action)
+                                // Keep playback labels readable at compact widths and larger text sizes.
+                                BoxWithConstraints(Modifier.fillMaxWidth()) {
+                                    val columns = if (maxWidth < 360.dp || LocalDensity.current.fontScale > 1.2f) 2 else 4
+                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        section.actions.chunked(columns).forEach { rowActions ->
+                                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                                rowActions.forEach { action -> MediaActionCompactCell(action) }
+                                            }
+                                        }
                                     }
                                 }
                             } else {

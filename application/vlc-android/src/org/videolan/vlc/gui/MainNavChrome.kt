@@ -5,6 +5,7 @@
  */
 package org.videolan.vlc.gui
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.Context
 import android.view.Menu
 import android.view.View
@@ -57,7 +58,7 @@ fun Context.createComposeBottomNav(state: MainNavChromeState): ComposeView =
     ComposeView(this).apply {
         id = R.id.navigation
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-        setContent {
+        setVlcContent {
             VLCTheme {
                 ComposeBottomBar(state)
             }
@@ -68,7 +69,7 @@ fun Context.createComposeNavRail(state: MainNavChromeState, onFabClick: (() -> U
     ComposeView(this).apply {
         id = R.id.navigation_rail
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-        setContent {
+        setVlcContent {
             VLCTheme {
                 ComposeNavRail(state, onFabClick)
             }

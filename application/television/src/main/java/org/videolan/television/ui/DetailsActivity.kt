@@ -603,7 +603,7 @@ private fun OverviewArtwork(
         modifier = modifier
             .width(220.dp)
             .aspectRatio(2f / 3f)
-            .clip(RoundedCornerShape(4.dp))
+            .clip(RoundedCornerShape(12.dp))
             .background(VLCThemeDefaults.colors.cardBackground),
         contentAlignment = Alignment.Center
     ) {
@@ -670,7 +670,7 @@ private fun DetailPersonCard(person: Person) {
     Surface(
         color = VLCThemeDefaults.colors.cardBackground.copy(alpha = 0.94f),
         contentColor = VLCThemeDefaults.colors.fontDefault,
-        shape = RoundedCornerShape(4.dp),
+        shape = RoundedCornerShape(12.dp),
         border = BorderStroke(1.dp, VLCThemeDefaults.colors.cardBorder),
         modifier = Modifier
             .width(128.dp)
@@ -701,7 +701,7 @@ private fun DetailImageCard(image: MediaImage, poster: Boolean, onClick: () -> U
     Surface(
         color = VLCThemeDefaults.colors.cardBackground.copy(alpha = 0.94f),
         contentColor = VLCThemeDefaults.colors.fontDefault,
-        shape = RoundedCornerShape(4.dp),
+        shape = RoundedCornerShape(12.dp),
         border = BorderStroke(1.dp, VLCThemeDefaults.colors.cardBorder),
         modifier = Modifier
             .width(if (poster) 112.dp else 224.dp)

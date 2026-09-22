@@ -1,5 +1,6 @@
 package org.videolan.vlc.gui.dialogs
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.app.Dialog
 import android.view.View
 import android.view.ViewGroup
@@ -71,7 +72,7 @@ private class RenderersComposeDialog(
         dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
         rootView = ComposeView(activity).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
+            setVlcContent {
                 val currentRenderers = renderers.value
                 val selected = selectedRenderer.value
                 val uiItems = currentRenderers.mapIndexed { index, renderer ->

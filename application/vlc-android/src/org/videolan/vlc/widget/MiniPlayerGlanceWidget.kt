@@ -32,6 +32,7 @@ import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.action.Action
 import androidx.glance.action.clickable
+import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.AppWidgetId
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
@@ -193,17 +194,17 @@ data class MiniPlayerGlanceState(
 ) {
     companion object {
         fun idle(context: Context): MiniPlayerGlanceState {
-            val foreground = ContextCompat.getColor(context, R.color.white)
+            val foreground = ContextCompat.getColor(context, R.color.reimagined_text_dark)
             return MiniPlayerGlanceState(
                 widgetType = WidgetType.MINI,
                 title = context.getString(R.string.widget_default_text),
                 artist = null,
                 playing = false,
                 foregroundColor = foreground,
-                artistColor = foreground,
-                backgroundColor = ContextCompat.getColor(context, R.color.black_transparent_80),
-                secondaryBackgroundColor = ContextCompat.getColor(context, R.color.black_transparent_50),
-                separatorColor = ContextCompat.getColor(context, R.color.white_transparent_10),
+                artistColor = ContextCompat.getColor(context, R.color.reimagined_muted_dark),
+                backgroundColor = ContextCompat.getColor(context, R.color.reimagined_canvas_dark),
+                secondaryBackgroundColor = ContextCompat.getColor(context, R.color.reimagined_container_dark),
+                separatorColor = ContextCompat.getColor(context, R.color.reimagined_border_dark),
                 cover = null,
                 progress = null,
                 showSeek = false,
@@ -364,7 +365,7 @@ private fun MiniPlayerPillGlanceContent(context: Context, state: MiniPlayerGlanc
         TrackText(state, modifier = GlanceModifier.defaultWeight())
         WidgetActionButton(
             icon = playPauseIcon(state.playing),
-            contentDescription = playPauseDescription(state.playing),
+            contentDescription = playPauseDescription(context, state.playing),
             tint = state.foregroundColor,
             action = playbackAction(context, ACTION_REMOTE_PLAYPAUSE),
         )
@@ -390,13 +391,13 @@ private fun MiniPlayerMicroGlanceContent(context: Context, state: MiniPlayerGlan
         modifier = playerModifier(state, openVlcAction).padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        CoverOrIcon(state, sizeDp = 56)
-        Spacer(GlanceModifier.height(8.dp))
+        CoverOrIcon(state, sizeDp = 40)
+        Spacer(GlanceModifier.height(4.dp))
         TrackText(state, centered = true, modifier = GlanceModifier.fillMaxWidth())
         Spacer(GlanceModifier.height(6.dp))
         WidgetActionButton(
             icon = playPauseIcon(state.playing),
-            contentDescription = playPauseDescription(state.playing),
+            contentDescription = playPauseDescription(context, state.playing),
             tint = state.foregroundColor,
             action = playbackAction(context, ACTION_REMOTE_PLAYPAUSE),
         )
@@ -409,7 +410,7 @@ private fun MiniPlayerMacroGlanceContent(context: Context, state: MiniPlayerGlan
         modifier = playerModifier(state, openVlcAction).padding(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        CoverOrIcon(state, sizeDp = 96)
+        CoverOrIcon(state, sizeDp = 88)
         Spacer(GlanceModifier.height(8.dp))
         TrackText(state, centered = true, modifier = GlanceModifier.fillMaxWidth())
         Spacer(GlanceModifier.height(8.dp))
@@ -423,35 +424,35 @@ private fun TransportControls(context: Context, state: MiniPlayerGlanceState) {
         if (state.showSeek) {
             WidgetActionButton(
                 icon = R.drawable.ic_widget_rewind_10,
-                contentDescription = state.rewindDelay.toString(),
+                contentDescription = context.getString(R.string.playback_rewind),
                 tint = state.foregroundColor,
                 action = playbackAction(context, ACTION_REMOTE_SEEK_BACKWARD, state.rewindDelay),
             )
         } else {
             WidgetActionButton(
                 icon = R.drawable.ic_widget_previous_normal,
-                contentDescription = null,
+                contentDescription = context.getString(R.string.previous),
                 tint = state.foregroundColor,
                 action = playbackAction(context, ACTION_REMOTE_BACKWARD),
             )
         }
         WidgetActionButton(
             icon = playPauseIcon(state.playing),
-            contentDescription = playPauseDescription(state.playing),
+            contentDescription = playPauseDescription(context, state.playing),
             tint = state.foregroundColor,
             action = playbackAction(context, ACTION_REMOTE_PLAYPAUSE),
         )
         if (state.showSeek) {
             WidgetActionButton(
                 icon = R.drawable.ic_widget_forward_10,
-                contentDescription = state.forwardDelay.toString(),
+                contentDescription = context.getString(R.string.playback_forward),
                 tint = state.foregroundColor,
                 action = playbackAction(context, ACTION_REMOTE_SEEK_FORWARD, state.forwardDelay),
             )
         } else {
             WidgetActionButton(
                 icon = R.drawable.ic_widget_next_normal,
-                contentDescription = null,
+                contentDescription = context.getString(R.string.next),
                 tint = state.foregroundColor,
                 action = playbackAction(context, ACTION_REMOTE_FORWARD),
             )
@@ -532,7 +533,7 @@ private fun WidgetActionButton(
 ) {
     Box(
         modifier = GlanceModifier
-            .size(40.dp)
+            .size(48.dp)
             .clickable(action),
         contentAlignment = Alignment.Center,
     ) {
@@ -549,6 +550,7 @@ private fun playerModifier(state: MiniPlayerGlanceState, openVlcAction: Action):
     GlanceModifier
         .fillMaxSize()
         .background(ColorProvider(state.backgroundColor))
+        .cornerRadius(24.dp)
         .clickable(openVlcAction)
 
 private fun playbackAction(context: Context, action: String, seekDelay: Int? = null): Action =
@@ -563,5 +565,5 @@ private fun playbackAction(context: Context, action: String, seekDelay: Int? = n
 private fun playPauseIcon(playing: Boolean): Int =
     if (playing) R.drawable.ic_widget_pause_inner else R.drawable.ic_widget_play
 
-private fun playPauseDescription(playing: Boolean): String? =
-    if (playing) "Pause" else "Play"
+private fun playPauseDescription(context: Context, playing: Boolean): String =
+    context.getString(if (playing) R.string.pause else R.string.play)

@@ -23,6 +23,7 @@
 
 package org.videolan.vlc.gui.browser
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.app.Activity
 import android.content.Intent
 import android.content.res.Configuration
@@ -133,7 +134,7 @@ class FilePickerActivity : BaseActivity() {
 
         val composeView = ComposeView(this).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent {
+            setVlcContent {
                 VLCTheme {
                     FilePickerScreen(
                         title = getPickerTitle(),
@@ -312,7 +313,7 @@ private fun FilePickerScreen(
                         modifier = Modifier.align(Alignment.Center)
                     )
                     items.isEmpty() -> Text(
-                        text = stringResource(R.string.no_subs_found),
+                        text = stringResource(if (pickerType == PickerType.SUBTITLE) R.string.no_subs_found else R.string.network_empty),
                         color = colors.fontLight,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier

@@ -22,6 +22,7 @@
 
 package org.videolan.vlc.gui.view
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.res.Configuration
 import android.graphics.Paint
 import android.view.MotionEvent
@@ -94,7 +95,7 @@ private data class VideoStatLine(
 internal fun VLCComposeView.installVideoStatsOverlayHost() {
     val host = VideoStatsOverlayHost()
     setTag(R.id.stats_container, host)
-    setContent {
+    setVlcContent {
         VLCTheme {
             host.Content()
         }

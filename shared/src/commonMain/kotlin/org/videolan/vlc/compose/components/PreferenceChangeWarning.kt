@@ -27,7 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
@@ -93,12 +92,7 @@ fun VLCPreferenceChangeWarningDialogContent(
                         }
                         Spacer(Modifier.width(16.dp))
                     }
-                    Text(
-                        text = title,
-                        color = colors.fontDefault,
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        modifier = Modifier.weight(1f)
-                    )
+                    VLCModalHeader(title = title, modifier = Modifier.weight(1f))
                 }
 
                 VLCMessageCallout(

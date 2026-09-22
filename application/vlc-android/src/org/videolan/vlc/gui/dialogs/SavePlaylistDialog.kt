@@ -23,6 +23,7 @@
 
 package org.videolan.vlc.gui.dialogs
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
@@ -36,7 +37,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.selection.toggleable
@@ -184,7 +184,7 @@ private class SavePlaylistComposeDialog(
     private fun setupContent() {
         rootView = ComposeView(activity).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
+            setVlcContent {
                 VLCTheme {
                     SavePlaylistContent(
                         playlistName = playlistNameState.value,
@@ -473,7 +473,6 @@ private fun SavePlaylistContent(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .widthIn(min = 300.dp)
                 .padding(top = 8.dp, bottom = 24.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {

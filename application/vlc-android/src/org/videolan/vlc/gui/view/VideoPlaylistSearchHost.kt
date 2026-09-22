@@ -20,6 +20,7 @@
 
 package org.videolan.vlc.gui.view
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import org.videolan.vlc.R
@@ -35,7 +36,7 @@ internal interface VideoPlaylistSearchHost {
 internal fun VLCComposeView.installVideoPlaylistSearchHost(hint: String) {
     val host = VideoPlaylistSearchController(hint)
     setTag(R.id.playlist_search_text, host)
-    setContent {
+    setVlcContent {
         VLCAudioPlaylistSearchField(
                 query = host.query.value,
                 hint = host.hint,

@@ -1,3 +1,5 @@
+@file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+
 package org.videolan.vlc.gui.onboarding
 
 import android.content.res.Configuration
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -63,7 +66,7 @@ fun OnboardingContent(
 ) {
     val colors = VLCThemeDefaults.colors
     Surface(
-        color = colors.onboardingBackground,
+        color = colors.backgroundDefault,
         contentColor = colors.fontDefault,
         modifier = Modifier.fillMaxSize()
     ) {
@@ -119,9 +122,8 @@ fun OnboardingContent(
                     )
                 }
             }
-            Row(
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically,
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 TextButton(

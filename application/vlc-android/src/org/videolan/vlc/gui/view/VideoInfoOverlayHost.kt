@@ -22,6 +22,7 @@
 
 package org.videolan.vlc.gui.view
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,7 +40,7 @@ import org.videolan.vlc.compose.theme.VLCTheme
 internal fun VLCComposeView.installVideoInfoOverlayHost() {
     val host = VideoInfoOverlayHost()
     setTag(R.id.player_info_stub, host)
-    setContent {
+    setVlcContent {
         VLCTheme {
             host.Content()
         }

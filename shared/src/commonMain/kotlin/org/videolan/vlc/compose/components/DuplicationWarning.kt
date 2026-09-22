@@ -18,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
@@ -59,12 +58,7 @@ fun VLCDuplicationWarningDialogContent(
                     .verticalScroll(rememberScrollState())
                     .padding(24.dp)
             ) {
-                Text(
-                    text = title,
-                    color = colors.fontDefault,
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                VLCModalHeader(title = title)
 
                 Surface(
                     modifier = Modifier

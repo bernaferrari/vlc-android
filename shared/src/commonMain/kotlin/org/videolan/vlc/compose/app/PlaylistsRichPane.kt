@@ -5,6 +5,10 @@
 
 package org.videolan.vlc.compose.app
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.FlowRow
+import org.videolan.vlc.compose.components.VLCModalHeader
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -29,7 +33,11 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.AlertDialog
+import org.videolan.vlc.compose.components.VLCConfirmActionDialog
+import org.jetbrains.compose.resources.stringResource
+import vlc_android.shared.generated.resources.Res
+import vlc_android.shared.generated.resources.remove_playlist_track_message
+import vlc_android.shared.generated.resources.delete_playlists_message
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
@@ -195,21 +203,14 @@ fun PlaylistsRichPane(
                 }
             }
             confirmRemoveTrackIndex?.let { index ->
-                AlertDialog(
-                    onDismissRequest = { confirmRemoveTrackIndex = null },
-                    title = { Text(ShellStrings.remove()) },
-                    text = { Text(ShellStrings.confirmDeleteMessage()) },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            onRemoveTrack(index)
-                            confirmRemoveTrackIndex = null
-                        }) { Text(ShellStrings.remove()) }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { confirmRemoveTrackIndex = null }) {
-                            Text(ShellStrings.cancel())
-                        }
-                    },
+                VLCConfirmActionDialog(
+                    title = ShellStrings.remove(),
+                    message = stringResource(Res.string.remove_playlist_track_message),
+                    target = detailItems.getOrNull(index)?.displayTitle,
+                    confirmLabel = ShellStrings.remove(),
+                    cancelLabel = ShellStrings.cancel(),
+                    onConfirm = { onRemoveTrack(index); confirmRemoveTrackIndex = null },
+                    onDismiss = { confirmRemoveTrackIndex = null },
                 )
             }
             return
@@ -394,10 +395,11 @@ fun PlaylistsRichPane(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
                     .padding(start = 24.dp, top = 8.dp, end = 24.dp, bottom = 32.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Text(ShellStrings.newPlaylist(), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                VLCModalHeader(title = ShellStrings.newPlaylist())
                 OutlinedTextField(
                     value = newName,
                     onValueChange = { newName = it },
@@ -405,7 +407,7 @@ fun PlaylistsRichPane(
                         .fillMaxWidth()
                         .focusRequester(createFocusRequester),
                     singleLine = true,
-                    placeholder = { Text(ShellStrings.newPlaylist()) },
+                    label = { Text(ShellStrings.newPlaylist()) },
                     leadingIcon = {
                         Icon(MaterialSymbols.Filled.QueueMusic, contentDescription = null)
                     },
@@ -413,7 +415,7 @@ fun PlaylistsRichPane(
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = { submitNewPlaylist() }),
                 )
-                Row(
+                FlowRow(
                     modifier = Modifier.align(Alignment.End),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
@@ -460,29 +462,20 @@ fun PlaylistsRichPane(
     }
     if (deletePlaylistTarget != null || confirmDeleteSelection) {
         val deletingSelection = confirmDeleteSelection
-        AlertDialog(
-            onDismissRequest = {
+        VLCConfirmActionDialog(
+            title = ShellStrings.delete(),
+            message = stringResource(Res.string.delete_playlists_message),
+            target = if (deletingSelection) ShellStrings.itemsCount(state.selection.size) else deletePlaylistTarget?.name,
+            confirmLabel = ShellStrings.delete(),
+            cancelLabel = ShellStrings.cancel(),
+            onConfirm = {
+                if (deletingSelection) onDeleteSelection() else deletePlaylistTarget?.let { onDelete(it.id) }
                 deletePlaylistTarget = null
                 confirmDeleteSelection = false
             },
-            title = { Text(ShellStrings.delete()) },
-            text = { Text(ShellStrings.confirmDeleteMessage()) },
-            confirmButton = {
-                TextButton(onClick = {
-                    if (deletingSelection) {
-                        onDeleteSelection()
-                    } else {
-                        deletePlaylistTarget?.let { onDelete(it.id) }
-                    }
-                    deletePlaylistTarget = null
-                    confirmDeleteSelection = false
-                }) { Text(ShellStrings.delete()) }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    deletePlaylistTarget = null
-                    confirmDeleteSelection = false
-                }) { Text(ShellStrings.cancel()) }
+            onDismiss = {
+                deletePlaylistTarget = null
+                confirmDeleteSelection = false
             },
         )
     }

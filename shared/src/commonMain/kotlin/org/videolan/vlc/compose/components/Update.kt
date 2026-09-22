@@ -1,5 +1,8 @@
 package org.videolan.vlc.compose.components
 
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -101,12 +104,7 @@ fun VLCUpdateDialogContent(
                         }
                         Spacer(Modifier.width(16.dp))
                     }
-                    Text(
-                        text = title,
-                        color = colors.fontDefault,
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        modifier = Modifier.weight(1f)
-                    )
+                    VLCModalHeader(title = title, modifier = Modifier.weight(1f).padding(start = 8.dp))
                 }
 
                 if (isDownloading) {
@@ -138,16 +136,18 @@ fun VLCUpdateDialogContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp)
+                        .heightIn(min = 48.dp)
+                        .toggleable(value = neverAskAgain, role = Role.Checkbox, onValueChange = onNeverAskAgainChange)
                 ) {
                     Checkbox(
                         checked = neverAskAgain,
-                        onCheckedChange = onNeverAskAgainChange
+                        onCheckedChange = null
                     )
                     Text(
                         text = neverAskAgainText,
                         color = colors.fontDefault,
                         style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f).padding(start = 8.dp)
                     )
                 }
 
@@ -155,6 +155,7 @@ fun VLCUpdateDialogContent(
                     openInBrowserText = openInBrowserText,
                     installText = installText,
                     showInstall = showInstall,
+                    installEnabled = !isDownloading,
                     onOpenInBrowser = onOpenInBrowser,
                     onInstall = onInstall,
                     modifier = Modifier
@@ -195,7 +196,7 @@ private fun VersionCard(
                 text = version,
                 color = colors.fontDefault,
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f).padding(start = 8.dp)
             )
         }
     }
@@ -207,6 +208,7 @@ private fun UpdateDialogActions(
     openInBrowserText: String,
     installText: String,
     showInstall: Boolean,
+    installEnabled: Boolean,
     onOpenInBrowser: () -> Unit,
     onInstall: () -> Unit,
     modifier: Modifier = Modifier
@@ -220,7 +222,7 @@ private fun UpdateDialogActions(
             Text(openInBrowserText)
         }
         if (showInstall) {
-            Button(onClick = onInstall) {
+            Button(onClick = onInstall, enabled = installEnabled) {
                 Text(installText)
             }
         }

@@ -52,6 +52,8 @@ final class MediaImporter: NSObject {
             popover.sourceView = presenter.view
             popover.sourceRect = presenter.view.bounds
         }
+        sheet.overrideUserInterfaceStyle = presenter.overrideUserInterfaceStyle
+        sheet.view.tintColor = presenter.view.tintColor
         presenter.present(sheet, animated: true)
     }
 
@@ -86,6 +88,8 @@ final class MediaImporter: NSObject {
         let picker = UIDocumentPickerViewController(forOpeningContentTypes: types, asCopy: true)
         picker.allowsMultipleSelection = true
         picker.delegate = self
+        picker.overrideUserInterfaceStyle = presenter.overrideUserInterfaceStyle
+        picker.view.tintColor = presenter.view.tintColor
         presenter.present(picker, animated: true)
     }
 
@@ -99,6 +103,8 @@ final class MediaImporter: NSObject {
         let picker = UIDocumentPickerViewController(forOpeningContentTypes: types, asCopy: true)
         picker.allowsMultipleSelection = false
         picker.delegate = self
+        picker.overrideUserInterfaceStyle = presenter.overrideUserInterfaceStyle
+        picker.view.tintColor = presenter.view.tintColor
         presenter.present(picker, animated: true)
     }
 
@@ -109,6 +115,8 @@ final class MediaImporter: NSObject {
         config.selectionLimit = 0 // unlimited
         let picker = PHPickerViewController(configuration: config)
         picker.delegate = self
+        picker.overrideUserInterfaceStyle = presenter.overrideUserInterfaceStyle
+        picker.view.tintColor = presenter.view.tintColor
         presenter.present(picker, animated: true)
     }
 
@@ -330,6 +338,8 @@ final class MediaImporter: NSObject {
                 preferredStyle: .alert,
             )
             alert.addAction(UIAlertAction(title: "OK", style: .default))
+            alert.overrideUserInterfaceStyle = presenter.overrideUserInterfaceStyle
+            alert.view.tintColor = presenter.view.tintColor
             presenter.present(alert, animated: true)
         }
     }

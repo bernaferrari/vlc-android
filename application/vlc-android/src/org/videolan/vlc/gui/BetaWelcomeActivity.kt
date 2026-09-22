@@ -1,5 +1,6 @@
 package org.videolan.vlc.gui
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
@@ -19,7 +20,7 @@ class BetaWelcomeActivity : AppCompatActivity() {
         setContentView(
             ComposeView(this).apply {
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-                setContent {
+                setVlcContent {
                     VLCBetaWelcomeScreen(
                         title = getString(R.string.welcome_beta_title),
                         description = getString(R.string.welcome_beta_description),

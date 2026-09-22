@@ -180,6 +180,8 @@ object IosAppLockController : AppLockController {
                         ?.takeIf(::isValidPin)
                     if (continuation.isActive) continuation.resume(pin)
                 })
+                alert.overrideUserInterfaceStyle = host.overrideUserInterfaceStyle
+                alert.view.tintColor = host.view.tintColor
                 host.presentViewController(alert, animated = true, completion = null)
             }
         }

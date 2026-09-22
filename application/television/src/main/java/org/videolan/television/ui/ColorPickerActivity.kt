@@ -311,7 +311,7 @@ private fun ColorGrid(
         }
     }
     HorizontalDivider(
-        color = colorResource(R.color.grey800),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
         modifier = Modifier.padding(vertical = 12.dp)
     )
     LazyVerticalGrid(
@@ -388,7 +388,7 @@ private fun ColorSwatch(
             .then(clickableModifier)
             .border(
                 width = if (focused) 3.dp else 1.dp,
-                color = if (focused) VLCThemeDefaults.colors.primary else colorResource(R.color.grey500),
+                color = if (focused) VLCThemeDefaults.colors.primary else MaterialTheme.colorScheme.outline,
                 shape = CircleShape
             )
             .padding(3.dp)

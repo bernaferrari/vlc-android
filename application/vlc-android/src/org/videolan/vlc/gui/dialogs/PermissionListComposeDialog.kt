@@ -1,5 +1,6 @@
 package org.videolan.vlc.gui.dialogs
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.Manifest
 import android.content.Intent
 import android.net.Uri
@@ -91,7 +92,7 @@ private class PermissionListComposeDialog(
     private fun setupContent() {
         rootView = ComposeView(activity).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
+            setVlcContent {
                 permissionState.value?.let { state ->
                     PermissionListComposeDialogContent(
                         state = state,

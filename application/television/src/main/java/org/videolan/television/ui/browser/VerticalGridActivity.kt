@@ -654,9 +654,9 @@ private fun TvMoviepediaBrowserScreen(
             .background(
                 Brush.verticalGradient(
                     listOf(
-                        Color(0xF2011422),
-                        Color(0xE6011422),
-                        Color(0xF2011422)
+                        MaterialTheme.colorScheme.background.copy(alpha = 0.95f),
+                        MaterialTheme.colorScheme.background.copy(alpha = 0.90f),
+                        MaterialTheme.colorScheme.background.copy(alpha = 0.95f)
                     )
                 )
             )
@@ -757,8 +757,8 @@ private fun TvMoviepediaListRow(
     onClick: () -> Unit
 ) {
     var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(4.dp)
-    val background = if (focused) Color(0xFF34434E) else Color(0xFF1A2C38)
+    val shape = RoundedCornerShape(14.dp)
+    val background = if (focused) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainer
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -818,8 +818,8 @@ private fun TvMoviepediaItemSurface(
     onClick: () -> Unit
 ) {
     var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(4.dp)
-    val background = if (focused) Color(0xFF34434E) else Color(0xFF1A2C38)
+    val shape = RoundedCornerShape(14.dp)
+    val background = if (focused) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainer
     Column(
         modifier = Modifier
             .then(firstFocusRequester?.let { Modifier.focusRequester(it) } ?: Modifier)
@@ -916,9 +916,9 @@ private fun TvMediaBrowserScreen(
             .background(
                 Brush.verticalGradient(
                     listOf(
-                        Color(0xF2011422),
-                        Color(0xE6011422),
-                        Color(0xF2011422)
+                        MaterialTheme.colorScheme.background.copy(alpha = 0.95f),
+                        MaterialTheme.colorScheme.background.copy(alpha = 0.90f),
+                        MaterialTheme.colorScheme.background.copy(alpha = 0.95f)
                     )
                 )
             )
@@ -1111,8 +1111,8 @@ private fun TvMediaListRow(
     onClick: () -> Unit
 ) {
     var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(4.dp)
-    val background = if (focused) Color(0xFF34434E) else Color(0xFF1A2C38)
+    val shape = RoundedCornerShape(14.dp)
+    val background = if (focused) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainer
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -1170,8 +1170,8 @@ private fun TvMediaItemSurface(
     onClick: () -> Unit
 ) {
     var focused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(4.dp)
-    val background = if (focused) Color(0xFF34434E) else Color(0xFF1A2C38)
+    val shape = RoundedCornerShape(14.dp)
+    val background = if (focused) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainer
     Column(
         modifier = Modifier
             .then(firstFocusRequester?.let { Modifier.focusRequester(it) } ?: Modifier)

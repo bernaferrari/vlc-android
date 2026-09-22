@@ -311,9 +311,16 @@ private final class WifiUploadSession {
         let page = """
         <!doctype html><meta name="viewport" content="width=device-width,initial-scale=1">
         <title>VLC local transfer</title>
-        <style>body{font:16px -apple-system,system-ui,sans-serif;max-width:34rem;margin:3rem auto;padding:0 1.25rem;color:#202124}button{margin-top:1rem;padding:.7rem 1rem;background:#ff8800;color:#111;border:0;border-radius:.6rem;font-weight:700}#status{margin-top:1rem;white-space:pre-wrap}</style>
+        <style>
+        :root{color-scheme:light dark;--bg:#f8f9f3;--surface:#fff;--ink:#252b24;--muted:#626d5f;--line:#dce1d5;--accent:#b84720;--on-accent:#fff}
+        *{box-sizing:border-box}body{font:16px/1.6 -apple-system,system-ui,sans-serif;max-width:38rem;margin:clamp(2rem,10vh,6rem) auto;padding:0 1.5rem;background:var(--bg);color:var(--ink)}
+        h1{font-size:clamp(1.8rem,5vw,2.4rem);line-height:1.2;letter-spacing:-.04em;font-weight:650}p{color:var(--muted)}label{display:block;font-weight:600;margin:2rem 0 .5rem}
+        input{font:inherit;width:100%;padding:1rem;border:1px solid var(--line);border-radius:1rem;background:var(--surface);color:var(--ink)}input::file-selector-button{font:inherit;min-height:44px;border:0;border-radius:.6rem;padding:.5rem .75rem;margin-right:.75rem;background:var(--bg);color:var(--ink)}
+        button{font:inherit;min-height:48px;margin-top:1rem;padding:.7rem 1.5rem;background:var(--accent);color:var(--on-accent);border:0;border-radius:.875rem;font-weight:600;cursor:pointer}button:hover{filter:brightness(.95)}button:active{filter:brightness(.9)}:focus-visible{outline:3px solid var(--accent);outline-offset:4px}#status{min-height:1.6em;margin-top:1.5rem;white-space:pre-wrap;overflow-wrap:anywhere}
+        @media(prefers-color-scheme:dark){:root{--bg:#171b19;--surface:#222824;--ink:#f0f2e9;--muted:#a3af9f;--line:#333b34;--accent:#f6986d;--on-accent:#291d17}}
+        </style>
         <h1>Send media to VLC</h1><p>This phone accepts files only while local transfer is enabled in VLC.</p>
-        <input id="file" type="file" multiple><br><button id="send">Upload</button><p id="status"></p>
+        <label for="file">Choose media files</label><input id="file" type="file" multiple><button id="send">Upload to VLC</button><p id="status" role="status" aria-live="polite"></p>
         <script>
         const file=document.querySelector('#file'), status=document.querySelector('#status');
         document.querySelector('#send').onclick=async()=>{for(const item of file.files){status.textContent=`Uploading ${item.name}…`;const r=await fetch('/upload'+location.search,{method:'POST',headers:{'X-VLC-Filename':item.name},body:item});if(!r.ok){status.textContent=`${item.name}: ${await r.text()}`;return}}status.textContent='Imported into VLC.'}

@@ -1,5 +1,6 @@
 package org.videolan.vlc.gui
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -37,7 +38,7 @@ class AppLockPinActivity : BaseActivity() {
         setResult(RESULT_CANCELED)
         setContentView(ComposeView(this).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent {
+            setVlcContent {
                 val creating = mode == Mode.CREATE
                 VLCPinCodeScreen(
                     reasonText = getString(

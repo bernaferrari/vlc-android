@@ -81,6 +81,8 @@ class IosShellHostCallbacks(
             popover.setSourceView(host.view)
             popover.setSourceRect(host.view.bounds)
         }
+        activity.overrideUserInterfaceStyle = host.overrideUserInterfaceStyle
+        activity.view.tintColor = host.view.tintColor
         host.presentViewController(activity, animated = true, completion = null)
     }
 
@@ -126,6 +128,8 @@ class IosShellHostCallbacks(
                 }
             },
         )
+        alert.overrideUserInterfaceStyle = host.overrideUserInterfaceStyle
+        alert.view.tintColor = host.view.tintColor
         host.presentViewController(alert, animated = true, completion = null)
     }
 
@@ -156,6 +160,8 @@ class IosShellHostCallbacks(
                 }
             },
         )
+        alert.overrideUserInterfaceStyle = host.overrideUserInterfaceStyle
+        alert.view.tintColor = host.view.tintColor
         host.presentViewController(alert, animated = true, completion = null)
     }
 
@@ -175,6 +181,8 @@ class IosShellHostCallbacks(
         alert.addAction(
             UIAlertAction.actionWithTitle("OK", style = UIAlertActionStyleDefault, handler = null),
         )
+        alert.overrideUserInterfaceStyle = host.overrideUserInterfaceStyle
+        alert.view.tintColor = host.view.tintColor
         host.presentViewController(alert, animated = true, completion = null)
     }
 }

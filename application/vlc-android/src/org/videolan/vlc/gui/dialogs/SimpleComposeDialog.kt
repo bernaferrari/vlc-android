@@ -1,5 +1,6 @@
 package org.videolan.vlc.gui.dialogs
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
@@ -7,11 +8,14 @@ import android.graphics.Bitmap
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -138,7 +142,7 @@ internal fun Context.showMaterialDialog(
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
     }
     handle = ComposeMaterialDialogHandle(parent, composeView, visible, onDismiss)
-    composeView.setContent {
+    composeView.setVlcContent {
         VLCTheme {
             if (visible.value) content(handle)
         }
@@ -165,7 +169,7 @@ internal fun Context.showMaterialBottomSheet(
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
     }
     handle = ComposeMaterialBottomSheetHandle(parent, composeView, visible, onDismiss)
-    composeView.setContent {
+    composeView.setVlcContent {
         VLCTheme {
             if (visible.value) {
                 val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -174,7 +178,9 @@ internal fun Context.showMaterialBottomSheet(
                 }
                 ModalBottomSheet(
                     onDismissRequest = { handle.dismiss() },
-                    sheetState = sheetState
+                    sheetState = sheetState,
+                    containerColor = MaterialTheme.colorScheme.background,
+                    shape = MaterialTheme.shapes.extraLarge
                 ) {
                     content(handle)
                 }
@@ -202,7 +208,7 @@ fun Context.showSimpleComposeDialog(
             if (cancelable) handle.dismiss()
         },
         title = { Text(text = title) },
-        text = { Text(text = message) },
+        text = { Text(text = message, modifier = Modifier.verticalScroll(rememberScrollState())) },
         confirmButton = {
             Button(
                 onClick = {
@@ -241,11 +247,12 @@ fun Activity.showSimpleTextInputComposeDialog(
         onDismissRequest = { handle.dismiss() },
         title = { Text(text = title) },
         text = {
-            Column {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 Text(text = message)
                 OutlinedTextField(
                     value = value,
                     onValueChange = { value = it },
+                    label = { Text(title) },
                     singleLine = true,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -281,7 +288,7 @@ fun Context.showSimpleBitmapComposeDialog(
             onDismissRequest = { handle.dismiss() },
             title = { Text(text = title) },
             text = {
-                Column {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                     Text(text = message)
                     Image(
                         bitmap = bitmap.asImageBitmap(),
@@ -315,7 +322,7 @@ fun Context.showSingleActionComposeDialog(
                 handle.dismiss()
             },
             title = { Text(text = title) },
-            text = { Text(text = message) },
+            text = { Text(text = message, modifier = Modifier.verticalScroll(rememberScrollState())) },
             confirmButton = {
                 Button(
                     onClick = {

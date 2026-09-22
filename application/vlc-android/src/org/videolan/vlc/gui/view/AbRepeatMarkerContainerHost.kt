@@ -1,5 +1,6 @@
 package org.videolan.vlc.gui.view
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
@@ -26,7 +27,7 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
 internal fun VLCComposeView.installAbRepeatMarkerContainerHost() {
     val host = AbRepeatMarkerContainerHost()
     setTag(R.id.ab_repeat_marker_guideline_container, host)
-    setContent {
+    setVlcContent {
         VLCTheme {
             host.Content()
         }

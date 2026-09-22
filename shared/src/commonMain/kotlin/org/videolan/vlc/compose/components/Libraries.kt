@@ -1,8 +1,6 @@
 package org.videolan.vlc.compose.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,7 +14,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -24,11 +21,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -40,7 +38,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -91,36 +88,12 @@ fun VLCLibrariesScreen(
             contentColor = colors.fontDefault
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                if (showHeader) Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .statusBarsPadding()
-                        .height(VLCLayout.RowHeight)
-                        .padding(vertical = 8.dp)
-                        .background(colors.backgroundDefault),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(
-                        onClick = onClose,
-                        modifier = Modifier.semantics {
-                            contentDescription = closeContentDescription
-                        }
-                    ) {
-                        CompositionLocalProvider(LocalContentColor provides colors.fontDefault) {
-                            closeIconContent()
-                        }
-                    }
-
-                    Text(
-                        text = title,
-                        color = colors.fontDefault,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(end = 16.dp)
-                    )
-                }
+                if (showHeader) VLCSecondaryHeader(
+                    title = title,
+                    navigationDescription = closeContentDescription,
+                    onNavigate = onClose,
+                    navigationIcon = closeIconContent,
+                )
 
                 LazyColumn(
                     modifier = Modifier
@@ -160,6 +133,7 @@ fun VLCLibrariesScreen(
             ) {
                 LibraryLicenseDetail(
                     library = library,
+                    onDismiss = { selectedLibrary = null },
                     openLinkContentDescription = openLinkContentDescription,
                     onOpenLicenseLink = onOpenLicenseLink,
                     linkIconContent = linkIconContent,
@@ -270,6 +244,7 @@ private fun AccentIconDisc(
 @Composable
 private fun LibraryLicenseDetail(
     library: VLCLibraryLicense,
+    onDismiss: () -> Unit,
     openLinkContentDescription: String,
     onOpenLicenseLink: (String) -> Unit,
     linkIconContent: @Composable () -> Unit,
@@ -282,55 +257,23 @@ private fun LibraryLicenseDetail(
         modifier = modifier
             .heightIn(max = 640.dp)
             .verticalScroll(rememberScrollState())
-            .padding(start = 16.dp, end = 16.dp, bottom = 32.dp)
+            .padding(start = 24.dp, end = 24.dp, bottom = 32.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.Top
-        ) {
-            AccentIconDisc(iconContent = sourceIconContent, size = 48)
-
-            Spacer(Modifier.width(16.dp))
-
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp)
-            ) {
-                Text(
-                    text = library.title,
-                    color = colors.fontDefault,
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium),
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                if (library.copyright.isNotBlank()) {
-                    Text(
-                        text = library.copyright,
-                        color = colors.fontLight,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(top = 6.dp)
-                    )
-                }
-
-                if (library.licenseTitle.isNotBlank()) {
-                    Spacer(Modifier.height(10.dp))
-                    LicenseBadge(text = library.licenseTitle)
-                }
-            }
-
-            if (library.licenseLink.isNotBlank()) {
-                IconButton(
-                    onClick = { onOpenLicenseLink(library.licenseLink) },
-                    modifier = Modifier.semantics {
-                        contentDescription = openLinkContentDescription
-                    }
-                ) {
-                    CompositionLocalProvider(LocalContentColor provides colors.primary) {
-                        linkIconContent()
-                    }
-                }
+        VLCModalHeader(
+            title = library.title,
+            subtitle = library.copyright,
+            onDismiss = onDismiss,
+            icon = { VLCIconChip { sourceIconContent() } },
+        )
+        if (library.licenseTitle.isNotBlank()) {
+            Spacer(Modifier.height(12.dp))
+            LicenseBadge(text = library.licenseTitle)
+        }
+        if (library.licenseLink.isNotBlank()) {
+            TextButton(onClick = { onOpenLicenseLink(library.licenseLink) }) {
+                linkIconContent()
+                Spacer(Modifier.width(8.dp))
+                Text(openLinkContentDescription)
             }
         }
 
@@ -343,12 +286,14 @@ private fun LibraryLicenseDetail(
                 .background(colors.defaultDivider)
         )
 
-        Text(
-            text = library.licenseDescription,
-            color = colors.fontDefault,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(top = 16.dp)
-        )
+        SelectionContainer {
+            Text(
+                text = library.licenseDescription,
+                color = colors.fontDefault,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(top = 16.dp)
+            )
+        }
     }
 }
 

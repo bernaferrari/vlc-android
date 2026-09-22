@@ -104,7 +104,7 @@ private val Orange800Transparent20 = Color(0x33FF610A)
 private val Orange500Transparent20 = Color(0x33FF8800)
 
 // Onboarding / special
-private val OnboardingGrey = Color(0xFF011422)
+private val OnboardingGrey = Color(0xFF171B19)
 
 // ============================================================
 // VLCColorScheme - light + dark
@@ -185,7 +185,7 @@ data class VLCColorScheme(
     val headerBackground: Color,
     /** ?attr/audio_browser_separator (section header text color; orange accent) */
     val audioBrowserSeparator: Color,
-    /** @color/onboarding_grey (onboarding_*.xml tools:background + Theme.VLC.Onboarding.* ; deep blue-grey #011422) */
+    /** @color/onboarding_grey (onboarding_*.xml tools:background + Theme.VLC.Onboarding.* ; deep forest #171B19) */
     val onboardingBackground: Color)
 
 /** Light scheme - derived from Theme.VLC.Apearance (MaterialComponents.Light.NoActionBar parent) */

@@ -1,5 +1,6 @@
 package org.videolan.vlc.gui.onboarding
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.Manifest
 import android.app.Activity
 import android.content.Intent
@@ -50,7 +51,7 @@ class OnboardingActivity : AppCompatActivity() {
         setContentView(
             ComposeView(this).apply {
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-                setContent {
+                setVlcContent {
                     VLCTheme {
                         OnboardingContent(
                             step = viewModel.currentStep,

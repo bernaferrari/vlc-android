@@ -84,7 +84,7 @@ fun Widget.getBackgroundSecondaryColor(context: Context, palette: Palette?): Int
     val untreatedColor = when {
         theme == 0 && DynamicColors.isDynamicColorAvailable() -> ContextCompat.getColor(context, if (lightTheme) android.R.color.system_accent1_100 else android.R.color.system_accent1_700)
         theme == 2 -> backgroundColor.lightenOrDarkenColor(0.1F)
-        else -> if (lightTheme) palette?.lightMutedSwatch?.rgb ?: ContextCompat.getColor(context, R.color.grey300) else palette?.darkMutedSwatch?.rgb ?: ContextCompat.getColor(context, R.color.grey800)
+        else -> if (lightTheme) palette?.lightMutedSwatch?.rgb ?: ContextCompat.getColor(context, R.color.reimagined_container_light) else palette?.darkMutedSwatch?.rgb ?: ContextCompat.getColor(context, R.color.reimagined_container_dark)
     }
     return if (opacity.coerceAtLeast(0).coerceAtMost(100) != 100) ColorUtils.setAlphaComponent(untreatedColor, (opacity * 2.55F).toInt()) else untreatedColor
 }
@@ -120,7 +120,7 @@ fun Widget.getProgressBackgroundColor(context: Context, palette: Palette?): Int 
  * @param context the context to use
  * @return a color without the transparency added
  */
-fun Widget.getSeparatorColor(context: Context) = ContextCompat.getColor(context, if (lightTheme) R.color.black_transparent_10 else R.color.white_transparent_10)
+fun Widget.getSeparatorColor(context: Context) = ContextCompat.getColor(context, if (lightTheme) R.color.reimagined_border_light else R.color.reimagined_border_dark)
 
 
 /**

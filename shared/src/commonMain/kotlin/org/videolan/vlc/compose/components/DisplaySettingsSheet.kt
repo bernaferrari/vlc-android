@@ -97,10 +97,9 @@ fun DisplaySettingsSheet(
                 .padding(bottom = 20.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Text(
-                title ?: stringResource(Res.string.display_settings),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
+            VLCModalHeader(
+                title = title ?: stringResource(Res.string.display_settings),
+                onDismiss = onDismiss,
             )
 
             if (state.supportsViewMode) {

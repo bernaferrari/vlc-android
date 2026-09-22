@@ -1,5 +1,8 @@
+@file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+
 package org.videolan.vlc.gui.dialogs
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.text.Spanned
@@ -20,6 +23,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,7 +31,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -193,7 +196,7 @@ private class SubtitleDownloaderComposeDialog(
     private fun setupContent() {
         rootView = ComposeView(activity).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
+            setVlcContent {
                 VLCTheme {
                     SubtitleDownloaderContent(
                         mode = modeState.value,
@@ -451,7 +454,6 @@ private fun SubtitleDownloaderContent(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .widthIn(min = 300.dp)
                 .verticalScroll(rememberScrollState())
                 .padding(vertical = 16.dp)
         ) {
@@ -560,7 +562,7 @@ private fun ModeActionIcon(
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-            .size(44.dp)
+            .size(48.dp)
             .clip(MaterialTheme.shapes.medium)
             .background(if (selected) colors.primary.copy(alpha = 0.14f) else androidx.compose.ui.graphics.Color.Transparent)
             .clickable(onClick = onClick)
@@ -787,9 +789,8 @@ private fun SearchEditFields(
                     .padding(start = 4.dp)
             )
         }
-        Row(
+        FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 4.dp)
@@ -1150,9 +1151,8 @@ private fun LoginModeContent(
                 )
             }
         }
-        Row(
+        FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 4.dp)

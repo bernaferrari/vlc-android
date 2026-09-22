@@ -1,5 +1,6 @@
 package org.videolan.vlc.gui.view
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.view.View
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
@@ -60,7 +61,7 @@ fun VLCComposeView.installPlayerOptionsPanelHost() {
     setTag(R.id.options_background, host)
     isClickable = true
     isFocusable = false
-    setContent {
+    setVlcContent {
         VLCTheme {
             host.Content()
         }

@@ -1,5 +1,6 @@
 package org.videolan.vlc.gui
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.app.SearchManager
 import android.content.Intent
 import android.graphics.Bitmap
@@ -70,7 +71,7 @@ open class SearchActivity : BaseActivity() {
         setContentView(
             ComposeView(this).apply {
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-                setContent {
+                setVlcContent {
                     VLCSearchScreen(
                         query = query,
                         hint = getString(R.string.search_hint),

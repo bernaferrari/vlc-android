@@ -24,7 +24,7 @@ import org.videolan.vlc.compose.theme.VLCThemeDefaults
  *
  * Structure from XML:
  *   - Horizontal row: leading icon (ImageView) + vertical (bold title + subtitle)
- *   - Colors: title uses ?attr/font_audio_light (18sp bold), subtitle uses ?attr/list_subtitle
+ *   - Semantic foreground for the title and muted metadata with natural wrapping
  *
  * This leaf is intentionally presentational and low-coupling.
  * Icon is provided via leadingContent slot for full flexibility (callers supply
@@ -45,21 +45,19 @@ fun VLCInfoItem(
         val colors = VLCThemeDefaults.colors
 
         Row(
-            modifier = modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            modifier = modifier.padding(horizontal = 16.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Leading icon area - caller provides (or omit for no-icon variant)
             if (leadingContent != null) {
                 Box(
                     modifier = Modifier
-                        .size(28.dp)
-                        .padding(end = 8.dp),
+                        .padding(end = 12.dp)
+                        .size(24.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     leadingContent()
                 }
-            } else {
-                Box(modifier = Modifier.size(20.dp).padding(end = 8.dp))
             }
 
             Column(
@@ -67,8 +65,8 @@ fun VLCInfoItem(
             ) {
                 Text(
                     text = title,
-                    color = colors.fontAudioLight,
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                    color = colors.fontDefault,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(bottom = 2.dp)
@@ -77,8 +75,6 @@ fun VLCInfoItem(
                     text = subtitle,
                     color = colors.listSubtitle,
                     style = MaterialTheme.typography.bodySmall,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
                 )
             }
         }

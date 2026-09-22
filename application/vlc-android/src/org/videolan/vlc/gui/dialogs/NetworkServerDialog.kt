@@ -1,5 +1,8 @@
+@file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+
 package org.videolan.vlc.gui.dialogs
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.net.Uri
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +16,7 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,7 +24,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -58,6 +61,7 @@ import org.videolan.resources.AndroidDevices
 import org.videolan.tools.AppScope
 import org.videolan.tools.Settings
 import org.videolan.vlc.R
+import org.videolan.vlc.compose.components.VLCModalHeader
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.DialogActivity
@@ -138,7 +142,7 @@ private class NetworkServerComposeDialog(
     private fun setupContent() {
         rootView = ComposeView(activity).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
+            setVlcContent {
                 VLCTheme {
                     NetworkServerContent(
                         protocols = protocols,
@@ -254,14 +258,12 @@ private fun NetworkServerContent(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .widthIn(min = 300.dp)
                 .verticalScroll(rememberScrollState())
                 .padding(vertical = 16.dp)
         ) {
-            Text(
-                text = stringResource(R.string.server_add_title),
-                color = colors.fontDefault,
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+            VLCModalHeader(
+                title = stringResource(R.string.server_add_title),
+                onDismiss = onCancel,
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
             )
             Surface(
@@ -355,8 +357,8 @@ private fun NetworkServerContent(
                     .fillMaxWidth()
                     .padding(start = 16.dp, top = 8.dp, end = 16.dp)
             )
-            Row(
-                horizontalArrangement = Arrangement.End,
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 16.dp, top = 24.dp, end = 16.dp)

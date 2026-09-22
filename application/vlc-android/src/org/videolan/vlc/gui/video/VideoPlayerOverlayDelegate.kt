@@ -24,6 +24,7 @@
 
 package org.videolan.vlc.gui.video
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.animation.Animator
 import android.annotation.SuppressLint
 import android.annotation.TargetApi
@@ -928,7 +929,7 @@ class VideoPlayerOverlayDelegate (private val player: VideoPlayerActivity) {
 
     private fun initPlaylistUi() {
         if (!playlistQueueInitialized) {
-            playlist.setContent {
+            playlist.setVlcContent {
                 VLCTheme {
                     AudioPlaylistQueue(
                         items = playlistItems,

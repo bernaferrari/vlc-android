@@ -22,6 +22,7 @@
 
 package org.videolan.vlc.gui.view
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.Context
 import android.content.res.Configuration
 import android.view.View
@@ -109,7 +110,7 @@ internal fun VLCComposeView.installVideoHudRightOverlayHost() {
     visibility = View.INVISIBLE
     isClickable = false
     isFocusable = false
-    setContent {
+    setVlcContent {
         VLCTheme {
             host.Content()
         }

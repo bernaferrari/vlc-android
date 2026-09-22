@@ -9,6 +9,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import org.videolan.television.ui.tvFocusOutline
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -102,24 +105,27 @@ private fun ConfirmationTvContent(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxSize()
-            .background(colors.onboardingBackground)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 64.dp, vertical = 48.dp)
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.widthIn(max = 720.dp)
+            modifier = Modifier
+                .widthIn(max = 720.dp)
+                .background(MaterialTheme.colorScheme.surfaceContainer, RoundedCornerShape(24.dp))
+                .padding(40.dp)
         ) {
             Text(
                 text = title,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.headlineMedium,
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(20.dp))
             Text(
                 text = text,
-                color = Color.White.copy(alpha = 0.78f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Center
             )
@@ -128,7 +134,8 @@ private fun ConfirmationTvContent(
                 Button(
                     onClick = onPositive,
                     colors = ButtonDefaults.buttonColors(containerColor = colors.primary),
-                    modifier = Modifier.focusRequester(positiveFocusRequester)
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.heightIn(min = 56.dp).tvFocusOutline().focusRequester(positiveFocusRequester)
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_done),
@@ -138,7 +145,11 @@ private fun ConfirmationTvContent(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(text = stringResource(R.string.yes))
                 }
-                OutlinedButton(onClick = onNegative) {
+                OutlinedButton(
+                    onClick = onNegative,
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.heightIn(min = 56.dp).tvFocusOutline(),
+                ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_close_small),
                         contentDescription = null,

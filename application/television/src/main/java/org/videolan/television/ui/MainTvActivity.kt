@@ -456,9 +456,9 @@ private fun MainTvHomeScreen(
             .background(
                 Brush.verticalGradient(
                     listOf(
-                        Color(0xF2011422),
-                        Color(0xE6011422),
-                        Color(0xF2011422)
+                        MaterialTheme.colorScheme.background.copy(alpha = 0.95f),
+                        MaterialTheme.colorScheme.background.copy(alpha = 0.90f),
+                        MaterialTheme.colorScheme.background.copy(alpha = 0.95f)
                     )
                 )
             )
@@ -584,11 +584,11 @@ private fun MainTvCard(
 ) {
     var focused by remember { mutableStateOf(false) }
     val colors = VLCThemeDefaults.colors
-    val shape = RoundedCornerShape(4.dp)
+    val shape = RoundedCornerShape(14.dp)
     val cardWidth = if (poster) 128.dp else 192.dp
     val imageHeight = if (poster) 184.dp else 120.dp
     val cardHeight = imageHeight + 68.dp
-    val background = if (focused) Color(0xFF34434E) else Color(0xFF1A2C38)
+    val background = if (focused) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.surfaceContainer
 
     Column(
         modifier = modifier

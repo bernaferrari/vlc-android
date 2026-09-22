@@ -1,5 +1,6 @@
 package org.videolan.vlc.gui
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
@@ -202,7 +203,7 @@ class InfoActivity : AudioPlayerContainerActivity(), PathAdapterListener,
         infoContent = ComposeView(this).apply {
             id = R.id.content_placeholder
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent {
+            setVlcContent {
                 VLCTheme {
                     InfoScreen(
                         state = uiState,

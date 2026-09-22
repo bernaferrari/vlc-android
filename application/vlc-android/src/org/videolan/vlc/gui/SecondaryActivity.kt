@@ -23,6 +23,7 @@
 
 package org.videolan.vlc.gui
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
@@ -336,7 +337,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         ComposeView(this).apply {
             streamsRoot = this
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
+            setVlcContent {
                 VLCTheme {
                     StreamPanelContent(
                         streams = itemsState.value,
@@ -454,7 +455,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         container.removeAllViews()
         ComposeView(this).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
+            setVlcContent {
                 VLCTheme {
                     HistoryScreenContent(
                         items = itemsState.value,
@@ -490,7 +491,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         container.removeAllViews()
         ComposeView(this).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
+            setVlcContent {
                 VLCTheme {
                     controller.Content()
                 }
@@ -515,7 +516,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         container.removeAllViews()
         ComposeView(this).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
+            setVlcContent {
                 VLCTheme {
                     controller.Content()
                 }
@@ -535,7 +536,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         container.removeAllViews()
         ComposeView(this).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
+            setVlcContent {
                 VLCTheme {
                     controller.Content()
                 }
@@ -562,7 +563,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         container.removeAllViews()
         ComposeView(this).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
+            setVlcContent {
                 VLCTheme {
                     controller.Content()
                 }

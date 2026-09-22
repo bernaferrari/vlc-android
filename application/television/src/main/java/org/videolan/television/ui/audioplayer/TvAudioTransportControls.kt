@@ -23,6 +23,7 @@ package org.videolan.television.ui.audioplayer
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -149,7 +150,8 @@ private fun TvAudioTransportButton(
         modifier = modifier
             .size(48.dp)
             .clip(CircleShape)
-            .background(if (focused) Color.White.copy(alpha = 0.20F) else Color.Transparent)
+            .background(if (focused) colors.primary.copy(alpha = 0.18f) else Color.Transparent)
+            .border(2.dp, if (focused) colors.primary else Color.Transparent, CircleShape)
             .focusable(interactionSource = interactionSource)
             .combinedClickable(
                 interactionSource = interactionSource,

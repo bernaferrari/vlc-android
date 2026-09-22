@@ -22,11 +22,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import org.videolan.vlc.compose.theme.VLCTheme
@@ -57,7 +55,7 @@ fun VLCRenameDialogContent(
         val focusRequester = remember { FocusRequester() }
         val keyboardController = LocalSoftwareKeyboardController.current
         val confirm = {
-            if (newName.text.isNotEmpty()) {
+            if (newName.text.isNotBlank()) {
                 keyboardController?.hide()
                 onConfirm()
             }
@@ -81,29 +79,15 @@ fun VLCRenameDialogContent(
                     .fillMaxWidth()
                     .background(colors.backgroundDefault)
                     .verticalScroll(rememberScrollState())
-                    .padding(start = 8.dp, top = 8.dp, end = 8.dp, bottom = 16.dp)
+                    .padding(24.dp)
             ) {
-                Text(
-                    text = title,
-                    color = colors.fontDefault,
-                    style = MaterialTheme.typography.titleLarge
-                )
-
-                Text(
-                    text = mediaTitle,
-                    color = colors.fontLight,
-                    style = MaterialTheme.typography.bodySmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 2.dp)
-                )
+                VLCModalHeader(title = title, subtitle = mediaTitle)
 
                 OutlinedTextField(
                     value = newName,
                     onValueChange = onNewNameChange,
-                    placeholder = { Text(newTitleHint) },
+                    label = { Text(newTitleHint) },
+                    shape = MaterialTheme.shapes.large,
                     singleLine = true,
                     textStyle = MaterialTheme.typography.bodyLarge.copy(color = colors.fontDefault),
                     keyboardOptions = KeyboardOptions(
@@ -126,7 +110,7 @@ fun VLCRenameDialogContent(
                         .padding(top = 24.dp),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    Button(onClick = confirm, enabled = newName.text.isNotEmpty()) {
+                    Button(onClick = confirm, enabled = newName.text.isNotBlank()) {
                         Text(okText)
                     }
                 }

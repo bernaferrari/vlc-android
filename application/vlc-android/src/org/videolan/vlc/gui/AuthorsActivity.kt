@@ -1,5 +1,6 @@
 package org.videolan.vlc.gui
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.os.Bundle
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -38,7 +39,7 @@ class AuthorsActivity : BaseActivity() {
         setContentView(
             ComposeView(this).apply {
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-                setContent {
+                setVlcContent {
                     VLCAuthorsScreen(
                         title = getString(R.string.authors),
                         authors = authors,

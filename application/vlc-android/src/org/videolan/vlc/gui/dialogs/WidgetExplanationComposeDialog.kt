@@ -1,5 +1,6 @@
 package org.videolan.vlc.gui.dialogs
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.Context
 import android.util.TypedValue
 import android.view.View
@@ -55,7 +56,7 @@ private class WidgetExplanationComposeDialog(private val activity: ComponentActi
     private fun setupContent() {
         rootView = ComposeView(activity).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
+            setVlcContent {
                 VLCWidgetExplanationDialogContent(
                     title = activity.getString(R.string.widget_explanation_title),
                     sizeText = activity.getString(R.string.widget_explanation_size),

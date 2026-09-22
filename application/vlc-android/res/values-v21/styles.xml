@@ -15,7 +15,7 @@
 
     <style name="Theme.VLC.Black" parent="Theme.VLC.Black.19">
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
-        <item name="android:statusBarColor">@color/black</item>
+        <item name="android:statusBarColor">@color/reimagined_canvas_dark</item>
     </style>
 
     <style name="Theme.VLC.Onboarding" parent="Theme.VLC.Onboarding.7">

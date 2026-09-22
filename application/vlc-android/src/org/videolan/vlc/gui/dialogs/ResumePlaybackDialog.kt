@@ -1,5 +1,6 @@
 package org.videolan.vlc.gui.dialogs
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.Context
 import android.app.Dialog
 import android.graphics.Color
@@ -57,7 +58,7 @@ fun Context.showResumePlaybackComposeDialog(
     dialog.setContentView(
         ComposeView(this).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
+            setVlcContent {
                 VLCTheme {
                     ResumePlaybackDialog(
                         title = title,

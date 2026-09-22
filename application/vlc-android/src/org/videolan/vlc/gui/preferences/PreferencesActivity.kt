@@ -20,6 +20,7 @@
 
 package org.videolan.vlc.gui.preferences
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.app.Activity
 import android.app.ActivityManager
 import android.content.Context
@@ -210,7 +211,7 @@ open class PreferencesActivity : BaseActivity() {
         setContentView(
             ComposeView(this).apply {
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-                setContent {
+                setVlcContent {
                     PreferencesActivityScreen()
                 }
             }

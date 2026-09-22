@@ -24,6 +24,7 @@
 
 package org.videolan.vlc.gui
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.app.Application
 import android.content.Context
 import android.content.Intent
@@ -100,7 +101,7 @@ class PinCodeActivity : BaseActivity() {
         setContentView(
             ComposeView(this).apply {
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-                setContent {
+                setVlcContent {
                     VLCPinCodeScreen(
                         reasonText = reasonText,
                         title = getString(pinStep.titleRes()),

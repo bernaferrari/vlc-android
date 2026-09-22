@@ -1,5 +1,9 @@
 package org.videolan.vlc.compose.app
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.FlowRow
+import org.videolan.vlc.compose.components.VLCModalHeader
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,7 +15,20 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import org.videolan.vlc.compose.components.VLCConfirmActionDialog
+import org.jetbrains.compose.resources.stringResource
+import vlc_android.shared.generated.resources.Res
+import vlc_android.shared.generated.resources.remove_history_message
+import vlc_android.shared.generated.resources.remove_stream_message
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -72,6 +89,38 @@ internal fun MorePane(
     var deleteStreamTarget by remember { mutableStateOf<MediaItem?>(null) }
     var confirmHistoryRemoval by remember { mutableStateOf(false) }
     var confirmHistoryClear by remember { mutableStateOf(false) }
+    val streamNameFocusRequester = remember { FocusRequester() }
+    val streamUriFocusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    fun dismissStreamSheet() {
+        addingStream = false
+        streamAddressError = false
+        keyboardController?.hide()
+    }
+    fun dismissStreamEditor() {
+        newStreamName = ""
+        newStreamUri = ""
+        dismissStreamSheet()
+    }
+    fun submitStream(save: Boolean) {
+        val uri = newStreamUri.trim()
+        if (!isPlayableStreamUri(uri)) {
+            streamAddressError = true
+            streamUriFocusRequester.requestFocus()
+            return
+        }
+        if (save) vm.addStream(newStreamName.trim().ifBlank { uri }, uri)
+        else onOpenStream(newStreamName.trim(), uri)
+        dismissStreamEditor()
+    }
+    LaunchedEffect(addingStream) {
+        if (addingStream) {
+            kotlinx.coroutines.yield()
+            streamNameFocusRequester.requestFocus()
+            keyboardController?.show()
+        }
+    }
     val navigationActions = buildList {
         add(
             MoreHubAction(
@@ -291,13 +340,10 @@ internal fun MorePane(
     }
     if (addingStream) {
         androidx.compose.material3.ModalBottomSheet(
-            onDismissRequest = {
-                addingStream = false
-                streamAddressError = false
-            },
+            onDismissRequest = ::dismissStreamSheet,
         ) {
             Column(
-                modifier = Modifier.padding(
+                modifier = Modifier.verticalScroll(rememberScrollState()).padding(
                     start = VLCLayout.SheetHorizontalPadding,
                     top = 8.dp,
                     end = VLCLayout.SheetHorizontalPadding,
@@ -305,11 +351,13 @@ internal fun MorePane(
                 ),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Text(ShellStrings.newStream(), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+                VLCModalHeader(title = ShellStrings.newStream(), onDismiss = ::dismissStreamSheet)
                 OutlinedTextField(
                     value = newStreamName,
                     onValueChange = { newStreamName = it },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().focusRequester(streamNameFocusRequester),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(onNext = { streamUriFocusRequester.requestFocus() }),
                     singleLine = true,
                     label = { Text(ShellStrings.streamName()) },
                     shape = MaterialTheme.shapes.large,
@@ -320,7 +368,9 @@ internal fun MorePane(
                         newStreamUri = it
                         streamAddressError = false
                     },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().focusRequester(streamUriFocusRequester),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Go),
+                    keyboardActions = KeyboardActions(onGo = { submitStream(save = false) }, onDone = { submitStream(save = false) }),
                     singleLine = true,
                     isError = streamAddressError,
                     supportingText = if (streamAddressError) {
@@ -331,41 +381,18 @@ internal fun MorePane(
                     label = { Text(ShellStrings.streamAddress()) },
                     shape = MaterialTheme.shapes.large,
                 )
-                Row(
+                FlowRow(
                     modifier = Modifier.align(Alignment.End),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    TextButton(onClick = {
-                        addingStream = false
-                        newStreamName = ""
-                        newStreamUri = ""
-                        streamAddressError = false
-                    }) { Text(ShellStrings.cancel()) }
-                    TextButton(onClick = {
-                        if (isPlayableStreamUri(newStreamUri)) {
-                            onOpenStream(newStreamName, newStreamUri)
-                            addingStream = false
-                            newStreamName = ""
-                            newStreamUri = ""
-                            streamAddressError = false
-                        } else {
-                            streamAddressError = true
-                        }
-                    }) { Text(ShellStrings.play()) }
+                    TextButton(onClick = ::dismissStreamEditor) { Text(ShellStrings.cancel()) }
                     if (state.hasStreamRepository) {
-                        TextButton(
-                            enabled = newStreamUri.isNotBlank(),
-                            onClick = {
-                                if (isPlayableStreamUri(newStreamUri)) {
-                                    vm.addStream(newStreamName.ifBlank { newStreamUri }, newStreamUri.trim())
-                                    addingStream = false
-                                    newStreamName = ""
-                                    newStreamUri = ""
-                                } else {
-                                    streamAddressError = true
-                                }
-                            },
-                        ) { Text(ShellStrings.save()) }
+                        TextButton(enabled = newStreamUri.isNotBlank(), onClick = { submitStream(save = true) }) {
+                            Text(ShellStrings.save())
+                        }
+                    }
+                    Button(enabled = newStreamUri.isNotBlank(), onClick = { submitStream(save = false) }) {
+                        Text(ShellStrings.play())
                     }
                 }
             }
@@ -389,42 +416,32 @@ internal fun MorePane(
     }
     if (confirmHistoryRemoval || confirmHistoryClear) {
         val isBulkRemoval = confirmHistoryRemoval
-        AlertDialog(
-            onDismissRequest = {
+        VLCConfirmActionDialog(
+            title = if (isBulkRemoval) ShellStrings.remove() else ShellStrings.clear(),
+            message = stringResource(Res.string.remove_history_message),
+            target = if (isBulkRemoval) ShellStrings.itemsCount(state.historySelection.size) else ShellStrings.playbackHistory(),
+            confirmLabel = if (isBulkRemoval) ShellStrings.remove() else ShellStrings.clear(),
+            cancelLabel = ShellStrings.cancel(),
+            onConfirm = {
+                if (isBulkRemoval) vm.removeSelectedHistory() else vm.clearHistory()
                 confirmHistoryRemoval = false
                 confirmHistoryClear = false
             },
-            title = { Text(if (isBulkRemoval) ShellStrings.remove() else ShellStrings.clear()) },
-            text = { Text(ShellStrings.confirmDeleteMessage()) },
-            confirmButton = {
-                TextButton(onClick = {
-                    if (isBulkRemoval) vm.removeSelectedHistory() else vm.clearHistory()
-                    confirmHistoryRemoval = false
-                    confirmHistoryClear = false
-                }) { Text(if (isBulkRemoval) ShellStrings.remove() else ShellStrings.clear()) }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    confirmHistoryRemoval = false
-                    confirmHistoryClear = false
-                }) { Text(ShellStrings.cancel()) }
+            onDismiss = {
+                confirmHistoryRemoval = false
+                confirmHistoryClear = false
             },
         )
     }
     deleteStreamTarget?.let { stream ->
-        AlertDialog(
-            onDismissRequest = { deleteStreamTarget = null },
-            title = { Text(ShellStrings.deleteStream()) },
-            text = { Text(ShellStrings.confirmDeleteMessage()) },
-            confirmButton = {
-                TextButton(onClick = {
-                    vm.deleteStream(stream.id)
-                    deleteStreamTarget = null
-                }) { Text(ShellStrings.delete()) }
-            },
-            dismissButton = {
-                TextButton(onClick = { deleteStreamTarget = null }) { Text(ShellStrings.cancel()) }
-            },
+        VLCConfirmActionDialog(
+            title = ShellStrings.deleteStream(),
+            message = stringResource(Res.string.remove_stream_message),
+            target = stream.displayTitle,
+            confirmLabel = ShellStrings.delete(),
+            cancelLabel = ShellStrings.cancel(),
+            onConfirm = { vm.deleteStream(stream.id); deleteStreamTarget = null },
+            onDismiss = { deleteStreamTarget = null },
         )
     }
 }

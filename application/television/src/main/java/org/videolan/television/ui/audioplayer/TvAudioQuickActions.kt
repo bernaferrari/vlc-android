@@ -22,6 +22,7 @@ package org.videolan.television.ui.audioplayer
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
@@ -122,10 +123,15 @@ private fun TvAudioQuickActionChip(
     var focused by remember { mutableStateOf(false) }
     Row(
         modifier = modifier
-            .heightIn(min = 32.dp)
+            .heightIn(min = 48.dp)
             .widthIn(max = 144.dp)
-            .clip(RoundedCornerShape(24.dp))
-            .background(if (focused) FocusedChipBackground else NormalChipBackground)
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .border(
+                width = 2.dp,
+                color = if (focused) MaterialTheme.colorScheme.primary else Color.Transparent,
+                shape = RoundedCornerShape(16.dp),
+            )
             .focusProperties { canFocus = focusEnabled }
             .onFocusChanged { focused = it.isFocused }
             .focusable(enabled = focusEnabled)
@@ -142,19 +148,16 @@ private fun TvAudioQuickActionChip(
         Icon(
             painter = painterResource(icon),
             contentDescription = null,
-            tint = Color.White,
+            tint = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.size(24.dp)
         )
         Spacer(Modifier.width(8.dp))
         Text(
             text = text,
-            color = Color.White.copy(alpha = if (focused) 1F else 0.72F),
+            color = if (focused) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.labelMedium.copy(fontSize = 14.sp),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
     }
 }
-
-private val NormalChipBackground = Color(0xBF000000)
-private val FocusedChipBackground = Color(0x80BDBDBD)

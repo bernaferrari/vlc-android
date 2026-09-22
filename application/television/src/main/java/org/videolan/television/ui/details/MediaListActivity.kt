@@ -266,7 +266,7 @@ private fun TvMediaListScreen(
                     onRemove = { onRemoveTrack(position) },
                     onFocused = { onTrackFocused(track) }
                 )
-                HorizontalDivider(color = colorResource(R.color.tv_card_content_darker))
+                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceContainerLow)
             }
         }
     }
@@ -291,7 +291,7 @@ private fun TvMediaListHeader(
         modifier = Modifier
             .fillMaxWidth()
             .height(150.dp)
-            .background(colorResource(R.color.tv_card_content_darker))
+            .background(MaterialTheme.colorScheme.surfaceContainerLow)
             .padding(
                 start = dimensionResource(R.dimen.tv_overscan_horizontal),
                 end = dimensionResource(R.dimen.tv_overscan_horizontal),
@@ -395,7 +395,7 @@ private fun TvMediaListRow(
         modifier = Modifier
             .fillMaxWidth()
             .height(48.dp)
-            .background(colorResource(R.color.tv_card_content_dark))
+            .background(MaterialTheme.colorScheme.surfaceContainer)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

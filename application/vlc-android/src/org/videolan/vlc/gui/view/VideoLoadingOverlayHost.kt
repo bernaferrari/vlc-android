@@ -20,6 +20,7 @@
 
 package org.videolan.vlc.gui.view
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.view.View
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -53,7 +54,7 @@ internal fun VLCComposeView.installVideoLoadingOverlayHost() {
     visibility = View.INVISIBLE
     isClickable = false
     isFocusable = false
-    setContent { VideoLoadingOverlay(visible = host.visible) }
+    setVlcContent { VideoLoadingOverlay(visible = host.visible) }
 }
 
 internal fun VLCComposeView.videoLoadingOverlayHost(): VideoLoadingOverlayHost =

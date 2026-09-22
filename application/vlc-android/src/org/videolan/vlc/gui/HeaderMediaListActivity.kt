@@ -23,6 +23,7 @@
 
 package org.videolan.vlc.gui
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
@@ -318,7 +319,7 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), ActionMode.
 
         headerComposeView = ComposeView(this).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent {
+            setVlcContent {
                 VLCTheme {
                     HeaderMediaListHeader(
                         state = headerState,
@@ -378,7 +379,7 @@ open class HeaderMediaListActivity : AudioPlayerContainerActivity(), ActionMode.
             id = R.id.songs
             setBackgroundResource(getResourceFromAttribute(this@HeaderMediaListActivity, R.attr.background_default))
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent {
+            setVlcContent {
                 VLCTheme {
                     HeaderMediaTrackList(
                         tracks = trackItems,

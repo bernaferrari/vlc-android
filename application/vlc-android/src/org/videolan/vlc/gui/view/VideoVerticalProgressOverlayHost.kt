@@ -22,6 +22,7 @@
 
 package org.videolan.vlc.gui.view
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.Context
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -69,7 +70,7 @@ private data class VideoVerticalProgressState(
 internal fun VLCComposeView.installVideoVerticalProgressOverlayHost() {
     val host = VideoVerticalProgressOverlayHost(context)
     setTag(id, host)
-    setContent {
+    setVlcContent {
         VLCTheme {
             host.Content()
         }

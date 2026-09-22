@@ -9,8 +9,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -59,30 +63,13 @@ fun VLCOTPCodeScreen(
         ) {
             Column(
                 modifier = Modifier
+                    .widthIn(max = 560.dp)
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp, vertical = 16.dp)
-                    .verticalScroll(rememberScrollState()),
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text(
-                    text = title,
-                    color = colors.fontDefault,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-
-                Spacer(Modifier.height(8.dp))
-
-                Text(
-                    text = subtitle,
-                    color = colors.fontLight,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                VLCModalHeader(title = title, subtitle = subtitle)
 
                 Spacer(Modifier.height(32.dp))
 
@@ -129,7 +116,8 @@ private fun OTPDigits(
             digits.forEach { digit ->
                 Box(
                     modifier = Modifier
-                        .size(tileSize)
+                        .width(tileSize)
+                        .heightIn(min = maxOf(56.dp, 44.dp * LocalDensity.current.fontScale))
                         .background(tileColor, RoundedCornerShape(16.dp)),
                     contentAlignment = Alignment.Center
                 ) {
@@ -151,4 +139,4 @@ private fun OTPDigits(
 private fun otpTileSize(maxWidth: Dp, spacing: Dp): Dp =
     ((maxWidth - spacing * 5f) / 6f)
         .coerceAtMost(56.dp)
-        .coerceAtLeast(44.dp)
+        .coerceAtLeast(1.dp)

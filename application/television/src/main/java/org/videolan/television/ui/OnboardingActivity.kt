@@ -36,6 +36,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -140,7 +142,7 @@ private fun TvOnboardingContent(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxSize()
-            .background(colors.onboardingBackground)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 56.dp, vertical = 40.dp)
     ) {
         Column(
@@ -156,14 +158,14 @@ private fun TvOnboardingContent(
             Spacer(modifier = Modifier.height(36.dp))
             Text(
                 text = onboardingTitle(currentPage),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.headlineLarge,
                 textAlign = TextAlign.Center
             )
             Spacer(modifier = Modifier.height(18.dp))
             Text(
                 text = onboardingDescription(currentPage, hasStoragePermission),
-                color = Color.White.copy(alpha = 0.78f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Center
             )
@@ -172,7 +174,11 @@ private fun TvOnboardingContent(
             Spacer(modifier = Modifier.height(36.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 if (currentPage > 0) {
-                    OutlinedButton(onClick = onPrevious) {
+                    OutlinedButton(
+                        onClick = onPrevious,
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.heightIn(min = 56.dp).tvFocusOutline(),
+                    ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_arrow_left),
                             contentDescription = null,
@@ -184,7 +190,9 @@ private fun TvOnboardingContent(
                 }
                 Button(
                     onClick = if (currentPage == 2) onStart else onNext,
-                    colors = ButtonDefaults.buttonColors(containerColor = colors.primary)
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.primary),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.heightIn(min = 56.dp).tvFocusOutline()
                 ) {
                     Text(text = stringResource(if (currentPage == 2) R.string.start_vlc else R.string.next))
                     Spacer(modifier = Modifier.width(8.dp))

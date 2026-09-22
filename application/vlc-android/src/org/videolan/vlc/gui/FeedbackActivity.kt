@@ -24,6 +24,7 @@
 
 package org.videolan.vlc.gui
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -197,7 +198,7 @@ class FeedbackActivity : BaseActivity(), DebugLogService.Client.Callback {
         setContentView(
             ComposeView(this).apply {
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-                setContent {
+                setVlcContent {
                     VLCFeedbackScreen(
                         title = getString(R.string.send_feedback),
                         feedbackForumTitle = getString(R.string.feedback_forum),

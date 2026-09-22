@@ -24,6 +24,7 @@
 
 package org.videolan.vlc.widget
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Intent
@@ -148,7 +149,7 @@ class MiniPlayerConfigureActivity : BaseActivity() {
 
         rootView = ComposeView(this).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent {
+            setVlcContent {
                 VLCTheme {
                     MiniPlayerConfigureScreen(
                         widget = widgetState,
@@ -257,7 +258,7 @@ class MiniPlayerConfigureActivity : BaseActivity() {
         )
         val preview = ComposeView(this@MiniPlayerConfigureActivity).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setContent {
+            setVlcContent {
                 VLCTheme {
                     MiniPlayerWidgetPreviewContent(state)
                 }

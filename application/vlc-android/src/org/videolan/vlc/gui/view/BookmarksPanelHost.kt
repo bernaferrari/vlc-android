@@ -1,5 +1,6 @@
 package org.videolan.vlc.gui.view
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.util.TypedValue
 import android.view.View
 import androidx.compose.foundation.background
@@ -97,7 +98,7 @@ fun VLCComposeView.installBookmarksPanelHost() {
     setTag(R.id.bookmarks_background, host)
     isClickable = true
     isFocusable = false
-    setContent {
+    setVlcContent {
         VLCTheme {
             host.Content()
         }

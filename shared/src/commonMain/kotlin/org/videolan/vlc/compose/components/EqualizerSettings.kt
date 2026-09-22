@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -36,13 +38,13 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -539,6 +541,7 @@ private fun EqualizerOverwriteCard(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun EqualizerEditorSheet(
     state: VLCEqualizerEditorState,
@@ -567,33 +570,18 @@ private fun EqualizerEditorSheet(
 
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 16.dp, end = 16.dp, bottom = 32.dp)
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 24.dp, end = 24.dp, bottom = 32.dp)
     ) {
         item(key = "title") {
-            Row(
+            VLCModalHeader(title = strings.title, onDismiss = onDismiss)
+            FlowRow(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                Text(
-                    text = strings.title,
-                    color = colors.fontDefault,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.weight(1f)
-                )
-                EqualizerIconButton(
-                    contentDescription = strings.addEqualizer,
-                    onClick = onAddEqualizer,
-                    iconContent = addIconContent
-                )
-                if (onOpenSettings != null && settingsIconContent != null) {
-                    EqualizerIconButton(
-                        contentDescription = strings.preferences,
-                        onClick = onOpenSettings,
-                        iconContent = settingsIconContent
-                    )
-                }
-                TextButton(onClick = onDismiss) {
-                    Text(strings.done)
+                TextButton(onClick = onAddEqualizer) { Text(strings.addEqualizer) }
+                if (onOpenSettings != null) {
+                    TextButton(onClick = onOpenSettings) { Text(strings.preferences) }
                 }
             }
         }
@@ -645,53 +633,52 @@ private fun EqualizerEditorSheet(
                 shadowElevation = 0.dp
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
+                    if (state.current.isCustom) {
+                        OutlinedTextField(
+                            value = state.editedName,
+                            label = { Text(strings.equalizerName) },
+                            shape = MaterialTheme.shapes.large,
+                            onValueChange = onNameChange,
+                            enabled = state.canEditCurrent,
+                            singleLine = true,
+                            isError = state.nameError != null,
+                            supportingText = state.nameError?.let { error -> { Text(error) } },
+                            modifier = Modifier.fillMaxWidth()
+                                .onFocusChanged { onNameFocusChange(it.isFocused) },
+                        )
+                    } else {
+                        Text(
+                            text = state.current.name,
+                            color = colors.fontDefault,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        if (state.current.isCustom) {
-                            OutlinedTextField(
-                                value = state.editedName,
-                                onValueChange = onNameChange,
-                                enabled = state.canEditCurrent,
-                                singleLine = true,
-                                isError = state.nameError != null,
-                                supportingText = state.nameError?.let { error -> { Text(error) } },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .onFocusChanged { onNameFocusChange(it.isFocused) }
-                            )
-                        } else {
-                            Text(
-                                text = state.current.name,
-                                color = colors.fontDefault,
-                                style = MaterialTheme.typography.bodyLarge,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-
                         if (state.current.isCustom) {
                             EqualizerIconButton(
                                 contentDescription = strings.undo,
                                 enabled = state.canUndo,
                                 onClick = onUndo,
-                                iconContent = undoIconContent
+                                iconContent = undoIconContent,
                             )
                         } else {
                             EqualizerIconButton(
                                 contentDescription = strings.editPreset,
                                 enabled = state.equalizerEnabled,
                                 onClick = onEditPreset,
-                                iconContent = editIconContent
+                                iconContent = editIconContent,
                             )
                         }
                         EqualizerIconButton(
                             contentDescription = strings.delete,
                             enabled = state.equalizerEnabled,
                             onClick = onDelete,
-                            iconContent = deleteIconContent
+                            iconContent = deleteIconContent,
                         )
                     }
 
@@ -740,17 +727,25 @@ private fun EqualizerSliderRow(
     val colors = VLCThemeDefaults.colors
     val rounded = value.roundToInt()
 
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            color = if (enabled) colors.fontDefault else colors.fontDisabled,
-            style = MaterialTheme.typography.bodyMedium,
-            maxLines = 1,
-            modifier = Modifier.width(64.dp)
-        )
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = label,
+                color = if (enabled) colors.fontDefault else colors.fontDisabled,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                text = if (rounded > 0) "+${rounded}dB" else "${rounded}dB",
+                color = if (enabled) colors.fontLight else colors.fontDisabled,
+                style = MaterialTheme.typography.bodySmall.copy(fontFeatureSettings = "tnum"),
+                maxLines = 1,
+            )
+        }
         Slider(
             value = value.coerceIn(EqualizerValueMin, EqualizerValueMax),
             onValueChange = onValueChange,
@@ -758,14 +753,7 @@ private fun EqualizerSliderRow(
             valueRange = EqualizerValueMin..EqualizerValueMax,
             steps = EqualizerSliderSteps,
             enabled = enabled,
-            modifier = Modifier.weight(1f)
-        )
-        Text(
-            text = if (rounded > 0) "+${rounded}dB" else "${rounded}dB",
-            color = if (enabled) colors.fontLight else colors.fontDisabled,
-            style = MaterialTheme.typography.bodySmall,
-            maxLines = 1,
-            modifier = Modifier.width(48.dp)
+            modifier = Modifier.fillMaxWidth().semantics { contentDescription = label },
         )
     }
 }

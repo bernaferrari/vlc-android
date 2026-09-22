@@ -94,14 +94,9 @@ fun VLCWidgetExplanationDialogContent(
                     .fillMaxWidth()
                     .background(colors.backgroundDefault)
                     .verticalScroll(rememberScrollState())
-                    .padding(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 16.dp)
+                    .padding(24.dp)
             ) {
-                Text(
-                    text = title,
-                    color = colors.fontDefault,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                VLCModalHeader(title = title, onDismiss = onClose)
 
                 when (step) {
                     1 -> WidgetSizeStep(

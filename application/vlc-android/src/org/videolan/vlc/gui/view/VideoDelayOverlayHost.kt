@@ -22,6 +22,7 @@
 
 package org.videolan.vlc.gui.view
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.Context
 import androidx.annotation.DrawableRes
 import androidx.compose.animation.animateColorAsState
@@ -105,7 +106,7 @@ private data class VideoDelayOverlayState(
 internal fun VLCComposeView.installVideoDelayOverlayHost() {
     val host = VideoDelayOverlayHost(context)
     setTag(R.id.delay_container, host)
-    setContent {
+    setVlcContent {
         VLCTheme {
             host.Content()
         }

@@ -20,6 +20,7 @@
 
 package org.videolan.vlc.gui.view
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -39,7 +40,7 @@ internal interface PopupIconHost {
 internal fun VLCComposeView.installPopupIconHost(@DrawableRes icon: Int) {
     val host = PopupIconController(icon)
     setTag(id, host)
-    setContent {
+    setVlcContent {
         Box(
                 modifier = Modifier.size(48.dp),
                 contentAlignment = Alignment.Center

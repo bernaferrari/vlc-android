@@ -22,6 +22,7 @@
 
 package org.videolan.vlc.gui.view
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.view.View
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -65,7 +66,7 @@ internal fun VLCComposeView.installVideoTimelineTimeLabelHost(alignEnd: Boolean)
     isClickable = true
     importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
     setOnFocusChangeListener { _, hasFocus -> host.updateFocused(hasFocus) }
-    setContent {
+    setVlcContent {
         VLCTheme {
             host.Content()
         }

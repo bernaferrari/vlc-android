@@ -116,17 +116,33 @@
     <color name="orange_800_transparent_20">#33ff610a</color>
     <color name="orange_500_transparent_20">#33FF8800</color>
 
-    <color name="tv_bg">#34434e</color>
-    <color name="tv_card_content">#34434e</color>
-    <color name="tv_card_content_dark">#1a2c38</color>
-    <color name="tv_card_content_darker">#011422</color>
+    <color name="tv_bg">#171B19</color>
+    <color name="tv_card_content">#29312B</color>
+    <color name="tv_card_content_dark">#222824</color>
+    <color name="tv_card_content_darker">#1D221F</color>
 
     <!--test with onboarding colors-->
     <!--<color name="tv_bg">#1c313a</color>-->
     <!--<color name="tv_card_content">#396375</color>-->
-    <color name="onboarding_grey">#011422</color>
-    <color name="onboarding_grey_transparent_20">#33011422</color>
-    <color name="onboarding_grey_transparent_75">#BF011422</color>
+    <color name="onboarding_grey">#171B19</color>
+    <color name="onboarding_grey_transparent_20">#33171B19</color>
+    <color name="onboarding_grey_transparent_75">#BF171B19</color>
     <color name="material_blue">#2196f3</color>
     <color name="material_pink">#e91e63</color>
+
+    <!-- App-owned native surfaces mirror the shared VLCTheme default palette. -->
+    <color name="reimagined_canvas_light">#FAFBF7</color>
+    <color name="reimagined_surface_light">#FFFFFF</color>
+    <color name="reimagined_container_light">#EFF1EB</color>
+    <color name="reimagined_text_light">#262822</color>
+    <color name="reimagined_muted_light">#62685F</color>
+    <color name="reimagined_border_light">#E6E9DF</color>
+    <color name="reimagined_primary_light">#B84720</color>
+    <color name="reimagined_canvas_dark">#171B19</color>
+    <color name="reimagined_surface_dark">#222824</color>
+    <color name="reimagined_container_dark">#29312B</color>
+    <color name="reimagined_text_dark">#F0F2E9</color>
+    <color name="reimagined_muted_dark">#A3AF9F</color>
+    <color name="reimagined_border_dark">#333B34</color>
+    <color name="reimagined_primary_dark">#F6986D</color>
 </resources>

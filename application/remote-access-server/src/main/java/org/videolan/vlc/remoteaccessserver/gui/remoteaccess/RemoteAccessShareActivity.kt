@@ -24,6 +24,7 @@
 
 package org.videolan.vlc.remoteaccessserver.gui.remoteaccess
 
+import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
@@ -114,7 +115,7 @@ class RemoteAccessShareActivity : BaseActivity() {
         val remoteAccessServer = RemoteAccessServer.getInstance(applicationContext)
         rootView = ComposeView(this).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent {
+            setVlcContent {
                 VLCTheme {
                     RemoteAccessShareScreen(
                         serverStatus = serverStatus,
@@ -327,7 +328,7 @@ private fun RemoteAccessStatusCard(
 }
 
 private fun statusColor(status: ServerStatus, colors: org.videolan.vlc.compose.theme.VLCColorScheme): Color = when (status) {
-    ServerStatus.STARTED -> Color(0xFF4CAF50)
+    ServerStatus.STARTED -> colors.fontDefault
     ServerStatus.ERROR -> colors.error
     ServerStatus.CONNECTING, ServerStatus.STOPPING -> colors.primary
     ServerStatus.STOPPED, ServerStatus.NOT_INIT -> colors.fontLight
