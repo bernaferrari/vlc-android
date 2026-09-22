@@ -27,6 +27,7 @@ import org.videolan.vlc.viewmodel.PlaylistsUiState
 import org.videolan.vlc.viewmodel.PlaylistsViewModel
 import org.videolan.vlc.viewmodel.SettingsViewModel
 import org.videolan.vlc.viewmodel.VideoListViewModel
+import org.videolan.vlc.viewmodel.isVirtualAudioEntry
 import org.videolan.vlc.viewmodel.defaultPlaybackActionOpensPlayer
 
 @Composable
@@ -132,6 +133,7 @@ internal fun AudioDestination(
     onOpenEntity: (MediaItem) -> Unit,
     onNavigateBack: () -> Unit = viewModel::closeEntity,
     showPlayAllInMenu: Boolean = true,
+    onOpenMedia: ((MediaItem) -> Unit)? = null,
 ) {
     RichMediaListPane(
         state = state,
@@ -173,7 +175,9 @@ internal fun AudioDestination(
                 onOpenEntity(item)
             } else {
                 viewModel.play(item)
-                if (defaultPlaybackActionOpensPlayer(state.defaultPlaybackAction)) onOpenPlayer()
+                if (defaultPlaybackActionOpensPlayer(state.defaultPlaybackAction)) {
+                    if (onOpenMedia != null && !item.isVirtualAudioEntry()) onOpenMedia(item) else onOpenPlayer()
+                }
             }
         },
         onPlayAll = { viewModel.playAll(); onOpenPlayer() },
@@ -210,7 +214,10 @@ internal fun AudioDestination(
                         (option == ContextOption.CTX_PLAY &&
                             defaultPlaybackActionOpensPlayer(state.defaultPlaybackAction))
                     ) {
-                        onOpenPlayer()
+                        if (option == ContextOption.CTX_PLAY && onOpenMedia != null &&
+                            !item.isVirtualAudioEntry()) {
+                            onOpenMedia(item)
+                        } else onOpenPlayer()
                     }
                 }
             }
