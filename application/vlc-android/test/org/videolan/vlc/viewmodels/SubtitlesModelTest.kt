@@ -117,14 +117,14 @@ class SubtitlesModelTest : BaseTest() {
     fun searchByNameAndNoResultHasFound_checkResultIsEmpty() {
         coEvery { mockedOpenSubRepo.queryWithName(any(), any(), any(), any<List<String>>(), any()) } returns TestUtil.createOpenSubtitleResponse(emptyList())
 
-        subtitlesModel.observableSearchName.set("abc")
+        subtitlesModel.searchName.value = "abc"
         subtitlesModel.search(false)
 
         subtitlesModel.result.test()
                 .awaitValue()
                 .assertValue { it.isEmpty() }
 
-        assertEquals(context.getString(R.string.no_result), subtitlesModel.observableMessage.get())
+        assertEquals(context.getString(R.string.no_result), subtitlesModel.message.value)
     }
 
     @Test
@@ -132,7 +132,7 @@ class SubtitlesModelTest : BaseTest() {
         val openSubs = (0..1).map { TestUtil.createOpenSubtitle("$it", "en", "xyz", "abc.com/$it") }
         coEvery { mockedOpenSubRepo.queryWithName(any(), any(), any(), any<List<String>>(), any()) } returns TestUtil.createOpenSubtitleResponse(openSubs)
 
-        subtitlesModel.observableSearchName.set("abc")
+        subtitlesModel.searchName.value = "abc"
         subtitlesModel.search(false)
 
         val testResult = subtitlesModel.result.test()
@@ -155,7 +155,7 @@ class SubtitlesModelTest : BaseTest() {
         val subPath = temporaryFolder.newFile("sub1").absolutePath
         downloadedLiveData.value = listOf(TestUtil.createExternalSub("1", subPath, mediaPath, "en", "xyz"))
 
-        subtitlesModel.observableSearchName.set("abc")
+        subtitlesModel.searchName.value = "abc"
         subtitlesModel.search(false)
 
         subtitlesModel.history.test()
@@ -201,7 +201,7 @@ class SubtitlesModelTest : BaseTest() {
                 .awaitValue()
                 .assertValue { it.isEmpty() }
 
-        assertEquals(context.getString(R.string.no_result), subtitlesModel.observableMessage.get())
+        assertEquals(context.getString(R.string.no_result), subtitlesModel.message.value)
     }
 
     @Test
@@ -224,27 +224,27 @@ class SubtitlesModelTest : BaseTest() {
     fun searchByNameWithNoConnection_checkValidMessage() {
         coEvery { mockedOpenSubRepo.queryWithName(any(), any(), any(), any<List<String>>(), any()) } throws NoConnectivityException()
 
-        subtitlesModel.observableSearchName.set("abc")
+        subtitlesModel.searchName.value = "abc"
         subtitlesModel.search(false)
 
         subtitlesModel.result.test()
                 .awaitValue(3, TimeUnit.SECONDS)
                 .assertValue { it.isEmpty() }
 
-        assertEquals(context.getString(R.string.no_internet_connection), subtitlesModel.observableMessage.get())
+        assertEquals(context.getString(R.string.no_internet_connection), subtitlesModel.message.value)
     }
 
     @Test
     fun searchByNameWithConverterError_checkValidMessage() {
         coEvery { mockedOpenSubRepo.queryWithName(any(), any(), any(), any<List<String>>(), any()) } throws IOException()
 
-        subtitlesModel.observableSearchName.set("abc")
+        subtitlesModel.searchName.value = "abc"
         subtitlesModel.search(false)
 
         subtitlesModel.result.test()
                 .awaitValue(3, TimeUnit.SECONDS)
                 .assertValue { it.isEmpty() }
 
-        assertEquals(context.getString(R.string.open_subs_download_error), subtitlesModel.observableMessage.get())
+        assertEquals(context.getString(R.string.open_subs_download_error), subtitlesModel.message.value)
     }
 }

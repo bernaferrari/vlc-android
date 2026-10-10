@@ -23,9 +23,11 @@ group = "org.videolan.android"
 version = libs.versions.vlc.remote.access.get()
 
 val webCopy = tasks.register<Copy>("webCopy") {
-    from("remoteaccess/dist")
+    // Resolve the directory now: the onlyIf lambda must not capture the build script.
+    val dist = layout.projectDirectory.dir("remoteaccess/dist").asFile
+    from(dist)
     into("assets/dist")
-    onlyIf { file("remoteaccess/dist").exists() }
+    onlyIf { dist.exists() }
 }
 
 android {

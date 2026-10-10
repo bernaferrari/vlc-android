@@ -42,7 +42,7 @@ import org.videolan.vlc.util.*
 
 
 @RunWith(RobolectricTestRunner::class)
-@Config(manifest = Config.NONE, sdk = [36])
+@Config(manifest = Config.NONE)
 class ExternalSubRepositoryTest {
     private val externalSubDao = mock<ExternalSubDao>()
     private lateinit var externalSubRepository: ExternalSubRepository

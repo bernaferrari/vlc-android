@@ -20,7 +20,7 @@ import org.videolan.medialibrary.interfaces.Medialibrary
 import org.videolan.vlc.util.Permissions
 
 @RunWith(RobolectricTestRunner::class)
-@Config(application = VLCTestApplication::class, manifest = Config.NONE, sdk = [36])
+@Config(application = VLCTestApplication::class, manifest = Config.NONE)
 abstract class BaseTest {
     val context: Context = ApplicationProvider.getApplicationContext()
     val application = (RuntimeEnvironment.application as VLCTestApplication)

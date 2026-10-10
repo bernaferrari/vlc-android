@@ -165,6 +165,7 @@ android {
             java.directories.apply { clear(); addAll(listOf("test", "test-common")) }
             kotlin.directories.apply { clear(); addAll(listOf("test", "test-common")) }
             assets.directories.apply { clear(); add("flavors/debug/assets") }
+            resources.directories.add("test-resources")
         }
         named("androidTest") {
             java.directories.apply { clear(); addAll(listOf("androidTest", "test-common")) }
