@@ -18,10 +18,10 @@ val verifyDebugApkPackaging = tasks.register("verifyDebugApkPackaging") {
     description = "Verifies that every universal debug APK packages native media and shared Compose resources."
     dependsOn("packageDebug")
 
+    // Resolved at configuration time so doLast captures only this provider, never the script.
+    val apkDirectory = layout.buildDirectory.dir("outputs/apk/debug")
     doLast {
-        val debugApks = fileTree(layout.buildDirectory.dir("outputs/apk/debug").get().asFile) {
-            include("**/*.apk")
-        }.files
+        val debugApks = apkDirectory.get().asFile.walkTopDown().filter { it.isFile && it.extension == "apk" }.toList()
         check(debugApks.isNotEmpty()) {
             "No debug APK was produced to verify medialibrary JNI packaging."
         }
