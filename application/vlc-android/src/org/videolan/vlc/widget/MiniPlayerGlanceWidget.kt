@@ -78,7 +78,6 @@ import org.videolan.vlc.gui.helpers.BitmapUtil
 import org.videolan.vlc.media.Progress
 import org.videolan.vlc.mediadb.models.Widget
 import org.videolan.vlc.repository.WidgetRepository
-import org.videolan.vlc.util.TextUtils
 import org.videolan.vlc.widget.utils.WidgetCache
 import org.videolan.vlc.widget.utils.WidgetCacheEntry
 import org.videolan.vlc.widget.utils.WidgetSizeUtil
@@ -363,12 +362,7 @@ private fun MiniPlayerPillGlanceContent(context: Context, state: MiniPlayerGlanc
         CoverOrIcon(state, sizeDp = 36)
         Spacer(GlanceModifier.width(8.dp))
         TrackText(state, modifier = GlanceModifier.defaultWeight())
-        WidgetActionButton(
-            icon = playPauseIcon(state.playing),
-            contentDescription = playPauseDescription(context, state.playing),
-            tint = state.foregroundColor,
-            action = playbackAction(context, ACTION_REMOTE_PLAYPAUSE),
-        )
+        PlayPauseButton(context, state)
     }
 }
 
@@ -395,12 +389,7 @@ private fun MiniPlayerMicroGlanceContent(context: Context, state: MiniPlayerGlan
         Spacer(GlanceModifier.height(4.dp))
         TrackText(state, centered = true, modifier = GlanceModifier.fillMaxWidth())
         Spacer(GlanceModifier.height(6.dp))
-        WidgetActionButton(
-            icon = playPauseIcon(state.playing),
-            contentDescription = playPauseDescription(context, state.playing),
-            tint = state.foregroundColor,
-            action = playbackAction(context, ACTION_REMOTE_PLAYPAUSE),
-        )
+        PlayPauseButton(context, state)
     }
 }
 
@@ -436,12 +425,7 @@ private fun TransportControls(context: Context, state: MiniPlayerGlanceState) {
                 action = playbackAction(context, ACTION_REMOTE_BACKWARD),
             )
         }
-        WidgetActionButton(
-            icon = playPauseIcon(state.playing),
-            contentDescription = playPauseDescription(context, state.playing),
-            tint = state.foregroundColor,
-            action = playbackAction(context, ACTION_REMOTE_PLAYPAUSE),
-        )
+        PlayPauseButton(context, state)
         if (state.showSeek) {
             WidgetActionButton(
                 icon = R.drawable.ic_widget_forward_10,
@@ -478,7 +462,7 @@ private fun TrackText(
         )
         if (!state.artist.isNullOrBlank()) {
             Text(
-                text = "${if (state.widgetType == WidgetType.MACRO || centered) "" else " ${TextUtils.SEPARATOR} "}${state.artist}",
+                text = state.artist,
                 maxLines = 1,
                 style = TextStyle(
                     color = ColorProvider(state.artistColor),
@@ -521,6 +505,26 @@ private fun CoverOrIcon(state: MiniPlayerGlanceState, sizeDp: Int) {
                 modifier = GlanceModifier.fillMaxSize(),
             )
         }
+    }
+}
+
+/** Play/pause is the widget's one primary action: a filled disc in the text colour. */
+@Composable
+private fun PlayPauseButton(context: Context, state: MiniPlayerGlanceState, size: Int = 44) {
+    Box(
+        modifier = GlanceModifier
+            .size(size.dp)
+            .background(ColorProvider(state.foregroundColor))
+            .cornerRadius((size / 2).dp)
+            .clickable(playbackAction(context, ACTION_REMOTE_PLAYPAUSE)),
+        contentAlignment = Alignment.Center,
+    ) {
+        Image(
+            provider = ImageProvider(playPauseIcon(state.playing)),
+            contentDescription = playPauseDescription(context, state.playing),
+            modifier = GlanceModifier.size((size / 2).dp),
+            colorFilter = ColorFilter.tint(ColorProvider(state.backgroundColor)),
+        )
     }
 }
 
