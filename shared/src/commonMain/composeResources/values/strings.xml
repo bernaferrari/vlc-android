@@ -1559,6 +1559,8 @@
         <item quantity="one">%1$d item</item>
         <item quantity="other">%1$d items</item>
     </plurals>
+    <string name="appearance_light">Light</string>
+    <string name="appearance_dark">Dark</string>
     <string name="incognito_summary">Don’t keep history or playback positions while it’s on</string>
     <string name="multimedia_files_only_summary">Hide files VLC can’t play</string>
     <string name="browse_empty_title">No places to browse</string>

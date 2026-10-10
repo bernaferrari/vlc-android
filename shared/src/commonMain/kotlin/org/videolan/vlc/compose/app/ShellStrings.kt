@@ -141,6 +141,8 @@ object ShellStrings {
         return if (minutes < 60) stringResource(Res.string.duration_minutes_short, minutes)
         else stringResource(Res.string.duration_hours_minutes_short, minutes / 60, minutes % 60)
     }
+    @Composable fun appearanceLight(): String = stringResource(Res.string.appearance_light)
+    @Composable fun appearanceDark(): String = stringResource(Res.string.appearance_dark)
     @Composable fun audioResumeSummary(): String = stringResource(Res.string.audio_resume_playback_summary)
     @Composable fun videoResumeSummary(): String = stringResource(Res.string.video_resume_playback_summary)
     @Composable fun playbackHistorySummary(): String = stringResource(Res.string.playback_history_summary)

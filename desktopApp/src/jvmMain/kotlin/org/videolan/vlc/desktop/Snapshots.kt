@@ -116,6 +116,7 @@ fun main(args: Array<String>) {
             add(Shot("wide-audio-album-$theme", wide, setup = { theme(dark); playAudio() }, content = shell(listOf(AudioRoute, AudioEntityRoute("Drift".hashCode().toLong(), "Drift", AudioEntityRouteKind.ALBUM)))))
             add(Shot("wide-settings-$theme", wide, setup = { theme(dark); playAudio() }, content = shell(listOf(MoreRoute, SettingsRoute))))
             add(Shot("tall-settings-$theme", 412 to 3000, setup = { theme(dark); playAudio() }, content = shell(listOf(MoreRoute, SettingsRoute))))
+            add(Shot("settings-system-$theme", setup = { theme(dark); VlcSettings.updateStringCache(KEY_SHARED_THEME_APPEARANCE, "system"); VlcSettings.updateStringCache(org.videolan.tools.KEY_SHARED_THEME_ACCENT, "teal") }, content = shell(listOf(MoreRoute, SettingsRoute))))
             add(Shot("tall-more-$theme", 412 to 1400, setup = { theme(dark); playAudio() }, content = shell(listOf(MoreRoute))))
             add(Shot("wide-player-audio-$theme", wide, setup = { theme(dark); playAudio() }, content = shell(listOf(AudioRoute, PlayerRoute))))
             listOf(PlaybackSheetDestination.SPEED, PlaybackSheetDestination.QUEUE, PlaybackSheetDestination.TOOLS).forEach { sheet ->
@@ -197,4 +198,7 @@ private fun HudFixture(queue: List<org.videolan.vlc.model.MediaItem>, sheet: Pla
     }
 }
 
-private fun theme(dark: Boolean) = VlcSettings.updateStringCache(KEY_SHARED_THEME_APPEARANCE, if (dark) "dark" else "light")
+private fun theme(dark: Boolean) {
+    VlcSettings.updateStringCache(KEY_SHARED_THEME_APPEARANCE, if (dark) "dark" else "light")
+    VlcSettings.updateStringCache(org.videolan.tools.KEY_SHARED_THEME_ACCENT, "orange")
+}
