@@ -1,7 +1,5 @@
 package org.videolan.vlc.compose.components
 
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,7 +38,7 @@ fun VLCAudioTimelineSlider(
         val safeProgress = progress.coerceIn(0, safeMax)
         var tracking by remember { mutableStateOf(false) }
 
-        Slider(
+        VLCSlimSlider(
             value = safeProgress.toFloat(),
             onValueChange = { value ->
                 if (!tracking) {
@@ -56,11 +54,8 @@ fun VLCAudioTimelineSlider(
                 }
             },
             valueRange = 0f..safeMax.toFloat(),
-            colors = SliderDefaults.colors(
-                thumbColor = colors.primary,
-                activeTrackColor = colors.primary,
-                inactiveTrackColor = colors.audioSeekTrack
-            ),
+            activeColor = colors.primary,
+            inactiveColor = colors.audioSeekTrack,
             modifier = modifier.semantics {
                 if (contentDescription != null) this.contentDescription = contentDescription
             }

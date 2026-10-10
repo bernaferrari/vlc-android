@@ -35,7 +35,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Slider
+import org.videolan.vlc.compose.components.VLCSlimSlider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -474,7 +474,7 @@ private fun SliderRow(item: SettingsSlider, modifier: Modifier, callbacks: Setti
                 )
             }
         }
-        Slider(
+        VLCSlimSlider(
             value = local,
             onValueChange = {
                 dragging = true
