@@ -9,6 +9,7 @@ import org.videolan.vlc.platform.NoOpRemoteAccessServerController
 import org.videolan.vlc.platform.AppLockController
 import org.videolan.vlc.platform.NoOpAppLockController
 import org.videolan.vlc.platform.RemoteAccessServerController
+import org.videolan.vlc.settings.SettingsContributor
 import org.videolan.vlc.repository.HistoryRepository
 import org.videolan.vlc.repository.MediaRepository
 import org.videolan.vlc.repository.PlaylistRepository
@@ -71,6 +72,9 @@ private val presentationModule: Module = module {
             prefs = get(),
             remoteAccessServer = getOrNull<RemoteAccessServerController>() ?: NoOpRemoteAccessServerController,
             appLock = getOrNull<AppLockController>() ?: NoOpAppLockController,
+            // Platform-only settings (Android's libVLC, casting, Android Auto, …). Targets that
+            // register none simply show the shared settings.
+            contributors = getAll<SettingsContributor>(),
         )
     }
     factory {

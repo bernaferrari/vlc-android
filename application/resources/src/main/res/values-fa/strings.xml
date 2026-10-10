@@ -290,13 +290,10 @@
     <string name="screen_orientation_landscape">افقی</string>
     <string name="screen_orientation_landscape_reverse">افقی معکوس</string>
     <string name="screen_orientation_last_locked">آخرین جهت قفل شده</string>
-    <string name="enable_black_theme">پوسته سیاه</string>
     <string name="dark_theme">حالت تاریک</string>
     <string name="theme_auto">زمینه خودکار</string>
     <string name="subtitle_text_encoding">کد گذاری متن زیرنویس</string>
     <string name="subtitle_preferred_language">زبان دلخواه زیرنویس</string>
-    <string name="daynight_title">حالت روز و شب</string>
-    <string name="daynight_follow_system_title">بر اساس تنظیمات سیستم</string>
     <string name="no_track_preference">هیچ زبان دلخواهی یافت نشد</string>
     <string name="track_preference">قطعه دلخواه: %s</string>
 
@@ -818,7 +815,6 @@
     <string name="apply_to_all">به تمام ویدیوها اعمال کن</string>
     <string name="go_to_folder">مرور بالایی</string>
     <string name="browser_show_missing_media">رسانه‌های گم‌شده را نشان بده</string>
-    <string name="search_prefs">تنظیمات جست‌وجو</string>
     <string name="pref_resolution_best_available">بهترین در دسترس</string>
     <string name="delete_forever">حذف برای همیشه</string>
     <string name="add_to_existing_playlist">افزودن به فهرست پخش موجود</string>

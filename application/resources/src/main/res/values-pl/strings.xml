@@ -269,12 +269,9 @@
     <string name="screen_orientation_landscape">Pejzaż</string>
     <string name="screen_orientation_landscape_reverse">Odwrócenie pejzażu</string>
     <string name="screen_orientation_last_locked">Ostatnia zablokowana orientacja</string>
-    <string name="enable_black_theme">Motyw ciemny</string>
     <string name="theme_auto">Motyw automatyczny</string>
     <string name="subtitle_text_encoding">Kodowanie tekstu napisów</string>
     <string name="subtitle_preferred_language">Preferowany język napisów</string>
-    <string name="daynight_title">Tryb dzień/noc</string>
-    <string name="daynight_follow_system_title">Tak jak w trybie systemowym</string>
     <string name="no_track_preference">Brak preferencji językowych</string>
     <string name="extra_prefs_category">Dodatkowe ustawienia</string>
 
@@ -790,7 +787,6 @@
     <string name="soundfont_summary">Wybierz plik SoundFont, aby odtwarzać ścieżki dźwiękowe MIDI</string>
     <string name="missing_media_snack">Brak multimediów. Ukryć wszystkie brakujące multimedia?</string>
     <string name="unlock">Odblokuj</string>
-    <string name="search_prefs">Szukaj w ustawieniach</string>
     <string name="preferred_resolution">Preferowana rozdzielczość wideo</string>
     <string name="preferred_resolution_summary">Maksymalna jakość wideo dla strumieni, jeśli jest obsługiwana, będzie wynosić: %s</string>
     <string name="pref_resolution_best_available">Najlepsza dostępna</string>

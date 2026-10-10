@@ -354,13 +354,10 @@
     <string name="screen_orientation_landscape_reverse">თარაზული შებრუნებით</string>
     <string name="screen_orientation_landscape_sensor">თარაზული (აღმქმელით)</string>
     <string name="screen_orientation_last_locked">ბოლოს ჩაკეტილი განლაგება</string>
-    <string name="enable_black_theme">მუქი იერსახე</string>
     <string name="dark_theme">მუქი იერსახე</string>
     <string name="theme_auto">იერსახის თვითშერჩევა</string>
     <string name="subtitle_text_encoding">ქვეწარწერების ტექსტის კოდირება</string>
     <string name="subtitle_preferred_language">ქვეწარწერების სასურველი ენა</string>
-    <string name="daynight_title">დღეღამის რეჟიმი</string>
-    <string name="daynight_follow_system_title">სისტემის მიხედვით</string>
     <string name="no_track_preference">ენის პარამეტრები არაა</string>
     <string name="track_preference">ჩანაწერის პარამეტრები: %s</string>
 
@@ -515,7 +512,6 @@
     <string name="remote_access_info">დაშორებული წვდომის შესახებ</string>
     <string name="remote_access_content">შიგთავსი</string>
     <string name="remote_access_medialibrary_content">მედიათეკის შიგთავსი</string>
-    <string name="remote_access_medialibrary_content_summary">ჩართულია: %1$s\nგამორთულია: %2$s</string>
     <string name="remote_access_file_browser_content">ფაილის ასარჩევი</string>
     <string name="remote_access_network_browser_content">ქსელში საძიებო</string>
     <string name="remote_access_playback_control">დაკვრის მართვა</string>
@@ -1102,7 +1098,6 @@
     <string name="unlock_with_pin">უსაფრთხო რეჟიმის მოხსნა</string>
     <string name="lock_with_pin_short">PIN-ჩამკეტი</string>
     <string name="restrict_settings">პარამეტრებთან წვდომის შეზღუდვა</string>
-    <string name="search_prefs">ძიების პარამეტრები</string>
     <string name="video_match_frame_rate_title">კადრის სიხშირესთან თანხვედრა</string>
     <string name="video_match_frame_rate_summary">ეკრანის განახლების სიხშირის დამთხვევა ფაილის ჩვენების სიხშირეზე. მაგალითად, ფილმი 24 კადრის სიხშირით გამოჩნდება 24 კადრით წამში.</string>
     <string name="preferred_resolution">ვიდეოს სასურველი გარჩევადობა</string>

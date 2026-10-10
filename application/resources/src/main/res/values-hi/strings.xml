@@ -275,13 +275,10 @@
     <string name="screen_orientation_landscape">भूदृश्य</string>
     <string name="screen_orientation_landscape_reverse">दायीं करवट से लेटा हुआ</string>
     <string name="screen_orientation_last_locked">पिछली बार जैसी दिशा</string>
-    <string name="enable_black_theme">काला रंगरूप</string>
     <string name="dark_theme">काला रंगरूप</string>
     <string name="theme_auto">स्वतः रंगरूप चुनें</string>
     <string name="subtitle_text_encoding">लिखितसंवाद की रूपांतरण विधि</string>
     <string name="subtitle_preferred_language">लिखितसंवाद की मुख्य भाषा</string>
-    <string name="daynight_title">दिन-रात मोड</string>
-    <string name="daynight_follow_system_title">सिस्टम मोड का पालन करें</string>
     <string name="no_track_preference">भाषा की कोई पसन्द-नापसन्द नहीं</string>
     <string name="track_preference">पगडंडी पसन्द-नापसन्द: %s</string>
 

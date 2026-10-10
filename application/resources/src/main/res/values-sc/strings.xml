@@ -356,13 +356,10 @@
     <string name="screen_orientation_landscape_reverse">Orizontale furriadu</string>
     <string name="screen_orientation_landscape_sensor">Orizontale (sensore)</string>
     <string name="screen_orientation_last_locked">Ùrtimu orientamentu blocadu</string>
-    <string name="enable_black_theme">Abìlita su tema iscuru</string>
     <string name="dark_theme">Tema iscuru</string>
     <string name="theme_auto">Tema automàticu</string>
     <string name="subtitle_text_encoding">Codìfica de su testu de sos sutatìtulos</string>
     <string name="subtitle_preferred_language">Limba preferida de sos sutatìtulos</string>
-    <string name="daynight_title">Modalidade Die-Note</string>
-    <string name="daynight_follow_system_title">Sighi sa modalidade de sistema</string>
     <string name="no_track_preference">Peruna preferèntzia de limba</string>
     <string name="track_preference">Preferèntzia de rasta: %s</string>
 
@@ -520,7 +517,6 @@
     <string name="remote_access_info">Informatziones de atzessu remotu</string>
     <string name="remote_access_content">Cuntenutos</string>
     <string name="remote_access_medialibrary_content">Cuntenutos sa biblioteca multimediale</string>
-    <string name="remote_access_medialibrary_content_summary">Abilitadu: %1$s\nDisabilitadu: %2$s</string>
     <string name="remote_access_file_browser_content">Esploradore de documentos</string>
     <string name="remote_access_network_browser_content">Navigadore de retza</string>
     <string name="remote_access_playback_control">Controlla sa riprodutzione</string>
@@ -1108,7 +1104,6 @@
     <string name="unlock_with_pin">Isbloca sa modalidade segura</string>
     <string name="lock_with_pin_short">Blocu cun PIN</string>
     <string name="restrict_settings">Lìmita sas impostatziones de atzessu</string>
-    <string name="search_prefs">Paràmetros de chirca</string>
     <string name="video_match_frame_rate_title">Faghe currispòndere sa frecuèntzia de fotogrammas de s\'ischermu</string>
     <string name="video_match_frame_rate_summary">Faghe currispòndere sa frecuèntzia de annoamentu de sos fotogrammas de s\'ischermu a cussa de su cuntenutu multimediale. A esèmpiu, unu film a 24p si diat dèpere riproduire a 24p</string>
     <string name="preferred_resolution">Risolutzione de su vìdeu preferida</string>

@@ -214,8 +214,6 @@
     <string name="hardware_acceleration_decoding">Lezandina kodvekirinê</string>
     <string name="automatic">Otomatîk</string>
     <string name="screen_orientation_sensor">Otomatîk (sensor)</string>
-    <string name="enable_black_theme">Rûkara reş</string>
-    <string name="daynight_title">Moda Şevê/Rojê</string>
     <string name="extra_prefs_category">Sazkariyên din</string>
 
     <string name="interface_prefs_screen">Navrû</string>

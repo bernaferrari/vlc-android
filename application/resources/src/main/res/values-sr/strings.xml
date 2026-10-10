@@ -223,10 +223,7 @@
     <string name="screen_orientation_sensor">Аутоматски (сензор)</string>
     <string name="screen_orientation_portrait">Усправно</string>
     <string name="screen_orientation_landscape">Положено</string>
-    <string name="enable_black_theme">Црна тема</string>
     <string name="subtitle_text_encoding">Енкодирање текстуалних титлова</string>
-    <string name="daynight_title">Режим дан/ноћ</string>
-    <string name="daynight_follow_system_title">Прати систем</string>
     <string name="extra_prefs_category">Додатне поставке</string>
 
     <string name="interface_prefs_screen">Сучеље</string>

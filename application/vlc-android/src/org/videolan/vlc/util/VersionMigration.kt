@@ -38,7 +38,7 @@ import org.videolan.medialibrary.interfaces.media.Playlist
 import org.videolan.resources.AndroidDevices
 import org.videolan.resources.AndroidDevices.canUseSystemNightMode
 import org.videolan.resources.util.getFromMl
-import org.videolan.tools.KEY_APP_THEME
+import org.videolan.tools.KEY_SHARED_THEME_APPEARANCE
 import org.videolan.tools.KEY_CURRENT_EQUALIZER_ID
 import org.videolan.tools.KEY_CURRENT_MAJOR_VERSION
 import org.videolan.tools.KEY_CURRENT_SETTINGS_VERSION
@@ -205,12 +205,11 @@ object VersionMigration {
                 putString(KEY_VIDEO_CONFIRM_RESUME, "2")
             }
             remove("dialog_confirm_resume")
-            //Migrate apptheme
-            if (!settings.contains(KEY_APP_THEME)) {
+            //Migrate apptheme straight to the shared appearance (the only theme setting now)
+            if (!settings.contains(KEY_SHARED_THEME_APPEARANCE)) {
                 val daynight = settings.getBoolean("daynight", false)
                 val dark = settings.getBoolean("enable_black_theme", false)
-                val mode = if (dark) AppCompatDelegate.MODE_NIGHT_YES else if (daynight) AppCompatDelegate.MODE_NIGHT_AUTO else AppCompatDelegate.MODE_NIGHT_NO
-                putString(KEY_APP_THEME, mode.toString())
+                putString(KEY_SHARED_THEME_APPEARANCE, if (dark) "dark" else if (daynight) "system" else "light")
             }
             remove("daynight")
             remove("enable_black_theme")

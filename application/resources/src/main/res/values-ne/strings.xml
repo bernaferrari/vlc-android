@@ -282,11 +282,8 @@
     <string name="screen_orientation_landscape">ल्यान्डस्केप</string>
     <string name="screen_orientation_landscape_reverse">ल्यान्डस्केप रिभर्स</string>
     <string name="screen_orientation_last_locked">अन्तिमपटक लक गरिएको ओरिएन्टेसन</string>
-    <string name="enable_black_theme">कालो थिम</string>
     <string name="subtitle_text_encoding">उपशीर्षक पाठ इनकोडिङ</string>
     <string name="subtitle_preferred_language">रुचाइएको उपशीर्षक भाडा</string>
-    <string name="daynight_title">दिनरात्री मोड</string>
-    <string name="daynight_follow_system_title">प्रणाली मोड अनुसरण गर्नुहोस्</string>
     <string name="no_track_preference">कुनै भाषा प्राथमिकता छैन</string>
     <string name="track_preference">ट्रयाक प्राथमिकता:%s</string>
 
@@ -673,7 +670,6 @@
     <string name="no_sub_renderer">कास्टिङ गर्ने समयमा उपशीर्षकहरू अझै समर्थित छैनन्</string>
     <string name="soundfont">MIDI SoundFont</string>
     <string name="soundfont_summary">मिडी अडियो ट्रयाक प्ले गर्न SoundFont फाइल रोज्नुहोस्</string>
-    <string name="search_prefs">खोजी सेटिङहरू</string>
     <string name="preferred_resolution">रुचाइएको भिडियो रिज्योलुसन</string>
     <string name="preferred_resolution_summary">लागू हुने समयमा स्ट्रिमहरूको लागि अधिकतम भिडियो गुणस्तर %s हुनेछ</string>
     <string name="pref_resolution_best_available">उत्तम उपलब्ध</string>

@@ -267,10 +267,7 @@
     <string name="screen_orientation_landscape">ᱞᱮᱱᱰᱥᱠᱮᱯ</string>
     <string name="screen_orientation_landscape_reverse">ᱞᱮᱱᱰᱥᱠᱮᱯ ᱩᱞᱴᱟᱹ ᱯᱟᱦᱴᱟ</string>
     <string name="screen_orientation_last_locked">ᱢᱟᱲᱟᱝ ᱠᱩᱞᱩᱯ ᱠᱟᱱ ᱚᱨᱤᱮᱱᱴᱮᱥᱚᱱ</string>
-    <string name="enable_black_theme">ᱦᱮᱸᱫᱮ ᱩᱭᱦᱟᱹᱨ</string>
     <string name="subtitle_text_encoding">ᱥᱟᱹᱵᱴᱟᱭᱴᱟᱹᱞ ᱚᱞ ᱮᱱᱠᱳᱰᱤᱝ</string>
-    <string name="daynight_title">ᱫᱤᱱᱧᱤᱸᱫᱟᱹ ᱢᱳᱰ</string>
-    <string name="daynight_follow_system_title">ᱥᱭᱥᱴᱟᱹᱢ ᱢᱳᱰ ᱯᱟᱹᱧᱡᱟ</string>
     <string name="extra_prefs_category">ᱟᱨᱦᱚᱸ ᱥᱟᱡᱟᱣᱠᱚ</string>
 
     <string name="interface_prefs_screen">ᱤᱱᱴᱚᱨᱯᱷᱮᱥ</string>
@@ -679,7 +676,6 @@
     <string name="no_sub_renderer">ᱠᱟᱥᱴᱤᱝ ᱡᱷᱚᱜ ᱥᱟᱹᱵᱴᱟᱭᱴᱟᱹᱞ ᱠᱚ ᱵᱟᱭ ᱥᱟᱹᱯᱚᱴᱟᱭ</string>
     <string name="soundfont">MIDI ᱥᱟᱲᱮᱯᱷᱚᱸᱴ</string>
     <string name="soundfont_summary">midi ᱥᱟᱲᱮ ᱴᱨᱟᱠ ᱠᱚ ᱯᱞᱮ ᱞᱟᱹᱜᱤᱫ ᱥᱟᱲᱮᱯᱷᱚᱸᱴ ᱨᱮᱫ ᱵᱟᱪᱷᱟᱣ ᱢᱮ</string>
-    <string name="search_prefs">ᱥᱮᱸᱫᱽᱨᱟᱣᱟ ᱥᱟᱡᱟᱣᱠᱚ</string>
     <string name="start_vlc">VLC ᱮᱦᱚᱵᱽ ᱢᱮ</string>
     <string name="add_button">ᱥᱮᱞᱮᱫᱽ ᱢᱮ</string>
     <string name="add_all_button">ᱡᱚᱛᱚ ᱥᱮᱞᱮᱫᱽ ᱢᱮ</string>

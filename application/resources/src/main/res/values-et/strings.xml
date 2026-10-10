@@ -356,13 +356,10 @@
     <string name="screen_orientation_landscape_reverse">Teistpidi rõhtasetus</string>
     <string name="screen_orientation_landscape_sensor">Rõhtasetus (anduriga)</string>
     <string name="screen_orientation_last_locked">Viimati fikseeritud paigutus</string>
-    <string name="enable_black_theme">Süsimust kujundus</string>
     <string name="dark_theme">Tume kujundus</string>
     <string name="theme_auto">Automaatne kujundus</string>
     <string name="subtitle_text_encoding">Subtiitrite teksti kodeering</string>
     <string name="subtitle_preferred_language">Subtiitrite eelistatud keel</string>
-    <string name="daynight_title">Päeva/öö režiim</string>
-    <string name="daynight_follow_system_title">Järgi süsteemi sätteid</string>
     <string name="no_track_preference">Ilma keele eelistuseta</string>
     <string name="track_preference">Raja eelistus: %s</string>
 
@@ -520,7 +517,6 @@
     <string name="remote_access_info">Kaugligipääsu teave</string>
     <string name="remote_access_content">Sisu</string>
     <string name="remote_access_medialibrary_content">Meediakogu sisu</string>
-    <string name="remote_access_medialibrary_content_summary">Kasutusel: %1$s\nPole kasutusel: %2$s</string>
     <string name="remote_access_file_browser_content">Failide sirvija</string>
     <string name="remote_access_network_browser_content">Võrgusirvija</string>
     <string name="remote_access_playback_control">Kontrolli taasesitust</string>
@@ -1110,7 +1106,6 @@
     <string name="unlock_with_pin">Eemalda turvalise režiimi lukustus</string>
     <string name="lock_with_pin_short">PIN-koodi põhine lukustus</string>
     <string name="restrict_settings">Piira ligipääsu seadistustele</string>
-    <string name="search_prefs">Otsingu seadistused</string>
     <string name="video_match_frame_rate_title">Ühilda ekraani kaadrisagedusega</string>
     <string name="video_match_frame_rate_summary">Ühilda meedia kaadrisagedus ekraani kaadrisagedusega. Näiteks 24 kaadrit sekundist kodeeritud film peaks olema ka esitamisel sama kaadrisagedusega.</string>
     <string name="preferred_resolution">Eelistatud video eraldusvõime</string>

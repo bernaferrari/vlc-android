@@ -356,13 +356,10 @@
     <string name="screen_orientation_landscape_reverse">Horitzontal invers</string>
     <string name="screen_orientation_landscape_sensor">Horitzontal (sensor)</string>
     <string name="screen_orientation_last_locked">Darrera orientació bloquejada</string>
-    <string name="enable_black_theme">Tema negre</string>
     <string name="dark_theme">Tema fosc</string>
     <string name="theme_auto">Tema automàtic</string>
     <string name="subtitle_text_encoding">Codificació del text del subtítol</string>
     <string name="subtitle_preferred_language">Idioma preferit per als subtítols</string>
-    <string name="daynight_title">Mode dia/nit</string>
-    <string name="daynight_follow_system_title">Segueix el mode del sistema</string>
     <string name="no_track_preference">Sense idioma preferent</string>
     <string name="track_preference">Preferència de pista: %s</string>
 
@@ -520,7 +517,6 @@
     <string name="remote_access_info">Informació d\'accés remot</string>
     <string name="remote_access_content">Contingut</string>
     <string name="remote_access_medialibrary_content">Contingut de la mediateca</string>
-    <string name="remote_access_medialibrary_content_summary">Habilitat: %1$s\nInhabilitat: %2$s</string>
     <string name="remote_access_file_browser_content">Explorador de fitxers</string>
     <string name="remote_access_network_browser_content">Navegador de xarxa</string>
     <string name="remote_access_playback_control">Controla la reproducció</string>
@@ -1108,7 +1104,6 @@
     <string name="unlock_with_pin">Desbloqueja el mode segur</string>
     <string name="lock_with_pin_short">Bloqueig PIN</string>
     <string name="restrict_settings">Restringeix l\'accés a la configuració</string>
-    <string name="search_prefs">Configuració de cerca</string>
     <string name="video_match_frame_rate_title">Igualar la velocitat de fotogrames</string>
     <string name="video_match_frame_rate_summary">Iguala la velocitat de refresc a la velocitat de fotogrames. Per exemple, una pel·lícula de 24p s\'hauria de reproduir a 24p.</string>
     <string name="preferred_resolution">Resolució de vídeo preferida</string>

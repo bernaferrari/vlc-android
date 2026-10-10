@@ -346,13 +346,10 @@
     <string name="screen_orientation_landscape_reverse">반전 가로 방향</string>
     <string name="screen_orientation_landscape_sensor">자동 가로 방향 (센서)</string>
     <string name="screen_orientation_last_locked">마지막 잠금 방향</string>
-    <string name="enable_black_theme">검정 테마</string>
     <string name="dark_theme">어두운 테마</string>
     <string name="theme_auto">자동 테마</string>
     <string name="subtitle_text_encoding">자막 텍스트 인코딩</string>
     <string name="subtitle_preferred_language">선호하는 자막 언어</string>
-    <string name="daynight_title">낮/밤 모드</string>
-    <string name="daynight_follow_system_title">시스템 모드 따르기</string>
     <string name="no_track_preference">언어 환경설정 없음</string>
     <string name="track_preference">트랙 환경설정: %s</string>
 
@@ -510,7 +507,6 @@
     <string name="remote_access_info">원격 제어 정보</string>
     <string name="remote_access_content">콘텐츠</string>
     <string name="remote_access_medialibrary_content">미디어 라이브러리</string>
-    <string name="remote_access_medialibrary_content_summary">미디어 라이브러리 콘텐츠에 대한 원격 접근을 허용합니다</string>
     <string name="remote_access_file_browser_content">파일 브라우저</string>
     <string name="remote_access_network_browser_content">네트워크 브라우저</string>
     <string name="remote_access_playback_control">재생 컨트롤</string>
@@ -1096,7 +1092,6 @@
     <string name="unlock_with_pin">PIN으로 잠금 해제</string>
     <string name="lock_with_pin_short">PIN 잠금</string>
     <string name="restrict_settings">설정 접근 제한</string>
-    <string name="search_prefs">검색 설정</string>
     <string name="video_match_frame_rate_title">디스플레이 프레임 속도 일치시키기</string>
     <string name="video_match_frame_rate_summary">디스플레이 새로고침 빈도를 미디어 프레임 빈도와 일치시킵니다. 예를 들어, 24p 필름은 24p로 재생되어야 합니다</string>
     <string name="preferred_resolution">선호하는 동영상 해상도</string>

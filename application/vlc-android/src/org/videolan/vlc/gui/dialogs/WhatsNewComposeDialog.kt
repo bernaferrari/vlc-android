@@ -18,8 +18,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.launch
 import org.videolan.resources.AndroidDevices
 import org.videolan.tools.KEY_SHOW_WHATS_NEW
 import org.videolan.tools.Settings
@@ -28,7 +26,8 @@ import org.videolan.vlc.R
 import org.videolan.vlc.compose.components.VLCWhatsNewDialogContent
 import org.videolan.vlc.compose.components.VLCWhatsNewItem
 import org.videolan.vlc.gui.EqualizerSettingsActivity
-import org.videolan.vlc.gui.preferences.PreferencesActivity
+import org.videolan.tools.KEY_PLAYBACK_SPEED_AUDIO_GLOBAL
+import org.videolan.vlc.kmp.openSettingsAt
 import org.videolan.vlc.util.isTalkbackIsEnabled
 
 private const val WHATS_NEW_EQUALIZER = "equalizer"
@@ -133,12 +132,8 @@ private class WhatsNewComposeDialog(private val activity: AppCompatActivity) {
     private fun handleAction(id: String) {
         when (id) {
             WHATS_NEW_EQUALIZER -> activity.startActivity(Intent(activity, EqualizerSettingsActivity::class.java))
-            WHATS_NEW_IMPORT_EXPORT -> activity.lifecycleScope.launch {
-                PreferencesActivity.launchWithPref(activity, "export_settings")
-            }
-            WHATS_NEW_ANDROID_AUTO -> activity.lifecycleScope.launch {
-                PreferencesActivity.launchWithPref(activity, "playback_speed_audio_global")
-            }
+            WHATS_NEW_IMPORT_EXPORT -> openSettingsAt(activity, "export_settings")
+            WHATS_NEW_ANDROID_AUTO -> openSettingsAt(activity, KEY_PLAYBACK_SPEED_AUDIO_GLOBAL)
         }
         dialog.dismiss()
     }

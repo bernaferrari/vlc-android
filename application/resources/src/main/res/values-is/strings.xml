@@ -283,13 +283,10 @@
     <string name="screen_orientation_sensor">Sjálfvirkt (skynjari)</string>
     <string name="screen_orientation_portrait">Lóðrétt</string>
     <string name="screen_orientation_landscape">Lárétt</string>
-    <string name="enable_black_theme">Svart þema</string>
     <string name="dark_theme">Dökkt þema</string>
     <string name="theme_auto">Sjálfvirkt þema</string>
     <string name="subtitle_text_encoding">Kóðun skjátexta</string>
     <string name="subtitle_preferred_language">Umbeðið tungumál skjátexta</string>
-    <string name="daynight_title">DagsNætur-hamur</string>
-    <string name="daynight_follow_system_title">Fylgja ham kerfisins</string>
     <string name="no_track_preference">Ekkert kjörtungumál</string>
     <string name="extra_prefs_category">Aukastillingar</string>
 
@@ -868,7 +865,6 @@
     <string name="safe_mode">Öryggishamur</string>
     <string name="restricted_access">Aðgangur takmarkaður</string>
     <string name="unlock">Aflæsa</string>
-    <string name="search_prefs">Leitarstillingar</string>
     <string name="preferred_resolution">Kjörupplausn myndmerkis</string>
     <string name="preferred_resolution_summary">Hámarksgæði myndmerkis í streymi, ef slíkt er í boði: %s</string>
     <string name="pref_resolution_best_available">Besta sem er í boði</string>

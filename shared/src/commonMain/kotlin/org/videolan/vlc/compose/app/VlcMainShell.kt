@@ -34,6 +34,12 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import org.videolan.vlc.settings.SettingsDeepLinks
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -204,6 +210,7 @@ fun VlcMainShell(
         val libraryBackStack = backStack.filter { it != PlayerRoute }
         val libraryRoute = libraryBackStack.lastOrNull() ?: initialRoute
         val showSecondaryChrome = currentRoute == SettingsRoute ||
+            currentRoute is SettingsSectionRoute ||
             currentRoute == AboutRoute ||
             currentRoute == AboutLibrariesRoute ||
             currentRoute == AboutAuthorsRoute
@@ -381,6 +388,17 @@ fun VlcMainShell(
             if (singlePaneLayout) paneMetadata + detailTransitionMetadata else paneMetadata + rootTransitionMetadata
         }
 
+        // Wide settings mirror the library: the category list stays visible beside the open section.
+        val settingsListMetadata = remember(singlePaneLayout, detailTransitionMetadata) {
+            if (singlePaneLayout) {
+                detailTransitionMetadata
+            } else {
+                detailTransitionMetadata + ListDetailSceneStrategy.listPane(
+                    detailPlaceholder = { SettingsSectionPlaceholder() },
+                )
+            }
+        }
+
         fun closeFeatureDetails() {
             if (detailVideoVm.state.value.containerId != null) detailVideoVm.closeContainer()
             if (detailAudioVm.state.value.openedEntityTitle != null) detailAudioVm.closeEntity()
@@ -441,6 +459,33 @@ fun VlcMainShell(
             replaceOrPushDetail(PlaylistDetailRoute(id = info.id, name = info.name))
         }
 
+        val shellScope = rememberCoroutineScope()
+
+        // Settings may be gated by the platform (Android's parental PIN), so entry is asynchronous.
+        fun openSettings() {
+            shellScope.launch {
+                if (settingsVm.canOpenSettings() && backStack.lastOrNull() == MoreRoute) pushNav3Route(backStack, SettingsRoute)
+            }
+        }
+
+        fun openSettingsSection(id: String) {
+            shellScope.launch {
+                if (settingsVm.canOpenSection(id)) replaceOrPushDetail(SettingsSectionRoute(id))
+            }
+        }
+
+        // Section hooks (for example Android's deferred subtitle restart) follow the back stack, and
+        // leaving Settings entirely flushes platform side effects once.
+        val openSettingsSections = backStack.filterIsInstance<SettingsSectionRoute>().map { it.id }.toSet()
+        val settingsOpen = backStack.any { it == SettingsRoute || it is SettingsSectionRoute }
+        LaunchedEffect(openSettingsSections) { settingsVm.onOpenSectionsChanged(openSettingsSections) }
+        var settingsWasOpen by remember { mutableStateOf(false) }
+        LaunchedEffect(settingsOpen) {
+            if (settingsWasOpen && !settingsOpen) settingsVm.onSettingsClosed()
+            settingsWasOpen = settingsOpen
+        }
+        val settingsSnackbar = remember { SnackbarHostState() }
+
         LaunchedEffect(tab) {
             if (tab != null && currentTab != tab) resetToTab(tab)
         }
@@ -455,6 +500,25 @@ fun VlcMainShell(
         val appLocked = settingsState.appLock.supported &&
             settingsState.appLock.enabled &&
             settingsState.appLock.locked
+
+        // "Open settings at …" requests from outside the shell. They wait until the app is unlocked.
+        val settingsDeepLink by settingsDeepLinkRequests.collectAsState()
+        LaunchedEffect(settingsDeepLink, appLocked) {
+            if (settingsDeepLink == null || appLocked) return@LaunchedEffect
+            val request = SettingsDeepLinks.consume() ?: return@LaunchedEffect
+            if (!settingsVm.canOpenSettings()) return@LaunchedEffect
+            val path = settingsVm.sectionPathFor(request.key, request.sectionId)
+            closeFeatureDetails()
+            backStack.clear()
+            backStack.add(MoreRoute)
+            backStack.add(SettingsRoute)
+            for (id in path) {
+                if (!settingsVm.canOpenSection(id)) break
+                backStack.add(SettingsSectionRoute(id))
+            }
+            settingsVm.highlight(request.key)
+            if (onTabChange != null && tab != MainTab.MORE) onTabChange(MainTab.MORE)
+        }
         val canNavigateBack = backStack.size > 1
         val hasActiveSelection = when (currentRoute) {
             VideoRoute -> videoState.selection.isNotEmpty()
@@ -466,7 +530,7 @@ fun VlcMainShell(
             PlaylistsRoute -> playlistsState.selection.isNotEmpty()
             is PlaylistDetailRoute -> detailPlaylistsState.selection.isNotEmpty()
             MoreRoute -> moreState.historySelection.isNotEmpty()
-            PlayerRoute, SettingsRoute, AboutRoute, AboutLibrariesRoute, AboutAuthorsRoute -> false
+            PlayerRoute, SettingsRoute, is SettingsSectionRoute, AboutRoute, AboutLibrariesRoute, AboutAuthorsRoute -> false
         }
 
         fun clearCurrentSelection(): Boolean = when (currentRoute) {
@@ -479,7 +543,7 @@ fun VlcMainShell(
             PlaylistsRoute -> playlistsState.selection.isNotEmpty().also { if (it) playlistsVm.clearSelection() }
             is PlaylistDetailRoute -> detailPlaylistsState.selection.isNotEmpty().also { if (it) detailPlaylistsVm.clearSelection() }
             MoreRoute -> moreState.historySelection.isNotEmpty().also { if (it) moreVm.clearHistorySelection() }
-            PlayerRoute, SettingsRoute, AboutRoute, AboutLibrariesRoute, AboutAuthorsRoute -> false
+            PlayerRoute, SettingsRoute, is SettingsSectionRoute, AboutRoute, AboutLibrariesRoute, AboutAuthorsRoute -> false
         }
 
         fun navigateBack() {
@@ -586,6 +650,7 @@ fun VlcMainShell(
                 // the shared content and adaptive navigation.
                 contentWindowInsets = WindowInsets(0, 0, 0, 0),
                 containerColor = colors.backgroundDefault,
+                snackbarHost = { SnackbarHost(settingsSnackbar) },
                 bottomBar = {
                     if (showBottomBar && playerState.hasMedia) {
                         MiniBar(
@@ -727,14 +792,14 @@ fun VlcMainShell(
                         MoreDestination(
                             modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
                             viewModel = moreVm,
-                            onOpenSettings = { pushNav3Route(backStack, SettingsRoute) },
+                            onOpenSettings = ::openSettings,
                             onOpenAbout = { pushNav3Route(backStack, AboutRoute) },
                             onOpenRemote = null,
                             hostCallbacks = hostCallbacks,
                             onOpenPlayer = ::openPlayer,
                         )
                     }
-                    entry<SettingsRoute>(metadata = detailTransitionMetadata) {
+                    entry<SettingsRoute>(metadata = settingsListMetadata) {
                         SecondaryNav3Destination(
                             title = ShellStrings.settings(),
                             onBack = ::navigateBack,
@@ -742,6 +807,23 @@ fun VlcMainShell(
                             SettingsDestination(
                                 modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
                                 viewModel = settingsVm,
+                                onOpenSection = ::openSettingsSection,
+                                selectedSectionId = if (singlePaneLayout) null else (currentRoute as? SettingsSectionRoute)?.id,
+                            )
+                        }
+                    }
+                    entry<SettingsSectionRoute>(metadata = libraryDetailMetadata) { route ->
+                        val contributedSettings by settingsVm.contributed.collectAsState()
+                        SecondaryNav3Destination(
+                            title = contributedSettings.section(route.id)?.title ?: ShellStrings.settings(),
+                            onBack = ::navigateBack,
+                            actions = { SettingsSectionInfoAction(settingsVm, route.id) },
+                        ) {
+                            SettingsSectionDestination(
+                                modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
+                                viewModel = settingsVm,
+                                sectionId = route.id,
+                                onOpenSection = ::openSettingsSection,
                             )
                         }
                     }
@@ -785,6 +867,7 @@ fun VlcMainShell(
                 )
             }
         }
+            SettingsOverlays(settingsVm, settingsSnackbar)
             // Registered after library navigation, before player dialogs: back closes the player,
             // while a second back during its exit cannot pop the covered library route.
             HandleShellBackPress(enabled = playerPresented, onBack = ::closePlayer)
@@ -853,6 +936,7 @@ fun VlcMainShell(
 private fun SecondaryNav3Destination(
     title: String,
     onBack: () -> Unit,
+    actions: @Composable RowScope.() -> Unit = {},
     content: @Composable () -> Unit,
 ) {
     // The destination owns an opaque surface so slide transitions never reveal the route below
@@ -869,6 +953,7 @@ private fun SecondaryNav3Destination(
                     navigationIcon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
                     navigationContentDescription = ShellStrings.back(),
                     onNavigate = onBack,
+                    actions = actions,
                 )
                 Box(
                     modifier = Modifier

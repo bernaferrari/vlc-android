@@ -365,13 +365,10 @@
     <string name="screen_orientation_landscape_reverse">Paisagem invertida</string>
     <string name="screen_orientation_landscape_sensor">Paisagem (sensor)</string>
     <string name="screen_orientation_last_locked">Última orientação bloqueada</string>
-    <string name="enable_black_theme">Tema escuro</string>
     <string name="dark_theme">Tema escuro</string>
     <string name="theme_auto">Tema automático</string>
     <string name="subtitle_text_encoding">Codificação do texto das legendas</string>
     <string name="subtitle_preferred_language">Idioma das legendas preferido</string>
-    <string name="daynight_title">Modo Dia/Noite</string>
-    <string name="daynight_follow_system_title">Seguir o modo do sistema</string>
     <string name="no_track_preference">Sem preferência de idioma</string>
     <string name="track_preference">Preferência de faixa: %s</string>
 
@@ -526,7 +523,6 @@
     <string name="remote_access_info">Informação do acesso remoto</string>
     <string name="remote_access_content">Conteúdo</string>
     <string name="remote_access_medialibrary_content">Conteúdo da mediateca</string>
-    <string name="remote_access_medialibrary_content_summary">Ativado: %1$s\nDesativado: %2$s</string>
     <string name="remote_access_file_browser_content">Navegador de ficheiros</string>
     <string name="remote_access_network_browser_content">Navegador de rede</string>
     <string name="remote_access_playback_control">Controlar a reprodução</string>
@@ -1115,7 +1111,6 @@
     <string name="unlock_with_pin">Desbloquear o modo de segurança</string>
     <string name="lock_with_pin_short">Bloqueio PIN</string>
     <string name="restrict_settings">Restringir o acesso às definições</string>
-    <string name="search_prefs">Procurar definições</string>
     <string name="video_match_frame_rate_title">Corresponder à taxa de fotogramas do ecrã</string>
     <string name="video_match_frame_rate_summary">Fazer corresponder a taxa de atualização do ecrã à taxa de fotogramas do suporte. Por exemplo, um filme de 24p deve ser reproduzido a 24p</string>
     <string name="preferred_resolution">Resolução de vídeo preferida</string>

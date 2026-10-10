@@ -378,13 +378,10 @@
     <string name="screen_orientation_landscape_reverse">Obrnjeno ležeče</string>
     <string name="screen_orientation_landscape_sensor">Ležeče (senzor)</string>
     <string name="screen_orientation_last_locked">Zadnja zaklenjena orientacija</string>
-    <string name="enable_black_theme">Črna tema</string>
     <string name="dark_theme">Temna tema</string>
     <string name="theme_auto">Samodejna tema</string>
     <string name="subtitle_text_encoding">Kodiranje besedila podnapisov</string>
     <string name="subtitle_preferred_language">Prednostni jezik podnapisov</string>
-    <string name="daynight_title">Dnevno/Nočni način</string>
-    <string name="daynight_follow_system_title">Način sledenja sistemu</string>
     <string name="no_track_preference">Ni prednostnega jezika</string>
     <string name="track_preference">Nastavitve skladbe: %s</string>
 
@@ -539,7 +536,6 @@
     <string name="remote_access_info">Podatki oddaljenega dostopa</string>
     <string name="remote_access_content">Vsebina</string>
     <string name="remote_access_medialibrary_content">Vsebina knjižnice vsebin</string>
-    <string name="remote_access_medialibrary_content_summary">Omogočeno: %1$s\nOnemogočeno: %2$s</string>
     <string name="remote_access_file_browser_content">Datotečni brskalnik</string>
     <string name="remote_access_network_browser_content">Omrežni brskalnik</string>
     <string name="remote_access_playback_control">Nadzor predvajanja</string>
@@ -1130,7 +1126,6 @@
     <string name="unlock_with_pin">Odkleni varni način</string>
     <string name="lock_with_pin_short">PIN zaklep</string>
     <string name="restrict_settings">Omejitev dostopa do nastavitev</string>
-    <string name="search_prefs">Nastavitve iskanja</string>
     <string name="video_match_frame_rate_title">Prilagodi hitrost sličic prikaza</string>
     <string name="video_match_frame_rate_summary">Prilagodi hitrost sličic prikaza hitrosti sličic vsebine. Npr. 24p film bi se moral predvajati s hitrostjo 24p</string>
     <string name="preferred_resolution">Prednostna ločljivost videa</string>

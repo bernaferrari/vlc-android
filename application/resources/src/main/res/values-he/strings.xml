@@ -372,13 +372,10 @@
     <string name="screen_orientation_landscape_reverse">לרוחב הפוך</string>
     <string name="screen_orientation_landscape_sensor">אופקי (חיישן)</string>
     <string name="screen_orientation_last_locked">הכיוון האחרון שננעל</string>
-    <string name="enable_black_theme">ערכת נושא שחורה</string>
     <string name="dark_theme">ערכת עיצוב כהה</string>
     <string name="theme_auto">ערכת עיצוב אוטומטית</string>
     <string name="subtitle_text_encoding">קידוד טקסט הכתוביות</string>
     <string name="subtitle_preferred_language">שפת הכתוביות המועדפת</string>
-    <string name="daynight_title">מצב יום־לילה</string>
-    <string name="daynight_follow_system_title">לעקוב אחר מצב המערכת</string>
     <string name="no_track_preference">אין שפה מועדפת</string>
     <string name="track_preference">העדפת רצועה: %s</string>
 
@@ -536,7 +533,6 @@
     <string name="remote_access_info">פרטי גישה מרחוק</string>
     <string name="remote_access_content">תוכן</string>
     <string name="remote_access_medialibrary_content">תוכן ספריית מדיה</string>
-    <string name="remote_access_medialibrary_content_summary">מופעל: %1$s\nמושבת: %2$s</string>
     <string name="remote_access_file_browser_content">דפדפן קבצים</string>
     <string name="remote_access_network_browser_content">דפדפן רשת</string>
     <string name="remote_access_playback_control">שליטה בנגינה</string>
@@ -1126,7 +1122,6 @@
     <string name="unlock_with_pin">שחרור מצב בטוח</string>
     <string name="lock_with_pin_short">נעילה בקוד אישי</string>
     <string name="restrict_settings">הגבלת גישה להגדרות</string>
-    <string name="search_prefs">חיפוש בהגדרות</string>
     <string name="video_match_frame_rate_title">התאמת קצב הרענון של התצוגה</string>
     <string name="video_match_frame_rate_summary">התאמת קצב רענון התצורה לקצב הרענון של המדיה. למשל, סרט של 24p אמור להתנגן ב־24p</string>
     <string name="preferred_resolution">רזולוציית הווידאו המועדפת</string>

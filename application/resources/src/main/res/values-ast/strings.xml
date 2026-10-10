@@ -120,9 +120,7 @@
     <string name="screen_orientation_sensor">Automática (sensor)</string>
     <string name="screen_orientation_portrait">Vertical</string>
     <string name="screen_orientation_landscape">Horizonal</string>
-    <string name="enable_black_theme">Estilu escuru</string>
     <string name="subtitle_text_encoding">Codificación</string>
-    <string name="daynight_follow_system_title">Siguir el mou del sistema</string>
     <string name="extra_prefs_category">Axustes adicionales</string>
 
     <string name="interface_prefs_screen">Interfaz</string>

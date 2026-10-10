@@ -370,13 +370,10 @@
     <string name="screen_orientation_landscape_reverse">Landscape reverse</string>
     <string name="screen_orientation_landscape_sensor">Landscape (sensor)</string>
     <string name="screen_orientation_last_locked">Last locked orientation</string>
-    <string name="enable_black_theme">Black theme</string>
     <string name="dark_theme">Dark theme</string>
     <string name="theme_auto">Auto theme</string>
     <string name="subtitle_text_encoding">Subtitle text encoding</string>
     <string name="subtitle_preferred_language">Preferred subtitle language</string>
-    <string name="daynight_title">DayNight mode</string>
-    <string name="daynight_follow_system_title">Follow system mode</string>
     <string name="no_track_preference">No language preference</string>
     <string name="track_preference">Track preference: %s</string>
 
@@ -548,7 +545,6 @@
     <string name="remote_access_info">Remote access info</string>
     <string name="remote_access_content">Content</string>
     <string name="remote_access_medialibrary_content">Media library content</string>
-    <string name="remote_access_medialibrary_content_summary">Enabled: %1$s\nDisabled: %2$s</string>
     <string name="remote_access_file_browser_content">File browser</string>
     <string name="remote_access_network_browser_content">Network browser</string>
     <string name="remote_access_playback_control">Control playback</string>
@@ -1140,7 +1136,6 @@
     <string name="unlock_with_pin">Unlock safe mode</string>
     <string name="lock_with_pin_short">PIN lock</string>
     <string name="restrict_settings">Restrict settings access</string>
-    <string name="search_prefs">Search settings</string>
     <string name="video_match_frame_rate_title">Match Display Frame Rate</string>
     <string name="video_match_frame_rate_summary">Match display refresh rate to media frame rate. For example, a 24p film should play at 24p</string>
     <string name="preferred_resolution">Preferred video resolution</string>
@@ -1160,7 +1155,15 @@
     <string name="next_bookmark">Next bookmark</string>
     <string name="show">Show</string>
     <string name="optional_features">Optional features</string>
-    <string name="optional_features_summary">Beta features that are currently being tested and may not be stable</string>
+    <string name="settings_section_interface_summary">Language, lists, sleep timer, notifications</string>
+    <string name="settings_section_video_summary">Decoding, orientation, pop-up player, displays</string>
+    <string name="settings_section_subtitles_summary">Style, encoding and preferred language</string>
+    <string name="settings_section_audio_summary">Equalizer, output, headset, ReplayGain</string>
+    <string name="settings_section_casting_summary">Stream to Chromecast and other renderers</string>
+    <string name="settings_section_parental_control_summary">PIN code, safe mode, settings lock</string>
+    <string name="settings_section_remote_access_summary">Control VLC from a browser on your network</string>
+    <string name="settings_section_android_auto_summary">Text size, queue display, car controls</string>
+    <string name="settings_section_advanced_summary">Performance, network, app data, developer tools</string>    <string name="optional_features_summary">Beta features that are currently being tested and may not be stable</string>
     <string name="optional_features_warning">This feature is in beta and may cause crashes and instabilities</string>
     <string name="network_indexing">Network indexing</string>
     <string name="network_indexing_warning">Network indexing is currently in beta.\nKnown issues:\n• Slow performance\n\nIf you encounter some other issues, please report them on our forum.</string>

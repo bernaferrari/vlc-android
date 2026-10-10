@@ -192,7 +192,6 @@
     <string name="screen_orientation_portrait">Альбом</string>
     <string name="screen_orientation_landscape">Китап</string>
     <string name="subtitle_text_encoding">Субтитрлар тексты кодировкасы</string>
-    <string name="daynight_title">Көн/Төн режимы</string>
     <string name="extra_prefs_category">Өстәмә көйләү</string>
 
     <string name="interface_prefs_screen">Интерфейс</string>

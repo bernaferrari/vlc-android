@@ -275,11 +275,8 @@
     <string name="screen_orientation_landscape">തിരശ്ചീനരൂപമായി</string>
     <string name="screen_orientation_landscape_reverse">ലാൻഡ്സ്കേപ്പ് ഗതി തിരിക്കുക</string>
     <string name="screen_orientation_last_locked">അവസാനമായി നിർത്തിയ ചരിവ്</string>
-    <string name="enable_black_theme">കറുത്ത ഉടുപ്പ് </string>
     <string name="subtitle_text_encoding">ഉപശീര്‍ഷക ടെക്സ്റ്റ് എന്‍കോഡിങ്</string>
     <string name="subtitle_preferred_language">താത്പര്യമുള്ള ഉപശീര്‍ഷക ഭാഷ</string>
-    <string name="daynight_title">പകൽ രാത്രി സംവിധാനം</string>
-    <string name="daynight_follow_system_title">സിസ്റ്റം മോഡ് സ്വീകരിക്കുക </string>
     <string name="no_track_preference">ഭാഷാ മുൻഗണനയില്ല</string>
     <string name="track_preference">ട്രാക്ക് മുൻഗണന: %s</string>
 
@@ -840,7 +837,6 @@
     <string name="soundfont_summary">മിഡി ശബ്ദ ചാലുകൾ പ്ലേ ചെയ്യുന്നതിന് ഒരു ശബ്ദ ഫോണ്ട് ഫയൽ തിരഞ്ഞെടുക്കുക</string>
     <string name="missing_media_snack">മീഡിയ കാണുന്നില്ല. കാണാതായ എല്ലാ മാധ്യമങ്ങളും മറയ്‌ക്കണോ?</string>
     <string name="browser_show_missing_media">കാണാതായ മീഡിയ കാണിക്കുക</string>
-    <string name="search_prefs">തിരയൽ ക്രമീകരണങ്ങൾ</string>
     <string name="preferred_resolution">തിരഞ്ഞെടുത്ത വീഡിയോ മിഴിവ്</string>
     <string name="preferred_resolution_summary">ഒഴുക്കുകൾക്കായുള്ള പരമാവധി ദൃശ്യ നിലവാരം, ബാധകമാകുമ്പോൾ: %s</string>
     <string name="pref_resolution_best_available">ഉള്ളതിൽ മികച്ചത്</string>

@@ -95,6 +95,7 @@ object Settings : SingletonHolder<SharedPreferences, Context>({ init(it.applicat
 
     fun init(context: Context) : SharedPreferences{
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        migrateLegacyTheme(prefs)
         showVideoThumbs = prefs.getBoolean(SHOW_VIDEO_THUMBNAILS, true)
         tvUI = prefs.getBoolean(PREF_TV_UI, false)
         listTitleEllipsize = prefs.getString(LIST_TITLE_ELLIPSIZE, "0")?.toInt() ?: 0
@@ -135,6 +136,24 @@ object Settings : SingletonHolder<SharedPreferences, Context>({ init(it.applicat
     fun initPostMigration(context: Context) {
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         fastplaySpeed = prefs.getInt(FASTPLAY_SPEED, 20) / 10f
+    }
+
+    /**
+     * One-time move of the Android-only AppCompat night mode ([KEY_APP_THEME]: -1 system, 1 light,
+     * 2 dark, 0/3 automatic) to the shared appearance key, which is now the only theme setting.
+     */
+    fun migrateLegacyTheme(prefs: SharedPreferences) {
+        if (!prefs.contains(KEY_APP_THEME)) return
+        if (!prefs.contains(KEY_SHARED_THEME_APPEARANCE)) {
+            val appearance = when (prefs.getString(KEY_APP_THEME, "-1")) {
+                "1" -> "light"
+                "2" -> "dark"
+                else -> "system"
+            }
+            prefs.edit(commit = true) { putString(KEY_SHARED_THEME_APPEARANCE, appearance) }
+        }
+        prefs.edit(commit = true) { remove(KEY_APP_THEME) }
+        prefs.getString(KEY_SHARED_THEME_APPEARANCE, null)?.let { VlcSettings.updateStringCache(KEY_SHARED_THEME_APPEARANCE, it) }
     }
 
     fun Context.isPinCodeSet() = getInstance(this).getString(KEY_SAFE_MODE_PIN, "")?.isNotBlank() == true

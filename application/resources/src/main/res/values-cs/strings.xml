@@ -378,13 +378,10 @@
     <string name="screen_orientation_landscape_reverse">Přetočit na šířku</string>
     <string name="screen_orientation_landscape_sensor">Na šířku (senzor)</string>
     <string name="screen_orientation_last_locked">Poslední uzamknutá orientace </string>
-    <string name="enable_black_theme">Tmavé téma</string>
     <string name="dark_theme">Tmavé téma</string>
     <string name="theme_auto">Téma automaticky</string>
     <string name="subtitle_text_encoding">Znaková sada titulků</string>
     <string name="subtitle_preferred_language">Preferovaný jazyk titulků</string>
-    <string name="daynight_title">Režim Den/Noc</string>
-    <string name="daynight_follow_system_title">Podle nastavení systému</string>
     <string name="no_track_preference">Žádný preferovaný jazyk</string>
     <string name="track_preference">Preferovaná stopa: %s</string>
 
@@ -542,7 +539,6 @@
     <string name="remote_access_info">Informace o vzdáleném přístupu</string>
     <string name="remote_access_content">Obsah</string>
     <string name="remote_access_medialibrary_content">Obsah Knihovny médií</string>
-    <string name="remote_access_medialibrary_content_summary">Zapnuto: %1$s\nVypnuto: %2$s</string>
     <string name="remote_access_file_browser_content">Prohlížeč souborů</string>
     <string name="remote_access_network_browser_content">Síťový prohlížeč</string>
     <string name="remote_access_playback_control">Ovládaní přehrávání</string>
@@ -1135,7 +1131,6 @@
     <string name="unlock_with_pin">Odemknout bezpečný režim</string>
     <string name="lock_with_pin_short">Zámek kódem PIN</string>
     <string name="restrict_settings">Omezit přístup k nastavením</string>
-    <string name="search_prefs">Nastavení vyhledávání</string>
     <string name="video_match_frame_rate_title">Přizpůsobit počet snímků</string>
     <string name="video_match_frame_rate_summary">Přizpůsobte zobrazení počtu snímků média. Například film s počtem snímků 24p by se měl přehrávat s počtem snímků 24p</string>
     <string name="preferred_resolution">Preferované rozlišení videa</string>

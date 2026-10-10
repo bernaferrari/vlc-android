@@ -226,10 +226,7 @@
     <string name="screen_orientation_landscape">Agama</string>
     <string name="screen_orientation_landscape_reverse">S tehri yetti</string>
     <string name="screen_orientation_last_locked">Taɣda taneggarut tsekkeṛ</string>
-    <string name="enable_black_theme">Asentel imsulles</string>
     <string name="subtitle_text_encoding">Asettengel n iduzwilen</string>
-    <string name="daynight_title">Askar Ass d yiḍ</string>
-    <string name="daynight_follow_system_title">Ḍfer askar n unagraw</string>
     <string name="extra_prefs_category">Iɣewwaren n zzyada</string>
 
     <string name="interface_prefs_screen">Agrudem</string>

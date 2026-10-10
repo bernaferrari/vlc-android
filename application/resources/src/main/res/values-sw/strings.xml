@@ -282,12 +282,9 @@
     <string name="screen_orientation_landscape">Mlalo</string>
     <string name="screen_orientation_landscape_reverse">Mlalo nyuma</string>
     <string name="screen_orientation_last_locked">Mwelekeo uliofungwa mwisho</string>
-    <string name="enable_black_theme">Mandhari meusi</string>
     <string name="theme_auto">Mandhari otomatiki</string>
     <string name="subtitle_text_encoding">Usimbaji wa maandishi ya manukuu</string>
     <string name="subtitle_preferred_language">Lugha manukuu unayopendelea</string>
-    <string name="daynight_title">Nui UsikuMchana</string>
-    <string name="daynight_follow_system_title">Fuata nui ya mfumo</string>
     <string name="no_track_preference">Hakuna mapendeleo ya lugha</string>
     <string name="track_preference">Mapendeleo ya nakala: %s</string>
 
@@ -869,7 +866,6 @@
     <string name="soundfont">MIDI SoundFont</string>
     <string name="soundfont_summary">Chagua faili la SoundFont ili ucheze nakala za usikiko za MIDI</string>
     <string name="missing_media_snack">Midia haipatikani. Ficha midia zote zisizopatikana?</string>
-    <string name="search_prefs">Tafuta mipangilio</string>
     <string name="video_match_frame_rate_title">Linganisha Kima cha Fremu cha Kizinzo</string>
     <string name="video_match_frame_rate_summary">Linganisha kima cha uchangamshaji cha kizinzo na kima cha fremu cha midia. K.m., filamu ya 24p inafaa kucheza katika 24p</string>
     <string name="preferred_resolution">Mpambanuko wa video unaopendelewa</string>

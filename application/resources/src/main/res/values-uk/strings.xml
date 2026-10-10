@@ -353,13 +353,10 @@
     <string name="screen_orientation_landscape_reverse">Обернути альбомну</string>
     <string name="screen_orientation_landscape_sensor">Альбомна (сенсор)</string>
     <string name="screen_orientation_last_locked">Остання заблокована орієнтація</string>
-    <string name="enable_black_theme">Чорна тема</string>
     <string name="dark_theme">Темна тема</string>
     <string name="theme_auto">Автоматична тема</string>
     <string name="subtitle_text_encoding">Кодування тексту субтитрів</string>
     <string name="subtitle_preferred_language">Переважна мова субтитрів</string>
-    <string name="daynight_title">Режим день-ніч</string>
-    <string name="daynight_follow_system_title">Дотримуватися системного режиму</string>
     <string name="no_track_preference">Нема мовних вподобань</string>
     <string name="track_preference">Установка відстежування: %s</string>
 
@@ -510,7 +507,6 @@
     <string name="remote_access_info">Інформація про віддалений доступ</string>
     <string name="remote_access_content">Вміст</string>
     <string name="remote_access_medialibrary_content">Вміст бібліотеки медіа</string>
-    <string name="remote_access_medialibrary_content_summary">Увімкнено: %1$s\nВимкнено: %2$s</string>
     <string name="remote_access_file_browser_content">Браузер файлів</string>
     <string name="remote_access_network_browser_content">Мережевий браузер</string>
     <string name="remote_access_playback_control">Управління відтворенням</string>
@@ -1085,7 +1081,6 @@
     <string name="unlock_with_pin">Розблокувати безпечний режим</string>
     <string name="lock_with_pin_short">Пін-код</string>
     <string name="restrict_settings">Обмежити доступ до налаштувань</string>
-    <string name="search_prefs">Налаштування пошуку</string>
     <string name="video_match_frame_rate_title">Збіг частоти оновлення кадрів дисплею</string>
     <string name="video_match_frame_rate_summary">Збіг частоти оновлення кадрів дисплею з частотою оновлення кадрів медіафайлу. Наприклад,  фільм з 24 кадрами буде відтворюватися зі швидкістю 24 кадри.</string>
     <string name="preferred_resolution">Бажана роздільна здатність</string>

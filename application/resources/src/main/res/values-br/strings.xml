@@ -335,13 +335,10 @@
     <string name="screen_orientation_landscape_reverse">Dremwel eilpennet</string>
     <string name="screen_orientation_landscape_sensor">Gweledva (kaptor)</string>
     <string name="screen_orientation_last_locked">Tuadur diwezhañ morailhet</string>
-    <string name="enable_black_theme">Tem du</string>
     <string name="dark_theme">Tem teñval</string>
     <string name="theme_auto">Tem aoto</string>
     <string name="subtitle_text_encoding">Enkodañ testenn an istitloù</string>
     <string name="subtitle_preferred_language">Yezh an istitloù gwellañ</string>
-    <string name="daynight_title">Mod DeizNoz</string>
-    <string name="daynight_follow_system_title">Heuliañ ar mod sistem</string>
     <string name="no_track_preference">Dibab yezh ebet</string>
     <string name="track_preference">Dibarzhioù roudenn: %s</string>
 

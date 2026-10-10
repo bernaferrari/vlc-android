@@ -1616,6 +1616,12 @@
         <item quantity="one">%1$d chapter</item>
         <item quantity="other">%1$d chapters</item>
     </plurals>
+    <string name="settings_search_hint">Search settings</string>
+    <string name="settings_search_no_results">No settings match “%1$s”</string>
+    <string name="settings_more_title">More settings</string>
+    <string name="settings_hex_color">Hex colour</string>
+    <string name="settings_hex_color_invalid">Use six hex digits, like FFCC00</string>
+    <string name="settings_select_section">Choose a category to see its settings</string>
     <plurals name="minutes_count">
         <item quantity="one">%1$d min</item>
         <item quantity="other">%1$d min</item>

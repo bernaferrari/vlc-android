@@ -356,13 +356,10 @@
     <string name="screen_orientation_landscape_reverse">Orizuntale à l’arritrosa</string>
     <string name="screen_orientation_landscape_sensor">Orizuntale (cattore)</string>
     <string name="screen_orientation_last_locked">Ultima orientazione ammarchjunata</string>
-    <string name="enable_black_theme">Tema neru</string>
     <string name="dark_theme">Tema scuru</string>
     <string name="theme_auto">Tema autumaticu</string>
     <string name="subtitle_text_encoding">Cudificazione di u testu di i sottutituli</string>
     <string name="subtitle_preferred_language">Lingua preferita di sottutitulu</string>
-    <string name="daynight_title">Modu ghjornu è notte</string>
-    <string name="daynight_follow_system_title">Seguità u modu di u sistema</string>
     <string name="no_track_preference">Nisuna preferenza di lingua</string>
     <string name="track_preference">Preferenza di traccia : %s</string>
 
@@ -520,7 +517,6 @@
     <string name="remote_access_info">Infurmazione nant’à l’accessu à distanza</string>
     <string name="remote_access_content">Cuntenutu</string>
     <string name="remote_access_medialibrary_content">Cuntenutu di a mediateca</string>
-    <string name="remote_access_medialibrary_content_summary">Attivatu : %1$s\nDisattivatu : %2$s</string>
     <string name="remote_access_file_browser_content">Navigatore di schedarii</string>
     <string name="remote_access_network_browser_content">Navigatore di reta</string>
     <string name="remote_access_playback_control">Cuntrollà a ripruduzzione</string>
@@ -1106,7 +1102,6 @@
     <string name="unlock_with_pin">Spalancà u modu senza fiascu</string>
     <string name="lock_with_pin_short">Ammarchjunata da codice PIN</string>
     <string name="restrict_settings">Ristringhje l’accessu à i parametri</string>
-    <string name="search_prefs">Parametri di ricerca</string>
     <string name="video_match_frame_rate_title">Aghjustà à a frequenza di fiura di l’affissera</string>
     <string name="video_match_frame_rate_summary">Aghjustà a frequenza d’attualizazione di l’affissera à a frequenza di fiura di u medià. Per indettu, un filmu à 24 fps deve esse sunatu à 24 fps</string>
     <string name="preferred_resolution">Risuluzione video preferita</string>

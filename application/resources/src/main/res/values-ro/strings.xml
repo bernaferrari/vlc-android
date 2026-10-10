@@ -367,13 +367,10 @@
     <string name="screen_orientation_landscape_reverse">Peisaj invers</string>
     <string name="screen_orientation_landscape_sensor">Peisaj (senzor)</string>
     <string name="screen_orientation_last_locked">Ultima orientare blocată</string>
-    <string name="enable_black_theme">Tematica neagră</string>
     <string name="dark_theme">Temă întunecată</string>
     <string name="theme_auto">Temă automată</string>
     <string name="subtitle_text_encoding">Codificarea textului din subtitlu</string>
     <string name="subtitle_preferred_language">Limba preferată pentru subtitrare</string>
-    <string name="daynight_title">Modul noapte zi</string>
-    <string name="daynight_follow_system_title">Urmărește modul sistemului</string>
     <string name="no_track_preference">Fără preferinţă de limbă</string>
     <string name="track_preference">Urmăreşte preferinţele: %s</string>
 
@@ -531,7 +528,6 @@
     <string name="remote_access_info">Informații despre accesul de la distanță</string>
     <string name="remote_access_content">Conținut</string>
     <string name="remote_access_medialibrary_content">Conținutul bibliotecii media</string>
-    <string name="remote_access_medialibrary_content_summary">Activat: %1$s\nDezactivat: %2$s</string>
     <string name="remote_access_file_browser_content">Navigatorul de fișiere</string>
     <string name="remote_access_network_browser_content">Navigatorul de rețea</string>
     <string name="remote_access_playback_control">Controlează redarea</string>
@@ -1121,7 +1117,6 @@
     <string name="unlock_with_pin">Deblochează modul sigur</string>
     <string name="lock_with_pin_short">Blochează cu PIN</string>
     <string name="restrict_settings">Restricționează accesul la setări</string>
-    <string name="search_prefs">Setări de căutare</string>
     <string name="video_match_frame_rate_title">Potrivește rata de cadre de afișare</string>
     <string name="video_match_frame_rate_summary">Potrivește rata de reîmprospătare a afișajului cu rata de cadre media. De exemplu, un film de 24p ar trebui să fie redat la 24p</string>
     <string name="preferred_resolution">Rezoluția video preferată</string>

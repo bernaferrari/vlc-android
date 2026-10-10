@@ -244,10 +244,7 @@
     <string name="screen_orientation_landscape">Apaisado</string>
     <string name="screen_orientation_landscape_reverse">Apaisado invertido</string>
     <string name="screen_orientation_last_locked">Última orientación bloqueda</string>
-    <string name="enable_black_theme">Tema oscuro</string>
     <string name="subtitle_text_encoding">Codificación de texto de subtítulos</string>
-    <string name="daynight_title">Modo DiaNoche</string>
-    <string name="daynight_follow_system_title">Seguir modo sistema</string>
     <string name="extra_prefs_category">Preferencias extra</string>
 
     <string name="interface_prefs_screen">Interfaz</string>
@@ -731,7 +728,6 @@
     <string name="soundfont">MIDI SoundFont</string>
     <string name="soundfont_summary">Seleccione un archivo SoundFont para reproducir pistas de audio MIDI</string>
     <string name="missing_media_snack">Faltan medios. ¿Quieres ocultar todos los medios que falten?</string>
-    <string name="search_prefs">Preferencias de búsqueda</string>
     <string name="preferred_resolution">Resolución de vídeo preferida</string>
     <string name="preferred_resolution_summary">La calidad máxima del vídeo para las emisiones (si corresponde) será de: %s</string>
     <string name="pref_resolution_best_available">Mejor disponible</string>

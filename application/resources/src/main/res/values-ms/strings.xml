@@ -320,13 +320,10 @@
     <string name="screen_orientation_landscape_reverse">Songsang lanskap</string>
     <string name="screen_orientation_landscape_sensor">Lanskap (sensor)</string>
     <string name="screen_orientation_last_locked">Orientasi kunci terakhir</string>
-    <string name="enable_black_theme">Tema gelap</string>
     <string name="dark_theme">Tema gelap</string>
     <string name="theme_auto">Auto tema</string>
     <string name="subtitle_text_encoding">Pengekodan teks sari kata</string>
     <string name="subtitle_preferred_language">Bahasa sari kata dikehendaki</string>
-    <string name="daynight_title">Mod SiangMalam</string>
-    <string name="daynight_follow_system_title">Ikuti mod sistem</string>
     <string name="no_track_preference">Tiada keutamaan bahasa</string>
     <string name="track_preference">Keutamaan trek: %s</string>
 
@@ -475,7 +472,6 @@
     <string name="remote_access_info">Maklumat capaian jauh</string>
     <string name="remote_access_content">Kandungan</string>
     <string name="remote_access_medialibrary_content">Kandungan pusataka media</string>
-    <string name="remote_access_medialibrary_content_summary">Didayakan: %1$s\nDilumpuhkan: %2$s</string>
     <string name="remote_access_file_browser_content">Pelayar fail</string>
     <string name="remote_access_network_browser_content">Pelayar rangkaian</string>
     <string name="remote_access_playback_control">Kawalan main balik</string>
@@ -1041,7 +1037,6 @@
     <string name="unlock_with_pin">Nyahkunci mod selamat</string>
     <string name="lock_with_pin_short">Kunci PIN</string>
     <string name="restrict_settings">Sekat capaian tetapan</string>
-    <string name="search_prefs">Tetapan gelintar</string>
     <string name="video_match_frame_rate_title">Padan Kadar Bingkai Paparan</string>
     <string name="video_match_frame_rate_summary">Padan kadar segar semula paparan mengikut kadar bingkai media. Contohnya, filem 24p sepatutnya dimainkan pada kadar 24p</string>
     <string name="preferred_resolution">Resolusi video diutamakan</string>

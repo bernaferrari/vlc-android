@@ -111,7 +111,7 @@ import org.videolan.resources.TAG_ITEM
 import org.videolan.resources.TV_CONFIRMATION_ACTIVITY
 import org.videolan.resources.util.launchForeground
 import org.videolan.tools.BitmapCache
-import org.videolan.tools.KEY_APP_THEME
+import org.videolan.tools.KEY_SHARED_THEME_APPEARANCE
 import org.videolan.tools.KEY_INCLUDE_MISSING
 import org.videolan.tools.KEY_INCOGNITO
 import org.videolan.tools.KEY_INCOGNITO_PLAYBACK_SPEED_AUDIO_GLOBAL_VALUE
@@ -135,7 +135,7 @@ import org.videolan.vlc.gui.dialogs.showVideoTracksComposeDialog
 import org.videolan.vlc.gui.helpers.BitmapUtil.vectorToBitmap
 import org.videolan.vlc.gui.helpers.hf.PinCodeDelegate
 import org.videolan.vlc.gui.helpers.hf.checkPIN
-import org.videolan.vlc.gui.preferences.PreferencesActivity
+import org.videolan.vlc.kmp.openSettingsAt
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.media.getAll
 import org.videolan.vlc.providers.medialibrary.MedialibraryProvider
@@ -382,9 +382,7 @@ object UiTools {
         val view = getSnackAnchorView(activity) ?: return
         val snack = Snackbar.make(view, activity.getString(R.string.missing_media_snack), Snackbar.LENGTH_LONG)
                 .setAction(R.string.ok) {
-                    activity.lifecycleScope.launch {
-                        PreferencesActivity.launchWithPref(activity, KEY_INCLUDE_MISSING)
-                    }
+                    openSettingsAt(activity, KEY_INCLUDE_MISSING)
                 }
         if (VlcMigrationHelper.isLolliPopOrLater)
             snack.view.elevation = view.resources.getDimensionPixelSize(R.dimen.audio_player_elevation).toFloat()
@@ -920,20 +918,25 @@ fun BaseActivity.applyTheme() {
         return
     }
 
-    val string = settings.getString(KEY_APP_THEME, "-1")
-    when (string) {
-        "1" -> {
+    // The shared appearance (light / dark / system) is the single theme setting on every platform.
+    val nightMode = when (settings.getString(KEY_SHARED_THEME_APPEARANCE, "system")) {
+        "light" -> AppCompatDelegate.MODE_NIGHT_NO
+        "dark" -> AppCompatDelegate.MODE_NIGHT_YES
+        else -> AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+    }
+    when (nightMode) {
+        AppCompatDelegate.MODE_NIGHT_NO -> {
             window.setBackgroundDrawable(ContextCompat.getColor(this, R.color.reimagined_canvas_light).toDrawable())
             WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = true
             WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightNavigationBars = true
         }
-        "2" -> {
+        AppCompatDelegate.MODE_NIGHT_YES -> {
             window.setBackgroundDrawable(ContextCompat.getColor(this, R.color.reimagined_canvas_dark).toDrawable())
             WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = false
             WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightNavigationBars = false
         }
     }
-    AppCompatDelegate.setDefaultNightMode(Integer.valueOf(string!!))
+    AppCompatDelegate.setDefaultNightMode(nightMode)
 }
 
 fun getTvIconRes(mediaLibraryItem: MediaLibraryItem) = when (mediaLibraryItem.itemType) {

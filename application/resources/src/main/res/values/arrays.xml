@@ -620,29 +620,9 @@
         <item>0</item>
     </string-array>
 
-    <string-array name="daynight_mode_entries">
-        <item>@string/daynight_follow_system_title</item>
-        <item>@string/light_theme</item>
-        <item>@string/enable_black_theme</item>
-    </string-array>
 
-    <string-array name="daynight_mode_values">
-        <item>-1</item>
-        <item>1</item>
-        <item>2</item>
-    </string-array>
 
-    <string-array name="daynight_mode_legacy_entries">
-        <item>@string/daynight_title</item>
-        <item>@string/light_theme</item>
-        <item>@string/enable_black_theme</item>
-    </string-array>
 
-    <string-array name="daynight_mode_legacy_values">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-    </string-array>
 
     <string-array name="ask_confirmation_entries">
         <item>@string/always</item>

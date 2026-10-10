@@ -317,13 +317,10 @@
     <string name="screen_orientation_sensor">Automatisk (sensor)</string>
     <string name="screen_orientation_portrait">Portrett</string>
     <string name="screen_orientation_landscape">Landskap</string>
-    <string name="enable_black_theme">Svart tema</string>
     <string name="dark_theme">Mørkt tema</string>
     <string name="theme_auto">Automatisk tema</string>
     <string name="subtitle_text_encoding">Koding for undertekstar</string>
     <string name="subtitle_preferred_language">Føretrekt undertekstspråk</string>
-    <string name="daynight_title">DagNatt-modus</string>
-    <string name="daynight_follow_system_title">Følg systemmodus</string>
     <string name="extra_prefs_category">Ekstra innstillingar</string>
 
     <string name="interface_prefs_screen">Grensesnitt</string>
@@ -420,7 +417,6 @@
     <string name="remote_access_info">Info om fjerntilgang</string>
     <string name="remote_access_content">Innhald</string>
     <string name="remote_access_medialibrary_content">Innhald i mediebibliotek</string>
-    <string name="remote_access_medialibrary_content_summary">Aktivert: %1$s\nDeaktivert: %2$s</string>
     <string name="remote_access_logs">Del loggfiler</string>
     <string name="casting_audio_only">Berre lyd</string>
     <string name="casting_conversion_quality_summary">Vel konverteringskvalitet for kringkasting til ein ekstern skjerm </string>
@@ -689,7 +685,6 @@
     <string name="safe_mode_invalid_pin">Feil PIN</string>
     <string name="safe_mode_enabled">Trygg modus aktivert</string>
     <string name="restrict_settings">Avgrens tilgang til innstillingar</string>
-    <string name="search_prefs">Søk i innstillingar</string>
     <string name="bookmarks_title">Bokmerke</string>
     <string name="show">Vis</string>
     <string name="optional_features">Valfrie funksjonar</string>

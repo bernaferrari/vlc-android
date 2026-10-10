@@ -276,10 +276,7 @@
     <string name="screen_orientation_landscape">Horizontal</string>
     <string name="screen_orientation_landscape_reverse">Horizontal invertido</string>
     <string name="screen_orientation_last_locked">Última orientación bloqueada</string>
-    <string name="enable_black_theme">Tema escuro</string>
     <string name="subtitle_text_encoding">Codificación do texto dos subtítulos</string>
-    <string name="daynight_title">Modo Día/Noite</string>
-    <string name="daynight_follow_system_title">Seguir o modo do sistema</string>
     <string name="extra_prefs_category">Preferencias adicionais</string>
 
     <string name="interface_prefs_screen">Interface</string>
@@ -812,7 +809,6 @@
     <string name="safe_mode_no_match">Os PINs non coinciden</string>
     <string name="restricted_access">Acceso restrinxido</string>
     <string name="unlock">Desbloquear</string>
-    <string name="search_prefs">Axustes de busca</string>
     <string name="preferred_resolution">Resolución de vídeo preferida</string>
     <string name="preferred_resolution_summary">A calidade máxima de vídeo nos fluxos, se é aplicábel, será: %s</string>
     <string name="pref_resolution_best_available">A mellor dispoñíbel</string>

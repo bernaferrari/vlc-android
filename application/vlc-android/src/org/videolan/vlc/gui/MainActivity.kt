@@ -69,8 +69,12 @@ import org.videolan.vlc.gui.helpers.INavigator
 import org.videolan.vlc.gui.helpers.Navigator
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.isTablet
-import org.videolan.vlc.gui.preferences.PreferencesActivity
 import org.videolan.vlc.gui.preferences.search.PreferenceParser
+import org.videolan.vlc.kmp.AndroidSettingsEffect
+import org.videolan.vlc.kmp.AndroidSettingsEffects
+import org.videolan.vlc.kmp.openSettingsAt
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.reloadLibrary
 import org.videolan.vlc.util.AutoUpdate
@@ -181,9 +185,7 @@ class MainActivity : ContentActivity(),
                     PreferenceParser.checkRestoreFile(file.path.toUri())
                 } catch (_: Exception) {
                     UiTools.snackerConfirm(this@MainActivity, getString(R.string.obsolete_restore_settings), confirmMessage = R.string.ok, indefinite = true) {
-                        lifecycleScope.launch {
-                            PreferencesActivity.launchWithPref(this@MainActivity, "export_settings")
-                        }
+                        openSettingsAt(this@MainActivity, "export_settings")
                     }
                 }
             }
@@ -196,6 +198,24 @@ class MainActivity : ContentActivity(),
             }
         }
         backPressedCallback.isEnabled = AndroidUtil.isNougatOrLater && isInMultiWindowMode
+        // Settings live in the shared shell; what used to be PreferencesActivity's result arrives here.
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                AndroidSettingsEffects.events.collect(::applySettingsEffect)
+            }
+        }
+    }
+
+    private fun applySettingsEffect(effect: AndroidSettingsEffect) {
+        when (effect) {
+            AndroidSettingsEffect.RESCAN -> reloadLibrary()
+            AndroidSettingsEffect.RESTART, AndroidSettingsEffect.RESTART_APP -> {
+                val intent = Intent(this, if (effect == AndroidSettingsEffect.RESTART_APP) StartActivity::class.java else MainActivity::class.java)
+                finish()
+                startActivity(intent)
+            }
+            AndroidSettingsEffect.UPDATE_SEEN_MEDIA -> Unit
+        }
     }
 
 

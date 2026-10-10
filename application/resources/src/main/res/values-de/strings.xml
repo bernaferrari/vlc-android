@@ -356,13 +356,10 @@
     <string name="screen_orientation_landscape_reverse">Querformat umgekehrt</string>
     <string name="screen_orientation_landscape_sensor">Querformat (Sensor)</string>
     <string name="screen_orientation_last_locked">Letzte gesperrte Ausrichtung</string>
-    <string name="enable_black_theme">Schwarzes Design</string>
     <string name="dark_theme">Dunkles Design</string>
     <string name="theme_auto">Automatisches Design</string>
     <string name="subtitle_text_encoding">Untertiteltextkodierung</string>
     <string name="subtitle_preferred_language">Bevorzugte Untertitelsprache</string>
-    <string name="daynight_title">Tag-/Nachtmodus</string>
-    <string name="daynight_follow_system_title">Wie im Systemmodus</string>
     <string name="no_track_preference">Keine Sprachpräferenz</string>
     <string name="track_preference">Titel-Einstellung: %s</string>
 
@@ -520,7 +517,6 @@
     <string name="remote_access_info">Fernzugriff-Info</string>
     <string name="remote_access_content">Inhalt</string>
     <string name="remote_access_medialibrary_content">Medienbibliotheksinhalt</string>
-    <string name="remote_access_medialibrary_content_summary">Aktiviert: %1$s\nDeaktiviert: %2$s</string>
     <string name="remote_access_file_browser_content">Datei-Browser</string>
     <string name="remote_access_network_browser_content">Netzwerk-Browser</string>
     <string name="remote_access_playback_control">Wiedergabe steuern</string>
@@ -1108,7 +1104,6 @@
     <string name="unlock_with_pin">Sicheren Modus entsperren</string>
     <string name="lock_with_pin_short">PIN-Sperre</string>
     <string name="restrict_settings">Einstellungszugriff einschränken</string>
-    <string name="search_prefs">Suche in Einstellungen</string>
     <string name="video_match_frame_rate_title">Bildwiederholrate der Anzeige anpassen</string>
     <string name="video_match_frame_rate_summary">Die Aktualisierungsrate der Anzeige an die Framerate der Medien anpassen. Beispielsweise sollte ein 24p-Film mit 24p abgespielt werden</string>
     <string name="preferred_resolution">Bevorzugte Videoauflösung</string>

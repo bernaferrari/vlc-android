@@ -201,10 +201,7 @@
     <string name="screen_orientation_sensor">Automatik (sensor)</string>
     <string name="screen_orientation_portrait">Portret</string>
     <string name="screen_orientation_landscape">Peizazh</string>
-    <string name="enable_black_theme">Temë zezë</string>
     <string name="subtitle_text_encoding">Deshifrim teksti titra</string>
-    <string name="daynight_title">Mënyrë DitëNatë</string>
-    <string name="daynight_follow_system_title">Ndiqni mënyrën e sistemit</string>
     <string name="extra_prefs_category">Cilësime shtresë</string>
 
     <string name="interface_prefs_screen">Ndërfaqja</string>

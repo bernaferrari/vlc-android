@@ -31,6 +31,7 @@ import org.videolan.vlc.repository.HistoryRepository
 import org.videolan.vlc.repository.PlaylistRepository
 import org.videolan.vlc.repository.StreamRepository
 import org.videolan.vlc.compose.artwork.ArtworkLoaderHolder
+import org.videolan.vlc.settings.SettingsContributor
 
 /**
  * Initializes the Koin DI graph on Android, wiring the shared KMP
@@ -82,6 +83,8 @@ object VlcKmpInitializer {
                 single<PipController> { AndroidPipController() }
                 single<AppLockController> { AndroidAppLockController(appContext) }
                 single<RendererBridge> { AndroidRendererBridge() }
+                // Android-only settings sections (libVLC, casting, Android Auto, …) for the shared pane.
+                single<SettingsContributor> { AndroidSettingsContributor(appContext) }
             }
 
 

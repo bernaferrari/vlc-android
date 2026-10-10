@@ -336,13 +336,10 @@
     <string name="screen_orientation_landscape_reverse">Landskab omvendt</string>
     <string name="screen_orientation_landscape_sensor">Landskab (sensor)</string>
     <string name="screen_orientation_last_locked">Sidst låste retning</string>
-    <string name="enable_black_theme">Sort tema</string>
     <string name="dark_theme">Mørkt tema</string>
     <string name="theme_auto">Autotema</string>
     <string name="subtitle_text_encoding">Tekstkodning for undertekster</string>
     <string name="subtitle_preferred_language">Foretrukket undertekstsprog</string>
-    <string name="daynight_title">Dag-nat-tilstand</string>
-    <string name="daynight_follow_system_title">Følg systemtilstand</string>
     <string name="no_track_preference">Intet foretrukket sprog</string>
     <string name="track_preference">Foretrukket spor: %s</string>
 
@@ -497,7 +494,6 @@
     <string name="remote_access_info">Fjernadgang info</string>
     <string name="remote_access_content">Indhold</string>
     <string name="remote_access_medialibrary_content">Mediebiblioteksindhold</string>
-    <string name="remote_access_medialibrary_content_summary">Slået til: %1$s\nSlået fra: %2$s</string>
     <string name="remote_access_file_browser_content">Fil-browser</string>
     <string name="remote_access_network_browser_content">Netværksbrowser</string>
     <string name="remote_access_playback_control">Kontrollér afspilning</string>
@@ -1079,7 +1075,6 @@
     <string name="unlock_with_pin">Lås sikker tilstand op</string>
     <string name="lock_with_pin_short">PIN-kodelåsning</string>
     <string name="restrict_settings">Begræns adgang til indstillinger</string>
-    <string name="search_prefs">Indstillinger for søgning</string>
     <string name="video_match_frame_rate_title">Match displaybilledfrekvens</string>
     <string name="video_match_frame_rate_summary">Match displayopdateringsfrekvens til displaybilledfrekvens. For eksempel bør en 24p film afspilles med 24p</string>
     <string name="preferred_resolution">Foretrukken video opløsning</string>

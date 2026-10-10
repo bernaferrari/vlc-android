@@ -211,9 +211,7 @@
     <string name="screen_orientation_sensor">Automātisks (sensors)</string>
     <string name="screen_orientation_portrait">Portrets</string>
     <string name="screen_orientation_landscape">Ainava</string>
-    <string name="enable_black_theme">Melnā apdare</string>
     <string name="subtitle_text_encoding">Apakšvirsraksta teksta kodēšana</string>
-    <string name="daynight_title">Dienas-nakts režīms</string>
     <string name="extra_prefs_category">Papildu iestatījumi</string>
 
     <string name="interface_prefs_screen">Interfeiss</string>

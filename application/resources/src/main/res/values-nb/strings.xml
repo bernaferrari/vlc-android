@@ -305,13 +305,10 @@
     <string name="screen_orientation_landscape">Landskap</string>
     <string name="screen_orientation_landscape_reverse">Landskap reversert</string>
     <string name="screen_orientation_last_locked">Siste låste orientering</string>
-    <string name="enable_black_theme">Svart tema</string>
     <string name="dark_theme">Mørkt tema</string>
     <string name="theme_auto">Automatisk tema</string>
     <string name="subtitle_text_encoding">Undertekstkoding</string>
     <string name="subtitle_preferred_language">Foretrukket undertekst språk</string>
-    <string name="daynight_title">Dag/Natt-modus</string>
-    <string name="daynight_follow_system_title">Følg systemmodus</string>
     <string name="no_track_preference">Ingen språkpreferanser</string>
     <string name="track_preference">Sporpreferanse: %s</string>
 

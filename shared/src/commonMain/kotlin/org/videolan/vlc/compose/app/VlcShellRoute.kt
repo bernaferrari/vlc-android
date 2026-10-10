@@ -38,6 +38,10 @@ data object PlayerRoute : VlcShellRoute
 @Serializable
 data object SettingsRoute : VlcShellRoute
 
+/** One settings subpage (for example a platform's "Subtitles" section), always above [SettingsRoute]. */
+@Serializable
+data class SettingsSectionRoute(val id: String) : VlcShellRoute
+
 /** Shared About screen; keeps its back stack and transition consistent on every host. */
 @Serializable
 data object AboutRoute : VlcShellRoute
@@ -141,7 +145,7 @@ fun VlcShellRoute.toMainTabOrNull(): MainTab? = when (this) {
     PlaylistsRoute -> MainTab.PLAYLISTS
     is PlaylistDetailRoute -> MainTab.PLAYLISTS
     MoreRoute -> MainTab.MORE
-    PlayerRoute, SettingsRoute, AboutRoute, AboutLibrariesRoute, AboutAuthorsRoute -> null
+    PlayerRoute, SettingsRoute, is SettingsSectionRoute, AboutRoute, AboutLibrariesRoute, AboutAuthorsRoute -> null
 }
 
 /** A wide list-detail layout has one detail slot, so selecting a sibling replaces it. */
@@ -155,6 +159,8 @@ internal fun shouldReplaceDetailRoute(
         current is AudioEntityRoute && next is AudioEntityRoute -> true
         current is BrowserFolderRoute && next is BrowserFolderRoute -> true
         current is PlaylistDetailRoute && next is PlaylistDetailRoute -> true
+        // Wide settings keep the section list beside one section; choosing another replaces it.
+        current is SettingsSectionRoute && next is SettingsSectionRoute -> true
         else -> false
     }
 
@@ -223,6 +229,11 @@ internal fun canonicalVlcShellRouteStack(
                 canonical += route
             }
             SettingsRoute -> if (root == MoreRoute && current == MoreRoute) canonical += route
+            is SettingsSectionRoute -> {
+                if (root == MoreRoute && current == MoreRoute) canonical += SettingsRoute
+                val top = canonical.last()
+                if (root == MoreRoute && (top == SettingsRoute || top is SettingsSectionRoute)) canonical += route
+            }
             AboutRoute -> if (root == MoreRoute && current == MoreRoute) canonical += route
             AboutLibrariesRoute, AboutAuthorsRoute -> {
                 if (root == MoreRoute && current == MoreRoute) canonical += AboutRoute
@@ -249,6 +260,7 @@ val vlcShellNavSavedStateConfiguration = SavedStateConfiguration {
             subclass(MoreRoute::class, MoreRoute.serializer())
             subclass(PlayerRoute::class, PlayerRoute.serializer())
             subclass(SettingsRoute::class, SettingsRoute.serializer())
+            subclass(SettingsSectionRoute::class, SettingsSectionRoute.serializer())
             subclass(AboutRoute::class, AboutRoute.serializer())
             subclass(AboutLibrariesRoute::class, AboutLibrariesRoute.serializer())
             subclass(AboutAuthorsRoute::class, AboutAuthorsRoute.serializer())
@@ -270,7 +282,7 @@ private fun VlcShellRoute.requiredRootRoute(): VlcShellRoute? = when (this) {
     AudioRoute, is AudioEntityRoute -> AudioRoute
     BrowserRoute, is BrowserFolderRoute -> BrowserRoute
     PlaylistsRoute, is PlaylistDetailRoute -> PlaylistsRoute
-    MoreRoute, SettingsRoute, AboutRoute, AboutLibrariesRoute, AboutAuthorsRoute -> MoreRoute
+    MoreRoute, SettingsRoute, is SettingsSectionRoute, AboutRoute, AboutLibrariesRoute, AboutAuthorsRoute -> MoreRoute
     PlayerRoute -> null
 }
 

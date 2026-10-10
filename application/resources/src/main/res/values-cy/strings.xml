@@ -241,10 +241,7 @@
     <string name="screen_orientation_sensor">Awtomatig (synhwyro)</string>
     <string name="screen_orientation_portrait">Darlun</string>
     <string name="screen_orientation_landscape">Tirlun</string>
-    <string name="enable_black_theme">Thema ddu</string>
     <string name="subtitle_text_encoding">Amgodiad testun isdeitlau</string>
-    <string name="daynight_title">Modd DyddNos</string>
-    <string name="daynight_follow_system_title">Dilyn modd y system</string>
     <string name="extra_prefs_category">Gosodiadau ychwanegol</string>
 
     <string name="interface_prefs_screen">Rhyngwyneb</string>

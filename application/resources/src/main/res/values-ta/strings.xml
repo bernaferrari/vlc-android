@@ -209,9 +209,7 @@
     <string name="screen_orientation_sensor">தானியக்க (உணரி)</string>
     <string name="screen_orientation_portrait">உருவப்படம்</string>
     <string name="screen_orientation_landscape">இயற்கைநிலக்காட்சி</string>
-    <string name="enable_black_theme">கருப்பு பின்னணி</string>
     <string name="subtitle_text_encoding">துணைத்தலைப்பு உரை குறியாக்கம்</string>
-    <string name="daynight_title">பகல் இரவு முறை</string>
     <string name="extra_prefs_category">கூடுதல் அமைவுகள்</string>
 
     <string name="interface_prefs_screen">இடைமுகம்</string>

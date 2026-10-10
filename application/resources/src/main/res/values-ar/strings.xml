@@ -340,13 +340,10 @@
     <string name="screen_orientation_landscape">عرضي</string>
     <string name="screen_orientation_landscape_reverse">عرضي معكوس</string>
     <string name="screen_orientation_last_locked">آخر اتجاه مغلق</string>
-    <string name="enable_black_theme">الثيم الأسود</string>
     <string name="dark_theme">السمة الداكنة</string>
     <string name="theme_auto">السمة التلقائية</string>
     <string name="subtitle_text_encoding">ترميز نص التّرجمة</string>
     <string name="subtitle_preferred_language">لغة الترجمة المفضلة</string>
-    <string name="daynight_title">نمط ليلي نهاري</string>
-    <string name="daynight_follow_system_title">متابعة نمط النظام</string>
     <string name="no_track_preference">لا تفضيل للغة</string>
     <string name="extra_prefs_category">إعدادات إضافية</string>
 
@@ -950,7 +947,6 @@
     <string name="lock_with_pin">أعد تمكين قفل رقم التعريف الشخصي</string>
     <string name="unlock_with_pin">افتح الوضع الآمن</string>
     <string name="lock_with_pin_short">قفل رقم التعريف الشخصي</string>
-    <string name="search_prefs">إعدادات البحث</string>
     <string name="preferred_resolution">دقة الفيديو المفضلة</string>
     <string name="preferred_resolution_summary">ستكون جودة الفيديو القصوى لعمليات البث ، عند الاقتضاء ، هي: %s</string>
     <string name="pref_resolution_best_available">أفضل ما هو متاح</string>

@@ -293,12 +293,9 @@
     <string name="screen_orientation_landscape">Альбомная</string>
     <string name="screen_orientation_landscape_reverse">Обратная альбомная</string>
     <string name="screen_orientation_last_locked">Последняя зафиксированная ориентация</string>
-    <string name="enable_black_theme">Чёрная тема</string>
     <string name="theme_auto">Автовыбор темы</string>
     <string name="subtitle_text_encoding">Кодировка текста субтитров</string>
     <string name="subtitle_preferred_language">Предпочитаемый язык субтитров</string>
-    <string name="daynight_title">Режим День/Ночь</string>
-    <string name="daynight_follow_system_title">В соответствии с режимом системы </string>
     <string name="no_track_preference">Нет предпочитаемого языка</string>
     <string name="track_preference">Предпочитаемая дорожка: %s</string>
 
@@ -843,7 +840,6 @@
     <string name="soundfont">MIDI SoundFont</string>
     <string name="soundfont_summary">Выберите файл SoundFont для проигрывания аудиофайлов  MIDI</string>
     <string name="missing_media_snack">Медиаобъект отсутствует. Скрыть все отсутствующие медиаобъекты?</string>
-    <string name="search_prefs">Настройки поиска</string>
     <string name="preferred_resolution">Предпочитаемое разрешение видео</string>
     <string name="preferred_resolution_summary">Максимальное качество видео для трансляций по возможности будет: %s</string>
     <string name="pref_resolution_best_available">Максимально возможное</string>

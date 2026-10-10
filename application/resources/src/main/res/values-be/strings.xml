@@ -314,13 +314,10 @@
     <string name="screen_orientation_landscape_reverse">Альбомная (перавернутая)</string>
     <string name="screen_orientation_landscape_sensor">Альбомная (датчык)</string>
     <string name="screen_orientation_last_locked">Апошняя заблакіраваная арыентацыя</string>
-    <string name="enable_black_theme">Чорная тэма</string>
     <string name="dark_theme">Цёмная тэма</string>
     <string name="theme_auto">Аўтаматычна</string>
     <string name="subtitle_text_encoding">Кадзіроўка субтытраў</string>
     <string name="subtitle_preferred_language">Пажаданая мова субтытраў</string>
-    <string name="daynight_title">Начны і дзённы рэжым</string>
-    <string name="daynight_follow_system_title">Згодна з сістэмнай тэмай</string>
     <string name="no_track_preference">Няма пажаданай мовы</string>
     <string name="track_preference">Пажаданая дарожка: %s</string>
 
@@ -435,7 +432,6 @@
     <string name="enable_remote_access">Уключыць аддалены доступ</string>
     <string name="remote_access_content">Змесціва</string>
     <string name="remote_access_medialibrary_content">Змесціва медыятэкі</string>
-    <string name="remote_access_medialibrary_content_summary">Уключана: %1$s\nАдключана: %2$s</string>
     <string name="remote_access_file_browser_content">Файлавы менеджар</string>
     <string name="remote_access_network_browser_content">Сеткавы агляд</string>
     <string name="remote_access_playback_control">Кіраванне прайграваннем</string>
@@ -894,7 +890,6 @@
     <string name="restricted_access">Доступ абмежаваны</string>
     <string name="unlock">Разблакіраваць</string>
     <string name="unlock_with_pin">Зняць бяспечны рэжым</string>
-    <string name="search_prefs">Пошук налад</string>
     <string name="preferred_resolution">Пажаданае разрозненне відэа</string>
     <string name="preferred_resolution_summary">Калі магчыма, максімальная якасць патоку будзе: %s</string>
     <string name="pref_resolution_best_available">Максімальна магчымае</string>

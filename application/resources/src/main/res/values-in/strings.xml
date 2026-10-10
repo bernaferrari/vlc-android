@@ -272,12 +272,9 @@
     <string name="screen_orientation_landscape">Pemandangan</string>
     <string name="screen_orientation_landscape_reverse">Balik lanskap</string>
     <string name="screen_orientation_last_locked">Orientasi terkunci terakhir</string>
-    <string name="enable_black_theme">Tema gelap</string>
     <string name="theme_auto">Tema otomatis</string>
     <string name="subtitle_text_encoding">Pengkodean teks terjemahan</string>
     <string name="subtitle_preferred_language">Preferensi bahasa takarir</string>
-    <string name="daynight_title">Mode Siang Hari</string>
-    <string name="daynight_follow_system_title">Ikuti mode sistem</string>
     <string name="no_track_preference">Tidak ada preferensi bahasa</string>
     <string name="track_preference">Preferensi trek: %s</string>
 
@@ -842,7 +839,6 @@
     <string name="missing_media_snack">Media hilang. Sembunyikan semua media hilang?</string>
     <string name="browser_show_missing_media">Perlihatkan media yang hilang</string>
     <string name="browser_show_missing_media_summary">Perlihatkan media yang jauh bahkan jika tidak tersedia</string>
-    <string name="search_prefs">Pengaturan pencarian</string>
     <string name="preferred_resolution">Resolusi video yang dipilih</string>
     <string name="preferred_resolution_summary">Qualitas maksimum video untuk stream, saat berlaku, akan jadi: %s</string>
     <string name="pref_resolution_best_available">Yang terbaik yang tersedia</string>

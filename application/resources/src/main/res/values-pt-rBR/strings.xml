@@ -328,13 +328,10 @@
     <string name="screen_orientation_landscape_reverse">Paisagem invertida</string>
     <string name="screen_orientation_landscape_sensor">Paisagem (sensor)</string>
     <string name="screen_orientation_last_locked">Última orientação travada</string>
-    <string name="enable_black_theme">Tema escuro</string>
     <string name="dark_theme">Tema escuro</string>
     <string name="theme_auto">Tema automático</string>
     <string name="subtitle_text_encoding">Codificação de texto de legenda</string>
     <string name="subtitle_preferred_language">Idioma preferido para a legenda</string>
-    <string name="daynight_title">Modo Dia e Noite</string>
-    <string name="daynight_follow_system_title">Em modo de sistema</string>
     <string name="no_track_preference">Sem preferência de idioma</string>
     <string name="track_preference">Preferência de trilha: %s</string>
 
@@ -476,7 +473,6 @@
     <string name="remote_access_info">Informação do acesso remoto</string>
     <string name="remote_access_content">Conteúdo</string>
     <string name="remote_access_medialibrary_content">Conteúdo da biblioteca de mídias</string>
-    <string name="remote_access_medialibrary_content_summary">Habilitados: %1$s\nDesabilitados: %2$s</string>
     <string name="remote_access_file_browser_content">Explorador de arquivos</string>
     <string name="remote_access_network_browser_content">Explorador de rede</string>
     <string name="remote_access_playback_control">Controlar a reprodução</string>
@@ -964,7 +960,6 @@
     <string name="soundfont">SoundFont MIDI</string>
     <string name="soundfont_summary">Escolha um arquivo SoundFont para reproduzir trilhas de áudio midi</string>
     <string name="missing_media_snack">A mídia está ausente. Ocultar todas as mídias ausentes?</string>
-    <string name="search_prefs">Configurações de pesquisa</string>
     <string name="preferred_resolution">Resolução de vídeo preferida</string>
     <string name="preferred_resolution_summary">A qualidade máxima de vídeo para transmissões, quando aplicável, será: %s</string>
     <string name="pref_resolution_best_available">Melhor disponível</string>

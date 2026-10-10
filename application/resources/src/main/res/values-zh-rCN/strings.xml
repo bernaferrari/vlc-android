@@ -345,13 +345,10 @@
     <string name="screen_orientation_landscape_reverse">横向旋转 180°</string>
     <string name="screen_orientation_landscape_sensor">横向 (跟随传感器)</string>
     <string name="screen_orientation_last_locked">上次锁定的方向</string>
-    <string name="enable_black_theme">黑色主题</string>
     <string name="dark_theme">深色主题</string>
     <string name="theme_auto">自动主题</string>
     <string name="subtitle_text_encoding">字幕文本编码</string>
     <string name="subtitle_preferred_language">偏好的字幕语言</string>
-    <string name="daynight_title">自动切换夜间模式</string>
-    <string name="daynight_follow_system_title">跟随系统模式</string>
     <string name="no_track_preference">无语言偏好</string>
     <string name="track_preference">轨道偏好: %s</string>
 
@@ -509,7 +506,6 @@
     <string name="remote_access_info">远程访问信息</string>
     <string name="remote_access_content">内容</string>
     <string name="remote_access_medialibrary_content">媒体库内容</string>
-    <string name="remote_access_medialibrary_content_summary">已启用: %1$s\n已禁用: %2$s</string>
     <string name="remote_access_file_browser_content">文件浏览器</string>
     <string name="remote_access_network_browser_content">网络浏览器</string>
     <string name="remote_access_playback_control">播放控制</string>
@@ -1093,7 +1089,6 @@
     <string name="unlock_with_pin">解锁安全模式</string>
     <string name="lock_with_pin_short">密码锁定</string>
     <string name="restrict_settings">限制 ｢设置｣ 访问</string>
-    <string name="search_prefs">搜索设置</string>
     <string name="video_match_frame_rate_title">匹配显示器帧率</string>
     <string name="video_match_frame_rate_summary">使显示刷新率与媒体帧率相匹配。例如，24p (每秒24帧、逐行扫描) 的影片会以 24p 刷新率播放</string>
     <string name="preferred_resolution">首选视频分辨率</string>

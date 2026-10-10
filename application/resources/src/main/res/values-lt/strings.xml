@@ -338,13 +338,10 @@
     <string name="screen_orientation_landscape_reverse">Gulsčia (atvirkštinė)</string>
     <string name="screen_orientation_landscape_sensor">Gulsčia (jutiklis)</string>
     <string name="screen_orientation_last_locked">Paskiausia užrakinta ekrano padėtis</string>
-    <string name="enable_black_theme">Tamsus apipavidalinimas</string>
     <string name="dark_theme">Tamsus apipavidalinimas</string>
     <string name="theme_auto">Automatinis apipavidalinimas</string>
     <string name="subtitle_text_encoding">Subtitrų koduotė</string>
     <string name="subtitle_preferred_language">Pageidaujama subtitrų kalba</string>
-    <string name="daynight_title">Dienos / nakties veiksena</string>
-    <string name="daynight_follow_system_title">Priklausomai nuo sistemos nuostatų</string>
     <string name="no_track_preference">Be kalbos pirmenybės</string>
     <string name="track_preference">Takelio pirmenybė: %s</string>
 
@@ -486,7 +483,6 @@
     <string name="remote_access_info">Nuotolinės prieigos informacija</string>
     <string name="remote_access_content">Turinys</string>
     <string name="remote_access_medialibrary_content">Mediatekos turinys</string>
-    <string name="remote_access_medialibrary_content_summary">Įjungta: %1$s\nIšjungta: %2$s</string>
     <string name="remote_access_file_browser_content">Rinkmenų naršyklė</string>
     <string name="remote_access_network_browser_content">Tinklo naršyklė</string>
     <string name="remote_access_playback_control">Atkūrimo valdymas</string>
@@ -1058,7 +1054,6 @@
     <string name="unlock_with_pin">Atrakinti ribotąją veikseną</string>
     <string name="lock_with_pin_short">PIN užraktas</string>
     <string name="restrict_settings">Riboti nuostatų prieigą</string>
-    <string name="search_prefs">Ieškoti nuostatose</string>
     <string name="video_match_frame_rate_title">Sutapatinti ekrano kadrų dažnį</string>
     <string name="video_match_frame_rate_summary">Sutapatinti ekrano atnaujinimo dažnį su medijos kadrų dažniu. Pavyzdžiui, 24kps filmą rodyti 24Hz dažniu</string>
     <string name="preferred_resolution">Pageidautina vaizdo raiška</string>

@@ -356,13 +356,10 @@
     <string name="screen_orientation_landscape_reverse">Omvänt landskap</string>
     <string name="screen_orientation_landscape_sensor">Landskap (sensor)</string>
     <string name="screen_orientation_last_locked">Senast låsta orientering</string>
-    <string name="enable_black_theme">Mörkt tema</string>
     <string name="dark_theme">Mörkt tema</string>
     <string name="theme_auto">Automatiskt tema</string>
     <string name="subtitle_text_encoding">Textkodning för undertexter</string>
     <string name="subtitle_preferred_language">Föredraget språk för undertexter</string>
-    <string name="daynight_title">Dagnattläge</string>
-    <string name="daynight_follow_system_title">Följ systemläge</string>
     <string name="no_track_preference">Inget föredraget språk</string>
     <string name="track_preference">Föredraget spår: %s</string>
 
@@ -520,7 +517,6 @@
     <string name="remote_access_info">Info om fjärråtkomst</string>
     <string name="remote_access_content">Innehåll</string>
     <string name="remote_access_medialibrary_content">Innehåll i mediabiblioteket</string>
-    <string name="remote_access_medialibrary_content_summary">Aktiverad: %1$s\nInaktiverad: %2$s</string>
     <string name="remote_access_file_browser_content">Filväljare</string>
     <string name="remote_access_network_browser_content">Nätverksväljare</string>
     <string name="remote_access_playback_control">Styr uppspelning</string>
@@ -1108,7 +1104,6 @@
     <string name="unlock_with_pin">Lås upp säkert läge</string>
     <string name="lock_with_pin_short">PIN-lås</string>
     <string name="restrict_settings">Begränsa åtkomst till inställningar</string>
-    <string name="search_prefs">Sök efter inställningar</string>
     <string name="video_match_frame_rate_title">Matcha skärmens bildfrekvens</string>
     <string name="video_match_frame_rate_summary">Matcha skärmens bildfrekvens till mediafilens bildfrekvens. Till exempel bör en film med 24p spelas upp med 24p</string>
     <string name="preferred_resolution">Föredragen videoupplösning</string>

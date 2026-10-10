@@ -61,8 +61,8 @@ import org.videolan.vlc.R
 import org.videolan.vlc.compose.components.VLCFeedbackScreen
 import org.videolan.vlc.gui.helpers.FeedbackUtil
 import org.videolan.vlc.gui.helpers.UiTools
-import org.videolan.vlc.gui.preferences.EXTRA_PREF_END_POINT
-import org.videolan.vlc.gui.preferences.PreferencesActivity
+import org.videolan.tools.KEY_ENABLE_REMOTE_ACCESS
+import org.videolan.vlc.kmp.openSettingsAt
 import org.videolan.vlc.util.FileUtils
 import org.videolan.vlc.util.Permissions
 import org.videolan.vlc.util.TextUtils
@@ -300,15 +300,7 @@ class FeedbackActivity : BaseActivity(), DebugLogService.Client.Callback {
     }
 
     private fun openRemoteAccessSettings() {
-        lifecycleScope.launch {
-            if (Settings.tvUI) {
-                val intent = Intent(Intent.ACTION_VIEW).setClassName(this@FeedbackActivity, TV_PREFERENCE_ACTIVITY)
-                intent.putExtra(EXTRA_PREF_END_POINT, "remote_access_category")
-                startActivity(intent)
-            } else {
-                PreferencesActivity.launchWithPref(this@FeedbackActivity, "enable_remote_access")
-            }
-        }
+        openSettingsAt(this, KEY_ENABLE_REMOTE_ACCESS)
     }
 
     fun isMailClientPresent(): Boolean {

@@ -354,13 +354,10 @@
     <string name="screen_orientation_landscape_reverse">Omgekeerd liggend</string>
     <string name="screen_orientation_landscape_sensor">Liggend (sensor)</string>
     <string name="screen_orientation_last_locked">Laatst vergrendelde oriëntatie</string>
-    <string name="enable_black_theme">Zwart thema</string>
     <string name="dark_theme">Donker thema</string>
     <string name="theme_auto">Automatisch thema</string>
     <string name="subtitle_text_encoding">Ondertitel-tekstcodering</string>
     <string name="subtitle_preferred_language">Voorkeurstaal ondertitels</string>
-    <string name="daynight_title">Dag-/nachtmodus</string>
-    <string name="daynight_follow_system_title">Systeemmodus volgen</string>
     <string name="no_track_preference">Geen taalvoorkeur</string>
     <string name="track_preference">Track-voorkeur: %s</string>
 
@@ -515,7 +512,6 @@
     <string name="remote_access_info">Externe toegang informatie</string>
     <string name="remote_access_content">Inhoud</string>
     <string name="remote_access_medialibrary_content">Inhoud van mediabibliotheek</string>
-    <string name="remote_access_medialibrary_content_summary">Ingeschakeld: %1$s\nUitgeschakeld: %2$s</string>
     <string name="remote_access_file_browser_content">Bestandsverkenner</string>
     <string name="remote_access_network_browser_content">Netwerkverkenner</string>
     <string name="remote_access_playback_control">Afspelen bedienen</string>
@@ -1102,7 +1098,6 @@
     <string name="unlock_with_pin">Veilige modus ontgrendelen</string>
     <string name="lock_with_pin_short">Pin-vergrendeling</string>
     <string name="restrict_settings">Toegang tot instellingen beperken</string>
-    <string name="search_prefs">Instellingen doorzoeken</string>
     <string name="video_match_frame_rate_title">Zelfde beeldsnelheid als scherm</string>
     <string name="video_match_frame_rate_summary">De vernieuwingsfrequentie van het scherm afstemmen op de beeldsnelheid van de media. Bijvoorbeeld, een 24p film zou op 24p moeten worden afgespeeld.</string>
     <string name="preferred_resolution">Voorkeursvideoresolutie</string>

@@ -166,7 +166,6 @@
     <string name="automatic">ራሱ በራሱ</string>
     <string name="screen_orientation">የ ቪዲዮ መመልከቻ አቅጣጫ</string>
     <string name="screen_orientation_landscape">በ መሬት አቀማመጥ</string>
-    <string name="enable_black_theme">ጥቁር ገጽታ</string>
     <string name="extra_prefs_category">ተጨማሪ ማሰናጃዎች</string>
 
     <string name="interface_prefs_screen">ገጽታ</string>

@@ -367,13 +367,10 @@
     <string name="screen_orientation_landscape_reverse">Paysage inversé</string>
     <string name="screen_orientation_landscape_sensor">Paysage (capteur)</string>
     <string name="screen_orientation_last_locked">Dernière orientation verrouillée</string>
-    <string name="enable_black_theme">Thème sombre</string>
     <string name="dark_theme">Thème sombre</string>
     <string name="theme_auto">Thème auto</string>
     <string name="subtitle_text_encoding">Encodage du texte des sous-titres</string>
     <string name="subtitle_preferred_language">Langue préférée des sous-titres</string>
-    <string name="daynight_title">Mode Jour-Nuit</string>
-    <string name="daynight_follow_system_title">Suivre le mode système</string>
     <string name="no_track_preference">Aucune préférence linguistique</string>
     <string name="track_preference">Préférence de piste : %s</string>
 
@@ -531,7 +528,6 @@
     <string name="remote_access_info">Informations sur l’accès à distance</string>
     <string name="remote_access_content">Contenu</string>
     <string name="remote_access_medialibrary_content">Contenu de la médiathèque</string>
-    <string name="remote_access_medialibrary_content_summary">Activé : %1$s\nDésactivé : %2$s</string>
     <string name="remote_access_file_browser_content">Navigateur de fichiers</string>
     <string name="remote_access_network_browser_content">Navigateur réseau</string>
     <string name="remote_access_playback_control">Contrôler la lecture</string>
@@ -1121,7 +1117,6 @@
     <string name="unlock_with_pin">Déverrouiller le mode sans échec</string>
     <string name="lock_with_pin_short">Verrouillage par code PIN</string>
     <string name="restrict_settings">Restreindre l’accès aux paramètres</string>
-    <string name="search_prefs">Paramètres de recherche</string>
     <string name="video_match_frame_rate_title">Ajustez à la fréquence de rafraîchissement de l’écran</string>
     <string name="video_match_frame_rate_summary">Ajustez la fréquence de rafraîchissement de l’écran à la fréquence d’images du média. Par exemple, un film en 24ips doit être affiché en 24ips.</string>
     <string name="preferred_resolution">Résolution vidéo préférée</string>

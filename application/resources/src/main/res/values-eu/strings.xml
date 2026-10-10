@@ -338,13 +338,10 @@
     <string name="screen_orientation_landscape_reverse">Alderantzizko horizontala</string>
     <string name="screen_orientation_landscape_sensor">Paisaia (sentsorea)</string>
     <string name="screen_orientation_last_locked">Blokeatutako azken orientazioa</string>
-    <string name="enable_black_theme">Itxura beltza</string>
     <string name="dark_theme">Itxura iluna</string>
     <string name="theme_auto">Itxura automatikoa</string>
     <string name="subtitle_text_encoding">Azpitituluen testu-kodeketa</string>
     <string name="subtitle_preferred_language">Azpitituluen hizkuntza hobetsia</string>
-    <string name="daynight_title">EgunGau modua</string>
-    <string name="daynight_follow_system_title">Jarraitu sistemaren modua</string>
     <string name="no_track_preference">Hizkuntza-lehentasunik gabe</string>
     <string name="track_preference">Pista hobetsia: %s</string>
 
@@ -483,7 +480,6 @@
     <string name="enable_remote_access">Gaitu urruneko sarbidea</string>
     <string name="remote_access_info">Urruneko sarbidearen informazioa</string>
     <string name="remote_access_content">Edukia</string>
-    <string name="remote_access_medialibrary_content_summary">Gaituta: %1$s\nDesgaituta: %2$s</string>
     <string name="remote_access_file_browser_content">Fitxategien arakatzailea</string>
     <string name="remote_access_network_browser_content">Sareko nabigatzailea</string>
     <string name="remote_access_playback_control">Erreprodukzio-kontrola</string>
@@ -992,7 +988,6 @@
     <string name="browser_show_missing_media_summary">Erakutsi urrutiko komunikabideak ez egon arren</string>
     <string name="parental_control">Gurasoen kontrola</string>
     <string name="safe_mode">Modu segurua</string>
-    <string name="search_prefs">Bilaketa ezarpenak</string>
     <string name="video_match_frame_rate_title">Lotu bistaratzeko fotograma-abiadura</string>
     <string name="video_match_frame_rate_summary">Lotu pantailaren freskatze-abiadura multimediako fotograma-abiadurarekin. Adibidez, 24p-ko film bat 24p-n erreproduzitu behar da</string>
     <string name="preferred_resolution">Hobetsitako bideo bereizmena</string>

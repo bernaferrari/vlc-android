@@ -355,13 +355,10 @@
     <string name="screen_orientation_landscape_reverse">Ανάστροφα οριζόντια</string>
     <string name="screen_orientation_landscape_sensor">Οριζόντια (αισθητήρας)</string>
     <string name="screen_orientation_last_locked">Τελευταίος κλειδωμένος προσανατολισμός</string>
-    <string name="enable_black_theme">Σκουρόχρωμο θέμα</string>
     <string name="dark_theme">Σκουρόχρωμο θέμα</string>
     <string name="theme_auto">Αυτόματο θέμα</string>
     <string name="subtitle_text_encoding">Κωδικοποίηση κειμένου υποτίτλων</string>
     <string name="subtitle_preferred_language">Προτιμώμενη γλώσσα υποτίτλων</string>
-    <string name="daynight_title">Λειτουργία Ημέρας/Νύχτας</string>
-    <string name="daynight_follow_system_title">Ακολούθηση λειτουργίας συστήματος</string>
     <string name="no_track_preference">Καμία προτίμηση γλώσσας</string>
     <string name="track_preference">Προτίμηση κομματιού: %s</string>
 
@@ -516,7 +513,6 @@
     <string name="remote_access_info">Πληροφορίες απομακρυσμένης πρόσβασης</string>
     <string name="remote_access_content">Περιεχόμενο</string>
     <string name="remote_access_medialibrary_content">Περιεχόμενο βιβλιοθήκης πολυμέσων</string>
-    <string name="remote_access_medialibrary_content_summary">Ενεργά:%1$s\nΑνενεργά: %2$s</string>
     <string name="remote_access_file_browser_content">Περιηγητής αρχείων</string>
     <string name="remote_access_network_browser_content">Περιηγητής δικτύου</string>
     <string name="remote_access_playback_control">Έλεγχος αναπαραγωγής</string>
@@ -1103,7 +1099,6 @@
     <string name="unlock_with_pin">Ξεκλείδωμα ασφαλούς λειτουργίας</string>
     <string name="lock_with_pin_short">Κλείδωμα PIN</string>
     <string name="restrict_settings">Περιορισμός πρόσβασης ρυθμίσεων</string>
-    <string name="search_prefs">Ρυθμίσεις αναζήτησης</string>
     <string name="video_match_frame_rate_title">Αντιστοίχιση ρυθμού καρέ οθόνης</string>
     <string name="video_match_frame_rate_summary">Αντιστοιχίστε τον ρυθμό ανανέωσης της οθόνης με τον ρυθμό καρέ πολυμέσων. Για παράδειγμα, μια ταινία 24p πρέπει να παίζει σε 24p</string>
     <string name="preferred_resolution">Προτιμώμενη ανάλυση βίντεο</string>

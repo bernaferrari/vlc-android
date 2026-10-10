@@ -356,13 +356,10 @@
     <string name="screen_orientation_landscape_reverse">Landscape reverse</string>
     <string name="screen_orientation_landscape_sensor">Landscape (sensor)</string>
     <string name="screen_orientation_last_locked">Last locked orientation</string>
-    <string name="enable_black_theme">Black theme</string>
     <string name="dark_theme">Dark theme</string>
     <string name="theme_auto">Auto theme</string>
     <string name="subtitle_text_encoding">Subtitle text encoding</string>
     <string name="subtitle_preferred_language">Preferred subtitle language</string>
-    <string name="daynight_title">DayNight mode</string>
-    <string name="daynight_follow_system_title">Follow system mode</string>
     <string name="no_track_preference">No language preference</string>
     <string name="track_preference">Track preference: %s</string>
 
@@ -520,7 +517,6 @@
     <string name="remote_access_info">Remote access info</string>
     <string name="remote_access_content">Content</string>
     <string name="remote_access_medialibrary_content">Media library content</string>
-    <string name="remote_access_medialibrary_content_summary">Enabled: %1$s\nDisabled: %2$s</string>
     <string name="remote_access_file_browser_content">File browser</string>
     <string name="remote_access_network_browser_content">Network browser</string>
     <string name="remote_access_playback_control">Control playback</string>
@@ -1108,7 +1104,6 @@
     <string name="unlock_with_pin">Unlock safe mode</string>
     <string name="lock_with_pin_short">PIN lock</string>
     <string name="restrict_settings">Restrict settings access</string>
-    <string name="search_prefs">Search settings</string>
     <string name="video_match_frame_rate_title">Match Display Frame Rate</string>
     <string name="video_match_frame_rate_summary">Match display refresh rate to media frame rate. For example, a 24p film should play at 24p</string>
     <string name="preferred_resolution">Preferred video resolution</string>

@@ -356,13 +356,10 @@
     <string name="screen_orientation_landscape_reverse">Yatay ters çevrilmiş</string>
     <string name="screen_orientation_landscape_sensor">Yatay (almaç)</string>
     <string name="screen_orientation_last_locked">Son kilitlenmiş doğrultu</string>
-    <string name="enable_black_theme">Siyah tema</string>
     <string name="dark_theme">Koyu tema</string>
     <string name="theme_auto">Otomatik tema</string>
     <string name="subtitle_text_encoding">Alt yazı metin kodlaması</string>
     <string name="subtitle_preferred_language">Yeğlenen alt yazı dili</string>
-    <string name="daynight_title">Gündüz/gece kipi</string>
-    <string name="daynight_follow_system_title">Sistem kipi izlensin</string>
     <string name="no_track_preference">Herhangi bir dil ayarlanmamış</string>
     <string name="track_preference">İz ayarı: %s</string>
 
@@ -520,7 +517,6 @@
     <string name="remote_access_info">Uzaktan erişim bilgileri</string>
     <string name="remote_access_content">İçerik</string>
     <string name="remote_access_medialibrary_content">Ortam kitaplığı içeriği</string>
-    <string name="remote_access_medialibrary_content_summary">Açık: %1$s\nKapalı: %2$s</string>
     <string name="remote_access_file_browser_content">Dosya tarayıcı</string>
     <string name="remote_access_network_browser_content">Ağ tarayıcı</string>
     <string name="remote_access_playback_control">Oynatma denetlensin</string>
@@ -1107,7 +1103,6 @@
     <string name="unlock_with_pin">Güvenli kip kilidini aç</string>
     <string name="lock_with_pin_short">PIN kilidi</string>
     <string name="restrict_settings">Ayarlara erişimi engelle</string>
-    <string name="search_prefs">Arama ayarları</string>
     <string name="video_match_frame_rate_title">Ekran kare hızı ortama uysun</string>
     <string name="video_match_frame_rate_summary">Ekran kare hızını ortamın kare hızına uydurur. Örneğin 24p olan bir film 24p olarak oynatılmalıdır.</string>
     <string name="preferred_resolution">Yeğlenen görüntü çözünürlüğü</string>

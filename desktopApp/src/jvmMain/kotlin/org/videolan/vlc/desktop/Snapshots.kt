@@ -57,6 +57,7 @@ fun main(args: Array<String>) {
             single<MediaRepository> { media }
             single<PlaybackService> { PlaylistEngine() }
             single<DataStore<Preferences>> { JvmVlcDataStoreFactory(dataDirectory).create() }
+            single<org.videolan.vlc.settings.SettingsContributor> { SnapshotSettingsContributor }
         })
     }
     VlcKoin.set(app.koin)
@@ -118,6 +119,13 @@ fun main(args: Array<String>) {
             add(Shot("wide-settings-$theme", wide, setup = { theme(dark); playAudio() }, content = shell(listOf(MoreRoute, SettingsRoute))))
             add(Shot("tall-settings-$theme", 412 to 3000, setup = { theme(dark); playAudio() }, content = shell(listOf(MoreRoute, SettingsRoute))))
             add(Shot("settings-system-$theme", setup = { theme(dark); VlcSettings.updateStringCache(KEY_SHARED_THEME_APPEARANCE, "system"); VlcSettings.updateStringCache(org.videolan.tools.KEY_SHARED_THEME_ACCENT, "teal") }, content = shell(listOf(MoreRoute, SettingsRoute))))
+            // Platform sections rendered through a fixture contributor shaped like Android's.
+            fun platform(extra: () -> Unit = {}): () -> Unit = { theme(dark); SnapshotSettingsContributor.enabled = true; extra() }
+            add(Shot("tall-settings-platform-$theme", 412 to 3400, setup = platform(), content = shell(listOf(MoreRoute, SettingsRoute))))
+            add(Shot("settings-section-subtitles-$theme", 412 to 1500, setup = platform(), content = shell(listOf(MoreRoute, SettingsRoute, SettingsSectionRoute("subtitles")))))
+            add(Shot("settings-section-advanced-$theme", 412 to 1300, setup = platform(), content = shell(listOf(MoreRoute, SettingsRoute, SettingsSectionRoute("advanced")))))
+            add(Shot("settings-deeplink-$theme", setup = platform { org.videolan.vlc.settings.SettingsDeepLinks.open("subtitles_color") }, content = shell(listOf(VideoRoute))))
+            add(Shot("wide-settings-section-$theme", wide, setup = platform(), content = shell(listOf(MoreRoute, SettingsRoute, SettingsSectionRoute("subtitles")))))
             add(Shot("tall-more-$theme", 412 to 1400, setup = { theme(dark); playAudio() }, content = shell(listOf(MoreRoute))))
             add(Shot("wide-player-audio-$theme", wide, setup = { theme(dark); playAudio() }, content = shell(listOf(AudioRoute, PlayerRoute))))
             listOf(PlaybackSheetDestination.SPEED, PlaybackSheetDestination.QUEUE, PlaybackSheetDestination.TOOLS).forEach { sheet ->
@@ -219,6 +227,7 @@ private fun HudFixture(queue: List<org.videolan.vlc.model.MediaItem>, sheet: Pla
 }
 
 private fun theme(dark: Boolean) {
+    SnapshotSettingsContributor.enabled = false
     VlcSettings.updateStringCache(KEY_SHARED_THEME_APPEARANCE, if (dark) "dark" else "light")
     VlcSettings.updateStringCache(org.videolan.tools.KEY_SHARED_THEME_ACCENT, "orange")
 }

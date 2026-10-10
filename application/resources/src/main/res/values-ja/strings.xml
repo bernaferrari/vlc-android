@@ -345,13 +345,10 @@
     <string name="screen_orientation_landscape_reverse">ランドスケープ反転</string>
     <string name="screen_orientation_landscape_sensor">ランドスケープ（センサー）</string>
     <string name="screen_orientation_last_locked">最後にロックされた方向</string>
-    <string name="enable_black_theme">ブラックテーマ</string>
     <string name="dark_theme">ダークテーマ</string>
     <string name="theme_auto">自動テーマ</string>
     <string name="subtitle_text_encoding">字幕テキストのエンコード</string>
     <string name="subtitle_preferred_language">優先する字幕の言語</string>
-    <string name="daynight_title">昼夜モード</string>
-    <string name="daynight_follow_system_title">システム設定に準ずる</string>
     <string name="no_track_preference">言語の選択がありません</string>
     <string name="track_preference">優先するトラック: %s</string>
 
@@ -509,7 +506,6 @@
     <string name="remote_access_info">リモートアクセス情報</string>
     <string name="remote_access_content">コンテンツ</string>
     <string name="remote_access_medialibrary_content">メディアライブラリコンテンツ</string>
-    <string name="remote_access_medialibrary_content_summary">有効: %1$s\n無効: %2$s</string>
     <string name="remote_access_file_browser_content">ファイルブラウザ</string>
     <string name="remote_access_network_browser_content">ネットワークブラウザ</string>
     <string name="remote_access_playback_control">再生を制御</string>
@@ -1095,7 +1091,6 @@
     <string name="unlock_with_pin">セーフモードを解除</string>
     <string name="lock_with_pin_short">PINロック</string>
     <string name="restrict_settings">設定へのアクセスを制限</string>
-    <string name="search_prefs">検索設定</string>
     <string name="video_match_frame_rate_title">ディスプレイのフレームレートを一致</string>
     <string name="video_match_frame_rate_summary">ディスプレイのリフレッシュレートをメディアのフレームレートに一致させます。例えば、24pのフィルムは24pで再生されます。</string>
     <string name="preferred_resolution">優先するビデオの解像度</string>

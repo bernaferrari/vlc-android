@@ -285,12 +285,9 @@
     <string name="screen_orientation_landscape_reverse">Lanskap terbalik</string>
     <string name="screen_orientation_landscape_sensor">Lanskap (sensor)</string>
     <string name="screen_orientation_last_locked">Orientasi terkunci terakhir</string>
-    <string name="enable_black_theme">Tema gelap</string>
     <string name="theme_auto">Tema otomatis</string>
     <string name="subtitle_text_encoding">Pengkodean teks terjemahan</string>
     <string name="subtitle_preferred_language">Preferensi bahasa takarir</string>
-    <string name="daynight_title">Mode Siang Hari</string>
-    <string name="daynight_follow_system_title">Ikuti mode sistem</string>
     <string name="no_track_preference">Tidak ada preferensi bahasa</string>
     <string name="track_preference">Preferensi trek: %s</string>
 
@@ -897,7 +894,6 @@
     <string name="missing_media_snack">Media hilang. Sembunyikan semua media hilang?</string>
     <string name="browser_show_missing_media">Tampilkan media yang hilang</string>
     <string name="browser_show_missing_media_summary">Tampilkan media yang jauh meskipun mereka tidak ada</string>
-    <string name="search_prefs">Pengaturan pencarian</string>
     <string name="video_match_frame_rate_title">Cocokkan Kecepatan Bingkai Tampilan</string>
     <string name="video_match_frame_rate_summary">Cocokkan kecepatan refresh tampilan dengan kecepatan bingkai media.  Misalnya, film 24p harus diputar pada 24p</string>
     <string name="preferred_resolution">Resolusi video yang dipilih</string>

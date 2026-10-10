@@ -235,9 +235,7 @@
     <string name="screen_orientation_sensor">Automatsko (senzor)</string>
     <string name="screen_orientation_portrait">Uspravno</string>
     <string name="screen_orientation_landscape">Položeno</string>
-    <string name="enable_black_theme">Tamna tema</string>
     <string name="subtitle_text_encoding">Kôdiranje teksta podnaslova</string>
-    <string name="daynight_title">Dnevno-noćni način rada</string>
     <string name="extra_prefs_category">Dodatne postavke</string>
 
     <string name="interface_prefs_screen">Sučelje</string>

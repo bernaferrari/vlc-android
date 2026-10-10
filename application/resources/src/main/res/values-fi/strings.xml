@@ -363,13 +363,10 @@ Täysi: voi parantaa suorituskykyä edelleen.</string>
     <string name="screen_orientation_landscape_reverse">Vaaka kääntö</string>
     <string name="screen_orientation_landscape_sensor">Vaakasuunta (anturi)</string>
     <string name="screen_orientation_last_locked">Viimeinen lukittu suunta</string>
-    <string name="enable_black_theme">Musta teema</string>
     <string name="dark_theme">Tumma teema</string>
     <string name="theme_auto">Autom. teema</string>
     <string name="subtitle_text_encoding">Tekstityksen merkistö</string>
     <string name="subtitle_preferred_language">Tekstityksen kieli</string>
-    <string name="daynight_title">Päivä/Yötila</string>
-    <string name="daynight_follow_system_title">Noudata järjestelmän tilaa</string>
     <string name="no_track_preference">Ei kielivalintaa</string>
     <string name="track_preference">Kappalevalinta: %s</string>
 
@@ -528,7 +525,6 @@ Arvo 0 poistaa tämän käytöstä</string>
     <string name="remote_access_info">Etäkäytön tiedot</string>
     <string name="remote_access_content">Sisältö</string>
     <string name="remote_access_medialibrary_content">Mediakirjaston sisältö</string>
-    <string name="remote_access_medialibrary_content_summary">Käytössä: %1$snPoistettu: %2$s</string>
     <string name="remote_access_file_browser_content">Tiedostoselain</string>
     <string name="remote_access_network_browser_content">Verkkoselain</string>
     <string name="remote_access_playback_control">Ohjaa toistoa</string>
@@ -1127,7 +1123,6 @@ Voit toistaa vain suoratoistoa tai verkkomediaa</string>
     <string name="unlock_with_pin">Avaa vikasietotila</string>
     <string name="lock_with_pin_short">PIN-lukko</string>
     <string name="restrict_settings">Rajoita pääsyä asetuksiin</string>
-    <string name="search_prefs">Haun asetukset</string>
     <string name="video_match_frame_rate_title">Sovita näytön taajuuteen</string>
     <string name="video_match_frame_rate_summary">Sovita näytön virkistystaajuus median virkistystaajuuteen. Esimerkiksi 24p-elokuvan tulisi toimia 24p:llä</string>
     <string name="preferred_resolution">Haluttu videon tarkkuus</string>

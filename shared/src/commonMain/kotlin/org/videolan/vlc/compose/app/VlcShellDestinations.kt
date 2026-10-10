@@ -484,6 +484,21 @@ internal fun MoreDestination(
 }
 
 @Composable
-internal fun SettingsDestination(modifier: Modifier, viewModel: SettingsViewModel) {
-    SettingsOnlyPane(modifier = modifier, vm = viewModel)
+internal fun SettingsDestination(
+    modifier: Modifier,
+    viewModel: SettingsViewModel,
+    onOpenSection: (String) -> Unit,
+    selectedSectionId: String? = null,
+) {
+    SettingsRootPane(modifier = modifier, vm = viewModel, onOpenSection = onOpenSection, selectedSectionId = selectedSectionId)
+}
+
+@Composable
+internal fun SettingsSectionDestination(
+    modifier: Modifier,
+    viewModel: SettingsViewModel,
+    sectionId: String,
+    onOpenSection: (String) -> Unit,
+) {
+    SettingsSectionPane(modifier = modifier, vm = viewModel, sectionId = sectionId, onOpenSection = onOpenSection)
 }

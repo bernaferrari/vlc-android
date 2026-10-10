@@ -356,13 +356,10 @@
     <string name="screen_orientation_landscape_reverse">Fordított fekvő</string>
     <string name="screen_orientation_landscape_sensor">Fekvő (érzékelő)</string>
     <string name="screen_orientation_last_locked">Utolsó zárolt tájolás</string>
-    <string name="enable_black_theme">Fekete téma</string>
     <string name="dark_theme">Sötét téma</string>
     <string name="theme_auto">Automatikus téma</string>
     <string name="subtitle_text_encoding">Feliratszöveg kódolása</string>
     <string name="subtitle_preferred_language">Felirat előnyben részesített nyelve</string>
-    <string name="daynight_title">Éjjel-nappali mód</string>
-    <string name="daynight_follow_system_title">Rendszer módjának követése</string>
     <string name="no_track_preference">Nincs előnyben részesített nyelv</string>
     <string name="track_preference">Előnyben részesített sáv: %s</string>
 
@@ -520,7 +517,6 @@
     <string name="remote_access_info">A távoli elérési információi</string>
     <string name="remote_access_content">Tartalom</string>
     <string name="remote_access_medialibrary_content">Médiatár tartalma</string>
-    <string name="remote_access_medialibrary_content_summary">Engedélyezve: %1$s\nLetiltva: %2$s</string>
     <string name="remote_access_file_browser_content">Fájlböngésző</string>
     <string name="remote_access_network_browser_content">Hálózatböngésző</string>
     <string name="remote_access_playback_control">Lejátszás vezérlése</string>
@@ -1108,7 +1104,6 @@
     <string name="unlock_with_pin">Biztonságos mód feloldása</string>
     <string name="lock_with_pin_short">PIN-kódos zárolás</string>
     <string name="restrict_settings">Beállítások elérésének korlátozása</string>
-    <string name="search_prefs">Keresési beállítások</string>
     <string name="video_match_frame_rate_title">Kijelző képfrissítési sebességének igazítása</string>
     <string name="video_match_frame_rate_summary">A kijelző képfrissítési sebességének igazítása a médiához. Például egy 24p-s filmnek 24p-s képfrissítéssel kellene futnia.</string>
     <string name="preferred_resolution">Előnyben részesített videófelbontás</string>

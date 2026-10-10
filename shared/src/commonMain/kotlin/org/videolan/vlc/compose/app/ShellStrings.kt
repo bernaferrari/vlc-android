@@ -134,6 +134,13 @@ object ShellStrings {
     @Composable fun remoteAccessStarting(): String = stringResource(Res.string.remote_access_starting)
     @Composable fun remoteAccessUploadAddress(): String = stringResource(Res.string.remote_access_upload_address)
     @Composable fun browseNetwork(): String = stringResource(Res.string.browse_network)
+    @Composable fun settingsSearchHint(): String = stringResource(Res.string.settings_search_hint)
+    @Composable fun settingsNoResults(query: String): String = stringResource(Res.string.settings_search_no_results, query)
+    @Composable fun moreSettings(): String = stringResource(Res.string.settings_more_title)
+    @Composable fun hexColor(): String = stringResource(Res.string.settings_hex_color)
+    @Composable fun hexColorInvalid(): String = stringResource(Res.string.settings_hex_color_invalid)
+    @Composable fun selectSettingsSection(): String = stringResource(Res.string.settings_select_section)
+    @Composable fun done(): String = stringResource(Res.string.done)
     @Composable fun shuffle(): String = stringResource(Res.string.shuffle_play)
     @Composable fun shuffleAll(): String = stringResource(Res.string.shuffle_all_title)
     @Composable fun totalDuration(ms: Long): String {
