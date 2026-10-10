@@ -48,8 +48,8 @@
     <string name="playback_controls">Playback controls</string>
     <string name="medialibrary_scan">Media library scan</string>
     <string name="Medialibrary_progress">Media library scanning progress updates</string>
-    <string name="ml_database_warning">Your database contains the list of all of your media. It will be shared with VLC\'s developers</string>
-    <string name="logs_warning">May contain info about your played media. It will be shared with VLC\'s developers</string>
+    <string name="ml_database_warning">Your database contains the list of all of your media. It will be shared with VLC’s developers</string>
+    <string name="logs_warning">May contain info about your played media. It will be shared with VLC’s developers</string>
     <string name="play_from_start">Play from start</string>
     <string name="play_as_audio">Play as audio</string>
     <string name="play_as_video">Play as video</string>
@@ -70,9 +70,9 @@
     <string name="delete">Delete</string>
     <string name="remove">Remove</string>
     <string name="set_song">Set as ringtone</string>
-    <string name="set_song_question">Set \'%1$s\' as ringtone?</string>
+    <string name="set_song_question">Set ’%1$s’ as ringtone?</string>
     <string name="info">Information</string>
-    <string name="confirm_delete">Delete the file \'%1$s\'?</string>
+    <string name="confirm_delete">Delete the file ’%1$s’?</string>
     <string name="equalizer_overwrite_warning">This equalizer already exists</string>
     <string name="overwrite">Overwrite</string>
     <string name="eq_cannot_overwrite">Cannot overwrite a default equalizer</string>
@@ -82,17 +82,17 @@
     <string name="invalid_equalizer_file">Invalid equalizer file</string>
     <string name="confirm_delete_eq">Are you sure you want to delete this preset?</string>
     <string name="confirm_delete_vlc_eq">Are you sure you want to hide this preset?\nYou can restore it in the equalizer settings.</string>
-    <string name="confirm_replace_playlist">Are you sure you want to replace the playlist \'%1$s\'?</string>
+    <string name="confirm_replace_playlist">Are you sure you want to replace the playlist ’%1$s’?</string>
     <string name="invalid_settings_file">Invalid settings file</string>
     <string name="confirm_delete_message">This is permanent and cannot be undone.</string>
-    <string name="confirm_delete_album">Delete the album \'%1$s\'?</string>
+    <string name="confirm_delete_album">Delete the album ’%1$s’?</string>
     <string name="confirm_delete_several_media">Delete these %1$d media?</string>
-    <string name="confirm_delete_folder">Delete the folder \'%1$s\' and all its contents?</string>
+    <string name="confirm_delete_folder">Delete the folder ’%1$s’ and all its contents?</string>
     <string name="confirm_delete_folders">Delete these %1$s folders and all their contents?</string>
     <string name="confirm_delete_files">Delete these %1$s files?</string>
     <string name="confirm_delete_folders_and_files">Delete these %1$s folders and %2$s files?</string>
-    <string name="confirm_delete_playlist">Delete playlist \'%1$s\'?</string>
-    <string name="ringtone_set">The file \'%1$s\' was set as the ringtone.</string>
+    <string name="confirm_delete_playlist">Delete playlist ’%1$s’?</string>
+    <string name="ringtone_set">The file ’%1$s’ was set as the ringtone.</string>
     <string name="ringtone_error">An error occurred while setting the ringtone.</string>
     <string name="pause">Pause</string>
     <string name="unknown_artist">Unknown Artist</string>
@@ -173,9 +173,9 @@
     <string name="empty_search">No item found for search %1$s</string>
     <string name="noplaylist">No playlist found.</string>
     <string name="nosubfolder">No subfolder</string>
-    <string name="directorynotfound">The directory path \'%1$s\' was not found.</string>
+    <string name="directorynotfound">The directory path ’%1$s’ was not found.</string>
     <string name="nohistory">You have no playback history yet.</string>
-    <string name="cant_ban_root">You can\'t ban a root folder</string>
+    <string name="cant_ban_root">You can’t ban a root folder</string>
 
     <string name="cover_art">Cover art</string>
     <string name="shuffle_all_title">Shuffle all</string>
@@ -231,13 +231,13 @@
     <string name="playback_speed_this_track">This track</string>
     <string name="playback_speed_all_videos">All videos</string>
     <string name="playback_speed_all_tracks">All tracks</string>
-    <string name="playback_speed_explanation_all_videos">The speed will be applied to all videos.\nIndividual videos\' playback speed will be ignored.</string>
-    <string name="playback_speed_explanation_all_tracks">The speed will be applied to all tracks.\nIndividual tracks\' playback speed will be ignored.</string>
+    <string name="playback_speed_explanation_all_videos">The speed will be applied to all videos.\nIndividual videos’ playback speed will be ignored.</string>
+    <string name="playback_speed_explanation_all_tracks">The speed will be applied to all tracks.\nIndividual tracks’ playback speed will be ignored.</string>
     <string name="playback_speed_explanation_all_incognito">You are in incognito mode. The speed will revert to normal when you leave incognito mode.</string>
     <string name="playback_speed_explanation_one_video">The speed will be applied to this video only</string>
     <string name="playback_speed_explanation_one_track">The speed will be applied to this track only</string>
     <string name="audio_playback_speed_global">Use the global playback speed</string>
-    <string name="audio_playback_speed_global_summary">Use the playback speed set globally for all the tracks.\nIndividual tracks\' playback speed will be ignored.</string>
+    <string name="audio_playback_speed_global_summary">Use the playback speed set globally for all the tracks.\nIndividual tracks’ playback speed will be ignored.</string>
 
     <string name="sleep_title">Sleep timer</string>
     <string name="sleep_in">Sleep in</string>
@@ -368,7 +368,7 @@
     <string name="remove_custom_path">Remove custom path</string>
     <string name="group_ban_folder">Ban folder from media library</string>
     <string name="ban_folder">Ban folder</string>
-    <string name="ban_folder_explanation">Banning this folder means that you won\'t see its media in the video or audio section of the app, though they will still be accessible from the browser.\nTo unban it, go to the settings, %1$s and long tap this folder.</string>
+    <string name="ban_folder_explanation">Banning this folder means that you won’t see its media in the video or audio section of the app, though they will still be accessible from the browser.\nTo unban it, go to the settings, %1$s and long tap this folder.</string>
 
     <string name="hardware_acceleration">Hardware Acceleration</string>
     <string name="hardware_acceleration_summary">Disabled: better stability\nDecoding: may improve performance\nFull: may improve performance further</string>
@@ -588,7 +588,7 @@
     <string name="casting_quality_medium">Medium</string>
     <string name="casting_quality_low">Low</string>
     <string name="casting_quality_lowcpu">Lowest</string>
-    <string name="casting_connected_renderer">Connected to renderer \'%1$s\'</string>
+    <string name="casting_connected_renderer">Connected to renderer ’%1$s’</string>
     <string name="artists_show_all_title">Show all artists</string>
     <string name="show_headers">Show headers</string>
     <string name="show_headers_summary">Split lists by headers depending on the sort type</string>
@@ -600,7 +600,7 @@
 
     <string name="extensions_prefs_category">Extensions</string>
     <string name="extensions_empty">No extension detected</string>
-    <string name="extension_permission_title">Activate new extension \"%1$s\"?</string>
+    <string name="extension_permission_title">Activate new extension "%1$s"?</string>
     <string name="extension_permission_checkbox_title">Show in %1$s</string>
     <string name="extension_prefs_activation_title">Activate</string>
     <string name="android_auto">Android Auto</string>
@@ -668,7 +668,7 @@
     <string name="dav1d_thread_number">Dav1d thread number</string>
     <string name="dav1d_thread_number_invalid">Invalid thread number! (>=1)</string>
     <string name="browser_quick_play">Browser quick play menu</string>
-    <string name="browser_quick_play_summary">Add a quick play action in the browser items\' menu. It will load your media faster but some metadata may be missing</string>
+    <string name="browser_quick_play_summary">Add a quick play action in the browser items’ menu. It will load your media faster but some metadata may be missing</string>
     <string name="browser_quick_play_default">Quick play as default action</string>
     <string name="browser_quick_play_default_summary">If activated, taping a browser item will play it using quick play</string>
 
@@ -719,8 +719,8 @@
     <string name="medialibrary_directories">Media library folders</string>
 
     <!--What's new-->
-    <string name="whats_new_title">What\'s new in VLC for Android %1$s</string>
-    <string name="whats_new_37_equalizer_text">The equalizer has been reworked from scratch. It\'s easier to use, lets you disable the default presets and allows you to backup, restore and share your presets.</string>
+    <string name="whats_new_title">What’s new in VLC for Android %1$s</string>
+    <string name="whats_new_37_equalizer_text">The equalizer has been reworked from scratch. It’s easier to use, lets you disable the default presets and allows you to backup, restore and share your presets.</string>
     <string name="whats_new_37_import_export">We improved the backup and restore settings feature. It now lets you backup more settings, including the equalizer presets.</string>
     <string name="whats_new_37_android_auto">Due to some new store constraints, the Android Auto settings have all been moved to the mobile application. It becomes the new place to change your automotive experience.</string>
     <string name="show_in_settings">Show in settings</string>
@@ -728,7 +728,7 @@
 <!--    update-->
     <string name="update_title">Update available</string>
     <string name="install_nightly_title">Install the nightly version</string>
-    <string name="update_text">A new nightly release of VLC for Android is available!\n\nYou\'re seeing this because you are using a nightly build.</string>
+    <string name="update_text">A new nightly release of VLC for Android is available!\n\nYou’re seeing this because you are using a nightly build.</string>
     <string name="install_text">Nightly versions are updated automatically everyday with the latest features and fixes.\n\nDownload now?</string>
 
     <string name="open_in_browser">Open in browser</string>
@@ -755,14 +755,14 @@
     <string name="widget_name_mini_player">VLC mini player</string>
     <string name="widget_old_text">We updated our widgets!</string>
     <string name="widget_old_description_start">Good news! We released improved widgets.\nThey offer more responsiveness and customization</string>
-    <string name="whats_next">What\'s next?</string>
+    <string name="whats_next">What’s next?</string>
     <string name="widget_old_description_end">We detected that you already have widgets on your launcher. Unfortunately, they are not compatible with our new improved ones.\nDepending on your launcher, you may have to remove the old ones to replace them.</string>
     <string name="click_here">Click here to learn more.</string>
     <string name="widget_default_text" translatable="false">VLC media player</string>
     <string name="allow_storage_access_title">Allow VLC to access video and audio files</string>
     <string name="allow_storage_access_description">VLC needs you to grant this permission to access the media files on this device.</string>
     <string name="partial_content">VLC cannot access all of your files</string>
-    <string name="partial_content_description">Starting with Android 11, applications need a special permission to access all device\'s files.\n\n%1$s</string>
+    <string name="partial_content_description">Starting with Android 11, applications need a special permission to access all device’s files.\n\n%1$s</string>
     <string name="never_ask_again">Never ask again</string>
     <string name="never_show_again">Never show again, even for future versions</string>
     <string name="allow_settings_access_ringtone_title">Allow VLC to set the ringtone</string>
@@ -776,9 +776,9 @@
     <string name="permission_ask_again">Grant permission</string>
     <string name="pick_file">Pick a file</string>
     <string name="permission_not_granted">Permission not granted</string>
-    <string name="permission_expanation_no_allow">You won\'t be able to auto-discover your media nor use external subtitles</string>
+    <string name="permission_expanation_no_allow">You won’t be able to auto-discover your media nor use external subtitles</string>
     <string name="permission_expanation_allow">You will be able to only play streams or network media</string>
-    <string name="permission_onboarding_no_perm">You won\'t be able to auto-discover your media.\nYou will be able to only play streams or network media</string>
+    <string name="permission_onboarding_no_perm">You won’t be able to auto-discover your media.\nYou will be able to only play streams or network media</string>
     <string name="permission_onboarding_perm_media">You will only be able to auto-discover standard media files</string>
     <string name="permission_onboarding_perm_all">You will be able to auto-discover all your files to play all types of media even weird ones, or compressed files</string>
     <string name="exit_app">Close VLC</string>
@@ -855,7 +855,7 @@
     <string name="save">Save</string>
     <string name="saved">Saved %1$s</string>
     <string name="do_not_save">Do not save</string>
-    <string name="custom_set_deleted_message">Custom equalizer-set \"%1$s\" deleted.</string>
+    <string name="custom_set_deleted_message">Custom equalizer-set "%1$s" deleted.</string>
     <string name="custom_set_wrong_input">Invalid name.</string>
     <string name="custom_set_already_exist">Equalizer-set with this name already exists</string>
     <string name="custom_set_restored">Custom equalizer-set restored.</string>
@@ -869,7 +869,7 @@
     <string name="msg_delete_failed">Failed to delete media %1$s</string>
     <string name="renderer_list_title">Displays</string>
     <string name="sdcard_permission_dialog_title">You have to grant VLC write access to your SD Card</string>
-    <string name="sdcard_permission_dialog_message">VLC cannot delete this file without write access permission.\nPlease go to your SD Card and click on \"Select\".\nYou may have to click on \"Show SD card\" first in the top-right menu</string>
+    <string name="sdcard_permission_dialog_message">VLC cannot delete this file without write access permission.\nPlease go to your SD Card and click on "Select".\nYou may have to click on "Show SD card" first in the top-right menu</string>
     <string name="dialog_sd_wizard">Show me</string>
     <string name="renderers_disconnect">Disconnect</string>
     <string name="audio_digital_failed">Failed to change Audio Digital Output state</string>
@@ -989,7 +989,7 @@
     <string name="dump_db_failure">Failed to dump database</string>
     <string name="send_crash_title">VLC crash reporter</string>
     <string name="send_crash_description">By sending your crash, you will help us improve VLC stability.</string>
-    <string name="send_crash_warning">Make sure you remove any sensitive data you don\'t want to send.</string>
+    <string name="send_crash_warning">Make sure you remove any sensitive data you don’t want to send.</string>
     <string name="include_medialib">Include your database</string>
     <string name="include_logs">Include your logs</string>
     <string name="vlc_reporter">VLC reporter</string>
@@ -1161,10 +1161,10 @@
     <string name="pin_unlock_success">Successfully unlocked. To re-activate the safe mode, please tap this icon in the app:</string>
     <string name="safe_mode_new_pin">Enter your new PIN</string>
     <string name="safe_mode_re_pin">Re-enter your PIN</string>
-    <string name="safe_mode_no_match">PINs don\'t match</string>
+    <string name="safe_mode_no_match">PINs don’t match</string>
     <string name="safe_mode_invalid_pin">Wrong PIN</string>
     <string name="safe_mode_pin_error">Your pin code should only contain digits</string>
-    <string name="pin_code_reason_create">First, let\'s create your PIN code</string>
+    <string name="pin_code_reason_create">First, let’s create your PIN code</string>
     <string name="pin_code_reason_modify">Change your PIN code</string>
     <string name="pin_code_modified">PIN code successfully modified</string>
     <string name="pin_code_reason_check">Access restricted. Please enter your PIN code</string>
@@ -1227,7 +1227,7 @@
     <string name="lock_use_sensor_summary">When the orientation is locked, use the sensor to allow the reverse orientation</string>
     <string name="start">Start</string>
     <string name="notification_permission">Notification permission</string>
-    <string name="notification_permission_explanation">VLC needs your permission to send notifications.\nThe app will only notify you when scanning your media or using the custom video Picture in Picture.\nRefusing it won\'t prevent VLC to work, however the notifications will be hidden.</string>
+    <string name="notification_permission_explanation">VLC needs your permission to send notifications.\nThe app will only notify you when scanning your media or using the custom video Picture in Picture.\nRefusing it won’t prevent VLC to work, however the notifications will be hidden.</string>
     <string name="permission">Permission</string>
     <string name="permission_no_access">No file access</string>
     <string name="permissions">Permissions</string>
@@ -1249,12 +1249,12 @@
     <string name="banned_tv">Banned folder</string>
     <string name="banned_parent">Banned by parent folder</string>
     <plurals name="duplicate_two_options_secondary">
-        <item quantity="one">This item is already in \"%1$s\" playlist.</item>
-        <item quantity="other">These items are already in \"%1$s\" playlist.</item>
+        <item quantity="one">This item is already in "%1$s" playlist.</item>
+        <item quantity="other">These items are already in "%1$s" playlist.</item>
     </plurals>
     <plurals name="duplicate_three_options_secondary">
-        <item quantity="one">1 of the selected items is already in \"%1$s\" playlist.</item>
-        <item quantity="other">%1$d of the selected items are already in \"%2$s\" playlist.</item>
+        <item quantity="one">1 of the selected items is already in "%1$s" playlist.</item>
+        <item quantity="other">%1$d of the selected items are already in "%2$s" playlist.</item>
     </plurals>
     <string name="official_website">Official website</string>
     <string name="view_online">View online</string>
@@ -1295,7 +1295,7 @@
     <string name="widget_show_cover">Show cover</string>
     <string name="widget_rewind_delay">Backward time delay</string>
     <string name="widget_show_configure">Show configuration icon</string>
-    <string name="widget_show_configure_summary">Even if it\'s not shown, you can tap the upper right corner to open the configuration</string>
+    <string name="widget_show_configure_summary">Even if it’s not shown, you can tap the upper right corner to open the configuration</string>
     <string name="seek_backward_content_description">Seek %1$s seconds backwards</string>
     <string name="seek_forward_content_description">Seek %1$s seconds forwards</string>
     <string name="open_vlc">Open VLC</string>
@@ -1392,19 +1392,19 @@
     <string name="ra_new_code">Send a new code</string>
     <string name="home">Home</string>
     <string name="ra_code">Enter this code: %1$s</string>
-    <string name="ra_send_logs">Save remote access\' logs on the device</string>
+    <string name="ra_send_logs">Save remote access’ logs on the device</string>
     <string name="ra_otp">Remote access one time password</string>
     <string name="ra_otp_description">Access requests for the remote access</string>
     <string name="ra_otp_title">Remote access login attempt</string>
-    <string name="ra_otp_subtitle">If it\'s you, enter this code on the other device</string>
-    <string name="ra_otp_not_me">It\'s not me</string>
+    <string name="ra_otp_subtitle">If it’s you, enter this code on the other device</string>
+    <string name="ra_otp_not_me">It’s not me</string>
     <string name="ra_output">Audio output</string>
     <string name="ra_play_on_browser">Play on browser</string>
     <string name="ra_play_on_device">Play on device</string>
     <string name="ra_browser_audio_not_found">Media not found or cannot be played in browser</string>
     <string name="ra_browser_audio_unsupported_format">This audio format is not supported by your browser</string>
 
-    <string name="ra_onboarding_welcome_desc">Welcome in VLC for Android\'s remote access\nBy enabling it you will be able to control this device\'s playback and more</string>
+    <string name="ra_onboarding_welcome_desc">Welcome in VLC for Android’s remote access\nBy enabling it you will be able to control this device’s playback and more</string>
     <string name="ra_onboarding_how_title">Control your device</string>
     <string name="ra_onboarding_how_desc">Control your device playback, send or retrieve files and more</string>
     <string name="ra_onboarding_ssl_title">Data encryption</string>
@@ -1412,7 +1412,7 @@
     <string name="ra_onboarding_otp_title">Authentication</string>
     <string name="ra_onboarding_otp_desc">With the one time password authentication, prevent unwanted access to your data</string>
     <string name="ra_onboarding_content_title">Content access</string>
-    <string name="ra_onboarding_content_desc">Choose what can be accessed and what can\'t</string>
+    <string name="ra_onboarding_content_desc">Choose what can be accessed and what can’t</string>
     <string name="ra_onboarding_content_ml">Media library content access</string>
     <string name="ra_onboarding_content_files">File browser</string>
     <string name="ra_onboarding_content_playback">Playback control</string>
@@ -1431,7 +1431,7 @@
     <string name="podcast_mode_help">Podcast controls appear when playing a single track which meets one of the following criteria:\n\t• Length greater than 60 min\n\t• Length greater than 15 min with no album name\n\t• Genre is %1$s</string>
     <string name="podcast_mode_genres" translatable="false">audiobook(s), podcast, speech, or vocal</string>
     <string name="voice_control">Voice control</string>
-    <string name="voice_control_help">VLC can be controlled through Google Assistant by speaking the following commands:\n\t• Play, Pause, Stop, Previous, Next\n\t• Rewind, Fast Forward, Repeat &lt;all|one|off&gt;\n\t• Jump to &lt;time&gt;, Skip &lt;duration&gt;\n\t• What\'s this &lt;artist|album|song&gt;\n\t• Play [artist|album|song|genre|playlist] &lt;name&gt;</string>
+    <string name="voice_control_help">VLC can be controlled through Google Assistant by speaking the following commands:\n\t• Play, Pause, Stop, Previous, Next\n\t• Rewind, Fast Forward, Repeat &lt;all|one|off&gt;\n\t• Jump to &lt;time&gt;, Skip &lt;duration&gt;\n\t• What’s this &lt;artist|album|song&gt;\n\t• Play [artist|album|song|genre|playlist] &lt;name&gt;</string>
 
     <string name="network" >Network</string>
     <string name="metered_connection">Action for streams when the connection is metered</string>

@@ -147,8 +147,8 @@ fun VLCFeatureWarningDialogContent(
                     modifier = Modifier
                         .padding(top = 24.dp)
                         .align(Alignment.CenterHorizontally)
-                        .fillMaxWidth()
                         .widthIn(max = 360.dp)
+                        .fillMaxWidth()
                 )
             }
         }

@@ -160,8 +160,8 @@ fun BrowserRichPane(
             // Section headings and quiet rows keep locations easy to scan.
             verticalArrangement = Arrangement.spacedBy(2.dp),
             modifier = Modifier
-                .fillMaxWidth()
                 .widthIn(max = VLCLayout.ListMaxWidth)
+                .fillMaxWidth()
                 .align(Alignment.CenterHorizontally)
                 .weight(1f),
             ) {

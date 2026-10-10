@@ -149,6 +149,24 @@ fun main(args: Array<String>) {
                     )
                 }
             })
+            org.videolan.vlc.compose.components.VLCOnboardingStep.entries.forEachIndexed { index, step ->
+                add(Shot("onboarding-${step.name.lowercase()}-$theme", setup = { theme(dark) }) {
+                    VLCAppTheme {
+                        org.videolan.vlc.compose.components.VLCOnboardingScreen(
+                            step = step, stepIndex = minOf(index, 3).let { if (index >= 2) it - 1 + (if (step == org.videolan.vlc.compose.components.VLCOnboardingStep.AccessDenied) 0 else 1) else it }.coerceAtMost(3), stepCount = 4,
+                            scanStorages = true, onSkip = {}, onNext = {}, onGrantPermission = {}, onScanStoragesChanged = {}, onCustomizeScan = {},
+                        )
+                    }
+                })
+            }
+            add(Shot("onboarding-wide-$theme", 900 to 520, setup = { theme(dark) }) {
+                VLCAppTheme {
+                    org.videolan.vlc.compose.components.VLCOnboardingScreen(
+                        step = org.videolan.vlc.compose.components.VLCOnboardingStep.LibraryScan, stepIndex = 2, stepCount = 4,
+                        scanStorages = true, onSkip = {}, onNext = {}, onGrantPermission = {}, onScanStoragesChanged = {}, onCustomizeScan = {},
+                    )
+                }
+            })
             QASurface.entries.forEach { surface ->
                 add(Shot("qa-${surface.name.lowercase()}-$theme", 412 to 760, setup = { theme(dark) }) {
                     VLCAppTheme {

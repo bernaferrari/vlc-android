@@ -8,6 +8,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -378,8 +380,11 @@ private fun PinKeyboardButton(
 ) {
     val colors = VLCThemeDefaults.colors
     val interactionSource = remember { MutableInteractionSource() }
-    val focused by interactionSource.collectIsFocusedAsState()
+    val focusedState by interactionSource.collectIsFocusedAsState()
     val pressed by interactionSource.collectIsPressedAsState()
+    // Focus is a D-pad/keyboard affordance; on touch screens a focused key would look pressed.
+    val keyboardMode = LocalInputModeManager.current.inputMode == InputMode.Keyboard
+    val focused = focusedState && keyboardMode
     val active = focused || pressed
 
     Surface(
@@ -427,8 +432,8 @@ private fun PinUnlockSuccess(
 
     Column(
         modifier = modifier
-            .fillMaxWidth()
             .widthIn(max = 520.dp)
+            .fillMaxWidth()
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

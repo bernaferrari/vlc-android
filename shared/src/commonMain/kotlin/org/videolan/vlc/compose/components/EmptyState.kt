@@ -90,8 +90,8 @@ fun VLCStatePlaceholder(
             if (useWideCard) {
                 Surface(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .widthIn(max = 560.dp),
+                        .widthIn(max = 560.dp)
+                        .fillMaxWidth(),
                     shape = MaterialTheme.shapes.extraLarge,
                     color = MaterialTheme.colorScheme.surfaceContainerLow,
                     tonalElevation = 1.dp,

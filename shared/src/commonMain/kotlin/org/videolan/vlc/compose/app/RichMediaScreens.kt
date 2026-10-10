@@ -532,8 +532,8 @@ fun RichMediaListPane(
                     text = if (state.loading) "" else emptyLabel,
                     message = emptyMessage.takeIf { !state.loading },
                     modifier = Modifier
-                        .fillMaxWidth()
                         .widthIn(max = VLCLayout.ListMaxWidth)
+                        .fillMaxWidth()
                         .align(Alignment.CenterHorizontally)
                         .weight(1f),
                     symbol = emptySymbol,

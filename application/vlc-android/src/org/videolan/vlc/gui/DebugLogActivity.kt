@@ -23,7 +23,6 @@ package org.videolan.vlc.gui
 import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.ClipData
 import android.content.ClipboardManager
-import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
@@ -59,7 +58,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -119,9 +117,6 @@ class DebugLogActivity : ComponentActivity(), DebugLogService.Client.Callback {
                     onCopyClick = ::copyLogToClipboard,
                     onSaveClick = ::saveLogToFile,
                     onClearClick = ::clearLog,
-                    onInteropLabClick = {
-                        startActivity(Intent(this@DebugLogActivity, ComposeInteropLabActivity::class.java))
-                    }
                 )
             }
         }
@@ -229,7 +224,6 @@ private fun DebugLogScreen(
     onCopyClick: () -> Unit,
     onSaveClick: () -> Unit,
     onClearClick: () -> Unit,
-    onInteropLabClick: () -> Unit
 ) {
     VLCTheme {
         val colors = VLCThemeDefaults.colors
@@ -338,17 +332,6 @@ private fun DebugLogScreen(
                         }
                     }
                 }
-            }
-
-            TextButton(
-                onClick = onInteropLabClick,
-                modifier = Modifier.align(Alignment.End)
-            ) {
-                Text(
-                    text = "Open Compose Interop Lab",
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
             }
         }
     }

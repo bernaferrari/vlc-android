@@ -185,8 +185,8 @@ fun PlaylistsRichPane(
                     loading = loading,
                     text = if (loading) "" else ShellStrings.emptyPlaylist(),
                     modifier = Modifier
-                        .fillMaxWidth()
                         .widthIn(max = VLCLayout.ListMaxWidth)
+                        .fillMaxWidth()
                         .align(Alignment.CenterHorizontally)
                         .weight(1f),
                     symbol = emptySymbol,
@@ -200,8 +200,8 @@ fun PlaylistsRichPane(
                     ),
                     verticalArrangement = Arrangement.spacedBy(2.dp),
                     modifier = Modifier
-                        .fillMaxWidth()
                         .widthIn(max = VLCLayout.ListMaxWidth)
+                        .fillMaxWidth()
                         .align(Alignment.CenterHorizontally)
                         .weight(1f),
                 ) {
@@ -346,8 +346,8 @@ fun PlaylistsRichPane(
                 ),
                 verticalArrangement = Arrangement.spacedBy(2.dp),
                 modifier = Modifier
-                    .fillMaxWidth()
                     .widthIn(max = VLCLayout.ListMaxWidth)
+                    .fillMaxWidth()
                     .align(Alignment.CenterHorizontally)
                     .weight(1f),
             ) {

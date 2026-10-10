@@ -1,59 +1,11 @@
-@file:OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
-
 package org.videolan.vlc.gui.onboarding
 
-import android.content.res.Configuration
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import android.os.Build
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import org.videolan.vlc.R
-import org.videolan.vlc.compose.theme.VLCMotion
-import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.compose.components.VLCOnboardingScreen
+import org.videolan.vlc.compose.components.VLCOnboardingStep
 
+/** Android host for the shared first-run journey; permissions stay owned by the activity. */
 @Composable
 fun OnboardingContent(
     step: OnboardingStep,
@@ -64,311 +16,34 @@ fun OnboardingContent(
     onScanStoragesChanged: (Boolean) -> Unit,
     onCustomizeScan: () -> Unit,
 ) {
-    val colors = VLCThemeDefaults.colors
-    Surface(
-        color = colors.backgroundDefault,
-        contentColor = colors.fontDefault,
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.safeDrawing)
-                .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 16.dp)
-        ) {
-            val progress by animateFloatAsState(
-                targetValue = step.onboardingProgress,
-                animationSpec = tween(VLCMotion.DurationLong, easing = VLCMotion.Emphasized),
-                label = "onboardingProgress"
-            )
-            LinearProgressIndicator(
-                progress = { progress },
-                color = colors.primary,
-                trackColor = colors.fontDefault.copy(alpha = 0.16f),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(6.dp)
-                    .clip(MaterialTheme.shapes.small)
-            )
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-            ) {
-                AnimatedContent(
-                    targetState = step,
-                    transitionSpec = {
-                        val forward = targetState.ordinal >= initialState.ordinal
-                        val direction = if (forward) 1 else -1
-                        slideInHorizontally(
-                            tween(VLCMotion.DurationMedium, easing = VLCMotion.EmphasizedDecelerate)
-                        ) { width -> direction * width / 5 } togetherWith
-                            slideOutHorizontally(
-                                tween(VLCMotion.DurationMedium, easing = VLCMotion.EmphasizedAccelerate)
-                            ) { width -> -direction * width / 5 }
-                    },
-                    label = "onboardingStep"
-                ) { animatedStep ->
-                    OnboardingStepContent(
-                        step = animatedStep,
-                        scanStorages = scanStorages,
-                        onGrantPermission = onGrantPermission,
-                        onScanStoragesChanged = onScanStoragesChanged,
-                        onCustomizeScan = onCustomizeScan,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .verticalScroll(rememberScrollState())
-                    )
-                }
-            }
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                TextButton(
-                    onClick = onSkip,
-                    colors = ButtonDefaults.textButtonColors(contentColor = colors.fontDefault)
-                ) {
-                    Text(stringResource(R.string.skip))
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Button(
-                    onClick = onNext,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colors.primary,
-                        contentColor = colors.onPrimary
-                    )
-                ) {
-                    Text(stringResource(step.primaryActionRes))
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun OnboardingStepContent(
-    step: OnboardingStep,
-    scanStorages: Boolean,
-    onGrantPermission: () -> Unit,
-    onScanStoragesChanged: (Boolean) -> Unit,
-    onCustomizeScan: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    when (step) {
-        OnboardingStep.WELCOME -> WelcomeStep(modifier)
-        OnboardingStep.ASK_PERMISSION -> PermissionStep(modifier)
-        OnboardingStep.SCAN -> ScanningStep(
-            scanStorages = scanStorages,
-            onScanStoragesChanged = onScanStoragesChanged,
-            onCustomizeScan = onCustomizeScan,
-            modifier = modifier
-        )
-        OnboardingStep.NO_PERMISSION -> NoPermissionStep(
-            onGrantPermission = onGrantPermission,
-            modifier = modifier
-        )
-        OnboardingStep.NOTIFICATION_PERMISSION -> NotificationPermissionStep(modifier)
-    }
-}
-
-@Composable
-private fun WelcomeStep(modifier: Modifier = Modifier) {
-    OnboardingCenterColumn(modifier = modifier) {
-        Image(
-            painter = painterResource(R.drawable.ic_icon),
-            contentDescription = null,
-            modifier = Modifier.size(96.dp)
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        OnboardingTitle(text = stringResource(R.string.welcome_title))
-        OnboardingBody(
-            text = stringResource(R.string.welcome_subtitle),
-            modifier = Modifier.padding(top = 8.dp)
-        )
-    }
-}
-
-@Composable
-private fun PermissionStep(modifier: Modifier = Modifier) {
-    OnboardingCenterColumn(modifier = modifier) {
-        Image(
-            painter = painterResource(R.drawable.ic_perm_media),
-            contentDescription = null,
-            modifier = Modifier.size(96.dp),
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        OnboardingTitle(text = stringResource(R.string.permission))
-        OnboardingBody(
-            text = stringResource(R.string.permission_media),
-            modifier = Modifier.padding(top = 8.dp)
-        )
-    }
-}
-
-@Composable
-private fun ScanningStep(
-    scanStorages: Boolean,
-    onScanStoragesChanged: (Boolean) -> Unit,
-    onCustomizeScan: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    OnboardingCenterColumn(modifier = modifier) {
-        Image(
-            painter = painterResource(R.drawable.ic_onboarding_scan),
-            contentDescription = null,
-            modifier = Modifier.size(104.dp)
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        OnboardingTitle(text = stringResource(R.string.onboarding_scan_title))
-        OnboardingBody(
-            text = stringResource(R.string.medialibrary_scan_explanation),
-            modifier = Modifier.padding(top = 8.dp)
-        )
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 32.dp)
-                .clickable(role = Role.Switch) { onScanStoragesChanged(!scanStorages) }
-        ) {
-            Text(
-                text = stringResource(R.string.onboarding_scanning_enable),
-                style = MaterialTheme.typography.bodyLarge,
-                color = VLCThemeDefaults.colors.fontDefault,
-                modifier = Modifier.weight(1f)
-            )
-            Switch(
-                checked = scanStorages,
-                onCheckedChange = null
-            )
-        }
-        Button(
-            onClick = onCustomizeScan,
-            enabled = scanStorages,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = VLCThemeDefaults.colors.primary,
-                contentColor = VLCThemeDefaults.colors.onPrimary
-            ),
-            modifier = Modifier.padding(top = 32.dp)
-        ) {
-            Text(stringResource(R.string.customize))
-        }
-    }
-}
-
-@Composable
-private fun NoPermissionStep(
-    onGrantPermission: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    OnboardingCenterColumn(modifier = modifier) {
-        Image(
-            painter = painterResource(R.drawable.ic_onboarding_no_permission),
-            contentDescription = null,
-            modifier = Modifier.size(104.dp)
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        OnboardingTitle(text = stringResource(R.string.permission_not_granted))
-        OnboardingBody(
-            text = stringResource(R.string.permission_expanation_no_allow),
-            modifier = Modifier.padding(top = 8.dp)
-        )
-        OnboardingBody(
-            text = stringResource(R.string.permission_expanation_allow),
-            modifier = Modifier.padding(top = 16.dp)
-        )
-        Button(
-            onClick = onGrantPermission,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = VLCThemeDefaults.colors.primary,
-                contentColor = VLCThemeDefaults.colors.onPrimary
-            ),
-            modifier = Modifier.padding(top = 32.dp)
-        ) {
-            Text(stringResource(R.string.permission_ask_again))
-        }
-    }
-}
-
-@Composable
-private fun NotificationPermissionStep(modifier: Modifier = Modifier) {
-    OnboardingCenterColumn(modifier = modifier) {
-        Image(
-            painter = painterResource(R.drawable.ic_onboarding_notification),
-            contentDescription = null,
-            modifier = Modifier.size(104.dp)
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        OnboardingTitle(text = stringResource(R.string.notification_permission))
-        OnboardingBody(
-            text = stringResource(R.string.notification_permission_explanation),
-            modifier = Modifier.padding(top = 8.dp)
-        )
-    }
-}
-
-@Composable
-private fun OnboardingCenterColumn(
-    modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    val configuration = LocalConfiguration.current
-    val horizontalPadding = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 64.dp else 8.dp
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = horizontalPadding)
-    ) {
-        content()
-    }
-}
-
-@Composable
-private fun OnboardingTitle(text: String) {
-    Text(
-        text = text,
-        color = VLCThemeDefaults.colors.fontDefault,
-        style = MaterialTheme.typography.titleLarge,
-        textAlign = TextAlign.Center,
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics { heading() }
+    // Notification consent only exists from Android 13; older devices finish after the scan.
+    val stepCount = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) 4 else 3
+    VLCOnboardingScreen(
+        step = step.shared,
+        stepIndex = step.position,
+        stepCount = stepCount,
+        scanStorages = scanStorages,
+        onSkip = onSkip,
+        onNext = onNext,
+        onGrantPermission = onGrantPermission,
+        onScanStoragesChanged = onScanStoragesChanged,
+        onCustomizeScan = onCustomizeScan,
     )
 }
 
-@Composable
-private fun OnboardingBody(
-    text: String,
-    modifier: Modifier = Modifier
-) {
-    Text(
-        text = text,
-        color = VLCThemeDefaults.colors.fontLight,
-        style = MaterialTheme.typography.bodyLarge,
-        textAlign = TextAlign.Center,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-    )
-}
-
-/** Monotonic progress for the short, system-theme onboarding journey. */
-private val OnboardingStep.onboardingProgress: Float
+private val OnboardingStep.shared: VLCOnboardingStep
     get() = when (this) {
-        OnboardingStep.WELCOME -> 0.2f
-        OnboardingStep.ASK_PERMISSION -> 0.4f
-        OnboardingStep.NO_PERMISSION -> 0.55f
-        OnboardingStep.SCAN -> 0.7f
-        OnboardingStep.NOTIFICATION_PERMISSION -> 0.9f
+        OnboardingStep.WELCOME -> VLCOnboardingStep.Welcome
+        OnboardingStep.ASK_PERMISSION -> VLCOnboardingStep.MediaAccess
+        OnboardingStep.NO_PERMISSION -> VLCOnboardingStep.AccessDenied
+        OnboardingStep.SCAN -> VLCOnboardingStep.LibraryScan
+        OnboardingStep.NOTIFICATION_PERMISSION -> VLCOnboardingStep.Notifications
     }
 
-private val OnboardingStep.primaryActionRes: Int
+private val OnboardingStep.position: Int
     get() = when (this) {
-        OnboardingStep.ASK_PERMISSION -> R.string.permission_ask_again
-        OnboardingStep.NO_PERMISSION -> R.string.start
-        else -> R.string.next
+        OnboardingStep.WELCOME -> 0
+        OnboardingStep.ASK_PERMISSION, OnboardingStep.NO_PERMISSION -> 1
+        OnboardingStep.SCAN -> 2
+        OnboardingStep.NOTIFICATION_PERMISSION -> 3
     }
