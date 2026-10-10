@@ -21,39 +21,23 @@
 package org.videolan.television.ui.audioplayer
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.focusable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import org.videolan.television.R
-import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.compose.tv.VLCTvIconButton
 
 internal data class TvAudioTransportControlsState(
     @DrawableRes val shuffleIcon: Int = R.drawable.ic_shuffle_audio,
@@ -85,7 +69,7 @@ internal fun TvAudioTransportControls(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(56.dp)
+            .height(72.dp)
     ) {
         Row(
             modifier = Modifier.align(Alignment.Center),
@@ -106,7 +90,7 @@ internal fun TvAudioTransportControls(
             TvAudioTransportButton(
                 icon = state.playPauseIcon,
                 contentDescription = state.playPauseContentDescription,
-                iconSize = 48,
+                iconSize = 40,
                 onClick = onPlayPauseClick,
                 modifier = Modifier.focusRequester(playFocusRequester)
             )
@@ -132,7 +116,6 @@ internal fun TvAudioTransportControls(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun TvAudioTransportButton(
     @DrawableRes icon: Int,
@@ -140,33 +123,18 @@ private fun TvAudioTransportButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     active: Boolean = false,
-    iconSize: Int = 32
+    iconSize: Int = 28
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val focused by interactionSource.collectIsFocusedAsState()
-    val colors = VLCThemeDefaults.colors
-
-    Box(
-        modifier = modifier
-            .size(48.dp)
-            .clip(CircleShape)
-            .background(if (focused) colors.primary.copy(alpha = 0.18f) else Color.Transparent)
-            .border(2.dp, if (focused) colors.primary else Color.Transparent, CircleShape)
-            .focusable(interactionSource = interactionSource)
-            .combinedClickable(
-                interactionSource = interactionSource,
-                indication = null,
-                role = Role.Button,
-                onClick = onClick
-            )
-            .semantics { this.contentDescription = contentDescription },
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            painter = painterResource(icon),
-            contentDescription = null,
-            tint = if (active) colors.primary else colors.playerIconColor,
-            modifier = Modifier.size(iconSize.dp)
-        )
-    }
+    // The play/pause control is the visual anchor of the row: larger and always filled.
+    val prominent = iconSize > 32
+    VLCTvIconButton(
+        contentDescription = contentDescription,
+        onClick = onClick,
+        painter = painterResource(icon),
+        size = if (prominent) 64.dp else 48.dp,
+        iconSize = if (prominent) 36.dp else iconSize.dp,
+        active = active,
+        filled = prominent,
+        modifier = modifier,
+    )
 }

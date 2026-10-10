@@ -49,27 +49,21 @@ import android.app.Activity
 import android.app.SearchManager
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.speech.RecognizerIntent
 import android.view.KeyEvent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import org.videolan.vlc.compose.theme.VLCTheme
+import org.videolan.vlc.compose.tv.VLCTvSymbols
+import org.videolan.vlc.compose.tv.VLCTvTheme
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -91,13 +85,11 @@ import org.videolan.television.ui.browser.BaseTvActivity
 import org.videolan.television.util.manageHttpException
 import org.videolan.tools.NetworkMonitor
 import org.videolan.tools.getLocaleLanguages
-import org.videolan.tools.HttpImageLoader
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.components.VLCSearchResultRow
 import org.videolan.vlc.compose.components.VLCSearchScreen
 import org.videolan.vlc.compose.components.VLCSearchSection
 import org.videolan.vlc.gui.helpers.UiTools
-import org.videolan.vlc.util.isSchemeHttpOrHttps
 
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 class MediaScrapingTvActivity : BaseTvActivity() {
@@ -148,7 +140,7 @@ class MediaScrapingTvActivity : BaseTvActivity() {
             ComposeView(this).apply {
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
                 setContent {
-                    VLCTheme(darkTheme = true) {
+                    VLCTvTheme {
                         VLCSearchScreen(
                             query = query,
                             hint = getString(R.string.search_hint),
@@ -286,34 +278,6 @@ private fun SearchIcon(drawable: Int) {
 private fun MediaScrapingResultThumbnail(item: ResolverMedia?) {
     val context = LocalContext.current
     val languages = remember(context) { context.getLocaleLanguages() }
-    val imageUri = remember(item, languages) { item?.imageUri(languages)?.let { android.net.Uri.parse(it.asString()) } }
-    val bitmap by remoteBitmap(imageUri)
-
-    val poster = bitmap
-    if (poster == null) {
-        Image(
-            painter = painterResource(R.drawable.ic_video_big),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
-    } else {
-        Image(
-            bitmap = poster.asImageBitmap(),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
-    }
-}
-
-@Composable
-private fun remoteBitmap(imageUri: Uri?) = produceState<Bitmap?>(initialValue = null, imageUri) {
-    val url = imageUri?.toString()
-    value = null
-    value = if (!url.isNullOrEmpty() && isSchemeHttpOrHttps(imageUri.scheme)) {
-        HttpImageLoader.downloadBitmap(url)
-    } else {
-        null
-    }
+    val imageUrl = remember(item, languages) { item?.imageUri(languages)?.asString() }
+    TvRemoteArtworkImage(imageUrl, VLCTvSymbols.Movie)
 }

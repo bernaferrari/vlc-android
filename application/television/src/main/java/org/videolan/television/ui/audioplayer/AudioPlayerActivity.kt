@@ -77,7 +77,7 @@ import org.videolan.tools.KEY_PLAYBACK_SPEED_AUDIO_GLOBAL
 import org.videolan.tools.Settings
 import org.videolan.tools.formatRateString
 import org.videolan.vlc.PlaybackService
-import org.videolan.vlc.compose.theme.VLCTheme
+import org.videolan.vlc.compose.tv.VLCTvTheme
 import org.videolan.vlc.gui.dialogs.showEqualizerComposeDialog
 import org.videolan.vlc.gui.dialogs.showPlaybackSpeedComposeDialog
 import org.videolan.vlc.gui.dialogs.showSleepTimerComposeDialog
@@ -301,7 +301,7 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
             ComposeView(this).apply {
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
                 setContent {
-                    VLCTheme(darkTheme = true) {
+                    VLCTvTheme {
                         TvAudioPlayerScreen(
                             artworkState = artworkState,
                             playlistItems = playlistItems,
@@ -745,7 +745,7 @@ private fun TvAudioPlayerScreen(
     val context = LocalContext.current
     val overscanVertical = dimensionResource(R.dimen.tv_overscan_vertical)
     val progressHorizontal = dimensionResource(R.dimen.tv_overscan_horizontal_progressbar)
-    val transportHeight = 56.dp
+    val transportHeight = 72.dp
     val timelineHeight = 42.dp
     val progressLabelsHeight = 24.dp
     val bottomControlsHeight = overscanVertical + transportHeight + timelineHeight + progressLabelsHeight

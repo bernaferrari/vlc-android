@@ -21,7 +21,7 @@ import org.videolan.tools.copy
 import org.videolan.tools.isValidUrl
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
-import org.videolan.vlc.compose.theme.VLCTheme
+import org.videolan.vlc.compose.tv.VLCTvTheme
 import org.videolan.vlc.gui.dialogs.CtxActionReceiver
 import org.videolan.vlc.gui.dialogs.SavePlaylistDialog
 import org.videolan.vlc.gui.dialogs.showContext
@@ -84,7 +84,7 @@ class TVActivity : BaseTvActivity() {
                 streamsRoot = this
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
                 setContent {
-                    VLCTheme(darkTheme = true) {
+                    VLCTvTheme {
                         StreamPanelContent(
                             streams = itemsState.value,
                             loading = loadingState.value,

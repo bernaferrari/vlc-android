@@ -2,52 +2,25 @@ package org.videolan.television.ui.dialogs
 
 import android.os.Bundle
 import androidx.activity.OnBackPressedCallback
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.shape.RoundedCornerShape
-import org.videolan.television.ui.tvFocusOutline
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import org.videolan.television.ui.browser.BaseTvActivity
 import org.videolan.vlc.R
-import org.videolan.vlc.compose.theme.VLCTheme
-import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.compose.icons.MaterialSymbols
+import org.videolan.vlc.compose.tv.VLCTvConfirmationScreen
+import org.videolan.vlc.compose.tv.VLCTvTheme
 
+/**
+ * Generic TV yes/no confirmation. Callers pass a title and text; the result is
+ * [ACTION_ID_POSITIVE] or [ACTION_ID_NEGATIVE]. Back cancels without a result.
+ */
 class ConfirmationTvActivity : BaseTvActivity() {
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val title = intent.getStringExtra(CONFIRMATION_DIALOG_TITLE).orEmpty()
         val text = intent.getStringExtra(CONFIRMATION_DIALOG_TEXT).orEmpty()
+        val destructive = intent.getBooleanExtra(CONFIRMATION_DIALOG_DESTRUCTIVE, false)
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -59,12 +32,16 @@ class ConfirmationTvActivity : BaseTvActivity() {
             ComposeView(this).apply {
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
                 setContent {
-                    VLCTheme(darkTheme = true) {
-                        ConfirmationTvContent(
+                    VLCTvTheme {
+                        VLCTvConfirmationScreen(
                             title = title,
-                            text = text,
+                            message = text,
+                            positiveLabel = getString(R.string.yes),
+                            negativeLabel = getString(R.string.no),
                             onPositive = { finishWithResult(ACTION_ID_POSITIVE) },
-                            onNegative = { finishWithResult(ACTION_ID_NEGATIVE) }
+                            onNegative = { finishWithResult(ACTION_ID_NEGATIVE) },
+                            symbol = if (destructive) MaterialSymbols.Filled.Delete else MaterialSymbols.Filled.Info,
+                            destructive = destructive,
                         )
                     }
                 }
@@ -75,6 +52,7 @@ class ConfirmationTvActivity : BaseTvActivity() {
     companion object {
         const val CONFIRMATION_DIALOG_TITLE = "confirmation_dialog_title"
         const val CONFIRMATION_DIALOG_TEXT = "confirmation_dialog_text"
+        const val CONFIRMATION_DIALOG_DESTRUCTIVE = "confirmation_dialog_destructive"
         const val ACTION_ID_POSITIVE = 1
         const val ACTION_ID_NEGATIVE = ACTION_ID_POSITIVE + 1
     }
@@ -84,81 +62,5 @@ class ConfirmationTvActivity : BaseTvActivity() {
     private fun finishWithResult(resultCode: Int) {
         setResult(resultCode)
         finish()
-    }
-}
-
-@Composable
-private fun ConfirmationTvContent(
-    title: String,
-    text: String,
-    onPositive: () -> Unit,
-    onNegative: () -> Unit
-) {
-    val colors = VLCThemeDefaults.colors
-    val positiveFocusRequester = remember { FocusRequester() }
-
-    LaunchedEffect(Unit) {
-        positiveFocusRequester.requestFocus()
-    }
-
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 64.dp, vertical = 48.dp)
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier
-                .widthIn(max = 720.dp)
-                .background(MaterialTheme.colorScheme.surfaceContainer, RoundedCornerShape(24.dp))
-                .padding(40.dp)
-        ) {
-            Text(
-                text = title,
-                color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.headlineMedium,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            Text(
-                text = text,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.titleMedium,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(40.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                Button(
-                    onClick = onPositive,
-                    colors = ButtonDefaults.buttonColors(containerColor = colors.primary),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.heightIn(min = 56.dp).tvFocusOutline().focusRequester(positiveFocusRequester)
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_done),
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = stringResource(R.string.yes))
-                }
-                OutlinedButton(
-                    onClick = onNegative,
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.heightIn(min = 56.dp).tvFocusOutline(),
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_close_small),
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = stringResource(R.string.no))
-                }
-            }
-        }
     }
 }

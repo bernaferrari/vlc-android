@@ -71,8 +71,6 @@ object TvUtil {
 
     private const val TAG = "VLC/TvUtil"
 
-    fun getOverscanHorizontal(context: Context) = context.resources.getDimensionPixelSize(R.dimen.tv_overscan_horizontal)
-    fun getOverscanVertical(context: Context) = context.resources.getDimensionPixelSize(R.dimen.tv_overscan_vertical)
 
     fun playMedia(activity: Activity, media: MediaWrapper) {
         if (media.type == MediaWrapper.TYPE_AUDIO) {

@@ -43,5 +43,4 @@ dependencies {
     debugImplementation(libs.compose.ui.tooling)
     testImplementation(libs.androidx.test.core)
     androidTestImplementation(libs.androidx.test.ext.junit)
-    implementation(libs.colorpicker)
 }

@@ -28,53 +28,20 @@ import android.os.Bundle
 import android.os.Parcelable
 import android.widget.Toast
 import androidx.activity.viewModels
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.neverEqualPolicy
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MediatorLiveData
@@ -111,8 +78,17 @@ import org.videolan.tools.HttpImageLoader
 import org.videolan.tools.retrieveParent
 import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.R
-import org.videolan.vlc.compose.theme.VLCTheme
-import org.videolan.vlc.compose.theme.VLCThemeDefaults
+import org.videolan.vlc.compose.icons.MaterialIcon
+import org.videolan.vlc.compose.icons.MaterialSymbols
+import org.videolan.vlc.compose.tv.VLCTvAction
+import org.videolan.vlc.compose.tv.VLCTvCardShape
+import org.videolan.vlc.compose.tv.VLCTvDetailsScreen
+import org.videolan.vlc.compose.tv.VLCTvShelfModel
+import org.videolan.vlc.compose.tv.VLCTvSymbols
+import org.videolan.vlc.compose.tv.VLCTvTheme
+import org.videolan.vlc.util.generateResolutionClass
+import org.videolan.medialibrary.Tools
+import org.videolan.moviepedia.database.models.getYear
 import org.videolan.vlc.gui.DialogActivity
 import org.videolan.vlc.gui.DialogActivity.Companion.EXTRA_MEDIA as DIALOG_EXTRA_MEDIA
 import org.videolan.vlc.gui.dialogs.showConfirmDeleteComposeDialog
@@ -202,7 +178,7 @@ class DetailsActivity : BaseTvActivity() {
             ComposeView(this).apply {
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
                 setContent {
-                    VLCTheme(darkTheme = true) {
+                    VLCTvTheme {
                         MediaItemDetailsScreen(
                             item = viewModel.mediaItemDetails,
                             media = viewModel.media,
@@ -411,6 +387,23 @@ class DetailsActivity : BaseTvActivity() {
 
 private data class DetailAction(val id: Int, val label: String)
 
+private fun DetailAction.symbol(): MaterialIcon = when (id) {
+    ID_PLAY, ID_LISTEN -> MaterialSymbols.Filled.PlayArrow
+    ID_NEXT_EPISODE -> MaterialSymbols.Filled.SkipNext
+    ID_PLAY_FROM_START -> MaterialSymbols.Filled.Refresh
+    ID_FAVORITE_ADD -> MaterialSymbols.Outlined.Star
+    ID_FAVORITE_DELETE -> MaterialSymbols.Filled.Star
+    ID_FAVORITE_EDIT -> MaterialSymbols.Filled.Edit
+    ID_BROWSE -> MaterialSymbols.Filled.Folder
+    ID_DL_SUBS -> VLCTvSymbols.Subtitles
+    ID_PLAYLIST -> MaterialSymbols.Filled.QueueMusic
+    ID_GET_INFO -> MaterialSymbols.Filled.Search
+    ID_REMOVE_FROM_HISTORY -> MaterialSymbols.Filled.History
+    ID_NAVIGATE_PARENT -> MaterialSymbols.Filled.Folder
+    ID_DELETE -> MaterialSymbols.Filled.Delete
+    else -> MaterialSymbols.Filled.PlayArrow
+}
+
 @Composable
 private fun MediaItemDetailsScreen(
     item: MediaItemDetails,
@@ -422,327 +415,82 @@ private fun MediaItemDetailsScreen(
     onActionClick: (DetailAction) -> Unit,
     onImageClick: (MediaImage) -> Unit
 ) {
-    val colors = VLCThemeDefaults.colors
     val metadataWithImages = metadataFull?.metadata
-
-    Surface(
-        color = colors.backgroundDefault,
-        contentColor = colors.fontDefault,
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Box(Modifier.fillMaxSize()) {
-            backgroundBitmap?.let { bitmap ->
-                Image(
-                    bitmap = bitmap.asImageBitmap(),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            0f to colors.backgroundDefault.copy(alpha = 0.60f),
-                            0.48f to colors.backgroundDefault.copy(alpha = 0.90f),
-                            1f to colors.backgroundDefault
-                        )
-                    )
-            )
-
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(start = 56.dp, top = 48.dp, end = 56.dp, bottom = 56.dp),
-                verticalArrangement = Arrangement.spacedBy(32.dp)
-            ) {
-                item(key = "overview") {
-                    MediaItemOverview(
-                        item = item,
-                        media = media,
-                        metadataWithImages = metadataWithImages,
-                        coverBitmap = coverBitmap,
-                        actions = actions,
-                        onActionClick = onActionClick
-                    )
-                }
-
-                metadataFull?.let { details ->
-                    peopleSection(R.string.written_by, details.writers.orEmpty())
-                    peopleSection(R.string.casting, details.actors.orEmpty())
-                    peopleSection(R.string.directed_by, details.directors.orEmpty())
-                    peopleSection(R.string.produced_by, details.producers.orEmpty())
-                    peopleSection(R.string.music_by, details.musicians.orEmpty())
-                    metadataWithImages?.images.orEmpty().filter { it.imageType == MediaImageType.POSTER }.takeIf { it.isNotEmpty() }?.let { posters ->
-                        item(key = "posters") {
-                            DetailImageSection(
-                                title = R.string.posters,
-                                images = posters,
-                                poster = true,
-                                onImageClick = onImageClick
-                            )
-                        }
-                    }
-                    metadataWithImages?.images.orEmpty().filter { it.imageType == MediaImageType.BACKDROP }.takeIf { it.isNotEmpty() }?.let { backdrops ->
-                        item(key = "backdrops") {
-                            DetailImageSection(
-                                title = R.string.backdrops,
-                                images = backdrops,
-                                poster = false,
-                                onImageClick = onImageClick
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-private fun LazyListScope.peopleSection(title: Int, people: List<Person>) {
-    if (people.isEmpty()) return
-    item(key = "people-$title") {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            DetailSectionHeader(title)
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                items(people, key = { it.moviepediaId }) { person ->
-                    DetailPersonCard(person)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun MediaItemOverview(
-    item: MediaItemDetails,
-    media: MediaWrapper,
-    metadataWithImages: MediaMetadataWithImages?,
-    coverBitmap: Bitmap?,
-    actions: List<DetailAction>,
-    onActionClick: (DetailAction) -> Unit
-) {
-    val colors = VLCThemeDefaults.colors
     val metadata = metadataWithImages?.metadata
     val title = metadata?.title ?: item.title.orEmpty()
-    val subtitle = metadataWithImages?.subtitle() ?: item.subTitle.orEmpty()
+    val subtitle = metadataWithImages?.subtitle() ?: item.subTitle
+    val location = Uri.decode(item.location.orEmpty())
     val body = when {
         metadata != null -> metadata.summary
-        item.body == null -> Uri.decode(item.location.orEmpty())
-        else -> item.body + "\n" + Uri.decode(item.location.orEmpty())
+        item.body.isNullOrBlank() -> location
+        else -> item.body + "\n" + location
     }
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(32.dp),
-        verticalAlignment = Alignment.Top
-    ) {
-        OverviewArtwork(
-            media = media,
-            posterUrl = metadata?.currentPoster,
-            coverBitmap = coverBitmap,
-            modifier = Modifier.width(220.dp)
-        )
-
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(top = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp)
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-            if (subtitle.isNotEmpty()) {
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = colors.fontLight,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-            if (body.isNotEmpty()) {
-                Text(
-                    text = body,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = colors.fontDefault,
-                    maxLines = 6,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.widthIn(max = 760.dp)
-                )
-            }
-            if (actions.isNotEmpty()) {
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    items(actions, key = { it.id }) { action ->
-                        DetailActionButton(action, onClick = { onActionClick(action) })
-                    }
-                }
-            }
+    val eyebrow = stringResource(
+        when (media.type) {
+            MediaWrapper.TYPE_VIDEO -> R.string.video
+            MediaWrapper.TYPE_AUDIO -> R.string.audio
+            MediaWrapper.TYPE_DIR -> if (media.uri.scheme == "file") R.string.directories else R.string.network_browsing
+            else -> R.string.app_name
         }
+    )
+    val chips = buildList {
+        metadata?.getYear()?.takeIf { it.isNotBlank() }?.let(::add)
+        if (media.length > 0) add(Tools.millisToString(media.length))
+        if (media.type == MediaWrapper.TYPE_VIDEO) generateResolutionClass(media.width, media.height)?.let(::add)
     }
-}
-
-@Composable
-private fun OverviewArtwork(
-    media: MediaWrapper,
-    posterUrl: String?,
-    coverBitmap: Bitmap?,
-    modifier: Modifier = Modifier
-) {
-    val placeholder = when {
-        media.type == MediaWrapper.TYPE_DIR && media.uri.scheme == "file" -> R.drawable.ic_folder_big
-        media.type == MediaWrapper.TYPE_DIR -> R.drawable.ic_network_big
-        else -> R.drawable.ic_default_cone
+    val tvActions = remember(actions) { actions.mapIndexed { index, action -> VLCTvAction(action.id, action.label, action.symbol(), primary = index == 0) } }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val shelves = remember(metadataFull) { metadataFull?.let { detailShelves(context, it) }.orEmpty() }
+    val posterUrl = metadata?.currentPoster
+    val shape = when {
+        !posterUrl.isNullOrEmpty() -> VLCTvCardShape.Poster
+        media.type == MediaWrapper.TYPE_VIDEO -> VLCTvCardShape.Landscape
+        else -> VLCTvCardShape.Square
     }
-    Box(
-        modifier = modifier
-            .width(220.dp)
-            .aspectRatio(2f / 3f)
-            .clip(RoundedCornerShape(12.dp))
-            .background(VLCThemeDefaults.colors.cardBackground),
-        contentAlignment = Alignment.Center
-    ) {
-        when {
-            !posterUrl.isNullOrEmpty() -> DetailRemoteArtwork(
-                imageUrl = posterUrl,
-                placeholder = placeholder,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
-            coverBitmap != null -> Image(
-                bitmap = coverBitmap.asImageBitmap(),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
-            else -> Icon(
-                painter = painterResource(placeholder),
-                contentDescription = null,
-                tint = Color.Unspecified,
-                modifier = Modifier.size(96.dp)
-            )
-        }
-    }
-}
-
-@Composable
-private fun DetailActionButton(action: DetailAction, onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = VLCThemeDefaults.colors.primary,
-            contentColor = Color.White
-        ),
-        modifier = Modifier.height(44.dp)
-    ) {
-        Text(action.label, maxLines = 1, overflow = TextOverflow.Ellipsis)
-    }
-}
-
-@Composable
-private fun DetailImageSection(
-    title: Int,
-    images: List<MediaImage>,
-    poster: Boolean,
-    onImageClick: (MediaImage) -> Unit
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        DetailSectionHeader(title)
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            items(images, key = { "${it.mediaId}-${it.url}" }) { image ->
-                DetailImageCard(
-                    image = image,
-                    poster = poster,
-                    onClick = { onImageClick(image) }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun DetailPersonCard(person: Person) {
-    Surface(
-        color = VLCThemeDefaults.colors.cardBackground.copy(alpha = 0.94f),
-        contentColor = VLCThemeDefaults.colors.fontDefault,
-        shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, VLCThemeDefaults.colors.cardBorder),
-        modifier = Modifier
-            .width(128.dp)
-            .focusable()
-    ) {
-        Column {
-            DetailRemoteArtwork(
-                imageUrl = person.image,
-                placeholder = R.drawable.ic_people_big,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(2f / 3f)
-            )
-            Text(
-                text = person.name,
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(8.dp)
-            )
-        }
-    }
-}
-
-@Composable
-private fun DetailImageCard(image: MediaImage, poster: Boolean, onClick: () -> Unit) {
-    Surface(
-        color = VLCThemeDefaults.colors.cardBackground.copy(alpha = 0.94f),
-        contentColor = VLCThemeDefaults.colors.fontDefault,
-        shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, VLCThemeDefaults.colors.cardBorder),
-        modifier = Modifier
-            .width(if (poster) 112.dp else 224.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .focusable()
-            .clickable(onClick = onClick)
-    ) {
-        DetailRemoteArtwork(
-            imageUrl = image.url,
-            placeholder = if (poster) R.drawable.ic_video_big else R.drawable.ic_default_cone,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(if (poster) 2f / 3f else 16f / 9f)
-        )
-    }
-}
-
-@Composable
-private fun DetailSectionHeader(title: Int) {
-    Text(
-        text = androidx.compose.ui.res.stringResource(title),
-        style = MaterialTheme.typography.titleLarge,
-        fontWeight = FontWeight.Bold,
-        color = VLCThemeDefaults.colors.fontDefault
+    VLCTvDetailsScreen(
+        title = title,
+        eyebrow = eyebrow,
+        subtitle = subtitle,
+        metadata = chips,
+        description = body,
+        actions = tvActions,
+        onAction = { action -> actions.firstOrNull { it.id == action.id }?.let(onActionClick) },
+        artworkShape = shape,
+        shelves = shelves.map { it.first },
+        onShelfItemClick = { shelf, index -> (shelves.getOrNull(shelf)?.second?.get(index) as? MediaImage)?.let(onImageClick) },
+        backdrop = backgroundBitmap?.let { bitmap ->
+            { Image(bitmap.asImageBitmap(), contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize()) }
+        },
+        heroArtwork = {
+            if (!posterUrl.isNullOrEmpty()) TvRemoteArtworkImage(posterUrl, media.tvSymbol())
+            else TvArtworkImage(coverBitmap, media.tvSymbol())
+        },
+        artwork = { tvItem -> TvSourceArtwork(shelves.firstNotNullOfOrNull { it.second.sourcesByKey[tvItem.key] }, tvItem) },
     )
 }
 
-@Composable
-private fun DetailRemoteArtwork(
-    imageUrl: String?,
-    placeholder: Int,
-    contentScale: ContentScale,
-    modifier: Modifier = Modifier
-) {
-    TvRemoteArtworkImage(
-        imageUrl = imageUrl,
-        placeholder = placeholder,
-        modifier = modifier,
-        contentScale = contentScale
-    )
+/** Cast and artwork choices shared by media and TV show details. */
+internal fun detailShelves(context: android.content.Context, details: MediaMetadataFull): List<Pair<VLCTvShelfModel, TvEntries<Any>>> {
+    val shelves = mutableListOf<Pair<VLCTvShelfModel, TvEntries<Any>>>()
+    fun people(title: Int, people: List<Person>?) {
+        if (people.isNullOrEmpty()) return
+        val entries = TvEntries<Any>(people) { (it as Person).toTvItem() }
+        shelves += VLCTvShelfModel("people-$title", context.getString(title), entries.items) to entries
+    }
+    people(R.string.written_by, details.writers)
+    people(R.string.casting, details.actors)
+    people(R.string.directed_by, details.directors)
+    people(R.string.produced_by, details.producers)
+    people(R.string.music_by, details.musicians)
+    val images = details.metadata?.images.orEmpty()
+    listOf(MediaImageType.POSTER to R.string.posters, MediaImageType.BACKDROP to R.string.backdrops).forEach { (type, title) ->
+        val list = images.filter { it.imageType == type }
+        if (list.isNotEmpty()) {
+            val entries = TvEntries<Any>(list) { (it as MediaImage).toTvItem() }
+            shelves += VLCTvShelfModel("images-$title", context.getString(title), entries.items) to entries
+        }
+    }
+    return shelves
 }
 
 class MediaItemDetailsModel(context: Application) : AndroidViewModel(context), CoroutineScope by MainScope() {
