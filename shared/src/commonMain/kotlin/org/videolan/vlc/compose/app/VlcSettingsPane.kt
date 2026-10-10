@@ -9,6 +9,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.layout.Box
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -86,8 +88,8 @@ internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
                 }
                 item {
                     SettingsGroup(title = ShellStrings.playback()) {
-                        row { ToggleRow(ShellStrings.resumeAudio(), state.audioResume, vm::setAudioResume) }
-                        row { ToggleRow(ShellStrings.resumeVideo(), state.videoResume, vm::setVideoResume) }
+                        row { ToggleRow(ShellStrings.resumeAudio(), state.audioResume, vm::setAudioResume, ShellStrings.audioResumeSummary()) }
+                        row { ToggleRow(ShellStrings.resumeVideo(), state.videoResume, vm::setVideoResume, ShellStrings.videoResumeSummary()) }
                         row {
                             PlaybackSpeedStepperRow(
                                 title = ShellStrings.defaultAudioPlaybackSpeed(),
@@ -102,8 +104,8 @@ internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
                                 onChange = vm::setDefaultVideoPlaybackSpeed,
                             )
                         }
-                        row { ToggleRow(ShellStrings.playbackHistory(), state.playbackHistory, vm::setPlaybackHistory) }
-                        row { ToggleRow(ShellStrings.incognito(), state.incognito, vm::setIncognito) }
+                        row { ToggleRow(ShellStrings.playbackHistory(), state.playbackHistory, vm::setPlaybackHistory, ShellStrings.playbackHistorySummary()) }
+                        row { ToggleRow(ShellStrings.incognito(), state.incognito, vm::setIncognito, ShellStrings.incognitoSummary()) }
                         row {
                             ValueStepperRow(
                                 title = ShellStrings.videoHudTimeout(),
@@ -158,15 +160,15 @@ internal fun SettingsOnlyPane(modifier: Modifier, vm: SettingsViewModel) {
                 }
                 item {
                     SettingsGroup(title = ShellStrings.library()) {
-                        row { ToggleRow(ShellStrings.videoThumbnails(), state.showVideoThumbs, vm::setShowVideoThumbs) }
-                        row { ToggleRow(ShellStrings.showHeaders(), state.showHeaders, vm::setShowHeaders) }
+                        row { ToggleRow(ShellStrings.videoThumbnails(), state.showVideoThumbs, vm::setShowVideoThumbs, ShellStrings.videoThumbnailsSummary()) }
+                        row { ToggleRow(ShellStrings.showHeaders(), state.showHeaders, vm::setShowHeaders, ShellStrings.showHeadersSummary()) }
                         row { ToggleRow(ShellStrings.showTrackNumbers(), state.showTrackNumbers, vm::setShowTrackNumbers) }
                     }
                 }
                 item {
                     SettingsGroup(title = ShellStrings.browser()) {
-                        row { ToggleRow(ShellStrings.showHiddenFiles(), state.showHiddenFiles, vm::setShowHiddenFiles) }
-                        row { ToggleRow(ShellStrings.multimediaFilesOnly(), state.showOnlyMultimedia, vm::setShowOnlyMultimedia) }
+                        row { ToggleRow(ShellStrings.showHiddenFiles(), state.showHiddenFiles, vm::setShowHiddenFiles, ShellStrings.showHiddenFilesSummary()) }
+                        row { ToggleRow(ShellStrings.multimediaFilesOnly(), state.showOnlyMultimedia, vm::setShowOnlyMultimedia, ShellStrings.multimediaFilesOnlySummary()) }
                     }
                 }
                 if (state.supportsNetworkBrowsing || state.supportsRemoteAccess) {
@@ -411,8 +413,8 @@ private fun SettingsGroup(title: String, content: SettingsGroupScope.() -> Unit)
 }
 
 @Composable
-private fun ToggleRow(title: String, checked: Boolean, onChange: (Boolean) -> Unit) {
-    VLCSettingsToggleRow(title = title, checked = checked, onCheckedChange = onChange)
+private fun ToggleRow(title: String, checked: Boolean, onChange: (Boolean) -> Unit, summary: String? = null) {
+    VLCSettingsToggleRow(title = title, checked = checked, onCheckedChange = onChange, summary = summary)
 }
 
 @Composable
@@ -427,33 +429,42 @@ private fun ValueStepperRow(
     val decreaseDescription = ShellStrings.decrease(title)
     val increaseDescription = ShellStrings.increase(title)
     Row(
-        Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, top = 6.dp, bottom = 10.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        Modifier.fillMaxWidth().heightIn(min = VLCLayout.RowHeight).padding(start = 20.dp, end = 12.dp, top = 8.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-        TextButton(
-            onClick = onDecrease,
-            enabled = decreaseEnabled,
-            modifier = Modifier
-                .size(48.dp)
-                .semantics { contentDescription = decreaseDescription },
-            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 8.dp),
-        ) { Text("−") }
+        Text(title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f).padding(end = 12.dp))
+        // One connected control reads as a single value with two nudges, not three loose glyphs.
+        Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerHighest) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                StepperButton("−", decreaseEnabled, decreaseDescription, onDecrease)
+                Text(
+                    value,
+                    style = MaterialTheme.typography.titleSmall.copy(fontFeatureSettings = "tnum"),
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier.widthIn(min = 44.dp),
+                )
+                StepperButton("+", increaseEnabled, increaseDescription, onIncrease)
+            }
+        }
+    }
+}
+
+@Composable
+private fun StepperButton(glyph: String, enabled: Boolean, description: String, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(44.dp)
+            .clip(CircleShape)
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .semantics { contentDescription = description },
+        contentAlignment = Alignment.Center,
+    ) {
         Text(
-            value,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(horizontal = 4.dp),
+            glyph,
+            style = MaterialTheme.typography.titleLarge,
+            color = if (enabled) VLCThemeDefaults.colors.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.32f),
         )
-        TextButton(
-            onClick = onIncrease,
-            enabled = increaseEnabled,
-            modifier = Modifier
-                .size(48.dp)
-                .semantics { contentDescription = increaseDescription },
-            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 8.dp),
-        ) { Text("+") }
     }
 }
 

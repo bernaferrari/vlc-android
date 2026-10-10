@@ -31,7 +31,6 @@ import org.videolan.vlc.repository.HistoryRepository
 import org.videolan.vlc.repository.PlaylistRepository
 import org.videolan.vlc.repository.StreamRepository
 import org.videolan.vlc.compose.artwork.ArtworkLoaderHolder
-import org.videolan.vlc.compose.player.WaveformLoaderHolder
 
 /**
  * Initializes the Koin DI graph on Android, wiring the shared KMP
@@ -97,7 +96,6 @@ object VlcKmpInitializer {
 
             VlcKoin.set(GlobalContext.get())
             ArtworkLoaderHolder.install(AndroidArtworkLoader(appContext))
-            WaveformLoaderHolder.install(AndroidWaveformLoader(appContext))
             wireSettingsBridge(appContext)
             initialized = true
         }

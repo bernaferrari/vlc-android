@@ -108,6 +108,8 @@ fun main(args: Array<String>) {
             add(Shot("wide-video-$theme", wide, setup = { theme(dark); playAudio() }, content = shell(listOf(VideoRoute))))
             add(Shot("wide-audio-album-$theme", wide, setup = { theme(dark); playAudio() }, content = shell(listOf(AudioRoute, AudioEntityRoute("Drift".hashCode().toLong(), "Drift", AudioEntityRouteKind.ALBUM)))))
             add(Shot("wide-settings-$theme", wide, setup = { theme(dark); playAudio() }, content = shell(listOf(MoreRoute, SettingsRoute))))
+            add(Shot("tall-settings-$theme", 412 to 3000, setup = { theme(dark); playAudio() }, content = shell(listOf(MoreRoute, SettingsRoute))))
+            add(Shot("tall-more-$theme", 412 to 1400, setup = { theme(dark); playAudio() }, content = shell(listOf(MoreRoute))))
             add(Shot("wide-player-audio-$theme", wide, setup = { theme(dark); playAudio() }, content = shell(listOf(AudioRoute, PlayerRoute))))
             QASurface.entries.forEach { surface ->
                 add(Shot("qa-${surface.name.lowercase()}-$theme", 412 to 760, setup = { theme(dark) }) {

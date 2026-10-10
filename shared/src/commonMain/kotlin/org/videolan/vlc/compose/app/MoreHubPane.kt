@@ -291,7 +291,7 @@ internal fun MorePane(
                     title = entry.item.displayTitle,
                     subtitle = VlcTextUtils.separatedString(
                         arrayOf(entry.item.artist, entry.item.album),
-                    ).ifBlank { null },
+                    ).ifBlank { null } ?: formatDuration(entry.item.duration).ifBlank { null },
                     selected = selected,
                     position = moreActionPosition(index, state.history.size),
                     onClick = {
@@ -303,11 +303,7 @@ internal fun MorePane(
                         if (selected) {
                             VLCSelectionCheckIndicator(modifier = Modifier.fillMaxSize())
                         } else {
-                            Icon(
-                                if (entry.item.isVideo) MaterialSymbols.Filled.VideoLibrary else MaterialSymbols.Filled.MusicNote,
-                                contentDescription = null,
-                                tint = colors.primary,
-                            )
+                            MediaArtworkSlot(entry.item)
                         }
                     },
                     badgeContent = {

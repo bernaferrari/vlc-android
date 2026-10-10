@@ -72,6 +72,7 @@ import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.compose.theme.LocalVLCMotion
+import org.videolan.vlc.compose.components.VLCSlimSlider
 import org.videolan.vlc.compose.theme.VLCMotion
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialSymbols
@@ -803,7 +804,7 @@ fun VideoHudOverlay(
                     scrubPosition = null
                     onInteractionActiveChanged(false)
                 }
-                PlayerSeekBar(
+                VLCSlimSlider(
                     value = timelineValue,
                     onValueChange = updateTimeline,
                     onValueChangeFinished = commitTimeline,

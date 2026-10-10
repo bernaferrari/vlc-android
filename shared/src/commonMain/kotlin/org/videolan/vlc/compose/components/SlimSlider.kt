@@ -1,4 +1,4 @@
-package org.videolan.vlc.compose.player
+package org.videolan.vlc.compose.components
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,21 +29,28 @@ import org.videolan.vlc.compose.theme.LocalVLCMotion
 import org.videolan.vlc.compose.theme.VLCMotion
 
 /**
- * A quiet timeline: a slim rounded track and a round thumb that grows only while it is held.
- * It keeps Material's slider semantics and keyboard support while avoiding the expressive gap
- * and end-stop dot, which read as a broken bar at the very start of playback.
+ * VLC's one slider look: a slim rounded track and a round thumb that grows only while held.
+ * It keeps Material's slider semantics, steps and keyboard support while avoiding the expressive
+ * gap, tick dots and end-stop marker, which read as noise on timelines and equalizer bands.
+ *
+ * With [anchor] set, the active fill grows from that value instead of the start — the natural
+ * reading for bipolar values such as ±dB gain.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun PlayerSeekBar(
+fun VLCSlimSlider(
     value: Float,
     valueRange: ClosedFloatingPointRange<Float>,
     onValueChange: (Float) -> Unit,
-    onValueChangeFinished: () -> Unit,
-    activeColor: Color,
-    inactiveColor: Color,
     modifier: Modifier = Modifier,
+    onValueChangeFinished: (() -> Unit)? = null,
+    activeColor: Color = MaterialTheme.colorScheme.primary,
+    inactiveColor: Color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.14f),
+    steps: Int = 0,
+    enabled: Boolean = true,
+    anchor: Float? = null,
 ) {
+    val active = if (enabled) activeColor else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
     val interactionSource = remember { MutableInteractionSource() }
     val dragged by interactionSource.collectIsDraggedAsState()
     val pressed by interactionSource.collectIsPressedAsState()
@@ -63,26 +71,31 @@ internal fun PlayerSeekBar(
         onValueChange = onValueChange,
         onValueChangeFinished = onValueChangeFinished,
         valueRange = valueRange,
+        steps = steps,
+        enabled = enabled,
         interactionSource = interactionSource,
         modifier = modifier.fillMaxWidth(),
         thumb = {
             Box(Modifier.size(24.dp), contentAlignment = Alignment.Center) {
-                Box(Modifier.size(thumbSize).background(activeColor, CircleShape))
+                Box(Modifier.size(thumbSize).background(active, CircleShape))
             }
         },
         track = { state ->
-            val span = state.valueRange.endInclusive - state.valueRange.start
-            val fraction = if (span > 0f) ((state.value - state.valueRange.start) / span).coerceIn(0f, 1f) else 0f
+            val start = state.valueRange.start
+            val span = state.valueRange.endInclusive - start
+            fun fraction(v: Float) = if (span > 0f) ((v - start) / span).coerceIn(0f, 1f) else 0f
+            val valueFraction = fraction(state.value)
+            val anchorFraction = anchor?.let(::fraction) ?: 0f
             Canvas(Modifier.fillMaxWidth().height(trackHeight)) {
                 val radius = CornerRadius(size.height / 2f)
                 drawRoundRect(color = inactiveColor, cornerRadius = radius)
-                if (fraction > 0f) {
-                    drawRoundRect(
-                        color = activeColor,
-                        size = Size((size.width * fraction).coerceAtLeast(size.height), size.height),
-                        topLeft = Offset.Zero,
-                        cornerRadius = radius,
-                    )
+                val from = minOf(anchorFraction, valueFraction) * size.width
+                val to = maxOf(anchorFraction, valueFraction) * size.width
+                // A start-anchored fill keeps a rounded cap even at zero; a centred fill at its
+                // anchor shows nothing but the thumb, which is the honest "flat" state.
+                val width = if (anchor == null) (to - from).coerceAtLeast(size.height) else to - from
+                if (width > 0f) {
+                    drawRoundRect(color = active, topLeft = Offset(from, 0f), size = Size(width, size.height), cornerRadius = radius)
                 }
             }
         },

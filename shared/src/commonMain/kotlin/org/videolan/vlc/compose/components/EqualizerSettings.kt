@@ -747,13 +747,14 @@ private fun EqualizerSliderRow(
                 maxLines = 1,
             )
         }
-        Slider(
+        VLCSlimSlider(
             value = value.coerceIn(EqualizerValueMin, EqualizerValueMax),
             onValueChange = onValueChange,
             onValueChangeFinished = onValueChangeFinished,
             valueRange = EqualizerValueMin..EqualizerValueMax,
             steps = EqualizerSliderSteps,
             enabled = enabled,
+            anchor = 0f,
             modifier = Modifier.fillMaxWidth().semantics { contentDescription = label },
         )
     }
