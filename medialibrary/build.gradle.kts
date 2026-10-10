@@ -1,3 +1,4 @@
+import javax.inject.Inject
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.maven.publish)
@@ -17,9 +18,16 @@ val nativeMedialibrary = configurations.create("nativeMedialibrary") {
     isCanBeResolved = true
 }
 val nativeMedialibraryOutput = layout.buildDirectory.dir("generated/medialibrary-native-libs").get().asFile
+/** Configuration-cache safe: lambdas below capture only this injected service, never the script. */
+interface ArchiveAccess {
+    @get:Inject
+    val archives: ArchiveOperations
+}
+
 val extractNativeMedialibrary = tasks.register<Sync>("extractNativeMedialibrary") {
+    val archiveOperations = objects.newInstance<ArchiveAccess>().archives
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    from(nativeMedialibrary.elements.map { archives -> archives.map(::zipTree) }) {
+    from(nativeMedialibrary.elements.map { files -> files.map { archiveOperations.zipTree(it.asFile) } }) {
         include("jni/**/*.so")
         eachFile { path = path.removePrefix("jni/") }
         includeEmptyDirs = false
