@@ -108,6 +108,8 @@ import org.videolan.resources.PLAYLIST_TYPE_ALL
 import org.videolan.resources.PLAY_DISABLE_HARDWARE
 import org.videolan.resources.PLAY_EXTRA_FROM_START
 import org.videolan.resources.PLAY_EXTRA_ITEM_LOCATION
+import org.videolan.vlc.kmp.ExternalVideoLauncher
+import org.videolan.vlc.kmp.SharedPlayerLauncher
 import org.videolan.resources.PLAY_EXTRA_ITEM_TITLE
 import org.videolan.resources.PLAY_EXTRA_OPENED_POSITION
 import org.videolan.resources.PLAY_EXTRA_START_TIME
@@ -501,8 +503,24 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
     override fun createConfigurationContext(overrideConfiguration: Configuration) = super.createConfigurationContext(overrideConfiguration).getContextWithLocale(AppContextProvider.locale)
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    /** Set when a phone launch was handed to the shared player; nothing below was initialised. */
+    private var forwardedToSharedPlayer = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Phones play video in MainActivity's shared player. Other apps can still start this
+        // exported activity explicitly; hand those launches over instead of opening a second
+        // player. TV and the benchmark subclasses keep this activity.
+        if (javaClass == VideoPlayerActivity::class.java && SharedPlayerLauncher.usesSharedPlayer()) {
+            forwardedToSharedPlayer = true
+            if (intent.data != null || intent.hasExtra(PLAY_EXTRA_ITEM_LOCATION)) {
+                ExternalVideoLauncher.play(this, intent)
+            } else {
+                startActivity(SharedPlayerLauncher.intent(this))
+            }
+            finish()
+            return
+        }
 
         dialogsDelegate.observeDialogs(this, this)
         Util.checkCpuCompatibility(this)
@@ -962,6 +980,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
 
     override fun onDestroy() {
         super.onDestroy()
+        if (forwardedToSharedPlayer) return
         playlistModel?.run {
             dataset.removeObserver(playlistObserver)
             onCleared()
@@ -2531,7 +2550,7 @@ open class VideoPlayerActivity : AppCompatActivity(), PlaybackService.Callback, 
         const val FADE_OUT_SCREENSHOT = 14
         private const val KEY_REMAINING_TIME_DISPLAY = "remaining_time_display"
         const val KEY_BLUETOOTH_DELAY = "key_bluetooth_delay"
-        val videoRemoteFlow = MutableStateFlow<String?>(null)
+        val videoRemoteFlow get() = org.videolan.vlc.media.VideoRemoteControl.actions
 
         private const val LOADING_ANIMATION_DELAY = 1000
 

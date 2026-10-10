@@ -46,7 +46,6 @@ import org.videolan.tools.AppScope
 import org.videolan.tools.REMOTE_ACCESS_PLAYBACK_CONTROL
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
-import org.videolan.vlc.gui.video.VideoPlayerActivity
 import org.videolan.vlc.remoteaccessserver.BuildConfig
 import org.videolan.vlc.remoteaccessserver.RemoteAccessServer
 import org.videolan.vlc.remoteaccessserver.convertToJson
@@ -244,7 +243,7 @@ object RemoteAccessWebSockets {
                         service?.moveItem(index, index - 1)
                 }
             }
-            REMOTE -> incomingMessage.stringValue?.let { action -> VideoPlayerActivity.videoRemoteFlow.emit(action) }
+            REMOTE -> incomingMessage.stringValue?.let { action -> org.videolan.vlc.media.VideoRemoteControl.actions.emit(action) }
             SET_BROWSER_AUDIO -> {
                 service?.playlistManager?.setBrowserAudio(incomingMessage.id == 1)
             }

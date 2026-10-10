@@ -3,6 +3,7 @@ package org.videolan.vlc.kmp
 import android.app.Activity
 import kotlinx.coroutines.launch
 import org.videolan.libvlc.MediaPlayer
+import org.videolan.resources.AppContextProvider
 import org.videolan.libvlc.util.DisplayManager
 import org.videolan.libvlc.util.VLCVideoLayout
 import org.videolan.vlc.PlaybackService as AndroidPlaybackHost
@@ -17,7 +18,13 @@ internal object SharedVideoSurfaceRegistry {
     internal enum class VideoPlaybackRoute {
         DEFERRED,
         INLINE,
+        /** Android TV: VideoPlayerActivity owns the vout and replays the request itself. */
+        LEGACY_ACTIVITY,
     }
+
+    /** True while the shared PlayerRoute is composed (audio artwork or video). */
+    @Volatile
+    private var hostActive = false
 
     private var layout: VLCVideoLayout? = null
     private var displayManager: DisplayManager? = null
@@ -31,25 +38,36 @@ internal object SharedVideoSurfaceRegistry {
     }
 
     fun activateHost() {
+        hostActive = true
         AndroidPlaybackHost.instance?.removePopup()
     }
 
     fun deactivateHost() {
+        hostActive = false
         pendingPlayback = null
         detachSurface()
     }
+
+    internal fun currentLayout(): VLCVideoLayout? = layout
+
+    /** True when the shared route currently owns the native video output. */
+    fun ownsVideoOutput(): Boolean = hasAttachedSurface()
 
     /**
      * Chooses exactly one native video owner. A request is either sent through the attached
      * shared output or held until the route creates it; it never opens a second activity/output.
      */
     fun routeVideoPlayback(manager: PlaylistManager, index: Int): VideoPlaybackRoute {
+        if (!SharedPlayerLauncher.usesSharedPlayer()) return VideoPlaybackRoute.LEGACY_ACTIVITY
         if (hasAttachedSurface()) return VideoPlaybackRoute.INLINE
         pendingPlayback = {
             manager.launch {
                 manager.playIndex(index, forceInline = true)
             }
         }
+        // Nobody would ever compose the route for a request started outside the player (an
+        // external intent, a shortcut, a widget): show it, or the request would wait forever.
+        if (!hostActive) SharedPlayerLauncher.open(AppContextProvider.appContext)
         return VideoPlaybackRoute.DEFERRED
     }
 
@@ -107,4 +125,16 @@ internal object SharedVideoSurfaceRegistry {
         displayManager = null
         layout = null
     }
+}
+
+/** Current frame of the shared route's TextureView, or null when no video is shown. */
+internal fun SharedVideoSurfaceRegistry.captureFrame(): android.graphics.Bitmap? {
+    val root = currentLayout() ?: return null
+    fun find(view: android.view.View): android.view.TextureView? = when (view) {
+        is android.view.TextureView -> view
+        is android.view.ViewGroup -> (0 until view.childCount).firstNotNullOfOrNull { find(view.getChildAt(it)) }
+        else -> null
+    }
+    val texture = find(root)?.takeIf { it.isAvailable } ?: return null
+    return texture.bitmap
 }

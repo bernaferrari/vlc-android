@@ -86,7 +86,11 @@ import org.videolan.tools.putSingle
 import org.videolan.vlc.BuildConfig
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
+import org.videolan.vlc.kmp.SharedPlayerLauncher
 import org.videolan.vlc.kmp.SharedVideoSurfaceRegistry
+import org.videolan.vlc.gui.video.VideoPlayerActivity
+import org.videolan.vlc.player.PlaybackResumeOffer
+import org.videolan.resources.PLAY_FROM_SERVICE
 import org.videolan.vlc.util.FileUtils
 import org.videolan.vlc.util.awaitMedialibraryStarted
 import org.videolan.vlc.util.isSchemeFD
@@ -116,6 +120,8 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
         val showAudioPlayer = MutableLiveData<Boolean>().apply { value = false }
         val currentPlayedMedia = MutableLiveData<MediaWrapper?>().apply { value = null }
         val playingState = MutableLiveData<Boolean>().apply { value = false }
+        /** Saved position offered by the shared player instead of a blocking resume dialog. */
+        val resumeOffer = MutableStateFlow<PlaybackResumeOffer?>(null)
         // The playback will periodically modify the media by saving its meta
         // When playing audio, it will have no impact on UI but will trigger the media modified ML callback
         // On slow devices, it will trigger an unwanted "refresh animation". This flag prevents it
@@ -506,6 +512,8 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
     ) {
         if (forceInline) videoBackground = false
         else videoBackground = videoBackground || (!player.isVideoPlaying() && player.canSwitchToVideo())
+        // An offer only ever describes the item it was made for.
+        resumeOffer.value = null
         val mw = withListLock {
             if (mediaList.size() == 0) {
                 Log.w(TAG, "Warning: empty media list, nothing to play !")
@@ -548,13 +556,20 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
             val title = mw.getMetaLong(MediaWrapper.META_TITLE)
             if (title > 0) uri = "$uri#$title".toUri()
 
-            val start: Long
+            var start: Long
             if (isVideoPlaying) {
                 start = if (forceRestart
                     || videoResumeStatus == ResumeStatus.NEVER) 0L else getStartTime(mw)
                 if (!forceResume && videoResumeStatus == ResumeStatus.ASK && start > 0 && isAppStarted()) {
-                    waitForConfirmation.postValue(WaitConfirmation(mw.title, index, flags))
-                    return
+                    if (waitForConfirmation.hasActiveObservers()) {
+                        // VideoPlayerActivity (TV) still asks with its modal dialog.
+                        waitForConfirmation.postValue(WaitConfirmation(mw.title, index, flags))
+                        return
+                    }
+                    // The shared player never blocks: start from the beginning and offer the
+                    // saved position as a dismissible "Resume from …" chip instead.
+                    resumeOffer.value = PlaybackResumeOffer(mw.uri.toString(), start)
+                    start = 0L
                 }
             } else {
                 start = if (forceRestart
@@ -609,6 +624,11 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
                     playIndex(index, flags, forceResume, forceRestart, forceInline = true)
                     return
                 }
+                SharedVideoSurfaceRegistry.VideoPlaybackRoute.LEGACY_ACTIVITY -> {
+                    // TV: VideoPlayerActivity attaches its own vout, then replays this index.
+                    if (player.isPlaying()) player.stop()
+                    VideoPlayerActivity.startOpened(ctx, mw.uri, currentIndex)
+                }
             }
         }
     }
@@ -639,6 +659,22 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
         val media = getCurrentMedia()
         if (media === null || media.hasFlag(MediaWrapper.MEDIA_FORCE_AUDIO) || !player.canSwitchToVideo())
             return false
+        if (!SharedPlayerLauncher.usesSharedPlayer()) {
+            // TV keeps VideoPlayerActivity as its video owner.
+            val hasRenderer = player.hasRenderer
+            videoBackground = false
+            showAudioPlayer.postValue(false)
+            if (player.isVideoPlaying() && !hasRenderer) {
+                player.setVideoTrackEnabled(true)
+                InProcessEvents.emit(
+                    VideoPlayerActivity.getIntent(PLAY_FROM_SERVICE, media, false, currentIndex),
+                )
+            } else if (!player.switchToVideo) {
+                VideoPlayerActivity.startOpened(AppContextProvider.appContext, media.uri, currentIndex)
+                if (!hasRenderer) player.switchToVideo = true
+            }
+            return true
+        }
         // The shared Compose player owns the video output. Enabling the track directly keeps
         // audio-to-video handoff in the same native player instead of opening the old activity.
         SharedVideoSurfaceRegistry.requestInlinePlayback()

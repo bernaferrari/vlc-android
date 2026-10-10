@@ -137,7 +137,13 @@ class AndroidShellHostCallbacks(
         onPlayerSurfaceChanged(active = enabled, immersive = enabled)
     }
 
+    private val playerHostControls by lazy(LazyThreadSafetyMode.NONE) { AndroidPlayerHostControls(activity) }
+
+    override fun playerHostControls(): org.videolan.vlc.compose.player.PlayerHostControls = playerHostControls
+
     override fun onPlayerSurfaceChanged(active: Boolean, immersive: Boolean) {
+        // Orientation preference and brightness belong to the video session only.
+        playerHostControls.onVideoSessionChanged(active && immersive)
         val controller = WindowCompat.getInsetsController(activity.window, activity.window.decorView)
         if (active) {
             if (!playerSurfaceActive) {

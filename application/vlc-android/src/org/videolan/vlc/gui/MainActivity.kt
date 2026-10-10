@@ -75,6 +75,7 @@ import org.videolan.vlc.kmp.AndroidSettingsEffects
 import org.videolan.vlc.kmp.openSettingsAt
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import org.videolan.vlc.kmp.SharedPlayerLauncher
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.reloadLibrary
 import org.videolan.vlc.util.AutoUpdate
@@ -118,6 +119,8 @@ class MainActivity : ContentActivity(),
         setContentView(createMainActivityShell())
         initAudioPlayerContainerActivity()
         setupNavigation(savedInstanceState)
+        // Notification taps, external videos and PiP restore open the shared player route.
+        if (savedInstanceState == null) SharedPlayerLauncher.handleIntent(intent)
 
         /* Set up the action bar */
         prepareActionBar()
@@ -218,6 +221,12 @@ class MainActivity : ContentActivity(),
         }
     }
 
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        SharedPlayerLauncher.handleIntent(intent)
+    }
 
     override fun onResume() {
         super.onResume()

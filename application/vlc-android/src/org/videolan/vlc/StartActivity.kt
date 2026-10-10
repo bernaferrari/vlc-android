@@ -78,6 +78,8 @@ import org.videolan.vlc.gui.helpers.hf.StoragePermissionsDelegate.Companion.getS
 import org.videolan.vlc.gui.onboarding.ONBOARDING_DONE_KEY
 import org.videolan.vlc.gui.onboarding.startOnboarding
 import org.videolan.vlc.gui.video.VideoPlayerActivity
+import org.videolan.vlc.kmp.ExternalVideoLauncher
+import org.videolan.vlc.kmp.SharedPlayerLauncher
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.util.FileUtils
 import org.videolan.vlc.util.Permissions
@@ -269,9 +271,14 @@ class StartActivity : ComponentActivity() {
                     startApplication(tv, firstRun, upgrade, R.id.nav_audio, removeOldDevices)
                 } else if (service != null && service.isInPiPMode.value == true) {
                     service.isInPiPMode.value = false
-                    val startIntent = Intent(this, VideoPlayerActivity::class.java)
-                    startIntent.flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-                    startActivity(startIntent)
+                    if (SharedPlayerLauncher.usesSharedPlayer()) {
+                        // The popup's vout is released when the shared route attaches its own.
+                        startActivity(SharedPlayerLauncher.intent(this))
+                    } else {
+                        val startIntent = Intent(this, VideoPlayerActivity::class.java)
+                        startIntent.flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                        startActivity(startIntent)
+                    }
                 }
                 else
                     startApplication(tv, firstRun, upgrade, target, removeOldDevices)
@@ -338,6 +345,8 @@ class StartActivity : ComponentActivity() {
         // If not should check for permission, and ask them if we don't have them
         if ((intent.data != null && intent.data!!.scheme == "content" && FileUtils.getUri(intent.data) != null)
             || (Permissions.canReadStorage(applicationContext) || getStoragePermission())) when {
+            intent.type?.startsWith("video") == true && SharedPlayerLauncher.usesSharedPlayer() ->
+                ExternalVideoLauncher.play(this@StartActivity, intent)
             intent.type?.startsWith("video") == true -> try {
                 startActivityForResult(intent.setClass(this@StartActivity, VideoPlayerActivity::class.java).apply { putExtra(VideoPlayerActivity.FROM_EXTERNAL, true) }, PROPAGATE_RESULT, Util.getFullScreenBundle())
                 return@launch

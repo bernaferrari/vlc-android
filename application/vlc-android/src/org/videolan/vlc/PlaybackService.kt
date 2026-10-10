@@ -171,6 +171,8 @@ import org.videolan.vlc.gui.helpers.getBitmapFromDrawable
 import org.videolan.vlc.gui.preferences.PreferencesActivity
 import org.videolan.vlc.gui.video.PopupManager
 import org.videolan.vlc.gui.video.VideoPlayerActivity
+import org.videolan.vlc.kmp.SharedPlayerLauncher
+import org.videolan.vlc.kmp.SharedVideoSurfaceRegistry
 import org.videolan.vlc.media.MediaBrowserCompat
 import org.videolan.vlc.media.MediaDescriptionCompat
 import org.videolan.vlc.media.MediaSessionBrowser
@@ -366,6 +368,21 @@ class PlaybackService : MediaLibraryService(), LifecycleOwner, CoroutineScope, S
 
     val sessionPendingIntent: PendingIntent
         get() {
+            if (SharedPlayerLauncher.usesSharedPlayer()) {
+                // Phones: the shared PlayerRoute is the only video owner. Opening
+                // VideoPlayerActivity here created a second vout next to the route's surface.
+                return when {
+                    playlistManager.player.isVideoPlaying() -> SharedPlayerLauncher.pendingIntent(this)
+                    playlistManager.videoBackground || canSwitchToVideo() && !currentMediaHasFlag(MediaWrapper.MEDIA_FORCE_AUDIO) ->
+                        SharedPlayerLauncher.pendingIntent(this, switchToVideo = true)
+                    else -> PendingIntent.getActivity(
+                        this,
+                        0,
+                        Intent(this, StartActivity::class.java),
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+                    )
+                }
+            }
             return when {
                 playlistManager.player.isVideoPlaying() -> {//PIP
                     val notificationIntent = Intent(this, VideoPlayerActivity::class.java).apply { putExtra(VideoPlayerActivity.FROM_EXTERNAL, true) }
@@ -882,7 +899,10 @@ class PlaybackService : MediaLibraryService(), LifecycleOwner, CoroutineScope, S
                 removePopup()
                 if (hasMedia()) {
                     currentMediaWrapper!!.removeFlags(MediaWrapper.MEDIA_FORCE_AUDIO)
-                    playlistManager.switchToVideo()
+                    if (playlistManager.switchToVideo() && SharedPlayerLauncher.usesSharedPlayer() &&
+                        !SharedVideoSurfaceRegistry.ownsVideoOutput()) {
+                        SharedPlayerLauncher.open(this)
+                    }
                 }
             }
         }
@@ -1784,12 +1804,23 @@ class PlaybackService : MediaLibraryService(), LifecycleOwner, CoroutineScope, S
     @MainThread
     fun setRenderer(item: RendererItem?) {
         val wasOnRenderer = hasRenderer()
-        if (wasOnRenderer && !hasRenderer() && canSwitchToVideo())
-            VideoPlayerActivity.startOpened(applicationContext,
-                    playlistManager.getCurrentMedia()!!.uri, playlistManager.currentIndex)
         playlistManager.setRenderer(item)
+        // Leaving a renderer hands video back to this device. This used to be tested before the
+        // renderer changed, when it could never be true, so video silently stayed audio-only.
+        if (wasOnRenderer && item == null && canSwitchToVideo()) returnVideoFromRenderer()
         if (!wasOnRenderer && item != null) audioFocusHelper.changeAudioFocus(false)
         else if (wasOnRenderer && item == null && isPlaying) audioFocusHelper.changeAudioFocus(true)
+    }
+
+    private fun returnVideoFromRenderer() {
+        val media = playlistManager.getCurrentMedia() ?: return
+        if (!SharedPlayerLauncher.usesSharedPlayer()) {
+            VideoPlayerActivity.startOpened(applicationContext, media.uri, playlistManager.currentIndex)
+            return
+        }
+        media.removeFlags(MediaWrapper.MEDIA_FORCE_AUDIO)
+        playlistManager.switchToVideo()
+        if (!SharedVideoSurfaceRegistry.ownsVideoOutput()) SharedPlayerLauncher.open(applicationContext)
     }
 
     @MainThread

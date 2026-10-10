@@ -33,6 +33,7 @@ import org.videolan.vlc.app.VlcKoin
 import org.videolan.vlc.compose.app.VlcKoinMainShell
 import org.videolan.vlc.kmp.AndroidShellHostCallbacks
 import org.videolan.vlc.kmp.AndroidPlayerSurface
+import org.videolan.vlc.kmp.SharedPlayerLauncher
 import org.videolan.vlc.gui.MainActivity
 import org.videolan.vlc.kmp.AndroidPipController
 import org.videolan.vlc.kmp.VlcKmpInitializer
@@ -72,9 +73,12 @@ class Navigator : DefaultLifecycleObserver, INavigator {
         attachSharedShell()
         updateCheckedItem(initialId)
         currentDestinationId = initialId
+        SharedPlayerLauncher.shellStarted = true
     }
 
-    override fun onStop(owner: LifecycleOwner) {}
+    override fun onStop(owner: LifecycleOwner) {
+        SharedPlayerLauncher.shellStarted = false
+    }
 
     private fun tabForNavId(id: Int): MainTab = when (id) {
         R.id.nav_audio -> MainTab.AUDIO
@@ -113,6 +117,7 @@ class Navigator : DefaultLifecycleObserver, INavigator {
                         title = activity.getString(R.string.app_name),
                         hostCallbacks = hostCallbacks,
                         playerSurface = AndroidPlayerSurface,
+                        openPlayerRequests = SharedPlayerLauncher.openRequests,
                     )
                 }
             },

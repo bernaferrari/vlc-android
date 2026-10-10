@@ -38,6 +38,7 @@ import org.videolan.vlc.player.PlaybackEqualizerBand
 import org.videolan.vlc.player.PlaybackEqualizerPreset
 import org.videolan.vlc.player.PlaybackBookmark
 import org.videolan.vlc.player.PlaybackBookmarks
+import org.videolan.vlc.player.PlaybackResumeOffer
 import org.videolan.vlc.PlaybackService as AndroidPlaybackHost
 
 /**
@@ -105,6 +106,11 @@ class AndroidPlaybackService(
     override val equalizer: Flow<PlaybackEqualizer> = _equalizer.asStateFlow()
     private val _bookmarks = MutableStateFlow(PlaybackBookmarks())
     override val bookmarks: Flow<PlaybackBookmarks> = _bookmarks.asStateFlow()
+    override val resumeOffer: Flow<PlaybackResumeOffer?> = PlaylistManager.resumeOffer
+
+    override fun dismissResumeOffer() {
+        PlaylistManager.resumeOffer.value = null
+    }
     private var activeEqualizer: MediaPlayer.Equalizer? = null
     private var equalizerEnabled = false
     private var selectedEqualizerPresetId: String? = null
