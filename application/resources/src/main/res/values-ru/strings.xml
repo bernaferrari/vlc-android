@@ -139,7 +139,6 @@
     <string name="noplaylist">Плейлисты не найдены.</string>
     <string name="nosubfolder">Нет вложенной папки</string>
     <string name="directorynotfound">Каталог \'%1$s\' не найден.</string>
-    <string name="nohistory">История воспроизведения пуста.</string>
     <string name="cover_art">Обложка</string>
     <string name="shuffle_all_title">Перемешать все</string>
     <string name="shuffle_title">Режим перемешивания</string>
@@ -673,7 +672,6 @@
     <string name="light_theme">Светлая тема</string>
     <string name="add">Добавить</string>
     <string name="add_to_new_playlist">Добавить в новый плейлист</string>
-    <string name="resume_card_message">Возобновить воспроизведение %1$s?</string>
     <string name="misc">Разное</string>
     <string name="popup_force_legacy_title">Использовать собственное окно PiP</string>
     <string name="popup_force_legacy_summary">Использовать собственное изменяемое окно Picture-in-Picture</string>
@@ -795,8 +793,6 @@
     <string name="rename_group">Переименовать группу видео</string>
     <string name="ungroup">Разгруппировать</string>
     <string name="group_similar">Перегруппировать автоматически</string>
-    <string name="no_group_found">Группы видео не найдены</string>
-    <string name="no_favorite">Нет избранного</string>
     <string name="empty_directory">Пусто</string>
     <string name="no_track">Нет дорожек</string>
 
@@ -807,7 +803,6 @@
     <string name="sub_result_by_name_episode">Эпизод %s</string>
     <string name="sub_result_by_file">Результаты для вашего файла</string>
     <string name="donate">Помощь проекту VLC</string>
-    <string name="donate_desc">Поддержите энтузиастов, создающих VLC</string>
     <string name="donate_subscribtion">Я желаю вносить этот вклад ежемесячно</string>
     <string name="donate_send">Оказать спонсорскую помощь</string>
     <string name="donation_description">Ваша финансовая поддержка поможет нам:\nУлучшать приложение VLC для Android\nПоддерживать организацию VideoLAN</string>
@@ -823,8 +818,6 @@
     <string name="mark_as_played">Пометить как воспроизведённое</string>
     <string name="mark_as_not_played">Пометить как невоспроизведённое</string>
     <string name="mark_all_as_played">Пометить всё как воспроизведённое</string>
-    <string name="new_group">Новая группа</string>
-    <string name="new_group_desc">Создать новую группу</string>
 
     <string name="air_action_rewind">Назад на 10 сек.</string>
     <string name="air_action_forward">Вперёд на 10 сек.</string>
@@ -902,8 +895,6 @@
     <string name="notch">Чёлка</string>
     <string name="always_fast_seek">Всегда использовать быстрое позиционирование</string>
     <string name="always_fast_seek_summary">Переход работает быстрее, но менее точно</string>
-    <string name="touch_only">Только для тактильных экранов</string>
-    <string name="touch_only_description">Переключиться в мобильный интерфейс можно только с тактильного экрана (или мышью).\nПроведите пальцем (или указателем) ниже, чтобы проверить, что интерфейс можно сменить безопасно.</string>
     <string name="no_web_browser">Браузер не установлен</string>
     <string name="no_web_browser_message">Открыть ссылку можно на смартфоне, просканировав этот код.\nАдрес: %s</string>
     <string name="no_video">Нет видео</string>
@@ -952,7 +943,6 @@
     <string name="talkback_minutes">мин.</string>
     <string name="talkback_seconds">сек.</string>
     <string name="talkback_list_section">Заголовок: %s</string>
-    <string name="talkback_enter_screen">Перейти к %s</string>
     <string name="talkback_file_size">Размер файла: %s</string>
     <string name="talkback_open_in_browser">Открыть в браузере</string>
     <string name="talkback_video_player">Видеоплеер. Коснитесь, чтобы появились элементы управления. Нажмите кнопку Назад, чтобы скрыть их.</string>

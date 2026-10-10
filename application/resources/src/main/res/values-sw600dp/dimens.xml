@@ -14,7 +14,6 @@
     <dimen name="audioplayer_controls_margin">16dp</dimen>
 
 
-    <dimen name="navigation_margin">72dp</dimen>
 
     <!-- pop-Up player -->
     <dimen name="video_pip_width">512dp</dimen>

@@ -113,7 +113,6 @@
     <item name="nav_playlists" type="id" />
     <item name="nav_more" type="id" />
     <item name="ml_menu_save" type="id" />
-    <item name="ml_menu_clean" type="id" />
     <item name="backgroundView" type="id" />
     <item name="top_gradient" type="id" />
     <item name="bottom_gradient" type="id" />

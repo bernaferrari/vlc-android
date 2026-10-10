@@ -90,7 +90,6 @@
     <string name="nomedia">ஊடகக் கோப்புகள் காணவில்லை, சாதனத்தில் சில கோப்புகளை ஏற்று (அ) முன்னுரிமைகளைச் சரிச்செய்யவும்.</string>
     <string name="noplaylist">இயக்கபட்டியல் ஏதுமில்லை.</string>
     <string name="directorynotfound">\'%1$s\' அடைவுப் பாதைக் காணப்படவில்லை.</string>
-    <string name="nohistory">வரலாறு ஏதுமில்லை.</string>
 
     <string name="cover_art">அட்டைப் படம்</string>
     <string name="shuffle_title">கலக்கு இயக்க முறை</string>
@@ -394,7 +393,6 @@
     <string name="rename_group">காணொளி குழுவை மறுபெயரிடு</string>
     <string name="swipe_unlock">பூட்டவிழ்க்க தேய்</string>
     <string name="donate">VLC-ஐ உதவு</string>
-    <string name="donate_desc">VLC-ஐ கட்டும் தன்னார்வலர்களை ஆதரி</string>
     <string name="tip_jar">VLC-ஐ உதவு</string>
     <string name="air_action_forward">10நொடி முன்னே நாடு</string>
     <string name="video_hud_timeout">காணொளியியக்கி கட்டுப்பாடுகள் மறைய தாமதம்</string>

@@ -162,7 +162,6 @@
     <string name="noplaylist">Δεν βρέθηκε καμία λίστα αναπαραγωγής.</string>
     <string name="nosubfolder">Δεν βρέθηκε υποφάκελος</string>
     <string name="directorynotfound">Η διαδρομή του φακέλου \'%1$s\' δεν βρέθηκε.</string>
-    <string name="nohistory">Δεν έχετε ιστορικό αναπαραγωγής ακόμα.</string>
     <string name="cant_ban_root">Δεν μπορείτε να αποκλείσετε έναν ριζικό φάκελο</string>
 
     <string name="cover_art">Εξώφυλλο</string>
@@ -895,7 +894,6 @@
     <string name="add_to_new_playlist">Προσθήκη σε νέα λίστα αναπαραγωγής</string>
     <string name="create_new_playlist">Δημιουργία νέας λίστας αναπαραγωγής</string>
     <string name="create">Δημιουργία</string>
-    <string name="resume_card_message">Συνέχιση αναπαραγωγής του %1$s;</string>
     <string name="misc">Διάφορα</string>
     <string name="popup_force_legacy_title">Χρήση εξατομικευμένου αναδυόμενου παράθυρου εικόνας-σε-εικόνα</string>
     <string name="popup_force_legacy_summary">Χρήση εξατομικευμένου αναδυόμενου παράθυρου εικόνας-σε-εικόνα μεταβλητού μεγέθους</string>
@@ -1024,8 +1022,6 @@
     <string name="rename_group">Μετονομασία ομάδας βίντεο</string>
     <string name="ungroup">Απο-ομαδοποίηση</string>
     <string name="group_similar">Αυτόματη αναομαδοποίηση</string>
-    <string name="no_group_found">Δεν βρέθηκε ομάδα βίντεο</string>
-    <string name="no_favorite">Κανένα αγαπημένο</string>
     <string name="empty_directory">Κενό</string>
     <string name="no_track">Κανένα κομμάτι</string>
 
@@ -1038,7 +1034,6 @@
 
     <string name="sub_result_by_file">Αποτελέσματα για το αρχείο σας</string>
     <string name="donate">Βοηθήστε το VLC</string>
-    <string name="donate_desc">Υποστηρίξτε τους εθελοντές που αναπτύσσουν το VLC</string>
     <string name="donate_subscribtion">Επιθυμώ αυτή να είναι μια μηνιαία χορηγία</string>
     <string name="donate_send">Έναρξη χορηγίας</string>
     <string name="donation_description">Η χορηγία σας μας επιτρέπει να:\nΒελτιώσουμε την εφαρμογή του VLC για το Android\nΥποστηρίξουμε την Οργάνωση VideoLAN</string>
@@ -1055,8 +1050,6 @@
     <string name="mark_as_not_played">Σήμανση ως μη αναπαραγμένου</string>
     <string name="mark_all_as_played">Σήμανση όλων ως αναπαραγμένων</string>
     <string name="mark_all_as_not_played">Επισήμανση όλων ως μη αναπαραγμένων</string>
-    <string name="new_group">Νέα ομάδα</string>
-    <string name="new_group_desc">Δημιουργία νέας ομάδας</string>
 
     <string name="air_action_rewind">Οπισθοχώρηση 10 δευτ.</string>
     <string name="air_action_forward">Ανίχνευση 10 δευτ. μπροστά</string>
@@ -1193,8 +1186,6 @@
     <string name="notch">Εγκοπή</string>
     <string name="always_fast_seek">Μόνιμη χρήση γρήγορης ανίχνευσης</string>
     <string name="always_fast_seek_summary">Η ανίχνευση είναι ταχύτερη, αλλά μπορεί να είναι λιγότερο ακριβής</string>
-    <string name="touch_only">Αποκλειστική λειτουργία αφής</string>
-    <string name="touch_only_description">Η μετάβαση στη διεπαφή για κινητά μπορεί να γίνει μόνο με οθόνη αφής ή ποντίκι.\nΣύρετε παρακάτω για να επαληθεύσετε ότι αυτή η δυνατότητα είναι ασφαλής για αλλαγή.</string>
     <string name="no_web_browser">Δεν έχει εγκατασταθεί πρόγραμμα περιήγησης ιστού</string>
     <string name="no_web_browser_message">Μπορείτε να το σαρώσετε με το κινητό σας.\nΗ διεύθυνση είναι %s</string>
     <string name="no_video">Δεν υπάρχει διαθέσιμο βίντεο</string>
@@ -1261,7 +1252,6 @@
     <string name="talkback_minutes">λεπτά</string>
     <string name="talkback_seconds">δευτερόλεπτα</string>
     <string name="talkback_list_section">Επικεφαλίδα: %s</string>
-    <string name="talkback_enter_screen">Πλοήγηση στο %s</string>
     <string name="talkback_file_size">Μέγεθος αρχείου: %s</string>
     <string name="talkback_open_in_browser">Άνοιγμα στο πρόγραμμα περιήγησης ιστού</string>
     <string name="talkback_video_player">Αναπαραγωγή βίντεο. Πατήστε για να εμφανιστούν τα στοιχεία ελέγχου. Πατήστε το κουμπί πίσω για να τα αποκρύψετε</string>

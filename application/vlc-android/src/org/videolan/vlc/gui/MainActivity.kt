@@ -22,7 +22,6 @@ package org.videolan.vlc.gui
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.Menu
@@ -57,8 +56,6 @@ import org.videolan.tools.PERMISSION_NEXT_ASK
 import org.videolan.tools.RESULT_RESCAN
 import org.videolan.tools.RESULT_RESTART
 import org.videolan.tools.RESULT_RESTART_APP
-import org.videolan.tools.RESULT_UPDATE_ARTISTS
-import org.videolan.tools.RESULT_UPDATE_SEEN_MEDIA
 import org.videolan.tools.Settings
 import org.videolan.tools.putSingle
 import org.videolan.vlc.BuildConfig
@@ -80,7 +77,6 @@ import org.videolan.vlc.util.AutoUpdate
 import org.videolan.vlc.util.Permissions
 import org.videolan.vlc.util.Util
 import org.videolan.vlc.util.WhatsNewManager
-import org.videolan.vlc.util.getScreenWidth
 import java.io.File
 import java.util.concurrent.TimeUnit
 
@@ -93,8 +89,6 @@ class MainActivity : ContentActivity(),
     var refreshing: Boolean = false
     private lateinit var mediaLibrary: Medialibrary
     private var scanNeeded = false
-    /** Compose bottom/rail selection host for [MainNavChrome]. */
-    var mainNavChromeState: MainNavChromeState? = null
 
     private lateinit var toolbarIcon: ImageView
 
@@ -215,20 +209,6 @@ class MainActivity : ContentActivity(),
             settings.putSingle(PERMISSION_NEXT_ASK, System.currentTimeMillis() + TimeUnit.DAYS.toMillis(2))
         }
         updateIncognitoModeIcon()
-        configurationChanged(getScreenWidth())
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == Permissions.FINE_STORAGE_PERMISSION_REQUEST_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                forceRefresh()
-            }
-        }
     }
 
 
@@ -277,7 +257,6 @@ class MainActivity : ContentActivity(),
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         menu?.findItem(R.id.ml_menu_refresh)?.isVisible = Permissions.canReadStorage(this)
         menu?.findItem(R.id.incognito_mode)?.isChecked = Settings.getInstance(this).getBoolean(KEY_INCOGNITO, false)
-        menu?.let { prepareCurrentScreenOptions(it) }
         return super.onPrepareOptionsMenu(menu)
     }
 
@@ -286,15 +265,12 @@ class MainActivity : ContentActivity(),
      */
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId != R.id.ml_menu_filter) UiTools.setKeyboardVisibility(appBarLayout, false)
-        if (onCurrentScreenOptionsItemSelected(item)) return true
 
         // Handle item selection
         return when (item.itemId) {
             // Refresh
-            R.id.ml_menu_refresh -> {
-                if (Permissions.canReadStorage(this)) forceRefresh()
-                true
-            }
+            // The shared shell observes repositories; there is no Android screen to refresh.
+            R.id.ml_menu_refresh -> true
             R.id.incognito_mode -> {
                 lifecycleScope.launch {
                     if (!UiTools.updateIncognitoMode(this@MainActivity, item)) return@launch
@@ -315,13 +291,6 @@ class MainActivity : ContentActivity(),
 
     }
 
-    fun forceRefresh() {
-        if (refreshCurrentScreen()) return
-        if (!mediaLibrary.isWorking) {
-            reloadLibrary()
-        }
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 //        if (VLCBilling.getInstance(this.application).iabHelper.handleActivityResult(requestCode, resultCode, data)) return
@@ -333,19 +302,11 @@ class MainActivity : ContentActivity(),
                     finish()
                     startActivity(intent)
                 }
-                RESULT_UPDATE_SEEN_MEDIA -> if (currentDestinationId == R.id.nav_video) refreshCurrentScreen()
-                RESULT_UPDATE_ARTISTS -> {
-                    if (currentDestinationId == R.id.nav_audio) refreshCurrentScreen()
-                }
             }
         } else if (requestCode == ACTIVITY_RESULT_OPEN && resultCode == RESULT_OK) {
             MediaUtils.openUri(this, data!!.data)
         } else if (requestCode == ACTIVITY_RESULT_SECONDARY) {
-            if (resultCode == RESULT_RESCAN) {
-                forceRefresh()
-            } else {
-                scanNeeded = false
-            }
+            if (resultCode != RESULT_RESCAN) scanNeeded = false
         }
     }
 

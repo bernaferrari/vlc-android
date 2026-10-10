@@ -184,7 +184,6 @@
     <string name="noplaylist">Žádný seznam skladeb</string>
     <string name="nosubfolder">Žádná podsložka</string>
     <string name="directorynotfound">Nelze nalézt umístění adresáře \'%1$s\'</string>
-    <string name="nohistory">Žádná historie přehraných položek</string>
     <string name="cant_ban_root">Nemůžete zakázet hlavní složku</string>
 
     <string name="cover_art">Obal alba</string>
@@ -922,7 +921,6 @@
     <string name="add_to_new_playlist">Přidat do nového seznamu skladeb</string>
     <string name="create_new_playlist">Vytvořit nový seznam skladeb</string>
     <string name="create">Vytvořit</string>
-    <string name="resume_card_message">Chcete pokračovat v přehrávání \'%1$s\'?</string>
     <string name="misc">Různé</string>
     <string name="popup_force_legacy_title">Použít vlastní režim Obraz v obraze</string>
     <string name="popup_force_legacy_summary">Použít vlastní režim Obraz v obraze (PiP) s možností změny velikosti.</string>
@@ -1056,8 +1054,6 @@
     <string name="rename_group">Přejmenovat název skupiny videí</string>
     <string name="ungroup">Žádné seskupení</string>
     <string name="group_similar">Automaticky seskupit</string>
-    <string name="no_group_found">Nebyla nalezena žádná skupina videí</string>
-    <string name="no_favorite">Žádné oblíbené položky</string>
     <string name="empty_directory">Prázdný adresář</string>
     <string name="no_track">Žádné stopy</string>
 
@@ -1070,7 +1066,6 @@
 
     <string name="sub_result_by_file">Výsledky pro Váš soubor</string>
     <string name="donate">Přispět VLC</string>
-    <string name="donate_desc">Podpořte dobrovolné tvůrce aplikace VLC</string>
     <string name="donate_subscribtion">Měsíční příspěvky</string>
     <string name="donate_send">Začít přispívat</string>
     <string name="donation_description">Vaše příspěvky nám umožní:\nVylepšovat aplikaci VLC\nPodpořit asociaci VideoLAN.</string>
@@ -1087,8 +1082,6 @@
     <string name="mark_as_not_played">Označit jako nepřehrané</string>
     <string name="mark_all_as_played">Označit vše jako přehrané</string>
     <string name="mark_all_as_not_played">Označit vše jako nepřehrané</string>
-    <string name="new_group">Nová skupina</string>
-    <string name="new_group_desc">Vytvořit novou skupinu</string>
 
     <string name="air_action_rewind">Posunout o 10 sek. dozadu</string>
     <string name="air_action_forward">Posunout o 10 sek. dopředu</string>
@@ -1229,8 +1222,6 @@
     <string name="notch">Výřez na obrazovce</string>
     <string name="always_fast_seek">Vždy použít rychlé posunutí</string>
     <string name="always_fast_seek_summary">Posunutí je rychlejší, ale může být méně přesné.</string>
-    <string name="touch_only">Funkce pouze dotykem</string>
-    <string name="touch_only_description">Přepnutí na mobilní rozhraní lze provést pouze pomocí dotykové obrazovky nebo myši.\nPosunutím níže ověřte, zda je změna této funkce bezpečná.</string>
     <string name="no_web_browser">Není nainstalován žádný prohlížeč</string>
     <string name="no_web_browser_message">Toto můžete naskenovat ze svého mobilního telefonu.\nURL adresa je %s</string>
     <string name="no_video">Není dostupné žádné video</string>
@@ -1297,7 +1288,6 @@
     <string name="talkback_minutes">min.</string>
     <string name="talkback_seconds">sek.</string>
     <string name="talkback_list_section">Záhlaví: %s</string>
-    <string name="talkback_enter_screen">Přejít na %s</string>
     <string name="talkback_file_size">Velikost souboru: %s</string>
     <string name="talkback_open_in_browser">Otevřít ve webovém prohlížeči</string>
     <string name="talkback_video_player">Přehrávač videa. Klikněte pro zobrazení ovládání. Kliknutím na tlačítko zpět je skryjete</string>

@@ -119,7 +119,6 @@
     <string name="noplaylist">Nema pronađenih popisa izvođenja</string>
     <string name="nosubfolder">Nema podmapa</string>
     <string name="directorynotfound">Putanja direktorija \'%1$s\' nije pronađena.</string>
-    <string name="nohistory">Još nemate povijest reprodukcije.</string>
     <string name="cover_art">Omot slike</string>
     <string name="shuffle_all_title">Naizmjenično sve</string>
     <string name="shuffle_title">Naizmjenični način rada</string>
@@ -530,7 +529,6 @@
     <string name="light_theme">Svijetla tema</string>
     <string name="add">Dodaj</string>
     <string name="add_to_new_playlist">Dodaj na novi popis izvođenja</string>
-    <string name="resume_card_message">Nastavi reprodukciju%1$s?</string>
     <string name="misc">Razno</string>
     <string name="popup_force_legacy_title">Koristi prilagođen skočni prozor „slika u slici”</string>
     <string name="popup_force_legacy_summary">Koristi prilagođen skočni prozor „slika u slici” čija se veličina može promijeniti</string>
@@ -605,8 +603,6 @@
     <string name="rename_group">Preimenuj grupu videa</string>
     <string name="ungroup">Rastavi grupu</string>
     <string name="group_similar">Pregrupiraj automaski</string>
-    <string name="no_group_found">Nije pronađena nijedna grupa videa</string>
-    <string name="no_favorite">Nema favorita</string>
     <string name="empty_directory">Prazno</string>
     <string name="swipe_unlock">Povuci prstom za otključavanje</string>
     <string name="swipe_unlock_no_touch">Pritisni dugo za otključavanje</string>
@@ -616,7 +612,6 @@
 
     <string name="sub_result_by_file">Rezultati za tvoju datoteku</string>
     <string name="donate">Pomogni VLC-u</string>
-    <string name="donate_desc">Podrži volontere koji grade VLC</string>
     <string name="tip_jar">Pomogni VLC-u</string>
     <string name="thank_you">Hvala</string>
     <string name="air_action_rewind">Premotaj 10 s natrag</string>

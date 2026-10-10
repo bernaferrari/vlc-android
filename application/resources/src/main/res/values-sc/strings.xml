@@ -164,7 +164,6 @@
     <string name="noplaylist">Peruna iscalita agatada.</string>
     <string name="nosubfolder">Peruna sutacartella</string>
     <string name="directorynotfound">Su percursu de sa cartella \'%1$s\' no est istadu agatadu.</string>
-    <string name="nohistory">Non tenes galu una cronologia de sas riprodutziones.</string>
     <string name="cant_ban_root">Non podes bandire una cartella de raighina</string>
 
     <string name="cover_art">Cobertedda</string>
@@ -900,7 +899,6 @@
     <string name="add_to_new_playlist">Annanghe un\'iscalita noa</string>
     <string name="create_new_playlist">Crea un\'iscalita noa</string>
     <string name="create">Crea</string>
-    <string name="resume_card_message">Cheres sighire cun sa riprodutzione de %1$s?</string>
     <string name="misc">Vàrias</string>
     <string name="popup_force_legacy_title">Imprea una ventanedda Picture-to-Picture personalizada</string>
     <string name="popup_force_legacy_summary">Imprea una ventanedda Picture-to-Picture personalizada chi podet èssere mudada de mannària</string>
@@ -1029,8 +1027,6 @@
     <string name="rename_group">Muda su nùmene a su grupu de vìdeos</string>
     <string name="ungroup">Iscroba</string>
     <string name="group_similar">Agrupa automaticamente</string>
-    <string name="no_group_found">Perunu grupu vìdeu agatadu</string>
-    <string name="no_favorite">Perunu preferidu</string>
     <string name="empty_directory">Bòida</string>
     <string name="no_track">Peruna rasta</string>
 
@@ -1043,7 +1039,6 @@
 
     <string name="sub_result_by_file">Resurtados pro su documentu tuo</string>
     <string name="donate">Agiuda VLC</string>
-    <string name="donate_desc">Suporta sos voluntàrios chi fraigant VLC</string>
     <string name="donate_subscribtion">Dia chèrrere chi custa siat un\'isponsorizatzione mensile</string>
     <string name="donate_send">Faghe incumintzare s\'isponsorizatzione tua</string>
     <string name="donation_description">S\'isponsorizatzione nos at a permìtere de:\nmegiorare s\'aplicatzione de VLC pro Android\nsuportare sa VideoLAN Association</string>
@@ -1060,8 +1055,6 @@
     <string name="mark_as_not_played">Marca comente non riproduidu</string>
     <string name="mark_all_as_played">Marca totu comente riproduidu</string>
     <string name="mark_all_as_not_played">Marca totu comente non riproduidu</string>
-    <string name="new_group">Grupu nou</string>
-    <string name="new_group_desc">Crea unu grupu nou</string>
 
     <string name="air_action_rewind">Torra in segus de 10 seg.</string>
     <string name="air_action_forward">Bae a in antis de 10 seg.</string>
@@ -1198,8 +1191,6 @@
     <string name="notch">Taca</string>
     <string name="always_fast_seek">Imprea semper su positzionamentu lestru</string>
     <string name="always_fast_seek_summary">Su positzionamentu est prus lestru ma diat pòdere èssere prus pagu pretzisu</string>
-    <string name="touch_only">Funtzionalidade tocu ebbia</string>
-    <string name="touch_only_description">Su de colare a s\'interfache mòbile si podet fàghere petzi cun un\'ischermu tàtile o unu ratu.\nIscurre cara a suta pro verificare chi custa funtzionalidade siat segure de modificare.</string>
     <string name="no_web_browser">Perunu navigadore web installadu</string>
     <string name="no_web_browser_message">Podes iscansire custu in su telefoneddu tuo.\nS\'URL est %s</string>
     <string name="no_video">Perunu vìdeu a disponimentu</string>
@@ -1266,7 +1257,6 @@
     <string name="talkback_minutes">minutos</string>
     <string name="talkback_seconds">segundos</string>
     <string name="talkback_list_section">Intestatzione: %s</string>
-    <string name="talkback_enter_screen">Nàviga cara a %s</string>
     <string name="talkback_file_size">Mannària documentu: %s</string>
     <string name="talkback_open_in_browser">Aberi in su navigadore web</string>
     <string name="talkback_video_player">Leghidore de vìdeos. Toca pro ammustrare sos controllos. Toca su butone pro torrare in segus pro los cuare</string>

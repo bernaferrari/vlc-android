@@ -164,7 +164,6 @@
     <string name="noplaylist">Alcuna lista di lettura trova.</string>
     <string name="nosubfolder">Alcunu sottucartularu</string>
     <string name="directorynotfound">U chjassu di u cartulare « %1$s » ùn si trova micca.</string>
-    <string name="nohistory">Ùn ci hè manc’una cronolugia di ripruduzzione.</string>
     <string name="cant_ban_root">Ùn si pò micca pruibì un cartulare principale</string>
 
     <string name="cover_art">Cuprendula</string>
@@ -898,7 +897,6 @@
     <string name="add_to_new_playlist">Aghjunghje à a nova lista di lettura</string>
     <string name="create_new_playlist">Creà una lista di lettura nova</string>
     <string name="create">Creà</string>
-    <string name="resume_card_message">Ripiglià a ripruduzzione di %1$s ?</string>
     <string name="misc">Diversi</string>
     <string name="popup_force_legacy_title">Impiegà una finestra persunalizata fiura-nant’à-fiura (PIP)</string>
     <string name="popup_force_legacy_summary">Impiegà una finestra persunalizata dimensionevule fiura-nant’à-fiura (PIP)</string>
@@ -1027,8 +1025,6 @@
     <string name="rename_group">Rinuminà u gruppu video</string>
     <string name="ungroup">Disunisce</string>
     <string name="group_similar">Raggruppà autumaticamente</string>
-    <string name="no_group_found">Alcunu gruppu video trovu</string>
-    <string name="no_favorite">Alcunu favuritu</string>
     <string name="empty_directory">Viotu</string>
     <string name="no_track">Alcuna traccia</string>
 
@@ -1041,7 +1037,6 @@
 
     <string name="sub_result_by_file">Risultati per u vostru schedariu</string>
     <string name="donate">Aiutà VLC</string>
-    <string name="donate_desc">Sustinite i vuluntarii chì custruiscenu VLC</string>
     <string name="donate_subscribtion">Vogliu ch’ella sia un finanziamentu misincu</string>
     <string name="donate_send">Principià u vostru finanziamentu</string>
     <string name="donation_description">U vostru finanziamentu ci permetterà di :\nAmendà l’appiecazione VLC per Android\nSustene l’associu VideoLAN</string>
@@ -1058,8 +1053,6 @@
     <string name="mark_as_not_played">Marcà cum’è ùn issendu micca vistu</string>
     <string name="mark_all_as_played">Tuttu marcà cum’è issendu visti</string>
     <string name="mark_all_as_not_played">Tuttu marcà cum’è ùn issendu letti</string>
-    <string name="new_group">Novu gruppu</string>
-    <string name="new_group_desc">Creà un novu gruppu</string>
 
     <string name="air_action_rewind">Rivene 10 seconde nanzu</string>
     <string name="air_action_forward">Circà 10 seconde dopu</string>
@@ -1196,8 +1189,6 @@
     <string name="notch">Intacca</string>
     <string name="always_fast_seek">Sempre impiegà u pusiziunà rapidu</string>
     <string name="always_fast_seek_summary">U pusiziunà hè più rapidu ma forse menu precisu</string>
-    <string name="touch_only">Funzione tattile solu</string>
-    <string name="touch_only_description">U passagiu à l’interfaccia mobile pò fassi solu grazia à un screnu tattile o un topu.\nFate sguillà quì sottu per verificà ch’ella si pò cambià sta funzione senza risicu.</string>
     <string name="no_web_browser">Nisunu navigatore web ùn hè installatu</string>
     <string name="no_web_browser_message">Pudete numerizà què nant’à u vostru telefonu.\nL’indirizzu web hè %s</string>
     <string name="no_video">Nisuna video dispunibule</string>
@@ -1264,7 +1255,6 @@
     <string name="talkback_minutes">minuti</string>
     <string name="talkback_seconds">seconde</string>
     <string name="talkback_list_section">Intestatura : %s</string>
-    <string name="talkback_enter_screen">Navigà ver di %s</string>
     <string name="talkback_file_size">Dimensione di schedariu : %s</string>
     <string name="talkback_open_in_browser">Apre in u navigatore internet</string>
     <string name="talkback_video_player">Lettore video. Picchichjà per affissà i cuntrolli. Picchichjà u buttone di ritornu per piattalli.</string>

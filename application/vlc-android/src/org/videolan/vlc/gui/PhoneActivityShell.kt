@@ -44,32 +44,16 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import org.videolan.tools.dp
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.interop.VLCComposeView
-import org.videolan.vlc.gui.helpers.BottomNavigationBehavior
 import org.videolan.vlc.gui.helpers.FloatingActionButtonBehavior
 import org.videolan.vlc.gui.helpers.PlayerBehavior
 import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.view.installScanProgressHost
 
 internal fun MainActivity.createMainActivityShell(): View {
-    val navState = MainNavChromeState()
-    mainNavChromeState = navState
-
     val root = CoordinatorLayout(this).apply {
         id = R.id.coordinator
         layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
     }
-
-    // Compose navigation rail (tablet) — same R.id for layout margins / visibility.
-    val navigationRail = createComposeNavRail(navState) {
-        // FAB on rail: open browser / add — same intent as legacy shell fab.
-        findViewById<View>(R.id.fab)?.performClick()
-    }
-    root.addView(
-        navigationRail,
-        CoordinatorLayout.LayoutParams(CoordinatorLayout.LayoutParams.WRAP_CONTENT, CoordinatorLayout.LayoutParams.MATCH_PARENT).apply {
-            behavior = AppBarLayout.ScrollingViewBehavior()
-        }
-    )
 
     root.addView(createPhoneToolbarShell())
 
@@ -80,7 +64,6 @@ internal fun MainActivity.createMainActivityShell(): View {
     root.addView(
         content,
         CoordinatorLayout.LayoutParams(CoordinatorLayout.LayoutParams.MATCH_PARENT, CoordinatorLayout.LayoutParams.MATCH_PARENT).apply {
-            marginStart = resources.getDimensionPixelSize(R.dimen.navigation_margin)
             behavior = AppBarLayout.ScrollingViewBehavior()
         }
     )
@@ -88,9 +71,7 @@ internal fun MainActivity.createMainActivityShell(): View {
     root.addView(
         createScanProgressComposeHost(),
         CoordinatorLayout.LayoutParams(CoordinatorLayout.LayoutParams.MATCH_PARENT, CoordinatorLayout.LayoutParams.WRAP_CONTENT).apply {
-            anchorId = R.id.navigation
-            anchorGravity = Gravity.TOP
-            gravity = Gravity.TOP
+            gravity = Gravity.BOTTOM
         }
     )
 
@@ -99,23 +80,9 @@ internal fun MainActivity.createMainActivityShell(): View {
     root.addView(
         createShellFab(large = false),
         CoordinatorLayout.LayoutParams(CoordinatorLayout.LayoutParams.WRAP_CONTENT, CoordinatorLayout.LayoutParams.WRAP_CONTENT).apply {
-            anchorId = R.id.navigation
-            anchorGravity = Gravity.TOP or Gravity.END
-            gravity = Gravity.TOP or Gravity.END
-            dodgeInsetEdges = Gravity.BOTTOM
+            gravity = Gravity.BOTTOM or Gravity.END
             behavior = FloatingActionButtonBehavior(this@createMainActivityShell, null)
             bottomMargin = resources.getDimensionPixelSize(R.dimen.default_margin)
-        }
-    )
-
-    // Compose bottom navigation (phone) — Material3 NavigationBar inside ComposeView.
-    val bottomNavigation = createComposeBottomNav(navState)
-    root.addView(
-        bottomNavigation,
-        CoordinatorLayout.LayoutParams(CoordinatorLayout.LayoutParams.MATCH_PARENT, CoordinatorLayout.LayoutParams.WRAP_CONTENT).apply {
-            gravity = Gravity.BOTTOM
-            behavior = BottomNavigationBehavior<View>(this@createMainActivityShell, null)
-            insetEdge = Gravity.BOTTOM
         }
     )
 

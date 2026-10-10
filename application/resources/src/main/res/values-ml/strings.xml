@@ -124,7 +124,6 @@
     <string name="noplaylist">പ്ലേലിസ്റ്റ് കണ്ടെത്താന്‍ സാധിച്ചില്ല</string>
     <string name="nosubfolder">ഉപഫോൾഡർ ഇല്ല</string>
     <string name="directorynotfound">%1$s  ഫോള്‍ഡറിലേക്കുള്ള വഴി കണ്ടെത്താനായില്ല</string>
-    <string name="nohistory">നിങ്ങള്‍ക്ക് ഇതുവരെ പ്ളേബാക്ക് ചരിത്രം ഇല്ല</string>
     <string name="cover_art">കവര്‍ ആര്‍ട്ട്</string>
     <string name="shuffle_all_title">കൂട്ടികലർത്തു </string>
     <string name="shuffle_title">ഷഫിൾ മോഡ്</string>
@@ -671,7 +670,6 @@
     <string name="light_theme">ലൈറ്റ് തീം</string>
     <string name="add">ചേർക്കുക</string>
     <string name="add_to_new_playlist">പുതിയ പ്ളേ ലിസ്റ്റിലേക്ക് ചേർക്കുക </string>
-    <string name="resume_card_message">%1$sന്റെ പ്ലേബാക്ക് തുടരണോ?</string>
     <string name="misc">പലവക</string>
     <string name="popup_force_legacy_title">പ്രത്യേക പിക്ച്ചർ-ഇൻ-പിക്ച്ചർ പോപ്പ് അപ്പ് ഉപയോഗിക്കുക </string>
     <string name="popup_force_legacy_summary">പ്രത്യേക പിക്ച്ചർ-ഇൻ-പിക്ച്ചർ വലിപ്പം ക്രമീകരിക്കാനാകുന്ന പോപ്പ് അപ്പ് ഉപയോഗിക്കുക</string>
@@ -790,8 +788,6 @@
     <string name="rename_group">വീഡിയോ ഗ്രൂപ്പിന്റെ പേരുമാറ്റുക</string>
     <string name="ungroup">അൺഗ്രൂപ്പ്</string>
     <string name="group_similar">യാന്ത്രികമായി വീണ്ടും ഗ്രൂപ്പുചെയ്യുക</string>
-    <string name="no_group_found">വീഡിയോ ഗ്രൂപ്പൊന്നും കണ്ടെത്തിയില്ല</string>
-    <string name="no_favorite">പ്രിയങ്കരമില്ല</string>
     <string name="empty_directory">കാലി</string>
     <string name="no_track">ട്രാക്കില്ല</string>
 
@@ -802,7 +798,6 @@
     <string name="sub_result_by_name_episode">എപ്പിസോഡ് %s</string>
     <string name="sub_result_by_file">നിങ്ങളുടെ ഫയലിനായുള്ള ഫലങ്ങൾ</string>
     <string name="donate">VLC-യെ സഹായിക്കുക</string>
-    <string name="donate_desc">VLC നിർമ്മിക്കുന്ന സന്നദ്ധപ്രവർത്തകരെ പിന്തുണയ്ക്കുക</string>
     <string name="donate_subscribtion">ഇത് പ്രതിമാസ സ്പോൺസർഷിപ്പ് ആകാൻ ഞാൻ ആഗ്രഹിക്കുന്നു</string>
     <string name="donate_send">നിങ്ങളുടെ സ്പോൺസർഷിപ്പ് ആരംഭിക്കുക</string>
     <string name="donation_description">നിങ്ങളുടെ സ്പോൺസർഷിപ്പ് ഞങ്ങളെ Android-നായുള്ള VLC അപ്ലിക്കേഷൻ മെച്ചപ്പെടുത്താൻ സഹായിക്കും\nVideoLAN അസോസിയേഷനെ പിന്തുണയ്ക്കുക</string>
@@ -818,8 +813,6 @@
     <string name="mark_as_played">പ്രവർത്തപ്പിച്ചതായി രേഖപ്പെടുത്തുക</string>
     <string name="mark_as_not_played">പ്ളേ ചെയ്തിട്ടില്ല എന്ന് രേഖപ്പെടുത്തുക</string>
     <string name="mark_all_as_played">എല്ലാം പ്രവർത്തപ്പിച്ചതായി രേഖപ്പെടുത്തുക</string>
-    <string name="new_group">പുതിയ കൂട്ടായ്മ</string>
-    <string name="new_group_desc">പുതിയ കൂട്ടായ്മ ഉണ്ടാക്കുക</string>
 
     <string name="air_action_rewind">10 സെക്കന്റ് പുറകോട്ട്</string>
     <string name="air_action_forward">10 സെക്കന്റ് മുന്നോട്ട് നീക്കുക </string>
@@ -899,8 +892,6 @@
     <string name="notch">നോച്ച്</string>
     <string name="always_fast_seek">എപ്പോഴും ഫാസ്റ്റ് സീക്ക് ഉപയോഗിക്കുക</string>
     <string name="always_fast_seek_summary">സീക്ക് വേഗതയേറിയതാണ്, പക്ഷേ കൃത്യത കുറവായിരിക്കാം</string>
-    <string name="touch_only">ടച്ച് മാത്രം ഫീച്ചർ</string>
-    <string name="touch_only_description">മൊബൈൽ ഇന്റർഫേസിലേക്ക് മാറുന്നത് ഒരു സ്പർശന സ്ക്രീനോ മൗസോ ഉപയോഗിച്ച് മാത്രമേ ചെയ്യാൻ കഴിയൂ. \nഈ ഫീച്ചർ മാറ്റുന്നത് സുരക്ഷിതമാണോ എന്ന് പരിശോധിക്കാൻ താഴെ സ്ലൈഡ് ചെയ്യുക.</string>
     <string name="no_web_browser">വെബ് ബ്രൗസർ ഇൻസ്റ്റാൾ ചെയ്തിട്ടില്ല</string>
     <string name="no_web_browser_message">നിങ്ങളുടെ സ്‌മാർട്ട്‌ഫോണിൽ ഇത് സ്‌കാൻ ചെയ്യാം.\in URL %s ആണ്</string>
     <string name="no_video">വീഡിയോ ലഭ്യമല്ല</string>
@@ -939,7 +930,6 @@
     <string name="talkback_hours">മണിക്കൂറുകൾ</string>
     <string name="talkback_minutes">മിനുട്ടുകൾ</string>
     <string name="talkback_seconds">സെക്കൻഡുകൾ</string>
-    <string name="talkback_enter_screen">%s ലേക്ക് പോകുക</string>
     <string name="talkback_open_in_browser">വെബ് ബ്രൗസറിൽ തുറക്കുക</string>
     <string name="talkback_video_tracks">വീഡിയോ ട്രാക്കുകൾ</string>
     <string name="talkback_audio_tracks">ഓഡിയോ ട്രാക്കുകൾ</string>

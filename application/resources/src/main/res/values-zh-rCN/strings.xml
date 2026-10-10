@@ -154,7 +154,6 @@
     <string name="noplaylist">未找到播放列表。</string>
     <string name="nosubfolder">没有子文件夹</string>
     <string name="directorynotfound">目录路径「%1$s」不存在。</string>
-    <string name="nohistory">尚无播放历史记录。</string>
     <string name="cant_ban_root">根文件夹不可屏蔽</string>
 
     <string name="cover_art">专辑封面</string>
@@ -887,7 +886,6 @@
     <string name="add_to_new_playlist">新建播放列表并添加</string>
     <string name="create_new_playlist">新建播放列表</string>
     <string name="create">新建</string>
-    <string name="resume_card_message">是否继续播放 %1$s?</string>
     <string name="misc">杂项</string>
     <string name="popup_force_legacy_title">使用自定义画中画弹窗</string>
     <string name="popup_force_legacy_summary">使用大小可调整的自定义画中画弹出窗口</string>
@@ -1014,8 +1012,6 @@
     <string name="rename_group">重命名视频分组</string>
     <string name="ungroup">取消分组</string>
     <string name="group_similar">自动重新分组</string>
-    <string name="no_group_found">未找到视频分组</string>
-    <string name="no_favorite">没有收藏内容</string>
     <string name="empty_directory">空</string>
     <string name="no_track">没有轨道</string>
 
@@ -1028,7 +1024,6 @@
 
     <string name="sub_result_by_file">文件搜索结果</string>
     <string name="donate">帮助 VLC</string>
-    <string name="donate_desc">支持 VLC 背后的志愿者们</string>
     <string name="donate_subscribtion">我希望每月都捐</string>
     <string name="donate_send">开始您的赞助</string>
     <string name="donation_description">您的赞助将帮助我们:\n改进 Android 版 VLC 应用\n支持 VideoLAN 协会</string>
@@ -1045,8 +1040,6 @@
     <string name="mark_as_not_played">标记为未播放</string>
     <string name="mark_all_as_played">全部标记为已播放</string>
     <string name="mark_all_as_not_played">全部标记为未播放</string>
-    <string name="new_group">新建分组</string>
-    <string name="new_group_desc">创建一个新的分组</string>
 
     <string name="air_action_rewind">快退 10 秒</string>
     <string name="air_action_forward">快进 10 秒</string>
@@ -1182,8 +1175,6 @@
     <string name="notch">刘海屏</string>
     <string name="always_fast_seek">总是使用快速定位</string>
     <string name="always_fast_seek_summary">定位速度更快，但可能不够精确</string>
-    <string name="touch_only">仅在触摸环境下可用的功能</string>
-    <string name="touch_only_description">只能在触摸屏或鼠标环境下切换到移动版界面。\n请向下滑动，确保您的确可以使用该功能。</string>
     <string name="no_web_browser">未安装网页浏览器</string>
     <string name="no_web_browser_message">可以在您的智能手机上扫描该条码。\n其 URL 为 %s</string>
     <string name="no_video">无视频可用</string>
@@ -1250,7 +1241,6 @@
     <string name="talkback_minutes">分钟</string>
     <string name="talkback_seconds">秒</string>
     <string name="talkback_list_section">标题: %s</string>
-    <string name="talkback_enter_screen">转到 %s</string>
     <string name="talkback_file_size">文件大小: %s</string>
     <string name="talkback_open_in_browser">在浏览器中打开</string>
     <string name="talkback_video_player">视频播放器。轻按可显示控件。轻按 ｢后退｣ 按钮可隐藏控件</string>

@@ -164,7 +164,6 @@
     <string name="noplaylist">Soittolistaa ei löytynyt.</string>
     <string name="nosubfolder">Ei alihakemistoa</string>
     <string name="directorynotfound">Hakemiston polku \"%1$s\" ei löytynyt.</string>
-    <string name="nohistory">Sinulla ei ole vielä toistohistoriaa.</string>
     <string name="cant_ban_root">Et voi kieltää root kansiota</string>
 
     <string name="cover_art">Kansikuva</string>
@@ -919,7 +918,6 @@ Voit toistaa vain suoratoistoa tai verkkomediaa</string>
     <string name="add_to_new_playlist">Lisää uuteen soittolistaan</string>
     <string name="create_new_playlist">Luo uusi soittolista</string>
     <string name="create">Luo</string>
-    <string name="resume_card_message">Jatkatko toistoa %1$s?</string>
     <string name="misc">Sekalaiset</string>
     <string name="popup_force_legacy_title">Käytä mukautettua kuva kuvassa ikkunaa</string>
     <string name="popup_force_legacy_summary">Käytä mukautettavaa kuva kuvassa ikkunan kokoa</string>
@@ -1048,8 +1046,6 @@ Voit toistaa vain suoratoistoa tai verkkomediaa</string>
     <string name="rename_group">Nimeä video ryhmä</string>
     <string name="ungroup">Pura ryhmä</string>
     <string name="group_similar">Ryhmitä automaattisesti</string>
-    <string name="no_group_found">Videoryhmää ei löytynyt</string>
-    <string name="no_favorite">Ei suosikkia</string>
     <string name="empty_directory">Tyhjä</string>
     <string name="no_track">Ei kappaletta</string>
 
@@ -1062,7 +1058,6 @@ Voit toistaa vain suoratoistoa tai verkkomediaa</string>
 
     <string name="sub_result_by_file">Tulokset tiedostollesi</string>
     <string name="donate">Auta VLC:tä</string>
-    <string name="donate_desc">Tue vapaaehtoisia, jotka rakentavat VLC:tä</string>
     <string name="donate_subscribtion">Haluaisin tehdä kuukausilahtoituksen</string>
     <string name="donate_send">Ryhdy sponsoriksi</string>
     <string name="donation_description">Sponsorointisi avulla voimme:\nParantaa VLC-sovellusta Androidille\nTue VideoLAN yhdistystä</string>
@@ -1079,8 +1074,6 @@ Voit toistaa vain suoratoistoa tai verkkomediaa</string>
     <string name="mark_as_not_played">Merkitse toistamattomaksi</string>
     <string name="mark_all_as_played">Merkitse kaikki toistetuksi</string>
     <string name="mark_all_as_not_played">Merkitse kaikki ei toistetuksi</string>
-    <string name="new_group">Uusi ryhmä</string>
-    <string name="new_group_desc">Luo uusi ryhmä</string>
 
     <string name="air_action_rewind">Kelaa 10s taaksepäin</string>
     <string name="air_action_forward">Kelaa 10s eteenpäin</string>
@@ -1219,9 +1212,6 @@ Kieltäminen ei estä VLC:tä toimimasta, mutta ilmoitukset piilotetaan.</string
     <string name="notch">Lovi</string>
     <string name="always_fast_seek">Käytä aina pikakelausta</string>
     <string name="always_fast_seek_summary">Kelaus on nopeampi, mutta tarkkuutta voi olla vähemmän</string>
-    <string name="touch_only">Vain kosketustoiminto</string>
-    <string name="touch_only_description">Mobiilikäyttöliittymään vaihtaminen onnistuu kosketusnäytöllä tai hiirellä.
-Liu\'uta alla varmistaaksesi, että tätä ominaisuutta on turvallista muuttaa.</string>
     <string name="no_web_browser">Selainta ei ole asennettu</string>
     <string name="no_web_browser_message">Voit skannata tämän puhelimellasi.
 Osoite on %s</string>
@@ -1289,7 +1279,6 @@ Osoite on %s</string>
     <string name="talkback_minutes">minuuttia</string>
     <string name="talkback_seconds">sekuntia</string>
     <string name="talkback_list_section">Otsikko: %s</string>
-    <string name="talkback_enter_screen">Ohjaa %s</string>
     <string name="talkback_file_size">Tiedostokoko: %s</string>
     <string name="talkback_open_in_browser">Avaa selaimessa</string>
     <string name="talkback_video_player">Video. Näytä säätimet napauttamalla. Napauta Takaisin-painiketta piilottaaksesi</string>

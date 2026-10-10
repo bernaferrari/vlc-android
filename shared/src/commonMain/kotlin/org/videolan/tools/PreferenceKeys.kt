@@ -66,8 +66,6 @@ const val KEY_AUDIO_SHOW_BOOkMARK_BUTTONS = "audio_show_bookmark_buttons"
 const val KEY_AUDIO_SHOW_BOOKMARK_MARKERS = "audio_show_bookmark_markers"
 const val KEY_PERSISTENT_INCOGNITO = "persistent_incognito"
 const val KEY_BROWSE_NETWORK = "browse_network"
-const val KEY_VIDEOS_CARDS = "video_display_in_cards"
-const val KEY_GROUP_VIDEOS = "video_min_group_length"
 
 
 // AudioPlayer
@@ -325,6 +323,3 @@ const val KEY_ANDROID_AUTO_SUBTITLE_SCALE_VAL = "android_auto_subtitle_scale_val
 //To exclude
 const val KEY_NAVIGATOR_SCREEN_UNSTABLE = "navigator_screen_unstable"
 const val KEY_NAVIGATION_ID = "fragment_id"
-
-/** When true, MainActivity hosts shared VlcMainShell instead of per-tab Android controllers. */
-const val KEY_USE_SHARED_MAIN_SHELL = "use_shared_main_shell"

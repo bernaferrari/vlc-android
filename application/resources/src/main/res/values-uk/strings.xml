@@ -164,7 +164,6 @@
     <string name="noplaylist">Не знайдено список відтворення.</string>
     <string name="nosubfolder">Без підтек</string>
     <string name="directorynotfound">Не знайдено шлях до каталогу \'%1$s\'.</string>
-    <string name="nohistory">У вас ще немає історії відтворення.</string>
     <string name="cant_ban_root">Ви не можете заблокувати кореневу теку</string>
 
     <string name="cover_art">Обкладинка</string>
@@ -876,7 +875,6 @@
     <string name="add_to_new_playlist">Додати до нового списку відтворення</string>
     <string name="create_new_playlist">Створити новий список відтворення</string>
     <string name="create">Створити</string>
-    <string name="resume_card_message">Відновити відтворення з %1$s?</string>
     <string name="misc">Різне</string>
     <string name="popup_force_legacy_title">Використовувати особливий  вигульк картинка-в-картинці </string>
     <string name="popup_force_legacy_summary">Використовувати особливий вигульк картинка-в-картинці зі змінним розміром</string>
@@ -1006,8 +1004,6 @@
     <string name="rename_group">Перейменувати групу відео</string>
     <string name="ungroup">Розгрупувати</string>
     <string name="group_similar">Перегрупувати автоматично</string>
-    <string name="no_group_found">Не знайдено жодної відеогрупи</string>
-    <string name="no_favorite">Не обране</string>
     <string name="empty_directory">Порожньо</string>
     <string name="no_track">Без доріжки</string>
 
@@ -1020,7 +1016,6 @@
 
     <string name="sub_result_by_file">Результати для вашого файла</string>
     <string name="donate">Довідка VLC</string>
-    <string name="donate_desc">Підтримати добровільну збірку VLC</string>
     <string name="donate_subscribtion">Я б хотів, щоби це була місячна підтримка</string>
     <string name="donate_send">Розпочати вашу підтримку</string>
     <string name="donation_description">Ваша підтримка дозволить нам:\nПокращити програму VLC app для Android\nПідтримати асоціацію VideoLAN</string>
@@ -1037,8 +1032,6 @@
     <string name="mark_as_not_played">Позначити як переглянуте</string>
     <string name="mark_all_as_played">Позначии усе як відтворене</string>
     <string name="mark_all_as_not_played">Позначити як невідтворене</string>
-    <string name="new_group">Нова група</string>
-    <string name="new_group_desc">Створити нову групу</string>
 
     <string name="air_action_rewind">Перемотати 10 с</string>
     <string name="air_action_forward">Пошук вперед на 10 с</string>
@@ -1173,8 +1166,6 @@
     <string name="notch">Виріз</string>
     <string name="always_fast_seek">Завжди використовувати швидкий пошук</string>
     <string name="always_fast_seek_summary">Пошук стає швидшим, але менш точнішим</string>
-    <string name="touch_only">Функція “лише дотик“</string>
-    <string name="touch_only_description">Перемикатися на мобільний інтерфейс можна лише за допомогою сенсорного екрана або мишки.\nПрокрутіть нижче, щоб переконатися, що цю функцію можна безпечно змінити.</string>
     <string name="no_web_browser">Нема встановленого вебоглядача</string>
     <string name="no_web_browser_message">Ви можете просканувати це на своєму смартфоні.\n URL%s</string>
     <string name="no_video">Нема доступного відео</string>
@@ -1241,7 +1232,6 @@
     <string name="talkback_minutes">хвилин</string>
     <string name="talkback_seconds">секунд</string>
     <string name="talkback_list_section">Заголовок: %s</string>
-    <string name="talkback_enter_screen">Перейти до %s</string>
     <string name="talkback_file_size">Розмір файлу: %s</string>
     <string name="talkback_open_in_browser">Відкрити у вебоглядачі</string>
     <string name="talkback_video_player">Відеопрогравач. Торкніться, аби показати засоби управління. Торкніться кнопки Назад, щоб приховати їх</string>

@@ -70,7 +70,6 @@
     <string name="please_wait">Molim sačekajte…</string>
     <string name="nomedia">Medijske datoteke nisu pronađene, molimo prenesite neke datoteke na svoj uređaj ili podesite svoje postavke.</string>
     <string name="directorynotfound">Putanja direktorija \'%1$s\' nije pronađena.</string>
-    <string name="nohistory">Nemate historiju reproduciranja.</string>
 
     <string name="cover_art">Omot</string>
     <string name="previous">Prethodno</string>

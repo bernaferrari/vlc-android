@@ -123,7 +123,6 @@
     <string name="noplaylist">Playlist tidak ditemukan.</string>
     <string name="nosubfolder">Subfolder tidak ditemukan</string>
     <string name="directorynotfound">Jalur direktori \'%1$s\' tidak ditemukan.</string>
-    <string name="nohistory">Anda belum memiliki riwayat pemutaran.</string>
     <string name="cover_art">Sampul album</string>
     <string name="shuffle_all_title">Acak semua</string>
     <string name="shuffle_title">Mode acak</string>
@@ -729,7 +728,6 @@
     <string name="light_theme">Tema terang</string>
     <string name="add">Tambah</string>
     <string name="add_to_new_playlist">Tambah ke daftar putar baru</string>
-    <string name="resume_card_message">Lanjutkan pemutaran %1$s?</string>
     <string name="misc">Bermacam-lainnya</string>
     <string name="popup_force_legacy_title">Pergunakan Tampilan gambar-dalam-gambar (PiP) kustom/standar</string>
     <string name="popup_force_legacy_summary">Pergunakan Tampilan gambar-dalam-gambar (PiP) kustom/standar yang dapat diubahsuai</string>
@@ -846,8 +844,6 @@
     <string name="rename_group">Ganti nama grup video</string>
     <string name="ungroup">Pisahkan</string>
     <string name="group_similar">Grup ulang otomatis</string>
-    <string name="no_group_found">Tidak ada grup video ditemukan</string>
-    <string name="no_favorite">Tidak ada favorit</string>
     <string name="empty_directory">Kosong</string>
     <string name="no_track">Tidak ada trek</string>
 
@@ -858,7 +854,6 @@
     <string name="sub_result_by_name_episode">Episode %s</string>
     <string name="sub_result_by_file">Hasil untuk file anda</string>
     <string name="donate">Bantu VLC</string>
-    <string name="donate_desc">Dukung relawan membangun VLC</string>
     <string name="donate_subscribtion">Saya lebih suka ini untuk sponsor bulanan</string>
     <string name="donate_send">Mulai sponsor anda</string>
     <string name="donation_description">Dukungan anda akan membuat kita mampu:\n meningkatkan aplikasi VLC untuk android\n Beri dukungan pada asosiasi VideoLAN</string>
@@ -874,8 +869,6 @@
     <string name="mark_as_played">Tandai sebagai sudah diputar</string>
     <string name="mark_as_not_played">Tandai sebagai belum diputar</string>
     <string name="mark_all_as_played">Tandai semua sebagai sudah diputar</string>
-    <string name="new_group">Grup baru</string>
-    <string name="new_group_desc">Buat grup baru</string>
 
     <string name="air_action_rewind">Mundur 10 detik</string>
     <string name="air_action_forward">Maju 10 detik</string>
@@ -961,8 +954,6 @@
     <string name="notch">Notch</string>
     <string name="always_fast_seek">Selalu gunakan cari cepat</string>
     <string name="always_fast_seek_summary">Cari lebih cepat tapi mungkin kurang tepat</string>
-    <string name="touch_only">Fitur sentuh saja</string>
-    <string name="touch_only_description">Mengganti ke antar muka seluler hanya bisa dilakukan dengan layar taktil atau sebuah tetikus.\nMohon geser di bawah untuk memverifikasi bahwa fitur ini aman untuk diubah.</string>
     <string name="no_web_browser">Tidak ada peramban web terpasang</string>
     <string name="no_web_browser_message">Anda bisa pindai ini pada ponsel pintar Anda.\n URL-nya adalah %s</string>
     <string name="no_video">Tidak ada video tersedia</string>
@@ -1021,7 +1012,6 @@
     <string name="talkback_minutes">menit</string>
     <string name="talkback_seconds">detik</string>
     <string name="talkback_list_section">Tajuk: %s </string>
-    <string name="talkback_enter_screen">Navigasi ke %s</string>
     <string name="talkback_file_size">Ukuran berkas: %s</string>
     <string name="talkback_open_in_browser">Buka di peramban web</string>
     <string name="talkback_video_player">Pemutar video. ketuk untuk menampilkan kontrol. Ketuk tombol kembali untuk menyembunyikannya</string>

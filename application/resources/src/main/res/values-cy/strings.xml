@@ -124,7 +124,6 @@
     <string name="noplaylist">Ni chanfuwyd rhestr chwarae.</string>
     <string name="nosubfolder">Dim is-ffolder</string>
     <string name="directorynotfound">Methwyd dod o hyd i\'r cyfeiriadur \'%1$s\'.</string>
-    <string name="nohistory">Does dim hanes chwarae eto.</string>
     <string name="cover_art">Dyluniad clawr</string>
     <string name="shuffle_all_title">Cymysgu\'r cwbl</string>
     <string name="shuffle_title">Modd cymysgu</string>
@@ -557,7 +556,6 @@
     <string name="light_theme">Thema olau</string>
     <string name="add">Ychwanegu</string>
     <string name="add_to_new_playlist">Ychwanegu at restr chwarae newydd</string>
-    <string name="resume_card_message">Parhau i chwarae %1$s?</string>
     <string name="misc">Amrywiol</string>
     <string name="popup_force_legacy_title">Defnyddio chwaraeydd Llun-o-fewn-Llun dy hun</string>
     <string name="popup_force_legacy_summary">Defnyddio chwaraeydd Llun-o-fewn-Llun dy hun gyda maint addasedig</string>
@@ -675,7 +673,6 @@
     <string name="rename_group">Ailenwi\'r grŵp fideo</string>
     <string name="ungroup">Dadgrwpio</string>
     <string name="group_similar">Ail-grwpio yn awtomatig</string>
-    <string name="no_favorite">Dim ffefrynnau</string>
     <string name="empty_directory">Gwag</string>
     <string name="no_track">Dim trac</string>
 
@@ -686,7 +683,6 @@
     <string name="sub_result_by_name_episode">Pennod %s</string>
     <string name="sub_result_by_file">Canlyniadau ar gyfer dy ffeil</string>
     <string name="donate">Helpu VLC</string>
-    <string name="donate_desc">Cefnogi\'r gwirfoddolwyr sy\'n adeiladu VLC</string>
     <string name="donate_subscribtion">Hoffwn i hyn fod yn danysgrifiad misol</string>
     <string name="donate_send">Dechrau dy nawdd</string>
     <string name="donation_description">Bydd dy nawd yn ain caniatáu i:\nWella ap VLC ar gyfer Android\nGefnogi Cymdeithas VideoLAN </string>
@@ -701,8 +697,6 @@
 
     <string name="mark_as_played">Nodi fel wedi\'i chwarae</string>
     <string name="mark_all_as_played">Nodi pob un fel wedi\'i chwarae</string>
-    <string name="new_group">Grŵp newydd</string>
-    <string name="new_group_desc">Creu grŵp newydd</string>
 
     <string name="air_action_rewind">Nôl 10 eil</string>
     <string name="air_action_forward">Ymlaen 10 eil</string>

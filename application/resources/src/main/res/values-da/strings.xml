@@ -144,7 +144,6 @@
     <string name="noplaylist">Ingen afspilningsliste fundet.</string>
     <string name="nosubfolder">Ingen undermappe</string>
     <string name="directorynotfound">Mappestien \"%1$s\" blev ikke fundet.</string>
-    <string name="nohistory">Du har endnu ikke en afspilningshistorik.</string>
     <string name="cant_ban_root">Du kan ikke bandlyse en rodmappe.</string>
 
     <string name="cover_art">Omslag</string>
@@ -871,7 +870,6 @@
     <string name="add_to_new_playlist">Tilføj til ny afspilningsliste</string>
     <string name="create_new_playlist">Opret ny afspilningsliste</string>
     <string name="create">Opret</string>
-    <string name="resume_card_message">Genoptag afspilning af %1$s?</string>
     <string name="misc">Diverse</string>
     <string name="popup_force_legacy_title">Brug tilpasset billede-i-billede-pop op</string>
     <string name="popup_force_legacy_summary">Brug tilpasset billede-i-billede-pop op, som kan tilpasses i størrelsen</string>
@@ -1000,8 +998,6 @@
     <string name="rename_group">Omdøb videogruppe</string>
     <string name="ungroup">Afgruppér</string>
     <string name="group_similar">Omgruppér automatisk</string>
-    <string name="no_group_found">Ingen videogruppe fundet</string>
-    <string name="no_favorite">Ingen favorit</string>
     <string name="empty_directory">Tom</string>
     <string name="no_track">Intet spor</string>
 
@@ -1014,7 +1010,6 @@
 
     <string name="sub_result_by_file">Resultater for din fil</string>
     <string name="donate">Hjælp VLC</string>
-    <string name="donate_desc">Støt de frivillige som bygger VLC</string>
     <string name="donate_subscribtion">Jeg ønsker, det skal være et månedligt sponsorat</string>
     <string name="donate_send">Start sponsorat</string>
     <string name="donation_description">Sponsoratet vil tillade os at :\nForbedre VLC programmet til Android\nStøtte VideoLAN foreningen</string>
@@ -1031,8 +1026,6 @@
     <string name="mark_as_not_played">Markér som ikke afspillet</string>
     <string name="mark_all_as_played">Marker alle som afspillet</string>
     <string name="mark_all_as_not_played">Markér alle som uafspillede</string>
-    <string name="new_group">Ny gruppe</string>
-    <string name="new_group_desc">Opret en ny gruppe</string>
 
     <string name="air_action_rewind">Spol 10 sek. tilbage</string>
     <string name="air_action_forward">Søg 10 sek. fremad</string>
@@ -1163,8 +1156,6 @@
     <string name="notch">Hak</string>
     <string name="always_fast_seek">Brug altid hurtigsøg</string>
     <string name="always_fast_seek_summary">Søgning sker hurtigere, men muligvis mindre præcist</string>
-    <string name="touch_only">Kun berøres funktion</string>
-    <string name="touch_only_description">Skift til mobilinterface kan kun gøres med en taktil skærm eller en mus.\nSkub herunder for at bekræfte det er sikkert at ændre funktionen.</string>
     <string name="no_web_browser">Ingen webbrowser installeret</string>
     <string name="no_web_browser_message">Du kan skanne det på din smartphone.\nURL\'en er %s</string>
     <string name="no_video">Video utilgængelig</string>
@@ -1231,7 +1222,6 @@
     <string name="talkback_minutes">minutter</string>
     <string name="talkback_seconds">sekunder</string>
     <string name="talkback_list_section">Overskrift: %s</string>
-    <string name="talkback_enter_screen">Navigér til %s</string>
     <string name="talkback_file_size">Filstørrelse: %s</string>
     <string name="talkback_open_in_browser">Åbn i webbrowser</string>
     <string name="talkback_video_player">Videoafspiller. Tryk for at vise kontrolelementer. Tryk tilbage-knappen for at skjule dem</string>

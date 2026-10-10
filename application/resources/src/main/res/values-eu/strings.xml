@@ -154,7 +154,6 @@
     <string name="noplaylist">Ez da erreprodukzio-zerrendarik aurkitu.</string>
     <string name="nosubfolder">Azpikarpetarik ez</string>
     <string name="directorynotfound">\'%1$s\' direktorio-bidea ez da aurkitu.</string>
-    <string name="nohistory">Ez daukazu erreprodukzio-historiarik oraindik.</string>
     <string name="cant_ban_root">Ezin duzu erroko karpeta bat debekatu</string>
 
     <string name="cover_art">Azaleko diseinua</string>
@@ -818,7 +817,6 @@
     <string name="add_to_new_playlist">Gehitu erreprodukzio-zerrenda berrira</string>
     <string name="create_new_playlist">Sortu erreprodukzio-zerrenda berria</string>
     <string name="create">Sortu</string>
-    <string name="resume_card_message">Berrekin %1$s-ren erreprodukzioa?</string>
     <string name="misc">Denetarik</string>
     <string name="popup_force_legacy_title">Erabili irudia-irudian laster-leiho pertsonalizatua</string>
     <string name="popup_force_legacy_summary">Erabili irudia-irudian laster-leiho pertsonalizatu neurgarria</string>
@@ -938,8 +936,6 @@
     <string name="rename_group">Berrizendatu bideo taldea</string>
     <string name="ungroup">Taldetik atera</string>
     <string name="group_similar">Taldera batu automatikoki</string>
-    <string name="no_group_found">Ez da aurkitu bideo talderik</string>
-    <string name="no_favorite">Gogokorik ez</string>
     <string name="empty_directory">Hutsik</string>
     <string name="no_track">Ez dago pistarik</string>
 
@@ -950,7 +946,6 @@
     <string name="sub_result_by_name_episode">Atala %s</string>
     <string name="sub_result_by_file">Zure fitxategiaren emaitzak</string>
     <string name="donate">Lagundu VLC</string>
-    <string name="donate_desc">Lagundu boluntarioak VLC eraikitzen</string>
     <string name="donate_subscribtion">Nahi nuke hau hileroko babesa izatea</string>
     <string name="donate_send">Hasi zure babeslea</string>
     <string name="donation_description">Zure babesak honakoa ahalbidetuko digu:\nHobetu Android-erako VLC aplikazioa\nLagundu VideoLAN Elkartea</string>
@@ -967,8 +962,6 @@
     <string name="mark_as_not_played">Markatu erreproduzitu gabe gisa</string>
     <string name="mark_all_as_played">Markatu guztiak erreproduzituta gisa</string>
     <string name="mark_all_as_not_played">Markatu guztiak erreproduzitu gabe gisa</string>
-    <string name="new_group">Talde berria</string>
-    <string name="new_group_desc">Sortu talde berria</string>
 
     <string name="air_action_rewind">Birbobinatu 10 seg</string>
     <string name="air_action_forward">Saltatu aurrera 10 seg</string>
@@ -1056,8 +1049,6 @@
     <string name="notch">Koska</string>
     <string name="always_fast_seek">Erabili beti bilaketa azkarra</string>
     <string name="always_fast_seek_summary">Bilaketa azkarragoa da, baina agian ez hain zehatza</string>
-    <string name="touch_only">Ukipen soileko funtzioa</string>
-    <string name="touch_only_description">Mugikorrerako interfazera aldatzea ukipen-pantaila edo sagua erabiliz soilik egin daiteke.\nIrristatu behera eginbide hau seguru alda daitekeela egiaztatzeko.</string>
     <string name="no_web_browser">Ez dago web nabigatzailerik instalatuta</string>
     <string name="no_web_browser_message">Zure telefonoan eskaneatu dezakezu.\nURLa %s da</string>
     <string name="no_video">Ez dago bideorik eskuragarri</string>
@@ -1116,7 +1107,6 @@
     <string name="talkback_minutes">minutu</string>
     <string name="talkback_seconds">segundo</string>
     <string name="talkback_list_section">Goiburua: %s</string>
-    <string name="talkback_enter_screen">Nabigatu hona %s</string>
     <string name="talkback_file_size">Fitxategiaren tamaina: %s</string>
     <string name="talkback_open_in_browser">Ireki web nabigatzailean</string>
     <string name="talkback_video_player">Bideo erreproduzitzailea. Sakatu kontrolak erakusteko. Sakatu atzera botoia ezkutatzeko</string>

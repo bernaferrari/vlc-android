@@ -159,7 +159,6 @@
     <string name="noplaylist">Fann inga speleliste</string>
     <string name="nosubfolder">Inga undermappe</string>
     <string name="directorynotfound">Fann ikkje mappestien \'%1$s\' .</string>
-    <string name="nohistory">Du har ingen avspelingshistorikk enno.</string>
     <string name="cant_ban_root">Du kan ikkje bannlysa ei rotmappe</string>
 
     <string name="cover_art">Plateomslag</string>
@@ -606,7 +605,6 @@
     <string name="add_to_new_playlist">Legg til i ny speleliste</string>
     <string name="create_new_playlist">Lag ny speleliste</string>
     <string name="create">Lag</string>
-    <string name="resume_card_message">Fortsetja avspeling av %1$s?</string>
     <string name="misc">Ymse</string>
     <string name="device_default">Einingsstandard</string>
     <string name="show_video_thumbnails_summary">Vis videominiatyrbilde i lister</string>
@@ -668,8 +666,6 @@
     <string name="add_to_group">Legg til i videogruppe</string>
     <string name="remove_from_group">Fjern frå videogruppe</string>
     <string name="rename_group">Byt namn på videogruppe</string>
-    <string name="no_group_found">Fann inga videogruppe</string>
-    <string name="no_favorite">Ingen favoritt</string>
     <string name="empty_directory">Tom</string>
     <string name="no_track">Ingen spor</string>
 
@@ -750,7 +746,6 @@
     <string name="talkback_minutes">minutt</string>
     <string name="talkback_seconds">sekund</string>
     <string name="talkback_list_section">Topptekst: %s</string>
-    <string name="talkback_enter_screen">Naviger til %s</string>
     <string name="talkback_file_size">Filstorleik: %s</string>
     <string name="talkback_open_in_browser">Opne i nettlesar</string>
     <string name="talkback_video_player">Video-spelar. Trykk for å visa kontrollar. Trykk på tilbake-knappen for å gøyma dei</string>

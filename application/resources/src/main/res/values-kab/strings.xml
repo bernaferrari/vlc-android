@@ -107,7 +107,6 @@
     <string name="noplaylist">Ulac tabdart n tɣuri yettwafen.</string>
     <string name="nosubfolder">Ulac akaram anaddaw</string>
     <string name="directorynotfound">Abrid n ukaram \'%1$s\' ur yettwaf ara.</string>
-    <string name="nohistory">Ulac amazray n tɣuri.</string>
 
     <string name="cover_art">Taduli</string>
     <string name="shuffle_all_title">Ɣer kulec s ugacur</string>
@@ -453,7 +452,6 @@
     <string name="light_theme">Asentel anafaw</string>
     <string name="add">Rnu</string>
     <string name="add_to_new_playlist">Rnu tabdart n tɣuri tamaynutt</string>
-    <string name="resume_card_message">Kemmel taɣuri n %1$s?</string>
     <string name="track_number">%d n tezribin</string>
     <string name="jump_to">Ddu ɣer</string>
     <string name="enable_equalizer">Sermed</string>

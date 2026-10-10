@@ -171,7 +171,6 @@
     <string name="noplaylist">لم توجد أية قوائم تشغيل.</string>
     <string name="nosubfolder">لا يوجد مجلد فرعي</string>
     <string name="directorynotfound">لم يوجد مسار الدليل ”%1$s“.</string>
-    <string name="nohistory">من من شيء شغّلته في التأريخ.</string>
     <string name="cant_ban_root">لا يمكنك حظر مجلد الجذر</string>
 
     <string name="cover_art">الغلاف الفني</string>
@@ -758,7 +757,6 @@
     <string name="add">أضِف</string>
     <string name="add_to_new_playlist">أضف إلى قائمة تشغيل جديدة</string>
     <string name="create_new_playlist">قم بإنشاء قائمة تشغيل جديدة</string>
-    <string name="resume_card_message">استئناف تشغيل %1$s؟</string>
     <string name="misc">متفرّقات</string>
     <string name="popup_force_legacy_title">استخدم نافذة منبثقة صورة داخل صورة مخصصة</string>
     <string name="popup_force_legacy_summary">استخدم نافذة منبثقة مخصصة لتغيير حجم صورة داخل صورة</string>
@@ -886,8 +884,6 @@
     <string name="rename_group">إعادة تسمية مجموعة الفيديو</string>
     <string name="ungroup">فك المجموعة</string>
     <string name="group_similar">إعادة المجموعة تلقائيًا</string>
-    <string name="no_group_found">لم يتم العثور على أي مجموعة فيديو</string>
-    <string name="no_favorite">لا مفضلة</string>
     <string name="empty_directory">فارغ</string>
     <string name="no_track">لا مسار</string>
 
@@ -898,7 +894,6 @@
     <string name="sub_result_by_name_episode">الحلقة %s</string>
     <string name="sub_result_by_file">نتائج لملفك</string>
     <string name="donate">مساعدة VLC</string>
-    <string name="donate_desc">دعم المتطوعين لبناء VLC</string>
     <string name="donate_subscribtion">أود أن يكون هذا رعاية شهرية</string>
     <string name="donate_send">ابدأ رعايتك</string>
     <string name="donation_description">ستسمح لنا رعايتك بما يلي:\nتحسين تطبيق VLC لنظام Android\nدعم جمعية VideoLAN</string>
@@ -914,8 +909,6 @@
     <string name="mark_as_played">سِمْ بأنه مُشغل</string>
     <string name="mark_as_not_played">ضع علامة \"لم يتم تشغيلها\"</string>
     <string name="mark_all_as_played">سِمْ الكل بأنهم مُشغلين</string>
-    <string name="new_group">مجموعة جديدة</string>
-    <string name="new_group_desc">أنشئ مجموعة جديدة</string>
 
     <string name="air_action_rewind">ترجيع 10 ثوانٍ</string>
     <string name="air_action_forward">تقديم 10 ثوانٍ</string>

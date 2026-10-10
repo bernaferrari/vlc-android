@@ -89,7 +89,6 @@
     <string name="nomedia">Asnjë skedar media nuk gjendet, ju lutem transferoni disa skedarë në pajisjen tuaj ose rregulloni preferencat tuaja.</string>
     <string name="noplaylist">Asnjë listë e gjetur</string>
     <string name="directorynotfound">Rruga e dosjes \'%1$s\' nuk u gjet.</string>
-    <string name="nohistory">Ju nuk keni një histori ridëgjimi akoma.</string>
 
     <string name="cover_art">Figurë mbështjellëse</string>
     <string name="shuffle_all_title">Përziej t\'gjitha</string>

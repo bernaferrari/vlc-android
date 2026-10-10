@@ -164,7 +164,6 @@
     <string name="noplaylist">Nem található lejátszólista.</string>
     <string name="nosubfolder">Nincs almappa</string>
     <string name="directorynotfound">A(z) „%1$s” könyvtárútvonal nem található.</string>
-    <string name="nohistory">Még nincsenek lejátszási előzmények.</string>
     <string name="cant_ban_root">Gyökérkönyvtárat nem tilthat ki</string>
 
     <string name="cover_art">Borító</string>
@@ -900,7 +899,6 @@
     <string name="add_to_new_playlist">Hozzáadás új lejátszólistához</string>
     <string name="create_new_playlist">Új lejátszólista létrehozása</string>
     <string name="create">Létrehozás</string>
-    <string name="resume_card_message">Folytatja a(z) %1$s lejátszását?</string>
     <string name="misc">Egyéb</string>
     <string name="popup_force_legacy_title">Egyéni „Kép a képben” felugró ablak</string>
     <string name="popup_force_legacy_summary">Egyéni „Kép a képben” átméretezhető felugró ablak</string>
@@ -1029,8 +1027,6 @@
     <string name="rename_group">Videócsoport átnevezése</string>
     <string name="ungroup">Csoport felbontása</string>
     <string name="group_similar">Újracsoportosítás automatikusan</string>
-    <string name="no_group_found">Nem található videócsoport</string>
-    <string name="no_favorite">Nincs kedvenc</string>
     <string name="empty_directory">Üres</string>
     <string name="no_track">Nincs szám</string>
 
@@ -1043,7 +1039,6 @@
 
     <string name="sub_result_by_file">Találatok a fájlhoz</string>
     <string name="donate">Segítse a VLC-t</string>
-    <string name="donate_desc">Támogassa a VLC-t készítő önkénteseket</string>
     <string name="donate_subscribtion">Szeretném, hogy ez egy havi támogatás legyen</string>
     <string name="donate_send">Kezdje le a támogatását</string>
     <string name="donation_description">A támogatása lehetővé teszi:\nAz androidos VLC alkalmazás fejlesztését\nA VideoLAN Association támogatását</string>
@@ -1060,8 +1055,6 @@
     <string name="mark_as_not_played">Lejátszatlannak jelöl</string>
     <string name="mark_all_as_played">Összes megjelölése lejátszottként</string>
     <string name="mark_all_as_not_played">Összes megjelölése lejátszatlanként</string>
-    <string name="new_group">Új csoport</string>
-    <string name="new_group_desc">Új csoport létrehozása</string>
 
     <string name="air_action_rewind">Visszatekerés 10 másodperccel</string>
     <string name="air_action_forward">Tekerés előre 10 másodperccel</string>
@@ -1198,8 +1191,6 @@
     <string name="notch">Bevágás</string>
     <string name="always_fast_seek">Mindig a gyors tekerés használata</string>
     <string name="always_fast_seek_summary">A tekerés gyorsabb lesz, de lehet, hogy kevésbé pontos</string>
-    <string name="touch_only">Csak érintős funkció</string>
-    <string name="touch_only_description">A mobilos felületre csak érintőképernyővel vagy egérrel lehet átváltani.\nCsúsztassa le, hogy ellenőrizze, biztonságos-e a funkció megváltoztatása.</string>
     <string name="no_web_browser">Nincs webböngésző telepítve</string>
     <string name="no_web_browser_message">Ezt leolvashatja az okostelefonján.\nAz URL a következő: %s</string>
     <string name="no_video">Nem érhető el videó</string>
@@ -1266,7 +1257,6 @@
     <string name="talkback_minutes">perc</string>
     <string name="talkback_seconds">mp</string>
     <string name="talkback_list_section">Fejléc: %s</string>
-    <string name="talkback_enter_screen">Ugrás ehhez: %s</string>
     <string name="talkback_file_size">Fájlméret: %s</string>
     <string name="talkback_open_in_browser">Megnyitás böngészőben</string>
     <string name="talkback_video_player">Videólejátszó. Koppintson a vezérlők megjelenítéséhez. Koppintson a vissza gombra az elrejtésükhöz</string>

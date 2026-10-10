@@ -123,7 +123,6 @@
     <string name="noplaylist">Hakuna orodha chezeshi iliyopatikana</string>
     <string name="nosubfolder">Hakuna folda dogo</string>
     <string name="directorynotfound">Njia ya mwongolezo \'%1$s\'  haijapatikana.</string>
-    <string name="nohistory">Hauna historia ya uchezaji.</string>
     <string name="cover_art">Sanaa ya jalada</string>
     <string name="shuffle_all_title">Changanya zote</string>
     <string name="shuffle_title">Nui Changanyi</string>
@@ -702,7 +701,6 @@
     <string name="light_theme">Mandhari ya mwanga</string>
     <string name="add">Ongeza</string>
     <string name="add_to_new_playlist">Ongeza kwenye orodha chezeshi mpya</string>
-    <string name="resume_card_message">Endelea kucheza %1$s?</string>
     <string name="misc">Mengineyo</string>
     <string name="popup_force_legacy_title">Tumia kibukizo tanafsifu cha picha ndani ya picha</string>
     <string name="popup_force_legacy_summary">Tumia kiibukizo tanafsifu cha picha ndani ya picha kinachobadilika ukubwa</string>
@@ -821,8 +819,6 @@
     <string name="rename_group">Badili jina la kundi la video</string>
     <string name="ungroup">Kundua</string>
     <string name="group_similar">Kundisha tena kiotomatiki</string>
-    <string name="no_group_found">Hakuna kundi la video lililopatikana</string>
-    <string name="no_favorite">Hakuna kipendwa</string>
     <string name="empty_directory">Tupu</string>
     <string name="no_track">Hakuna nakala</string>
 
@@ -833,7 +829,6 @@
     <string name="sub_result_by_name_episode">Kipindi %s</string>
     <string name="sub_result_by_file">Matokeo ya faili</string>
     <string name="donate">Saidia VLC</string>
-    <string name="donate_desc">Saidia wanaojitolea kuunda VLC</string>
     <string name="donate_subscribtion">Ningetaka uwe ufadhili wa kila mwezi</string>
     <string name="donate_send">Anza kufadhili</string>
     <string name="donation_description">Ufadhili wako utatuwezesha:\nKuboresha programu ya VLC ya Android\nKusaidia Ushirika wa VideoLAN</string>
@@ -849,8 +844,6 @@
     <string name="mark_as_played">Tia alama kuwa umecheza</string>
     <string name="mark_as_not_played">Tia alama kuwa hujacheza</string>
     <string name="mark_all_as_played">Tia zote alama kuwa umecheza</string>
-    <string name="new_group">Kikundi kipya</string>
-    <string name="new_group_desc">Unda kikundi kipya</string>
 
     <string name="air_action_rewind">Rudi nyuma 10s</string>
     <string name="air_action_forward">Enda mbele 10s</string>
@@ -933,8 +926,6 @@
     <string name="notch">Mkato</string>
     <string name="always_fast_seek">Tumia utafutaji haraka daima</string>
     <string name="always_fast_seek_summary">Utafutaji ni haraka lakini sio sahihi</string>
-    <string name="touch_only">Kipengee cha kugusa pekee</string>
-    <string name="touch_only_description">Kubadilisha hadi kiolesura cha simu kunaweza kufanywa kwa skrini guse au kipanya.\nTafadhali telezesha hapo chini udhibitishe kuwa ni salama kubadilisha kipengee hiki.</string>
     <string name="no_web_browser">Hakuna kivinjari cha wavuti kimesakinishwa</string>
     <string name="no_web_browser_message">Unaweza kuskani katika simumaizi.\nKIRASA ni %s</string>
     <string name="no_video">Hakuna video iliyopo</string>
@@ -993,7 +984,6 @@
     <string name="talkback_minutes">dakika</string>
     <string name="talkback_seconds">sekunde</string>
     <string name="talkback_list_section">Kichwa: %s</string>
-    <string name="talkback_enter_screen">Nenda hadi %s</string>
     <string name="talkback_file_size">Ukubwa wa faili: %s</string>
     <string name="talkback_open_in_browser">Fungua katika kivinjari cha wavuti</string>
     <string name="talkback_video_player">Kichezaji video. Gusa uone vidhibiti. Gusa kibonye cha nyuma ufiche</string>

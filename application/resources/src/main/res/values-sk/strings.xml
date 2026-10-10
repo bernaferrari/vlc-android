@@ -184,7 +184,6 @@
     <string name="noplaylist">Nenašiel sa žiadny playlist.</string>
     <string name="nosubfolder">Žiadny podpriečinok</string>
     <string name="directorynotfound">Cesta k priečinku „%1$s“ sa nenašla.</string>
-    <string name="nohistory">Ešte nie je dostupná žiadna história prehrávania.</string>
     <string name="cant_ban_root">Hlavný priečinok nemôžete zablokovať</string>
 
     <string name="cover_art">Obal</string>
@@ -922,7 +921,6 @@
     <string name="add_to_new_playlist">Pridať do nového playlistu</string>
     <string name="create_new_playlist">Vytvoriť nový playlist</string>
     <string name="create">Vytvoriť</string>
-    <string name="resume_card_message">Pokračovať prehrávanie z %1$s?</string>
     <string name="misc">Rôzne</string>
     <string name="popup_force_legacy_title">Použiť používateľské okno PiP</string>
     <string name="popup_force_legacy_summary">Použiť používateľské okno PiP s možnosťou zmeny veľkosti</string>
@@ -1055,8 +1053,6 @@
     <string name="rename_group">Premenovať skupinu videí</string>
     <string name="ungroup">Oddeliť od skupiny</string>
     <string name="group_similar">Automaticky znovu zoskupiť</string>
-    <string name="no_group_found">Nenašla sa žiadna skupina pre video</string>
-    <string name="no_favorite">Žiadne obľúbené</string>
     <string name="empty_directory">Prázdne</string>
     <string name="no_track">Žiadna stopa</string>
 
@@ -1069,7 +1065,6 @@
 
     <string name="sub_result_by_file">Výsledky pre váš súbor</string>
     <string name="donate">Pomoc pre VLC</string>
-    <string name="donate_desc">Podporte dobrovoľných tvorcov VLC</string>
     <string name="donate_subscribtion">Chcem sa prihlásiť na mesačné sponzorovanie</string>
     <string name="donate_send">Začnite sponzorovať</string>
     <string name="donation_description">Vaše sponzorovanie nám umožní:\nVylepšovať aplikáciu VLC pre Android\nPodporiť asociáciu VideoLAN</string>
@@ -1086,8 +1081,6 @@
     <string name="mark_as_not_played">Označiť ako neprehrané</string>
     <string name="mark_all_as_played">Označiť všetko ako prehrané</string>
     <string name="mark_all_as_not_played">Označiť všetky ako neprehrané</string>
-    <string name="new_group">Nová skupina</string>
-    <string name="new_group_desc">Vytvoriť novú skupinu</string>
 
     <string name="air_action_rewind">Previnúť 10 sekúnd</string>
     <string name="air_action_forward">Vyhľadávať 10 sekúnd dopredu</string>
@@ -1228,8 +1221,6 @@
     <string name="notch">Výrez</string>
     <string name="always_fast_seek">Vždy použiť rýchle vyhľadávanie</string>
     <string name="always_fast_seek_summary">Vyhľadávanie je rýchlejšie ale môže byť menej presné</string>
-    <string name="touch_only">Funkcia ovládaná iba dotykom</string>
-    <string name="touch_only_description">Prepnutie na mobilné rozhranie je možné vykonať len pomocou dotykovej obrazovky alebo myši.\nProsím prejdite dole a overte, či je bezpečné zmeniť túto voľbu.</string>
     <string name="no_web_browser">Nie je nainštalovaný žiadny webový prehliadač</string>
     <string name="no_web_browser_message">Môžete vykonať skenovanie na svojom smartfóne.\nURL je %s</string>
     <string name="no_video">Nie je dostupné žiadne video</string>
@@ -1296,7 +1287,6 @@
     <string name="talkback_minutes">min.</string>
     <string name="talkback_seconds">sek.</string>
     <string name="talkback_list_section">Hlavička: %s</string>
-    <string name="talkback_enter_screen">Navigovať do %s</string>
     <string name="talkback_file_size">Veľkosť súboru: %s</string>
     <string name="talkback_open_in_browser">Otvoriť vo webovom prehliadači</string>
     <string name="talkback_video_player">Prehrávač videa. Ovládacie prvky zobrazíte dotykom. Skryjete ich tým, že sa dotknete tlačidla Späť</string>

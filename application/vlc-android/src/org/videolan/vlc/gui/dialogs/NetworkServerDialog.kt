@@ -7,12 +7,10 @@ import android.net.Uri
 import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
-import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,7 +47,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -65,7 +62,6 @@ import org.videolan.vlc.compose.components.VLCModalHeader
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.DialogActivity
-import org.videolan.vlc.gui.MainActivity
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
 import org.videolan.vlc.repository.BrowserFavRepository
 import org.videolan.vlc.util.isTalkbackIsEnabled
@@ -166,7 +162,6 @@ private class NetworkServerComposeDialog(
         }
         dialog.setContentView(rootView!!)
         dialog.setOnDismissListener {
-            (activity as? MainActivity)?.forceRefresh()
             rootView = null
             onDismissed()
             activity.finishNetworkServerDialogActivityIfNeeded(finishOnDismiss)

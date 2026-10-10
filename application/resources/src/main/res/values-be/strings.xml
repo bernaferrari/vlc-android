@@ -155,7 +155,6 @@
     <string name="noplaylist">Плэйлісты не знойдзены</string>
     <string name="nosubfolder">Няма падпапак</string>
     <string name="directorynotfound">Каталог «%1$s» не знойдзены.</string>
-    <string name="nohistory">Няма гісторыі прайгравання.</string>
     <string name="cant_ban_root">Нельга выключыць каранёвую папку</string>
 
     <string name="cover_art">Вокладка</string>
@@ -734,7 +733,6 @@
     <string name="add_to_new_playlist">Дадаць у новы плэйліст</string>
     <string name="create_new_playlist">Стварыць новы плэйліст</string>
     <string name="create">Стварыць</string>
-    <string name="resume_card_message">Узнавіць прайграванне %1$s?</string>
     <string name="misc">Іншае</string>
     <string name="jump_to">Перайсці да</string>
     <string name="show_video_thumbnails_summary">Паказваць у спісах эскізы</string>
@@ -833,8 +831,6 @@
     <string name="rename_group">Перайменаваць групу відэа</string>
     <string name="ungroup">Разгрупаваць</string>
     <string name="group_similar">Перагрупаваць аўтаматычна</string>
-    <string name="no_group_found">Групы відэа не знойдзены</string>
-    <string name="no_favorite">Няма абраных</string>
     <string name="empty_directory">Пуста</string>
     <string name="no_track">Няма дарожкі</string>
 
@@ -844,7 +840,6 @@
     <string name="sub_result_by_name_season">Сезон %s</string>
     <string name="sub_result_by_name_episode">Серыя %s</string>
     <string name="donate">Дапамагчы VLC</string>
-    <string name="donate_desc">Падтрымайце добраахвотнікаў, якія ствараюць VLC</string>
     <string name="donate_subscribtion">Хачу рабіць ўнёсак штомесяц</string>
     <string name="donate_send">Зрабіць грашовы ўнёсак</string>
     <string name="donation_description">Ваш грашовы ўнёсак дазволіць нам:\nПаляпшаць VLC для Android\nПадтрымліваць VideoLAN Association</string>
@@ -854,8 +849,6 @@
     <string name="mark_as_not_played">Пазначыць як непрагледжанае</string>
     <string name="mark_all_as_played">Пазначыць усё як прагледжанае</string>
     <string name="mark_all_as_not_played">Пазначыць усё як непрагледжанае</string>
-    <string name="new_group">Новая група</string>
-    <string name="new_group_desc">Стварыць новую групу</string>
 
     <string name="air_action_rewind">Назад на 10 с</string>
     <string name="air_action_forward">Наперад на 10 с</string>
@@ -1018,7 +1011,6 @@
     <string name="talkback_minutes">хв</string>
     <string name="talkback_seconds">с</string>
     <string name="talkback_list_section">Загаловак: %s</string>
-    <string name="talkback_enter_screen">Перайсці да %s</string>
     <string name="talkback_file_size">Памер файла: %s</string>
     <string name="talkback_open_in_browser">Адкрыць у браўзеры</string>
     <string name="talkback_video_player">Видэапрайгравальнік. Націсніце на экран, каб паказаць элементы кіравання, кнопку Назад – каб схаваць</string>

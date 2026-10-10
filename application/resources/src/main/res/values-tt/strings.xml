@@ -79,7 +79,6 @@
     <string name="nomedia">Медиафайллар табылмады. Зинһар, файлларны сезнең җиһазга күчерегез яки көйләүләрне үзгәртегез.</string>
     <string name="noplaylist">Уйнату бите табылмады.</string>
     <string name="directorynotfound">\'%1$s\' папкасы табылмады.</string>
-    <string name="nohistory">Уйнату тарихы буш.</string>
 
     <string name="cover_art">Тышлык</string>
     <string name="shuffle_title">Бутау режимы</string>

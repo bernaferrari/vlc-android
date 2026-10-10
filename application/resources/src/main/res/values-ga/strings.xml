@@ -570,7 +570,6 @@
     <string name="add">Cuir leis</string>
     <string name="add_to_new_playlist">Cuir leis an seinmliosta nua é</string>
     <string name="create">Cruthaigh</string>
-    <string name="resume_card_message">Atosaigh athsheinm %1$s?</string>
     <string name="misc">Ilchineálach</string>
     <string name="device_default">An gaireas réamhshocraithe</string>
     <string name="track_number">%d rian</string>
@@ -666,7 +665,6 @@
     <string name="rename_group">Athainmnigh an físghrúpa</string>
     <string name="ungroup">Díchnuasaigh</string>
     <string name="group_similar">Athchnuasaigh go huathoibríoch</string>
-    <string name="no_favorite">Gan cheanán</string>
     <string name="empty_directory">Folamh</string>
     <string name="no_track">Gan rian</string>
 
@@ -677,7 +675,6 @@
     <string name="sub_result_by_name_episode">Eipeasóid %s</string>
     <string name="sub_result_by_file">Torthaí do do chomhad</string>
     <string name="donate">Cabhraigh le VLC</string>
-    <string name="donate_desc">Tacaigh leis na daoine atá ag tógáil VLC go deonach</string>
     <string name="donate_send">Cuir tús le m\'urraíocht</string>
     <string name="tip_jar">Cabhraigh le VLC</string>
     <string name="thank_you">Go raibh maith agat</string>
@@ -687,8 +684,6 @@
     <string name="mark_as_not_played">Rianaigh nach bhfuil sé seinnte</string>
     <string name="mark_all_as_played">Sainigh uile mar sheinnte</string>
     <string name="mark_all_as_not_played">Rianaigh uile nach bhfuil siad seinnte</string>
-    <string name="new_group">Grúpa nua</string>
-    <string name="new_group_desc">Cruthaigh grúpa nua</string>
 
     <string name="air_action_rewind">Cas siar 10 soic é</string>
     <string name="air_action_forward">Léim ar aghaidh 10 soic é</string>
@@ -768,7 +763,6 @@
     <string name="talkback_minutes">nóiméid</string>
     <string name="talkback_seconds">soicind</string>
     <string name="talkback_list_section">Ceanntásc: %s</string>
-    <string name="talkback_enter_screen">Téigh chuig %s</string>
     <string name="talkback_file_size">Méid an chomhaid: %s</string>
     <string name="talkback_open_in_browser">Oscail i líonléitheoir é</string>
     <string name="talkback_video_player">Seinnteoir físeán. Cnag air chun na rialtáin a thaispeáint. Cnag an cnaipe siar chun iad a chur i bhfolach.</string>

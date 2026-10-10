@@ -164,7 +164,6 @@ const val CATEGORY_NOW_PLAYING_PIP_PAUSED = 29L
 const val CATEGORY = "category"
 const val DRAWABLE = "drawable"
 const val ITEM = "item"
-const val KEY_GROUP = "key_group"
 const val KEY_FOLDER = "key_folder"
 const val KEY_GROUPING = "key_grouping"
 const val KEY_ANIMATED = "key_animated"
@@ -190,8 +189,6 @@ const val SELECTED_ITEM = "selected"
 const val CURRENT_BROWSER_LIST = "CURRENT_BROWSER_LIST"
 const val CURRENT_BROWSER_MAP = "CURRENT_BROWSER_MAP"
 
-//Dummy items
-const val DUMMY_NEW_GROUP = 0L
 
 //Moviepedia
 const val MOVIEPEDIA_MEDIA: String = "moviepedia_media"
@@ -232,8 +229,6 @@ const val MEDIAPARSING_SERVICE = "org.videolan.vlc.MediaParsingService"
 const val TV_ONBOARDING_ACTIVITY = "org.videolan.television.ui.OnboardingActivity"
 const val REMOTE_ACCESS_SERVICE = "org.videolan.vlc.remoteaccessserver.RemoteAccessService"
 const val REMOTE_ACCESS_ONBOARDING = "org.videolan.vlc.remoteaccessserver.gui.remoteaccess.onboarding.RemoteAccessOnboardingActivity"
-const val SHARED_APP_ACTIVITY = "org.videolan.vlc.gui.SharedAppActivity"
-    const val REMOTE_ACCESS_CLIENT_ACTIVITY = "org.videolan.vlc.remoteaccessserver.gui.remoteaccess.RemoteAccessClientActivity"
 
 const val ROOM_DATABASE = "/vlc_database.zip"
 const val EXPORT_SETTINGS_FILE = "/vlc_exported_settings.json"

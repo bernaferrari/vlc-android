@@ -172,7 +172,6 @@
     <string name="noplaylist">Não foi encontrada qualquer lista de reprodução.</string>
     <string name="nosubfolder">Nenhuma subpasta</string>
     <string name="directorynotfound">O caminho da pasta \'%1$s\' não foi encontrado.</string>
-    <string name="nohistory">Ainda não tem um histórico de reprodução.</string>
     <string name="cant_ban_root">Não é possível banir uma pasta raiz</string>
 
     <string name="cover_art">Imagem da capa</string>
@@ -905,7 +904,6 @@
     <string name="add_to_new_playlist">Adicionar a uma nova lista de reprodução</string>
     <string name="create_new_playlist">Criar nova lista de reprodução</string>
     <string name="create">Criar</string>
-    <string name="resume_card_message">Continuar a reprodução de %1$s?</string>
     <string name="misc">Diversos</string>
     <string name="popup_force_legacy_title">Usar popup personalizado de \'imagem na imagem\' </string>
     <string name="popup_force_legacy_summary">Usar popup personalizado redimensionável de \'imagem na imagem\' </string>
@@ -1036,8 +1034,6 @@
     <string name="rename_group">Renomear o grupo de vídeos</string>
     <string name="ungroup">Desagrupar</string>
     <string name="group_similar">Reagrupar automaticamente</string>
-    <string name="no_group_found">Nenhum grupo de vídeo encontrado</string>
-    <string name="no_favorite">Nenhum favorito</string>
     <string name="empty_directory">Vazio</string>
     <string name="no_track">Nenhuma faixa</string>
 
@@ -1050,7 +1046,6 @@
 
     <string name="sub_result_by_file">Resultados para o ficheiro</string>
     <string name="donate">Ajudar o VLC</string>
-    <string name="donate_desc">Ajudar os voluntários a construir o VLC</string>
     <string name="donate_subscribtion">Quero que isto seja um patrocínio mensal</string>
     <string name="donate_send">Começar o patrocínio</string>
     <string name="donation_description">O seu patrocínio irá ajudar-nos a melhorar a aplicação VLC para Android\n Suportar a VideoLAN Association</string>
@@ -1067,8 +1062,6 @@
     <string name="mark_as_not_played">Marcar como não reproduzido</string>
     <string name="mark_all_as_played">Marcar todos como reproduzidos</string>
     <string name="mark_all_as_not_played">Marcar todos como não reproduzidos</string>
-    <string name="new_group">Novo grupo</string>
-    <string name="new_group_desc">Criar um novo grupo</string>
 
     <string name="air_action_rewind">Retroceder 10 seg.</string>
     <string name="air_action_forward">Avançar 10 seg.</string>
@@ -1207,8 +1200,6 @@
     <string name="notch">Entalhe</string>
     <string name="always_fast_seek">Usar sempre a procura rápida</string>
     <string name="always_fast_seek_summary">A procura é mais rápida mas pode ser menos precisa</string>
-    <string name="touch_only">Funcionalidade apenas por toque</string>
-    <string name="touch_only_description">A mudança para a interface móvel só pode ser feita com um ecrã tátil ou um rato.\nPor favor, deslize em baixo para verificar se é seguro alterar esta funcionalidade.</string>
     <string name="no_web_browser">Nenhum navegador web instalado</string>
     <string name="no_web_browser_message">Pode digitalizar isto no seu telemóvel.\nO URL é%s</string>
     <string name="no_video">Nenhum vídeo disponível</string>
@@ -1275,7 +1266,6 @@
     <string name="talkback_minutes">minutos</string>
     <string name="talkback_seconds">segundos</string>
     <string name="talkback_list_section">Cabeçalho: %s</string>
-    <string name="talkback_enter_screen">Navegar para %s</string>
     <string name="talkback_file_size">Tamanho do ficheiro: %s</string>
     <string name="talkback_open_in_browser">Abrir no navegador de internet</string>
     <string name="talkback_video_player">Leitor de vídeo. Toque para mostrar os controlos. Toque no botão para trás para os ocultar</string>

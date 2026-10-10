@@ -129,7 +129,6 @@
     <string name="noplaylist">कुनै पनि प्लेलिस्ट भेटिएन।</string>
     <string name="nosubfolder">कुनै पनि सबफोल्डर छैन</string>
     <string name="directorynotfound">डाइरेक्टरी पाथ %1$s भेटिएन।</string>
-    <string name="nohistory">अहिले सम्म तपाईँसँग बजाएको मिडियाको इतिहास छैन ।</string>
     <string name="cover_art">कभर आर्ट</string>
     <string name="shuffle_all_title">सबै फिट्नुहोस्</string>
     <string name="shuffle_title">फिट्ने मोड</string>
@@ -629,7 +628,6 @@
     <string name="rename_group">भिडियो समूहको पुनः नाम दिनुहोस्</string>
     <string name="ungroup">असमूहीकृत गर्नुहोस्</string>
     <string name="group_similar">स्वतः पुन: समूहीकृत गर्नुहोस्</string>
-    <string name="no_favorite">कुनै मनपरेको छैन</string>
     <string name="empty_directory">खाली</string>
     <string name="no_track">कुनै ट्रयाक छैन</string>
 
@@ -640,7 +638,6 @@
     <string name="sub_result_by_name_episode">श्रृङ्खला %s </string>
     <string name="sub_result_by_file">तपाईँको फाइलको लागि नतिजा</string>
     <string name="donate">VLC मद्दत</string>
-    <string name="donate_desc">VLC निर्माण गर्न स्वयंसेवकहरूलाई सहायता गर्नुहोस्</string>
     <string name="donate_subscribtion">म यो मासिक प्रायोजन भएको चाहन्छु</string>
     <string name="donate_send">तपाईँको प्रयोजन सुरु गर्नुहोस्</string>
     <string name="donation_description">तपाईँको प्रायोजनले हामीलाई निम्नमा अनुमति दिन्छ: \VideoLAN संघ Android\सहायताको लागि VLC एप सुधार गर्न</string>
@@ -655,8 +652,6 @@
 
     <string name="mark_as_played">प्ले गरिएको रूपमा चिन्ह लगाउनुहोस्</string>
     <string name="mark_all_as_played">सबैलाई प्ले गरिएको रूपमा चिन्ह लगाउनुहोस्</string>
-    <string name="new_group">नयाँ समूह</string>
-    <string name="new_group_desc">नयाँ समूह सिर्जना गर्नुहोस्</string>
 
     <string name="air_action_rewind">10 सेकेन्ड रिवाइन्ड गर्नुहोस्</string>
     <string name="air_action_forward">10 सेकेन्ड अगाडि खोज्नुहोस्</string>

@@ -174,7 +174,6 @@
     <string name="noplaylist">Nu a fost găsit nici un playlist.</string>
     <string name="nosubfolder">Fișier secundar inexistent</string>
     <string name="directorynotfound">Calea directorului \'%1$s\' nu a fost găsită.</string>
-    <string name="nohistory">Nu aveţi încă un istoric al redărilor.</string>
     <string name="cant_ban_root">Nu poți interzice un folder rădăcină</string>
 
     <string name="cover_art">Copertă</string>
@@ -911,7 +910,6 @@
     <string name="add_to_new_playlist">Adăugați la noua listă de redare</string>
     <string name="create_new_playlist">Crează o nouă listă de redare</string>
     <string name="create">Crează</string>
-    <string name="resume_card_message">Reluați redarea %1$s?</string>
     <string name="misc">Redare aleatorie</string>
     <string name="popup_force_legacy_title">Utilizați fereastra pop-up personalizată Picture-in-Picture</string>
     <string name="popup_force_legacy_summary">Utilizați ferestre pop-up redimensionabile personalizate Picture-in-Picture</string>
@@ -1042,8 +1040,6 @@
     <string name="rename_group">Redenumiți grupul video</string>
     <string name="ungroup">Dezgrupați</string>
     <string name="group_similar">Regruparea automată</string>
-    <string name="no_group_found">Nu a fost găsit niciun grup video</string>
-    <string name="no_favorite">Nici un favorit</string>
     <string name="empty_directory">Gol</string>
     <string name="no_track">Nicio pistă</string>
 
@@ -1056,7 +1052,6 @@
 
     <string name="sub_result_by_file">Rezultatele pentru fișierul dvs.</string>
     <string name="donate">Ajutor VLC</string>
-    <string name="donate_desc">Sprijină voluntarii care construiesc VLC</string>
     <string name="donate_subscribtion">Aș dori ca aceasta să fie o sponsorizare lunară.</string>
     <string name="donate_send">Începeți sponsorizarea dvs.</string>
     <string name="donation_description">Sponsorizarea dumneavoastră ne va permite să:\nîmbunătățim aplicația VLC pentru Android\nSusținem Asociația VideoLAN</string>
@@ -1073,8 +1068,6 @@
     <string name="mark_as_not_played">Marcați ca neredat</string>
     <string name="mark_all_as_played">Marcați toate ca fiind jucate</string>
     <string name="mark_all_as_not_played">Marchează tot ca neredat</string>
-    <string name="new_group">Grup nou</string>
-    <string name="new_group_desc">Creați un nou grup</string>
 
     <string name="air_action_rewind">Derulează înapoi 10 secunde</string>
     <string name="air_action_forward">Căutare înainte 10 sec.</string>
@@ -1213,8 +1206,6 @@
     <string name="notch">Crestătură</string>
     <string name="always_fast_seek">Folosește întotdeauna căutarea rapidă</string>
     <string name="always_fast_seek_summary">Căutarea este mai rapidă, dar poate fi mai puțin precisă</string>
-    <string name="touch_only">Funcția doar atingere</string>
-    <string name="touch_only_description">Trecerea la interfața mobilă se poate face numai cu un ecran tactil sau cu un mouse.\nTe rugăm să glisezi mai jos pentru a verifica dacă această funcție poate fi schimbată în siguranță.</string>
     <string name="no_web_browser">Niciun browser web nu e instalat</string>
     <string name="no_web_browser_message">Poți scana asta de pe smartphone-ul tău.\nURL-ul este %s</string>
     <string name="no_video">Niciun videoclip disponibil</string>
@@ -1281,7 +1272,6 @@
     <string name="talkback_minutes">minute</string>
     <string name="talkback_seconds">secunde</string>
     <string name="talkback_list_section">Antet: %s</string>
-    <string name="talkback_enter_screen">Navighează la %s</string>
     <string name="talkback_file_size">Mărimea fișierului: %s</string>
     <string name="talkback_open_in_browser">Deschide în browserul web</string>
     <string name="talkback_video_player">Player video. Atinge pentru a afișa comenzile. Atinge butonul înapoi pentru a le ascunde.</string>

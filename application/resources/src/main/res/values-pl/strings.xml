@@ -139,7 +139,6 @@
     <string name="noplaylist">Nie znaleziono listy odtwarzania</string>
     <string name="nosubfolder">Brak podfolderów</string>
     <string name="directorynotfound">Nie znaleziono ścieżki katalogu \'%1$s\'.</string>
-    <string name="nohistory">Nie posiadasz jeszcze historii odtwarzania.</string>
     <string name="cover_art">Okładka</string>
     <string name="shuffle_all_title">Losowo wszystkie</string>
     <string name="shuffle_title">Tryb losowo</string>
@@ -619,7 +618,6 @@
     <string name="light_theme">Motyw jasny</string>
     <string name="add">Dodaj</string>
     <string name="add_to_new_playlist">Dodaj do nowej listy odtwarzania</string>
-    <string name="resume_card_message">Wznowić odtwarzanie %1$s?</string>
     <string name="misc">Różne</string>
     <string name="popup_force_legacy_title">Wyskakujące okno \"Obraz w obrazie\"</string>
     <string name="popup_force_legacy_summary">Użyj własnego, z możliwością zmiany rozmiaru, wyskakującego okna \"Obraz w obrazie\"</string>
@@ -741,7 +739,6 @@
     <string name="rename_group">Zmień nazwę grupy wideo</string>
     <string name="ungroup">Rozgrupuj</string>
     <string name="group_similar">Przegrupuj automatycznie</string>
-    <string name="no_favorite">Brak ulubionych</string>
     <string name="empty_directory">Pusty</string>
     <string name="no_track">Brak utworów</string>
 
@@ -752,7 +749,6 @@
     <string name="sub_result_by_name_episode">Odcinek %s</string>
     <string name="sub_result_by_file">Wyniki dla Twojego pliku</string>
     <string name="donate">Pomóż VLC</string>
-    <string name="donate_desc">Wspieraj wolontariuszy tworzących VLC</string>
     <string name="donate_subscribtion">Chcę, aby to był comiesięczny sponsoring</string>
     <string name="donate_send">Rozpocznij sponsorowanie</string>
     <string name="donation_description">Twoje sponsorowanie pozwoli nam:\nUlepszyć aplikację VLC na Androida\nWspierać Stowarzyszenie VideoLAN</string>
@@ -768,8 +764,6 @@
     <string name="mark_as_played">Oznacz jako odtworzony</string>
     <string name="mark_as_not_played">Oznacz jako nieodtworzony</string>
     <string name="mark_all_as_played">Oznacz wszystkie jako odtworzone</string>
-    <string name="new_group">Nowa grupa</string>
-    <string name="new_group_desc">Utwórz nową grupę</string>
 
     <string name="air_action_rewind">Cofnij 10 sek.</string>
     <string name="air_action_forward">Przewiń 10 sek.</string>
@@ -864,7 +858,6 @@
     <string name="talkback_minutes">minuty</string>
     <string name="talkback_seconds">sekundy</string>
     <string name="talkback_list_section">Nagłówek: %s</string>
-    <string name="talkback_enter_screen">Nawiguj do %s</string>
     <string name="talkback_file_size">Rozmiar pliku: %s</string>
     <string name="talkback_open_in_browser">Otwórz w przeglądarce internetowej</string>
     <string name="talkback_video_tracks">Ścieżki wideo</string>

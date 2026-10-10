@@ -4,7 +4,6 @@ import org.videolan.vlc.gui.helpers.setVlcContent
 import android.view.View
 import android.view.ViewGroup
 import android.view.accessibility.AccessibilityEvent
-import android.widget.FrameLayout
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -34,20 +33,6 @@ fun ComponentActivity.showFeatureFlagWarningComposeDialog(
         genericWarning = getString(R.string.optional_features_warning),
         detailWarning = featureFlag.warning?.let(::getString),
         isDpadAllowed = true,
-        onAccepted = onAccepted
-    ).show()
-}
-
-/**
- * Compose-hosted touch-only warning bottom sheet.
- */
-fun ComponentActivity.showFeatureTouchOnlyWarningComposeDialog(onAccepted: () -> Unit) {
-    FeatureWarningComposeDialog(
-        activity = this,
-        title = getString(R.string.touch_only),
-        genericWarning = getString(R.string.touch_only_description),
-        detailWarning = null,
-        isDpadAllowed = false,
         onAccepted = onAccepted
     ).show()
 }

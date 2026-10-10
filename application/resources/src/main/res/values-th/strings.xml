@@ -100,7 +100,6 @@
     <string name="noplaylist">ไม่พบเพลย์ลิสต์</string>
     <string name="nosubfolder">ไม่มีโฟลเดอร์ย่อย</string>
     <string name="directorynotfound">ไม่พบเส้นทางไดเรกทอรี \'%1$s\'</string>
-    <string name="nohistory">ยังไม่มีประวัติการเล่นของคุณ</string>
     <string name="cover_art">ภาพหน้าปก</string>
     <string name="shuffle_all_title">เล่นทั้งหมดแบบสลับ</string>
     <string name="shuffle_title">โหมดสุ่มเล่น</string>
@@ -530,7 +529,6 @@
     <string name="light_theme">ธีมสว่าง</string>
     <string name="add">เพิ่</string>
     <string name="add_to_new_playlist">เพิ่มลงในเพลย์ลิสต์ใหม่</string>
-    <string name="resume_card_message">เล่น %1$s ต่อหรือไม่</string>
     <string name="misc">เบ็ดเตล็ด</string>
     <string name="popup_force_legacy_title">ใช้ป๊อปอัพภาพควบคู่แบบกำหนดเอง</string>
     <string name="popup_force_legacy_summary">ใช้ป๊อปอัพภาพควบคู่ที่ปรับขนาดได้แบบกำหนดเอง</string>
@@ -642,7 +640,6 @@
     <string name="rename_group">เปลี่ยนชื่อกลุ่มวิดีโอ</string>
     <string name="ungroup">เลิกจัดกลุ่ม</string>
     <string name="group_similar">จัดกลุ่มใหม่โดยอัตโนมัติ</string>
-    <string name="no_favorite">ไม่มีรายการโปรด</string>
     <string name="empty_directory">ว่างเปล่า</string>
     <string name="no_track">ไม่มีแทร็ก</string>
 
@@ -653,7 +650,6 @@
     <string name="sub_result_by_name_episode">ตอน %s</string>
     <string name="sub_result_by_file">ผลลัพธ์สำหรับไฟล์ของคุณ</string>
     <string name="donate">ช่วย VLC</string>
-    <string name="donate_desc">ร่วมสนับสนุนอาสาสมัครที่สร้าง VLC</string>
     <string name="donate_subscribtion">ฉันต้องการร่วมสนับสนุนรายเดือน</string>
     <string name="donate_send">เริ่มการร่วมสนับสนุนของคุณ</string>
     <string name="donation_description">การร่วมสนับสนุนของคุณจะทำให้เราสามารถ:\nปรับปรุงแอป VLC สำหรับ Android\nสนับสนุนสมาคม VideoLAN</string>
@@ -668,8 +664,6 @@
 
     <string name="mark_as_played">ทำเครื่องหมายว่าเล่นแล้ว</string>
     <string name="mark_all_as_played">ทำเครื่องหมายทั้งหมดว่าเล่นแล้ว</string>
-    <string name="new_group">กลุ่มใหม</string>
-    <string name="new_group_desc">สร้างกลุ่มใหม</string>
 
     <string name="air_action_rewind">กรอกลับ 10 วินาที</string>
     <string name="air_action_forward">เดินหน้า 10 วินาที</string>

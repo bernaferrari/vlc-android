@@ -127,7 +127,6 @@
     <string name="noplaylist">هیچ لیست پخشی یافت نشد</string>
     <string name="nosubfolder">هیچ زیر پوشه ای وجود ندارد</string>
     <string name="directorynotfound">مسیر پوشه \'%1$s\' یافت نشد</string>
-    <string name="nohistory">شما هنوز تاریخچه پخش ندارید</string>
     <string name="cover_art">جلد هنری</string>
     <string name="shuffle_all_title">پخش تصادفی همه</string>
     <string name="shuffle_title">حالت تصادفی</string>
@@ -682,7 +681,6 @@
     <string name="light_theme">پوسته روشن</string>
     <string name="add">افزودن</string>
     <string name="add_to_new_playlist">افزودن به لیست پخش جدید</string>
-    <string name="resume_card_message">پخش %1$s ادامه داده شود؟</string>
     <string name="misc">متفرقه</string>
     <string name="device_default">پیش فرض دستگاه</string>
     <string name="track_number">%d</string>
@@ -781,7 +779,6 @@
     <string name="remove_from_group">حذف از گروه ویدیو</string>
     <string name="rename_group">تغییرنام گروه ویدیو</string>
     <string name="ungroup">بدونه گروه</string>
-    <string name="no_favorite">بدون مورد علاقه</string>
     <string name="empty_directory">خالی</string>
     <string name="no_track">بدون قطعه</string>
 
@@ -792,7 +789,6 @@
     <string name="sub_result_by_name_episode">قسمت %s</string>
     <string name="sub_result_by_file">نتایج برای پرونده‌تان</string>
     <string name="donate">کمک به وی‌ال‌سی</string>
-    <string name="donate_desc">از داوطلبان ساخت وی‌ال‌سی پشتیبانی کنید</string>
     <string name="donate_subscribtion">می‌خواهم حامی مالی ماهانه باشم</string>
     <string name="donate_send">حمایت مالی خود را آغاز کنید</string>
     <string name="subscription_purchased">شما مشترک حمایت مالی ماهانه هستید</string>
@@ -805,8 +801,6 @@
 
     <string name="mark_as_played">نشان‌گذاری به‌عنوان پخش شده</string>
     <string name="mark_all_as_played">نشان‌گذاری همه به‌عنوان پخش شده</string>
-    <string name="new_group">گروه جدید</string>
-    <string name="new_group_desc">ساخت گروه جدید</string>
 
     <string name="air_action_rewind">10 ثانیه به عقب برگرد</string>
     <string name="air_action_forward">10 ثانیه جلوتر را بگرد</string>
@@ -852,7 +846,6 @@
     <string name="view_online">آنلاین ببینید</string>
     <string name="player_under_notch">ویدیو را از پایین برش صفحه نمایش بده</string>
     <string name="notch">برش صفحه</string>
-    <string name="touch_only">خاصیت فقط لمسی</string>
     <string name="undo">انجام معکوس</string>
     <string name="widget_theme">زمینه ابزارک</string>
     <string name="widget_preferences">ابزارک را پیکربندی کن</string>

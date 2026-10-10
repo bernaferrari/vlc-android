@@ -62,7 +62,6 @@ class FloatingActionButtonBehavior(context: Context, attrs: AttributeSet?) : Flo
         }
 
         return (dependency.id == R.id.audio_player_container
-                || dependency.id == R.id.navigation
                 || dependency is Snackbar.SnackbarLayout
                 || dependency is NestedScrollView)
     }

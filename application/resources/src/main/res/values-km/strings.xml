@@ -81,7 +81,6 @@
     <string name="nomedia">រក​មិន​ឃើញ​ឯកសារ​មេឌៀ សូម​បញ្ជូន​ឯកសារ​មួយ​ចំនួន​ទៅកាន់​ឧបករណ៍​របស់​អ្នក ឬ​ផ្លាស់ប្ដូរ​ចំណូលចិត្ត​របស់​អ្នក។</string>
     <string name="noplaylist">រកមិនឃើញបញ្ជីចាក់</string>
     <string name="directorynotfound">រកមិនឃើញផ្លូវរបស់ថត \'%1$s\' ។</string>
-    <string name="nohistory">អ្នក​មិន​មាន​ប្រវត្តិ​ចាក់​ឡើងវិញ​នៅ​ឡើយ​ទេ។</string>
 
     <string name="cover_art">រូប​គម្រប​មុខ</string>
     <string name="shuffle_title">ទម្រង់បញ្ចូលគ្នា</string>

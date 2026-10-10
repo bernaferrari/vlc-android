@@ -164,7 +164,6 @@
     <string name="noplaylist">Keine Wiedergabeliste gefunden</string>
     <string name="nosubfolder">Keine Unterordner</string>
     <string name="directorynotfound">Der Verzeichnispfad \'%1$s\' wurde nicht gefunden.</string>
-    <string name="nohistory">Sie haben noch keinen Wiedergabeverlauf.</string>
     <string name="cant_ban_root">Sie können einen Stammordner nicht sperren</string>
 
     <string name="cover_art">Titelbild</string>
@@ -900,7 +899,6 @@
     <string name="add_to_new_playlist">Zur neuer Wiedergabeliste hinzufügen</string>
     <string name="create_new_playlist">Neue Wiedergabeliste erstellen</string>
     <string name="create">Erstellen</string>
-    <string name="resume_card_message">Wiedergabe fortsetzen von %1$s?</string>
     <string name="misc">Verschiedenes</string>
     <string name="popup_force_legacy_title">Benutzerdefiniertes Bild-in-Bild</string>
     <string name="popup_force_legacy_summary">Ein benutzerdefiniertes Bild-in-Bild im größenveränderbaren Fenster verwenden</string>
@@ -1029,8 +1027,6 @@
     <string name="rename_group">Videogruppe umbenennen</string>
     <string name="ungroup">Gruppierung aufheben</string>
     <string name="group_similar">Automatisch neu gruppieren</string>
-    <string name="no_group_found">Keine Videogruppe gefunden</string>
-    <string name="no_favorite">Keine Favoriten</string>
     <string name="empty_directory">Leer</string>
     <string name="no_track">Kein Titel</string>
 
@@ -1043,7 +1039,6 @@
 
     <string name="sub_result_by_file">Ergebnis für Ihre Datei</string>
     <string name="donate">VLC helfen</string>
-    <string name="donate_desc">Die Freiwilligen unterstützen, die VLC entwickeln</string>
     <string name="donate_subscribtion">Ich möchte, dass dies eine monatliche Unterstützung ist</string>
     <string name="donate_send">Ihre Unterstützung starten</string>
     <string name="donation_description">Ihre Unterstützung ermöglicht es uns:\ndie VLC-App für Android zu verbessern\ndie VideoLAN Association zu unterstützen</string>
@@ -1060,8 +1055,6 @@
     <string name="mark_as_not_played">Als nicht abgespielt markieren</string>
     <string name="mark_all_as_played">Alle als gespielt markieren</string>
     <string name="mark_all_as_not_played">Alle als nicht abgespielt markieren</string>
-    <string name="new_group">Neue Gruppe</string>
-    <string name="new_group_desc">Neue Gruppe erstellen</string>
 
     <string name="air_action_rewind">10 Sek. zurückspulen</string>
     <string name="air_action_forward">10 Sek. vorspulen</string>
@@ -1198,8 +1191,6 @@
     <string name="notch">Notch (Einkerbung)</string>
     <string name="always_fast_seek">Immer die Schnellsuche verwenden</string>
     <string name="always_fast_seek_summary">Die Suche ist schneller, aber möglicherweise ungenauer</string>
-    <string name="touch_only">Nur-Touch-Funktion</string>
-    <string name="touch_only_description">Der Wechsel zur mobilen Benutzeroberfläche kann nur mit einem taktilen Bildschirm oder einer Maus erfolgen.\nBitte nach unten schieben, um zu überprüfen, ob diese Funktion sicher geändert werden kann.</string>
     <string name="no_web_browser">Kein Web-Browser installiert</string>
     <string name="no_web_browser_message">Sie können dies auf Ihrem Smartphone scannen.\nDie URL lautet %s</string>
     <string name="no_video">Kein Video verfügbar</string>
@@ -1266,7 +1257,6 @@
     <string name="talkback_minutes">Minuten</string>
     <string name="talkback_seconds">Sekunden</string>
     <string name="talkback_list_section">Kopfzeile: %s</string>
-    <string name="talkback_enter_screen">Zu %s navigieren</string>
     <string name="talkback_file_size">Dateigröße: %s</string>
     <string name="talkback_open_in_browser">Im Webbrowser öffnen</string>
     <string name="talkback_video_player">Videoplayer. Tippen, um Steuerelemente anzuzeigen. Zum Ausblenden auf die Zurück-Schaltfläche tippen</string>

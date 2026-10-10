@@ -252,7 +252,6 @@
     <string name="daynight_legacy_explanation">VLC va cambiar automáticamente al mou nocherniegu na hora afayadiza</string>
     <string name="onboarding_scan_customize">Escoyer les carpetes que VLC va escaniar</string>
     <string name="light_theme">Estilu claru</string>
-    <string name="resume_card_message">¿Siguir cola reproducción de %1$s?</string>
     <string name="misc">Miscelánea</string>
     <string name="track_number">%d pistes</string>
     <string name="validation_delete_playlist">¿De xuru que quies desaniciar esta llista de reproducción?</string>
@@ -295,5 +294,4 @@
     <string name="more">Más</string>
     <string name="new_stream">Fluxu nuevu</string>
     <string name="thank_you">Gracies</string>
-    <string name="new_group">Grupu nuevu</string>
     </resources>

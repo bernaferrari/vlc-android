@@ -126,7 +126,6 @@
     <string name="noplaylist">Không tìm thấy danh sách phát.</string>
     <string name="nosubfolder">Không có thư mục con nào</string>
     <string name="directorynotfound">Không tìm thấy đường dẫn thư mục ‘%1$s‘.</string>
-    <string name="nohistory">Bạn chưa có lịch sử phát.</string>
     <string name="cant_ban_root">Bạn không thể cấm folder gốc.</string>
 
     <string name="cover_art">Ảnh bìa</string>
@@ -778,7 +777,6 @@ Bạn có thể phải nhấn vào \"Hiển thị thẻ nhớ SD\" trước tron
     <string name="add_to_new_playlist">Thêm vào danh sách</string>
     <string name="create_new_playlist">Tạo danh sách phát mới</string>
     <string name="create">Tạo</string>
-    <string name="resume_card_message">Tiếp tục phát %1$s?</string>
     <string name="misc">Khác</string>
     <string name="popup_force_legacy_title">Sử dụng popup hình-trong-hình tuỳ chỉnh</string>
     <string name="popup_force_legacy_summary">Sử dụng popup hình-trong-hình có thể thay đổi kích thước tuỳ chỉnh</string>
@@ -897,8 +895,6 @@ Bạn có thể phải nhấn vào \"Hiển thị thẻ nhớ SD\" trước tron
     <string name="rename_group">Đổi tên nhóm video</string>
     <string name="ungroup">Bỏ nhóm</string>
     <string name="group_similar">Tự động nhóm lại</string>
-    <string name="no_group_found">Không tìm thấy nhóm video nào</string>
-    <string name="no_favorite">Không có yêu thích</string>
     <string name="empty_directory">Trống</string>
     <string name="no_track">Không có bài hát</string>
 
@@ -909,7 +905,6 @@ Bạn có thể phải nhấn vào \"Hiển thị thẻ nhớ SD\" trước tron
     <string name="sub_result_by_name_episode">Tập 1%s</string>
     <string name="sub_result_by_file">Kết quả cho tệp của bạn</string>
     <string name="donate">Giúp VLC</string>
-    <string name="donate_desc">Hỗ trợ những người tình nguyện đang xây dựng VLC</string>
     <string name="donate_subscribtion">Tôi muốn điều này là sự tài trợ hàng tháng</string>
     <string name="donate_send">Bắt đầu sự tài trợ của bạn</string>
     <string name="donation_description">Sự tài trợ của bạn sẽ cho phép chúng tôi:\nCải thiện ứng dụng VLC cho Android\nHỗ trợ Tổ chức VideoLAN</string>
@@ -926,8 +921,6 @@ Bạn có thể phải nhấn vào \"Hiển thị thẻ nhớ SD\" trước tron
     <string name="mark_as_not_played">Đánh dấu là chưa phát</string>
     <string name="mark_all_as_played">Đánh dấu tất cả là đã phát</string>
     <string name="mark_all_as_not_played">Đánh dấu tất cả là chưa phát</string>
-    <string name="new_group">Nhóm mới</string>
-    <string name="new_group_desc">Tạo một nhóm mới</string>
 
     <string name="air_action_rewind">Tua lui 10 giây</string>
     <string name="air_action_forward">Tua tới 10 giây</string>
@@ -1043,8 +1036,6 @@ Bạn có thể phải nhấn vào \"Hiển thị thẻ nhớ SD\" trước tron
     <string name="notch">Tai thỏ</string>
     <string name="always_fast_seek">Luôn sử dụng tua nhanh</string>
     <string name="always_fast_seek_summary">Tua nhanh hơn nhưng có thể ít chính xác hơn</string>
-    <string name="touch_only">Tính năng chỉ để chạm</string>
-    <string name="touch_only_description">Việc chuyển sang giao diện di động chỉ có thể làm được bằng màn hình cảm ứng hoặc chuột.\nVui lòng vuốt ở dưới để xác nhận rằng tính năng này có thể thay đổi an toàn.</string>
     <string name="no_web_browser">Chưa cài đặt trình duyệt web</string>
     <string name="no_web_browser_message">Bạn có thể quét trên điện thoại.\n Đường dẫn là %s</string>
     <string name="no_video">Không có video nào sẵn sàng</string>
@@ -1111,7 +1102,6 @@ Bạn có thể phải nhấn vào \"Hiển thị thẻ nhớ SD\" trước tron
     <string name="talkback_minutes">phút</string>
     <string name="talkback_seconds">giây</string>
     <string name="talkback_list_section">Tiêu đề: %s</string>
-    <string name="talkback_enter_screen">Chuyển tới %s</string>
     <string name="talkback_file_size">Kích cỡ tệp: %s</string>
     <string name="talkback_open_in_browser">Mở bằng trình duyệt web</string>
     <string name="talkback_video_player">Trình phát video. Nhấn để hiển thị các điều khiển. Nhấn vào nút quay lại để ẩn chúng</string>

@@ -162,7 +162,6 @@
     <string name="noplaylist">დასაკრავი სია არაა</string>
     <string name="nosubfolder">ქვესაქაღალდე არაა</string>
     <string name="directorynotfound">საქაღალდე „%1$s“ მისამართით, არაა.</string>
-    <string name="nohistory">დაკვრის ისტორია ჯერ არ გაქვთ.</string>
     <string name="cant_ban_root">ვერ ამოაკლებთ ძირეულ საქაღალდეს</string>
 
     <string name="cover_art">გარეკანის სურათი</string>
@@ -894,7 +893,6 @@
     <string name="add_to_new_playlist">დაამატე ახალ დასაკრავ სიაში</string>
     <string name="create_new_playlist">ახალი დასაკრავი სიის შექმნა</string>
     <string name="create">შექმნა</string>
-    <string name="resume_card_message">გაეშვას შეჩერებული %1$s?</string>
     <string name="misc">სხვადასხვა</string>
     <string name="popup_force_legacy_title">მორგებული ეკრანი-ეკრანში</string>
     <string name="popup_force_legacy_summary">მორგებული ეკრანი-ეკრანში, ზომაცვლადი ამომხტარი ფანჯრით</string>
@@ -1023,8 +1021,6 @@
     <string name="rename_group">ვიდეოს ჯგუფის გადარქმევა</string>
     <string name="ungroup">განჯგუფება</string>
     <string name="group_similar">თვითგადაჯგუფება</string>
-    <string name="no_group_found">ვიდეოჯგუფი ვერ მოიძებნა</string>
-    <string name="no_favorite">რჩეული არაა</string>
     <string name="empty_directory">ცარიელი</string>
     <string name="no_track">ჩანაწერი არაა</string>
 
@@ -1037,7 +1033,6 @@
 
     <string name="sub_result_by_file">შედეგები თქვენი ფაილისთვის</string>
     <string name="donate">დაეხმარეთ VLC-ს</string>
-    <string name="donate_desc">მხარი დაუჭირეთ VLC-ს მოხალისეებს</string>
     <string name="donate_subscribtion">მსურს, ყოველთვიური დაფინანსება</string>
     <string name="donate_send">წამოიწყეთ დაფინანსება</string>
     <string name="donation_description">თქვენგან ფინანსური დახმარება, საშუალებას მოგვცემს:\nგავაუმჯობესოთ VLC-პროგრამა ანდროიდისთვის\nVideoLAN ასოციაციის მხარდასაჭერად</string>
@@ -1054,8 +1049,6 @@
     <string name="mark_as_not_played">დაუკვრელად მონიშვნა</string>
     <string name="mark_all_as_played">ყველას დაკრულად მონიშვნა</string>
     <string name="mark_all_as_not_played">ყველას დაუკვრელად მონიშვნა</string>
-    <string name="new_group">ახალი ჯგუფი</string>
-    <string name="new_group_desc">ახალი ჯგუფის შექმნა</string>
 
     <string name="air_action_rewind">10 წამით უკან გადახვევა</string>
     <string name="air_action_forward">10 წამით წინ გადახვევა</string>
@@ -1192,8 +1185,6 @@
     <string name="notch">ჭრილი</string>
     <string name="always_fast_seek">ყოველთვის სწრაფი გადახვევა</string>
     <string name="always_fast_seek_summary">მეტად სწრაფად ახვევს, მაგრამ ნაკლები სიზუსტით</string>
-    <string name="touch_only">მხოლოდ შეხებით</string>
-    <string name="touch_only_description">მობილურ გარსზე გადასვლა შეიძლება მხოლოდ შეხებითი ეკრანის ან მიმთითებელი მოწყობილობის გამოყენებისას.\nგთხოვთ ჩაუყვეთ ქვემოთ ამ შესაძლებლობის შეცვლის დასადასტურებლად.</string>
     <string name="no_web_browser">ბრაუზერი ვერ მოიძებნა</string>
     <string name="no_web_browser_message">შეგიძლიათ წააკითხოთ ტელეფონის კამერას.\nბმულია %s</string>
     <string name="no_video">ვიდეო არაა</string>
@@ -1260,7 +1251,6 @@
     <string name="talkback_minutes">წუთი</string>
     <string name="talkback_seconds">წამი</string>
     <string name="talkback_list_section">თავსართი: %s</string>
-    <string name="talkback_enter_screen">გადასვლა – %s</string>
     <string name="talkback_file_size">ფაილის ზომა: %s</string>
     <string name="talkback_open_in_browser">ბრაუზერში გახსნა</string>
     <string name="talkback_video_player">ვიდეოდამკვრელი. შეეხეთ სამართავის გამოსაჩენად. დააჭირეთ უკუსვლის ღილაკს მის დასამალად.</string>

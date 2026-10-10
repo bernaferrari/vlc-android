@@ -165,7 +165,6 @@
     <string name="noplaylist">No playlist found.</string>
     <string name="nosubfolder">No subfolder</string>
     <string name="directorynotfound">The directory path \'%1$s\' was not found.</string>
-    <string name="nohistory">You have no playback history yet.</string>
     <string name="cant_ban_root">You can\'t ban a root folder</string>
 
     <string name="cover_art">Cover art</string>
@@ -523,7 +522,6 @@
     <string name="remote_access">Remote access</string>
 
     <string name="remote_access_client_title">Connect to VLC</string>
-    <string name="shared_app_entry">VLC Shared</string>
     <string name="shared_app_entry_blurb">Multiplatform library, player, and settings shell</string>
     <string name="remote_access_client_blurb">Control another device running VLC remote access on your network. Enter the HTTPS URL shown on the host, request an OTP, then load the library or send playback commands.</string>
     <string name="remote_access_client_url">Server URL</string>
@@ -532,7 +530,6 @@
     <string name="remote_access_client_otp">One-time code</string>
     <string name="remote_access_client_verify_otp">Verify code</string>
     <string name="remote_access_client_load_videos">Load videos</string>
-    <string name="remote_access_client_entry">Connect to VLC</string>
 
     <string name="remote_access_version_title">Remote access version</string>
     <string name="remote_access_hash_title">Remote access hash</string>
@@ -931,7 +928,6 @@
     <string name="add_to_new_playlist">Add to new playlist</string>
     <string name="create_new_playlist">Create new playlist</string>
     <string name="create">Create</string>
-    <string name="resume_card_message">Resume playback of %1$s?</string>
     <string name="misc">Miscellaneous</string>
     <string name="popup_force_legacy_title">Use custom Picture-in-Picture popup</string>
     <string name="popup_force_legacy_summary">Use custom Picture-in-Picture resizable popup</string>
@@ -1060,8 +1056,6 @@
     <string name="rename_group">Rename video group</string>
     <string name="ungroup">Ungroup</string>
     <string name="group_similar">Regroup automatically</string>
-    <string name="no_group_found">No video group found</string>
-    <string name="no_favorite">No favorite</string>
     <string name="empty_directory">Empty</string>
     <string name="no_track">No track</string>
 
@@ -1074,7 +1068,6 @@
 
     <string name="sub_result_by_file">Results for your file</string>
     <string name="donate">Help VLC</string>
-    <string name="donate_desc">Support the volunteers building VLC</string>
     <string name="donate_subscribtion">I would like this to be a monthly sponsorship</string>
     <string name="donate_send">Start your sponsorship</string>
     <string name="donation_description">Your sponsorship will allow us to:\nImprove the VLC app for Android\nSupport the VideoLAN Association</string>
@@ -1091,8 +1084,6 @@
     <string name="mark_as_not_played">Mark as not played</string>
     <string name="mark_all_as_played">Mark all as played</string>
     <string name="mark_all_as_not_played">Mark all as not played</string>
-    <string name="new_group">New group</string>
-    <string name="new_group_desc">Create a new group</string>
 
     <string name="air_action_rewind">Rewind 10 sec</string>
     <string name="air_action_forward">Seek forward 10 sec</string>
@@ -1232,8 +1223,6 @@
     <string name="notch">Notch</string>
     <string name="always_fast_seek">Always use fast seek</string>
     <string name="always_fast_seek_summary">Seek is faster but may be less precise</string>
-    <string name="touch_only">Touch only feature</string>
-    <string name="touch_only_description">Switching to the mobile interface can only be done with a tactile screen or a mouse.\nPlease slide below to verify that this feature is safe to change.</string>
     <string name="no_web_browser">No web browser installed</string>
     <string name="no_web_browser_message">You can scan this on your smartphone.\nThe URL is %s</string>
     <string name="no_video">No video available</string>
@@ -1302,7 +1291,6 @@
     <string name="talkback_minutes">minutes</string>
     <string name="talkback_seconds">seconds</string>
     <string name="talkback_list_section">Header: %s</string>
-    <string name="talkback_enter_screen">Navigate to %s</string>
     <string name="talkback_file_size">File size: %s</string>
     <string name="talkback_open_in_browser">Open in web browser</string>
     <string name="talkback_video_player">Video player. Tap to show controls. Tap the back button to hide them</string>

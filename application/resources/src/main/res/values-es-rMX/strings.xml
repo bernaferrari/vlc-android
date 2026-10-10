@@ -141,7 +141,6 @@
     <string name="noplaylist">Lista no encontrada.</string>
     <string name="nosubfolder">Sin subcarpetas</string>
     <string name="directorynotfound">La ruta del directorio \'%1$s\' no ha sido encontrada</string>
-    <string name="nohistory">No tiene historial de reproducción todavía.</string>
     <string name="cover_art">Portada</string>
     <string name="shuffle_all_title">Todo aleatorio</string>
     <string name="shuffle_title">Modo aleatorio</string>
@@ -653,7 +652,6 @@
     <string name="light_theme">Tema claro</string>
     <string name="add">Agregar</string>
     <string name="add_to_new_playlist">Agregar a nueva lista</string>
-    <string name="resume_card_message">¿Reanudar reproducción de %1$s?</string>
     <string name="misc">Miscelánea</string>
     <string name="popup_force_legacy_title">Usar vídeo miniatura personalizado</string>
     <string name="popup_force_legacy_summary">Usar cambio de tamaño en vídeo miniatura</string>
@@ -769,7 +767,6 @@
     <string name="rename_group">Renombrar grupo de vídeo</string>
     <string name="ungroup">Des-agrupar</string>
     <string name="group_similar">Reagrupar automáticamente</string>
-    <string name="no_favorite">Sin favorito</string>
     <string name="empty_directory">Vacío</string>
     <string name="no_track">Sin pista</string>
 
@@ -780,7 +777,6 @@
     <string name="sub_result_by_name_episode">Episodio %s</string>
     <string name="sub_result_by_file">Resultados de tu archivo</string>
     <string name="donate">Ayuda de VLC</string>
-    <string name="donate_desc">Apoyar a los voluntarios que desarrollan VLC</string>
     <string name="donate_subscribtion">Me gustaría que este fuera un patrocinio mensual</string>
     <string name="donate_send">Iniciar tu patrocinio</string>
     <string name="donation_description">Tu patrocinio nos permite:\nMejorar VLC para Android\nApoya la asociación VideoLAN</string>
@@ -795,8 +791,6 @@
 
     <string name="mark_as_played">Marcar como visto</string>
     <string name="mark_all_as_played">Marcar todo como visto</string>
-    <string name="new_group">Nuevo grupo</string>
-    <string name="new_group_desc">Crear un nuevo grupo</string>
 
     <string name="air_action_rewind">Rebobinar 10 segundos</string>
     <string name="air_action_forward">Adelantar 10 segundos</string>

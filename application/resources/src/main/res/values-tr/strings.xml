@@ -164,7 +164,6 @@
     <string name="noplaylist">Oynatılabilecek bir liste bulunamadı.</string>
     <string name="nosubfolder">Alt klasör yok</string>
     <string name="directorynotfound">\'%1$s\' klasör yolu bulunamadı.</string>
-    <string name="nohistory">Henüz bir oynatma geçmişiniz yok.</string>
     <string name="cant_ban_root">Bir kök klasörü yasaklayamazsınız</string>
 
     <string name="cover_art">Kapak görseli</string>
@@ -899,7 +898,6 @@
     <string name="add_to_new_playlist">Yeni listeye ekle</string>
     <string name="create_new_playlist">Yeni oynatma listesi ekle</string>
     <string name="create">Ekle</string>
-    <string name="resume_card_message">%1$s oynatımı sürdürülsün mü?</string>
     <string name="misc">Çeşitli</string>
     <string name="popup_force_legacy_title">Görüntü içinde görüntü penceresi kullanılsın</string>
     <string name="popup_force_legacy_summary">Boyutu ayarlanabilir görüntü içinde görüntü penceresi kullanılsın</string>
@@ -1028,8 +1026,6 @@
     <string name="rename_group">Görüntü grubunu yeniden adlandır</string>
     <string name="ungroup">Grubu çöz</string>
     <string name="group_similar">Otomatik olarak yeniden grupla</string>
-    <string name="no_group_found">Herhangi bir görüntü grubu bulunamadı</string>
-    <string name="no_favorite">Sık kullanılan yok</string>
     <string name="empty_directory">Boş</string>
     <string name="no_track">Herhangi bir kayıt yok</string>
 
@@ -1042,7 +1038,6 @@
 
     <string name="sub_result_by_file">Dosyanızın sonuçları</string>
     <string name="donate">VLC projesine destek olun</string>
-    <string name="donate_desc">VLC geliştiricisi gönüllüleri destekleyin</string>
     <string name="donate_subscribtion">Aylık destek olmak istiyorum</string>
     <string name="donate_send">Desteğinizi başlatın</string>
     <string name="donation_description">Desteğinizle birlikte:\nAndroid için VLC uygulaması geliştirilecek\nVideoLAN kuruluşu desteklenecek</string>
@@ -1059,8 +1054,6 @@
     <string name="mark_as_not_played">Oynatılmamış olarak imle</string>
     <string name="mark_all_as_played">Tümünü oynatılmış olarak imle</string>
     <string name="mark_all_as_not_played">Tümünü oynatılmamış olarak işaretle</string>
-    <string name="new_group">Yeni grup</string>
-    <string name="new_group_desc">Yeni grup ekle</string>
 
     <string name="air_action_rewind">10 saniye geri atla</string>
     <string name="air_action_forward">10 saniye ileri atla</string>
@@ -1197,8 +1190,6 @@
     <string name="notch">Çentik</string>
     <string name="always_fast_seek">Her zaman hızlı atlama kullanılsın</string>
     <string name="always_fast_seek_summary">Hızlı atlama daha hızlıdır ancak duyarlılığı daha düşüktür</string>
-    <string name="touch_only">Yalnızca dokunma özelliği</string>
-    <string name="touch_only_description">Mobil arayüze geçiş yalnızca dokunmatik bir ekran veya fare ile yapılabilir.\nBu özelliğe geçmenin güvenli olduğunu doğrulamak için lütfen aşağıya kaydırın.</string>
     <string name="no_web_browser">Herhangi bir tarayıcı kurulmamış</string>
     <string name="no_web_browser_message">Bunu akıllı telefonunuz ile tarayabilirsiniz.\nAdres: %s</string>
     <string name="no_video">Kullanılabilecek bir görüntü yok</string>
@@ -1265,7 +1256,6 @@
     <string name="talkback_minutes">dakika</string>
     <string name="talkback_seconds">saniye</string>
     <string name="talkback_list_section">Üst bilgi: %s</string>
-    <string name="talkback_enter_screen">%s git</string>
     <string name="talkback_file_size">Dosya boyutu: %s</string>
     <string name="talkback_open_in_browser">Tarayıcıda aç</string>
     <string name="talkback_video_player">Görüntü oynatıcı. Denetimleri görüntülemek için dokunun. Gizlemek için geri düğmesine dokunun</string>

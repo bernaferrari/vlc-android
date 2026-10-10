@@ -130,7 +130,6 @@
     <string name="noplaylist">Enginn spilunarlisti fannst.</string>
     <string name="nosubfolder">Engar undirmöppur</string>
     <string name="directorynotfound">Skráaslóðin \'%1$s\' fannst ekki.</string>
-    <string name="nohistory">Enginn afspilunarferill er til staðar.</string>
     <string name="cant_ban_root">Þú getur ekki bannað rótarmöppu</string>
 
     <string name="cover_art">Umslög</string>
@@ -700,7 +699,6 @@
     <string name="light_theme">Ljóst þema</string>
     <string name="add">Bæta við</string>
     <string name="add_to_new_playlist">Bæta á nýjan spilunarlista</string>
-    <string name="resume_card_message">Halda áfram afspilun á %1$s?</string>
     <string name="misc">Ýmislegt</string>
     <string name="popup_force_legacy_title">Nota sérsniðinn mynd-í-mynd (PiP) sprettglugga</string>
     <string name="popup_force_legacy_summary">Nota sérsniðinn mynd-í-mynd (PiP) sprettglugga með breytanlegri stærð</string>
@@ -819,7 +817,6 @@
     <string name="rename_group">Endurnefna myndskeiðahóp</string>
     <string name="ungroup">Taka úr hópi</string>
     <string name="group_similar">Endurhópa sjálfvirkt</string>
-    <string name="no_favorite">Ekkert eftirlæti</string>
     <string name="empty_directory">Tómt</string>
     <string name="no_track">Ekkert spor</string>
 
@@ -830,7 +827,6 @@
     <string name="sub_result_by_name_episode">Þáttur %s</string>
     <string name="sub_result_by_file">Niðurstöður fyrir skrána þína</string>
     <string name="donate">Hjálpa VLC</string>
-    <string name="donate_desc">Styddu við sjálfboðaliðana sem þróa VLC</string>
     <string name="donate_subscribtion">Ég myndi vilja að þetta væri mánaðarlegur stuðningur</string>
     <string name="donate_send">Byrjaðu stuðning þinn</string>
     <string name="donation_description">Styrkurinn frá þér mun hjálpa okkur að:\nBæta VLC forritið fyrir Android\nStyðja við VideoLAN-samtökin</string>
@@ -846,8 +842,6 @@
     <string name="mark_as_played">Merkja sem spilað</string>
     <string name="mark_as_not_played">Merkja sem óspilað</string>
     <string name="mark_all_as_played">Merkja allt sem spilað</string>
-    <string name="new_group">Nýr hópur</string>
-    <string name="new_group_desc">Búa til nýjan hóp</string>
 
     <string name="air_action_rewind">Spóla til baka um 10 sek</string>
     <string name="air_action_forward">Spóla áfram um 10 sek</string>
@@ -964,7 +958,6 @@
     <string name="talkback_minutes">mínútur</string>
     <string name="talkback_seconds">sekúndur</string>
     <string name="talkback_list_section">Haus: %s</string>
-    <string name="talkback_enter_screen">Fara á %s</string>
     <string name="talkback_file_size">Skráarstærð: %s</string>
     <string name="talkback_open_in_browser">Opna í vafra</string>
     <string name="talkback_video_player">Myndspilari. Ýttu til að birta stýringar. Ýttu á til baka til að fela þær</string>

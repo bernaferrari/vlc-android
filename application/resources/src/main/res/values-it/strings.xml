@@ -174,7 +174,6 @@
     <string name="noplaylist">Nessuna scaletta trovata.</string>
     <string name="nosubfolder">Nessuna sottocartella</string>
     <string name="directorynotfound">Il percorso della cartella \'%1$s\' non è stato trovato.</string>
-    <string name="nohistory">Non hai ancora uno storico delle riproduzioni.</string>
     <string name="cant_ban_root">Non puoi vietare una cartella radice</string>
 
     <string name="cover_art">Copertina</string>
@@ -911,7 +910,6 @@
     <string name="add_to_new_playlist">Aggiungi a nuova scaletta</string>
     <string name="create_new_playlist">Crea una nuova scaletta</string>
     <string name="create">Crea</string>
-    <string name="resume_card_message">Vuoi riprendere la riproduzione di %1$s?</string>
     <string name="misc">Varie</string>
     <string name="popup_force_legacy_title">Utilizza finestra Picture-in-Picture personalizzata</string>
     <string name="popup_force_legacy_summary">Utilizza finestra ridimensionabile Picture-in-Picture personalizzata</string>
@@ -1042,8 +1040,6 @@
     <string name="rename_group">Rinomina il gruppo di video</string>
     <string name="ungroup">Separa</string>
     <string name="group_similar">Raggruppa automaticamente</string>
-    <string name="no_group_found">Nessun gruppo video trovato</string>
-    <string name="no_favorite">Nessun preferito</string>
     <string name="empty_directory">Vuota</string>
     <string name="no_track">Nessuna traccia</string>
 
@@ -1056,7 +1052,6 @@
 
     <string name="sub_result_by_file">Risultati per il tuo file</string>
     <string name="donate">Aiuta VLC</string>
-    <string name="donate_desc">Supporta i volontari nella costruzione di VLC</string>
     <string name="donate_subscribtion">Vorrei che questa fosse una sponsorizzazione mensile</string>
     <string name="donate_send">Inizia la tua sponsorizzazione</string>
     <string name="donation_description">La tua sponsorizzazione ci consentirà di:\nmigliorare l\'applicazione VLC per Android\nsupportare la VideoLAN Association</string>
@@ -1073,8 +1068,6 @@
     <string name="mark_as_not_played">Marca come non riprodotto</string>
     <string name="mark_all_as_played">Marca tutti come riprodotti</string>
     <string name="mark_all_as_not_played">Marca tutti come non riprodotti</string>
-    <string name="new_group">Nuovo gruppo</string>
-    <string name="new_group_desc">Crea un nuovo gruppo</string>
 
     <string name="air_action_rewind">Riavvolgi 10 sec</string>
     <string name="air_action_forward">Posiziona in avanti 10 sec</string>
@@ -1213,8 +1206,6 @@
     <string name="notch">Notch</string>
     <string name="always_fast_seek">Usa sempre il posizionamento veloce</string>
     <string name="always_fast_seek_summary">Il posizionamento è più veloce, ma potrebbe essere meno preciso</string>
-    <string name="touch_only">Funzionalità solo tocco </string>
-    <string name="touch_only_description">Il passaggio all\'interfaccia mobile può essere effettuato solo con uno schermo tattile o un mouse.\nScorri di seguito per verificare che questa funzionalità sia sicura da modificare. </string>
     <string name="no_web_browser">Nessun browser web installato</string>
     <string name="no_web_browser_message">Puoi eseguire una scansione con il tuo smartphone.\nL\'URL è %s</string>
     <string name="no_video">Nessun video disponibile</string>
@@ -1281,7 +1272,6 @@
     <string name="talkback_minutes">minuti</string>
     <string name="talkback_seconds">secondi</string>
     <string name="talkback_list_section">Intestazione: %s</string>
-    <string name="talkback_enter_screen">Naviga a %s</string>
     <string name="talkback_file_size">Dimensione file: %s</string>
     <string name="talkback_open_in_browser">Apri nel browser web</string>
     <string name="talkback_video_player">Lettore video. Tocca per mostrare i controlli. Tocca il pulsante Indietro per nasconderli</string>

@@ -160,7 +160,6 @@
     <string name="noplaylist">Grojaraščių nerasta.</string>
     <string name="nosubfolder">Be poaplankių</string>
     <string name="directorynotfound">Katalogo kelias „%1$s“ nerastas.</string>
-    <string name="nohistory">Kol kas grojimo žurnalas tuščias.</string>
     <string name="cant_ban_root">Šakninio aplanko uždrausti negalima</string>
 
     <string name="cover_art">Viršelis</string>
@@ -851,7 +850,6 @@
     <string name="add_to_new_playlist">Įtraukti į naują grojaraštį</string>
     <string name="create_new_playlist">Sukurti naują grojaraštį</string>
     <string name="create">Sukurti</string>
-    <string name="resume_card_message">Tęsti „%1$s“ grojimą?</string>
     <string name="misc">Įvairūs</string>
     <string name="popup_force_legacy_title">Naudoti savitą iškylantį „vaizdo-vaizde“ langą</string>
     <string name="popup_force_legacy_summary">Naudoti savitą keičiamo dydžio iškylantį „vaizdo-vaizde“ langą</string>
@@ -979,8 +977,6 @@
     <string name="rename_group">Pervardyti vaizdo įrašų grupę</string>
     <string name="ungroup">Negrupuoti</string>
     <string name="group_similar">Pergrupuoti automatiškai</string>
-    <string name="no_group_found">Vaizdo įrašų grupių nerasta</string>
-    <string name="no_favorite">Nėra mėgstamiausių</string>
     <string name="empty_directory">Tuščia</string>
     <string name="no_track">Nėra</string>
 
@@ -993,7 +989,6 @@
 
     <string name="sub_result_by_file">Jūsų paieškos rezultatai</string>
     <string name="donate">Padėti VLC</string>
-    <string name="donate_desc">Paremkite VLC kūrėjus</string>
     <string name="donate_subscribtion">Remti kas mėnesį</string>
     <string name="donate_send">Pradėti rėmimo procedūrą</string>
     <string name="donation_description">Jūsų rėmimas leis:\nPatobulinti VLC, skirtą „Android“ sistemai.\nPalaikyti „VideoLAN“ asociaciją</string>
@@ -1010,8 +1005,6 @@
     <string name="mark_as_not_played">Pažymėti kaip neperžiūrėtą</string>
     <string name="mark_all_as_played">Pažymėti viską kaip peržiūrėtą</string>
     <string name="mark_all_as_not_played">Pažymėti viską kaip neperžiūrėtą</string>
-    <string name="new_group">Nauja grupė</string>
-    <string name="new_group_desc">Sukurti naują grupę</string>
 
     <string name="air_action_rewind">Atsukti atgal 10 sek.</string>
     <string name="air_action_forward">Peršokti į priekį 10 sek.</string>
@@ -1144,8 +1137,6 @@
     <string name="notch">Įpjova</string>
     <string name="always_fast_seek">Visada naudoti greitąjį prasukimą</string>
     <string name="always_fast_seek_summary">Prasukimas yra greitesnis, bet ne toks tikslus</string>
-    <string name="touch_only">Tik lytėjimo ekraną turintiems įrenginiams</string>
-    <string name="touch_only_description">Perjungti į mobiliąją sąsają galima tik naudojant lytėjimo ekraną arba pelytę.\nPerbraukite žemiau, kad patikrintumėte, ar šią funkciją saugu keisti. </string>
     <string name="no_web_browser">Neįdiegta žiniatinklio naršyklė</string>
     <string name="no_web_browser_message">Galite tai nuskaityti išmaniajame telefone.\nNuoroda yra: %s</string>
     <string name="no_video">Nėra vaizdo įrašų</string>
@@ -1212,7 +1203,6 @@
     <string name="talkback_minutes">min.</string>
     <string name="talkback_seconds">sek.</string>
     <string name="talkback_list_section">Antraštė: %s</string>
-    <string name="talkback_enter_screen">Eiti į: %s</string>
     <string name="talkback_file_size">Rinkmenos dydis: %s</string>
     <string name="talkback_open_in_browser">Atidaryti žiniatinklio naršyklėje</string>
     <string name="talkback_video_player">Vaizdo leistuvė. Bakstelėkite, kad būtų parodyti valdikliai. Bakstelėkite mygtuką „atgal“, kad juos paslėptumėte</string>

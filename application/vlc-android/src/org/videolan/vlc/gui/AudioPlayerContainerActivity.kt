@@ -23,11 +23,9 @@
 
 package org.videolan.vlc.gui
 
-import android.annotation.SuppressLint
 import android.app.Dialog
 import android.media.AudioManager
 import android.os.Bundle
-import android.view.Gravity
 import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
@@ -38,7 +36,6 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.Toolbar
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.graphics.Insets
-import androidx.core.net.toUri
 import androidx.core.os.bundleOf
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
@@ -54,19 +51,14 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_COLLAPS
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_EXPANDED
 import com.google.android.material.bottomsheet.BottomSheetBehavior.STATE_HIDDEN
 import com.google.android.material.bottomsheet.BottomSheetBehavior.from
-import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.videolan.medialibrary.interfaces.Medialibrary
-import org.videolan.resources.util.getFromMl
 import org.videolan.resources.util.startMedialibrary
-import org.videolan.tools.AUDIO_RESUME_PLAYBACK
 import org.videolan.tools.KEY_AUDIO_PLAYER_SHOW_COVER
-import org.videolan.tools.KEY_CURRENT_AUDIO
 import org.videolan.tools.PREF_AUDIOPLAYER_TIPS_SHOWN
 import org.videolan.tools.Settings
 import org.videolan.tools.dp
@@ -83,13 +75,11 @@ import org.videolan.vlc.gui.audio.AudioPlaylistTipsDelegate
 import org.videolan.vlc.gui.audio.AudioTipsDelegate
 import org.videolan.vlc.gui.dialogs.showResumePlaybackComposeDialog
 import org.videolan.vlc.gui.dialogs.showEqualizerComposeDialog
-import org.videolan.vlc.gui.helpers.BottomNavigationBehavior
 import org.videolan.vlc.gui.helpers.KeycodeListener
 import org.videolan.vlc.gui.helpers.PlayerBehavior
 import org.videolan.vlc.gui.helpers.PlayerKeyListenerDelegate
 import org.videolan.vlc.gui.helpers.PlayerOptionsDelegateCallback
 import org.videolan.vlc.gui.helpers.UiTools
-import org.videolan.vlc.gui.helpers.UiTools.isTablet
 import org.videolan.vlc.gui.view.audioPlayerTipsHost
 import org.videolan.vlc.gui.view.scanProgressHost
 import org.videolan.vlc.media.PlaylistManager
@@ -98,8 +88,6 @@ import org.videolan.vlc.media.WaitConfirmation
 import org.videolan.vlc.util.LifecycleAwareScheduler
 import org.videolan.vlc.util.SchedulerCallback
 import org.videolan.vlc.util.isTalkbackIsEnabled
-import kotlin.math.max
-import kotlin.math.min
 
 
 private const val TAG = "VLC/APCActivity"
@@ -107,8 +95,6 @@ private const val TAG = "VLC/APCActivity"
 private const val ACTION_DISPLAY_PROGRESSBAR = "action_display_progressbar"
 private const val ACTION_SHOW_PLAYER = "action_show_player"
 private const val ACTION_HIDE_PLAYER = "action_hide_player"
-private const val BOTTOM_IS_HIDDEN = "bottom_is_hidden"
-private const val PLAYER_OPENED = "player_opened"
 private const val SHOWN_TIPS = "shown_tips"
 private const val BOOKMARK_VISIBLE: String = "bookmark_visible"
 private const val AUDIO_PLAYER_STATE = "audio_player_state"
@@ -116,18 +102,15 @@ private const val AUDIO_PLAYER_STATE = "audio_player_state"
 open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, SchedulerCallback, PlayerOptionsDelegateCallback {
 
     private lateinit var onBackPressedCallback: OnBackPressedCallback
-    private var bottomBar: View? = null
     lateinit var appBarLayout: AppBarLayout
     protected lateinit var toolbar: Toolbar
     private var tabLayout: TabLayout? = null
-    private var navigationRail: View? = null
     lateinit var audioPlayer: AudioPlayer
     private lateinit var audioPlayerContainer: FrameLayout
     lateinit var playerBehavior: PlayerBehavior<*>
     protected lateinit var contentContainer: View
     protected var originalBottomPadding: Int = 0
     private var scanProgressLayout: VLCComposeView? = null
-    private lateinit var resumeCard: Snackbar
     private var preventRescan = false
     private var showAudioPlayerWhenResumed = false
     private var audioPlayerState: Bundle? = null
@@ -166,7 +149,6 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
 
     lateinit var scheduler: LifecycleAwareScheduler
 
-    private var topInset: Int = 0
 
     val isAudioPlayerReady: Boolean
         get() = ::audioPlayer.isInitialized
@@ -174,7 +156,6 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
     val isAudioPlayerExpanded: Boolean
         get() = isAudioPlayerReady && playerBehavior.state == STATE_EXPANDED
 
-    var bottomIsHiddden: Boolean = false
     var restoreBookmarks: Boolean = false
 
     override fun getSnackAnchorView(overAudioPlayer: Boolean): View? {
@@ -189,7 +170,6 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
         if (savedInstanceState != null) {
             audioPlayerState = savedInstanceState.getBundle(AUDIO_PLAYER_STATE)
             this.startMedialibrary(firstRun = false, upgrade = false, parse = true)
-            bottomIsHiddden = savedInstanceState.getBoolean(BOTTOM_IS_HIDDEN, false) && !savedInstanceState.getBoolean(PLAYER_OPENED, false)
             savedInstanceState.getIntegerArrayList(SHOWN_TIPS)?.let { shownTips.addAll(it) }
            restoreBookmarks =  savedInstanceState.getBoolean(BOOKMARK_VISIBLE, false)
         }
@@ -208,17 +188,6 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
                 if (isTransparent()) {
                     val toolbarLayoutParams = findViewById<Toolbar>(R.id.main_toolbar).layoutParams as ViewGroup.MarginLayoutParams
                     toolbarLayoutParams.topMargin = insets.top
-                }
-                if (this@AudioPlayerContainerActivity is MainActivity) {
-                    leftMargin = insets.left
-                    rightMargin = insets.right
-                    if (isTablet()) bottomMargin = insets.bottom
-                    topMargin = insets.top
-                    topInset = insets.top
-                    val bottomNavigationView = findViewById<View?>(R.id.navigation)
-                    bottomNavigationView?.setPadding(bottomNavigationView.paddingLeft, bottomNavigationView.paddingTop, bottomNavigationView.paddingRight, insets.bottom)
-                    bottomInset = insets.bottom
-                    if (::audioPlayer.isInitialized) audioPlayer.setBottomMargin()
                 }
                 setContentBottomPadding()
             }
@@ -250,9 +219,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
             return
         }
         // insets from soft nav buttons
-        var bottomMargin = if (this is MainActivity && isTablet()) 0 else bottomInset
-        // Bottom bar navigation
-        bottomMargin += if (this is MainActivity && !isTablet()) 58.dp else 0
+        var bottomMargin = bottomInset
         //mini player
         bottomMargin += if (::playerBehavior.isInitialized && playerBehavior.state != STATE_HIDDEN) 72.dp else 0 + 4.dp
         contentContainer.setPadding(contentContainer.paddingLeft, contentContainer.paddingTop, contentContainer.paddingRight, bottomMargin)
@@ -277,13 +244,11 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
         setSupportActionBar(toolbar)
         appBarLayout = findViewById(R.id.appbar)
         tabLayout = findViewById(R.id.sliding_tabs)
-        navigationRail = findViewById(R.id.navigation_rail)
         tabLayout?.visibility = View.VISIBLE
         appBarLayout.setExpanded(true)
-        bottomBar = findViewById(R.id.navigation)
         tabLayout?.viewTreeObserver?.addOnGlobalLayoutListener {
             //add a shadow if there are tabs
-            val needToElevate = (tabLayout?.layoutParams?.height != 0) || navigationRail?.visibility ?: View.GONE != View.GONE
+            val needToElevate = tabLayout?.layoutParams?.height != 0
             if (VlcMigrationHelper.isLolliPopOrLater) appBarLayout.elevation = if (needToElevate) 8.dp.toFloat() else 0.dp.toFloat()
         }
         audioPlayerContainer = findViewById(R.id.audio_player_container)
@@ -352,11 +317,7 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
         audioPlayer = AudioPlayer(this, findViewById(R.id.audio_player), audioPlayerState)
         audioPlayerState = null
         playerBehavior = from(audioPlayerContainer) as PlayerBehavior<*>
-        val bottomBehavior = bottomBar?.let {
-            @Suppress("UNCHECKED_CAST")
-            BottomNavigationBehavior.from(it) as BottomNavigationBehavior<View>
-        }
-        if (bottomIsHiddden) bottomBehavior?.setCollapsed() else hideStatusIfNeeded(playerBehavior.state)
+        hideStatusIfNeeded(playerBehavior.state)
         playerBehavior.peekHeight = resources.getDimensionPixelSize(R.dimen.player_peek_height)
         updateContentMargins()
         playerBehavior.setPeekHeightListener {
@@ -372,13 +333,6 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
         playerBehavior.addBottomSheetCallback(object : BottomSheetCallback() {
             override fun onSlide(bottomSheet: View, slideOffset: Float) {
                 audioPlayer.onSlide(slideOffset)
-                val translationpercent = min(1f, max(0f, slideOffset))
-                bottomBehavior?.let { bottomBehavior ->
-                    bottomBar?.let { bottomBar ->
-                        val translation = min((translationpercent * audioPlayerContainer.height / 2), bottomBar.height.toFloat()) - if (isTablet()) topInset else 0
-                        bottomBehavior.translate(bottomBar, translation)
-                    }
-                }
             }
 
             override fun onStateChanged(bottomSheet: View, newState: Int) {
@@ -486,8 +440,6 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
 //    fun getAudioMargin() = if (playerShown) resources.getDimensionPixelSize(R.dimen.player_peek_height) else 0
 
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.putBoolean(BOTTOM_IS_HIDDEN, bottomBar?.let { it.translationY != 0F } == true)
-        outState.putBoolean(PLAYER_OPENED, if (::playerBehavior.isInitialized) playerBehavior.state == STATE_EXPANDED else false)
         outState.putIntegerArrayList(SHOWN_TIPS, shownTips)
         if (::audioPlayer.isInitialized) {
             outState.putBoolean(BOOKMARK_VISIBLE, audioPlayer.areBookmarksVisible())
@@ -707,15 +659,6 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
             scanProgressLayout = it
         } ?: return
         progressView.visibility = View.VISIBLE
-        progressView.let {
-            val lp = it.layoutParams as CoordinatorLayout.LayoutParams
-            if (this is MainActivity) {
-                lp.anchorId = if (isTablet()) R.id.content_placeholder else R.id.navigation
-                lp.anchorGravity = if (isTablet()) Gravity.BOTTOM else Gravity.TOP
-                lp.marginStart = if (isTablet()) 72.dp else 0.dp
-            }
-            it.layoutParams = lp
-        }
         progressView.scanProgressHost().showDiscoveryText(discovery)
     }
 
@@ -763,20 +706,6 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
         }
     }
 
-    @SuppressLint("RestrictedApi")
-    fun proposeCard() = lifecycleScope.launchWhenStarted {
-        delay(1000L)
-        if (PlaylistManager.showAudioPlayer.value == true) return@launchWhenStarted
-        val song = settings.getString(KEY_CURRENT_AUDIO, null) ?: return@launchWhenStarted
-        val media = getFromMl { getMedia(song.toUri()) } ?: return@launchWhenStarted
-        if (!settings.getBoolean(AUDIO_RESUME_PLAYBACK, true)) return@launchWhenStarted
-        val title = media.title
-        resumeCard = Snackbar.make(getSnackAnchorView()
-                ?: appBarLayout, getString(R.string.resume_card_message, title), Snackbar.LENGTH_LONG)
-                .setAction(R.string.play) { PlaybackService.loadLastAudio(it.context) }
-        resumeCard.show()
-    }
-
     fun lockPlayer(lock: Boolean) {
         if (::playerBehavior.isInitialized) playerBehavior.lock(lock)
     }
@@ -788,7 +717,6 @@ open class AudioPlayerContainerActivity : BaseActivity(), KeycodeListener, Sched
                     showProgressBar(data.getString("discovery", ""))
                 }
                 ACTION_SHOW_PLAYER ->  {
-                    if (this::resumeCard.isInitialized && resumeCard.isShown) resumeCard.dismiss()
                     showAudioPlayerImpl()
                     if (::playerBehavior.isInitialized) applyMarginToProgressBar(playerBehavior.peekHeight)
                 }

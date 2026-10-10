@@ -184,7 +184,6 @@
     <string name="noplaylist">Seznama predvajanja ni mogoče najti.</string>
     <string name="nosubfolder">Ni podmape</string>
     <string name="directorynotfound">Mape »%1$s« ni mogoče najti.</string>
-    <string name="nohistory">Trenutno še ni zgodovine predvajanja.</string>
     <string name="cant_ban_root">Korenske mape ni mogoče prepovedati</string>
 
     <string name="cover_art">Naslovnica</string>
@@ -918,7 +917,6 @@
     <string name="add_to_new_playlist">Dodaj na nov seznam predvajanja</string>
     <string name="create_new_playlist">Ustvari nov seznam predvajanja</string>
     <string name="create">Ustvari</string>
-    <string name="resume_card_message">Nadaljujem s predvajanjem %1$s?</string>
     <string name="misc">Različno</string>
     <string name="popup_force_legacy_title">Uporabi prilagojen prikaz slike v sliki</string>
     <string name="popup_force_legacy_summary">Uporabi prilagojen prikaz slike v sliki s spremenljivo velikostjo</string>
@@ -1051,8 +1049,6 @@
     <string name="rename_group">Preimenuj video skupino</string>
     <string name="ungroup">Razdruži</string>
     <string name="group_similar">Samodejno ponovno združi</string>
-    <string name="no_group_found">Ni najdenih video skupin</string>
-    <string name="no_favorite">Ni priljubljenih</string>
     <string name="empty_directory">Prazno</string>
     <string name="no_track">Ni vsebin</string>
 
@@ -1065,7 +1061,6 @@
 
     <string name="sub_result_by_file">Rezultati za datoteko</string>
     <string name="donate">Pomgajte VLC</string>
-    <string name="donate_desc">Podprite prostovoljce, ki ustvarjajo VLC</string>
     <string name="donate_subscribtion">Želim, da je to mesečno sponzorstvo</string>
     <string name="donate_send">Začni sponzorstvo</string>
     <string name="donation_description">Vaše sponzorstvo na bo omogočila:\nizboljšati aplikacijo VLC za Android\nPodpreti združenje VideoLAN</string>
@@ -1082,8 +1077,6 @@
     <string name="mark_as_not_played">Označi kot nepredvajano</string>
     <string name="mark_all_as_played">Označi vse kot predvajano</string>
     <string name="mark_all_as_not_played">Označi vse kot nepredvajene</string>
-    <string name="new_group">Nova skupina</string>
-    <string name="new_group_desc">Ustvari novo skupino</string>
 
     <string name="air_action_rewind">Nazaj za 10 s</string>
     <string name="air_action_forward">Preskoči naprej 10 s</string>
@@ -1224,8 +1217,6 @@
     <string name="notch">Zareza</string>
     <string name="always_fast_seek">Vedno uporabi hitro preskakovanje</string>
     <string name="always_fast_seek_summary">Preskakovanje je hitrejše, a je lahko manj natančno</string>
-    <string name="touch_only">Zmožnost, ki deluje zgolj na dotik</string>
-    <string name="touch_only_description">Preklop na mobilni vmesnik je mogoč le z zaslonom na dotik ali miško.\nPovlecite spodaj, da potrdite, da je preklop varen.</string>
     <string name="no_web_browser">Noben spletni brskalnik ni nameščen</string>
     <string name="no_web_browser_message">To lahko skenirate s svojim pametnim telefonom.\nURL je %s</string>
     <string name="no_video">Video ni na voljo</string>
@@ -1292,7 +1283,6 @@
     <string name="talkback_minutes">minut</string>
     <string name="talkback_seconds">sekund</string>
     <string name="talkback_list_section">Glava: %s</string>
-    <string name="talkback_enter_screen">Pojdi na %s</string>
     <string name="talkback_file_size">Velikost daoteke: %s</string>
     <string name="talkback_open_in_browser">Odpri v spletnem brskalniku</string>
     <string name="talkback_video_player">Video predvajalnik. Tapnite za prikaz kontrol. Tapnite na gumb za nazaj, da jih skrijete</string>

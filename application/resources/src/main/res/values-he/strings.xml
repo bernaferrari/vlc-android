@@ -178,7 +178,6 @@
     <string name="noplaylist">לא נמצאה רשימת נגינה.</string>
     <string name="nosubfolder">אין תת־תיקיה</string>
     <string name="directorynotfound">נתיב התיקייה \'%1$s\' לא נמצא.</string>
-    <string name="nohistory">אין לך היסטוריית נגינה עדיין.</string>
     <string name="cant_ban_root">אי אפשר לחסום תיקייה עליונה</string>
 
     <string name="cover_art">האומנות על העטיפה</string>
@@ -916,7 +915,6 @@
     <string name="add_to_new_playlist">הוספה לרשימת נגינה חדשה</string>
     <string name="create_new_playlist">יצירת רשימת נגינה חדשה</string>
     <string name="create">יצירה</string>
-    <string name="resume_card_message">להמשיך בנגינה של %1$s?</string>
     <string name="misc">שונות</string>
     <string name="popup_force_legacy_title">להשתמש בחלונית צפה מותאמת לתמונה בתוך תמונה</string>
     <string name="popup_force_legacy_summary">להשתמש בחלונית צפה גמישה מותאמת לתמונה בתוך תמונה</string>
@@ -1047,8 +1045,6 @@
     <string name="rename_group">שינוי שם קבוצת וידאו</string>
     <string name="ungroup">פירוק הקבוצה</string>
     <string name="group_similar">קיבוץ אוטומטי מחדש</string>
-    <string name="no_group_found">לא נמצאה קבוצת וידאו</string>
-    <string name="no_favorite">אין מועדפים</string>
     <string name="empty_directory">ריקה</string>
     <string name="no_track">אין רצועה</string>
 
@@ -1061,7 +1057,6 @@
 
     <string name="sub_result_by_file">תוצאות לקובץ שלך</string>
     <string name="donate">סיוע ל־VLC</string>
-    <string name="donate_desc">ניתן לתמוך במתנדבים שעושים את VLC</string>
     <string name="donate_subscribtion">ברצוני לתרום כל חודש</string>
     <string name="donate_send">התחלת מימון</string>
     <string name="donation_description">המימון שלך יאפשר לנו:\nלשפר את יישומון VLC ל־Android\nלתמוך באיגוד VideoLAN</string>
@@ -1078,8 +1073,6 @@
     <string name="mark_as_not_played">סימון כטרם התנגן</string>
     <string name="mark_all_as_played">לסמן הכול כהתנגן</string>
     <string name="mark_all_as_not_played">סימון הכול כטרם נוגן</string>
-    <string name="new_group">קבוצה חדשה</string>
-    <string name="new_group_desc">יצירת קבוצה חדשה</string>
 
     <string name="air_action_rewind">10 שניות אחורה</string>
     <string name="air_action_forward">10 שניות קדימה</string>
@@ -1220,8 +1213,6 @@
     <string name="notch">בליטה</string>
     <string name="always_fast_seek">תמיד להשתמש בשיטוט מהיר</string>
     <string name="always_fast_seek_summary">השיטוט יהיה מהיר יותר אבל פחות מדויק</string>
-    <string name="touch_only">יכולת בנגיעה בלבד</string>
-    <string name="touch_only_description">אפשר לעבור למנשק לניידים רק עם מסך מגע או עכבר.\nנא להחליק להלן כדי לאמת ששינוי היכולת הזאת הוא בטוח.</string>
     <string name="no_web_browser">לא מותקן דפדפן</string>
     <string name="no_web_browser_message">אפשר לסרוק את זה בטלפון החכם שלך.\nהכתובת היא %s</string>
     <string name="no_video">אין וידאו זמין</string>
@@ -1288,7 +1279,6 @@
     <string name="talkback_minutes">דקות</string>
     <string name="talkback_seconds">שניות</string>
     <string name="talkback_list_section">כותרת: %s</string>
-    <string name="talkback_enter_screen">ניווט אל %s</string>
     <string name="talkback_file_size">גודל: %s</string>
     <string name="talkback_open_in_browser">פתיחה בדפדפן</string>
     <string name="talkback_video_player">נגן וידאו. נגיעה תציג את הפקדים. נגיעה בכפתור החזרה תסתיר אותם</string>

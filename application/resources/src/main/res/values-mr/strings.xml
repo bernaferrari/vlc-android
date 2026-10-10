@@ -69,7 +69,6 @@
     <string name="please_wait">कृपया प्रतीक्षा करा…</string>
     <string name="nomedia">मीडिया फायली नाही आढळल्या, आपल्या उपकरणावर काही फायली स्थानांतरीत करा किंवा आपली प्राधान्ये समायोजित करा.</string>
     <string name="directorynotfound">\'%1$s\' निर्देशिकाचा मार्ग नाही सापडला</string>
-    <string name="nohistory">आपल्याकडे आतापर्यंत प्लेबॅक इतिहास नाही.</string>
 
     <string name="cover_art">कव्हर आर्ट</string>
     <string name="previous">मागील</string>

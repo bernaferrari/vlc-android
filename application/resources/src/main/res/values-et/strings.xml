@@ -164,7 +164,6 @@
     <string name="noplaylist">Esitusloendit ei leitud.</string>
     <string name="nosubfolder">Alamkausta pole</string>
     <string name="directorynotfound">Kausta „%1$s“ ei leitud.</string>
-    <string name="nohistory">Taasesituse ajalugu veel puudub.</string>
     <string name="cant_ban_root">Sa ei saa juurkausta keelata</string>
 
     <string name="cover_art">Kaanepilt</string>
@@ -902,7 +901,6 @@
     <string name="add_to_new_playlist">Lisa uude esitusloendisse</string>
     <string name="create_new_playlist">Loo uus esitusloend</string>
     <string name="create">Loo</string>
-    <string name="resume_card_message">Kas jätkame „%1$s“ taasesitust?</string>
     <string name="misc">Mitmesugust</string>
     <string name="popup_force_legacy_title">Kasuta sinu valitud suurusega pilt-pildis vaadet</string>
     <string name="popup_force_legacy_summary">Kasuta sinu suurendatavat pilt-pildis vaadet</string>
@@ -1031,8 +1029,6 @@
     <string name="rename_group">Nimeta videogrupp ümber</string>
     <string name="ungroup">Eemalda grupp</string>
     <string name="group_similar">Grupeeri automaatselt</string>
-    <string name="no_group_found">Videogruppi ei leidunud</string>
-    <string name="no_favorite">Lemmikud puuduvad</string>
     <string name="empty_directory">Tühi</string>
     <string name="no_track">Rada pole</string>
 
@@ -1045,7 +1041,6 @@
 
     <string name="sub_result_by_file">Tulemused sinu faili kohta</string>
     <string name="donate">Aita VLC\'d</string>
-    <string name="donate_desc">Toeta vabatahtlikke, kes arendavad VLC rakendust</string>
     <string name="donate_subscribtion">Ma soovin, et see rahaline toetus oleks igakuine</string>
     <string name="donate_send">Alusta oma sponsorlust</string>
     <string name="donation_description">Sinu rahaline toetus aitab meil:\nParandada VLC rakendust Androidile\nToetada VideoLANi Ühingu tööd</string>
@@ -1062,8 +1057,6 @@
     <string name="mark_as_not_played">Märgi mitteesitatuks</string>
     <string name="mark_all_as_played">Märgi kõik esitatuks</string>
     <string name="mark_all_as_not_played">Märgi kõik mitteesitatuks</string>
-    <string name="new_group">Uus grupp</string>
-    <string name="new_group_desc">Loo uus grupp</string>
 
     <string name="air_action_rewind">Keri tagasi 10 sek</string>
     <string name="air_action_forward">Keri edasi 10 sek</string>
@@ -1201,8 +1194,6 @@
     <string name="notch">Sälk</string>
     <string name="always_fast_seek">Alati kasuta kiirkerimist</string>
     <string name="always_fast_seek_summary">Kerimine on kiirem, kuid võib olla vähem täpne</string>
-    <string name="touch_only">Funktsionaalsus on kasutatav vaid puudutades</string>
-    <string name="touch_only_description">Mobiilse kasutajaliidese sisselülitamisel saad seda juhtida vaid puuteekraanilt või hiirega.\nKontrollimaks, et see muudatus on mõistlik, palun viipa allapoole.</string>
     <string name="no_web_browser">Ei leia ühtegi installeritud veebilehitsejat</string>
     <string name="no_web_browser_message">Sa võid sed oma nutiseadmega skaneerida\nVõrguaadress on %s</string>
     <string name="no_video">Video pole kättesaadav</string>
@@ -1269,7 +1260,6 @@
     <string name="talkback_minutes">minutit</string>
     <string name="talkback_seconds">sekundit</string>
     <string name="talkback_list_section">Päis: %s</string>
-    <string name="talkback_enter_screen">Ava %s</string>
     <string name="talkback_file_size">Faili suurus: %s</string>
     <string name="talkback_open_in_browser">Ava veebilehitsejas</string>
     <string name="talkback_video_player">Videomängija. Juhtnupude kuvamiseks klõpsi. Tagasi-nupu vajutusega peidad juhtnupud</string>

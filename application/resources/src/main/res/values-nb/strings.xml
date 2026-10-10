@@ -138,7 +138,6 @@
     <string name="noplaylist">Ingen spillelister funnet.</string>
     <string name="nosubfolder">Ingen undermapper</string>
     <string name="directorynotfound">Mappestien «%1$s» finnes ikke.</string>
-    <string name="nohistory">Du har ingen avspillingshistorie enda.</string>
     <string name="cover_art">Omslagsbilde</string>
     <string name="shuffle_all_title">Stokk alle</string>
     <string name="shuffle_title">Tilfeldig-modus</string>
@@ -726,7 +725,6 @@
     <string name="add_to_new_playlist">Legg til i ny spilleliste</string>
     <string name="create_new_playlist">Lag en ny spilleliste</string>
     <string name="create">Opprett</string>
-    <string name="resume_card_message">Vil du gjenoppta avspiling av %1$s?</string>
     <string name="misc">Diverse</string>
     <string name="popup_force_legacy_title">Bruk tilpasset «Bilde-i-bilde»-oppsprett</string>
     <string name="popup_force_legacy_summary">Bruk tilpasset bilde-i-bilde med justerbar størrelse</string>
@@ -845,8 +843,6 @@
     <string name="rename_group">Gi nytt navn til filmgruppa</string>
     <string name="ungroup">Del opp</string>
     <string name="group_similar">Grupper på nytt automatisk</string>
-    <string name="no_group_found">Ingen videogruppe funnet</string>
-    <string name="no_favorite">Ingen favoritt</string>
     <string name="empty_directory">Tom</string>
     <string name="no_track">Ingen spor</string>
 
@@ -866,8 +862,6 @@
     <string name="mark_as_not_played">Merk som ikke avspilt</string>
     <string name="mark_all_as_played">Merk alle som avspilt</string>
     <string name="mark_all_as_not_played">Merk alle som «Ikke spilt av»</string>
-    <string name="new_group">Ny gruppe</string>
-    <string name="new_group_desc">Opprett en ny gruppe</string>
 
     <string name="air_action_rewind">Tilbake 10 sek</string>
     <string name="air_action_forward">Spol frem 10 sek</string>
@@ -978,7 +972,6 @@
     <string name="talkback_hours">timer</string>
     <string name="talkback_minutes">minutter</string>
     <string name="talkback_seconds">sekunder</string>
-    <string name="talkback_enter_screen">Naviger til %s</string>
     <string name="talkback_file_size">Filstørrelse: %s</string>
     <string name="talkback_open_in_browser">Åpne i nettleser</string>
     <string name="talkback_video_tracks">Videospor</string>

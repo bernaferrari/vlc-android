@@ -162,7 +162,6 @@
     <string name="noplaylist">Geen afspeellijst gevonden.</string>
     <string name="nosubfolder">Geen submap</string>
     <string name="directorynotfound">Het pad \'%1$s\' werd niet teruggevonden.</string>
-    <string name="nohistory">U hebt nog geen afspeelgeschiedenis.</string>
     <string name="cant_ban_root">U kunt geen root-map verbannen</string>
 
     <string name="cover_art">Albumhoes</string>
@@ -894,7 +893,6 @@
     <string name="add_to_new_playlist">Aan nieuwe afspeellijst toevoegen</string>
     <string name="create_new_playlist">Nieuwe afspeellijst aanmaken</string>
     <string name="create">Aanmaken</string>
-    <string name="resume_card_message">Afspelen van %1$s hervatten?</string>
     <string name="misc">Overige</string>
     <string name="popup_force_legacy_title">Aangepaste beeld-in-beeld popup gebruiken</string>
     <string name="popup_force_legacy_summary">Aangepaste grootte-instelbare beeld-in-beeld popup gebruiken</string>
@@ -1023,8 +1021,6 @@
     <string name="rename_group">Videogroep hernoemen</string>
     <string name="ungroup">Degroeperen</string>
     <string name="group_similar">Automatisch hergroeperen</string>
-    <string name="no_group_found">Geen videogroep gevonden</string>
-    <string name="no_favorite">Geen favoriet</string>
     <string name="empty_directory">Leeg</string>
     <string name="no_track">Geen track</string>
 
@@ -1037,7 +1033,6 @@
 
     <string name="sub_result_by_file">Resultaten voor uw bestand</string>
     <string name="donate">VLC helpen</string>
-    <string name="donate_desc">Ondersteun de vrijwilligers die VLC maken</string>
     <string name="donate_subscribtion">Ik wil dat dit een maandelijkse sponsoring wordt</string>
     <string name="donate_send">Uw sponsoring starten</string>
     <string name="donation_description">Uw sponsoring zal ons toelaten om:\nde VLC-app voor Android te verbeteren\nde VideoLAN-associatie te ondersteunen</string>
@@ -1054,8 +1049,6 @@
     <string name="mark_as_not_played">Markeren als niet afgespeeld</string>
     <string name="mark_all_as_played">Alles markeren als afgespeeld</string>
     <string name="mark_all_as_not_played">Alles markeren als niet afgespeeld</string>
-    <string name="new_group">Nieuwe groep</string>
-    <string name="new_group_desc">Nieuwe groep aanmaken</string>
 
     <string name="air_action_rewind">10 sec terug</string>
     <string name="air_action_forward">10 sec vooruit</string>
@@ -1192,8 +1185,6 @@
     <string name="notch">Notch</string>
     <string name="always_fast_seek">Altijd snel zoeken gebruiken</string>
     <string name="always_fast_seek_summary">Zoeken is sneller maar kan minder precies zijn</string>
-    <string name="touch_only">Functie uitsluitend voor touch</string>
-    <string name="touch_only_description">Omschakelen naar de mobiele interface kan alleen met een aanraakscherm of een muis. Schuif hieronder om te verifiëren dat deze functie veilig kan worden gewijzigd.</string>
     <string name="no_web_browser">Geen webbrowser geïnstalleerd</string>
     <string name="no_web_browser_message">U kunt dit scannen op uw smartphone.\De URL is %s</string>
     <string name="no_video">Geen video beschikbaar</string>
@@ -1260,7 +1251,6 @@
     <string name="talkback_minutes">minuten</string>
     <string name="talkback_seconds">seconden</string>
     <string name="talkback_list_section">Hoofding: %s</string>
-    <string name="talkback_enter_screen">Navigeren naar %s</string>
     <string name="talkback_file_size">Bestandsgrootte: %s</string>
     <string name="talkback_open_in_browser">Openen in webbrowser</string>
     <string name="talkback_video_player">Videospeler. Tikken om bediening weer te geven. Tik op de terug-knop om ze te verbergen</string>

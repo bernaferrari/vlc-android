@@ -68,7 +68,6 @@
     <string name="please_wait">ਉਡੀਕ ਕਰੋ ਜ…</string>
     <string name="nomedia">ਕੋਈ ਮੀਡਿਆ ਫਾਇਲਾਂ ਨਹੀਂ ਲੱਭੀਆਂ, ਕਿਰਪਾ ਕਰਕੇ ਆਪਣੇ ਯੰਤਰ ਉੱਤੇ ਕੁਝ ਫਾਇਲਾਂ ਟਰਾਂਸਫਰ ਕਰੋ ਜਾਂ ਆਪਣੀ ਪਸੰਦ ਨੂੰ ਠੀਕ ਕਰੋ।</string>
     <string name="directorynotfound">ਡਾਇਰੈਕਟਰੀ ਪਾਥ \'%1$s\' ਨਹੀਂ ਲੱਭਿਆ।</string>
-    <string name="nohistory">ਤੁਹਾਡੇ ਕੋਲ ਕੋਈ ਪਲੇਅਬੈਕ ਅਤੀਤ ਹਾਲੇ ਨਹੀਂ ਹੈ।</string>
 
     <string name="cover_art">ਕਵਰ ਆਰਟ</string>
     <string name="previous">ਪਿਛਲੇ</string>

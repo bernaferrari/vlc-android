@@ -47,8 +47,6 @@ fun String?.isSchemeNetwork() = when(this) {
     else -> false
 }
 
-fun String?.isSchemeFavoriteEditable() = this in arrayOf("ftp", "ftps", "ftpes", "sftp", "smb", "nfs")
-
 fun String?.isSchemeFile() = when(this) {
     "file", null -> true
     else -> false
@@ -58,8 +56,6 @@ fun Uri.isOTG() = this.path?.startsWith("/mnt") == true
 fun Uri.isSD() = this.path != null && this.path?.startsWith("/storage") == true && this.path?.startsWith(AndroidDevices.EXTERNAL_PUBLIC_DIRECTORY) == false
 fun String?.isSchemeSMB() = this == "smb"
 fun String?.isSchemeFD() = this == "fd"
-
-fun String.isMissing() = this == "missing://"
 
 fun convertFavorites(browserFavs: List<BrowserFav>?) = browserFavs?.filter {
     it.uri.scheme != "file" || File(it.uri.path).exists()

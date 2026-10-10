@@ -112,7 +112,6 @@
     <string name="noplaylist">Нема листе пуштања.</string>
     <string name="nosubfolder">Нема потфасцикли</string>
     <string name="directorynotfound">Путања „%1$s“ није пронађена.</string>
-    <string name="nohistory">Још нисте репродуковали ниједну датотеку.</string>
 
     <string name="cover_art">Омот</string>
     <string name="shuffle_all_title">Измешај све</string>

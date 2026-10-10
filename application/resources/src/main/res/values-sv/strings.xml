@@ -164,7 +164,6 @@
     <string name="noplaylist">Ingen spellista hittades.</string>
     <string name="nosubfolder">Ingen undermapp</string>
     <string name="directorynotfound">Sökvägen \"%1$s\" hittades inte.</string>
-    <string name="nohistory">Du har ännu ingen uppspelningshistorik.</string>
     <string name="cant_ban_root">Du kan inte bannlysa en rotmapp</string>
 
     <string name="cover_art">Omslagsbild</string>
@@ -900,7 +899,6 @@
     <string name="add_to_new_playlist">Lägg till i ny spellista</string>
     <string name="create_new_playlist">Skapa ny spellista</string>
     <string name="create">Skapa</string>
-    <string name="resume_card_message">Återuppta uppspelning av %1$s?</string>
     <string name="misc">Övrigt</string>
     <string name="popup_force_legacy_title">Använd anpassad popup för bild-i-bild</string>
     <string name="popup_force_legacy_summary">Använd anpassad popup för bild-i-bild som kan storleksändras</string>
@@ -1029,8 +1027,6 @@
     <string name="rename_group">Byt namn på videogrupp</string>
     <string name="ungroup">Avgruppera</string>
     <string name="group_similar">Omgruppera automatiskt</string>
-    <string name="no_group_found">Inga videogrupper hittades</string>
-    <string name="no_favorite">Inga favoriter</string>
     <string name="empty_directory">Tom</string>
     <string name="no_track">Inget spår</string>
 
@@ -1043,7 +1039,6 @@
 
     <string name="sub_result_by_file">Resultat för din fil</string>
     <string name="donate">Hjälp VLC</string>
-    <string name="donate_desc">Stöd volontärerna som bygger VLC</string>
     <string name="donate_subscribtion">Jag vill att detta ska vara en månadssponsring</string>
     <string name="donate_send">Inled din sponsring</string>
     <string name="donation_description">Din sponsring låter oss att:\nFörbättra VLC-appen för Android\nStödja VideoLAN-associationen</string>
@@ -1060,8 +1055,6 @@
     <string name="mark_as_not_played">Markera som ej uppspelad</string>
     <string name="mark_all_as_played">Markera alla som uppspelade</string>
     <string name="mark_all_as_not_played">Markera alla som ej uppspelade</string>
-    <string name="new_group">Ny grupp</string>
-    <string name="new_group_desc">Skapa en ny grupp</string>
 
     <string name="air_action_rewind">Spola tillbaka 10 s</string>
     <string name="air_action_forward">Sök framåt 10 s</string>
@@ -1198,8 +1191,6 @@
     <string name="notch">Sensorfält</string>
     <string name="always_fast_seek">Använd alltid kvick snabbspolning</string>
     <string name="always_fast_seek_summary">Söker snabbare men kan vara mindre exakt</string>
-    <string name="touch_only">Pekskärmsfunktion</string>
-    <string name="touch_only_description">Det går bara att byta till mobilgränssnittet med en pekskärm eller mus.\nSvep nedan för att bekräfta att det är säkert att byta till denna funktionalitet.</string>
     <string name="no_web_browser">Ingen webbläsare är installerad</string>
     <string name="no_web_browser_message">Du kan skanna detta med din smartphone.\nWebbaddressen är %s</string>
     <string name="no_video">Ingen video tillgänglig</string>
@@ -1266,7 +1257,6 @@
     <string name="talkback_minutes">minuter</string>
     <string name="talkback_seconds">sekunder</string>
     <string name="talkback_list_section">Sidhuvud: %s</string>
-    <string name="talkback_enter_screen">Navigera till %s</string>
     <string name="talkback_file_size">Filstorlek: %s</string>
     <string name="talkback_open_in_browser">Öppna i webbläsare</string>
     <string name="talkback_video_player">Videospelare. Tryck för att visa kontroller. Tryck på tillbakaknappen för att dölja dem</string>

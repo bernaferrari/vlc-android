@@ -24,8 +24,6 @@
 package org.videolan.vlc.gui
 
 import org.videolan.vlc.gui.helpers.setVlcContent
-import android.content.ClipboardManager
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
@@ -33,49 +31,31 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.view.ActionMode
-import androidx.appcompat.widget.SearchView
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.coordinatorlayout.widget.CoordinatorLayout
-import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.appbar.AppBarLayout
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
-import org.videolan.medialibrary.MLServiceLocator
 import org.videolan.libvlc.Dialog
 import org.videolan.medialibrary.interfaces.Medialibrary
 import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.resources.AndroidDevices
 import org.videolan.resources.KEY_ANIMATED
-import org.videolan.resources.KEY_FOLDER
-import org.videolan.resources.KEY_GROUP
 import org.videolan.resources.TAG_ITEM
 import org.videolan.resources.util.applyOverscanMargin
 import org.videolan.resources.util.parcelable
-import org.videolan.tools.KEY_AUDIO_LAST_PLAYLIST
 import org.videolan.tools.KEY_INCOGNITO
-import org.videolan.tools.KEY_MEDIA_LAST_PLAYLIST
-import org.videolan.tools.KeyHelper
-import org.videolan.tools.PLAYBACK_HISTORY
 import org.videolan.tools.RESULT_RESCAN
 import org.videolan.tools.RESULT_RESTART
 import org.videolan.tools.Settings
 import org.videolan.tools.copy
-import org.videolan.tools.isValidUrl
-import org.videolan.tools.retrieveParent
 import org.videolan.vlc.R
-import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.gui.audio.SecondaryAudioScreenController
 import org.videolan.vlc.gui.browser.SecondaryFileBrowserScreenController
@@ -83,47 +63,14 @@ import org.videolan.vlc.gui.browser.KEY_IN_MEDIALIB
 import org.videolan.vlc.gui.browser.KEY_JUMP_TO
 import org.videolan.vlc.gui.browser.KEY_MEDIA
 import org.videolan.vlc.gui.browser.SecondaryStorageBrowserScreenController
-import org.videolan.vlc.gui.dialogs.CtxActionReceiver
-import org.videolan.vlc.gui.dialogs.SavePlaylistDialog
-import org.videolan.vlc.gui.dialogs.showConfirmDeleteComposeDialog
-import org.videolan.vlc.gui.dialogs.showContext
-import org.videolan.vlc.gui.dialogs.showRenameComposeDialog
 import org.videolan.vlc.gui.helpers.UiTools
-import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
-import org.videolan.vlc.gui.helpers.UiTools.createShortcut
-import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
-import org.videolan.vlc.gui.network.StreamPanelContent
-import org.videolan.vlc.gui.video.SecondaryVideoScreenController
-import org.videolan.vlc.gui.video.VideoPlayerActivity
-import org.videolan.vlc.media.MediaUtils
-import org.videolan.vlc.media.PlaylistManager
 import org.videolan.vlc.reloadLibrary
-import org.videolan.vlc.util.ContextOption
-import org.videolan.vlc.util.ContextOption.CTX_ADD_SHORTCUT
-import org.videolan.vlc.util.ContextOption.CTX_ADD_TO_PLAYLIST
-import org.videolan.vlc.util.ContextOption.CTX_APPEND
-import org.videolan.vlc.util.ContextOption.CTX_COPY
-import org.videolan.vlc.util.ContextOption.CTX_DELETE
-import org.videolan.vlc.util.ContextOption.CTX_RENAME
 import org.videolan.vlc.util.DialogDelegate
-import org.videolan.vlc.util.FlagSet
 import org.videolan.vlc.util.IDialogManager
 import org.videolan.vlc.util.Permissions
-import org.videolan.vlc.viewmodels.HistoryModel
-import org.videolan.vlc.viewmodels.StreamsModel
 
 class SecondaryActivity : ContentActivity(), IDialogManager {
 
-    private var streamsModel: StreamsModel? = null
-    private var streamsRoot: View? = null
-    private var streamsSearchText: MutableState<String>? = null
-    private var streamsClipboardText: MutableState<String?>? = null
-    private var historyModel: HistoryModel? = null
-    private var historyItems: MutableState<List<MediaWrapper>>? = null
-    private var historySelection: MutableState<Set<Int>>? = null
-    private var historyActionMode: ActionMode? = null
-    private var historyCleanMenuItem: MenuItem? = null
-    private var videoGroupController: SecondaryVideoScreenController? = null
     private var audioAlbumsSongsController: SecondaryAudioScreenController? = null
     private var storageBrowserController: SecondaryStorageBrowserScreenController? = null
     private var fileBrowserController: SecondaryFileBrowserScreenController? = null
@@ -173,13 +120,7 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         supportActionBar!!.setDisplayHomeAsUpEnabled(true)
 
         val destinationId = intent.getStringExtra(KEY_DESTINATION)
-        if (destinationId == STREAMS) {
-            setupStreamsContent(contentContainer)
-        } else if (destinationId == HISTORY) {
-            setupHistoryContent(contentContainer)
-        } else if (destinationId == VIDEO_GROUP_LIST) {
-            setupVideoGroupContent(contentContainer)
-        } else if (destinationId == ALBUMS_SONGS) {
+        if (destinationId == ALBUMS_SONGS) {
             setupAudioAlbumsSongsContent(contentContainer)
         } else if (destinationId == STORAGE_BROWSER || destinationId == STORAGE_BROWSER_ONBOARDING) {
             setupStorageBrowserContent(contentContainer, destinationId == STORAGE_BROWSER_ONBOARDING)
@@ -195,20 +136,12 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
 
     override fun onStart() {
         super.onStart()
-        streamsModel?.refresh()
-        historyModel?.refresh()
-        videoGroupController?.onVisible()
         audioAlbumsSongsController?.onVisible()
         storageBrowserController?.onVisible()
         fileBrowserController?.onVisible()
-        when (intent.getStringExtra(KEY_DESTINATION)) {
-            STREAMS -> supportActionBar?.setTitle(R.string.streams)
-            HISTORY -> supportActionBar?.setTitle(R.string.history)
-        }
     }
 
     override fun onStop() {
-        videoGroupController?.onHidden()
         audioAlbumsSongsController?.onHidden()
         storageBrowserController?.onHidden()
         fileBrowserController?.onHidden()
@@ -225,7 +158,6 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
     override fun onResume() {
         if (!intent.getBooleanExtra(KEY_ANIMATED, false)) overridePendingTransition(0, 0)
         super.onResume()
-        checkStreamsClipboard()
     }
 
     override fun onPause() {
@@ -244,7 +176,6 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         if (requestCode == ACTIVITY_RESULT_SECONDARY) {
             if (resultCode == RESULT_RESCAN) {
                 this.reloadLibrary()
-                videoGroupController?.refresh()
                 audioAlbumsSongsController?.refresh()
                 storageBrowserController?.refresh()
                 fileBrowserController?.refresh()
@@ -255,12 +186,6 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val result = super.onCreateOptionsMenu(menu)
         if (fileBrowserController != null) addNetworkOptionsMenu(menu)
-        if (isHistoryContent()) {
-            setupHistoryFilterMenu(menu)
-            historyCleanMenuItem = addHistoryOptionsMenu(menu)
-            updateHistoryCleanMenuVisibility()
-        }
-        videoGroupController?.prepareOptionsMenu(menu)
         audioAlbumsSongsController?.prepareOptionsMenu(menu)
         storageBrowserController?.prepareOptionsMenu(menu)
         fileBrowserController?.prepareOptionsMenu(menu)
@@ -270,8 +195,6 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         menu?.findItem(R.id.ml_menu_refresh)?.isVisible = Permissions.canReadStorage(this)
         menu?.findItem(R.id.incognito_mode)?.isChecked = Settings.getInstance(this).getBoolean(KEY_INCOGNITO, false)
-        updateHistoryCleanMenuVisibility(menu?.findItem(R.id.ml_menu_clean))
-        menu?.let { videoGroupController?.prepareOptionsMenu(it) }
         menu?.let { audioAlbumsSongsController?.prepareOptionsMenu(it) }
         menu?.let { storageBrowserController?.prepareOptionsMenu(it) }
         menu?.let { fileBrowserController?.prepareOptionsMenu(it) }
@@ -281,24 +204,10 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         // Handle item selection
         when (item.itemId) {
-            R.id.ml_menu_clean -> {
-                if (isHistoryContent()) {
-                    showConfirmDeleteComposeDialog(
-                        title = getString(R.string.clear_playback_history),
-                        description = getString(R.string.clear_history_message),
-                        buttonText = getString(R.string.clear_history)
-                    ) {
-                        clearHistory()
-                        finish()
-                    }
-                    return true
-                }
-            }
             R.id.ml_menu_refresh -> {
                 if (Permissions.canReadStorage(this)) {
                     val ml = Medialibrary.getInstance()
                     if (!ml.isWorking) reloadLibrary()
-                    videoGroupController?.refresh()
                     audioAlbumsSongsController?.refresh()
                     storageBrowserController?.refresh()
                     fileBrowserController?.refresh()
@@ -312,7 +221,6 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
                 return true
             }
         }
-        if (videoGroupController?.onOptionsItemSelected(item) == true) return true
         if (audioAlbumsSongsController?.onOptionsItemSelected(item) == true) return true
         if (storageBrowserController?.onOptionsItemSelected(item) == true) return true
         if (fileBrowserController?.onOptionsItemSelected(item) == true) return true
@@ -322,184 +230,6 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
     override fun hideRenderers() = intent.getStringExtra(KEY_DESTINATION) == STORAGE_BROWSER ||
             intent.getStringExtra(KEY_DESTINATION) == STORAGE_BROWSER_ONBOARDING ||
             fileBrowserController?.hideRenderers() == true
-
-    private fun setupStreamsContent(container: ViewGroup) {
-        val model = ViewModelProvider(this, StreamsModel.Factory(this))[StreamsModel::class.java]
-        streamsModel = model
-        val itemsState = mutableStateOf<List<MediaWrapper>>(emptyList())
-        val loadingState = mutableStateOf(false)
-        val searchTextState = mutableStateOf(model.searchText.value)
-        val clipboardTextState = mutableStateOf<String?>(null)
-        streamsSearchText = searchTextState
-        streamsClipboardText = clipboardTextState
-
-        container.removeAllViews()
-        ComposeView(this).apply {
-            streamsRoot = this
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setVlcContent {
-                VLCTheme {
-                    StreamPanelContent(
-                        streams = itemsState.value,
-                        loading = loadingState.value,
-                        searchText = searchTextState.value,
-                        clipboardText = clipboardTextState.value,
-                        isTv = AndroidDevices.isTv,
-                        tvOverscanHorizontal = resources.getDimensionPixelSize(R.dimen.tv_overscan_horizontal),
-                        tvOverscanVertical = resources.getDimensionPixelSize(R.dimen.tv_overscan_vertical),
-                        onSearchTextChanged = {
-                            searchTextState.value = it
-                            model.searchText.value = it
-                        },
-                        onSubmit = { playStreamUri(searchTextState.value) },
-                        onStreamClicked = ::playStream,
-                        onStreamLongClicked = ::showStreamContext,
-                        onMoreClicked = ::showStreamContext
-                    )
-                }
-            }
-            container.addView(this, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-        }
-
-        model.dataset.observe(this) { itemsState.value = it.orEmpty() }
-        model.loading.observe(this) { loadingState.value = it == true }
-        PlaybackService.lastError.observe(this) {
-            if (it != null && streamsModel != null) {
-                searchTextState.value = it
-                model.searchText.value = it
-                PlaybackService.lastError.value = null
-            }
-        }
-        checkStreamsClipboard()
-        model.refresh()
-    }
-
-    private fun checkStreamsClipboard() {
-        val model = streamsModel ?: return
-        try {
-            val clipBoardManager = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
-            val text = clipBoardManager?.primaryClip?.getItemAt(0)?.text?.toString()
-            if (text.isValidUrl()) {
-                streamsSearchText?.value = text
-                streamsClipboardText?.value = text
-                model.searchText.value = text
-            }
-        } catch (e: Exception) {
-        }
-    }
-
-    private fun playStreamUri(uriText: String): Boolean {
-        val trimmed = uriText.trim()
-        if (trimmed.isEmpty()) return false
-        playStream(MLServiceLocator.getAbstractMediaWrapper(trimmed.toUri()))
-        streamsSearchText?.value = ""
-        streamsModel?.searchText?.value = ""
-        return true
-    }
-
-    private fun playStream(media: MediaWrapper) {
-        media.type = MediaWrapper.TYPE_STREAM
-        if (media.uri.scheme?.startsWith("rtsp") == true) VideoPlayerActivity.start(this, media.uri)
-        else MediaUtils.openMedia(this, media)
-        invalidateOptionsMenu()
-        streamsRoot?.let { UiTools.setKeyboardVisibility(it, false) }
-    }
-
-    private fun showStreamContext(position: Int) {
-        val media = streamsModel?.dataset?.get(position) ?: return
-        val flags = FlagSet(ContextOption.entries.toList()).apply {
-            addAll(CTX_ADD_SHORTCUT, CTX_ADD_TO_PLAYLIST, CTX_APPEND, CTX_COPY, CTX_DELETE, CTX_RENAME)
-        }
-        showContext(this, object : CtxActionReceiver {
-            override fun onCtxAction(position: Int, option: ContextOption) {
-                onStreamContextAction(position, option)
-            }
-        }, position, media, flags)
-    }
-
-    private fun onStreamContextAction(position: Int, option: ContextOption) {
-        val model = streamsModel ?: return
-        val media = model.dataset.get(position)
-        when (option) {
-            CTX_RENAME -> showRenameComposeDialog(media) { renamedMedia, name ->
-                model.rename(renamedMedia as MediaWrapper, name)
-            }
-            CTX_APPEND -> MediaUtils.appendMedia(this, media)
-            CTX_ADD_TO_PLAYLIST -> addToPlaylist(media.tracks, SavePlaylistDialog.KEY_NEW_TRACKS)
-            CTX_COPY -> {
-                copy(media.title, media.location)
-                Snackbar.make(window.decorView.findViewById<View>(android.R.id.content), R.string.url_copied_to_clipboard, Snackbar.LENGTH_LONG).show()
-            }
-            CTX_DELETE -> {
-                model.deletingMedia = media
-                UiTools.snackerWithCancel(this, getString(R.string.stream_deleted), action = { model.delete() }) {
-                    model.deletingMedia = null
-                    model.refresh()
-                }
-                model.refresh()
-            }
-            CTX_ADD_SHORTCUT -> lifecycleScope.launch { createShortcut(media) }
-            else -> {}
-        }
-    }
-
-    private fun setupHistoryContent(container: ViewGroup) {
-        val model = ViewModelProvider(this, HistoryModel.Factory(this))[HistoryModel::class.java]
-        historyModel = model
-        val itemsState = mutableStateOf<List<MediaWrapper>>(emptyList())
-        val loadingState = mutableStateOf(false)
-        val selectionState = mutableStateOf<Set<Int>>(emptySet())
-        historyItems = itemsState
-        historySelection = selectionState
-
-        container.removeAllViews()
-        ComposeView(this).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setVlcContent {
-                VLCTheme {
-                    HistoryScreenContent(
-                        items = itemsState.value,
-                        loading = loadingState.value,
-                        selectedPositions = selectionState.value,
-                        onRefresh = { model.refresh() },
-                        onItemClicked = ::onHistoryItemClicked,
-                        onItemLongClicked = ::onHistoryItemLongClicked,
-                        onRemoveClicked = ::removeHistoryItem
-                    )
-                }
-            }
-            container.addView(this, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-        }
-
-        model.dataset.observe(this) { list ->
-            itemsState.value = list.orEmpty()
-            selectionState.value = selectionState.value.filter { it < itemsState.value.size }.toSet()
-            updateHistoryCleanMenuVisibility()
-            historyActionMode?.invalidate()
-        }
-        model.loading.observe(this) { loadingState.value = it == true }
-        model.refresh()
-    }
-
-    private fun setupVideoGroupContent(container: ViewGroup) {
-        val controller = videoGroupController ?: SecondaryVideoScreenController(
-            activity = this,
-            folder = intent.parcelable(KEY_FOLDER),
-            group = intent.parcelable(KEY_GROUP)
-        ).also { videoGroupController = it }
-
-        container.removeAllViews()
-        ComposeView(this).apply {
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setVlcContent {
-                VLCTheme {
-                    controller.Content()
-                }
-            }
-            container.addView(this, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
-        }
-        controller.onVisible()
-    }
 
     private fun setupAudioAlbumsSongsContent(container: ViewGroup) {
         val media = intent.parcelable<MediaLibraryItem>(TAG_ITEM)
@@ -581,160 +311,6 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         }
     }
 
-    private fun addHistoryOptionsMenu(menu: Menu): MenuItem {
-        return menu.findItem(R.id.ml_menu_clean) ?: menu.add(Menu.NONE, R.id.ml_menu_clean, 2, R.string.clear_history).apply {
-            setIcon(R.drawable.ic_trash)
-            isVisible = false
-            setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM)
-        }
-    }
-
-    private fun setupHistoryFilterMenu(menu: Menu) {
-        val item = menu.findItem(R.id.ml_menu_filter) ?: return
-        val model = historyModel ?: return
-        item.isVisible = true
-        val searchView = item.actionView as? SearchView ?: return
-        searchView.queryHint = getString(R.string.search_in_list_hint)
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?) = false
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                val query = newText.orEmpty()
-                if (query.isEmpty()) model.restore() else model.filter(query)
-                return true
-            }
-        })
-        item.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
-            override fun onMenuItemActionExpand(item: MenuItem) = true
-
-            override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
-                model.restore()
-                return true
-            }
-        })
-        model.filterQuery?.takeIf { it.isNotEmpty() }?.let { query ->
-            searchView.post {
-                item.expandActionView()
-                searchView.clearFocus()
-                UiTools.setKeyboardVisibility(searchView, false)
-                searchView.setQuery(query, false)
-            }
-        }
-    }
-
-    private fun updateHistoryCleanMenuVisibility(item: MenuItem? = historyCleanMenuItem) {
-        item?.isVisible = isHistoryContent() &&
-                Settings.getInstance(this).getBoolean(PLAYBACK_HISTORY, true) &&
-                historyItems?.value.orEmpty().isNotEmpty()
-    }
-
-    private fun isHistoryContent() = intent.getStringExtra(KEY_DESTINATION) == HISTORY
-
-    private fun onHistoryItemClicked(position: Int, item: MediaWrapper) {
-        if (KeyHelper.isShiftPressed && historyActionMode == null) {
-            onHistoryItemLongClicked(position, item)
-            return
-        }
-        if (historyActionMode != null) {
-            toggleHistorySelection(position)
-            return
-        }
-        if (position != 0) historyModel?.moveUp(item)
-        MediaUtils.openMedia(this, item)
-    }
-
-    private fun onHistoryItemLongClicked(position: Int, @Suppress("UNUSED_PARAMETER") item: MediaWrapper) {
-        toggleHistorySelection(position, forceSelected = true)
-    }
-
-    private fun toggleHistorySelection(position: Int, forceSelected: Boolean = false) {
-        val state = historySelection ?: return
-        val selection = state.value.toMutableSet()
-        if (forceSelected) selection.add(position)
-        else if (!selection.add(position)) selection.remove(position)
-        state.value = selection
-        if (selection.isNotEmpty() && historyActionMode == null) startHistoryActionMode()
-        if (selection.isEmpty()) historyActionMode?.finish() else historyActionMode?.invalidate()
-    }
-
-    private fun startHistoryActionMode() {
-        historyActionMode = startSupportActionMode(object : ActionMode.Callback {
-            override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
-                UiTools.addHistoryActionModeMenu(menu)
-                return true
-            }
-
-            override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
-                val selection = selectedHistoryItems()
-                if (selection.isEmpty()) {
-                    mode.finish()
-                    return false
-                }
-                mode.title = getString(R.string.selection_count, selection.size)
-                menu.findItem(R.id.action_history_info).isVisible = selection.size == 1
-                menu.findItem(R.id.action_history_append).isVisible = PlaylistManager.hasMedia()
-                menu.findItem(R.id.action_go_to_folder).isVisible = selection.size == 1 && selection.first().uri.retrieveParent() != null
-                return true
-            }
-
-            override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
-                val selection = selectedHistoryItems()
-                if (selection.isNotEmpty()) {
-                    when (item.itemId) {
-                        R.id.action_history_play -> MediaUtils.openList(this@SecondaryActivity, selection, 0)
-                        R.id.action_history_append -> MediaUtils.appendMedia(this@SecondaryActivity, selection)
-                        R.id.action_history_info -> showHistoryInfoDialog(selection.first())
-                        R.id.action_go_to_folder -> showHistoryParentFolder(selection.first())
-                        else -> {
-                            mode.finish()
-                            return false
-                        }
-                    }
-                }
-                mode.finish()
-                return true
-            }
-
-            override fun onDestroyActionMode(mode: ActionMode) {
-                historyActionMode = null
-                historySelection?.value = emptySet()
-            }
-        })
-    }
-
-    private fun selectedHistoryItems(): List<MediaWrapper> {
-        val items = historyItems?.value.orEmpty()
-        return historySelection?.value.orEmpty().sorted().mapNotNull { items.getOrNull(it) }
-    }
-
-    private fun removeHistoryItem(@Suppress("UNUSED_PARAMETER") position: Int, item: MediaWrapper) {
-        if (!showPinIfNeeded()) historyModel?.removeFromHistory(item)
-    }
-
-    private fun clearHistory() {
-        Medialibrary.getInstance().clearHistory(Medialibrary.HISTORY_TYPE_GLOBAL)
-        historyModel?.clearHistory()
-        Settings.getInstance(this).edit().remove(KEY_AUDIO_LAST_PLAYLIST).remove(KEY_MEDIA_LAST_PLAYLIST).apply()
-        updateHistoryCleanMenuVisibility()
-    }
-
-    private fun showHistoryInfoDialog(media: MediaWrapper) {
-        val intent = Intent(this, InfoActivity::class.java)
-        intent.putExtra(TAG_ITEM, media)
-        startActivity(intent)
-    }
-
-    private fun showHistoryParentFolder(media: MediaWrapper) {
-        val parent = MLServiceLocator.getAbstractMediaWrapper(media.uri.retrieveParent()).apply {
-            type = MediaWrapper.TYPE_DIR
-        }
-        startActivity(Intent(applicationContext, SecondaryActivity::class.java).apply {
-            putExtra(KEY_MEDIA, parent)
-            putExtra(KEY_JUMP_TO, media)
-            putExtra(KEY_DESTINATION, FILE_BROWSER)
-        })
-    }
-
     companion object {
         const val TAG = "VLC/SecondaryActivity"
 
@@ -743,9 +319,6 @@ class SecondaryActivity : ContentActivity(), IDialogManager {
         const val KEY_DESTINATION = "destination"
 
         const val ALBUMS_SONGS = "albumsSongs"
-        const val STREAMS = "streams"
-        const val HISTORY = "history"
-        const val VIDEO_GROUP_LIST = "videoGroupList"
         const val STORAGE_BROWSER = "storage_browser"
         const val STORAGE_BROWSER_ONBOARDING = "storage_browser_onboarding"
         const val FILE_BROWSER = "file_browser"

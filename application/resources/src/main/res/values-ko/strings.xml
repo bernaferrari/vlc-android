@@ -155,7 +155,6 @@
     <string name="noplaylist">재생 목록이 없습니다.</string>
     <string name="nosubfolder">하위 폴더 없음</string>
     <string name="directorynotfound">\'%1$s\' 디렉터리 경로를 찾을 수 없습니다.</string>
-    <string name="nohistory">아직 재생 기록이 없습니다.</string>
     <string name="cant_ban_root">루트 폴더는 제외할 수 없습니다.</string>
 
     <string name="cover_art">앨범 아트</string>
@@ -890,7 +889,6 @@
     <string name="add_to_new_playlist">새로운 재생 목록에 추가하기</string>
     <string name="create_new_playlist">새 재생 목록 만들기</string>
     <string name="create">만들기</string>
-    <string name="resume_card_message">%1$s 재생을 재개하시겠습니까?</string>
     <string name="misc">기타</string>
     <string name="popup_force_legacy_title">사용자 지정 PIP 팝업 사용</string>
     <string name="popup_force_legacy_summary">크기 조정 가능한 사용자 지정 PIP 팝업 사용</string>
@@ -1017,8 +1015,6 @@
     <string name="rename_group">동영상 그룹 이름 바꾸기</string>
     <string name="ungroup">그룹에서 제외하기</string>
     <string name="group_similar">자동으로 재그룹</string>
-    <string name="no_group_found">영상 그룹을 찾을 수 없습니다</string>
-    <string name="no_favorite">즐겨찾기 없음</string>
     <string name="empty_directory">비었음</string>
     <string name="no_track">트랙 없음</string>
 
@@ -1031,7 +1027,6 @@
 
     <string name="sub_result_by_file">파일에 대한 결과</string>
     <string name="donate">VLC에 도움 주기</string>
-    <string name="donate_desc">VLC 개발자들을 지원하기</string>
     <string name="donate_subscribtion">정기 후원하기</string>
     <string name="donate_send">후원 시작하기</string>
     <string name="donation_description">후원금은 VLC Android 앱 개선과\nVideoLAN 협회 지원에 사용됩니다</string>
@@ -1048,8 +1043,6 @@
     <string name="mark_as_not_played">재생되지 않음으로 표시</string>
     <string name="mark_all_as_played">모두 재생함으로 표시</string>
     <string name="mark_all_as_not_played">모두 재생되지 않음으로 표시</string>
-    <string name="new_group">새 그룹</string>
-    <string name="new_group_desc">새 그룹 만들기</string>
 
     <string name="air_action_rewind">10초 되감기</string>
     <string name="air_action_forward">10초 앞에서 찾기</string>
@@ -1184,8 +1177,6 @@
     <string name="notch">노치</string>
     <string name="always_fast_seek">항상 빠른 찾기 사용하기</string>
     <string name="always_fast_seek_summary">찾기는 더 빠르지만 정확도는 떨어질 수 있습니다</string>
-    <string name="touch_only">터치 전용 기능</string>
-    <string name="touch_only_description">모바일 인터페이스로의 전환은 터치 화면이나 마우스로만 수행할 수 있습니다.\n이 기능을 변경하는 것이 안전한지 확인하려면 아래를 슬라이드하십시오.</string>
     <string name="no_web_browser">웹 브라우저가 설치되지 않았습니다</string>
     <string name="no_web_browser_message">사용자의 스마트폰에서 스캔할 수 있습니다.\nURL은 %s입니다</string>
     <string name="no_video">사용 가능한 동영상 없음</string>
@@ -1252,7 +1243,6 @@
     <string name="talkback_minutes">분</string>
     <string name="talkback_seconds">초</string>
     <string name="talkback_list_section">머리글: %s</string>
-    <string name="talkback_enter_screen">%s 화면 진입</string>
     <string name="talkback_file_size">파일 크기: %s</string>
     <string name="talkback_open_in_browser">웹 브라우저에서 열기</string>
     <string name="talkback_video_player">동영상 재생기. 컨트롤을 표시하려면 누릅니다. 숨기려면 뒤로 버튼을 누릅니다.</string>

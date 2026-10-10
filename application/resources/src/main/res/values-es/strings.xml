@@ -127,7 +127,6 @@
     <string name="noplaylist">No se ha encontrado lista de reproducción.</string>
     <string name="nosubfolder">No hay subcarpeta</string>
     <string name="directorynotfound">La ruta de la carpeta «%1$s» no ha sido encontrada.</string>
-    <string name="nohistory">No tiene historial de reproducción todavía.</string>
     <string name="cover_art">Portada</string>
     <string name="shuffle_all_title">Barajar todo</string>
     <string name="shuffle_title">Modo aleatorio</string>
@@ -565,7 +564,6 @@
     <string name="light_theme">Tema claro</string>
     <string name="add">Añadir</string>
     <string name="add_to_new_playlist">Añadir a nueva lista de reproducción</string>
-    <string name="resume_card_message">¿Continuar la reproducción de %1$s?</string>
     <string name="misc">Varios</string>
     <string name="popup_force_legacy_title">Usar modo vídeo sobre vídeo personalizado</string>
     <string name="popup_force_legacy_summary">Usar ventana emergente escalable en modo vídeo sobre vídeo personalizado</string>
@@ -685,7 +683,6 @@
     <string name="rename_group">Renombrar grupo de vídeo</string>
     <string name="ungroup">Desagrupar</string>
     <string name="group_similar">Reagrupar automáticamente</string>
-    <string name="no_favorite">No favorito</string>
     <string name="empty_directory">Vacío</string>
     <string name="no_track">No hay pistas</string>
 
@@ -696,7 +693,6 @@
     <string name="sub_result_by_name_episode">Episodio %s</string>
     <string name="sub_result_by_file">Resultados para su archivo</string>
     <string name="donate">Ayudar a VLC</string>
-    <string name="donate_desc">Apoyar a los voluntarios contruyendo VLC</string>
     <string name="donate_subscribtion">Me gustaría que este fuera un patrocinio mensual</string>
     <string name="donate_send">Iniciar su patrocinio</string>
     <string name="donation_description">Su patrocinio nos ayudará a:\nMejorar la app de VLC para Android\nApoyar la VideoLAN Association</string>
@@ -712,8 +708,6 @@
     <string name="mark_as_played">Marcar como reproducido</string>
     <string name="mark_as_not_played">Marcar como no reproducida</string>
     <string name="mark_all_as_played">Marcar todo como reproducido</string>
-    <string name="new_group">Nuevo grupo</string>
-    <string name="new_group_desc">Crear nuevo grupo</string>
 
     <string name="air_action_rewind">Retroceder 10 seg</string>
     <string name="air_action_forward">Avanzar 10 seg</string>

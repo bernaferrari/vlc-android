@@ -162,7 +162,6 @@
     <string name="noplaylist">Roll-lenn ebet kavet.</string>
     <string name="nosubfolder">Isteuliad ebet</string>
     <string name="directorynotfound">Neket bet kavet hent ar c\'havlec\'h \'%1$s\'.</string>
-    <string name="nohistory">N\'ho peus roll-lenn ebet evit ar mare.</string>
     <string name="cant_ban_root">N\'hallit ket berzañ un teuliad gwrizienn</string>
 
     <string name="cover_art">Arz ar golo</string>
@@ -696,7 +695,6 @@
     <string name="light_theme">Tem sklaer</string>
     <string name="add">Ouzhpennañ</string>
     <string name="add_to_new_playlist">Ouzhpennañ ur roll-lenn nevez</string>
-    <string name="resume_card_message">Adkregiñ da lenn %1$s?</string>
     <string name="misc">Liesseurt</string>
     <string name="popup_force_legacy_title">Implijout ur popup Picture-in-Picture personelaet</string>
     <string name="popup_force_legacy_summary">Implijout ur popup a c\'heller adventañ Picture-in-Picture personelaet</string>
@@ -812,7 +810,6 @@
     <string name="rename_group">Adenvel ar strollad videoioù</string>
     <string name="ungroup">Distrollañ</string>
     <string name="group_similar">Adstrollañ ent emgefre</string>
-    <string name="no_favorite">Sined ebet</string>
     <string name="empty_directory">Goullo</string>
     <string name="no_track">Roudenn ebet</string>
 
@@ -823,7 +820,6 @@
     <string name="sub_result_by_name_episode">Rann %s</string>
     <string name="sub_result_by_file">Disoc\'hoù evit ho restr</string>
     <string name="donate">Skoazellañ VLC</string>
-    <string name="donate_desc">Skoazellit an dud a-youl vat a sav VLC</string>
     <string name="donate_subscribtion">Fellout a ra din e vefe graet ur roadenn-arc\'hant viziek</string>
     <string name="donate_send">Stagañ gant ho roadenn-arc\'hant</string>
     <string name="subscription_purchased">Koumanantet oc\'h d\'ar roadenn-arc\'hant miziek</string>
@@ -836,8 +832,6 @@
     <string name="mark_as_played">Merkañ evel bezañ lennet</string>
     <string name="mark_as_not_played">Merkañ evel amsellet</string>
     <string name="mark_all_as_played">Merkañ pep-tra evel lennet</string>
-    <string name="new_group">Strollad nevez</string>
-    <string name="new_group_desc">Krouiñ ur strollad nevez</string>
 
     <string name="air_action_rewind">Mont war-gil eus 10 eilenn</string>
     <string name="air_action_forward">Mont war-raok eus 10 eilenn</string>

@@ -78,7 +78,6 @@
     <string name="nomedia">ບໍ່ພົບໄຟລ໌ສື່, ກະລຸນາໂອນໄຟລ໌ບາງໄຟລ໌ໄປຫາອຸປະກອນຂອງທ່ານຫຼືປັບການຕັ້ງຄ່າຂອງທ່ານ.</string>
     <string name="noplaylist">ບໍ່ພົບລາຍການເພງ.</string>
     <string name="directorynotfound">ບໍ່ພົບເສັ້ນທາງໄດເຣັກທໍຣີ \'%1$s\'.</string>
-    <string name="nohistory">ທ່ານຍັງບໍ່ມີປະຫວັດການຫຼິ້ນເທື່ອ.</string>
 
     <string name="cover_art">ຮູບພາບໜ້າປົກ</string>
     <string name="shuffle_title">ໂໝດສະຫຼັບເພງ</string>

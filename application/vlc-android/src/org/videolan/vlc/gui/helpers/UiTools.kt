@@ -54,7 +54,6 @@ import androidx.activity.ComponentActivity
 import androidx.annotation.IdRes
 import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO
 import androidx.appcompat.view.ActionMode
@@ -66,7 +65,6 @@ import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
-import androidx.core.os.bundleOf
 import androidx.core.view.MenuItemCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
@@ -123,7 +121,6 @@ import org.videolan.tools.Settings
 import org.videolan.tools.dp
 import org.videolan.tools.isStarted
 import org.videolan.tools.putSingle
-import org.videolan.tools.setGone
 import org.videolan.vlc.MediaParsingService
 import org.videolan.vlc.R
 import org.videolan.vlc.StartActivity
@@ -132,7 +129,6 @@ import org.videolan.vlc.gui.BaseActivity
 import org.videolan.vlc.gui.InfoActivity
 import org.videolan.vlc.gui.dialogs.SavePlaylistDialog
 import org.videolan.vlc.gui.dialogs.VideoTracksDialog
-import org.videolan.vlc.gui.dialogs.showAddToGroupComposeDialog
 import org.videolan.vlc.gui.dialogs.showSavePlaylistComposeDialog
 import org.videolan.vlc.gui.dialogs.showSimpleComposeDialog
 import org.videolan.vlc.gui.dialogs.showVideoTracksComposeDialog
@@ -495,11 +491,6 @@ object UiTools {
             return true
         }
         return false
-    }
-
-    fun ComponentActivity.addToGroup(tracks: List<MediaWrapper>, forbidNewGroup:Boolean) {
-        if (!isStarted()) return
-        showAddToGroupComposeDialog(tracks, forbidNewGroup)
     }
 
     /**

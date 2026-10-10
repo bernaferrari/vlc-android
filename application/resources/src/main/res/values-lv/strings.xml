@@ -103,7 +103,6 @@
     <string name="noplaylist">Atskaņošanas sarakstu nav.</string>
     <string name="nosubfolder">Apakšmapju nav</string>
     <string name="directorynotfound">Direktorijas ceļš \'%1$s\' netika atrasts.</string>
-    <string name="nohistory">Jums nav atskaņošanas vēstures vēl.</string>
 
     <string name="cover_art">Pārklāšanas māksla</string>
     <string name="shuffle_all_title">Sakārtot visu nejaušā secībā</string>

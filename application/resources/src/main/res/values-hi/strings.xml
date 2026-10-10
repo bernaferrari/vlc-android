@@ -128,7 +128,6 @@
     <string name="noplaylist">एक भी प्लेलिस्ट नहीं मिली।</string>
     <string name="nosubfolder">कोई अंदरूनीफोल्डर नहीं</string>
     <string name="directorynotfound">\'%1$s\' डायरेक्टरी पथ  नहीं मिला.</string>
-    <string name="nohistory">आपके पास अभी तक कोई प्लेबैक इतिहास नहीं है।</string>
     <string name="cant_ban_root">बुनियादी फोल्डर से सम्बन्ध खत्म नहीं कर सकते</string>
 
     <string name="cover_art">आवरण कला</string>
@@ -525,7 +524,6 @@
     <string name="add_to_new_playlist">नयी प्लेलिस्ट में जोड़ें</string>
     <string name="create_new_playlist">नयी प्लेलिस्ट बनायें</string>
     <string name="create">बनायें</string>
-    <string name="resume_card_message">क्या %1$s का प्लेबैक पुनः आरंभ करें?</string>
     <string name="misc">अन्य</string>
     <string name="track_number">%d पगडंडीयां</string>
     <string name="jump_to">पर जायें</string>
@@ -579,7 +577,6 @@
     <string name="rename_group">वीडियो समूह का नाम बदलें</string>
     <string name="ungroup">समूह तोड़ें</string>
     <string name="group_similar">खुद-ब-खुद समूह बनायें</string>
-    <string name="no_group_found">वीडियो का एक भी समूह नहीं मिला</string>
     <string name="empty_directory">खाली</string>
     <string name="no_track">एक भी पगडंडी नहीं</string>
 
@@ -593,8 +590,6 @@
     <string name="mark_as_not_played">बिना चला हुआ चिन्हित करें</string>
     <string name="mark_all_as_played">सभी को चला हुआ चिन्हित करें</string>
     <string name="mark_all_as_not_played">सभी को बिना चला हुआ चिन्हित करें</string>
-    <string name="new_group">नया समूह</string>
-    <string name="new_group_desc">नया समूह बनायें</string>
 
     <string name="air_action_rewind">10 सेकेण्ड पीछे जायें</string>
     <string name="air_action_play_pause">प्लेबैक को ठहराए/पुनः आरम्भ करें</string>
