@@ -1,6 +1,7 @@
 package org.videolan.vlc.desktop
 
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.MediaType
@@ -50,6 +51,21 @@ internal class PreviewMediaRepository(directory: File) : MediaRepository {
     override suspend fun incrementPlayCount(id: Long) = update(id) { it.copy(playedCount = it.playedCount + 1) }
     override suspend fun setFavorite(id: Long, favorite: Boolean) = update(id) { it.copy(isFavorite = favorite) }
     private fun update(id: Long, transform: (MediaItem) -> MediaItem) { catalog.value = catalog.value.map { if (it.id == id) transform(it) else it } }
+    private val folders = listOf(
+        org.videolan.vlc.model.MediaFolder(1, "Internal storage", "/storage/emulated/0", childCount = 4, isRoot = true),
+        org.videolan.vlc.model.MediaFolder(2, "SD card", "/storage/sd", childCount = 2, isRoot = true),
+    )
+    private val subfolders = listOf(
+        org.videolan.vlc.model.MediaFolder(10, "Movies", "/storage/emulated/0/Movies", childCount = 6),
+        org.videolan.vlc.model.MediaFolder(11, "Music", "/storage/emulated/0/Music", childCount = 12),
+        org.videolan.vlc.model.MediaFolder(12, "Downloads", "/storage/emulated/0/Download", childCount = 3),
+    )
+    override fun observeFolders(parentId: Long?) = flowOf(if (parentId == null) folders else subfolders)
+    override fun observeFolderMedia(folderId: Long) = catalog.map { rows -> rows.filter { !it.isAudio }.take(3) }
+    override fun browseUri(uri: String) = catalog.map { rows ->
+        org.videolan.vlc.repository.BrowserListing(folders = subfolders, media = rows.filter { !it.isAudio }.take(3))
+    }
+    override fun observeBrowserFavorites() = catalog.map { rows -> rows.filter { it.isAudio }.take(2) }
     private fun entityTitle(item: MediaItem, kind: AudioEntityKind) = when (kind) {
         AudioEntityKind.ALBUM -> item.album.orEmpty()
         AudioEntityKind.ARTIST -> item.artist.orEmpty()

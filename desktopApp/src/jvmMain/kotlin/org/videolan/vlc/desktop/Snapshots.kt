@@ -96,6 +96,7 @@ fun main(args: Array<String>) {
         "audio-album" to listOf(AudioRoute, AudioEntityRoute("Drift".hashCode().toLong(), "Drift", AudioEntityRouteKind.ALBUM)),
         "audio-artist" to listOf(AudioRoute, AudioEntityRoute("Mira Sol".hashCode().toLong(), "Mira Sol", AudioEntityRouteKind.ARTIST)),
         "browse" to listOf(BrowserRoute),
+        "browse-folder" to listOf(BrowserRoute, BrowserFolderRoute(listOf(BrowserFolderKey(1, "Internal storage", "/storage/emulated/0", "/storage/emulated/0", 4, true, false, BrowserFolderRouteKind.STORAGE)))),
         "playlists" to listOf(PlaylistsRoute),
         "playlist-detail" to listOf(PlaylistsRoute, PlaylistDetailRoute(1, "Slow mornings")),
         "more" to listOf(MoreRoute),
