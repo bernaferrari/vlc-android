@@ -1,6 +1,8 @@
 package org.videolan.vlc.compose.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -207,22 +209,34 @@ private fun <T> DisplayChoiceGrid(
                             ),
                         shape = shape,
                         color = if (isSelected) {
-                            MaterialTheme.colorScheme.secondaryContainer
+                            MaterialTheme.colorScheme.primaryContainer
                         } else {
                             MaterialTheme.colorScheme.surfaceContainerLow
                         },
                         contentColor = if (isSelected) {
-                            MaterialTheme.colorScheme.onSecondaryContainer
+                            MaterialTheme.colorScheme.onPrimaryContainer
                         } else {
                             MaterialTheme.colorScheme.onSurface
                         },
                     ) {
-                        Text(
-                            text = label(option),
+                        // Colour alone is not a selection cue: the chosen option also gets a check.
+                        androidx.compose.foundation.layout.Row(
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Medium,
-                        )
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            if (isSelected) {
+                                org.videolan.vlc.compose.icons.Icon(
+                                    org.videolan.vlc.compose.icons.MaterialSymbols.Filled.CheckCircle,
+                                    contentDescription = null,
+                                    modifier = Modifier.padding(end = 8.dp).size(18.dp),
+                                )
+                            }
+                            Text(
+                                text = label(option),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+                            )
+                        }
                     }
                 }
                 if (rowOptions.size == 1 && options.size > 1) {

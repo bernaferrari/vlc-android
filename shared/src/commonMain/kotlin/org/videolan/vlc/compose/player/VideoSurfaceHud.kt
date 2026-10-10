@@ -184,10 +184,12 @@ fun VideoSurfaceWithHud(
     onNextBookmark: () -> Unit = {},
     onClose: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
+    /** Opens a tool sheet on first composition, e.g. a "Show queue" deep link. */
+    initialSheet: PlaybackSheetDestination? = null,
     surface: @Composable BoxScope.(chromeVisible: Boolean) -> Unit,
 ) {
     var hudVisible by remember { mutableStateOf(true) }
-    var activeSheet by remember { mutableStateOf<PlaybackSheetDestination?>(null) }
+    var activeSheet by remember { mutableStateOf(initialSheet) }
     var rendererPickerVisible by remember { mutableStateOf(false) }
     var interfaceLocked by remember { mutableStateOf(false) }
     var interactionActive by remember { mutableStateOf(false) }

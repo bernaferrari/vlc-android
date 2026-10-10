@@ -31,6 +31,7 @@ object MaterialSymbols {
         val Edit: MaterialIcon get() = MaterialIcon(filledEdit)
         val Delete: MaterialIcon get() = MaterialIcon(filledDelete)
         val History: MaterialIcon get() = MaterialIcon(filledHistory)
+        val Timer: MaterialIcon get() = MaterialIcon(filledTimer)
         val CheckCircle: MaterialIcon get() = MaterialIcon(filledCheckCircle)
         val ArrowUpward: MaterialIcon get() = MaterialIcon(filledArrowUpward)
         val Devices: MaterialIcon get() = MaterialIcon(filledDevices)

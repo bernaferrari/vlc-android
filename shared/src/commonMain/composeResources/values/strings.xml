@@ -241,7 +241,7 @@
 
     <string name="sleep_title">Sleep timer</string>
     <string name="sleep_in">Sleep in</string>
-    <string name="jump_to_time">Jump to Time</string>
+    <string name="jump_to_time">Jump to time</string>
     <string name="subtitle_select">Select subtitle file</string>
     <string name="wait_before_sleep">Wait for current media item to finish first</string>
     <string name="reset_on_interaction">Reset on any interaction</string>

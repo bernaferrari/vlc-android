@@ -27,6 +27,13 @@ import org.videolan.vlc.app.sharedModule
 import org.videolan.vlc.compose.app.*
 import org.videolan.vlc.compose.artwork.MediaArtwork
 import org.videolan.vlc.compose.player.PlayerArtworkFallback
+import org.videolan.vlc.compose.player.PlaybackSheetDestination
+import org.videolan.vlc.compose.player.VideoSurfaceWithHud
+import org.videolan.vlc.compose.components.DisplaySettingsSheet
+import org.videolan.vlc.compose.components.DisplaySettingsState
+import org.videolan.vlc.compose.components.VLCSearchScreen
+import org.videolan.vlc.compose.components.VLCSearchSection
+import org.videolan.vlc.compose.components.VLCSearchResultRow
 import org.videolan.vlc.compose.theme.VLCAppTheme
 import org.videolan.vlc.player.PlaybackService
 import org.videolan.vlc.player.PlaylistEngine
@@ -111,6 +118,36 @@ fun main(args: Array<String>) {
             add(Shot("tall-settings-$theme", 412 to 3000, setup = { theme(dark); playAudio() }, content = shell(listOf(MoreRoute, SettingsRoute))))
             add(Shot("tall-more-$theme", 412 to 1400, setup = { theme(dark); playAudio() }, content = shell(listOf(MoreRoute))))
             add(Shot("wide-player-audio-$theme", wide, setup = { theme(dark); playAudio() }, content = shell(listOf(AudioRoute, PlayerRoute))))
+            listOf(PlaybackSheetDestination.SPEED, PlaybackSheetDestination.QUEUE, PlaybackSheetDestination.TOOLS).forEach { sheet ->
+                add(Shot("sheet-${sheet.name.lowercase()}-$theme", setup = { theme(dark) }) {
+                    VLCAppTheme { HudFixture(media.items.filter { it.isAudio }, sheet, video = false) }
+                })
+            }
+            add(Shot("sheet-video-tools-$theme", setup = { theme(dark) }) {
+                VLCAppTheme { HudFixture(media.items.filter { !it.isAudio }, PlaybackSheetDestination.TOOLS, video = true) }
+            })
+            add(Shot("sheet-display-$theme", setup = { theme(dark) }) {
+                VLCAppTheme {
+                    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                        DisplaySettingsSheet(
+                            state = DisplaySettingsState(showTrackNumbers = true, showAllArtists = false, defaultActionLabel = "Default action", defaultActionOptions = listOf("PLAY", "PLAY_ALL", "ADD_TO_QUEUE"), selectedDefaultAction = "PLAY"),
+                            onDismiss = {},
+                        )
+                    }
+                }
+            })
+            add(Shot("search-$theme", setup = { theme(dark) }) {
+                VLCAppTheme {
+                    VLCSearchScreen(
+                        query = "light", hint = "Search", emptyText = "No results", backContentDescription = "Back", clearContentDescription = "Clear",
+                        sections = listOf(
+                            VLCSearchSection("Tracks", listOf(VLCSearchResultRow("1", "First light", "Mira Sol · Drift", false), VLCSearchResultRow("2", "First light", "Northbound · Blue hours", false))),
+                            VLCSearchSection("Videos", listOf(VLCSearchResultRow("3", "Alpine mornings", "9:01", true))),
+                        ),
+                        showEmpty = false, autoFocus = false, onQueryChange = {}, onSearchAction = {}, onBack = {}, onClear = {}, onResultClick = { _, _ -> },
+                    )
+                }
+            })
             QASurface.entries.forEach { surface ->
                 add(Shot("qa-${surface.name.lowercase()}-$theme", 412 to 760, setup = { theme(dark) }) {
                     VLCAppTheme {
@@ -143,6 +180,21 @@ fun main(args: Array<String>) {
     }
     app.close()
     System.exit(0)
+}
+
+@Composable
+private fun HudFixture(queue: List<org.videolan.vlc.model.MediaItem>, sheet: PlaybackSheetDestination, video: Boolean) {
+    val item = queue.first()
+    VideoSurfaceWithHud(
+        title = item.title, subtitle = item.artist.orEmpty(), playing = true,
+        progress = org.videolan.vlc.model.Progress(time = 72_000L, length = item.duration),
+        queue = queue, currentQueueIndex = 0, hasVideoOutput = video,
+        onTogglePlay = {}, onSeek = {}, onNext = {}, onPrevious = {}, onClose = {},
+        initialSheet = sheet,
+    ) { _ ->
+        if (video) MediaArtwork(item = item, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Fit, fillMaxSizeArtwork = true)
+        else PlayerArtworkFallback(org.videolan.vlc.viewmodel.PlayerUiState(title = item.title, subtitle = item.artist.orEmpty(), queue = queue))
+    }
 }
 
 private fun theme(dark: Boolean) = VlcSettings.updateStringCache(KEY_SHARED_THEME_APPEARANCE, if (dark) "dark" else "light")

@@ -2,6 +2,8 @@
 
 package org.videolan.vlc.compose.player
 
+import org.videolan.vlc.compose.components.VLCSlimSlider
+
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
@@ -448,7 +450,7 @@ private fun SpeedPage(
             style = MaterialTheme.typography.bodyMedium,
         )
         Spacer(Modifier.height(20.dp))
-        Slider(
+        VLCSlimSlider(
             value = PlaybackRate.normalize(rate),
             onValueChange = { value ->
                 onPreviewRate(snapPlaybackRate(value))
@@ -931,7 +933,7 @@ private fun ToolsPage(
         item {
             ToolCard(
                 title = stringResource(Res.string.sleep_title),
-                icon = MaterialSymbols.Filled.History,
+                icon = MaterialSymbols.Filled.Timer,
                 summary = when {
                     sleepTimer.awaitingCurrentItemEnd -> stringResource(Res.string.after_this_item)
                     sleepTimer.isActive -> formatPlaybackTime(sleepTimer.remainingMillis)
@@ -1013,8 +1015,9 @@ private fun QuickToolRow(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
-        color = MaterialTheme.colorScheme.primaryContainer,
-        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        // Same resting surface as every other tool: a highlighted first row read as "selected".
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        contentColor = MaterialTheme.colorScheme.onSurface,
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
@@ -1023,8 +1026,8 @@ private fun QuickToolRow(
             Surface(
                 modifier = Modifier.size(52.dp),
                 shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.12f),
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(icon, contentDescription = null, modifier = Modifier.size(26.dp))
@@ -1033,9 +1036,9 @@ private fun QuickToolRow(
             Spacer(Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                Text(summary, style = MaterialTheme.typography.bodySmall)
+                Text(summary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Icon(MaterialSymbols.Filled.ChevronRight, contentDescription = null)
+            Icon(MaterialSymbols.Filled.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -1420,7 +1423,7 @@ private fun LabeledSlider(
         Text(label, style = MaterialTheme.typography.labelLarge)
         Text(valueLabel, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge)
     }
-    Slider(value = value, onValueChange = onValueChange, valueRange = valueRange, modifier = Modifier.fillMaxWidth().semantics { contentDescription = label })
+    VLCSlimSlider(value = value, onValueChange = onValueChange, valueRange = valueRange, modifier = Modifier.fillMaxWidth().semantics { contentDescription = label })
 }
 
 @Composable
