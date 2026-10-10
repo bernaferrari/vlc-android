@@ -1,5 +1,7 @@
 package org.videolan.vlc.gui
 
+import org.videolan.vlc.compose.app.AboutBundle
+
 import org.videolan.vlc.gui.helpers.setVlcContent
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -18,11 +20,8 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.videolan.resources.AndroidDevices
-import org.videolan.resources.AppContextProvider
 import org.videolan.resources.util.applyOverscanMargin
 import org.videolan.tools.resIdByName
 import org.videolan.vlc.BuildConfig
@@ -154,11 +153,7 @@ open class AboutActivity : BaseActivity() {
         )
     )
 
-    private suspend fun loadGplLicense(): String = withContext(Dispatchers.IO) {
-        AppContextProvider.appResources.openRawResource(R.raw.vlc_license).bufferedReader().use {
-            it.readText()
-        }
-    }
+    private suspend fun loadGplLicense(): String = AboutBundle.licenseText()
 
     private fun optionalString(name: String) = try {
         getString(resIdByName(name, "string"))

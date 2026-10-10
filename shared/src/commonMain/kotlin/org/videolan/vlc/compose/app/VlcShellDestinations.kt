@@ -72,6 +72,10 @@ internal fun VideoDestination(
         },
         onPlayAll = { viewModel.playAll(); onOpenPlayer() },
         showPlayAllInMenu = showPlayAllInMenu,
+        primaryAction = LibraryPrimaryAction(ShellStrings.playAll(), MaterialSymbols.Filled.PlayArrow) {
+            viewModel.playAll()
+            onOpenPlayer()
+        }.takeIf { state.containerTitle == null && state.count > 0 },
         onPlayNext = viewModel::playNext,
         onAppend = viewModel::append,
         onToggleSelect = viewModel::toggleSelect,
@@ -182,6 +186,21 @@ internal fun AudioDestination(
         },
         onPlayAll = { viewModel.playAll(); onOpenPlayer() },
         showPlayAllInMenu = showPlayAllInMenu,
+        primaryAction = LibraryPrimaryAction(ShellStrings.shufflePlay(), MaterialSymbols.Filled.Shuffle) {
+            viewModel.shuffleAll()
+            onOpenPlayer()
+        }.takeIf { section == AudioSection.TRACKS && state.openedEntityTitle == null && state.count > 1 },
+        collectionHero = state.openedEntityTitle?.let { entityTitle ->
+            {
+                AudioEntityHero(
+                    title = entityTitle,
+                    kind = state.openedEntityKind,
+                    items = state.items,
+                    onPlay = { viewModel.playAll(); onOpenPlayer() },
+                    onShuffle = { viewModel.shuffleAll(); onOpenPlayer() },
+                )
+            }
+        },
         onPlayNext = viewModel::playNext,
         onAppend = viewModel::append,
         onToggleSelect = viewModel::toggleSelect,
@@ -232,6 +251,38 @@ internal fun AudioDestination(
         emptyActionText = ShellStrings.importMedia().takeIf { hostCallbacks.supportsMediaImport() },
         onEmptyAction = hostCallbacks::onImportMedia,
         modifier = modifier.fillMaxSize(),
+    )
+}
+
+@Composable
+private fun AudioEntityHero(
+    title: String,
+    kind: org.videolan.vlc.repository.AudioEntityKind?,
+    items: List<MediaItem>,
+    onPlay: () -> Unit,
+    onShuffle: () -> Unit,
+) {
+    val subtitle = when (kind) {
+        org.videolan.vlc.repository.AudioEntityKind.ALBUM -> listOfNotNull(
+            items.firstNotNullOfOrNull { it.artist?.takeIf(String::isNotBlank) },
+            items.firstNotNullOfOrNull { it.year.takeIf { year -> year > 0 }?.toString() },
+        ).joinToString(" · ")
+        org.videolan.vlc.repository.AudioEntityKind.ARTIST -> items.mapNotNull { it.album?.takeIf(String::isNotBlank) }
+            .distinct().size.takeIf { it > 0 }?.let { ShellStrings.albumsCount(it) }
+        else -> null
+    }
+    CollectionHero(
+        eyebrow = when (kind) {
+            org.videolan.vlc.repository.AudioEntityKind.ARTIST -> ShellStrings.artist()
+            org.videolan.vlc.repository.AudioEntityKind.GENRE -> ShellStrings.genre()
+            else -> ShellStrings.album()
+        },
+        title = title,
+        subtitle = subtitle,
+        items = items,
+        onPlay = onPlay,
+        onShuffle = onShuffle,
+        circularArtwork = kind == org.videolan.vlc.repository.AudioEntityKind.ARTIST,
     )
 }
 

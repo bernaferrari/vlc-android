@@ -38,8 +38,8 @@
     <string name="sort_date_desc">Newest first</string>
 
     <plurals name="search_found_results_quantity">
-        <item quantity="one">%d result found</item>
-        <item quantity="other">%d results found</item>
+        <item quantity="one">%1$d result found</item>
+        <item quantity="other">%1$d results found</item>
     </plurals>
 
     <string name="play">Play</string>
@@ -107,40 +107,40 @@
 
     <plurals name="saved_bookmarks_quantity">
         <item quantity="one">1 Saved Bookmark</item>
-        <item quantity="other">%d Saved Bookmarks</item>
+        <item quantity="other">%1$d Saved Bookmarks</item>
     </plurals>
 
     <plurals name="albums_quantity">
         <item quantity="one">1 album</item>
-        <item quantity="other">%d albums</item>
+        <item quantity="other">%1$d albums</item>
     </plurals>
     <plurals name="subfolders_quantity">
         <item quantity="one">1 subfolder</item>
-        <item quantity="other">%d subfolders</item>
+        <item quantity="other">%1$d subfolders</item>
     </plurals>
     <plurals name="media_quantity">
         <item quantity="one">1 media</item>
-        <item quantity="other">%d media</item>
+        <item quantity="other">%1$d media</item>
     </plurals>
     <plurals name="mediafiles_quantity">
         <item quantity="one">1 media file</item>
-        <item quantity="other">%d media files</item>
+        <item quantity="other">%1$d media files</item>
     </plurals>
     <plurals name="videos_quantity">
         <item quantity="one">1 video</item>
-        <item quantity="other">%d videos</item>
+        <item quantity="other">%1$d videos</item>
     </plurals>
     <plurals name="movies_quantity">
         <item quantity="one">1 movie</item>
-        <item quantity="other">%d movies</item>
+        <item quantity="other">%1$d movies</item>
     </plurals>
     <plurals name="tvshow_quantity">
         <item quantity="one">1 TV show</item>
-        <item quantity="other">%d TV shows</item>
+        <item quantity="other">%1$d TV shows</item>
     </plurals>
     <plurals name="track_quantity">
         <item quantity="one">1 track</item>
-        <item quantity="other">%d tracks</item>
+        <item quantity="other">%1$d tracks</item>
     </plurals>
 
     <string name="internal_memory">Internal memory</string>
@@ -154,9 +154,9 @@
     <string name="bookmarks">Bookmarks</string>
     <string name="equalizer">Equalizer</string>
     <string name="import_equalizer">Import equalizer</string>
-    <string name="equalizer_exported">Equalizer(s) exported to %s</string>
-    <string name="equalizer_copy_template">(copy%s)</string>
-    <string name="new_equalizer_copy_template">New equalizer%s</string>
+    <string name="equalizer_exported">Equalizer(s) exported to %1$s</string>
+    <string name="equalizer_copy_template">(copy%1$s)</string>
+    <string name="new_equalizer_copy_template">New equalizer%1$s</string>
     <string name="show_all">Show all</string>
     <string name="hide_all">Hide all</string>
     <string name="export_all">Export all</string>
@@ -170,7 +170,7 @@
     <string name="please_wait">Please wait…</string>
     <string name="nomedia">No media files found, please transfer some files to your device or adjust your preferences.</string>
     <string name="nofav">No favorite found.</string>
-    <string name="empty_search">No item found for search %s</string>
+    <string name="empty_search">No item found for search %1$s</string>
     <string name="noplaylist">No playlist found.</string>
     <string name="nosubfolder">No subfolder</string>
     <string name="directorynotfound">The directory path \'%1$s\' was not found.</string>
@@ -207,7 +207,7 @@
     <string name="track_codec_info">Codec: %1$s\n</string>
     <string name="track_language_info">Language: %1$s\n</string>
     <string name="volume">Volume</string>
-    <string name="system_volume_disabled">%s\nNo access to system volume</string>
+    <string name="system_volume_disabled">%1$s\nNo access to system volume</string>
     <string name="sound_on">Sound On</string>
     <string name="sound_off">Sound Off</string>
     <string name="brightness">Brightness</string>
@@ -368,7 +368,7 @@
     <string name="remove_custom_path">Remove custom path</string>
     <string name="group_ban_folder">Ban folder from media library</string>
     <string name="ban_folder">Ban folder</string>
-    <string name="ban_folder_explanation">Banning this folder means that you won\'t see its media in the video or audio section of the app, though they will still be accessible from the browser.\nTo unban it, go to the settings, %s and long tap this folder.</string>
+    <string name="ban_folder_explanation">Banning this folder means that you won\'t see its media in the video or audio section of the app, though they will still be accessible from the browser.\nTo unban it, go to the settings, %1$s and long tap this folder.</string>
 
     <string name="hardware_acceleration">Hardware Acceleration</string>
     <string name="hardware_acceleration_summary">Disabled: better stability\nDecoding: may improve performance\nFull: may improve performance further</string>
@@ -413,7 +413,7 @@
     <string name="daynight_title">DayNight mode</string>
     <string name="daynight_follow_system_title">Follow system mode</string>
     <string name="no_track_preference">No language preference</string>
-    <string name="track_preference">Track preference: %s</string>
+    <string name="track_preference">Track preference: %1$s</string>
 
     <string name="extra_prefs_category">Extra settings</string>
 
@@ -472,7 +472,7 @@
     <string name="enable_tap_and_hold_fastplay_title">Enable Fastplay</string>
     <string name="enable_tap_and_hold_fastplay_summary">Tap and hold to increase the playback speed</string>
     <string name="fastplay_speed_title">Fastplay speed</string>
-    <string name="fastplay_title">Playing at %sx</string>
+    <string name="fastplay_title">Playing at %1$sx</string>
     <string name="fastplay_subtitle">Release to stop</string>
     <string name="show_bookmark_buttons">Show bookmark buttons</string>
     <string name="show_bookmark_buttons_summary">Show buttons to navigate between bookmarks</string>
@@ -562,7 +562,7 @@
     <string name="remote_access_connections">Connections</string>
     <string name="remote_access_links">Links</string>
     <string name="remote_access_active">Remote access active</string>
-    <string name="remote_access_notification">Remote access active on %s</string>
+    <string name="remote_access_notification">Remote access active on %1$s</string>
     <string name="remote_access_notification_stopped">Remote access stopped</string>
     <string name="remote_access_notification_connecting">Remote access connecting</string>
     <string name="remote_access_notification_error">Remote access error</string>
@@ -708,7 +708,7 @@
     <string name="chapters">Chapters</string>
     <string name="notset">Not set</string>
     <string name="go_to_chapter">Go to chapter…</string>
-    <string name="current_chapter">Chapter: %s</string>
+    <string name="current_chapter">Chapter: %1$s</string>
     <string name="confirm_resume">Resume from last position?</string>
     <string name="apply_playqueue">Apply for all the play queue</string>
     <string name="confirm_resume_title">Resume played videos</string>
@@ -719,7 +719,7 @@
     <string name="medialibrary_directories">Media library folders</string>
 
     <!--What's new-->
-    <string name="whats_new_title">What\'s new in VLC for Android %s</string>
+    <string name="whats_new_title">What\'s new in VLC for Android %1$s</string>
     <string name="whats_new_37_equalizer_text">The equalizer has been reworked from scratch. It\'s easier to use, lets you disable the default presets and allows you to backup, restore and share your presets.</string>
     <string name="whats_new_37_import_export">We improved the backup and restore settings feature. It now lets you backup more settings, including the equalizer presets.</string>
     <string name="whats_new_37_android_auto">Due to some new store constraints, the Android Auto settings have all been moved to the mobile application. It becomes the new place to change your automotive experience.</string>
@@ -762,7 +762,7 @@
     <string name="allow_storage_access_title">Allow VLC to access video and audio files</string>
     <string name="allow_storage_access_description">VLC needs you to grant this permission to access the media files on this device.</string>
     <string name="partial_content">VLC cannot access all of your files</string>
-    <string name="partial_content_description">Starting with Android 11, applications need a special permission to access all device\'s files.\n\n%s</string>
+    <string name="partial_content_description">Starting with Android 11, applications need a special permission to access all device\'s files.\n\n%1$s</string>
     <string name="never_ask_again">Never ask again</string>
     <string name="never_show_again">Never show again, even for future versions</string>
     <string name="allow_settings_access_ringtone_title">Allow VLC to set the ringtone</string>
@@ -853,7 +853,7 @@
     <string name="existing_custom_set_save_message">Save equalizer-set as…</string>
     <string name="new_custom_set_save_message">Save new equalizer-set as…</string>
     <string name="save">Save</string>
-    <string name="saved">Saved %s</string>
+    <string name="saved">Saved %1$s</string>
     <string name="do_not_save">Do not save</string>
     <string name="custom_set_deleted_message">Custom equalizer-set \"%1$s\" deleted.</string>
     <string name="custom_set_wrong_input">Invalid name.</string>
@@ -959,7 +959,7 @@
     <string name="restore_background_video_title">Restore video from background</string>
     <string name="restore_background_video_summary">Restore video from background when reopening VLC for Android</string>
     <string name="device_default">Device default</string>
-    <string name="track_number">%d tracks</string>
+    <string name="track_number">%1$d tracks</string>
     <string name="jump_to">Jump to</string>
     <string name="show_video_thumbnails_summary">Show video thumbnails in lists</string>
     <string name="show_video_thumbnails">Video thumbnails</string>
@@ -968,12 +968,12 @@
     <string name="preamp">Preamp</string>
     <string name="reset">Reset</string>
     <plurals name="tracks_inserted">
-        <item quantity="one">%d Track inserted</item>
-        <item quantity="other">%d Tracks inserted</item>
+        <item quantity="one">%1$d Track inserted</item>
+        <item quantity="other">%1$d Tracks inserted</item>
     </plurals>
     <plurals name="tracks_appended">
-        <item quantity="one">%d Track appended</item>
-        <item quantity="other">%d Tracks appended</item>
+        <item quantity="one">%1$d Track appended</item>
+        <item quantity="other">%1$d Tracks appended</item>
     </plurals>
     <string name="remove_current">Remove current</string>
     <string name="validation_delete_playlist">Are you sure you want to delete this playlist?</string>
@@ -1009,15 +1009,15 @@
     <string name="ask_confirmation">Ask confirmation</string>
     <string name="add_to_scanned">Scan this folder</string>
     <string name="directory_not_scanned">This directory is not scanned</string>
-    <string name="scanned_directory_added">%s added to your scanned directories</string>
-    <string name="video_group_size_summary">Group by %s first letters</string>
+    <string name="scanned_directory_added">%1$s added to your scanned directories</string>
+    <string name="video_group_size_summary">Group by %1$s first letters</string>
     <string name="url_copied_to_clipboard">Url copied to clipboard</string>
     <string name="share">Share</string>
     <string name="invalid_file">Invalid file. Cannot be shared.</string>
-    <string name="share_file">Share %s</string>
-    <string name="share_message">Here is %s</string>
+    <string name="share_file">Share %1$s</string>
+    <string name="share_message">Here is %1$s</string>
     <string name="share_track_info">Share the track info</string>
-    <string name="share_track">Currently listening to %s</string>
+    <string name="share_track">Currently listening to %1$s</string>
     <string name="find_metadata">Find metadata</string>
     <string name="moviepedia_hint">Search metadata</string>
     <string name="moviepedia_result">Video results</string>
@@ -1030,8 +1030,8 @@
     <string name="backdrops">Backdrops</string>
     <string name="header_tvshows">TV shows</string>
     <string name="header_movies">Movies</string>
-    <string name="season_number">Season %s</string>
-    <string name="resume_episode">Resume (%s)</string>
+    <string name="season_number">Season %1$s</string>
+    <string name="resume_episode">Resume (%1$s)</string>
     <string name="start_over">Start over</string>
     <string name="next_episode">Next episode</string>
     <string name="open_network_settings">Open network settings?</string>
@@ -1064,14 +1064,14 @@
     <string name="subtitle_delay_first">Voice heard</string>
     <string name="audio_delay_end">Sound spotted</string>
     <string name="subtitle_delay_end">Text seen</string>
-    <string name="track_index">Track: %s</string>
-    <string name="audio_queue_progress">Progress: %s</string>
-    <string name="audio_queue_progress_remaining">Remaining: %s</string>
-    <string name="audio_queue_progress_finished">Ends at: %s</string>
+    <string name="track_index">Track: %1$s</string>
+    <string name="audio_queue_progress">Progress: %1$s</string>
+    <string name="audio_queue_progress_remaining">Remaining: %1$s</string>
+    <string name="audio_queue_progress_finished">Ends at: %1$s</string>
     <string name="sortby_track">Track</string>
     <string name="this_folder">Add this folder</string>
     <string name="all_subfolders">Add this folder and subfolders</string>
-    <string name="playlist_existing">Playlist %s already exists</string>
+    <string name="playlist_existing">Playlist %1$s already exists</string>
     <string name="new_title">New title</string>
     <string name="browse">Browse</string>
     <string name="more">More</string>
@@ -1089,9 +1089,9 @@
 
     <string name="swipe_unlock">Swipe to unlock</string>
     <string name="swipe_unlock_no_touch">Long press to unlock</string>
-    <string name="sub_result_by_name">Results for %s</string>
-    <string name="sub_result_by_name_season">Season %s</string>
-    <string name="sub_result_by_name_episode">Episode %s</string>
+    <string name="sub_result_by_name">Results for %1$s</string>
+    <string name="sub_result_by_name_season">Season %1$s</string>
+    <string name="sub_result_by_name_episode">Episode %1$s</string>
     <string name="sub_result_by_name_hearing_impaired">Only hearing impaired</string>
 
     <string name="sub_result_by_file">Results for your file</string>
@@ -1103,7 +1103,7 @@
     <string name="subscription_purchased">You are subscribed to a monthly sponsorship</string>
     <string name="subscription_cancel">You can unsubscribe in the Play Store</string>
     <string name="subscription_cancel_tv">How to unsubscribe</string>
-    <string name="donate_unsubscribe_tv">To unsubscribe, please open %s on a phone or a computer or scan this code:</string>
+    <string name="donate_unsubscribe_tv">To unsubscribe, please open %1$s on a phone or a computer or scan this code:</string>
     <string name="tip_jar">Help VLC</string>
     <string name="thank_you">Thank you</string>
     <string name="thank_you_desc">Thank you for your sponsorship!\nIt will help us a lot improving VLC!</string>
@@ -1127,13 +1127,13 @@
     <string name="allow_otg_description">Please select your OTG drive to allow access to VLC.</string>
     <string name="timeout_infinite">Infinite</string>
     <string name="video_hud_timeout">Video player controls hiding delay</string>
-    <string name="video_hud_timeout_summary">%ss</string>
+    <string name="video_hud_timeout_summary">%1$ss</string>
     <string name="remove_from_history">Remove from history</string>
     <string name="prefersmbv1">Prefer SMB 1</string>
     <string name="prefersmbv1_summary">Uncheck this setting if you have some difficulties browsing your SMB server</string>
     <string name="apply_to_all">Apply to all videos</string>
-    <string name="audio_delay_global">Audio delay set to %s ms for all videos</string>
-    <string name="audio_delay_bt">Audio delay set to %s ms for the bluetooth device</string>
+    <string name="audio_delay_global">Audio delay set to %1$s ms for all videos</string>
+    <string name="audio_delay_bt">Audio delay set to %1$s ms for the bluetooth device</string>
     <string name="go_to_folder">Browse parent</string>
     <string name="go_to_album">Go to album</string>
     <string name="go_to_artist">Go to artist</string>
@@ -1183,7 +1183,7 @@
     <string name="video_match_frame_rate_title">Match Display Frame Rate</string>
     <string name="video_match_frame_rate_summary">Match display refresh rate to media frame rate. For example, a 24p film should play at 24p</string>
     <string name="preferred_resolution">Preferred video resolution</string>
-    <string name="preferred_resolution_summary">Maximum video quality for streams, when applicable, will be: %s</string>
+    <string name="preferred_resolution_summary">Maximum video quality for streams, when applicable, will be: %1$s</string>
     <string name="pref_resolution_best_available">Best available</string>
     <string name="pref_resolution_very_low">Very low definition (240p)</string>
     <string name="stop_unpaubale">This media cannot be paused. Stop it instead?</string>
@@ -1191,8 +1191,8 @@
     <string name="add_to_existing_playlist">Add to existing playlist</string>
     <string name="bookmarks_title">Bookmarks</string>
     <string name="no_bookmark">No bookmark set</string>
-    <string name="bookmark_default_name">Bookmark at %s</string>
-    <string name="bookmark_name">Bookmark %s</string>
+    <string name="bookmark_default_name">Bookmark at %1$s</string>
+    <string name="bookmark_name">Bookmark %1$s</string>
     <string name="add_bookmark">Add bookmark</string>
     <string name="bookmark_added">Bookmark added</string>
     <string name="previous_bookmark">Previous bookmark</string>
@@ -1206,11 +1206,11 @@
     <string name="start_vlc">Start VLC</string>
     <string name="jump_delay">Forward/backward time delay</string>
     <string name="long_jump_delay">Long tap forward/backward time delay</string>
-    <string name="jump_delay_summary">%s seconds</string>
+    <string name="jump_delay_summary">%1$s seconds</string>
     <string name="move_up">Move up</string>
     <string name="move_down">Move down</string>
     <string name="remove_from_playlist">Remove from playlist</string>
-    <string name="play_media">Play %s</string>
+    <string name="play_media">Play %1$s</string>
     <string name="edit_eq_preset">Edit equalizer preset</string>
     <string name="edit_eq_name_not_allowed">This name is not allowed</string>
     <string name="export_equalizer">Export equalizer</string>
@@ -1222,7 +1222,7 @@
     <string name="add_button">Add</string>
     <string name="add_all_button">Add all</string>
     <string name="add_new_only_button">Add new only</string>
-    <string name="discovery_failed">Discovery failed for: %s</string>
+    <string name="discovery_failed">Discovery failed for: %1$s</string>
     <string name="lock_use_sensor_title">Lock with sensor</string>
     <string name="lock_use_sensor_summary">When the orientation is locked, use the sensor to allow the reverse orientation</string>
     <string name="start">Start</string>
@@ -1238,7 +1238,7 @@
     <string name="permission_all_warning">To enable this, you have to disable the standard media file access first</string>
     <string name="permission_media_warning">To enable this, you have to disable the full file permission first</string>
     <string name="customize">Customize</string>
-    <string name="selection_count">%d selected</string>
+    <string name="selection_count">%1$d selected</string>
     <string name="control_setting">Control settings</string>
     <string name="controls_setting">Controls settings</string> <!-- Unused -->
     <string name="gestures">Gestures</string>
@@ -1249,12 +1249,12 @@
     <string name="banned_tv">Banned folder</string>
     <string name="banned_parent">Banned by parent folder</string>
     <plurals name="duplicate_two_options_secondary">
-        <item quantity="one">This item is already in \"%s\" playlist.</item>
-        <item quantity="other">These items are already in \"%s\" playlist.</item>
+        <item quantity="one">This item is already in \"%1$s\" playlist.</item>
+        <item quantity="other">These items are already in \"%1$s\" playlist.</item>
     </plurals>
     <plurals name="duplicate_three_options_secondary">
-        <item quantity="one">1 of the selected items is already in \"%s\" playlist.</item>
-        <item quantity="other">%d of the selected items are already in \"%s\" playlist.</item>
+        <item quantity="one">1 of the selected items is already in \"%1$s\" playlist.</item>
+        <item quantity="other">%1$d of the selected items are already in \"%2$s\" playlist.</item>
     </plurals>
     <string name="official_website">Official website</string>
     <string name="view_online">View online</string>
@@ -1265,7 +1265,7 @@
     <string name="touch_only">Touch only feature</string>
     <string name="touch_only_description">Switching to the mobile interface can only be done with a tactile screen or a mouse.\nPlease slide below to verify that this feature is safe to change.</string>
     <string name="no_web_browser">No web browser installed</string>
-    <string name="no_web_browser_message">You can scan this on your smartphone.\nThe URL is %s</string>
+    <string name="no_web_browser_message">You can scan this on your smartphone.\nThe URL is %1$s</string>
     <string name="no_video">No video available</string>
     <string name="fold_optimized">Optimized for your folding screen</string>
     <string name="fold_optimize">Optimize for folding screens</string>
@@ -1296,8 +1296,8 @@
     <string name="widget_rewind_delay">Backward time delay</string>
     <string name="widget_show_configure">Show configuration icon</string>
     <string name="widget_show_configure_summary">Even if it\'s not shown, you can tap the upper right corner to open the configuration</string>
-    <string name="seek_backward_content_description">Seek %s seconds backwards</string>
-    <string name="seek_forward_content_description">Seek %s seconds forwards</string>
+    <string name="seek_backward_content_description">Seek %1$s seconds backwards</string>
+    <string name="seek_forward_content_description">Seek %1$s seconds forwards</string>
     <string name="open_vlc">Open VLC</string>
     <string name="playing">Playing</string>
     <string name="disable_track">Disable track</string>
@@ -1313,33 +1313,33 @@
 
     <!--    accessibility-->
     <string name="talkback_media_content_description">%1$s - title: %2$s - duration: %3$s</string>
-    <string name="talkback_genre">Genre: %s</string>
+    <string name="talkback_genre">Genre: %1$s</string>
     <string name="talkback_history_item">History item</string>
-    <string name="talkback_playlist">Playlist: %s</string>
-    <string name="talkback_folder">Folder: %s</string>
-    <string name="talkback_file">File: %s</string>
-    <string name="talkback_favorite">Favorite: %s</string>
-    <string name="talkback_track_number">Track number %s</string>
-    <string name="talkback_duration">Duration: %s</string>
-    <string name="talkback_album">Album: %s</string>
-    <string name="talkback_artist">Artist: %s</string>
-    <string name="talkback_release_date">Released in %s</string>
-    <string name="talkback_video">Video: %s</string>
-    <string name="talkback_stream">Stream: %s</string>
-    <string name="talkback_audio_track">Audio track: %s</string>
-    <string name="talkback_video_group">Video group: %s</string>
+    <string name="talkback_playlist">Playlist: %1$s</string>
+    <string name="talkback_folder">Folder: %1$s</string>
+    <string name="talkback_file">File: %1$s</string>
+    <string name="talkback_favorite">Favorite: %1$s</string>
+    <string name="talkback_track_number">Track number %1$s</string>
+    <string name="talkback_duration">Duration: %1$s</string>
+    <string name="talkback_album">Album: %1$s</string>
+    <string name="talkback_artist">Artist: %1$s</string>
+    <string name="talkback_release_date">Released in %1$s</string>
+    <string name="talkback_video">Video: %1$s</string>
+    <string name="talkback_stream">Stream: %1$s</string>
+    <string name="talkback_audio_track">Audio track: %1$s</string>
+    <string name="talkback_video_group">Video group: %1$s</string>
     <string name="talkback_hours">hours</string>
     <string name="talkback_minutes">minutes</string>
     <string name="talkback_seconds">seconds</string>
-    <string name="talkback_list_section">Header: %s</string>
-    <string name="talkback_enter_screen">Navigate to %s</string>
-    <string name="talkback_file_size">File size: %s</string>
+    <string name="talkback_list_section">Header: %1$s</string>
+    <string name="talkback_enter_screen">Navigate to %1$s</string>
+    <string name="talkback_file_size">File size: %1$s</string>
     <string name="talkback_open_in_browser">Open in web browser</string>
     <string name="talkback_video_player">Video player. Tap to show controls. Tap the back button to hide them</string>
     <string name="talkback_video_tracks">Video tracks</string>
     <string name="talkback_audio_tracks">Audio tracks</string>
     <string name="talkback_subtitle_tracks">Subtitle tracks</string>
-    <string name="talkback_track" translatable="false">%s: %s. %s</string>
+    <string name="talkback_track" translatable="false">%1$s: %2$s. %3$s</string>
     <string name="talkback_subtitle_dowload_item">Language: %1$s. %2$s. Name: %3$s</string>
     <string name="selected">Selected</string>
     <string name="talkback_increase_delay">Increase delay</string>
@@ -1347,18 +1347,18 @@
     <string name="talkback_increase_speed">Increase speed</string>
     <string name="talkback_decrease_speed">Decrease speed</string>
     <string name="talkback_subtitle_history">Subtitle history</string>
-    <string name="talkback_language_selection">%s selected languages</string>
+    <string name="talkback_language_selection">%1$s selected languages</string>
     <string name="talkback_audio_player_opened">Audio player opened</string>
     <string name="talkback_audio_player_collapsed">Audio player collapsed</string>
     <string name="talkback_audio_player_closed">Audio player closed</string>
-    <string name="talkback_audio_player">Audio player. Currently playing: %s</string>
+    <string name="talkback_audio_player">Audio player. Currently playing: %1$s</string>
     <string name="talkback_out_of">%1$s out of %2$s</string>
     <string name="talkback_track_index">Track %1$s out of %2$s</string>
     <string name="downloaded">Downloaded</string>
     <string name="not_downloaded">Not downloaded</string>
     <string name="downloading">Downloading</string>
-    <string name="talkback_action_rewind">Rewind %s seconds</string>
-    <string name="talkback_action_forward">Seek forward %s seconds</string>
+    <string name="talkback_action_rewind">Rewind %1$s seconds</string>
+    <string name="talkback_action_forward">Seek forward %1$s seconds</string>
     <string name="talkback_display_settings">Display settings</string>
     <string name="talkback_already_played">Already played</string>
     <string name="show_only_favs">Show only favorites</string>
@@ -1376,7 +1376,7 @@
     <string name="ra_not_in_foreground">Application is not in foreground. Cannot launch video.</string>
     <string name="ra_disconnected">Disconnected from device</string>
     <string name="ra_file">File</string>
-    <string name="ra_upload_remaining">Uploading %s files</string>
+    <string name="ra_upload_remaining">Uploading %1$s files</string>
     <string name="ra_upload_all">Upload all</string>
     <string name="ra_drop_files_tip">Drop files anywhere to send to your device</string>
     <string name="ra_prepare_download">Preparing your download</string>
@@ -1391,7 +1391,7 @@
     <string name="ra_ssl_button">Use a secure connection</string>
     <string name="ra_new_code">Send a new code</string>
     <string name="home">Home</string>
-    <string name="ra_code">Enter this code: %s</string>
+    <string name="ra_code">Enter this code: %1$s</string>
     <string name="ra_send_logs">Save remote access\' logs on the device</string>
     <string name="ra_otp">Remote access one time password</string>
     <string name="ra_otp_description">Access requests for the remote access</string>
@@ -1428,7 +1428,7 @@
     <!-- car screens -->
     <string name="help">Help</string>
     <string name="podcast_mode">Podcast mode</string>
-    <string name="podcast_mode_help">Podcast controls appear when playing a single track which meets one of the following criteria:\n\t• Length greater than 60 min\n\t• Length greater than 15 min with no album name\n\t• Genre is %s</string>
+    <string name="podcast_mode_help">Podcast controls appear when playing a single track which meets one of the following criteria:\n\t• Length greater than 60 min\n\t• Length greater than 15 min with no album name\n\t• Genre is %1$s</string>
     <string name="podcast_mode_genres" translatable="false">audiobook(s), podcast, speech, or vocal</string>
     <string name="voice_control">Voice control</string>
     <string name="voice_control_help">VLC can be controlled through Google Assistant by speaking the following commands:\n\t• Play, Pause, Stop, Previous, Next\n\t• Rewind, Fast Forward, Repeat &lt;all|one|off&gt;\n\t• Jump to &lt;time&gt;, Skip &lt;duration&gt;\n\t• What\'s this &lt;artist|album|song&gt;\n\t• Play [artist|album|song|genre|playlist] &lt;name&gt;</string>
@@ -1559,6 +1559,10 @@
         <item quantity="one">%1$d item</item>
         <item quantity="other">%1$d items</item>
     </plurals>
+    <string name="browse_empty_title">No places to browse</string>
+    <string name="browse_empty_message">Storage, folders and network shares you can open will appear here.</string>
+    <string name="duration_minutes_short">%1$d min</string>
+    <string name="duration_hours_minutes_short">%1$d h %2$d min</string>
     <string name="selection_action_count">%1$s (%2$d)</string>
     <string name="up_next_count">Up next (%1$d)</string>
     <string name="up_next">Up next</string>

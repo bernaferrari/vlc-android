@@ -25,6 +25,7 @@ import org.videolan.vlc.viewmodel.VideoListViewModel
 fun VlcKoinMainShell(
     modifier: Modifier = Modifier,
     initialTab: MainTab = MainTab.VIDEO,
+    initialRoutes: List<VlcShellRoute> = emptyList(),
     tab: MainTab? = null,
     onTabChange: ((MainTab) -> Unit)? = null,
     showBottomBar: Boolean = true,
@@ -43,6 +44,7 @@ fun VlcKoinMainShell(
     VlcMainShell(
         modifier = modifier,
         initialTab = initialTab,
+        initialRoutes = initialRoutes,
         tab = tab,
         onTabChange = onTabChange,
         showBottomBar = showBottomBar,

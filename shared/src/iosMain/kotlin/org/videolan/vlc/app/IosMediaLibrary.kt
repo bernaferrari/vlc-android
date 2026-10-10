@@ -356,6 +356,7 @@ class IosMediaLibrary private constructor(
                     id = it.id,
                     name = it.name,
                     itemCount = it.items.size,
+                    artworkUri = it.items.firstNotNullOfOrNull { media -> media.artworkUri?.takeIf(String::isNotBlank) },
                     duration = it.items.sumOf { media -> media.duration },
                     isFavorite = it.id in favorites,
                 )

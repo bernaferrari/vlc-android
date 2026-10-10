@@ -65,6 +65,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.draw.clip
+import org.videolan.vlc.compose.artwork.MediaArtworkUri
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -157,7 +158,7 @@ fun PlaylistsRichPane(
         Column(Modifier.fillMaxSize()) {
         if (detailName != null) {
             VLCPageHeader(
-                title = detailName,
+                title = "",
                 navigationIcon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
                 navigationContentDescription = ShellStrings.back(),
                 onNavigate = onBack,
@@ -165,7 +166,21 @@ fun PlaylistsRichPane(
             state.actionError?.let { error ->
                 PlaylistActionError(error = error, onClear = onClearActionError)
             }
+            val openPlaylist = PlaylistInfo(id = state.openPlaylistId ?: -1L, name = detailName, itemCount = detailItems.size)
             if (detailItems.isEmpty()) {
+                CollectionHero(
+                    eyebrow = ShellStrings.playlist(),
+                    title = detailName,
+                    subtitle = null,
+                    items = emptyList(),
+                    onPlay = {},
+                    onShuffle = {},
+                    fallbackIcon = emptySymbol,
+                    modifier = Modifier
+                        .widthIn(max = VLCLayout.ListMaxWidth)
+                        .align(Alignment.CenterHorizontally)
+                        .padding(horizontal = VLCLayout.ScreenGutter),
+                )
                 VLCEmptyState(
                     loading = loading,
                     text = if (loading) "" else ShellStrings.emptyPlaylist(),
@@ -190,6 +205,17 @@ fun PlaylistsRichPane(
                         .align(Alignment.CenterHorizontally)
                         .weight(1f),
                 ) {
+                    item(key = "hero") {
+                        CollectionHero(
+                            eyebrow = ShellStrings.playlist(),
+                            title = detailName,
+                            subtitle = null,
+                            items = detailItems,
+                            onPlay = { onPlay(openPlaylist) },
+                            onShuffle = { onShufflePlay(openPlaylist) },
+                            fallbackIcon = emptySymbol,
+                        )
+                    }
                     itemsIndexed(detailItems, key = { index, item -> "$index:${item.id}:${item.uri}" }) { index, item ->
                         PlaylistTrackRow(
                             item = item,
@@ -330,7 +356,7 @@ fun PlaylistsRichPane(
                     Box {
                         VLCBrowserItemRow(
                             title = pl.name,
-                            subtitle = ShellStrings.itemsCount(pl.itemCount),
+                            subtitle = playlistSummary(pl),
                             selected = pl.id in state.selection,
                             position = sectionListItemPosition(index, playlists.size),
                             onClick = {
@@ -338,23 +364,7 @@ fun PlaylistsRichPane(
                                 else onOpen(pl)
                             },
                             onLongClick = { onToggleSelect(pl.id) },
-                            artworkContent = {
-                                Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        icon = MaterialSymbols.Filled.QueueMusic,
-                                        contentDescription = null,
-                                        tint = VLCThemeDefaults.colors.primary,
-                                    )
-                                    if (pl.isFavorite) {
-                                        Icon(
-                                            MaterialSymbols.Filled.Star,
-                                            contentDescription = ShellStrings.favorites(),
-                                            tint = VLCThemeDefaults.colors.primary,
-                                            modifier = Modifier.align(Alignment.TopEnd).size(16.dp),
-                                        )
-                                    }
-                                }
-                            },
+                            artworkContent = { PlaylistArtwork(pl, size = 48.dp) },
                             moreActionContent = { Icon(MaterialSymbols.Filled.MoreVert, contentDescription = null) },
                             moreActionContentDescription = ShellStrings.moreOptions(),
                             onMoreClick = { menu = true },
@@ -580,12 +590,7 @@ private fun PlaylistCard(
                     .background(MaterialTheme.colorScheme.surfaceContainerHigh),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(
-                    icon = MaterialSymbols.Filled.QueueMusic,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(48.dp),
-                )
+                PlaylistArtwork(playlist, size = 160.dp, modifier = Modifier.fillMaxSize(), corner = 14.dp)
                 if (playlist.isFavorite) {
                     Icon(
                         icon = MaterialSymbols.Filled.Star,
@@ -614,7 +619,7 @@ private fun PlaylistCard(
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     Text(
-                        ShellStrings.itemsCount(playlist.itemCount),
+                        playlistSummary(playlist),
                         style = MaterialTheme.typography.bodySmall,
                         color = colors.fontLight,
                     )
@@ -641,3 +646,40 @@ private fun PlaylistCard(
         onDelete = { menu = false; onDelete() },
     )
 }
+
+/** Cover art when the playlist has any, otherwise a calm tinted tile — never a bare icon on the page. */
+@Composable
+private fun PlaylistArtwork(
+    playlist: PlaylistInfo,
+    size: androidx.compose.ui.unit.Dp,
+    modifier: Modifier = Modifier,
+    corner: androidx.compose.ui.unit.Dp = VLCLayout.ArtworkCorner,
+) {
+    Box(modifier.size(size).clip(RoundedCornerShape(corner)), contentAlignment = Alignment.Center) {
+        MediaArtworkUri(
+            uri = playlist.artworkUri,
+            contentDescription = null,
+            size = size,
+            fillMaxSizeArtwork = true,
+            fallback = {
+                Box(
+                    Modifier.fillMaxSize().background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        icon = MaterialSymbols.Filled.QueueMusic,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(size * 0.42f),
+                    )
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun playlistSummary(playlist: PlaylistInfo): String = listOfNotNull(
+    ShellStrings.tracksCount(playlist.itemCount),
+    playlist.duration.takeIf { it > 0L }?.let { ShellStrings.totalDuration(it) },
+).joinToString(" · ")

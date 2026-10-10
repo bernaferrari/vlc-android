@@ -25,6 +25,8 @@ object VLCLayout {
     val IconTouchTarget = 48.dp
     val DestinationIconChip = 48.dp
     val ListMaxWidth = 720.dp
+    /** Grids may use more of a wide window than reading-width lists, but never the full desktop. */
+    val GridMaxWidth = 1280.dp
     val FastScrollerClearance = 32.dp
     // QuietGuard's sheet rhythm uses the same 24dp edge as its grouped settings cards.
     val SheetHorizontalPadding = 24.dp

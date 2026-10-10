@@ -21,6 +21,7 @@ class StubPlaylistRepository : PlaylistRepository {
                     it.id,
                     it.name,
                     it.items.size,
+                    artworkUri = it.items.firstNotNullOfOrNull { m -> m.artworkUri?.takeIf(String::isNotBlank) },
                     duration = it.items.sumOf { m -> m.duration },
                     isFavorite = false,
                 )

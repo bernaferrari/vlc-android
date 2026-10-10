@@ -277,7 +277,8 @@ private fun AboutHeroCard(
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
         )
-        Surface(
+        // A host without real build metadata shows no pill rather than a meaningless "VLC ›".
+        if (version.isNotBlank()) Surface(
             onClick = onVersionClick,
             shape = CircleShape,
             color = MaterialTheme.colorScheme.surfaceContainerLow,

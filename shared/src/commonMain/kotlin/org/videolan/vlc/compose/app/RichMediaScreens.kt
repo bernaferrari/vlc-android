@@ -26,8 +26,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
@@ -94,7 +100,8 @@ import org.videolan.vlc.viewmodel.ViewMode
 
 private val MediaScreenGutter = VLCLayout.ScreenGutter
 private val MediaGridGap = 12.dp
-private val MediaGridMinSize = 144.dp
+/** Landscape thumbnails need more width than square covers to stay legible. */
+private fun mediaGridMinSize(artworkAspectRatio: Float) = if (artworkAspectRatio > 1.2f) 200.dp else 156.dp
 private val FastScrollerContentClearance = VLCLayout.FastScrollerClearance
 
 /**
@@ -184,6 +191,10 @@ fun RichMediaListPane(
     emptySymbol: MaterialIcon = MaterialSymbols.Filled.VideoLibrary,
     gridArtworkAspectRatio: Float = 16f / 9f,
     headerContent: (@Composable () -> Unit)? = null,
+    /** Scrolls with the list on detail routes; replaces the filter chips and the bar title. */
+    collectionHero: (@Composable () -> Unit)? = null,
+    /** The one primary action of a root library, shown first in its chip row. */
+    primaryAction: LibraryPrimaryAction? = null,
     modifier: Modifier = Modifier,
     onRetry: () -> Unit = {},
 ) {
@@ -216,7 +227,7 @@ fun RichMediaListPane(
         Box(modifier = Modifier.fillMaxWidth()) {
             Column(
                 modifier = Modifier
-                    .widthIn(max = VLCLayout.ListMaxWidth)
+                    .widthIn(max = if (state.viewMode == ViewMode.GRID) VLCLayout.GridMaxWidth else VLCLayout.ListMaxWidth)
                     .align(Alignment.TopCenter)
                     .padding(horizontal = MediaScreenGutter),
             ) {
@@ -240,8 +251,10 @@ fun RichMediaListPane(
             val isDetail = state.containerTitle != null || state.openedEntityTitle != null
             // Every root library uses the same PageHeader baseline and connected action group.
             // The detail route only changes the title and adds the standard Nav3 back action.
+            val showCount = !useEmptyPresentation && !isDetail && state.query.isBlank() && !state.loading
             VLCPageHeader(
-                title = state.openedEntityTitle ?: state.containerTitle ?: title,
+                title = if (collectionHero != null && isDetail) "" else state.openedEntityTitle ?: state.containerTitle ?: title,
+                subtitle = ShellStrings.itemsCount(state.count).takeIf { showCount },
                 navigationIcon = MaterialSymbols.AutoMirrored.Filled.ArrowBack.takeIf { isDetail },
                 navigationContentDescription = ShellStrings.back().takeIf { isDetail },
                 onNavigate = onCloseContainer.takeIf { isDetail },
@@ -351,16 +364,8 @@ fun RichMediaListPane(
                 }
             }
             if (!useEmptyPresentation) {
-                if (!isDetail && state.query.isBlank() && !state.loading) {
-                    Text(
-                        text = ShellStrings.itemsCount(state.count),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = 16.dp),
-                    )
-                }
                 headerContent?.invoke()
-                Row(
+                if (collectionHero == null || !isDetail) Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .horizontalScroll(rememberScrollState())
@@ -368,6 +373,18 @@ fun RichMediaListPane(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
+                    if (primaryAction != null && state.selection.isEmpty()) {
+                        FilledTonalButton(
+                            onClick = primaryAction.onClick,
+                            shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(start = 12.dp, end = 16.dp),
+                            modifier = Modifier.height(32.dp),
+                        ) {
+                            Icon(primaryAction.icon, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text(primaryAction.label, style = MaterialTheme.typography.labelLarge)
+                        }
+                    }
                     FilterChip(
                         selected = state.onlyFavorites,
                         onClick = onToggleFavorites,
@@ -546,6 +563,7 @@ fun RichMediaListPane(
                     onOpenGroup = onOpenGroup,
                     gridArtworkAspectRatio = gridArtworkAspectRatio,
                     onClearSearch = { onQuery("") },
+                    listHeader = collectionHero.takeIf { state.selection.isEmpty() },
                 )
             }
         }
@@ -586,6 +604,7 @@ private fun ColumnScope.MediaBody(
     onOpenGroup: (MediaFolder) -> Unit,
     gridArtworkAspectRatio: Float,
     onClearSearch: () -> Unit,
+    listHeader: (@Composable () -> Unit)?,
 ) {
     when {
         state.groupingMode != VideoGroupingMode.NONE && groups.isNotEmpty() -> {
@@ -652,6 +671,7 @@ private fun ColumnScope.MediaBody(
                 canHandleHostAction = canHandleHostAction,
                 gridArtworkAspectRatio = gridArtworkAspectRatio,
                 onClearSearch = onClearSearch,
+                listHeader = listHeader,
             )
         }
         !state.loading && state.items.isEmpty() && sections.isEmpty() -> {
@@ -677,6 +697,7 @@ private fun ColumnScope.MediaBody(
                 onCtx = onCtx,
                 canHandleHostAction = canHandleHostAction,
                 gridArtworkAspectRatio = gridArtworkAspectRatio,
+                listHeader = listHeader,
             )
         }
     }
@@ -701,6 +722,7 @@ private fun PagedMediaBody(
     canHandleHostAction: (ContextOption) -> Boolean,
     gridArtworkAspectRatio: Float,
     onClearSearch: () -> Unit,
+    listHeader: (@Composable () -> Unit)?,
 ) {
     if (lazyPagingItems.itemCount == 0 && !state.loading) {
         VLCEmptyState(
@@ -715,7 +737,7 @@ private fun PagedMediaBody(
     }
     if (state.viewMode == ViewMode.GRID) {
         LazyVerticalGrid(
-            columns = GridCells.Adaptive(minSize = MediaGridMinSize),
+            columns = GridCells.Adaptive(minSize = mediaGridMinSize(gridArtworkAspectRatio)),
             contentPadding = PaddingValues(
                 start = MediaScreenGutter,
                 end = MediaScreenGutter,
@@ -723,8 +745,9 @@ private fun PagedMediaBody(
             ),
             horizontalArrangement = Arrangement.spacedBy(MediaGridGap),
             verticalArrangement = Arrangement.spacedBy(20.dp),
-            modifier = modifier,
+            modifier = modifier.wrapContentWidth(Alignment.CenterHorizontally).widthIn(max = VLCLayout.GridMaxWidth),
         ) {
+            listHeader?.let { header -> item(span = { GridItemSpan(maxLineSpan) }) { header() } }
             items(lazyPagingItems.itemCount, key = { index ->
                 val item = lazyPagingItems.peek(index)
                 item?.let { "${it.id}:${it.uri}" } ?: "placeholder-$index"
@@ -735,7 +758,8 @@ private fun PagedMediaBody(
                     selected = item.uri in state.selection,
                     artworkAspectRatio = gridArtworkAspectRatio,
                     searchQuery = searchQuery,
-                    showTrackNumbers = state.showTrackNumbers,
+                    showTrackNumbers = state.showsTrackNumbers(),
+                        collection = state.openedEntityKind,
                     onClick = {
                         if (state.selection.isNotEmpty()) onToggleSelect(item)
                         else onPlay(item)
@@ -777,6 +801,7 @@ private fun PagedMediaBody(
                     .fillMaxSize()
                     .align(Alignment.TopCenter),
             ) {
+                listHeader?.let { header -> item { header() } }
                 items(lazyPagingItems.itemCount, key = { index ->
                     val item = lazyPagingItems.peek(index)
                     item?.let { "${it.id}:${it.uri}" } ?: "placeholder-$index"
@@ -788,7 +813,8 @@ private fun PagedMediaBody(
                         selected = item.uri in state.selection,
                         searchQuery = searchQuery,
                         selecting = state.selection.isNotEmpty(),
-                        showTrackNumbers = state.showTrackNumbers,
+                        showTrackNumbers = state.showsTrackNumbers(),
+                        collection = state.openedEntityKind,
                         onPlay = onPlay,
                         onPlayNext = onPlayNext,
                         onAppend = onAppend,
@@ -908,12 +934,13 @@ private fun SnapshotMediaBody(
     onCtx: (MediaItem, ContextOption) -> Unit,
     canHandleHostAction: (ContextOption) -> Boolean,
     gridArtworkAspectRatio: Float,
+    listHeader: (@Composable () -> Unit)?,
 ) {
     val displaySections = if (sections.isNotEmpty()) sections else listOf("" to state.items)
 
     if (state.viewMode == ViewMode.GRID) {
         LazyVerticalGrid(
-            columns = GridCells.Adaptive(minSize = MediaGridMinSize),
+            columns = GridCells.Adaptive(minSize = mediaGridMinSize(gridArtworkAspectRatio)),
             contentPadding = PaddingValues(
                 start = MediaScreenGutter,
                 end = MediaScreenGutter,
@@ -921,11 +948,12 @@ private fun SnapshotMediaBody(
             ),
             horizontalArrangement = Arrangement.spacedBy(MediaGridGap),
             verticalArrangement = Arrangement.spacedBy(20.dp),
-            modifier = modifier,
+            modifier = modifier.wrapContentWidth(Alignment.CenterHorizontally).widthIn(max = VLCLayout.GridMaxWidth),
         ) {
+            listHeader?.let { header -> item(span = { GridItemSpan(maxLineSpan) }) { header() } }
             displaySections.forEach { (section, items) ->
                 if (section.isNotBlank()) {
-                    item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
                         Text(
                             section,
                             fontWeight = FontWeight.SemiBold,
@@ -940,7 +968,8 @@ private fun SnapshotMediaBody(
                         selected = item.uri in state.selection,
                         artworkAspectRatio = gridArtworkAspectRatio,
                         searchQuery = searchQuery,
-                        showTrackNumbers = state.showTrackNumbers,
+                        showTrackNumbers = state.showsTrackNumbers(),
+                        collection = state.openedEntityKind,
                         onClick = {
                             if (state.selection.isNotEmpty()) onToggleSelect(item)
                             else onPlay(item)
@@ -976,6 +1005,7 @@ private fun SnapshotMediaBody(
                     .fillMaxSize()
                     .align(Alignment.TopCenter),
             ) {
+                listHeader?.let { header -> item { header() } }
                 displaySections.forEach { (section, items) ->
                     if (section.isNotBlank()) {
                         item {
@@ -995,7 +1025,8 @@ private fun SnapshotMediaBody(
                                 selected = media.uri in state.selection,
                                 searchQuery = searchQuery,
                                 selecting = state.selection.isNotEmpty(),
-                                showTrackNumbers = state.showTrackNumbers,
+                                showTrackNumbers = state.showsTrackNumbers(),
+                        collection = state.openedEntityKind,
                                 onPlay = onPlay,
                                 onPlayNext = onPlayNext,
                                 onAppend = onAppend,
@@ -1025,6 +1056,7 @@ private fun MediaListRow(
     searchQuery: String,
     selecting: Boolean,
     showTrackNumbers: Boolean,
+    collection: org.videolan.vlc.repository.AudioEntityKind?,
     onPlay: (MediaItem) -> Unit,
     onPlayNext: (MediaItem) -> Unit,
     onAppend: (MediaItem) -> Unit,
@@ -1039,7 +1071,7 @@ private fun MediaListRow(
             title = item.displayTitle,
             // Keep the duration in its own stable trailing slot. Hiding it in the metadata
             // sentence made long filenames push the only playback cue off-screen.
-            subtitle = mediaSecondaryText(item, showTrackNumbers, includeDuration = false).ifBlank { null },
+            subtitle = mediaSecondaryText(item, showTrackNumbers, includeDuration = false, collection = collection).ifBlank { null },
             searchQuery = searchQuery,
             titleMaxLines = 1,
             selected = selected,
@@ -1048,7 +1080,20 @@ private fun MediaListRow(
                 if (selecting) onToggleSelect(item) else onPlay(item)
             },
             onLongClick = { onToggleSelect(item) },
-            artworkContent = { MediaArtworkSlot(item) },
+            artworkContent = {
+                if (collection == org.videolan.vlc.repository.AudioEntityKind.ALBUM && item.trackNumber > 0) {
+                    // Every row in an album shares one cover; its running order is the useful cue.
+                    Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = item.trackNumber.toString(),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                } else {
+                    MediaArtworkSlot(item)
+                }
+            },
             badgeContent = {
                 formatDuration(item.duration).takeIf { it.isNotBlank() }?.let { duration ->
                     Text(
@@ -1077,6 +1122,13 @@ private fun MediaListRow(
     }
 }
 
+
+/** Track numbers only carry meaning inside an album, where they describe the running order. */
+private fun MediaListUiState.showsTrackNumbers(): Boolean =
+    showTrackNumbers && openedEntityKind == org.videolan.vlc.repository.AudioEntityKind.ALBUM
+
+/** A root library's single most useful action, presented inline instead of as a floating button. */
+data class LibraryPrimaryAction(val label: String, val icon: MaterialIcon, val onClick: () -> Unit)
 
 fun formatDuration(ms: Long): String {
     if (ms <= 0L) return ""

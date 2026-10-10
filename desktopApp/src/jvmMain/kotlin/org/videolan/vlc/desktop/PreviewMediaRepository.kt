@@ -23,7 +23,7 @@ internal class PreviewMediaRepository(directory: File) : MediaRepository {
                 duration = (184L + index * 357L) * 1_000, width = 1920, height = 1080,
                 artworkUri = previewArtwork(directory, index, false),
                 lastPlayed = if (index == 0) 1_000L else 0L,
-                description = "Development fixture", fileName = "$title.mp4",
+                fileName = "$title.mp4",
             ))
         }
         listOf("Drift" to "Mira Sol", "Blue hours" to "Northbound", "Soft focus" to "June & the Pines", "Paper skies" to "Elliot Vale").forEachIndexed { albumIndex, (album, artist) ->
@@ -34,7 +34,6 @@ internal class PreviewMediaRepository(directory: File) : MediaRepository {
                     duration = (180L + trackIndex * 31L) * 1_000, artist = artist, album = album,
                     genre = "Ambient", trackNumber = trackIndex + 1, year = 2025,
                     artworkUri = previewArtwork(directory, albumIndex, true),
-                    description = "Development fixture",
                 ))
             }
         }

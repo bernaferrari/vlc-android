@@ -74,6 +74,7 @@ object MaterialSymbols {
     object AutoMirrored {
         object Filled {
             val ArrowBack: MaterialIcon get() = MaterialIcon(filledArrowBack, autoMirror = true)
+            val ChevronForward: MaterialIcon get() = MaterialIcon(filledChevronRight, autoMirror = true)
         }
     }
 }

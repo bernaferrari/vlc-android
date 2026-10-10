@@ -347,6 +347,7 @@ fun MediaGridCard(
     artworkAspectRatio: Float = 16f / 9f,
     searchQuery: String = "",
     showTrackNumbers: Boolean = false,
+    collection: org.videolan.vlc.repository.AudioEntityKind? = null,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     onCtx: (MediaItem, ContextOption) -> Unit = { _, _ -> },
@@ -420,7 +421,7 @@ fun MediaGridCard(
                         fontWeight = FontWeight.SemiBold,
                         style = MaterialTheme.typography.bodyMedium,
                     )
-                    val sub = mediaSecondaryText(item, showTrackNumbers, includeDuration = false)
+                    val sub = mediaSecondaryText(item, showTrackNumbers, includeDuration = false, collection = collection)
                     if (sub.isNotBlank()) {
                         Text(
                             highlightedSearchText(sub, searchQuery),
@@ -460,17 +461,37 @@ internal fun mediaSecondaryText(
     item: MediaItem,
     showTrackNumbers: Boolean,
     includeDuration: Boolean = true,
+    /** Inside an album or artist page, repeating that name on every row adds nothing. */
+    collection: org.videolan.vlc.repository.AudioEntityKind? = null,
 ): String {
+    // Album rows put the running order in the leading slot; it is never repeated in the text.
     val trackNumber = item.trackNumber.takeIf {
-        showTrackNumbers && item.isAudio && it > 0
+        showTrackNumbers && item.isAudio && it > 0 && collection != org.videolan.vlc.repository.AudioEntityKind.ALBUM
     }?.let { "#$it" }
     val durationValue = formatDuration(item.duration)
     val duration = durationValue.takeIf { includeDuration }
-    return listOfNotNull(trackNumber, item.artist, item.album, item.description, duration)
+    // A free-form description is only a fallback: next to artist/album it reads as noise.
+    val description = item.description.takeIf { item.artist.isNullOrBlank() && item.album.isNullOrBlank() }
+    val quality = item.takeIf { it.isVideo }?.let { videoQualityLabel(it.width, it.height) }
+    val artist = item.artist.takeIf { collection == null || collection == org.videolan.vlc.repository.AudioEntityKind.GENRE }
+    val album = item.album.takeIf { collection != org.videolan.vlc.repository.AudioEntityKind.ALBUM }
+    return listOfNotNull(trackNumber, artist, album, description ?: quality, duration)
         .map(String::trim)
         .filter { it.isNotBlank() && it != durationValue }
         .distinct()
         .joinToString(" · ")
+}
+
+/** Short, familiar resolution label; the shorter side decides so portrait clips read correctly. */
+internal fun videoQualityLabel(width: Int, height: Int): String? {
+    val side = minOf(width, height).takeIf { it > 0 } ?: return null
+    return when {
+        side >= 2000 -> "4K"
+        side >= 1400 -> "1440p"
+        side >= 1000 -> "1080p"
+        side >= 700 -> "720p"
+        else -> "SD"
+    }
 }
 
 @Composable

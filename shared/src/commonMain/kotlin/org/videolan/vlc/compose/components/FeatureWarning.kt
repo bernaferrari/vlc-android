@@ -16,6 +16,9 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.height
+import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.MaterialSymbols
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -177,7 +180,7 @@ private fun VLCSwipeUnlockControl(
     var unlocked by remember { mutableStateOf(false) }
     var isDragging by remember { mutableStateOf(false) }
 
-    val thumbSize = 48.dp
+    val thumbSize = 52.dp
     val thumbSizePx = with(density) { thumbSize.toPx() }
     val maxOffset = (widthPx - thumbSizePx).coerceAtLeast(0f)
     val acceptedKeys = remember {
@@ -301,15 +304,21 @@ private fun VLCSwipeUnlockControl(
                     }
                 )
             }
-            .background(Color(0xDD000000), RoundedCornerShape(percent = 50))
-            .border(1.dp, Color.White.copy(alpha = 0.16f), RoundedCornerShape(percent = 50))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh, RoundedCornerShape(percent = 50))
             .padding(4.dp)
     ) {
         val progress = if (maxOffset == 0f) 0f else offset.value / maxOffset
+        // The travelled part fills with the accent so progress is legible before release.
+        Box(
+            Modifier
+                .height(thumbSize)
+                .width(with(density) { (offset.value + thumbSizePx).toDp() })
+                .background(colors.primary.copy(alpha = 0.18f), RoundedCornerShape(percent = 50)),
+        )
         Text(
-            text = text.uppercase(),
-            color = Color.White,
-            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+            text = text,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .align(Alignment.Center)
@@ -327,11 +336,10 @@ private fun VLCSwipeUnlockControl(
             if (thumbContent != null) {
                 thumbContent()
             } else {
-                Text(
-                    text = ">",
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                Icon(
+                    icon = MaterialSymbols.AutoMirrored.Filled.ChevronForward,
+                    contentDescription = null,
+                    tint = colors.onPrimary,
                 )
             }
         }

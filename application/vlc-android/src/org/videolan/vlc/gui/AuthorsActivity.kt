@@ -1,5 +1,7 @@
 package org.videolan.vlc.gui
 
+import org.videolan.vlc.compose.app.AboutBundle
+
 import org.videolan.vlc.gui.helpers.setVlcContent
 import android.os.Bundle
 import androidx.compose.foundation.layout.size
@@ -13,14 +15,8 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
-import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.Types
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.videolan.resources.AndroidDevices
-import org.videolan.resources.AppContextProvider
 import org.videolan.resources.util.applyOverscanMargin
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.components.VLCAuthorsScreen
@@ -65,19 +61,5 @@ class AuthorsActivity : BaseActivity() {
         }
     }
 
-    /**
-     * Load the authors list from the json file in assets and then populate the list
-     */
-    private suspend fun loadAuthors(): List<String> = withContext(Dispatchers.IO) {
-        val jsonData = AppContextProvider.appResources.openRawResource(R.raw.authors).bufferedReader().use {
-            it.readText()
-        }
-
-        val moshi = Moshi.Builder().build()
-        val type = Types.newParameterizedType(MutableList::class.java, String::class.java)
-
-        val jsonAdapter: JsonAdapter<List<String>> = moshi.adapter(type)
-
-        jsonAdapter.fromJson(jsonData)!!
-    }
+    private suspend fun loadAuthors(): List<String> = AboutBundle.authors()
 }

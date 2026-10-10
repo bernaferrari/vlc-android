@@ -40,6 +40,11 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.Button
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.background
 import kotlinx.coroutines.delay
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
@@ -147,12 +152,13 @@ private fun PlaceholderContent(
             return@Column
         }
         PlaceholderIcon(icon = icon, symbol = symbol, tone = tone)
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
         Text(
             text = title,
             color = if (tone == VLCStatePlaceholderTone.Error) MaterialTheme.colorScheme.error
                 else VLCThemeDefaults.colors.fontDefault,
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Center,
         )
         message?.takeIf { it.isNotBlank() }?.let {
@@ -165,8 +171,8 @@ private fun PlaceholderContent(
             )
         }
         if (actionText != null && onActionClick != null) {
-            Spacer(modifier = Modifier.height(20.dp))
-            FilledTonalButton(onClick = onActionClick) { Text(actionText) }
+            Spacer(modifier = Modifier.height(24.dp))
+            Button(onClick = onActionClick, modifier = Modifier.heightIn(min = 48.dp)) { Text(actionText) }
         }
         if (secondaryActionText != null && onSecondaryActionClick != null) {
             Spacer(modifier = Modifier.height(8.dp))
@@ -320,19 +326,30 @@ private fun PlaceholderIcon(icon: Painter?, symbol: MaterialIcon, tone: VLCState
                 Icon(symbol, contentDescription = null, tint = MaterialTheme.colorScheme.onErrorContainer)
             }
         }
-    } else if (icon != null) {
-        Image(
-            painter = icon,
-            contentDescription = null,
-            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant),
-            modifier = Modifier.size(40.dp),
-        )
     } else {
-        Icon(
-            icon = symbol,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(40.dp),
-        )
+        // A soft accent disc gives every empty library a deliberate focal point without reading
+        // as an error badge.
+        Box(
+            modifier = Modifier
+                .size(88.dp)
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f), CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (icon != null) {
+                Image(
+                    painter = icon,
+                    contentDescription = null,
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
+                    modifier = Modifier.size(40.dp),
+                )
+            } else {
+                Icon(
+                    icon = symbol,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(40.dp),
+                )
+            }
+        }
     }
 }

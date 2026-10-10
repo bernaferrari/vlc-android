@@ -33,7 +33,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -122,6 +121,8 @@ import org.videolan.vlc.viewmodel.AudioSection
 fun VlcMainShell(
     modifier: Modifier = Modifier,
     initialTab: MainTab = MainTab.VIDEO,
+    /** Optional restored stack for deep links and deterministic design review. */
+    initialRoutes: List<VlcShellRoute> = emptyList(),
     /** When non-null, tab is controlled by the host (Android chrome / tests). */
     tab: MainTab? = null,
     onTabChange: ((MainTab) -> Unit)? = null,
@@ -156,7 +157,7 @@ fun VlcMainShell(
         val backStack = rememberNavBackStack(vlcShellNavSavedStateConfiguration, initialRoute)
         LaunchedEffect(backStack, initialRoute) {
             val canonical = canonicalVlcShellRouteStack(
-                restored = backStack.filterIsInstance<VlcShellRoute>(),
+                restored = initialRoutes.ifEmpty { backStack.filterIsInstance<VlcShellRoute>() },
                 fallbackRoot = initialRoute,
             )
             if (canonical != backStack) {
@@ -585,39 +586,6 @@ fun VlcMainShell(
                 // the shared content and adaptive navigation.
                 contentWindowInsets = WindowInsets(0, 0, 0, 0),
                 containerColor = colors.backgroundDefault,
-                floatingActionButton = {
-                    if (!showSecondaryChrome) {
-                        when (libraryRoute) {
-                            VideoRoute -> {
-                                if (videoState.count > 0 || videoState.items.isNotEmpty()) {
-                                    FloatingActionButton(onClick = {
-                                        videoVm.playAll()
-                                        openPlayer()
-                                    }) {
-                                        Icon(
-                                            icon = MaterialSymbols.Filled.PlayArrow,
-                                            contentDescription = ShellStrings.playAll(),
-                                        )
-                                    }
-                                }
-                            }
-                            AudioRoute -> {
-                                if (audioSection == AudioSection.TRACKS && audioState.count > 1) {
-                                    FloatingActionButton(onClick = {
-                                        audioVm.shuffleAll()
-                                        openPlayer()
-                                    }) {
-                                        Icon(
-                                            icon = MaterialSymbols.Filled.Shuffle,
-                                            contentDescription = ShellStrings.shuffleAll(),
-                                        )
-                                    }
-                                }
-                            }
-                            else -> Unit
-                        }
-                    }
-                },
                 bottomBar = {
                     if (showBottomBar && playerState.hasMedia) {
                         MiniBar(

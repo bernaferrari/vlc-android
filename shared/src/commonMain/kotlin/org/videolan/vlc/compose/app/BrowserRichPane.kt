@@ -146,7 +146,8 @@ fun BrowserRichPane(
             }
             isEmpty -> VLCEmptyState(
                     loading = false,
-                    text = ShellStrings.nothingHere(),
+                    text = if (state.currentFolder == null) ShellStrings.browseEmptyTitle() else ShellStrings.nothingHere(),
+                    message = ShellStrings.browseEmptyMessage().takeIf { state.currentFolder == null },
                     modifier = Modifier.fillMaxWidth().weight(1f),
                     symbol = emptySymbol,
                 )

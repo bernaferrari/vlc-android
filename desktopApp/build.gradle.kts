@@ -33,3 +33,16 @@ compose.desktop {
         }
     }
 }
+
+// Headless design review: ./gradlew :desktopApp:snapshots [-Pfilter=audio,player]
+tasks.register<JavaExec>("snapshots") {
+    group = "verification"
+    description = "Renders shared screens to desktopApp/build/snapshots"
+    val jvmCompilation = kotlin.jvm().compilations.getByName("main")
+    classpath = files(jvmCompilation.output.allOutputs, jvmCompilation.runtimeDependencyFiles)
+    mainClass.set("org.videolan.vlc.desktop.SnapshotsKt")
+    args(providers.gradleProperty("filter").getOrElse(""))
+    systemProperty("snapshots.dir", layout.buildDirectory.dir("snapshots").get().asFile.absolutePath)
+    systemProperty("java.awt.headless", "true")
+    notCompatibleWithConfigurationCache("Development-only design review task")
+}

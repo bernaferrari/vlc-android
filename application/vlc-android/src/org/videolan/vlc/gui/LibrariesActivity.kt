@@ -1,5 +1,7 @@
 package org.videolan.vlc.gui
 
+import org.videolan.vlc.compose.app.AboutBundle
+
 import org.videolan.vlc.gui.helpers.setVlcContent
 import android.os.Bundle
 import androidx.compose.foundation.layout.size
@@ -13,14 +15,8 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
-import com.squareup.moshi.Json
-import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.Moshi
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.videolan.resources.AndroidDevices
-import org.videolan.resources.AppContextProvider
 import org.videolan.resources.util.applyOverscanMargin
 import org.videolan.vlc.R
 import org.videolan.vlc.compose.components.VLCLibrariesScreen
@@ -81,55 +77,5 @@ class LibrariesActivity : BaseActivity() {
         }
     }
 
-    /**
-     * Load libraries from the JSON raw resource and adapt them for the Compose screen.
-     */
-    private suspend fun loadLibraries(): List<VLCLibraryLicense> = withContext(Dispatchers.IO) {
-        val jsonData = AppContextProvider.appResources.openRawResource(R.raw.libraries).bufferedReader().use {
-            it.readText()
-        }
-
-        val moshi = Moshi.Builder().build()
-        val jsonAdapter: JsonAdapter<Licenses> = moshi.adapter(Licenses::class.java)
-        val rawLibraries = jsonAdapter.fromJson(jsonData)!!
-
-        rawLibraries.libraries.mapNotNull { library ->
-            rawLibraries.licenses.firstOrNull { it.id == library.license }?.let { license ->
-                VLCLibraryLicense(
-                    title = library.title,
-                    copyright = library.copyright,
-                    licenseTitle = license.name,
-                    licenseDescription = license.description,
-                    licenseLink = license.link
-                )
-            }
-        }
-    }
+    private suspend fun loadLibraries(): List<VLCLibraryLicense> = AboutBundle.libraries()
 }
-
-data class Licenses(
-        @Json(name = "libraries")
-        val libraries: List<Library>,
-        @Json(name = "licenses")
-        val licenses: List<License>
-)
-
-data class License(
-        @Json(name = "description")
-        val description: String,
-        @Json(name = "id")
-        val id: String,
-        @Json(name = "link")
-        val link: String,
-        @Json(name = "name")
-        val name: String
-)
-
-data class Library(
-        @Json(name = "copyright")
-        val copyright: String,
-        @Json(name = "license")
-        val license: String,
-        @Json(name = "title")
-        val title: String
-)

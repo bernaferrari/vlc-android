@@ -56,6 +56,7 @@ data class MediaListUiState(
     val audioEntities: List<AudioEntity> = emptyList(),
     /** Non-null while drilled into an artist/album/genre. */
     val openedEntityTitle: String? = null,
+    val openedEntityKind: org.videolan.vlc.repository.AudioEntityKind? = null,
     val showAllArtists: Boolean = false,
     val showTrackNumbers: Boolean = true,
     /** Whether the current repository can re-enumerate its local media source. */

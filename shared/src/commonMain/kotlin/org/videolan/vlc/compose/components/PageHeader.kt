@@ -1,6 +1,7 @@
 package org.videolan.vlc.compose.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -35,6 +36,8 @@ fun VLCPageHeader(
     navigationContentDescription: String? = null,
     onNavigate: (() -> Unit)? = null,
     horizontalPadding: Dp = VLCLayout.ScreenGutter,
+    /** Quiet supporting line under a root title, e.g. a library count. */
+    subtitle: String? = null,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     Row(
@@ -55,16 +58,25 @@ fun VLCPageHeader(
                 Icon(navigationIcon, contentDescription = navigationContentDescription)
             }
         }
-        Text(
-            text = title,
-            modifier = Modifier.weight(1f),
-            // Root destinations carry the reference’s clear editorial hierarchy.
-            style = if (navigationIcon == null) MaterialTheme.typography.headlineLarge
-                else MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+        Column(Modifier.weight(1f)) {
+            Text(
+                text = title,
+                // Root destinations carry the reference’s clear editorial hierarchy.
+                style = if (navigationIcon == null) MaterialTheme.typography.headlineLarge
+                    else MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            subtitle?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                )
+            }
+        }
         actions()
     }
 }

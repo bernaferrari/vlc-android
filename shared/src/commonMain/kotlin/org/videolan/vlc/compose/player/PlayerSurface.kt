@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -74,30 +75,85 @@ fun PlayerArtworkFallback(
         // Compact windows show track identity in the HUD, beside its close and menu actions.
         // Do not reserve a portrait artwork stage where it would crowd out that metadata.
         if (usesCompactAudioLayout(maxHeight)) return@BoxWithConstraints
+        val supportingText = item.artist?.takeIf(String::isNotBlank)
+            ?: state.subtitle.takeIf(String::isNotBlank)
+        if (usesSplitAudioLayout(maxWidth, maxHeight)) {
+            // Wide windows: artwork owns the left half, identity sits just above the transport in
+            // the right half (the HUD places its controls directly below the vertical centre).
+            val cover = minOf(maxWidth / 2 - 96.dp, maxHeight - 176.dp, 560.dp).coerceAtLeast(0.dp)
+            Box(
+                Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(top = 64.dp, bottom = 24.dp),
+            ) {
+                Box(Modifier.fillMaxWidth(0.5f).fillMaxSize().align(Alignment.CenterStart), contentAlignment = Alignment.Center) {
+                    MediaArtwork(
+                        item = item,
+                        contentDescription = null,
+                        size = cover,
+                        modifier = Modifier
+                            .size(cover)
+                            .shadow(20.dp, RoundedCornerShape(28.dp), ambientColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.25f), spotColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.25f))
+                            .clip(RoundedCornerShape(28.dp)),
+                        contentScale = ContentScale.Crop,
+                        fallback = { GenerativeAudioArtwork(item, state.progress) },
+                    )
+                }
+            }
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.CenterEnd) {
+                Column(
+                    Modifier
+                        .fillMaxWidth(0.5f)
+                        .padding(start = 24.dp, end = 64.dp)
+                        .widthIn(max = SplitAudioControlsMaxWidth)
+                        .offset(y = (-SplitAudioTitleLift)),
+                ) {
+                    Text(
+                        text = item.displayTitle,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    if (supportingText != null) {
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            text = supportingText,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.titleMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+            }
+            return@BoxWithConstraints
+        }
+        // Artwork and identity form one group, centred in the space the HUD leaves free. The
+        // cover takes every available dp up to a comfortable cap so tall phones never show an
+        // empty band above it.
+        val stageHeight = maxHeight - 64.dp - 236.dp
+        val coverSize = minOf(maxWidth - 56.dp, stageHeight - 96.dp, 440.dp).coerceAtLeast(0.dp)
         Column(
             modifier = Modifier
-                .widthIn(max = 420.dp)
+                .widthIn(max = 440.dp + 56.dp)
                 .fillMaxSize()
                 .statusBarsPadding()
                 .navigationBarsPadding()
                 .padding(horizontal = 28.dp)
-                .padding(top = 64.dp, bottom = 256.dp),
+                .padding(top = 64.dp, bottom = 236.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
         ) {
-            BoxWithConstraints(
-                modifier = Modifier.weight(1f).fillMaxWidth().padding(bottom = 24.dp),
-                contentAlignment = Alignment.BottomCenter,
-            ) {
-                val coverSize = minOf(maxWidth, maxHeight, 340.dp).coerceAtLeast(0.dp)
+            // The cover is centred in the free stage; identity stays anchored just above the
+            // transport so the eye travels title → timeline → play without a gap.
+            Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                 MediaArtwork(
                     item = item,
                     contentDescription = null,
                     size = coverSize,
                     modifier = Modifier
                         .size(coverSize)
-                        .shadow(6.dp, RoundedCornerShape(22.dp))
-                        .clip(RoundedCornerShape(22.dp)),
+                        .shadow(16.dp, RoundedCornerShape(24.dp), ambientColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.25f), spotColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.25f))
+                        .clip(RoundedCornerShape(24.dp)),
                     contentScale = ContentScale.Crop,
                     fallback = { GenerativeAudioArtwork(item, state.progress) },
                 )
@@ -110,20 +166,18 @@ fun PlayerArtworkFallback(
                 textAlign = TextAlign.Start,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.widthIn(max = coverSize).fillMaxWidth(),
             )
-            val supportingText = item.artist?.takeIf(String::isNotBlank)
-                ?: state.subtitle.takeIf(String::isNotBlank)
             if (supportingText != null) {
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = supportingText,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Start,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.widthIn(max = coverSize).fillMaxWidth(),
                 )
             }
         }
@@ -216,6 +270,14 @@ internal fun rememberAudioIdentitySeed(item: MediaItem): Int =
     }
 
 internal val FallbackPlayerSurface: PlayerSurface = { state, _ -> PlayerArtworkFallback(state) }
+
+/** Wide, tall-enough windows split audio into artwork and controls side by side. */
+internal fun usesSplitAudioLayout(width: Dp, height: Dp): Boolean = width >= 840.dp && height >= 480.dp
+
+internal val SplitAudioControlsMaxWidth = 480.dp
+
+/** The title block sits this far above the vertical centre; transport starts just below it. */
+internal val SplitAudioTitleLift = 56.dp
 
 /** Shared breakpoint for the audio artwork stage and its independently composed HUD. */
 internal fun usesCompactAudioLayout(height: Dp): Boolean = height < 520.dp

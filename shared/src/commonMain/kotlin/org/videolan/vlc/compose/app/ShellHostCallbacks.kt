@@ -80,17 +80,17 @@ fun interface ShellHostCallbacks {
     fun onOpenDonate() = Unit
     /** Platform build information, shown by the common About screen. */
     fun aboutVersionInfo(): VLCAboutVersionInfo = VLCAboutVersionInfo(
-        version = "VLC",
+        version = "",
         buildDate = "",
         changelog = "",
         detailRows = emptyList(),
     )
     /** May read a platform-packaged license off the main thread. */
-    suspend fun loadAboutLicenseText(): String = VLC_DEFAULT_LICENSE_TEXT
-    /** Platform packages supply dependency metadata; presentation and navigation stay shared. */
-    suspend fun loadAboutLibraries(): List<VLCLibraryLicense> = emptyList()
-    /** Platform packages supply their contributor roster; presentation and navigation stay shared. */
-    suspend fun loadAboutAuthors(): List<String> = emptyList()
+    suspend fun loadAboutLicenseText(): String = AboutBundle.licenseText()
+    /** Shared third-party license metadata; hosts only override to add platform-specific entries. */
+    suspend fun loadAboutLibraries(): List<VLCLibraryLicense> = AboutBundle.libraries()
+    /** Shared contributor roster. */
+    suspend fun loadAboutAuthors(): List<String> = AboutBundle.authors()
     /** Opens an explicitly supplied external destination, such as a dependency's own license. */
     fun onOpenExternalUrl(url: String) = Unit
     fun onOpenAboutAction(action: AboutAction) = Unit

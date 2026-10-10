@@ -8,6 +8,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -175,17 +176,33 @@ private fun PinEntryContent(
     ) {
 
 
+        Box(
+            modifier = Modifier
+                .size(64.dp)
+                .background(colors.primary.copy(alpha = 0.12f), CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(MaterialSymbols.Filled.Lock, contentDescription = null, tint = colors.primary, modifier = Modifier.size(28.dp))
+        }
+        Spacer(Modifier.height(20.dp))
         Text(
-            text = reasonText,
+            text = title,
             color = colors.fontDefault,
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         )
-
-        Spacer(Modifier.height(16.dp))
-
-        VLCModalHeader(title = title)
+        if (reasonText.isNotBlank()) {
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = reasonText,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
         Spacer(Modifier.height(24.dp))
         if (showVirtualKeyboard) {
             PinBoxes(pin = pin)
@@ -194,7 +211,7 @@ private fun PinEntryContent(
         }
 
         if (showVirtualKeyboard) {
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(32.dp))
             PinKeyboard(
                 deleteContentDescription = deleteContentDescription,
                 onDigit = onDigit,
@@ -261,52 +278,34 @@ private fun PinInput(
     )
 }
 
+/** Four quiet dots: progress without revealing digits, and no boxes that read as text fields. */
 @Composable
 private fun PinBoxes(pin: String, modifier: Modifier = Modifier) {
     val colors = VLCThemeDefaults.colors
-
-    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
-        val spacing = 8.dp
-        val tileSize = pinTileSize(maxWidth, spacing)
-        val pinSemantics = ShellStrings.pinDigitsEntered(pin.length)
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .semantics { contentDescription = pinSemantics },
-            horizontalArrangement = Arrangement.spacedBy(spacing, Alignment.CenterHorizontally),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            repeat(4) { index ->
-                val filled = pin.length > index
-                Box(
-                    modifier = Modifier
-                        .size(tileSize)
-                        .background(
-                            color = if (filled) colors.primary.copy(alpha = 0.16f) else MaterialTheme.colorScheme.surfaceContainerHigh,
-                            shape = RoundedCornerShape(16.dp)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = if (filled) "●" else "",
-                        color = colors.primary,
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Medium,
-                            textAlign = TextAlign.Center
-                        )
-                    )
-                }
-            }
+    val pinSemantics = ShellStrings.pinDigitsEntered(pin.length)
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(48.dp)
+            .semantics { contentDescription = pinSemantics },
+        horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        repeat(4) { index ->
+            val filled = pin.length > index
+            Box(
+                modifier = Modifier
+                    .size(16.dp)
+                    .then(
+                        if (filled) Modifier.background(colors.primary, CircleShape)
+                        else Modifier.border(2.dp, MaterialTheme.colorScheme.outline, CircleShape)
+                    ),
+            )
         }
     }
 }
 
-private fun pinTileSize(maxWidth: Dp, spacing: Dp): Dp =
-    ((maxWidth - spacing * 3f) / 4f)
-        .coerceAtMost(64.dp)
-        .coerceAtLeast(1.dp)
+private val PinKeySize = 72.dp
 
 @Composable
 private fun PinKeyboard(
@@ -324,7 +323,7 @@ private fun PinKeyboard(
 
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         listOf(
@@ -332,7 +331,7 @@ private fun PinKeyboard(
             listOf("4", "5", "6"),
             listOf("7", "8", "9")
         ).forEachIndexed { rowIndex, rowDigits ->
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                 rowDigits.forEachIndexed { columnIndex, digit ->
                     val focusModifier = if (rowIndex == 0 && columnIndex == 0) {
                         Modifier.focusRequester(firstButtonFocusRequester)
@@ -342,25 +341,25 @@ private fun PinKeyboard(
                     PinKeyboardButton(
                         text = digit,
                         onClick = { onDigit(digit) },
-                        modifier = focusModifier.size(48.dp)
+                        modifier = focusModifier.size(PinKeySize)
                     )
                 }
             }
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+            Spacer(Modifier.size(PinKeySize))
             PinKeyboardButton(
                 text = "0",
                 onClick = { onDigit("0") },
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(PinKeySize)
             )
             PinKeyboardButton(
                 text = "",
                 contentDescription = deleteContentDescription,
                 onClick = onBackspace,
-                modifier = Modifier
-                    .width(104.dp)
-                    .height(48.dp),
+                modifier = Modifier.size(PinKeySize),
+                quiet = true,
                 iconContent = backspaceIconContent
             )
         }
@@ -373,6 +372,8 @@ private fun PinKeyboardButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     contentDescription: String = text,
+    /** Utility keys (delete) stay transparent so the digits remain the visual grid. */
+    quiet: Boolean = false,
     iconContent: (@Composable () -> Unit)? = null
 ) {
     val colors = VLCThemeDefaults.colors
@@ -384,15 +385,19 @@ private fun PinKeyboardButton(
     Surface(
         modifier = modifier
             .semantics { this.contentDescription = contentDescription }
-            .clip(MaterialTheme.shapes.medium)
+            .clip(CircleShape)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
                 role = Role.Button,
                 onClick = onClick
             ),
-        shape = MaterialTheme.shapes.medium,
-        color = if (active) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
+        shape = CircleShape,
+        color = when {
+            active -> MaterialTheme.colorScheme.primaryContainer
+            quiet -> Color.Transparent
+            else -> MaterialTheme.colorScheme.surfaceContainerHigh
+        },
         contentColor = if (active) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
         border = if (focused) BorderStroke(2.dp, colors.primary) else null
     ) {
@@ -405,7 +410,7 @@ private fun PinKeyboardButton(
                 Text(
                     text = text,
                     color = if (active) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium)
+                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Normal)
                 )
             }
         }

@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -543,6 +544,7 @@ fun VideoHudOverlay(
         else MaterialTheme.colorScheme.background
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val compactAudio = !hasVideoOutput && usesCompactAudioLayout(maxHeight)
+        val splitAudio = !hasVideoOutput && !compactAudio && usesSplitAudioLayout(maxWidth, maxHeight)
         // Gradients stay anchored to the viewport and only change opacity. Foreground controls
         // travel a fixed 10dp so toggling chrome feels connected without dragging in whole rows.
         Box(
@@ -728,7 +730,7 @@ fun VideoHudOverlay(
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .height(if (hasVideoOutput) 292.dp else 312.dp)
-                .graphicsLayer { alpha = chromeAlpha }
+                .graphicsLayer { alpha = if (splitAudio) 0f else chromeAlpha }
                 .background(
                     Brush.verticalGradient(
                         listOf(Color.Transparent, bottomScrim)
@@ -737,7 +739,11 @@ fun VideoHudOverlay(
         )
         AnimatedVisibility(
             visible = visible,
-            modifier = Modifier.align(Alignment.BottomCenter),
+            modifier = if (splitAudio) {
+                Modifier.align(Alignment.CenterEnd).fillMaxWidth(0.5f).padding(start = 24.dp, end = 64.dp)
+            } else {
+                Modifier.align(Alignment.BottomCenter)
+            },
             enter = fadeIn(tween(enterDuration, easing = VLCMotion.EmphasizedDecelerate)) + slideInVertically(
                 animationSpec = tween(enterDuration, easing = VLCMotion.EmphasizedDecelerate),
                 initialOffsetY = { with(density) { 10.dp.roundToPx() } },
@@ -748,13 +754,21 @@ fun VideoHudOverlay(
             ),
         ) {
             Column(
-                modifier = Modifier
-                    .widthIn(max = 560.dp)
-                    .fillMaxWidth()
-                    // The player is intentionally edge-to-edge, but its transport controls are not.
-                    // Keep the primary play action clear of gesture and three-button navigation.
-                    .navigationBarsPadding()
-                    .padding(horizontal = if (hasVideoOutput) 20.dp else 28.dp, vertical = 16.dp)
+                modifier = if (splitAudio) {
+                    // Transport begins just below the vertical centre, under the title block.
+                    Modifier
+                        .widthIn(max = SplitAudioControlsMaxWidth)
+                        .fillMaxWidth()
+                        .offset(y = 112.dp)
+                } else {
+                    Modifier
+                        .widthIn(max = 560.dp)
+                        .fillMaxWidth()
+                        // The player is intentionally edge-to-edge, but its transport controls are not.
+                        // Keep the primary play action clear of gesture and three-button navigation.
+                        .navigationBarsPadding()
+                        .padding(horizontal = if (hasVideoOutput) 20.dp else 28.dp, vertical = 16.dp)
+                },
             ) {
             // Native decoders do not all tolerate a seek for every pixel of a drag. Keep the
             // preview local and issue exactly one seek when the gesture finishes; this makes the
@@ -789,14 +803,14 @@ fun VideoHudOverlay(
                     scrubPosition = null
                     onInteractionActiveChanged(false)
                 }
-                Slider(
+                PlayerSeekBar(
                     value = timelineValue,
                     onValueChange = updateTimeline,
                     onValueChangeFinished = commitTimeline,
                     valueRange = 0f..seekableLength.toFloat(),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .semantics { contentDescription = playbackPositionDescription },
+                    activeColor = colors.primary,
+                    inactiveColor = chromeColor.copy(alpha = 0.18f),
+                    modifier = Modifier.semantics { contentDescription = playbackPositionDescription },
                 )
             }
             Row(

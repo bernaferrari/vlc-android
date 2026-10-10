@@ -198,6 +198,7 @@ class AudioListViewModel(
         _state.update {
             it.copy(
                 openedEntityTitle = entity.title,
+                openedEntityKind = entity.kind,
                 containerTitle = entity.title,
                 containerId = entity.id,
                 loading = true,
@@ -460,6 +461,7 @@ class AudioListViewModel(
         _state.update {
             it.copy(
                 openedEntityTitle = null,
+                openedEntityKind = null,
                 containerTitle = null,
                 containerId = null,
                 containerKind = ContainerKind.NONE,
@@ -577,7 +579,13 @@ class AudioListViewModel(
                                 it.album.orEmpty().contains(q, ignoreCase = true)
                         }
                     }
-                    val sorted = sortItems(filtered, _state.value.sortMode, _state.value.sortDesc)
+                    // An album has an authored running order; the default title sort must not shuffle it.
+                    val sorted = if (entity.kind == AudioEntityKind.ALBUM && _state.value.sortMode == SortMode.TITLE) {
+                        filtered.sortedWith(compareBy({ it.discNumber }, { it.trackNumber }, { it.displayTitle.lowercase() }))
+                            .let { if (_state.value.sortDesc) it.reversed() else it }
+                    } else {
+                        sortItems(filtered, _state.value.sortMode, _state.value.sortDesc)
+                    }
                     _state.update {
                         it.copy(
                             items = sorted,
@@ -587,6 +595,7 @@ class AudioListViewModel(
                             sections = emptyList(),
                             audioEntities = emptyList(),
                             openedEntityTitle = entity.title,
+                            openedEntityKind = entity.kind,
                             containerTitle = entity.title,
                             containerId = entity.id,
                         )
@@ -606,6 +615,7 @@ class AudioListViewModel(
                 sections = emptyList(),
                 audioEntities = entities,
                 openedEntityTitle = null,
+                openedEntityKind = null,
                 containerTitle = null,
                 containerId = null,
             )
@@ -626,6 +636,7 @@ class AudioListViewModel(
                         sections = emptyList(),
                         audioEntities = emptyList(),
                         openedEntityTitle = null,
+                        openedEntityKind = null,
                         containerTitle = null,
                     )
                 }
@@ -703,6 +714,7 @@ class AudioListViewModel(
                         sections = emptyList(),
                         audioEntities = emptyList(),
                         openedEntityTitle = null,
+                        openedEntityKind = null,
                         containerTitle = null,
                     )
                 }

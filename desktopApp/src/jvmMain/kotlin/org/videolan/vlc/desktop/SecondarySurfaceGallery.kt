@@ -61,7 +61,7 @@ internal fun SecondarySurfaceGallery(
 }
 
 @Composable
-private fun GalleryContent(surface: QASurface, close: () -> Unit) {
+internal fun GalleryContent(surface: QASurface, close: () -> Unit) {
     var name by remember { mutableStateOf(TextFieldValue("A quiet morning by the sea")) }
     var checked by remember { mutableStateOf(false) }
     var pin by remember { mutableStateOf("") }
