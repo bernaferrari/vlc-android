@@ -75,7 +75,7 @@ fun main(args: Array<String>) {
 
     val phone = 412 to 892
     val wide = 1200 to 800
-    data class Shot(val name: String, val size: Pair<Int, Int> = phone, val setup: () -> Unit = {}, val content: @Composable () -> Unit)
+    data class Shot(val name: String, val size: Pair<Int, Int> = phone, val setup: () -> Unit = {}, val scale: Float = 2f, val content: @Composable () -> Unit)
 
     fun shell(routes: List<VlcShellRoute>): @Composable () -> Unit = {
         VlcKoinMainShell(
@@ -178,12 +178,13 @@ fun main(args: Array<String>) {
                 })
             }
         }
+        tvShots(media.items).forEach { (name, size, content) -> add(Shot(name, size, scale = TvScale, content = content)) }
     }.filter { filter == null || filter.split(',').any { f -> it.name.contains(f) } }
 
     for (shot in shots) {
         shot.setup()
         val (w, h) = shot.size
-        val scale = 2f
+        val scale = shot.scale
         runBlocking(Dispatchers.Main) {
             val scene = ImageComposeScene((w * scale).toInt(), (h * scale).toInt(), Density(scale), coroutineContext = coroutineContext, content = shot.content)
             var t = 0L
