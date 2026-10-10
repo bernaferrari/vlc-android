@@ -14,3 +14,12 @@ fun shouldPersistPlaybackSession(
     audioResumeEnabled: Boolean,
     videoResumeEnabled: Boolean,
 ): Boolean = if (item.isAudio) audioResumeEnabled else videoResumeEnabled
+
+/**
+ * A saved position offered after playback started from the beginning, replacing the blocking
+ * "Resume from last position?" question. Accepting seeks to [positionMs]; ignoring it is free.
+ */
+data class PlaybackResumeOffer(
+    val uri: String,
+    val positionMs: Long,
+)

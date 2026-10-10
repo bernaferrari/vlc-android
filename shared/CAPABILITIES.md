@@ -14,6 +14,11 @@ offering actions a target cannot execute.
 | Renderer / cast selection | LibVLC renderer bridge | VLCKit renderer discovery and switching | Not yet | Not yet |
 | Network share discovery and browsing | LibVLC discovery and browser | VLCKit LAN discovery and folder parsing | Not yet | Not yet |
 | Remote access server setting | Yes | Authenticated local Wi-Fi media transfer | Not exposed | Not exposed |
+| Video gestures: swipe/double-tap seek, hold-to-fast-play, pinch fit/fill, keyboard and D-pad | Yes | Yes | Yes | Yes |
+| Brightness/volume swipes (incl. audio boost), rotation lock, screenshots, remote-access commands | Yes, via `PlayerHostControls` | Not yet | Not yet | Not yet |
+
+Player effects that need the host window or OS (brightness, media volume, orientation, frame
+capture) are members of `PlayerHostControls`; a `null` member removes the gesture or menu entry.
 
 An unsupported capability is absent from the shared surface and is guarded in
 `PlaybackController`/view models. It must not resolve to a no-op bridge. Implementing a new native

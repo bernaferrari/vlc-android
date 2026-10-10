@@ -29,6 +29,12 @@ import org.videolan.vlc.compose.artwork.MediaArtwork
 import org.videolan.vlc.compose.player.PlayerArtworkFallback
 import org.videolan.vlc.compose.player.PlaybackSheetDestination
 import org.videolan.vlc.compose.player.VideoSurfaceWithHud
+import org.videolan.vlc.compose.player.PlayerGestureFeedback
+import org.videolan.vlc.compose.player.PlayerNoticeKind
+import org.videolan.vlc.compose.player.PlayerSwipeTarget
+import org.videolan.vlc.compose.player.SeekBurst
+import org.videolan.vlc.player.PlaybackResumeOffer
+import androidx.compose.ui.geometry.Offset
 import org.videolan.vlc.compose.components.DisplaySettingsSheet
 import org.videolan.vlc.compose.components.DisplaySettingsState
 import org.videolan.vlc.compose.components.VLCSearchScreen
@@ -133,6 +139,41 @@ fun main(args: Array<String>) {
                     VLCAppTheme { HudFixture(media.items.filter { it.isAudio }, sheet, video = false) }
                 })
             }
+            val videos = media.items.filter { !it.isAudio }
+            val gestureShots = listOf(
+                "volume" to PlayerGestureFeedback.Level(PlayerSwipeTarget.VOLUME, 0.62f, max = 1f),
+                "volume-boost" to PlayerGestureFeedback.Level(PlayerSwipeTarget.VOLUME, 1.35f, max = 2f),
+                "volume-held" to PlayerGestureFeedback.Level(PlayerSwipeTarget.VOLUME, 1f, max = 2f, heldAtUnity = true),
+                "brightness" to PlayerGestureFeedback.Level(PlayerSwipeTarget.BRIGHTNESS, 0.38f),
+                "seek" to PlayerGestureFeedback.Seek(targetMs = 137_000L, deltaMs = 65_000L, lengthMs = 541_000L),
+                "seek-back" to PlayerGestureFeedback.Seek(targetMs = 62_000L, deltaMs = -10_000L, lengthMs = 541_000L),
+                "tapseek-forward" to PlayerGestureFeedback.TapSeek(SeekBurst(true, 72_000L, 30_000L, 3, 0L), Offset(330f, 420f)),
+                "tapseek-back" to PlayerGestureFeedback.TapSeek(SeekBurst(false, 72_000L, 10_000L, 1, 0L), Offset(80f, 420f)),
+                "fastplay" to PlayerGestureFeedback.FastPlay(2f),
+                "zoom" to PlayerGestureFeedback.Notice(PlayerNoticeKind.ZOOM_FILL),
+                "pause" to PlayerGestureFeedback.Notice(PlayerNoticeKind.PAUSE),
+            )
+            gestureShots.forEach { (name, preview) ->
+                add(Shot("player-gesture-$name-$theme", setup = { theme(dark) }) {
+                    VLCAppTheme { GestureFixture(videos, preview) }
+                })
+            }
+            add(Shot("player-gesture-landscape-volume-$theme", 892 to 412, setup = { theme(dark) }) {
+                VLCAppTheme { GestureFixture(videos, PlayerGestureFeedback.Level(PlayerSwipeTarget.VOLUME, 0.8f)) }
+            })
+            add(Shot("player-gesture-landscape-tapseek-$theme", 892 to 412, setup = { theme(dark) }) {
+                VLCAppTheme { GestureFixture(videos, PlayerGestureFeedback.TapSeek(SeekBurst(true, 72_000L, 20_000L, 2, 0L), Offset(760f, 200f))) }
+            })
+            add(Shot("player-gesture-resume-$theme", setup = { theme(dark) }) {
+                VLCAppTheme {
+                    GestureFixture(
+                        videos,
+                        PlayerGestureFeedback.Notice(PlayerNoticeKind.PLAY),
+                        resume = PlaybackResumeOffer("preview", 754_000L),
+                        hud = true,
+                    )
+                }
+            })
             add(Shot("sheet-video-tools-$theme", setup = { theme(dark) }) {
                 VLCAppTheme { HudFixture(media.items.filter { !it.isAudio }, PlaybackSheetDestination.TOOLS, video = true) }
             })
@@ -223,6 +264,27 @@ private fun HudFixture(queue: List<org.videolan.vlc.model.MediaItem>, sheet: Pla
     ) { _ ->
         if (video) MediaArtwork(item = item, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Fit, fillMaxSizeArtwork = true)
         else PlayerArtworkFallback(org.videolan.vlc.viewmodel.PlayerUiState(title = item.title, subtitle = item.artist.orEmpty(), queue = queue))
+    }
+}
+
+@Composable
+private fun GestureFixture(
+    queue: List<org.videolan.vlc.model.MediaItem>,
+    preview: PlayerGestureFeedback,
+    resume: PlaybackResumeOffer? = null,
+    hud: Boolean = false,
+) {
+    val item = queue.first()
+    VideoSurfaceWithHud(
+        title = item.title, subtitle = item.artist.orEmpty(), playing = true,
+        progress = org.videolan.vlc.model.Progress(time = 72_000L, length = item.duration.takeIf { it > 0 } ?: 541_000L),
+        queue = queue, currentQueueIndex = 0, hasVideoOutput = true,
+        resumeOffer = resume,
+        onTogglePlay = {}, onSeek = {}, onNext = {}, onPrevious = {}, onClose = {},
+        // A resume offer is reviewed with chrome visible; other overlays over a bare picture.
+        previewFeedback = if (hud) null else preview,
+    ) { _ ->
+        MediaArtwork(item = item, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Fit, fillMaxSizeArtwork = true)
     }
 }
 

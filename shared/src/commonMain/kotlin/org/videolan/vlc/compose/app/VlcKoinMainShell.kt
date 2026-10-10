@@ -2,6 +2,8 @@ package org.videolan.vlc.compose.app
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import org.koin.compose.koinInject
 import org.videolan.vlc.compose.player.FallbackPlayerSurface
 import org.videolan.vlc.compose.player.PlayerSurface
@@ -32,6 +34,7 @@ fun VlcKoinMainShell(
     title: String = "VLC",
     hostCallbacks: ShellHostCallbacks = ShellHostCallbacks.NoOp,
     playerSurface: PlayerSurface = FallbackPlayerSurface,
+    openPlayerRequests: Flow<Unit> = emptyFlow(),
 ) {
     val videoVm: VideoListViewModel = koinInject()
     val audioVm: AudioListViewModel = koinInject()
@@ -58,5 +61,6 @@ fun VlcKoinMainShell(
         title = title,
         hostCallbacks = hostCallbacks,
         playerSurface = playerSurface,
+        openPlayerRequests = openPlayerRequests,
     )
 }

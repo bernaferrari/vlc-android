@@ -62,6 +62,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.navigation3.runtime.entryProvider
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
@@ -143,6 +145,8 @@ fun VlcMainShell(
     title: String = "",
     hostCallbacks: ShellHostCallbacks = ShellHostCallbacks.NoOp,
     playerSurface: PlayerSurface = FallbackPlayerSurface,
+    /** Host requests to show the player, e.g. a notification tap or an external video intent. */
+    openPlayerRequests: Flow<Unit> = emptyFlow(),
 ) {
     DisposableEffect(videoVm, audioVm, browserVm, playlistsVm, moreVm, playerVm, settingsVm) {
         onDispose {
@@ -423,6 +427,14 @@ fun VlcMainShell(
         }
 
         fun popRoute(): Boolean = popNav3Route(backStack)
+
+        LaunchedEffect(openPlayerRequests) {
+            openPlayerRequests.collect {
+                // Read the live back stack: this long-lived collector must not trust a captured route.
+                requestedMedia = null
+                if (backStack.lastOrNull() != PlayerRoute) pushNav3Route(backStack, PlayerRoute)
+            }
+        }
 
         fun closePlayer() {
             if (backStack.lastOrNull() == PlayerRoute) popRoute()

@@ -119,6 +119,8 @@ fun interface ShellHostCallbacks {
     /** Opens a native subtitle-only document picker and returns a readable URI. */
     fun supportsSubtitleImport(): Boolean = false
     fun onImportSubtitle(onPicked: (String) -> Unit) = Unit
+    /** Platform effects for the video player (brightness, volume, rotation, screenshots). */
+    fun playerHostControls(): org.videolan.vlc.compose.player.PlayerHostControls? = null
 
     companion object {
         val NoOp = ShellHostCallbacks { _, _ -> }

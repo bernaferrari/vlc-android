@@ -62,6 +62,8 @@ interface PlaybackService {
     val videoCrop: Flow<PlaybackVideoCrop> get() = flowOf(PlaybackVideoCrop())
     val videoAdjust: Flow<PlaybackVideoAdjust> get() = flowOf(PlaybackVideoAdjust())
     val bookmarks: Flow<PlaybackBookmarks> get() = flowOf(PlaybackBookmarks())
+    /** Saved position the user may jump to; null when the engine does not ask before resuming. */
+    val resumeOffer: Flow<PlaybackResumeOffer?> get() = flowOf(null)
 
     fun play(item: MediaItem, playlist: List<MediaItem> = emptyList())
     fun playFromIndex(playlist: List<MediaItem>, index: Int)
@@ -105,6 +107,7 @@ interface PlaybackService {
     fun addBookmark() {}
     fun removeBookmark(id: String) {}
     fun renameBookmark(id: String, title: String) {}
+    fun dismissResumeOffer() {}
     fun addObserver(observer: PlaybackObserver)
     fun removeObserver(observer: PlaybackObserver)
 

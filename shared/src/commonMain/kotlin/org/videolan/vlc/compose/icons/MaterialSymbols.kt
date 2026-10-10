@@ -62,6 +62,16 @@ object MaterialSymbols {
         val PictureInPictureAlt: MaterialIcon get() = MaterialIcon(filledPictureInPictureAlt)
         val Lock: MaterialIcon get() = MaterialIcon(filledLock)
         val LockOpen: MaterialIcon get() = MaterialIcon(filledLockOpen)
+        val Brightness6: MaterialIcon get() = MaterialIcon(filledBrightness6)
+        val VolumeUp: MaterialIcon get() = MaterialIcon(filledVolumeUp)
+        val VolumeOff: MaterialIcon get() = MaterialIcon(filledVolumeOff)
+        val FastForward: MaterialIcon get() = MaterialIcon(filledFastForward)
+        val FastRewind: MaterialIcon get() = MaterialIcon(filledFastRewind)
+        val ScreenRotation: MaterialIcon get() = MaterialIcon(filledScreenRotation)
+        val ScreenLockRotation: MaterialIcon get() = MaterialIcon(filledScreenLockRotation)
+        val PhotoCamera: MaterialIcon get() = MaterialIcon(filledPhotoCamera)
+        val FitScreen: MaterialIcon get() = MaterialIcon(filledFitScreen)
+        val ZoomOutMap: MaterialIcon get() = MaterialIcon(filledZoomOutMap)
     }
 
     object Outlined {

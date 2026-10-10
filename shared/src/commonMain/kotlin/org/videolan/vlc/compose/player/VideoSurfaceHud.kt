@@ -65,10 +65,21 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import androidx.compose.foundation.focusable
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.pointer.pointerInput
+import org.videolan.vlc.player.PlaybackResumeOffer
 import org.jetbrains.compose.resources.stringResource
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.compose.theme.LocalVLCMotion
@@ -137,6 +148,11 @@ fun VideoSurfaceWithHud(
     equalizer: PlaybackEqualizer = PlaybackEqualizer(),
     bookmarks: PlaybackBookmarks = PlaybackBookmarks(),
     hudTimeoutSeconds: Int = 4,
+    /** Platform effects (brightness, volume, rotation, screenshots); null members are absent. */
+    hostControls: PlayerHostControls? = null,
+    resumeOffer: PlaybackResumeOffer? = null,
+    onAcceptResumeOffer: () -> Unit = {},
+    onDismissResumeOffer: () -> Unit = {},
     onTogglePlay: () -> Unit,
     onSeek: (Long) -> Unit,
     onNext: () -> Unit,
@@ -186,9 +202,11 @@ fun VideoSurfaceWithHud(
     modifier: Modifier = Modifier,
     /** Opens a tool sheet on first composition, e.g. a "Show queue" deep link. */
     initialSheet: PlaybackSheetDestination? = null,
+    /** Design review only: pins one gesture overlay in its visible state. */
+    previewFeedback: PlayerGestureFeedback? = null,
     surface: @Composable BoxScope.(chromeVisible: Boolean) -> Unit,
 ) {
-    var hudVisible by remember { mutableStateOf(true) }
+    var hudVisible by remember { mutableStateOf(previewFeedback == null) }
     var activeSheet by remember { mutableStateOf(initialSheet) }
     var rendererPickerVisible by remember { mutableStateOf(false) }
     var interfaceLocked by remember { mutableStateOf(false) }
@@ -200,9 +218,71 @@ fun VideoSurfaceWithHud(
     val audioDismissDragState = rememberDraggableState { delta ->
         audioDismissOffsetPx = (audioDismissOffsetPx + delta).coerceAtLeast(0f)
     }
+    val feedback = remember { PlayerGestureFeedbackState(previewFeedback) }
+    // Re-read per item so preference changes apply on the next video without a restart.
+    val gestureSettings = remember(hostControls, title, hasVideoOutput) { hostControls?.gestures ?: PlayerGestureSettings() }
+    var orientationLocked by remember(hostControls) { mutableStateOf(hostControls?.orientation?.isLocked == true) }
+    val coroutineScope = rememberCoroutineScope()
+    val latestProgress by rememberUpdatedState(progress)
+    val latestPlaying by rememberUpdatedState(playing)
+    val latestRate by rememberUpdatedState(rate)
+    val latestScaleMode by rememberUpdatedState(videoScaleMode)
+    val latestOnSeek by rememberUpdatedState(onSeek)
+    val latestOnTogglePlay by rememberUpdatedState(onTogglePlay)
+    val latestOnSetRate by rememberUpdatedState(onSetRate)
+    val latestOnSetScaleMode by rememberUpdatedState(onSetVideoScaleMode)
     LaunchedEffect(title) {
         interfaceLocked = false
-        hudVisible = true
+        if (previewFeedback == null) hudVisible = true
+        if (!feedback.pinned) feedback.tapSeek = null
+    }
+    val gestureController = remember(feedback, hostControls, gestureSettings) {
+        PlayerGestureController(
+            feedback = feedback,
+            settings = gestureSettings,
+            brightness = hostControls?.brightness,
+            volume = hostControls?.volume,
+            progress = { latestProgress },
+            playing = { latestPlaying },
+            rate = { latestRate },
+            scaleMode = { latestScaleMode },
+            onSeek = { latestOnSeek(it) },
+            onTogglePlay = { latestOnTogglePlay() },
+            onSetRate = { latestOnSetRate(it) },
+            onSetScaleMode = { latestOnSetScaleMode(it) },
+            onToggleHud = { hudVisible = !hudVisible },
+            onHideHud = { hudVisible = false },
+        )
+    }
+    val toggleControlsLabel = stringResource(Res.string.player_controls)
+    val focusRequester = remember { FocusRequester() }
+    var rootFocused by remember { mutableStateOf(false) }
+    LaunchedEffect(hasVideoOutput) {
+        if (hasVideoOutput) runCatching { focusRequester.requestFocus() }
+    }
+    val keyActions = PlayerKeyActions(
+        hasVideoOutput = hasVideoOutput,
+        onTogglePlay = { gestureController.togglePlayWithFeedback() },
+        onSeekBy = { deltaMs -> gestureController.seekBy(deltaMs) },
+        onVolumeBy = if (hasVideoOutput && hostControls?.volume != null) {
+            { step -> gestureController.nudgeVolume(step) }
+        } else {
+            null
+        },
+        onShowHud = {
+            hudVisible = true
+            interactionEpoch++
+        },
+        onNext = onNext,
+        onPrevious = onPrevious,
+        onClose = onClose,
+        onEnterPictureInPicture = if (showPictureInPicture) onEnterPictureInPicture else null,
+        seekStepMs = gestureSettings.keySeekSeconds.coerceAtLeast(1) * 1_000L,
+    )
+    val latestKeyActions by rememberUpdatedState(keyActions)
+    val remoteCommands = hostControls?.remoteCommands
+    LaunchedEffect(remoteCommands) {
+        remoteCommands?.collect { command -> latestKeyActions.onRemote(command) }
     }
     LaunchedEffect(
         hudVisible,
@@ -261,9 +341,34 @@ fun VideoSurfaceWithHud(
                 },
             )
             .background(if (hasVideoOutput) Color.Black else MaterialTheme.colorScheme.background)
+            .focusRequester(focusRequester)
+            .onFocusChanged { rootFocused = it.isFocused }
+            .onKeyEvent { event ->
+                // Only act while the player itself has focus: a focused HUD control keeps the
+                // arrows for focus navigation and Enter for its own click.
+                rootFocused && !interfaceLocked && keyActions.onKey(event)
+            }
+            .focusable()
     ) {
-        // Video / artwork surface
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        // Video / artwork surface. Pinching stretches the picture slightly as live feedback.
+        val pinchScale by animateFloatAsState(
+            targetValue = feedback.pinchScale,
+            animationSpec = tween(
+                durationMillis = if (playerMotion.reducedMotion || feedback.pinchScale != 1f) 0 else 220,
+                easing = VLCMotion.EmphasizedDecelerate,
+            ),
+            label = "pinch-preview",
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    val scale = if (playerMotion.reducedMotion) 1f else pinchScale
+                    scaleX = scale
+                    scaleY = scale
+                },
+            contentAlignment = Alignment.Center,
+        ) {
             surface(!hasVideoOutput || hudVisible || activeSheet != null)
         }
 
@@ -271,13 +376,17 @@ fun VideoSurfaceWithHud(
         // parent also observes taps consumed by child buttons on some Compose targets, which can
         // hide the chrome at the exact moment a speed or overflow action opens.
         Box(
-            modifier = if (hasVideoOutput) {
+            modifier = if (hasVideoOutput && !interfaceLocked) {
                 Modifier
                     .fillMaxSize()
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                    ) { if (!interfaceLocked) hudVisible = !hudVisible }
+                    .pointerInput(gestureController) { detectPlayerGestures { gestureController } }
+                    // Screen readers activate the picture instead of tapping it.
+                    .semantics {
+                        onClick(label = toggleControlsLabel) {
+                            hudVisible = !hudVisible
+                            true
+                        }
+                    }
             } else {
                 Modifier.fillMaxSize()
             },
@@ -334,8 +443,42 @@ fun VideoSurfaceWithHud(
             onOpenRendererSelection = { rendererPickerVisible = true },
             showInterfaceLock = hasVideoOutput,
             onLockInterface = { interfaceLocked = true },
+            orientationLocked = if (hasVideoOutput && hostControls?.orientation != null) orientationLocked else null,
+            onToggleOrientationLock = {
+                hostControls?.orientation?.let { control ->
+                    control.setLocked(!control.isLocked)
+                    orientationLocked = control.isLocked
+                    feedback.showNotice(
+                        if (orientationLocked) PlayerNoticeKind.ROTATION_LOCKED else PlayerNoticeKind.ROTATION_UNLOCKED,
+                    )
+                }
+            },
+            onTakeScreenshot = hostControls?.screenshot?.takeIf { hasVideoOutput }?.let { control ->
+                {
+                    hudVisible = false
+                    coroutineScope.launch {
+                        // Let the chrome fade first so the frame is captured unobstructed.
+                        delay(if (playerMotion.reducedMotion) 0L else 160L)
+                        val saved = runCatching { control.capture() }.getOrDefault(false)
+                        feedback.showNotice(
+                            if (saved) PlayerNoticeKind.SCREENSHOT_SAVED else PlayerNoticeKind.SCREENSHOT_FAILED,
+                        )
+                    }
+                }
+            },
             onClose = onClose,
         )
+
+        if (hasVideoOutput) {
+            PlayerGestureOverlays(feedback)
+            ResumeOfferChip(
+                offer = resumeOffer,
+                hudVisible = hudVisible && !interfaceLocked,
+                onResume = onAcceptResumeOffer,
+                onDismiss = onDismissResumeOffer,
+                pinned = previewFeedback != null,
+            )
+        }
 
         AnimatedVisibility(
             visible = interfaceLocked,
@@ -507,6 +650,11 @@ fun VideoHudOverlay(
     showInterfaceLock: Boolean,
     onLockInterface: () -> Unit,
     onClose: (() -> Unit)?,
+    /** Null when rotation cannot be controlled on this target or for audio. */
+    orientationLocked: Boolean? = null,
+    onToggleOrientationLock: () -> Unit = {},
+    /** Null when the target cannot capture the video frame. */
+    onTakeScreenshot: (() -> Unit)? = null,
 ) {
     val colors = VLCThemeDefaults.colors
     val chromeColor = if (hasVideoOutput) Color.White else MaterialTheme.colorScheme.onSurface
@@ -706,6 +854,43 @@ fun VideoHudOverlay(
                                     overflowVisible = false
                                     onInteractionActiveChanged(false)
                                     onOpenRendererSelection()
+                                },
+                            )
+                        }
+                        if (orientationLocked != null) {
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        stringResource(
+                                            if (orientationLocked) Res.string.player_unlock_rotation
+                                            else Res.string.player_lock_rotation,
+                                        ),
+                                    )
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        if (orientationLocked) MaterialSymbols.Filled.ScreenRotation
+                                        else MaterialSymbols.Filled.ScreenLockRotation,
+                                        contentDescription = null,
+                                    )
+                                },
+                                onClick = {
+                                    overflowVisible = false
+                                    onInteractionActiveChanged(false)
+                                    onToggleOrientationLock()
+                                },
+                            )
+                        }
+                        if (onTakeScreenshot != null) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(Res.string.enable_video_screenshot)) },
+                                leadingIcon = {
+                                    Icon(MaterialSymbols.Filled.PhotoCamera, contentDescription = null)
+                                },
+                                onClick = {
+                                    overflowVisible = false
+                                    onInteractionActiveChanged(false)
+                                    onTakeScreenshot()
                                 },
                             )
                         }

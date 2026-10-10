@@ -26,6 +26,7 @@ import org.videolan.vlc.player.PlaybackVideoAdjust
 import org.videolan.vlc.player.VideoAdjustParameter
 import org.videolan.vlc.player.PlaybackBookmarks
 import org.videolan.vlc.player.PlaybackRate
+import org.videolan.vlc.player.PlaybackResumeOffer
 import org.videolan.vlc.platform.RendererInfo
 import org.videolan.vlc.repository.PlaylistRepository
 import org.videolan.vlc.util.VlcTextUtils
@@ -67,6 +68,8 @@ data class PlayerUiState(
     /** True for known video and network streams, which may expose video after probing. */
     val hasVideoOutput: Boolean = false,
     val error: String? = null,
+    /** Non-blocking "Resume from …" offer for the current item. */
+    val resumeOffer: PlaybackResumeOffer? = null,
 )
 
 /** Prefer constructing with Koin [org.videolan.vlc.player.PlaybackController] service. */
@@ -122,6 +125,11 @@ class PlayerViewModel(
         launch {
             playback.bookmarks.collect { bookmarks ->
                 _state.update { it.copy(bookmarks = bookmarks) }
+            }
+        }
+        launch {
+            playback.resumeOffer.collect { offer ->
+                _state.update { it.copy(resumeOffer = offer) }
             }
         }
         launch {
@@ -330,6 +338,19 @@ class PlayerViewModel(
     fun resetVideoAdjust() = playback.resetVideoAdjust()
 
     fun addBookmark() = playback.addBookmark()
+
+    /** Jumps to the offered saved position, then retires the offer. */
+    fun acceptResumeOffer() {
+        val offer = _state.value.resumeOffer ?: return
+        playback.seekTo(offer.positionMs)
+        playback.dismissResumeOffer()
+        _state.update { it.copy(resumeOffer = null) }
+    }
+
+    fun dismissResumeOffer() {
+        playback.dismissResumeOffer()
+        _state.update { it.copy(resumeOffer = null) }
+    }
 
     fun removeBookmark(id: String) = playback.removeBookmark(id)
 

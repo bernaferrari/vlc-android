@@ -3,6 +3,7 @@ package org.videolan.vlc.compose.app
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.videolan.vlc.compose.icons.MaterialSymbols
@@ -401,6 +402,10 @@ internal fun PlayerDestination(
         equalizer = state.equalizer,
         bookmarks = state.bookmarks,
         hudTimeoutSeconds = state.videoHudTimeoutSeconds,
+        hostControls = remember(hostCallbacks) { hostCallbacks.playerHostControls() },
+        resumeOffer = state.resumeOffer,
+        onAcceptResumeOffer = viewModel::acceptResumeOffer,
+        onDismissResumeOffer = viewModel::dismissResumeOffer,
         onTogglePlay = viewModel::togglePlayPause,
         onSeek = viewModel::seekTo,
         onNext = viewModel::next,

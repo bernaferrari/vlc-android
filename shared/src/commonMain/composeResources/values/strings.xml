@@ -1626,4 +1626,14 @@
         <item quantity="one">%1$d min</item>
         <item quantity="other">%1$d min</item>
     </plurals>
+    <!-- Shared video player gestures -->
+    <string name="player_resume_from">Resume from %1$s</string>
+    <string name="player_zoom_fill">Zoom to fill</string>
+    <string name="player_zoom_fit">Fit to screen</string>
+    <string name="player_screenshot_saved">Screenshot saved</string>
+    <string name="player_lock_rotation">Lock rotation</string>
+    <string name="player_unlock_rotation">Unlock rotation</string>
+    <string name="player_rotation_locked">Rotation locked</string>
+    <string name="player_rotation_unlocked">Rotation unlocked</string>
+    <string name="player_seconds_short">%1$ds</string>
 </resources>

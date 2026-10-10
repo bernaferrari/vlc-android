@@ -13,12 +13,14 @@ readonly PACKAGE_NAME="org.videolan.vlc.compose.icons"
 
 readonly FILLED_ICONS=(
   video_library music_note folder queue_music more_vert play_arrow pause shuffle star arrow_back select_all grid_view view_list tune
-  skip_next skip_previous repeat repeat_one settings info edit delete history check_circle arrow_upward devices add sort close search warning
+  skip_next skip_previous repeat repeat_one settings info edit delete history timer check_circle arrow_upward devices add sort close search warning
   forum description mail backspace language code extension groups open_in_new chevron_right palette
   file_upload ios_share undo block notifications arrow_downward stop
   refresh
   picture_in_picture_alt
   lock lock_open
+  brightness_6 volume_up volume_off fast_forward fast_rewind screen_rotation screen_lock_rotation
+  photo_camera fit_screen zoom_out_map
 )
 
 readonly OUTLINED_ICONS=(
@@ -258,6 +260,8 @@ EOF
       printf '            val %s: MaterialIcon get() = MaterialIcon(filled%s, autoMirror = true)\n' \
         "$(to_pascal_case "$icon")" "$(to_pascal_case "$icon")"
     done
+    # Directional alias: "forward" reads correctly in both LTR and RTL layouts.
+    printf '            val ChevronForward: MaterialIcon get() = MaterialIcon(filledChevronRight, autoMirror = true)\n'
     cat <<'EOF'
         }
     }
