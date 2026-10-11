@@ -8,13 +8,15 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
 import org.videolan.tools.Settings
 import org.videolan.vlc.gui.MainActivity
+import org.videolan.vlc.gui.video.VideoPlayerActivity
 
 /**
- * The single way phone entry points show video: MainActivity's shared Compose PlayerRoute.
+ * The single way entry points show video: the shared Compose player.
  *
- * Notification taps, external VIEW intents, picture-in-picture restore and renderer hand-back all
- * come through here, so only the route-owned [org.videolan.libvlc.util.VLCVideoLayout] ever
- * becomes a vout. TV keeps the legacy VideoPlayerActivity; check [usesSharedPlayer] first.
+ * Phones host it in MainActivity's PlayerRoute; Android TV (whose library is not MainActivity)
+ * hosts it in the full-screen [VideoPlayerActivity]. Notification taps, external VIEW intents,
+ * picture-in-picture restore and renderer hand-back all come through here, so only one
+ * host-owned [org.videolan.libvlc.util.VLCVideoLayout] ever becomes a vout.
  */
 object SharedPlayerLauncher {
     const val EXTRA_OPEN_PLAYER = "org.videolan.vlc.extra.OPEN_SHARED_PLAYER"
@@ -31,11 +33,11 @@ object SharedPlayerLauncher {
     @Volatile
     internal var shellStarted: Boolean = false
 
-    /** Phones use the shared player; Android TV keeps its D-pad-first VideoPlayerActivity. */
-    fun usesSharedPlayer(): Boolean = !Settings.showTvUi
+    /** Android TV shows the player in its own full-screen activity instead of the phone shell. */
+    fun usesStandaloneHost(): Boolean = Settings.showTvUi
 
     fun intent(context: Context, switchToVideo: Boolean = false): Intent =
-        Intent(context, MainActivity::class.java)
+        Intent(context, if (usesStandaloneHost()) VideoPlayerActivity::class.java else MainActivity::class.java)
             .setAction(Intent.ACTION_MAIN)
             .putExtra(EXTRA_OPEN_PLAYER, true)
             .putExtra(EXTRA_SWITCH_TO_VIDEO, switchToVideo)
@@ -49,15 +51,20 @@ object SharedPlayerLauncher {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
-    /** Asks a running shell to show the player, starting MainActivity when it is not visible. */
+    /** Asks a running shell to show the player, starting its host when it is not visible. */
     fun open(context: Context) {
+        if (usesStandaloneHost()) {
+            // singleTask: an existing player is brought forward instead of stacking a second one.
+            runCatching { context.startActivity(intent(context)) }
+            return
+        }
         requests.trySend(Unit)
         if (!shellStarted) {
             runCatching { context.startActivity(intent(context)) }
         }
     }
 
-    /** Called by MainActivity for its launch and new intents. Returns true when consumed. */
+    /** Called by the player hosts for their launch and new intents. Returns true when consumed. */
     fun handleIntent(intent: Intent?): Boolean {
         if (intent?.getBooleanExtra(EXTRA_OPEN_PLAYER, false) != true) return false
         if (intent.getBooleanExtra(EXTRA_SWITCH_TO_VIDEO, false)) {
@@ -70,7 +77,8 @@ object SharedPlayerLauncher {
         }
         intent.removeExtra(EXTRA_OPEN_PLAYER)
         intent.removeExtra(EXTRA_SWITCH_TO_VIDEO)
-        requests.trySend(Unit)
+        // The TV host is already the player; only the phone shell needs to push its route.
+        if (!usesStandaloneHost()) requests.trySend(Unit)
         return true
     }
 }

@@ -123,10 +123,6 @@
     <string name="firstsong">Tizlit tamezarut n tebdart n tɣuri</string>
     <string name="lastsong">Tizlit taneggarut n tebdart n tɣuri</string>
 
-    <string name="surface_best_fit">Ajuster au mieux</string>
-    <string name="surface_fit_screen">Sezg s agdil</string>
-    <string name="surface_fill">Etirer</string>
-    <string name="surface_original">Di tlemast</string>
     <string name="unseekable_stream">D awezɣi yinig deg usuddem</string>
     <string name="refresh">Sismeḍ</string>
     <string name="track_audio">Tafuɣalt n mesli</string>
@@ -135,12 +131,7 @@
     <string name="track_unknown">Tafuɣalt ur nettwassen ara</string>
     <string name="track_codec_info">Akudak: %1$s\n</string>
     <string name="track_language_info">Tutlayt: %1$s\n</string>
-    <string name="volume">Ableɣ</string>
-    <string name="sound_on">Imesli yermed</string>
-    <string name="sound_off">Imesla yensa</string>
-    <string name="brightness">Tafat</string>
     <string name="advanced">Tinefrunin tinaẓiyin</string>
-    <string name="audio_boost_warning">Rnu drurem d asawen akken ad tɛeddiḍ 100%</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 n ubadu\n</item>
@@ -186,15 +177,8 @@
 
     <string name="seek">Inig</string>
     <string name="subtitles">Iduzewlen</string>
-    <string name="tips_player_controls">Isenqaden n imeɣri</string>
-    <string name="tips_player_controls_description">Ssed ɣef isenqaden n imeɣri ukessar-agi akken ad teẓreḍ i wacu ttwaxedmen</string>
-    <string name="tips_audio_sub">Tizribin n imesli akked iduzwilen</string>
-    <string name="tips_play_description">Ssed akken ad teddu tvidyut</string>
     <string name="lock">Sekkeṛ</string>
     <string name="tap">Ssed akken ad twaliḍ</string>
-    <string name="lock_orientation">Taɣda</string>
-    <string name="lock_orientation_description">Ssed akken ad tsekkṛeḍ/ad tekkseḍ asekkeṛ i teɣda</string>
-    <string name="advanced_options">Tinefrunin tinaẓiyin</string>
     <string name="tips_playlist">Tabdart n tɣuri</string>
     <string name="close">Mdel</string>
 
@@ -357,7 +341,6 @@
 
     <!-- Accessibility -->
     <string name="more_actions">Ugar n tigawin</string>
-    <string name="back_quit_lock">Ssed tikkel-nniḍen ɣef Tuɣalin akken ad teffɣeḍ si tvidyut</string>
     <string name="stream_deleted">Asuddem yettwakkes</string>
     <string name="no_subs_found">Ulac iduzwilen deg ukaram-agi</string>
     <string name="music_now_playing">Taɣuri tetteddu</string>
@@ -439,7 +422,6 @@
     <string name="device_dialog_title">Ibenk uffiɣ yettwager</string>
     <string name="videos_folders_title">Tividyutin s yikaramen</string>
     <string name="videos_groups_title">Igrawen n uvidyu</string>
-    <string name="video_remote_disable">Sisleg agdil</string>
     <string name="welcome_title">Anṣuf ɣer VLC!</string>
     <string name="welcome_subtitle">Ameɣri agetmidya baṭel yerna s uɣbalu yeldin</string>
     <string name="done">Ifuk</string>
@@ -483,10 +465,5 @@
     <string name="clear">Sfeḍ</string>
     <string name="abrepeat_add_first_marker">Sbadu tanqiḍt n tazwara</string>
     <string name="abrepeat_add_second_marker">Sbadu tanqiḍt n taggara</string>
-    <string name="input_bitrate">Aktum n unekcum</string>
-    <string name="video_information">Talɣut ɣef tvidyut</string>
 
-    <string name="channels">Ibuda</string>
-    <string name="resolution">Tabadut</string>
-    <string name="resolution_value">%1$dx%2$d</string>
     </resources>

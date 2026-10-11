@@ -132,10 +132,6 @@
     <string name="firstsong">Prva pjesma na popisu izvođenja</string>
     <string name="lastsong">Posljednja pjesma na popisu izvođenja</string>
 
-    <string name="surface_best_fit">Najbolji prikaz</string>
-    <string name="surface_fit_screen">Prilagodi po zaslonu</string>
-    <string name="surface_fill">Ispuni</string>
-    <string name="surface_original">Sredina</string>
     <string name="unseekable_stream">Nepremotavajuće strujanje</string>
     <string name="refresh">Osvježi</string>
     <string name="track_audio">Zvučni zapis</string>
@@ -145,12 +141,7 @@
     <string name="track_bitrate_info">Brzina prijenosa: %1$s/s\n</string>
     <string name="track_codec_info">Kôdek: %1$s\n</string>
     <string name="track_language_info">Jezik: %1$s\n</string>
-    <string name="volume">Glasnoća</string>
-    <string name="sound_on">Zvuk uključen</string>
-    <string name="sound_off">Zvuk isključen</string>
-    <string name="brightness">Svjetlina</string>
     <string name="advanced">napredne mogućnosti</string>
-    <string name="audio_boost_warning">Kliznite gore ponovno za iznad 100%</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 kanal\n</item>
@@ -403,7 +394,6 @@
 
     <!-- Accessibility -->
     <string name="more_actions">Više radnji</string>
-    <string name="back_quit_lock">Pritisnite tipku povratka za zatvaranje video snimke</string>
     <string name="stream_deleted">Strujanje obrisano</string>
     <string name="no_subs_found">Nema podnaslova u ovom direktoriju</string>
     <string name="music_now_playing">Trenutno se reporducira</string>
@@ -517,7 +507,6 @@
     <string name="device_dialog_title">Vanjski uređaj umetnut</string>
     <string name="videos_folders_title">Videozapisi po mapama</string>
     <string name="videos_groups_title">Grupe videozapisa</string>
-    <string name="video_remote_disable">Udvostruči zaslon</string>
     <string name="removed_from_playlist_anonymous">Stavka(e) uklonjena/e/ s popisa izvođenja</string>
     <string name="welcome_title">Dobrodošli u VLC!</string>
     <string name="welcome_subtitle">Besplatan izvođač medija otvorenog koda</string>
@@ -572,20 +561,7 @@
     <string name="next_episode">Sljedeća epizoda</string>
     <string name="recently_played">Nedavno reproducirano</string>
     <string name="recently_added">Nedavno dodano</string>
-    <string name="video_information">Informacija o videu</string>
 
-    <string name="channels">Kanali</string>
-    <string name="resolution">Razlučivost</string>
-    <string name="resolution_value">%1$d×%2$d</string>
-    <string name="framerate">Broj kadrova u sekundi</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">Jezik</string>
-    <string name="track_samplerate">Frekvencija</string>
-    <string name="track_samplerate_value">%1$d Hz\n</string>
-    <string name="bitrate">Broj bitova u sekundi</string>
-    <string name="codec">Kodek</string>
-    <string name="text">Tekst</string>
     <string name="unknown">Nepoznato</string>
     <string name="audio_queue_progress">Napredak: %s</string>
     <string name="audio_queue_progress_remaining">Preostalo: %s</string>
@@ -640,7 +616,6 @@
     <string name="open_vlc">Otvori VLC</string>
     <string name="ascending">Uzlazno</string>
     <string name="descending">Silazno</string>
-    <string name="screenshot_error">Greška tijekom snimanja snimke ekrana</string>
     <string name="disabled">Deaktivirano</string>
     <string name="enable_screenshot_gesture">Dodirni s tri prsta</string>
     <string name="enable_screenshot_button">Prikaži gumb za snimku ekrana</string>

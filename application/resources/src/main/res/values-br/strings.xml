@@ -179,11 +179,6 @@
     <string name="firstsong">Sonenn gentañ ar roll-lenn</string>
     <string name="lastsong">Sonenn ziwezhañ ar roll-lenn</string>
 
-    <string name="surface_best_fit">An dereatañ</string>
-    <string name="surface_fit_screen">Keidañ ar skramm</string>
-    <string name="surface_fill">Leuniañ</string>
-    <string name="surface_original">Kreizañ</string>
-    <string name="resize_tip">Pouezañ e-pad pell evit muioc\'h a zibarzhioù</string>
     <string name="unseekable_stream">Froud n\'haller ket sezisañ</string>
     <string name="refresh">Freskaat</string>
     <string name="track_audio">Roudenn aodio</string>
@@ -193,12 +188,7 @@
     <string name="track_bitrate_info">Bitrate: %1$s/s\n</string>
     <string name="track_codec_info">Kodek: %1$s\n</string>
     <string name="track_language_info">Yezh: %1$s\n</string>
-    <string name="volume">Son</string>
-    <string name="sound_on">Son enaouet</string>
-    <string name="sound_off">Son lazhet</string>
-    <string name="brightness">Lintr</string>
     <string name="advanced">dibarzhioù araokaet</string>
-    <string name="audio_boost_warning">Dibunit war-grec\'h evit dibaseal 100%</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 chadenn\n</item>
@@ -256,32 +246,17 @@
     <string name="play_button">Bouton Lenn</string>
 
     <!-- Tips -->
-    <string name="tips_title">Alioù al lenner video</string>
     <string name="seek">Klask</string>
     <string name="subtitles">Istitloù</string>
-    <string name="tips_player_controls">Kontrolloù al lenn</string>
-    <string name="tips_player_controls_description">Pouezit war kontrolloù al lenner amañ dindan evit gouzout da betra e servijont</string>
-    <string name="tips_audio_sub">Roudoù aodio hag istitloù</string>
-    <string name="tips_play_description">Pouezit evit lenn ar video</string>
     <string name="lock">Morailhañ</string>
     <string name="tap">Pouezit evit gwelet</string>
     <string name="tap_to_remove">Pouezit evit lemel</string>
     <string name="tap_to_rearrange">Pouezit evit adkempenn</string>
     <string name="tap_to_previous_next">Pouezit evit distreiñ/mont da heul</string>
-    <string name="lock_orientation">Tuañ</string>
-    <string name="lock_orientation_description">Pouezit evit morailhañ/divorailhañ an tuadur</string>
-    <string name="aspect_ratio">Feur an neuz</string>
-    <string name="aspect_ratio_description">Pouezit evit cheñch ment ar video</string>
-    <string name="advanced_options">Dibarzhioù araokaet</string>
-    <string name="advanced_options_description">Evel tizh al lenn, ar mod adlenn, ...</string>
-    <string name="tips_swipe">Linkañ en nec\'h pe en traoñ</string>
     <string name="tips_swipe_horizontal">Linkañ a-gleiz pe a-zehou</string>
     <string name="tips_playlist">Roll-lenn</string>
     <string name="tips_hold_seek">Dalc\'hit evit klask</string>
     <string name="tips_long_drop">Hirbouezañ ha leuskel</string>
-    <string name="pause_description">Stokañ div wech evit paouez</string>
-    <string name="seek_tap">+/- 10 eil.</string>
-    <string name="seek_tap_description">Pouezañ div wech evit mont 10 eilenn war-raok pe war-gil</string>
     <string name="close">Serriñ</string>
 
     <string name="playlist_tips">Alioù ar roll-lenn</string>
@@ -330,10 +305,8 @@
     <string name="screen_orientation">Tuañ ar skramm video</string>
     <string name="screen_orientation_sensor">Emgefre (kaptor)</string>
     <string name="screen_orientation_portrait">Poltred</string>
-    <string name="screen_orientation_portrait_reverse">Poltred eilpennet</string>
     <string name="screen_orientation_landscape">Gweledva</string>
     <string name="screen_orientation_landscape_reverse">Dremwel eilpennet</string>
-    <string name="screen_orientation_landscape_sensor">Gweledva (kaptor)</string>
     <string name="screen_orientation_last_locked">Tuadur diwezhañ morailhet</string>
     <string name="dark_theme">Tem teñval</string>
     <string name="theme_auto">Tem aoto</string>
@@ -553,7 +526,6 @@
 
     <!-- Accessibility -->
     <string name="more_actions">Muioc\'h a oberoù</string>
-    <string name="back_quit_lock">Pouezit war Distro adarre evit kuitaat ar video</string>
     <string name="stream_deleted">Froud dilamet</string>
     <string name="no_subs_found">Istitl ebet er c\'havlec\'h-mañ</string>
     <string name="music_now_playing">O lenn</string>
@@ -593,7 +565,6 @@
     <string name="download_subtitles">Pellgargañ istitloù</string>
     <string name="browse_folder">Merdeiñ e-barzh an teuliad</string>
     <string name="listen">Selaou</string>
-    <string name="apply_to_bt">Arloañ d\'an drobarzhell Bluetooth</string>
     <string name="videos_all">An holl videoioù</string>
     <string name="clear_playback_history">Skarzhañ roll-istor ar roll-lenn</string>
     <string name="ml_scanning">O klask war-lerc\'h restroù media</string>
@@ -674,9 +645,6 @@
     <string name="device_dialog_title">Trevnad diavaeziad ensoc\'het</string>
     <string name="videos_folders_title">Videoioù dre deuliad</string>
     <string name="videos_groups_title">Strolladoù video</string>
-    <string name="video_save_clone_mode">Enaouiñ ar mod klon hepken?</string>
-    <string name="video_remote_enable">Tremen d\'ar mod kontroll a-bell</string>
-    <string name="video_remote_disable">Eilañ ar skramm</string>
     <string name="removed_from_playlist_anonymous">Elfenn(où) dilamet diwar ar roll-lenn</string>
     <string name="welcome_title">Degemer e-barzh VLC!</string>
     <string name="welcome_subtitle">Al lenner liesvedia frank hag en open source</string>
@@ -768,27 +736,8 @@
     <string name="clear">Skarzhañ</string>
     <string name="abrepeat_add_first_marker">Termeniñ ar poent deraouiñ</string>
     <string name="abrepeat_add_second_marker">Termeniñ ar poent fin</string>
-    <string name="demux_bitrate">Froud bitoù al liespleksañ</string>
-    <string name="input_bitrate">Kas binarel an enmont</string>
-    <string name="video_information">Titouroù ar video</string>
 
-    <string name="channels">Chadennoù</string>
-    <string name="resolution">Spisder</string>
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate">Frekañs ar skeudennoù</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">Yezh</string>
-    <string name="track_samplerate">Feur standilhonañ</string>
-    <string name="track_samplerate_value">%1$d Hz\n</string>
-    <string name="bitrate">Kas binarel</string>
-    <string name="codec">Kodek</string>
-    <string name="text">Testenn</string>
     <string name="unknown">Dianav</string>
-    <string name="audio_delay_start">Son klevet</string>
-    <string name="subtitle_delay_first">Mouezh klevet</string>
-    <string name="audio_delay_end">Son poentet</string>
-    <string name="subtitle_delay_end">Testenn gwelet</string>
     <string name="track_index">Roudenn: %s</string>
     <string name="audio_queue_progress">Araokaat: %s</string>
     <string name="audio_queue_progress_remaining">Amzer a chom: %s</string>
@@ -841,7 +790,6 @@
     <string name="timeout_infinite">Difin</string>
     <string name="remove_from_history">Tennañ eus ar roll-istor</string>
     <string name="prefersmbv1">Kavout gwelloc\'h SMB 1</string>
-    <string name="apply_to_all">Arloañ d\'an holl videoioù</string>
     <string name="go_to_folder">Merdeiñ er c\'har</string>
     <string name="preferred_resolution">Spisder video karetañ</string>
     <string name="pref_resolution_best_available">An hini gwellañ hegerz</string>

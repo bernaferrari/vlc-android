@@ -176,11 +176,6 @@
     <string name="firstsong">Fyrste song i spelelista</string>
     <string name="lastsong">Siste song i spelelista</string>
 
-    <string name="surface_best_fit">Beste tilpassing</string>
-    <string name="surface_fit_screen">Tilpass skjermen</string>
-    <string name="surface_fill">Fyll</string>
-    <string name="surface_original">Midtstill</string>
-    <string name="resize_tip">Langtrykk for fleire val</string>
     <string name="unseekable_stream">Ikkje-søkbar straum</string>
     <string name="refresh">Oppdater</string>
     <string name="track_audio">Lydspor</string>
@@ -190,13 +185,8 @@
     <string name="track_bitrate_info">Bitfart: %1$s/s\n</string>
     <string name="track_codec_info">Kodek: %1$s\n</string>
     <string name="track_language_info">Språk: %1$s\n</string>
-    <string name="volume">Lydstyrke</string>
     <string name="system_volume_disabled">%s\nIngen tilgang til systemvolum</string>
-    <string name="sound_on">Lyd på</string>
-    <string name="sound_off">Lyd av</string>
-    <string name="brightness">Lysstyrke</string>
     <string name="advanced">avanserte innstillingar</string>
-    <string name="audio_boost_warning">Sveip opp igen for å gå over 100 %</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 kanal\n</item>
@@ -253,30 +243,17 @@
     <string name="play_button">Avspelingsknapp</string>
 
     <!-- Tips -->
-    <string name="tips_title">Videospelar- tips</string>
     <string name="seek">Søk</string>
     <string name="subtitles">Undertekstar</string>
-    <string name="tips_player_controls">Spelarkontrollar</string>
-    <string name="tips_audio_sub">Lydspor og undertekstar</string>
-    <string name="tips_play_description">Trykk for å spela av video</string>
     <string name="lock">Lås</string>
     <string name="tap">Trykk for å visa</string>
     <string name="tap_to_remove">Trykk for å fjerna</string>
     <string name="tap_to_rearrange">Trykk for å ordna på nytt</string>
     <string name="tap_to_previous_next">Trykk for å gå til førre/neste</string>
-    <string name="lock_orientation">Skjermretning</string>
-    <string name="lock_orientation_description">Trykk for å låsa/låsa opp skjermretning</string>
-    <string name="aspect_ratio">Høgde/Breidde-forhold</string>
-    <string name="aspect_ratio_description">Trykk for å endra høgde/breidde-forholdet</string>
-    <string name="advanced_options">Avanserte innstillingar</string>
-    <string name="tips_swipe">Sveip opp eller ned</string>
     <string name="tips_swipe_horizontal">Sveip til venstre eller høgre</string>
     <string name="tips_playlist">Speleliste</string>
     <string name="tips_hold_seek">Hald for å søkje</string>
     <string name="tips_long_drop">Langtrykk og slepp</string>
-    <string name="pause_description">Dobbeltrykk for pause</string>
-    <string name="seek_tap">+/- 10 sek.</string>
-    <string name="seek_tap_description">Dobbeltrykk for å gå 10 sek. framover eller bakover</string>
     <string name="close">Lat att</string>
 
     <string name="playlist_tips">Spelelistetips</string>
@@ -528,7 +505,6 @@
     <string name="open_subtitles_is_not_vip">Standardkonto</string>
     <string name="unknown_error">Uventa feil</string>
     <string name="browse_folder">Bla i mappe</string>
-    <string name="apply_to_bt">Bruk på bluetooth-eining</string>
     <string name="episodes">episodar</string>
     <string name="movies">filmar</string>
     <string name="videos">videoar</string>
@@ -592,7 +568,6 @@
     <string name="device_dialog_title">Ekstern eining kopla til</string>
     <string name="videos_folders_title">Vidoar etter mapper</string>
     <string name="videos_groups_title">Videogrupper</string>
-    <string name="video_remote_disable">Dupliser skjerm</string>
     <string name="removed_from_playlist_anonymous">Objekt fjerna frå speleliste</string>
     <string name="welcome_title">Velkomen til VLC!</string>
     <string name="done">Ferdig</string>
@@ -638,16 +613,7 @@
     <string name="recently_added">Nyleg lagt til</string>
     <string name="clear_media_db_message">Du vil mista framstega dine, bokmerka og spelelister du har laga men du vil behalda innstillingane dine for VLC for Android.</string>
     <string name="clear_app_data_message">Du vil mista framstega dine, bokmerke, spelelister og alle VLC-innstillingane</string>
-    <string name="video_information">Videoinformasjon</string>
 
-    <string name="channels">Kanalar</string>
-    <string name="resolution">Oppløysing</string>
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">Språk</string>
-    <string name="codec">Kodek</string>
-    <string name="text">Tekst</string>
     <string name="unknown">Ukjent</string>
     <string name="track_index">Spor: %s</string>
     <string name="audio_queue_progress">Framdrift: %s</string>
@@ -743,14 +709,11 @@
     <string name="talkback_list_section">Topptekst: %s</string>
     <string name="talkback_file_size">Filstorleik: %s</string>
     <string name="talkback_open_in_browser">Opne i nettlesar</string>
-    <string name="talkback_video_player">Video-spelar. Trykk for å visa kontrollar. Trykk på tilbake-knappen for å gøyma dei</string>
     <string name="talkback_video_tracks">Videospor</string>
     <string name="talkback_audio_tracks">Lydspor</string>
     <string name="talkback_subtitle_tracks">Undertekstspor</string>
     <string name="talkback_subtitle_dowload_item">Språk: %1$s. %2$s. Namn: %3$s</string>
     <string name="selected">Vald</string>
-    <string name="talkback_increase_delay">Auk forseinking</string>
-    <string name="talkback_decrease_delay">Reduser forseinkinga</string>
     <string name="talkback_increase_speed">Auk fart</string>
     <string name="talkback_decrease_speed">Reduser fart</string>
     <string name="talkback_subtitle_history">Undertekst-historikk</string>

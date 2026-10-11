@@ -141,11 +141,6 @@
     <string name="firstsong">آهنگ اول لیست پخش</string>
     <string name="lastsong">آخرین آهنگ لیست پخش</string>
 
-    <string name="surface_best_fit">بهترین تناسب</string>
-    <string name="surface_fit_screen">متناسب با صفحه</string>
-    <string name="surface_fill">تمام صفحه</string>
-    <string name="surface_original">وسط</string>
-    <string name="resize_tip">برای گزینه های بیشتر به مدت طولانی فشار دهید</string>
     <string name="unseekable_stream">پخش زنده غیر قابل جستجو</string>
     <string name="refresh">نوسازی</string>
     <string name="track_audio">صدا</string>
@@ -155,12 +150,7 @@
     <string name="track_bitrate_info">نرخ بیت : %1$sدر ثانیه</string>
     <string name="track_codec_info">کدک : %1$s</string>
     <string name="track_language_info">زبان : %1$s</string>
-    <string name="volume">اندازه صدا</string>
-    <string name="sound_on">صدا روشن</string>
-    <string name="sound_off">صدا خاموش</string>
-    <string name="brightness">روشنایی</string>
     <string name="advanced">گزینه‌ های پیشرفته</string>
-    <string name="audio_boost_warning">صفحه را به بالا بکشید تا از ‎100% فراتر بروید</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">۱ کانال\n</item>
@@ -218,32 +208,17 @@
     <string name="play_button">دکمه پخش</string>
 
     <!-- Tips -->
-    <string name="tips_title">نکاتی درباره پخش کننده ویدیو</string>
     <string name="seek">جستجو</string>
     <string name="subtitles">زیرنویس</string>
-    <string name="tips_player_controls">تنظیمات پخش‌ کننده</string>
-    <string name="tips_player_controls_description">روی کنترل های زیر ضربه بزنید تا با کارایی آنها آشنا شوید</string>
-    <string name="tips_audio_sub">صدا ها و زیرنویس ها</string>
-    <string name="tips_play_description">برای پخش لمس کنید</string>
     <string name="lock">قفل</string>
     <string name="tap">برای نمایش لمس کنید</string>
     <string name="tap_to_remove">برای حذف ضربه بزنید</string>
     <string name="tap_to_rearrange">برای مرتب کردن ضربه بزنید</string>
     <string name="tap_to_previous_next">برای رفتن به بعدی/قبلی ضربه بزنید</string>
-    <string name="lock_orientation">جهت</string>
-    <string name="lock_orientation_description">برای قفل کردن یا باز کردن جهت لمس کنید</string>
-    <string name="aspect_ratio">نسبت ابعاد</string>
-    <string name="aspect_ratio_description">برای تغییر نسبت ابعاد ویدیو لمس کنید</string>
-    <string name="advanced_options">گزینه‌ های پیشرفته</string>
-    <string name="advanced_options_description">مانند سرعت پجش، نوع تکرار</string>
-    <string name="tips_swipe">کشیدن به بالا یا پایین</string>
     <string name="tips_swipe_horizontal">کشیدن به چپ یا راست</string>
     <string name="tips_playlist">لیست پخش</string>
     <string name="tips_hold_seek">برای جستجو نگاه دارید</string>
     <string name="tips_long_drop">لمس طولانی و رها کردن</string>
-    <string name="pause_description">برای مکث کردن دو بار لمس بزنید</string>
-    <string name="seek_tap">+/- 10 ثانیه</string>
-    <string name="seek_tap_description">برای رفتن به جلو یا عقب به مدت 10 ثانیه دو بار لمس کنید</string>
     <string name="close">بستن</string>
 
     <string name="playlist_tips">نکاتی درباره لیست پخش</string>
@@ -516,7 +491,6 @@
 
     <!-- Accessibility -->
     <string name="more_actions">اقدامات بیشتر</string>
-    <string name="back_quit_lock">برای خروج از ویدیو دکمه بازگشت را دوباره فشار دهید</string>
     <string name="stream_deleted">پخش زنده حذف شده</string>
     <string name="no_subs_found">هیچ زیرنویسی در این پوشه وجود ندارد</string>
     <string name="music_now_playing">در حال پخش</string>
@@ -572,7 +546,6 @@
     <string name="download_subtitles">دانلود زیرنویس‌ ها</string>
     <string name="browse_folder">جستجوی پوشه</string>
     <string name="listen">گوش دادن</string>
-    <string name="apply_to_bt">برای دستگاه متصل به بلوتوث انجام می شود</string>
     <string name="episodes">قسمت‌ها</string>
     <string name="movies">فیلم‌ها</string>
     <string name="videos">ویدیوها</string>
@@ -659,8 +632,6 @@
     <string name="device_dialog_title">دستگاه خارجی وارد شده است</string>
     <string name="videos_folders_title">ویدیو ها بر اساس پوشه‌ ها</string>
     <string name="videos_groups_title">گروه‌ های ویدیو</string>
-    <string name="video_remote_enable">تغییر به حالت کنترل از راه دور</string>
-    <string name="video_remote_disable">صفحه نمایش تکراری</string>
     <string name="removed_from_playlist_anonymous">(موارد) مورد نظر از لیست پخش حذف شد</string>
     <string name="welcome_title">به پخش کننده VLC خوش آمدید</string>
     <string name="welcome_subtitle">پخش کننده چند رسانه ای رایگان و متن باز</string>
@@ -738,27 +709,8 @@
     <string name="clear">پاک‌کردن</string>
     <string name="abrepeat_add_first_marker">تنظیم نقطه آغاز</string>
     <string name="abrepeat_add_second_marker">تنظیم نقطه پایان</string>
-    <string name="demux_bitrate">نرخ‌بیت همسان‌ساز</string>
-    <string name="input_bitrate">نرخ بیت ورودی</string>
-    <string name="video_information">اطلاعات ویدیو</string>
 
-    <string name="channels">کانال‌ها</string>
-    <string name="resolution">وضوح</string>
-    <string name="resolution_value">%1$dدر%2$d</string>
-    <string name="framerate">نرخ فریم</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">زبان</string>
-    <string name="track_samplerate">نرخ نمونه</string>
-    <string name="track_samplerate_value">%1$d Hz\n</string>
-    <string name="bitrate">نرخ بیت</string>
-    <string name="codec">کدک</string>
-    <string name="text">متن</string>
     <string name="unknown">ناشناخته</string>
-    <string name="audio_delay_start">صدا شنیده شد</string>
-    <string name="subtitle_delay_first">صدا شنیده شد</string>
-    <string name="audio_delay_end">صدا شناسایی شد</string>
-    <string name="subtitle_delay_end">متن دیده شده</string>
     <string name="track_index">قطعه: %s</string>
     <string name="audio_queue_progress">پیشرفت: %s</string>
     <string name="audio_queue_progress_remaining">باقی‌مانده: %s</string>
@@ -812,7 +764,6 @@
     <string name="video_hud_timeout_summary">%sثانیه</string>
     <string name="remove_from_history">حذف از تاریخچه</string>
     <string name="prefersmbv1">SMB 1 را ترجیح بده</string>
-    <string name="apply_to_all">به تمام ویدیوها اعمال کن</string>
     <string name="go_to_folder">مرور بالایی</string>
     <string name="browser_show_missing_media">رسانه‌های گم‌شده را نشان بده</string>
     <string name="pref_resolution_best_available">بهترین در دسترس</string>
@@ -840,8 +791,6 @@
     <!-- Unused -->
     <string name="gestures">اشاره‌ها</string>
     <string name="view_online">آنلاین ببینید</string>
-    <string name="player_under_notch">ویدیو را از پایین برش صفحه نمایش بده</string>
-    <string name="notch">برش صفحه</string>
     <string name="undo">انجام معکوس</string>
     <string name="widget_theme">زمینه ابزارک</string>
     <string name="widget_preferences">ابزارک را پیکربندی کن</string>

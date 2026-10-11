@@ -113,10 +113,6 @@
     <string name="firstsong">เพลงแรกของเพลย์ลิสต์</string>
     <string name="lastsong">เพลงสุดท้ายของเพลย์ลิสต์</string>
 
-    <string name="surface_best_fit">พอดีที่สุด</string>
-    <string name="surface_fit_screen">พอดีกับหน้าจอ</string>
-    <string name="surface_fill">เติมเต็ม</string>
-    <string name="surface_original">ตรงกลาง</string>
     <string name="unseekable_stream">สตรีมที่ไม่สามารถอ่านได้</string>
     <string name="refresh">รีเฟรช</string>
     <string name="track_audio">แทร็กเสียง</string>
@@ -126,12 +122,7 @@
     <string name="track_bitrate_info">อัตราบิต: %1$s/s\n</string>
     <string name="track_codec_info">ตัวแปลงสัญญาณ: %1$s\n</string>
     <string name="track_language_info">ภาษา: %1$s\n</string>
-    <string name="volume">ระดับเสียง</string>
-    <string name="sound_on">เสียงเปิด</string>
-    <string name="sound_off">เสียงปิด</string>
-    <string name="brightness">ความสว่าง</string>
     <string name="advanced">ตัวเลือกขั้นสูง</string>
-    <string name="audio_boost_warning">เลื่อนขึ้นอีกครั้งเพื่อปรับให้เกิน 100%</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="other">%1$d ช่อง\n</item>
@@ -382,7 +373,6 @@
 
     <!-- Accessibility -->
     <string name="more_actions">การกระทำเพิ่มเติม</string>
-    <string name="back_quit_lock">กดปุ่มกลับอีกครั้งเพื่อออกจากวิดีโอ</string>
     <string name="stream_deleted">ลบสตรีมแล้ว</string>
     <string name="no_subs_found">ไม่มีคำบรรยายในไดเรกทอรีนี้</string>
     <string name="music_now_playing">กำลังเล่นอยู่</string>
@@ -507,9 +497,6 @@
     <string name="device_dialog_message">คุณเพิ่งเสียบอุปกรณ์เก็บข้อมูลใหม่กับกล่องทีวีของคุณ คุณต้องการเปิดด้วย VLC หรือไม่?</string>
     <string name="videos_folders_title">วิดีโอตามโฟลเดอร์</string>
     <string name="videos_groups_title">กลุ่มวิดีโอ</string>
-    <string name="video_save_clone_mode">เปิดใช้งานโหมดโคลนโดยอัตโนมัติหรือไม่?</string>
-    <string name="video_remote_enable">สลับไปยังโหมดรีโมทคอนโทรล</string>
-    <string name="video_remote_disable">แสดงทั้งสองหน้าจอเหมือนกัน</string>
     <string name="removed_from_playlist_anonymous">เอารายการออกจากเพลย์ลิสต์แล้ว</string>
     <string name="welcome_title">ยินดีต้อนรับสู่ VLC!</string>
     <string name="welcome_subtitle">โปรแกรมเล่นสื่อฟรีและโอเพนซอร์ส</string>
@@ -600,27 +587,8 @@
     <string name="playback_multiple_errors">ไม่สามารถเล่นสื่อหลายรายการได้</string>
     <string name="abrepeat_add_first_marker">ตั้งค่าจุดเริ่มต้น</string>
     <string name="abrepeat_add_second_marker">ตั้งค่าจุดสิ้นสุด</string>
-    <string name="demux_bitrate">อัตราบิตในการแยกส่งสัญญาณ</string>
-    <string name="input_bitrate">อัตราบิตในการรับสัญญาณ</string>
-    <string name="video_information">ข้อมูลวิดีโอ</string>
 
-    <string name="channels">ช่อง</string>
-    <string name="resolution">ความละเอียด</string>
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate">อัตราเฟร</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">ภาษา</string>
-    <string name="track_samplerate">อัตราการสุ่มตัวอย่าง</string>
-    <string name="track_samplerate_value">%1$d Hz\n</string>
-    <string name="bitrate">อัตราบิต</string>
-    <string name="codec">ตัวถอดรหัส</string>
-    <string name="text">ข้อความ</string>
     <string name="unknown">ไม่ทราบ</string>
-    <string name="audio_delay_start">เสียงที่ได้ยิน</string>
-    <string name="subtitle_delay_first">เสียงพูดที่ได้ยิน</string>
-    <string name="audio_delay_end">เสียงที่จับได้</string>
-    <string name="subtitle_delay_end">ข้อความที่เห็น</string>
     <string name="track_index">แทร็ก: %s</string>
     <string name="audio_queue_progress">ความคืบหน้า: %s</string>
     <string name="sortby_track">แทร็ก</string>
@@ -676,8 +644,6 @@
     <string name="remove_from_history">เอาออกจากประวัติ</string>
     <string name="prefersmbv1">ต้องการ SMB 1</string>
     <string name="prefersmbv1_summary">เลิกกาเครื่องหมายกล่องการตั้งค่านี้หากคุณมีปัญหาบางอย่างในการเรียกดูเซิร์ฟเวอร์ SMB ของคุณ</string>
-    <string name="apply_to_all">นำไปใช้กับวิดีโอทั้งหมด</string>
-    <string name="audio_delay_global">การหน่วงเวลาเสียงถูกตั้งเป็น %s ms สำหรับวิดีโอทั้งหมด</string>
     <string name="go_to_folder">เรียกดูตำแหน่งหลัก</string>
     <string name="add_button">เพิ่ม</string>
     <string name="add_all_button">เพิ่มทั้งหมด</string>

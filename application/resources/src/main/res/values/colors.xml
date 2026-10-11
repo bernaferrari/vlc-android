@@ -85,7 +85,6 @@
     <color name="blacktransparent">#b4000000</color>
     <color name="whitetransparent">#b4ffffff</color>
     <color name="white_less_transparent">#ccffffff</color>
-    <color name="ripple_white">#44ffffff</color>
     <color name="white_more_transparent">#33ffffff</color>
     <color name="white_audio_player_transparent">#aaffffff</color>
     <color name="black_audio_player_transparent">#ee2a2a2a</color>
@@ -127,8 +126,6 @@
     <color name="onboarding_grey">#171B19</color>
     <color name="onboarding_grey_transparent_20">#33171B19</color>
     <color name="onboarding_grey_transparent_75">#BF171B19</color>
-    <color name="material_blue">#2196f3</color>
-    <color name="material_pink">#e91e63</color>
 
     <!-- App-owned native surfaces mirror the shared VLCTheme default palette. -->
     <color name="reimagined_canvas_light">#FAFBF7</color>

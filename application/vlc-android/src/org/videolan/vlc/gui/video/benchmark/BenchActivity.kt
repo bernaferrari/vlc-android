@@ -33,21 +33,33 @@ import android.os.Looper
 import org.videolan.resources.VlcPlaybackState as PlaybackStateCompat
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
+import android.view.WindowManager
+import androidx.activity.ComponentActivity
 import androidx.core.content.FileProvider
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.videolan.libvlc.MediaPlayer
+import org.videolan.libvlc.interfaces.IMedia
+import org.videolan.libvlc.util.VLCVideoLayout
+import org.videolan.medialibrary.MLServiceLocator
+import org.videolan.medialibrary.interfaces.media.MediaWrapper
 import org.videolan.resources.BuildConfig
+import org.videolan.resources.EXIT_PLAYER
+import org.videolan.resources.PLAY_EXTRA_ITEM_LOCATION
 import org.videolan.resources.VLCInstance
+import org.videolan.resources.util.parcelable
 import org.videolan.resources.util.registerReceiverCompat
 import org.videolan.tools.AppScope
+import org.videolan.tools.InProcessEvents
 import org.videolan.tools.Settings
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
-import org.videolan.vlc.gui.helpers.restartMediaPlayer
-import org.videolan.vlc.gui.video.PlayerOrientationMode
+import org.videolan.vlc.kmp.SharedVideoSurfaceRegistry
 import org.videolan.vlc.media.PlaylistManager
 import java.io.BufferedReader
 import java.io.File
@@ -58,7 +70,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 /**
- * BenchActivity is a class that overrides VideoPlayerActivity through ShallowVideoPlayer.
+ * BenchActivity is the playback harness of the VLCBenchmark app. It plays one sample full screen,
+ * without player chrome or input handling, and returns decoding statistics as its result.
  * BenchActivity can perform several tests:
  * - PLAYBACK:
  * The class just plays the video, sending back statistics to VLCBenchmark.
@@ -73,13 +86,18 @@ import java.util.Date
  * once, when the user starts the benchmark.
  * VLCBenchmark then uses a broadcast to ask vlc-android to resume the sample to the next
  * screenshot timestamp or stop if there aren't any left.
+ *
+ * The video output goes through the shared player's surface registry (a SurfaceView, secondary
+ * displays disabled), so the sample is decoded like a normal playback and never opens a player UI.
  */
-
 @TargetApi(21)
-class BenchActivity : ShallowVideoPlayer() {
+class BenchActivity : ComponentActivity(), PlaybackService.Callback {
 
     private lateinit var timeOut: Runnable
     private val timeoutHandler: Handler = Handler(Looper.getMainLooper())
+    private var service: PlaybackService? = null
+    private lateinit var videoLayout: VLCVideoLayout
+    private var playbackStarted = false
     private var screenshotsTimestamp: List<Long>? = null
     private var isScreenshot = false
     private var screenshotCount = 0
@@ -91,9 +109,6 @@ class BenchActivity : ShallowVideoPlayer() {
     private var hasVLCFailed = false
     /* set to true when video is in hardware decoding */
     private var isHardware = false
-    /* set to true while waiting for VLCInstance + player restart in hardware mode,
-     * prevents the initial START_PLAYBACK from loading media before forcing opengl es */
-    private var isWaitingForHardwareRestart = false
     /* set to true when Vout event is received
      * used to check if hardware decoder works */
     private var hasVout = false
@@ -126,74 +141,31 @@ class BenchActivity : ShallowVideoPlayer() {
 
     /* Extract stacktrace or not */
     private var getStacktrace: Boolean = false
-    /* File in which vlc will store logs in case of a crash or freeze */
-    private var stacktraceFile: String? = null
 
     /* Receive continue benchmark action from VLCBenchmark after having taken screenshots */
     private var broadcastReceiver: BroadcastReceiver = ScreenshotBroadcastReceiver()
 
     /* Get a time limit from the benchmark app after which playback should be stopped
-    *  This is to avoid having to play long samples entirely which unnecessarily \
+    *  This is to avoid having to play long samples entirely which unnecessarily
     *  extend the length of the benchmark*/
     private var timeLimit: Long = 0L
-
-    override fun onServiceChanged(service: PlaybackService?) {
-        if (isHardware && service != null) isWaitingForHardwareRestart = true
-        super.onServiceChanged(service)
-        if (isSpeed && this.service != null) {
-            oldRate = service!!.rate
-            oldRepeating = PlaylistManager.repeating.value
-            service.playlistManager.setRepeatType(PlaybackStateCompat.REPEAT_MODE_ONE)
-        } else if (!isSpeed && this.service != null) {
-            oldRepeating = PlaylistManager.repeating.value
-            service!!.playlistManager.setRepeatType(PlaybackStateCompat.REPEAT_MODE_NONE)
-        }
-        if (isHardware && this.service != null) {
-            val sharedPref = Settings.getInstance(this)
-            oldOpenglValue = sharedPref.getString(PREFERENCE_OPENGL, "-1")
-            oldHistoryBoolean = sharedPref.getBoolean(PREFERENCE_PLAYBACK_HISTORY, true)
-            AppScope.launch(Dispatchers.IO) {
-                with(sharedPref.edit()) {
-                    putString(PREFERENCE_OPENGL, "0")
-                    putBoolean(PREFERENCE_PLAYBACK_HISTORY, false)
-                }
-            }
-            lifecycleScope.launch {
-                VLCInstance.restart()
-                isSetup = false
-                isWaitingForHardwareRestart = false
-                service?.let { s ->
-                    s.playlistManager.player.restart()
-                    videoLayout?.let {
-                        s.mediaplayer.attachViews(it, displayManager, true, false)
-                        s.mediaplayer.videoScale = MediaPlayer.ScaleType.SURFACE_FILL
-                    }
-                }
-
-                loadMedia(fromStart = false, forceUsingNew = true)
-            }
-        }
-    }
-
-    override fun loadMedia(fromStart: Boolean, forceUsingNew: Boolean) {
-        if (isWaitingForHardwareRestart) return
-        service?.setBenchmark()
-        if (isHardware) service?.setHardware()
-        super.loadMedia(fromStart, true)
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         /* Crash handler setup */
         StartActivityOnCrash.setUp(this)
-
-        val intent = intent
+        super.onCreate(savedInstanceState)
 
         /* Enabling hardware mode if necessary*/
         /* Stops the hardware decoder falling back to software */
         isHardware = !intent.getBooleanExtra(EXTRA_HARDWARE, true)
-        isBenchmark = true
 
-        super.onCreate(savedInstanceState)
+        videoLayout = VLCVideoLayout(this).apply {
+            setBackgroundColor(android.graphics.Color.BLACK)
+            layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+        }
+        setContentView(videoLayout)
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
 
         /* Determining the benchmark mode */
         if (!intent.hasExtra(EXTRA_ACTION)) {
@@ -211,17 +183,15 @@ class BenchActivity : ShallowVideoPlayer() {
                     errorFinish("Missing screenshots timestamps")
                     return
                 }
-                if (intent.getSerializableExtra(EXTRA_TIMESTAMPS) is List<*>) {
+                @Suppress("DEPRECATION")
+                val timestamps = intent.getSerializableExtra(EXTRA_TIMESTAMPS)
+                if (timestamps is List<*>) {
                     @Suppress("UNCHECKED_CAST")
-                    screenshotsTimestamp = intent.getSerializableExtra(EXTRA_TIMESTAMPS) as List<Long>
+                    screenshotsTimestamp = timestamps as List<Long>
                 } else {
                     errorFinish("Failed to get timestamps")
                     return
                 }
-
-                /* Deactivates secondary displays */
-                enableCloneMode = true
-                displayManager.release()
             }
             EXTRA_ACTION_SPEED -> {
                 isSpeed = true
@@ -231,15 +201,90 @@ class BenchActivity : ShallowVideoPlayer() {
         if (intent.hasExtra(EXTRA_STACKTRACE_FILE))
             getStacktrace = intent.getBooleanExtra(EXTRA_STACKTRACE_FILE, false)
 
-        orientationMode = PlayerOrientationMode(true, ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
-        requestedOrientation = getScreenOrientation(orientationMode)
-
         this.registerReceiverCompat(broadcastReceiver, IntentFilter(ACTION_CONTINUE_BENCHMARK), true)
+        SharedVideoSurfaceRegistry.activateHost()
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                PlaybackService.serviceFlow.collect(::onServiceChanged)
+            }
+        }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                // The sample ended (or playback stopped): report the results.
+                InProcessEvents.actions(EXIT_PLAYER).collect { if (!isFinishing) finish() }
+            }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        PlaybackService.start(this)
     }
 
     override fun onResume() {
         super.onResume()
         setTimeout()
+    }
+
+    private fun onServiceChanged(service: PlaybackService?) {
+        if (service == null) {
+            if (this.service != null && !isFinishing) exit(RESULT_CONNECTION_FAILED)
+            return
+        }
+        if (this.service === service) return
+        this.service = service
+        service.addCallback(this)
+        if (isSpeed) {
+            oldRate = service.rate
+            oldRepeating = PlaylistManager.repeating.value
+            service.playlistManager.setRepeatType(PlaybackStateCompat.REPEAT_MODE_ONE)
+        } else {
+            oldRepeating = PlaylistManager.repeating.value
+            service.playlistManager.setRepeatType(PlaybackStateCompat.REPEAT_MODE_NONE)
+        }
+        if (isHardware) {
+            val sharedPref = Settings.getInstance(this)
+            oldOpenglValue = sharedPref.getString(PREFERENCE_OPENGL, "-1")
+            oldHistoryBoolean = sharedPref.getBoolean(PREFERENCE_PLAYBACK_HISTORY, true)
+            AppScope.launch(Dispatchers.IO) {
+                with(sharedPref.edit()) {
+                    putString(PREFERENCE_OPENGL, "0")
+                    putBoolean(PREFERENCE_PLAYBACK_HISTORY, false)
+                    apply()
+                }
+            }
+            // android_display is only picked up by a fresh instance and player.
+            lifecycleScope.launch {
+                VLCInstance.restart()
+                isSetup = false
+                service.playlistManager.player.restart()
+                startPlayback(service)
+            }
+        } else {
+            startPlayback(service)
+        }
+    }
+
+    private fun startPlayback(service: PlaybackService) {
+        if (playbackStarted) return
+        playbackStarted = true
+        SharedVideoSurfaceRegistry.attachSurface(
+            videoLayout,
+            SharedVideoSurfaceRegistry.SurfaceOptions(textureView = false, benchmark = true),
+        )
+        service.mediaplayer.videoScale = MediaPlayer.ScaleType.SURFACE_FILL
+        val uri = intent.extras?.parcelable<Uri>(PLAY_EXTRA_ITEM_LOCATION) ?: intent.data
+        if (uri == null) {
+            errorFinish("Missing sample location")
+            return
+        }
+        service.setBenchmark()
+        if (isHardware) service.setHardware()
+        val media = MLServiceLocator.getAbstractMediaWrapper(uri).apply {
+            addFlags(MediaWrapper.MEDIA_VIDEO or MediaWrapper.MEDIA_FROM_START)
+        }
+        service.load(media)
     }
 
     /**
@@ -259,24 +304,18 @@ class BenchActivity : ShallowVideoPlayer() {
         }
     }
 
+    override fun update() = Unit
+
+    override fun onMediaEvent(event: IMedia.Event) = Unit
+
     /**
-     * Reacts on the event buffering before calling super:
-     *
-     *
-     * if end of buffering, initialises screen info,
-     * the projectionManager, and handler used, and starts
-     * the activity that asks for the screenshot permission.
-     *
-     * if end of buffering, and boolean seeking is true
-     * trigger screenshot in org.videolan.vlcbenchmark's service
-     *
-     * if not end of buffering, and seeking, checks for seek timeouts.
+     * Reacts on the media player events: on the end of the first buffering it performs the
+     * initial setup, at the end of a seek's buffering it triggers the screenshot in
+     * org.videolan.vlcbenchmark's service, and it watches for frozen playback.
      *
      * @param event mediaPlayer events
      */
-    @TargetApi(21)
     override fun onMediaPlayerEvent(event: MediaPlayer.Event) {
-        super.onMediaPlayerEvent(event)
         when (event.type) {
             MediaPlayer.Event.Vout -> hasVout = true
             MediaPlayer.Event.TimeChanged -> {
@@ -470,17 +509,17 @@ class BenchActivity : ShallowVideoPlayer() {
         }
     }
 
-    /**
-     * Override of VideoPlayerActivity's exit aiming to catch the resultCode
-     * if the resultCode is different from RESULT_OK, boolean mVLCFailed is set to true,
-     * then we will not override the finish(), and change the resultCode.
-     * @param resultCode VideoPlayerActivity's resultCode
-     */
-    override fun exit(resultCode: Int) {
-        if (resultCode != RESULT_OK) {
-            hasVLCFailed = true
-        }
-        super.exit(resultCode)
+
+    private fun seek(time: Long) {
+        service?.seek(time)
+    }
+
+    /** Leaves on an error reported by the player, keeping its result code for the benchmark. */
+    private fun exit(resultCode: Int) {
+        if (isFinishing) return
+        if (resultCode != RESULT_OK) hasVLCFailed = true
+        setResult(resultCode)
+        finish()
     }
 
     /**
@@ -582,9 +621,9 @@ class BenchActivity : ShallowVideoPlayer() {
      */
     override fun finish() {
         if (isSpeed) {
-            service!!.setRate(oldRate, true)
+            service?.setRate(oldRate, true)
         } else {
-            service!!.playlistManager.setRepeatType(oldRepeating)
+            service?.playlistManager?.setRepeatType(oldRepeating)
         }
         /* Resetting vout preference to it value before the benchmark */
         if (isHardware && oldOpenglValue != "-2") {
@@ -597,7 +636,7 @@ class BenchActivity : ShallowVideoPlayer() {
                 VLCInstance.restart()
             }
         }
-        /* Case of error in VideoPlayerActivity, then finish is not overridden */
+        /* Case of error reported by the player, then finish is not overridden */
         if (hasVLCFailed) {
             super.finish()
             return
@@ -626,7 +665,12 @@ class BenchActivity : ShallowVideoPlayer() {
         if (::timeOut.isInitialized) {
             timeoutHandler.removeCallbacks(timeOut)
         }
-        unregisterReceiver(broadcastReceiver)
+        runCatching { unregisterReceiver(broadcastReceiver) }
+        service?.removeCallback(this)
+        if (isFinishing) {
+            service?.takeIf { it.hasMedia() }?.stop(video = true)
+            SharedVideoSurfaceRegistry.deactivateHost()
+        }
         super.onDestroy()
     }
 
@@ -650,6 +694,7 @@ class BenchActivity : ShallowVideoPlayer() {
 
         private const val RESULT_FAILED = 6
         private const val RESULT_NO_HW = 1
+        private const val RESULT_CONNECTION_FAILED = RESULT_FIRST_USER + 1
 
         private const val PREFERENCE_PLAYBACK_HISTORY = "playback_history"
         private const val PREFERENCE_OPENGL = "opengl"

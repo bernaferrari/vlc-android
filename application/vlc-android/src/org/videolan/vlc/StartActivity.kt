@@ -271,14 +271,8 @@ class StartActivity : ComponentActivity() {
                     startApplication(tv, firstRun, upgrade, R.id.nav_audio, removeOldDevices)
                 } else if (service != null && service.isInPiPMode.value == true) {
                     service.isInPiPMode.value = false
-                    if (SharedPlayerLauncher.usesSharedPlayer()) {
-                        // The popup's vout is released when the shared route attaches its own.
-                        startActivity(SharedPlayerLauncher.intent(this))
-                    } else {
-                        val startIntent = Intent(this, VideoPlayerActivity::class.java)
-                        startIntent.flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-                        startActivity(startIntent)
-                    }
+                    // The popup's vout is released when the shared player attaches its own.
+                    startActivity(SharedPlayerLauncher.intent(this))
                 }
                 else
                     startApplication(tv, firstRun, upgrade, target, removeOldDevices)
@@ -345,7 +339,9 @@ class StartActivity : ComponentActivity() {
         // If not should check for permission, and ask them if we don't have them
         if ((intent.data != null && intent.data!!.scheme == "content" && FileUtils.getUri(intent.data) != null)
             || (Permissions.canReadStorage(applicationContext) || getStoragePermission())) when {
-            intent.type?.startsWith("video") == true && SharedPlayerLauncher.usesSharedPlayer() ->
+            // Phones play other apps' videos in the main shell unless the caller waits for a
+            // result (the playback position): only the standalone player host returns one.
+            intent.type?.startsWith("video") == true && !SharedPlayerLauncher.usesStandaloneHost() && callingActivity == null ->
                 ExternalVideoLauncher.play(this@StartActivity, intent)
             intent.type?.startsWith("video") == true -> try {
                 startActivityForResult(intent.setClass(this@StartActivity, VideoPlayerActivity::class.java).apply { putExtra(VideoPlayerActivity.FROM_EXTERNAL, true) }, PROPAGATE_RESULT, Util.getFullScreenBundle())

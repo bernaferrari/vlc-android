@@ -112,19 +112,10 @@
     <string name="firstsong">ဖွင့်လှစ်စာရင်း ၏ ပထမဆုံး သီချင်း</string>
     <string name="lastsong">ဖွင့်လှစ်စာရင်း ၏ နောက်ဆုံး သီချင်း</string>
 
-    <string name="surface_best_fit">ကွက်တိအကျဆုံး</string>
-    <string name="surface_fit_screen">မျက်နှာပြင် အံကိုက်</string>
-    <string name="surface_fill">ဖြည့်</string>
-    <string name="surface_original">အလယ်</string>
     <string name="track_bitrate_info">Bitrate: %1$s/s\n</string>
     <string name="track_codec_info">Codec: %1$s\n</string>
     <string name="track_language_info">ဘာသာစကား: %1$s\n</string>
-    <string name="volume">အသံပမာဏ</string>
-    <string name="sound_on">အသံ ဖွင့်</string>
-    <string name="sound_off">အသံ ပိတ်</string>
-    <string name="brightness">လင်းအား</string>
     <string name="advanced">အဆင့်မြင့် ရွေးစရာများ</string>
-    <string name="audio_boost_warning">100% အလွန်သို့ သွားရန် အပေါ်သို့ ထပ်မံဆွဲတင်ပါ</string>
 
     <string name="track_samplerate_info">Sample rate: %1$d Hz\n</string>
     <string name="track_resolution_info">ပုံရိပ်ပြတ်သားနှုန်း: %1$dx%2$d\n</string>
@@ -193,22 +184,7 @@
     <string name="season_number">အတွဲ %s</string>
     <string name="abrepeat_add_first_marker">အစမှတ် သတ်မှတ်ပါ</string>
     <string name="abrepeat_add_second_marker">အဆုံးမှတ် သတ်မှတ်ပါ</string>
-    <string name="demux_bitrate">Demux bitrate</string>
-    <string name="input_bitrate">ထည့်သွင်း bitrate</string>
-    <string name="video_information">ဗီဒီယို အချက်အလက်</string>
 
-    <string name="channels">ရုပ်သံလိုင်းများ</string>
-    <string name="resolution">ပုံရိပ် ပြတ်သားနှုန်း</string>
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate">အကွက်ကြိမ်နှုန်း</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">ဘာသာစကား</string>
-    <string name="track_samplerate">နှုန်း နမူနာ</string>
-    <string name="track_samplerate_value">%1$d Hz\n</string>
-    <string name="bitrate">Bitrate</string>
-    <string name="codec">Codec</string>
-    <string name="text">စာသား</string>
     <string name="unknown">အမည်မသိ</string>
     <string name="sortby_track">အပုဒ်</string>
     <string name="more">နောက်ထပ်</string>

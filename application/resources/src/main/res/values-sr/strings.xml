@@ -127,10 +127,6 @@
     <string name="firstsong">Прва песма на листи</string>
     <string name="lastsong">Последња песма на листи</string>
 
-    <string name="surface_best_fit">Оптимално</string>
-    <string name="surface_fit_screen">Пун екран</string>
-    <string name="surface_fill">Попуњено</string>
-    <string name="surface_original">По центру</string>
     <string name="unseekable_stream">Ток који не може да се премота</string>
     <string name="refresh">Освежи</string>
     <string name="track_audio">Аудио-запис</string>
@@ -140,10 +136,6 @@
     <string name="track_bitrate_info">Битски проток %1$s/s\n</string>
     <string name="track_codec_info">Кодек: %1$s\n</string>
     <string name="track_language_info">Језик: %1$s\n</string>
-    <string name="volume">Јачина звука</string>
-    <string name="sound_on">Звук укључен</string>
-    <string name="sound_off">Звук искључен</string>
-    <string name="brightness">Осветљење</string>
     <string name="advanced">напредне опције</string>
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 канал\n</item>

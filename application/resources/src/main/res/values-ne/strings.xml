@@ -143,11 +143,6 @@
     <string name="firstsong">वाद्यसूचीको पहिलो गीत</string>
     <string name="lastsong">वाद्यसूचीको अन्तिम गीत</string>
 
-    <string name="surface_best_fit">सबै भन्दा राम्रो फिट</string>
-    <string name="surface_fit_screen">पर्दामा अटाउनुहोस्</string>
-    <string name="surface_fill">भरी भर्नुहोस</string>
-    <string name="surface_original">बिच</string>
-    <string name="resize_tip">थप विकल्पहरूको लागि लामो ट्याप गर्नुहोस्</string>
     <string name="unseekable_stream">खोज्न नमिल्ने प्रवाह</string>
     <string name="refresh">ताजा गर्नुहोस</string>
     <string name="track_audio">अडियो ट्रयाक</string>
@@ -157,12 +152,7 @@
     <string name="track_bitrate_info">बिट गति: %1$s/s\n</string>
     <string name="track_codec_info">कोडेक: %1$s\n</string>
     <string name="track_language_info">भाषा: %1$s\n</string>
-    <string name="volume">ध्वनि मात्रा</string>
-    <string name="sound_on">आवाज चालु</string>
-    <string name="sound_off">आवाज बन्द</string>
-    <string name="brightness">चमक</string>
     <string name="advanced">उन्नत विकल्पहरू</string>
-    <string name="audio_boost_warning">१००% पार गर्न फेरि माथि स्लाइड गर्नुहोस्</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 channel\n</item>
@@ -217,29 +207,16 @@
     <string name="play_button">प्ले बटन</string>
 
     <!-- Tips -->
-    <string name="tips_title">भिडियो प्लेयर सुझावहरू</string>
     <string name="seek">खोज्नुहोस्</string>
     <string name="subtitles">उपशिर्षकहरु</string>
-    <string name="tips_player_controls">प्लेयर नियन्त्रणहरू</string>
-    <string name="tips_audio_sub">अडियो ट्रयाक र उपशीर्षकहरू</string>
-    <string name="tips_play_description">भिडियो प्ले गर्न ट्याप गर्नुहोस्</string>
     <string name="lock">लक गर्नुहोस्</string>
     <string name="tap">हेर्नको लागि ट्यटप गर्नुहोस्</string>
     <string name="tap_to_remove">हटाउनको लागि थिच्नुहोस्</string>
     <string name="tap_to_rearrange">पुनः व्यवस्थित गर्नको लागि थिच्नुहोस्</string>
     <string name="tap_to_previous_next">अघि वा पछि जानको लागि थिच्नुहोस्</string>
-    <string name="lock_orientation">अभिमुखीकरण</string>
-    <string name="lock_orientation_description">अभिमुखीकरण लक/अनलक गर्न ट्याप गर्नुहोस्</string>
-    <string name="aspect_ratio">आकार अनुपात</string>
-    <string name="aspect_ratio_description">भिडियोको आकार अनुपात परिवर्तन गर्न ट्याप गर्नुहोस्</string>
-    <string name="advanced_options">उन्नत विकल्पहरू</string>
-    <string name="tips_swipe">माथि वा तल स्वाइप गर्नुहोस्</string>
     <string name="tips_swipe_horizontal">बायाँ वा दायाँ स्वाइप गर्नुहोस्</string>
     <string name="tips_playlist">प्लेसूची</string>
     <string name="tips_hold_seek">खोज्न होल्ड गर्नुहोस्</string>
-    <string name="pause_description">रोक्नको लागि दुइ पटक थिच्नुहोस्</string>
-    <string name="seek_tap">+/- 10 sec.</string>
-    <string name="seek_tap_description">डबल ट्याप गरि १० सेकन्ड अगाडी वा पछाडी जानुहोस्</string>
     <string name="close">बन्द गर्नुहोस्</string>
 
     <string name="playlist_tips">प्लेलिस्ट जानकारीहरू</string>
@@ -429,7 +406,6 @@
 
     <!-- Accessibility -->
     <string name="more_actions">थप कार्यहरू</string>
-    <string name="back_quit_lock">भिडियो छोड्न फेरि फिर्ता थिच्नुहोस्</string>
     <string name="stream_deleted">स्ट्रिम मेटाइयो</string>
     <string name="no_subs_found">यस निर्देशिकामा कुनै उपशीर्षक छैन</string>
     <string name="music_now_playing">अहिले बजिरहेको</string>
@@ -479,7 +455,6 @@
     <string name="download_subtitles">उपशीर्षकहरू डाउनलोड</string>
     <string name="browse_folder">फोल्डर अन्वेषण गर्नुहोस्</string>
     <string name="listen">सुन्नुहोस्</string>
-    <string name="apply_to_bt">ब्लुटुथ यन्त्रमा लागू गर्नुहोस्</string>
     <string name="videos_all">सबै भिडियोहरू</string>
     <string name="clear_playback_history">प्लेब्याक इतिहास मेटाउनुहोस्</string>
     <string name="ml_scanning">मिडिया फाइलहरूको लागि स्क्यान गर्दै</string>
@@ -589,25 +564,8 @@
     <string name="open_network_settings">नेटवर्क सेटिङहरू खोल्ने हो?</string>
     <string name="recently_played">भर्खरै प्ले गरिएको</string>
     <string name="recently_added">भर्खरै थपिएको</string>
-    <string name="video_information">भिडियो जानकारी</string>
 
-    <string name="channels">च्यानलहरू</string>
-    <string name="resolution">रिज्योलुसन</string>
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate">फ्रेमरेट</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">भाषा</string>
-    <string name="track_samplerate">नमूना दर</string>
-    <string name="track_samplerate_value">%1$d Hz\n</string>
-    <string name="bitrate">बिटरेट</string>
-    <string name="codec">कोडेक</string>
-    <string name="text">अक्षर</string>
     <string name="unknown">अज्ञात</string>
-    <string name="audio_delay_start">सुनिएको ध्वनि</string>
-    <string name="subtitle_delay_first">सुनिएको आवाज</string>
-    <string name="audio_delay_end">अस्पष्‍ट ध्वनि</string>
-    <string name="subtitle_delay_end">देखिएको पाठ</string>
     <string name="track_index">ट्र्याक: %s</string>
     <string name="audio_queue_progress">प्रगति: %s</string>
     <string name="audio_queue_progress_finished">निम्नमा समाप्त हुन्छ: %s</string>
@@ -664,8 +622,6 @@
     <string name="remove_from_history">इतिहासबाट हटाउनुहोस्</string>
     <string name="prefersmbv1">SMB 1 लाई प्राथमिकता दिनुहोस्</string>
     <string name="prefersmbv1_summary">तपाईँको SMB सर्भर ब्राउज गर्न केही कठिनाई भएमा यस सेटिङ अनचेक गर्नुहोस्  </string>
-    <string name="apply_to_all">सबै भिडियोहरूमा लागू गर्नुहोस्</string>
-    <string name="audio_delay_global">सबै भिडियोहरूको लागि %s ms अडियो ढिलाइ सेट भयो</string>
     <string name="go_to_folder">प्यारेन्ट ब्राउज गर्नुहोस्</string>
     <string name="no_sub_renderer">कास्टिङ गर्ने समयमा उपशीर्षकहरू अझै समर्थित छैनन्</string>
     <string name="soundfont">MIDI SoundFont</string>

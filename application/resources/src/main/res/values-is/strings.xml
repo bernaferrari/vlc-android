@@ -146,11 +146,6 @@
     <string name="firstsong">Fyrsta lag í spilunarlista</string>
     <string name="lastsong">Síðasta lag í lagalista</string>
 
-    <string name="surface_best_fit">Passi best</string>
-    <string name="surface_fit_screen">Laga að skjá</string>
-    <string name="surface_fill">Fylla</string>
-    <string name="surface_original">Miðjað</string>
-    <string name="resize_tip">Ýttu lengi til að sjá fleiri valkosti</string>
     <string name="unseekable_stream">Streymi sem ekki er hægt að leita í</string>
     <string name="refresh">Hressa</string>
     <string name="track_audio">Hljóðspor</string>
@@ -160,12 +155,7 @@
     <string name="track_bitrate_info">Bitahraði: %1$s/s\n</string>
     <string name="track_codec_info">Kóðunarlykill: %1$s\n</string>
     <string name="track_language_info">Tungumál: %1$s\n</string>
-    <string name="volume">Hljóðstyrkur</string>
-    <string name="sound_on">Hljóð kveikt</string>
-    <string name="sound_off">Hljóð slökkt</string>
-    <string name="brightness">Birtustig</string>
     <string name="advanced">ítarlegir valkostir</string>
-    <string name="audio_boost_warning">Renndu upp aftur til að fara yfir 100%</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 rás\n</item>
@@ -211,30 +201,16 @@
     <string name="play_button">Afspilunarhnappur</string>
 
     <!-- Tips -->
-    <string name="tips_title">Vísbendingar myndspilara</string>
     <string name="seek">Leita</string>
     <string name="subtitles">Skjátextar</string>
-    <string name="tips_player_controls">Stýringar fyrir afspilun</string>
-    <string name="tips_audio_sub">Hljóðspor og skjátextar</string>
-    <string name="tips_play_description">Ýttu til að spila myndskeið</string>
     <string name="lock">Læsa</string>
     <string name="tap">Ýttu til að skoða</string>
     <string name="tap_to_remove">Ýttu til að fjarlægja</string>
     <string name="tap_to_rearrange">Ýttu til að endurraða</string>
     <string name="tap_to_previous_next">Ýttu til að fara á fyrra/næsta</string>
-    <string name="lock_orientation">Stefna</string>
-    <string name="lock_orientation_description">Ýttu til að læsa/aflæsa stefnu</string>
-    <string name="aspect_ratio">Stærðarhlutföll</string>
-    <string name="aspect_ratio_description">Ýttu til að breyta stærðarhlutföllum myndskeiðs</string>
-    <string name="advanced_options">Ítarlegir valkostir</string>
-    <string name="advanced_options_description">Svo sem afspilunarhraða, endurtekningarham, …</string>
-    <string name="tips_swipe">Strjúka upp eða niður</string>
     <string name="tips_swipe_horizontal">Strjúka til vinstri eða hægri</string>
     <string name="tips_playlist">Spilunarlisti</string>
     <string name="tips_hold_seek">Halda til að leita</string>
-    <string name="pause_description">Banka tvisvar til að setja í bið</string>
-    <string name="seek_tap">+/- 10 sek.</string>
-    <string name="seek_tap_description">Banka tvisvar til að fara 10 sek áfram eða afturábak</string>
     <string name="close">Loka</string>
 
     <string name="playlist_tips">Ábendingar spilunarlista</string>
@@ -531,7 +507,6 @@
     <string name="install">Setja upp</string>
     <!-- Accessibility -->
     <string name="more_actions">Fleiri aðgerðir</string>
-    <string name="back_quit_lock">Ýttu aftur á til baka til að fara út úr myndskeiði</string>
     <string name="stream_deleted">Streymi eytt</string>
     <string name="no_subs_found">Engir skjátextar í þessari möppu</string>
     <string name="music_now_playing">Í afspilun núna</string>
@@ -580,7 +555,6 @@
     <string name="download_subtitles">Sækja skjátexta</string>
     <string name="browse_folder">Flakka í möppu</string>
     <string name="listen">Hlusta</string>
-    <string name="apply_to_bt">Beita á bluetooth-tæki</string>
     <string name="episodes">þættir</string>
     <string name="movies">kvikmyndir</string>
     <string name="videos">myndskeið</string>
@@ -676,9 +650,6 @@
     <string name="device_dialog_message">Þú varst að stinga geymslutæki í samband við sjónvarpsboxið þitt, viltu opna það með VLC?</string>
     <string name="videos_folders_title">Myndskeið eftir möppum</string>
     <string name="videos_groups_title">Hópar myndskeiða</string>
-    <string name="video_save_clone_mode">Virkja klónunarham sjálfvirkt?</string>
-    <string name="video_remote_enable">Skipta yfir í fjarstýringarham</string>
-    <string name="video_remote_disable">Tvítaka skjá</string>
     <string name="removed_from_playlist_anonymous">Atriði fjarlægð af spilunarlista</string>
     <string name="welcome_title">Velkomin í VLC!</string>
     <string name="welcome_subtitle">Frjálsi og opni margmiðlunarspilarinn</string>
@@ -775,27 +746,8 @@
     <string name="clear">Hreinsa</string>
     <string name="abrepeat_add_first_marker">Setja upphafspunkt</string>
     <string name="abrepeat_add_second_marker">Setja endapunkt</string>
-    <string name="demux_bitrate">Bitahraði affléttara (demux)</string>
-    <string name="input_bitrate">Bitahraði inntaks</string>
-    <string name="video_information">Upplýsingar myndskeiðs</string>
 
-    <string name="channels">Rásir</string>
-    <string name="resolution">Upplausn</string>
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate">Rammatíðni</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">Tungumál</string>
-    <string name="track_samplerate">Safntíðni</string>
-    <string name="track_samplerate_value">%1$d Hz\n</string>
-    <string name="bitrate">Bitahraði</string>
-    <string name="codec">Kóðunarlykill (codec)</string>
-    <string name="text">Texti</string>
     <string name="unknown">Óþekkt</string>
-    <string name="audio_delay_start">Hljóð heyrðist</string>
-    <string name="subtitle_delay_first">Rödd heyrðist</string>
-    <string name="audio_delay_end">Hljóð fannst</string>
-    <string name="subtitle_delay_end">Texti sást</string>
     <string name="track_index">Spor: %s</string>
     <string name="audio_queue_progress">Framvinda: %s</string>
     <string name="audio_queue_progress_remaining">Eftir: %s</string>
@@ -855,9 +807,6 @@
     <string name="remove_from_history">Fjarlægja úr ferli</string>
     <string name="prefersmbv1">Kjósa frekar SMB 1</string>
     <string name="prefersmbv1_summary">Taktu merkið úr þessari stillingu ef þú átt í vandræðum með SMB-þjóninn þinn</string>
-    <string name="apply_to_all">Virkja á öll myndskeið</string>
-    <string name="audio_delay_global">Hljóðtöf sett á %s ms fyrir öll myndskeið</string>
-    <string name="audio_delay_bt">Hljóðtöf sett á %s ms fyrir bluetooth-tækið</string>
     <string name="go_to_folder">Flakka í yfirmöppu</string>
     <string name="no_sub_renderer">Ekki er enn stuðningur við skjátexta við casting-sendingar</string>
     <string name="soundfont">MIDI SoundFont</string>
@@ -905,7 +854,6 @@
     <string name="view_online">Skoða á netinu</string>
     <string name="no_web_browser">Enginn vafri uppsettur</string>
     <string name="no_video">Ekkert myndskeið tiltækt</string>
-    <string name="foldable">Flettanlegur skjár</string>
     <string name="undo">Afturkalla</string>
     <string name="widget_theme">Þema viðmótshluta</string>
     <string name="widget_preferences">Stilla viðmótshluta</string>
@@ -927,7 +875,6 @@
     <string name="disable_track">Gera spor óvirkt</string>
     <string name="ascending">Hækkandi</string>
     <string name="descending">Lækkandi</string>
-    <string name="screenshot_error">Villa við að taka skjámyndina</string>
     <string name="disabled">Óvirkt</string>
     <string name="enable_screenshot_gesture">Ýttu með 3 fingrum</string>
     <string name="enable_screenshot_button">Birta hnapp fyrir skjámyndatöku</string>
@@ -956,13 +903,10 @@
     <string name="talkback_list_section">Haus: %s</string>
     <string name="talkback_file_size">Skráarstærð: %s</string>
     <string name="talkback_open_in_browser">Opna í vafra</string>
-    <string name="talkback_video_player">Myndspilari. Ýttu til að birta stýringar. Ýttu á til baka til að fela þær</string>
     <string name="talkback_video_tracks">Myndspor</string>
     <string name="talkback_audio_tracks">Hljóðspor</string>
     <string name="talkback_subtitle_tracks">Skjátextaspor</string>
     <string name="selected">Valið</string>
-    <string name="talkback_increase_delay">Auka töf</string>
-    <string name="talkback_decrease_delay">Minnka töf</string>
     <string name="talkback_increase_speed">Auka hraða</string>
     <string name="talkback_decrease_speed">Minnka hraða</string>
     <string name="talkback_subtitle_history">Ferill skjátexta</string>

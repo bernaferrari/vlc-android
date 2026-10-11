@@ -153,11 +153,6 @@
     <string name="firstsong">Første sang i spillelisten</string>
     <string name="lastsong">Siste sang i spillelisten</string>
 
-    <string name="surface_best_fit">Best tilpasset</string>
-    <string name="surface_fit_screen">Tilpass skjermen</string>
-    <string name="surface_fill">Fyll ut</string>
-    <string name="surface_original">Midtstilt</string>
-    <string name="resize_tip">Hold inn for flere innstillinger</string>
     <string name="unseekable_stream">Strøm som ikke kan spoles</string>
     <string name="refresh">Oppdater</string>
     <string name="track_audio">Lydspor</string>
@@ -167,12 +162,7 @@
     <string name="track_bitrate_info">Bitfrekvens: %1$s/s\n</string>
     <string name="track_codec_info">Kodek: %1$s\n</string>
     <string name="track_language_info">Språk: %1$s\n</string>
-    <string name="volume">Lydstyrke</string>
-    <string name="sound_on">Lyd på</string>
-    <string name="sound_off">Lyd av</string>
-    <string name="brightness">Lysstyrke</string>
     <string name="advanced">avanserte innstillinger</string>
-    <string name="audio_boost_warning">Dra opp igjen for å gå forbi 100%</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 kanal\n</item>
@@ -230,32 +220,17 @@
     <string name="play_button">Avspillingsknapp</string>
 
     <!-- Tips -->
-    <string name="tips_title">Vis avspillertips</string>
     <string name="seek">Spol</string>
     <string name="subtitles">Undertekst</string>
-    <string name="tips_player_controls">Spiller kontroller</string>
-    <string name="tips_player_controls_description">Trykk på avspillingskontrollene under for å vise hva de benyttes til</string>
-    <string name="tips_audio_sub">Lyd spor og undertekster</string>
-    <string name="tips_play_description">Trykk for å spille video</string>
     <string name="lock">Lås</string>
     <string name="tap">Trykk for å se</string>
     <string name="tap_to_remove">Trykk for å fjerne</string>
     <string name="tap_to_rearrange">Trykk for å omorganisere</string>
     <string name="tap_to_previous_next">trykk for å gå til forrige/neste</string>
-    <string name="lock_orientation">Orientering</string>
-    <string name="lock_orientation_description">trykk for å låse/låse opp orientering</string>
-    <string name="aspect_ratio">Størrelsesforhold</string>
-    <string name="aspect_ratio_description">Trykk for å endre video størrelsesforhold</string>
-    <string name="advanced_options">Avanserte valg</string>
-    <string name="advanced_options_description">Samme som avspillingshastighet, repetering, ...</string>
-    <string name="tips_swipe">Sveip opp eller ned</string>
     <string name="tips_swipe_horizontal">Sveip venstre eller høyre</string>
     <string name="tips_playlist">Spilleliste</string>
     <string name="tips_hold_seek">Hold for å spole</string>
     <string name="tips_long_drop">Langt trykk og slipp</string>
-    <string name="pause_description">Dobbel trykk for å pause</string>
-    <string name="seek_tap">+/- 10 sek.</string>
-    <string name="seek_tap_description">Dobbel trykk for å spole 10 sek. frem eller tilbake</string>
     <string name="close">Lukk</string>
 
     <string name="playlist_tips">Spilleliste-tips</string>
@@ -542,7 +517,6 @@
     <string name="update_nightly">Auto-oppdatering</string>
     <!-- Accessibility -->
     <string name="more_actions">Flere handlinger</string>
-    <string name="back_quit_lock">Trykk Tilbake igjen for å avslutte videoen</string>
     <string name="stream_deleted">Strøm slettet</string>
     <string name="no_subs_found">Ingen undertekster i denne mappen</string>
     <string name="music_now_playing">Spilles nå</string>
@@ -700,9 +674,6 @@
     <string name="device_dialog_message">Du koblet nettopp til en ny lagringsenhet til tv-boksen. Vil du åpne den med VLC?</string>
     <string name="videos_folders_title">Videoer etter mappe</string>
     <string name="videos_groups_title">Videogrupper</string>
-    <string name="video_save_clone_mode">Aktiver klonemodus automatisk?</string>
-    <string name="video_remote_enable">Bytt til fjernkontrollmodus</string>
-    <string name="video_remote_disable">Dupliser skjerm</string>
     <string name="removed_from_playlist_anonymous">gjenstand(er) fjernet fra spillelista</string>
     <string name="welcome_title">Velkommen til VLC!</string>
     <string name="welcome_subtitle">Den frie mediespilleren med åpen kildekode</string>
@@ -802,27 +773,8 @@
     <string name="clear">Tøm</string>
     <string name="abrepeat_add_first_marker">Velg startpunkt</string>
     <string name="abrepeat_add_second_marker">Velg sluttpunkt</string>
-    <string name="demux_bitrate">Demultipleksers bitfrekvens</string>
-    <string name="input_bitrate">Inndatas bitfrekvens</string>
-    <string name="video_information">Videoinformasjon</string>
 
-    <string name="channels">Kanaler</string>
-    <string name="resolution">Oppløsning</string>
-    <string name="resolution_value">%1$d ⋅ %2$d</string>
-    <string name="framerate">Bildefrekvens</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">Språk</string>
-    <string name="track_samplerate">Samplingsfrekvens</string>
-    <string name="track_samplerate_value">%1$d Hz\n</string>
-    <string name="bitrate">bitfrekvens</string>
-    <string name="codec">Kodek</string>
-    <string name="text">Tekst</string>
     <string name="unknown">Ukjent</string>
-    <string name="audio_delay_start">Lyd hørt</string>
-    <string name="subtitle_delay_first">Stemme hørt</string>
-    <string name="audio_delay_end">Lyd merket</string>
-    <string name="subtitle_delay_end">Tekst sett</string>
     <string name="track_index">Spor: %s</string>
     <string name="audio_queue_progress">Fremgang: %s</string>
     <string name="audio_queue_progress_remaining">Gjenstående: %s</string>
@@ -870,7 +822,6 @@
     <string name="video_hud_timeout_summary">%ss</string>
     <string name="remove_from_history">Fjern fra historikk</string>
     <string name="prefersmbv1">Foretrekk SMB 1</string>
-    <string name="apply_to_all">Bruk på alle videoer</string>
     <string name="go_to_folder">Bla gjennom overmappen</string>
     <string name="go_to_album">Gå til albumet</string>
     <string name="go_to_artist">Gå til artisten</string>
@@ -975,8 +926,6 @@
     <string name="talkback_audio_tracks">Lydspor</string>
     <string name="talkback_subtitle_tracks">Undertekstspor</string>
     <string name="selected">Valgt</string>
-    <string name="talkback_increase_delay">Øk forsinkelse</string>
-    <string name="talkback_decrease_delay">Reduser forsinkelse</string>
     <string name="talkback_increase_speed">Øk hastigheten</string>
     <string name="talkback_decrease_speed">Senk hastigheten</string>
     <string name="talkback_subtitle_history">Undertekst-historikk</string>

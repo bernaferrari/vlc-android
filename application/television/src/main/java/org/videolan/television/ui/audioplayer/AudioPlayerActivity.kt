@@ -96,7 +96,7 @@ import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
 import org.videolan.vlc.gui.view.BookmarkPanelHost
 import org.videolan.vlc.gui.view.BookmarkPanelItem
 import org.videolan.vlc.gui.view.PlayerOptionsPanelHost
-import org.videolan.vlc.gui.video.VideoPlayerActivity
+import org.videolan.vlc.kmp.SharedPlayerLauncher
 import org.videolan.vlc.media.MediaUtils
 import org.videolan.vlc.media.PlaylistManager
 import org.videolan.vlc.media.PlaylistManager.Companion.hasMedia
@@ -684,10 +684,8 @@ class AudioPlayerActivity : BaseTvActivity(),KeycodeListener, PlaybackService.Ca
 
     override fun onResumeToVideoClick() {
         model.currentMediaWrapper?.let {
-            if (PlaybackService.hasRenderer()) VideoPlayerActivity.startOpened(
-                this,
-                it.uri, model.currentMediaPosition
-            )
+            // On a renderer the shared player shows the remote playback controls.
+            if (PlaybackService.hasRenderer()) SharedPlayerLauncher.open(this)
             else if (hasMedia()) {
                 it.removeFlags(MediaWrapper.MEDIA_FORCE_AUDIO)
                 lifecycleScope.launch(start = CoroutineStart.UNDISPATCHED) { model.switchToVideo() }

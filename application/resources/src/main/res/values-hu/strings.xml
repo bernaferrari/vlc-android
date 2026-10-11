@@ -181,11 +181,6 @@
     <string name="firstsong">A lejátszólista első száma</string>
     <string name="lastsong">A lejátszólista utolsó száma</string>
 
-    <string name="surface_best_fit">Legjobb illeszkedés</string>
-    <string name="surface_fit_screen">Képernyőhöz igazítás</string>
-    <string name="surface_fill">Kitöltés</string>
-    <string name="surface_original">Középre</string>
-    <string name="resize_tip">Hosszú koppintás a további lehetőségekhez</string>
     <string name="unseekable_stream">Nem lehet tekerni ebben a közvetítésben</string>
     <string name="refresh">Frissítés</string>
     <string name="track_audio">Hangsáv</string>
@@ -195,13 +190,8 @@
     <string name="track_bitrate_info">Bitsebesség: %1$s/mp\n</string>
     <string name="track_codec_info">Kodek: %1$s\n</string>
     <string name="track_language_info">Nyelv: %1$s\n</string>
-    <string name="volume">Hangerő</string>
     <string name="system_volume_disabled">%s\nNincs hozzáférés a rendszerkötethez</string>
-    <string name="sound_on">Hang be</string>
-    <string name="sound_off">Hang ki</string>
-    <string name="brightness">Fényerő</string>
     <string name="advanced">speciális beállítások</string>
-    <string name="audio_boost_warning">Húzza fel újra, hogy 100% fölé menjen</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 csatorna\n</item>
@@ -273,32 +263,17 @@
     <string name="play_button">Lejátszás gomb</string>
 
     <!-- Tips -->
-    <string name="tips_title">Videólejátszó tippek</string>
     <string name="seek">Tekerés</string>
     <string name="subtitles">Feliratok</string>
-    <string name="tips_player_controls">Lejátszásvezérlők</string>
-    <string name="tips_player_controls_description">Koppintson a lejátszásvezérlőkre, hogy megismerje a funkcióikat</string>
-    <string name="tips_audio_sub">Hangsávok és feliratok</string>
-    <string name="tips_play_description">Koppintson a videó lejátszásához</string>
     <string name="lock">Zárolás</string>
     <string name="tap">Koppintson a megtekintéshez</string>
     <string name="tap_to_remove">Koppintson az eltávolításhoz</string>
     <string name="tap_to_rearrange">Koppintson az átrendezéshez</string>
     <string name="tap_to_previous_next">Koppintson az előzőhöz/következőhöz ugráshoz</string>
-    <string name="lock_orientation">Tájolás</string>
-    <string name="lock_orientation_description">Koppintson a tájolás zárolásához/feloldásához</string>
-    <string name="aspect_ratio">Képarány</string>
-    <string name="aspect_ratio_description">Koppintson a videó képarányának módosításához</string>
-    <string name="advanced_options">Speciális beállítások</string>
-    <string name="advanced_options_description">Mint a lejátszási sebesség, ismétlési mód, …</string>
-    <string name="tips_swipe">Húzza fel vagy le</string>
     <string name="tips_swipe_horizontal">Húzza balra vagy jobbra</string>
     <string name="tips_playlist">Lejátszólista</string>
     <string name="tips_hold_seek">Tartsa a tekeréshez</string>
     <string name="tips_long_drop">Hosszú érintés és elengedés</string>
-    <string name="pause_description">Dupla koppintás a szüneteltetéshez</string>
-    <string name="seek_tap">+/- 10 mp.</string>
-    <string name="seek_tap_description">Dupla koppintás a 10 másodperccel előre- vagy visszatekeréshez</string>
     <string name="close">Bezárás</string>
 
     <string name="playlist_tips">Lejátszási lista tippek</string>
@@ -351,10 +326,8 @@
     <string name="screen_orientation">Képernyő tájolása</string>
     <string name="screen_orientation_sensor">Automatikus (érzékelő)</string>
     <string name="screen_orientation_portrait">Álló</string>
-    <string name="screen_orientation_portrait_reverse">Fordított álló</string>
     <string name="screen_orientation_landscape">Fekvő</string>
     <string name="screen_orientation_landscape_reverse">Fordított fekvő</string>
-    <string name="screen_orientation_landscape_sensor">Fekvő (érzékelő)</string>
     <string name="screen_orientation_last_locked">Utolsó zárolt tájolás</string>
     <string name="dark_theme">Sötét téma</string>
     <string name="theme_auto">Automatikus téma</string>
@@ -388,7 +361,6 @@
     <string name="save_brightness_title">Fényerő szintjének mentése</string>
     <string name="save_audiodelay_summary">Hangkésleltetés mentése külön az összes videóhoz</string>
     <string name="save_audiodelay_title">Hangkésleltetés mentése</string>
-    <string name="video_show_orientation_button">Tájolás gomb megjelenítése</string>
     <string name="enable_brightness_gesture_title">Fényerősség gesztus</string>
     <string name="enable_brightness_gesture_summary">Fényerő szabályozása gesztussal videólejátszás közben</string>
     <string name="enable_volume_gesture_title">Hangerő gesztus</string>
@@ -420,7 +392,6 @@
     <string name="enable_tap_and_hold_fastplay_title">Gyors lejátszás engedélyezése</string>
     <string name="enable_tap_and_hold_fastplay_summary">Érintse meg és tartsa úgy a lejátszási sebesség növeléséhez</string>
     <string name="fastplay_speed_title">Gyors lejátszás sebessége</string>
-    <string name="fastplay_title">Lejátszás %s× sebességgel</string>
     <string name="fastplay_subtitle">Engedje fel a leállításhoz</string>
     <string name="show_bookmark_buttons">Könyvjelzőgombok megjelenítése</string>
     <string name="show_bookmark_buttons_summary">Gombok megjelenítése a könyvjelzők közti navigációhoz</string>
@@ -540,7 +511,6 @@
     <string name="tv_folders_first_summary">A mappák, majd a fájlok megjelenítése a fájlböngészőben</string>
     <string name="tv_show_hidden_files">Rejtett fájlok megjelenítése</string>
     <string name="tv_show_hidden_files_summary">Rejtett fájlok megjelenítése a fájlböngészőben</string>
-    <string name="ab_repeat_fastseek_warning">A gyors tekerés engedélyezve. Ez pontossági problémákhoz vezethet.</string>
 
     <string name="extensions_prefs_category">Bővítmények</string>
     <string name="extensions_empty">Nincs észlelt bővítmény</string>
@@ -688,7 +658,6 @@
 
     <!-- Accessibility -->
     <string name="more_actions">További műveletek</string>
-    <string name="back_quit_lock">Nyomja meg még egyszer a Vissza gombot a videóból kilépéshez</string>
     <string name="stream_deleted">Közvetítés törölve</string>
     <string name="no_subs_found">Nincs felirat ebben a könyvtárban</string>
     <string name="music_now_playing">Most játszott</string>
@@ -767,7 +736,6 @@
     <string name="unknown_error">Váratlan hiba</string>
     <string name="browse_folder">Mappa tallózása</string>
     <string name="listen">Hallgatás</string>
-    <string name="apply_to_bt">Alkalmazás bluetoothos eszközre</string>
     <string name="episodes">epizódok</string>
     <string name="movies">filmek</string>
     <string name="videos">videók</string>
@@ -869,9 +837,6 @@
     <string name="device_dialog_message">Egy új tárolóeszközt csatlakoztatott a TV-jéhez, a VLC-vel akarja megnyitni?</string>
     <string name="videos_folders_title">Videók mappák szerint</string>
     <string name="videos_groups_title">Videócsoportok</string>
-    <string name="video_save_clone_mode">Automatikusan aktiválja a klónozás módot?</string>
-    <string name="video_remote_enable">Váltás távvezérlő módba</string>
-    <string name="video_remote_disable">Képernyő kettőzése</string>
     <string name="removed_from_playlist_anonymous">Elemek eltávolítva a lejátszólistából</string>
     <string name="welcome_title">Üdvözli a VLC!</string>
     <string name="welcome_subtitle">A szabad és nyílt forráskódú multimédialejátszó</string>
@@ -879,7 +844,6 @@
     <string name="permission_video">A VLC-nek az engedélyére van szüksége ahhoz, hogy hozzáférjen a videófájlokhoz az eszközén</string>
     <string name="permission_audio">A VLC-nek az engedélyére van szüksége ahhoz, hogy hozzáférjen a hangfájlokhoz az eszközén</string>
     <string name="medialibrary_scan_explanation">A VLC automatikusan át tudja vizsgálni az eszközét, hogy rendszerezze a médiagyűjteményét.</string>
-    <string name="player_title_fd_warning">A tároló engedély nélkül a VLC nem tudja lekérni a médiacímeket, és az előrehaladást sem tudja menteni</string>
     <string name="onboarding_theme_title">Érezze magát otthon</string>
     <string name="done">Kész</string>
     <string name="onboarding_scan_title">A médiafájljainak automatikus felkutatása</string>
@@ -984,27 +948,8 @@
     <string name="clear">Törlés</string>
     <string name="abrepeat_add_first_marker">Kezdési pont beállítása</string>
     <string name="abrepeat_add_second_marker">Befejezési pont beállítása</string>
-    <string name="demux_bitrate">Demux bitsebesség</string>
-    <string name="input_bitrate">Bemeneti bitsebesség</string>
-    <string name="video_information">Videóinformációk</string>
 
-    <string name="channels">Csatornák</string>
-    <string name="resolution">Felbontás</string>
-    <string name="resolution_value">%1$d×%2$d</string>
-    <string name="framerate">Képkockasebesség</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">Nyelv</string>
-    <string name="track_samplerate">Mintavételezési gyakoriság</string>
-    <string name="track_samplerate_value">%1$d Hz\n</string>
-    <string name="bitrate">Bitsebesség</string>
-    <string name="codec">Kodek</string>
-    <string name="text">Szöveg</string>
     <string name="unknown">Ismeretlen</string>
-    <string name="audio_delay_start">Hang meghallva</string>
-    <string name="subtitle_delay_first">Beszéd meghallva</string>
-    <string name="audio_delay_end">Hang észlelve</string>
-    <string name="subtitle_delay_end">Szöveg látva</string>
     <string name="track_index">Szám: %s</string>
     <string name="audio_queue_progress">Előrehaladás: %s</string>
     <string name="audio_queue_progress_remaining">Hátralévő: %s</string>
@@ -1067,9 +1012,6 @@
     <string name="remove_from_history">Eltávolítás az előzményekből</string>
     <string name="prefersmbv1">SMB 1 előnyben részesítése</string>
     <string name="prefersmbv1_summary">Kapcsolja ki ezt a beállítást, ha problémákba ütközik az SMB-kiszolgálók tallózásakor</string>
-    <string name="apply_to_all">Alkalmazás az összes videóra</string>
-    <string name="audio_delay_global">Hangkésleltetés %s ms-ra állítva az összes videónál</string>
-    <string name="audio_delay_bt">A bluetoothos eszköz számára a hangkésleltetés %sms-ra állítva</string>
     <string name="go_to_folder">Szülő tallózása</string>
     <string name="go_to_album">Ugrás az albumhoz</string>
     <string name="go_to_artist">Ugrás az előadóhoz</string>
@@ -1182,16 +1124,11 @@
     </plurals>
     <string name="official_website">Hivatalos honlap</string>
     <string name="view_online">Online megtekintés</string>
-    <string name="player_under_notch">Videó megjelenítése a bevágás alatt</string>
-    <string name="notch">Bevágás</string>
     <string name="always_fast_seek">Mindig a gyors tekerés használata</string>
     <string name="always_fast_seek_summary">A tekerés gyorsabb lesz, de lehet, hogy kevésbé pontos</string>
     <string name="no_web_browser">Nincs webböngésző telepítve</string>
     <string name="no_web_browser_message">Ezt leolvashatja az okostelefonján.\nAz URL a következő: %s</string>
     <string name="no_video">Nem érhető el videó</string>
-    <string name="fold_optimized">Az Ön összehajtható képernyőjére optimalizálva</string>
-    <string name="fold_optimize">Optimalizálás összehajtható képernyőre</string>
-    <string name="foldable">Összehajtható képernyő</string>
     <string name="undo">Visszavonás</string>
     <string name="add_server_favorite">Kiszolgáló hozzáadása a kedvencekhez</string>
     <string name="widget_theme">Modultéma</string>
@@ -1223,7 +1160,6 @@
     <string name="disable_track">Szám letiltása</string>
     <string name="ascending">Emelkedő</string>
     <string name="descending">Csökkenő</string>
-    <string name="screenshot_error">Hiba a képernyőkép készítése közben</string>
     <string name="disabled">Letiltva</string>
     <string name="enable_screenshot_gesture">Koppintson 3 ujjal</string>
     <string name="enable_screenshot_button">A képernyőkép gomb megjelenítése</string>
@@ -1254,14 +1190,11 @@
     <string name="talkback_list_section">Fejléc: %s</string>
     <string name="talkback_file_size">Fájlméret: %s</string>
     <string name="talkback_open_in_browser">Megnyitás böngészőben</string>
-    <string name="talkback_video_player">Videólejátszó. Koppintson a vezérlők megjelenítéséhez. Koppintson a vissza gombra az elrejtésükhöz</string>
     <string name="talkback_video_tracks">Videósávok</string>
     <string name="talkback_audio_tracks">Zeneszámok</string>
     <string name="talkback_subtitle_tracks">Feliratsávok</string>
     <string name="talkback_subtitle_dowload_item">Nyelv: %1$s. %2$s. Név: %3$s</string>
     <string name="selected">Kiválasztva</string>
-    <string name="talkback_increase_delay">Késleltetés növelése</string>
-    <string name="talkback_decrease_delay">Késleltetés csökkentése</string>
     <string name="talkback_increase_speed">Sebesség növelése</string>
     <string name="talkback_decrease_speed">Sebesség csökkentése</string>
     <string name="talkback_subtitle_history">Feliratelőzmények</string>

@@ -177,11 +177,6 @@
     <string name="firstsong">Pirmoji grojaraščio daina</string>
     <string name="lastsong">Paskutinė grojaraščio pozicija</string>
 
-    <string name="surface_best_fit">Pritaikyti automatiškai</string>
-    <string name="surface_fit_screen">Pritaikyti prie ekrano</string>
-    <string name="surface_fill">Užpildyti</string>
-    <string name="surface_original">Centruoti</string>
-    <string name="resize_tip">Norėdami pamatyti daugiau nuostatų, palaikykite nuspaudę</string>
     <string name="unseekable_stream">Srauto persukimas neįmanomas</string>
     <string name="refresh">Atnaujinti</string>
     <string name="track_audio">Garso takelis</string>
@@ -191,13 +186,8 @@
     <string name="track_bitrate_info">Bitų dažnis: %1$s/s\n</string>
     <string name="track_codec_info">Kodavimo priemonė: %1$s\n</string>
     <string name="track_language_info">Kalba: %1$s\n</string>
-    <string name="volume">Garsumas</string>
     <string name="system_volume_disabled">%s\nNėra prieigos prie sistemos garsumo nuostatų</string>
-    <string name="sound_on">Garsas įjungtas</string>
-    <string name="sound_off">Nutildyta</string>
-    <string name="brightness">Ryškumas</string>
     <string name="advanced">sudėtingesnės parinktys</string>
-    <string name="audio_boost_warning">Braukite į viršų dar kartą, jei norite pagarsinti virš 100%</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 kanalas\n</item>
@@ -258,32 +248,17 @@
     <string name="play_button">Grojimo mygtukas</string>
 
     <!-- Tips -->
-    <string name="tips_title">Vaizdo leistuvės paaiškinimai</string>
     <string name="seek">Prasukti</string>
     <string name="subtitles">Subtitrai</string>
-    <string name="tips_player_controls">Leistuvės valdikliai</string>
-    <string name="tips_player_controls_description">Bakstelėkite valdiklį, kad sužinotumėte, ką jis daro</string>
-    <string name="tips_audio_sub">Garso takeliai ir subtitrai</string>
-    <string name="tips_play_description">Bakstelėkite, kad paleistumėte vaizdo įrašą</string>
     <string name="lock">Užrakinimas</string>
     <string name="tap">Bakstelėkite, kad peržiūrėtumėte</string>
     <string name="tap_to_remove">Bakstelėkite, kad pašalintumėte</string>
     <string name="tap_to_rearrange">Bakstelėkite, kad pertvarkytumėte</string>
     <string name="tap_to_previous_next">Bakstelėkite, norėdami pereiti prie ankstesnio / kito</string>
-    <string name="lock_orientation">Padėties užrakinimas</string>
-    <string name="lock_orientation_description">Bakstelėkite, norėdami užrakinti / atrakinti vaizdo padėtį</string>
-    <string name="aspect_ratio">Vaizdo santykis</string>
-    <string name="aspect_ratio_description">Bakstelėkite, kad pakeistumėte kraštinių santykį</string>
-    <string name="advanced_options">Sudėtingesnės parinktys</string>
-    <string name="advanced_options_description">Grojimo greitis, kartojimo veiksena ir kt.</string>
-    <string name="tips_swipe">Braukite aukštyn arba žemyn</string>
     <string name="tips_swipe_horizontal">Braukite kairėn arba dešinėn</string>
     <string name="tips_playlist">Grojaraštis</string>
     <string name="tips_hold_seek">Laikykite nuspaudę, kad prasuktumėte</string>
     <string name="tips_long_drop">Laikykite nuspaudę ir vilkite</string>
-    <string name="pause_description">Du kartus bakstelėkite, kad pristabdytumėte</string>
-    <string name="seek_tap">+/- 10 sek.</string>
-    <string name="seek_tap_description">Du kartus bakstelėkite, kad peršoktumėte per 10 sekundžių pirmyn arba atgal</string>
     <string name="close">Užverti</string>
 
     <string name="playlist_tips">Grojaraščio paaiškinimai</string>
@@ -333,10 +308,8 @@
     <string name="screen_orientation">Vaizdo padėtis</string>
     <string name="screen_orientation_sensor">Automatinė (jutiklis)</string>
     <string name="screen_orientation_portrait">Stačia</string>
-    <string name="screen_orientation_portrait_reverse">Stačia (atvirkštinė)</string>
     <string name="screen_orientation_landscape">Gulsčia</string>
     <string name="screen_orientation_landscape_reverse">Gulsčia (atvirkštinė)</string>
-    <string name="screen_orientation_landscape_sensor">Gulsčia (jutiklis)</string>
     <string name="screen_orientation_last_locked">Paskiausia užrakinta ekrano padėtis</string>
     <string name="dark_theme">Tamsus apipavidalinimas</string>
     <string name="theme_auto">Automatinis apipavidalinimas</string>
@@ -396,7 +369,6 @@
     <string name="enable_tap_and_hold_fastplay_title">Įgalinti spartųjį atkūrimą</string>
     <string name="enable_tap_and_hold_fastplay_summary">Bakstelėkite ir palaikykite, kad padidintumėte atkūrimo greitį</string>
     <string name="fastplay_speed_title">Sparčiojo atkūrimo greitis</string>
-    <string name="fastplay_title">Atkuriama %sx greičiu</string>
     <string name="fastplay_subtitle">Norėdami sustabdyti, atleiskite</string>
     <string name="subtitles_prefs_category">Subtitrai</string>
     <string name="subtitles_size_title">Subtitrų dydis</string>
@@ -506,7 +478,6 @@
     <string name="tv_folders_first_summary">Medijos naršyklėje pirmiausia rodyti aplankus, o tik tada rinkmenas</string>
     <string name="tv_show_hidden_files">Rodyti slepiamąsias rinkmenas</string>
     <string name="tv_show_hidden_files_summary">Rodyti paslėptas rinkmenas rinkmenų naršyklėje</string>
-    <string name="ab_repeat_fastseek_warning">Greitasis prasukimas įjungtas. Tai gali sukelti tikslumo problemų</string>
 
     <string name="extensions_prefs_category">Plėtiniai</string>
     <string name="extensions_empty">Nerasta plėtinių</string>
@@ -640,7 +611,6 @@
 
     <!-- Accessibility -->
     <string name="more_actions">Daugiau veiksmų</string>
-    <string name="back_quit_lock">Norėdami išeiti iš vaizdo įrašo, dar kartą bakstelėkite išėjimo mygtuką</string>
     <string name="stream_deleted">Srautas pašalintas</string>
     <string name="no_subs_found">Šiame kataloge subtitrų nerasta</string>
     <string name="music_now_playing">Dabar groja</string>
@@ -719,7 +689,6 @@
     <string name="unknown_error">Netikėta klaida</string>
     <string name="browse_folder">Atverti aplanką</string>
     <string name="listen">Perklausyti</string>
-    <string name="apply_to_bt">Pritaikyti „Bluetooth“ įrenginiui</string>
     <string name="episodes">epizodai</string>
     <string name="movies">filmai</string>
     <string name="videos">vaizdo įr.</string>
@@ -820,9 +789,6 @@
     <string name="device_dialog_message">Ką tik prijungėte naują atminties laikmeną prie savo televizoriaus įrenginio. Ar norite ją atidaryti naudodami VLC?</string>
     <string name="videos_folders_title">Vaizdo įrašai pagal aplankus</string>
     <string name="videos_groups_title">Vaizdo įr. grupės</string>
-    <string name="video_save_clone_mode">Ar klonavimo veikseną įjungti automatiškai?</string>
-    <string name="video_remote_enable">Persijungti į nuotolinio valdymo veikseną</string>
-    <string name="video_remote_disable">Dubliuoti ekraną</string>
     <string name="removed_from_playlist_anonymous">Pašalinta iš grojaraščio</string>
     <string name="welcome_title">Sveiki, Jus sveikina VLC!</string>
     <string name="welcome_subtitle">Nemokama atviro kodo įvairialypės terpės leistuvė</string>
@@ -830,7 +796,6 @@
     <string name="permission_video">VLC programai reikia Jūsų leidimo prieiti prie įrenginyje esančių vaizdo įrašų</string>
     <string name="permission_audio">VLC programai reikia Jūsų leidimo prieiti prie įrenginyje esančių garso įrašų</string>
     <string name="medialibrary_scan_explanation">VLC gali automatiškai žvalgyti ir atnaujinti kūrinių sąrašus.</string>
-    <string name="player_title_fd_warning">VLC negali nuskaityti medijos pavadinimo ir įrašyti eigos neturėdama leidimo pasiekti saugyklą</string>
     <string name="onboarding_theme_title">Pritaikykite VLC</string>
     <string name="done">Atlikta</string>
     <string name="onboarding_scan_title">Automatinis kūrinių aptikimas</string>
@@ -934,27 +899,8 @@
     <string name="clear">Išvalyti</string>
     <string name="abrepeat_add_first_marker">Nustatyti pradžios tašką</string>
     <string name="abrepeat_add_second_marker">Nustatyti pabaigos tašką</string>
-    <string name="demux_bitrate">Demux bitų dažnis</string>
-    <string name="input_bitrate">Įvesties pralaidumas</string>
-    <string name="video_information">Vaizdo įr. inf.</string>
 
-    <string name="channels">Kanalai</string>
-    <string name="resolution">Skiriamoji geba</string>
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate">Kadrų dažnis</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">Kalba</string>
-    <string name="track_samplerate">Elementų dažnis</string>
-    <string name="track_samplerate_value">%1$d Hz\n</string>
-    <string name="bitrate">Bitų dažnis</string>
-    <string name="codec">Kodekas</string>
-    <string name="text">Subtitrai</string>
     <string name="unknown">Nežinomas</string>
-    <string name="audio_delay_start">Garsas paleistas</string>
-    <string name="subtitle_delay_first">Nuskambėjo balsas</string>
-    <string name="audio_delay_end">Laukiama garso</string>
-    <string name="subtitle_delay_end">Pasirodė tekstas</string>
     <string name="track_index">Takelis: %s</string>
     <string name="audio_queue_progress">Eiga: %s</string>
     <string name="audio_queue_progress_remaining">Likęs laikas: %s</string>
@@ -1017,9 +963,6 @@
     <string name="remove_from_history">Pašalinti iš istorijos</string>
     <string name="prefersmbv1">Pirmenybė SMB 1</string>
     <string name="prefersmbv1_summary">Panaikinkite šios nuostatos pasirinkimą, jei kyla sunkumų naršant SMB serverį</string>
-    <string name="apply_to_all">Pritaikyti visiems vaizdo įr.</string>
-    <string name="audio_delay_global">Pritaikyti vėlinimą %s ms visiems įrašams</string>
-    <string name="audio_delay_bt">Pritaikyti %s ms garso vėlinimą „Bluetooth“ įrenginiui</string>
     <string name="go_to_folder">Naršyti katalogą</string>
     <string name="go_to_album">Eiti į Albumai</string>
     <string name="go_to_artist">Eiti į Atlikėjai</string>
@@ -1128,16 +1071,11 @@
     </plurals>
     <string name="official_website">Oficiali svetainė</string>
     <string name="view_online">Žiūrėti internete</string>
-    <string name="player_under_notch">Nepaisyti ekrano išpjovos</string>
-    <string name="notch">Įpjova</string>
     <string name="always_fast_seek">Visada naudoti greitąjį prasukimą</string>
     <string name="always_fast_seek_summary">Prasukimas yra greitesnis, bet ne toks tikslus</string>
     <string name="no_web_browser">Neįdiegta žiniatinklio naršyklė</string>
     <string name="no_web_browser_message">Galite tai nuskaityti išmaniajame telefone.\nNuoroda yra: %s</string>
     <string name="no_video">Nėra vaizdo įrašų</string>
-    <string name="fold_optimized">Pritaikyta Jūsų sulankstomam ekranui</string>
-    <string name="fold_optimize">Pritaikyti sulankstomiems ekranams</string>
-    <string name="foldable">Sulankstomas ekranas</string>
     <string name="undo">Anuliuoti</string>
     <string name="add_server_favorite">Pridėti mėgst. serverį</string>
     <string name="widget_theme">Valdiklio tema</string>
@@ -1169,7 +1107,6 @@
     <string name="disable_track">Išjungti takelį</string>
     <string name="ascending">Didėjančiai</string>
     <string name="descending">Mažėjančiai</string>
-    <string name="screenshot_error">Darant ekrano kopiją iškilo klaida</string>
     <string name="disabled">Išjungta</string>
     <string name="enable_screenshot_gesture">Bakstelėjus 3 pirštais</string>
     <string name="enable_screenshot_button">Bakstelėjus ekr. kop. mygtuką</string>
@@ -1200,14 +1137,11 @@
     <string name="talkback_list_section">Antraštė: %s</string>
     <string name="talkback_file_size">Rinkmenos dydis: %s</string>
     <string name="talkback_open_in_browser">Atidaryti žiniatinklio naršyklėje</string>
-    <string name="talkback_video_player">Vaizdo leistuvė. Bakstelėkite, kad būtų parodyti valdikliai. Bakstelėkite mygtuką „atgal“, kad juos paslėptumėte</string>
     <string name="talkback_video_tracks">Vaizdo takeliai</string>
     <string name="talkback_audio_tracks">Garso takeliai</string>
     <string name="talkback_subtitle_tracks">Subtitrų takeliai</string>
     <string name="talkback_subtitle_dowload_item">Kalba: %1$s. %2$s. Pavadinimas: %3$s</string>
     <string name="selected">Pasirinkta</string>
-    <string name="talkback_increase_delay">Padidinti vėlinimą</string>
-    <string name="talkback_decrease_delay">Sumažinti vėlinimą</string>
     <string name="talkback_increase_speed">Padidinti greitį</string>
     <string name="talkback_decrease_speed">Sumažinti greitį</string>
     <string name="talkback_subtitle_history">Subtitrų istorija</string>

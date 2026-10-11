@@ -64,9 +64,6 @@
     <string name="cover_art">Muqova</string>
     <string name="previous">Avvalgi</string>
     <string name="stop">To‘xtatish</string>
-    <string name="surface_best_fit">Optimal</string>
-    <string name="surface_fill">To‘ldirish</string>
-    <string name="surface_original">Markazga</string>
     <string name="unseekable_stream">Topilmaydigan oqim</string>
     <string name="refresh">Yangilash</string>
     <string name="track_audio">Audio yozuv</string>
@@ -74,10 +71,6 @@
     <string name="track_unknown">Noma’lum yozuv</string>
     <string name="track_codec_info">Kodek: %1$s\n</string>
     <string name="track_language_info">Til: %1$s\n</string>
-    <string name="volume">Ovoz balandligi</string>
-    <string name="sound_on">Ovoz yoqiq</string>
-    <string name="sound_off">Ovoz o\'chiq</string>
-    <string name="brightness">Yorqinlik</string>
     <plurals name="track_channels_info_quantity">
         <item quantity="other">%1$d ta kanallar\n</item>
     </plurals>

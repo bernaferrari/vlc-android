@@ -195,11 +195,6 @@
     <string name="firstsong">השיר הראשון ברשימת הנגינה</string>
     <string name="lastsong">השיר האחרון ברשימת הנגינה</string>
 
-    <string name="surface_best_fit">התאמה מיטבית</string>
-    <string name="surface_fit_screen">התאמה למסך</string>
-    <string name="surface_fill">מילוי</string>
-    <string name="surface_original">מרכוז</string>
-    <string name="resize_tip">נגיעה ארוכה לאפשרויות נוספות</string>
     <string name="unseekable_stream">תזרים ללא אפשרות קפיצה</string>
     <string name="refresh">רענון</string>
     <string name="track_audio">רצועת שמע</string>
@@ -209,13 +204,8 @@
     <string name="track_bitrate_info">קצב סיביות: %1$s לשנייה\n</string>
     <string name="track_codec_info">מפענח: %1$s\n</string>
     <string name="track_language_info">שפה: %1$s\n</string>
-    <string name="volume">עצמת שמע</string>
     <string name="system_volume_disabled">%s\nאין גישה לכרך המערכת</string>
-    <string name="sound_on">שמע פעיל</string>
-    <string name="sound_off">שמע כבוי</string>
-    <string name="brightness">בהירות</string>
     <string name="advanced">אפשרויות מתקדמות</string>
-    <string name="audio_boost_warning">יש להחליק כלפי מעלה שוב כדי לעלות מעבר ל־100%</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">ערוץ אחד\n</item>
@@ -289,32 +279,17 @@
     <string name="play_button">כפתור נגינה</string>
 
     <!-- Tips -->
-    <string name="tips_title">עצות לנגן הווידאו</string>
     <string name="seek">גלילה</string>
     <string name="subtitles">כתוביות</string>
-    <string name="tips_player_controls">פקדי נגן</string>
-    <string name="tips_player_controls_description">נגיעה בפקדי הנגן להלן מגלה למה הם משמשים</string>
-    <string name="tips_audio_sub">רצועות שמע וכתוביות</string>
-    <string name="tips_play_description">נגיעה לנגינת וידאו</string>
     <string name="lock">נעילה</string>
     <string name="tap">נגיעה לתצוגה</string>
     <string name="tap_to_remove">נגיעה להסרה</string>
     <string name="tap_to_rearrange">נגיעה לסידור מחדש</string>
     <string name="tap_to_previous_next">נגיעה לחזור/להתקדם</string>
-    <string name="lock_orientation">כיוון</string>
-    <string name="lock_orientation_description">נגיעה לנעילת/שחרור כיוון</string>
-    <string name="aspect_ratio">יחס תצוגה</string>
-    <string name="aspect_ratio_description">יחס תצוגת הווידאו יתחלף בנגיעה</string>
-    <string name="advanced_options">אפשרויות מתקדמות</string>
-    <string name="advanced_options_description">כגון מהירות הנגינה, מצב חזרה, …</string>
-    <string name="tips_swipe">החלקה למעלה או למטה</string>
     <string name="tips_swipe_horizontal">החלקה ימינה או שמאלה</string>
     <string name="tips_playlist">רשימת נגינה</string>
     <string name="tips_hold_seek">יש להחזיק כדי לחפש</string>
     <string name="tips_long_drop">ללחוץ לחיצה ארוכה ולגרור</string>
-    <string name="pause_description">נגיעה כפולה להשהיה</string>
-    <string name="seek_tap">+/- 10 שנ׳</string>
-    <string name="seek_tap_description">נגיעה כפולה כדי לקפוץ 10 שניות קדימה או אחורה</string>
     <string name="close">סגירה</string>
 
     <string name="playlist_tips">עצות רשימת נגינה</string>
@@ -367,10 +342,8 @@
     <string name="screen_orientation">כיוון המסך</string>
     <string name="screen_orientation_sensor">אוטומטית (חיישן)</string>
     <string name="screen_orientation_portrait">לאורך</string>
-    <string name="screen_orientation_portrait_reverse">אנכי הפוך</string>
     <string name="screen_orientation_landscape">לרוחב</string>
     <string name="screen_orientation_landscape_reverse">לרוחב הפוך</string>
-    <string name="screen_orientation_landscape_sensor">אופקי (חיישן)</string>
     <string name="screen_orientation_last_locked">הכיוון האחרון שננעל</string>
     <string name="dark_theme">ערכת עיצוב כהה</string>
     <string name="theme_auto">ערכת עיצוב אוטומטית</string>
@@ -404,7 +377,6 @@
     <string name="save_brightness_title">שמירת רמת הבהירות</string>
     <string name="save_audiodelay_summary">שמירת השהיית שמע נקודתית לכל סרטון</string>
     <string name="save_audiodelay_title">שמירת השהיית השמע</string>
-    <string name="video_show_orientation_button">הצגת כפתור כיוון</string>
     <string name="enable_brightness_gesture_title">מחוות בהירות</string>
     <string name="enable_brightness_gesture_summary">ניתן לשלוט בבהירות באמצעות מחוות במהלך נגינת הווידאו</string>
     <string name="enable_volume_gesture_title">מחוות עצמת שמע</string>
@@ -436,7 +408,6 @@
     <string name="enable_tap_and_hold_fastplay_title">הפעלת נגינה מהירה</string>
     <string name="enable_tap_and_hold_fastplay_summary">נגיעה והחזקה תגברנה את מהירות הנגינה</string>
     <string name="fastplay_speed_title">מהירות נגינה מהירה</string>
-    <string name="fastplay_title">מתנגן בקצב %sx</string>
     <string name="fastplay_subtitle">שחרור עוצר</string>
     <string name="show_bookmark_buttons">הצגת כפתורי סימניות</string>
     <string name="show_bookmark_buttons_summary">להציג כפתורים לניווט בין סימניות</string>
@@ -556,7 +527,6 @@
     <string name="tv_folders_first_summary">להציג את התיקיות ורק אחריהן את הקבצים בסייר הקבצים</string>
     <string name="tv_show_hidden_files">הצגת קבצים מוסתרים</string>
     <string name="tv_show_hidden_files_summary">הצגת קבצים מוסתרים בדפדפן הקבצים</string>
-    <string name="ab_repeat_fastseek_warning">חתירה מהירה פעילה. היא יכולה להוביל לבעיות דיוק</string>
 
     <string name="extensions_prefs_category">הרחבות</string>
     <string name="extensions_empty">לא זוהו הרחבות</string>
@@ -704,7 +674,6 @@
 
     <!-- Accessibility -->
     <string name="more_actions">פעולות נוספות</string>
-    <string name="back_quit_lock">יש ללחוץ על אחורה פעם נוספת כדי לצאת מהסרטון</string>
     <string name="stream_deleted">התזרים נמחק</string>
     <string name="no_subs_found">אין כתוביות בתיקייה זו</string>
     <string name="music_now_playing">מתנגן כעת</string>
@@ -783,7 +752,6 @@
     <string name="unknown_error">שגיאה מפתיעה</string>
     <string name="browse_folder">עיון בתיקייה</string>
     <string name="listen">האזנה</string>
-    <string name="apply_to_bt">החלה על התקן Bluetooth</string>
     <string name="episodes">פרקים</string>
     <string name="movies">סרטים</string>
     <string name="videos">סרטונים</string>
@@ -885,9 +853,6 @@
     <string name="device_dialog_message">חיברת התקן אחסון חדש למערכת הטלוויזיה שלך, לפתוח אותו עם VLC?</string>
     <string name="videos_folders_title">סרטונים לפי תיקיות</string>
     <string name="videos_groups_title">קבוצות סרטונים</string>
-    <string name="video_save_clone_mode">להפעיל מצב כפילות אוטומטית?</string>
-    <string name="video_remote_enable">מעבר למצב שלט</string>
-    <string name="video_remote_disable">שכפול מסך</string>
     <string name="removed_from_playlist_anonymous">פריט/ים הוסר/ו מרשימת הנגינה</string>
     <string name="welcome_title">ברוך בואך אל VLC!</string>
     <string name="welcome_subtitle">נגן המולטימדיה החופשי בקוד פתוח</string>
@@ -895,7 +860,6 @@
     <string name="permission_video">ל־VLC דרושה הרשאה כדי לגשת למדיה מסוג וידאו במכשיר שלך</string>
     <string name="permission_audio">ל־VLC דרושה הרשאה כדי לגשת למדיה מסוג שמע במכשיר שלך</string>
     <string name="medialibrary_scan_explanation">ל־VLC יש אפשרות לסרוק את ההתקן שלך אוטומטית כדי לארגן את אוסף המדיה שלך.</string>
-    <string name="player_title_fd_warning">בלי הרשאות לאחסון, VLC לא יכול למשוך כותרות למדיה או לשמור את ההתקדמות</string>
     <string name="onboarding_theme_title">להרגיש כמו בבית</string>
     <string name="done">סיום</string>
     <string name="onboarding_scan_title">זיהוי אוטומטי של המדיה שלך</string>
@@ -1002,27 +966,8 @@
     <string name="clear">מחיקה</string>
     <string name="abrepeat_add_first_marker">הגדרת נקודת התחלה</string>
     <string name="abrepeat_add_second_marker">הגדרת נקודת סיום</string>
-    <string name="demux_bitrate">קצב סיביות פילוג</string>
-    <string name="input_bitrate">קצב סיביות קלט</string>
-    <string name="video_information">פרטי וידאו</string>
 
-    <string name="channels">ערוצים</string>
-    <string name="resolution">רזולוציה</string>
-    <string name="resolution_value">%1$d×%2$d</string>
-    <string name="framerate">קצב תמונות</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s לשנייה</string>
-    <string name="language">שפה</string>
-    <string name="track_samplerate">קצב דגימה</string>
-    <string name="track_samplerate_value">%1$d הרץ\n</string>
-    <string name="bitrate">קצב סיביות</string>
-    <string name="codec">מפענח</string>
-    <string name="text">טקסט</string>
     <string name="unknown">לא ידוע</string>
-    <string name="audio_delay_start">נשמע צליל</string>
-    <string name="subtitle_delay_first">נשמע קול</string>
-    <string name="audio_delay_end">זוהה קול</string>
-    <string name="subtitle_delay_end">נראה טקסט</string>
     <string name="track_index">רצועה: %s</string>
     <string name="audio_queue_progress">התקדמות: %s</string>
     <string name="audio_queue_progress_remaining">נותרו: %s</string>
@@ -1085,9 +1030,6 @@
     <string name="remove_from_history">הסרה מההיסטוריה</string>
     <string name="prefersmbv1">להעדיף SMB 1</string>
     <string name="prefersmbv1_summary">יש לבטל את ההגדרה הזאת אם נתקלת בתקלות בגלישה בשרת ה־SMB שלך</string>
-    <string name="apply_to_all">להחיל על כל הסרטונים</string>
-    <string name="audio_delay_global">השהיית השמע הוגדרה ל־%s מילישניות לכל הסרטונים</string>
-    <string name="audio_delay_bt">השהיית התקן ה־Bluetooth הוגדרה ל־%s מילישניות</string>
     <string name="go_to_folder">עיון בהורה</string>
     <string name="go_to_album">מעבר לאלבום</string>
     <string name="go_to_artist">מעבר לאומן</string>
@@ -1204,16 +1146,11 @@
     </plurals>
     <string name="official_website">האתר הרשמי</string>
     <string name="view_online">הצגה באופן מקוון</string>
-    <string name="player_under_notch">הצגת סרטון מתחת לבליטה</string>
-    <string name="notch">בליטה</string>
     <string name="always_fast_seek">תמיד להשתמש בשיטוט מהיר</string>
     <string name="always_fast_seek_summary">השיטוט יהיה מהיר יותר אבל פחות מדויק</string>
     <string name="no_web_browser">לא מותקן דפדפן</string>
     <string name="no_web_browser_message">אפשר לסרוק את זה בטלפון החכם שלך.\nהכתובת היא %s</string>
     <string name="no_video">אין וידאו זמין</string>
-    <string name="fold_optimized">מותאם במיוחד למסך המתקפל שלך</string>
-    <string name="fold_optimize">התאמה למסכים מתקפלים</string>
-    <string name="foldable">מסך מתקפל</string>
     <string name="undo">החזרה</string>
     <string name="add_server_favorite">הוספת שרת למועדפים</string>
     <string name="widget_theme">ערכת עיצוב וידג׳ט</string>
@@ -1245,7 +1182,6 @@
     <string name="disable_track">השבתת רצועה</string>
     <string name="ascending">עולה</string>
     <string name="descending">יורד</string>
-    <string name="screenshot_error">שגיאה בצילום המסך</string>
     <string name="disabled">מושבת</string>
     <string name="enable_screenshot_gesture">נגיעה ב־3 אצבעות</string>
     <string name="enable_screenshot_button">להציג את כפתור צילום המסך</string>
@@ -1276,14 +1212,11 @@
     <string name="talkback_list_section">כותרת: %s</string>
     <string name="talkback_file_size">גודל: %s</string>
     <string name="talkback_open_in_browser">פתיחה בדפדפן</string>
-    <string name="talkback_video_player">נגן וידאו. נגיעה תציג את הפקדים. נגיעה בכפתור החזרה תסתיר אותם</string>
     <string name="talkback_video_tracks">רצועות וידאו</string>
     <string name="talkback_audio_tracks">רצועות שמע</string>
     <string name="talkback_subtitle_tracks">רצועות כתוביות</string>
     <string name="talkback_subtitle_dowload_item">שפה: %1$s. %2$s. שם: %3$s</string>
     <string name="selected">נבחר</string>
-    <string name="talkback_increase_delay">הגדלת השהיה</string>
-    <string name="talkback_decrease_delay">הקטנת השהיה</string>
     <string name="talkback_increase_speed">האצה</string>
     <string name="talkback_decrease_speed">האטה</string>
     <string name="talkback_subtitle_history">היסטוריית כתוביות</string>

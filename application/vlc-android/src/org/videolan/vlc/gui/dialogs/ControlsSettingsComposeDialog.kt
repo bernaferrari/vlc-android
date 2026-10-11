@@ -81,7 +81,6 @@ import org.videolan.vlc.R
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
-import org.videolan.vlc.gui.video.VideoPlayerActivity
 
 fun ComponentActivity.showAudioControlsSettingsComposeDialog() {
     if (showPinIfNeeded()) return
@@ -177,7 +176,6 @@ private class ControlsSettingsComposeDialog(
     }
 
     private fun onSettingChanged(key: String) {
-        (activity as? VideoPlayerActivity)?.onChangedControlSetting(key)
         when (key) {
             KEY_AUDIO_JUMP_DELAY -> Settings.audioJumpDelay = settings.getInt(KEY_AUDIO_JUMP_DELAY, 10)
             KEY_AUDIO_LONG_JUMP_DELAY -> Settings.audioLongJumpDelay = settings.getInt(KEY_AUDIO_LONG_JUMP_DELAY, 20)

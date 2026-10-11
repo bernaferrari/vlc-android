@@ -156,11 +156,6 @@
     <string name="firstsong">Primera canción de la lista de reproducción</string>
     <string name="lastsong">Última canción de la lista de reproducción</string>
 
-    <string name="surface_best_fit">Mejor ajuste</string>
-    <string name="surface_fit_screen">Ajustar a pantalla</string>
-    <string name="surface_fill">Rellenar</string>
-    <string name="surface_original">Centrar</string>
-    <string name="resize_tip">Mantener presionado para más opciones</string>
     <string name="unseekable_stream">Transmisión no rebobinable</string>
     <string name="refresh">Actualizar</string>
     <string name="track_audio">Pista de audio</string>
@@ -170,13 +165,8 @@
     <string name="track_bitrate_info">Tasa de bits: %1$s/s\n</string>
     <string name="track_codec_info">Codec: %1$s\n</string>
     <string name="track_language_info">Idioma %1$s\n</string>
-    <string name="volume">Volumen</string>
     <string name="system_volume_disabled">%s\nSin acceso al volumen del sistema</string>
-    <string name="sound_on">Sonido encendido</string>
-    <string name="sound_off">Sonido apagado</string>
-    <string name="brightness">Brillo</string>
     <string name="advanced">opciones avanzadas</string>
-    <string name="audio_boost_warning">Desliza arriba otra vez para superar el 100%</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 canal\n</item>
@@ -225,26 +215,14 @@
     <string name="play_button">Botón reproducir</string>
 
     <!-- Tips -->
-    <string name="tips_title">Ayuda de reproductor de vídeo</string>
     <string name="seek">Buscar</string>
     <string name="subtitles">Subtitulos</string>
-    <string name="tips_player_controls">Control de reproducción</string>
-    <string name="tips_player_controls_description">Toca los controles siguientes para mostrar que hacen</string>
-    <string name="tips_audio_sub">Pista de audio y subtítulos</string>
-    <string name="tips_play_description">Toca para reproducir vídeo</string>
     <string name="lock">Bloquear</string>
     <string name="tap">Toca para vista</string>
     <string name="tap_to_remove">Toca para remover</string>
     <string name="tap_to_rearrange">Toca para reorganizar</string>
     <string name="tap_to_previous_next">Toca para ir a anterior/siguiente</string>
-    <string name="lock_orientation">Orientación</string>
-    <string name="lock_orientation_description">Toca para bloquear/desbloquear orientación</string>
-    <string name="aspect_ratio">Relación al aspecto</string>
-    <string name="aspect_ratio_description">Toca para cambiar relación al aspecto del vídeo</string>
     <string name="tips_hold_seek">Mantener para adelantar/rebobinar</string>
-    <string name="pause_description">Doble toque para pausar</string>
-    <string name="seek_tap">+/- 10 seg.</string>
-    <string name="seek_tap_description">Doble toque para adelantar o rebobinar 10 seg.</string>
     <string name="close">Cerrar</string>
 
     <string name="playlist_tips">Consejos de la lista de reproducción</string>
@@ -505,7 +483,6 @@
 
     <!-- Accessibility -->
     <string name="more_actions">Más acciones</string>
-    <string name="back_quit_lock">Presione Átras otra vez para cerrar vídeo</string>
     <string name="stream_deleted">Transmisión eliminada</string>
     <string name="no_subs_found">No hay subtitulos en esta carpeta</string>
     <string name="music_now_playing">Reproduciendo ahora</string>
@@ -630,9 +607,6 @@
     <string name="device_dialog_message">Acaba de conectar un dispositvo nuevo a su TV Box, ¿Desea abrirlo con VLC?</string>
     <string name="videos_folders_title">Vídeos por carpeta</string>
     <string name="videos_groups_title">Vídeos en grupos</string>
-    <string name="video_save_clone_mode">¿Auto activar modo clon?</string>
-    <string name="video_remote_enable">Cambiar al modo control remoto</string>
-    <string name="video_remote_disable">Duplicar pantalla</string>
     <string name="removed_from_playlist_anonymous">Elemento(s) borrados de la lista</string>
     <string name="welcome_title">¡Bienvenido a VLC!</string>
     <string name="welcome_subtitle">El reproductor multimedia libre y de código abierto</string>
@@ -726,27 +700,8 @@
     <string name="playback_multiple_errors">No se pueden ver múltiples medios </string>
     <string name="abrepeat_add_first_marker">Establecer punto inicial</string>
     <string name="abrepeat_add_second_marker">Establecer punto final</string>
-    <string name="demux_bitrate">Tasa de bits de Demux</string>
-    <string name="input_bitrate">Tasa de bits de entrada</string>
-    <string name="video_information">Información del vídeo</string>
 
-    <string name="channels">Canales</string>
-    <string name="resolution">Resolución</string>
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate">Cuadros por segundo</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">Idioma</string>
-    <string name="track_samplerate">Tasa de muestreo</string>
-    <string name="track_samplerate_value">%1$d Hz\n</string>
-    <string name="bitrate">Tasa de bits</string>
-    <string name="codec">Códec</string>
-    <string name="text">Texto</string>
     <string name="unknown">Desconocido</string>
-    <string name="audio_delay_start">Sonido escuchado</string>
-    <string name="subtitle_delay_first">Voz escuchada</string>
-    <string name="audio_delay_end">Sonido manchado</string>
-    <string name="subtitle_delay_end">Texto visto</string>
     <string name="track_index">Pista: %s</string>
     <string name="audio_queue_progress">Progreso: %s</string>
     <string name="audio_queue_progress_finished">Termina en: %s</string>
@@ -803,8 +758,6 @@
     <string name="remove_from_history">Quitar del historial</string>
     <string name="prefersmbv1">Preferir SMB 1</string>
     <string name="prefersmbv1_summary">Desactivar esto si tiene problemas para encontrar su servidor SMB</string>
-    <string name="apply_to_all">Aplicar a todos los vídeos</string>
-    <string name="audio_delay_global">Retraso de audio de %s ms para todos los vídeos</string>
     <string name="go_to_folder">Explorar padre</string>
     <string name="no_sub_renderer">Los subtítulos aún no son compatibles durante la transmisión</string>
     </resources>

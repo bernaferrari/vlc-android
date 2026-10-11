@@ -153,10 +153,6 @@
     <string name="firstsong">Pierwszy utwór z listy odtwarzania</string>
     <string name="lastsong">Ostatni utwór z listy odtwarzania</string>
 
-    <string name="surface_best_fit">Najlepsze dopasowanie</string>
-    <string name="surface_fit_screen">Dopasuj ekran</string>
-    <string name="surface_fill">Wypełnij</string>
-    <string name="surface_original">Wyśrodkuj</string>
     <string name="unseekable_stream">Strumień jest nieprzeszukiwalny</string>
     <string name="refresh">Odśwież</string>
     <string name="track_audio">Ścieżka dźwiękowa</string>
@@ -166,12 +162,7 @@
     <string name="track_bitrate_info">Bitrate: %1$s/s\n</string>
     <string name="track_codec_info">Kodek: %1$s\n</string>
     <string name="track_language_info">Język: %1$s\n</string>
-    <string name="volume">Głośność</string>
-    <string name="sound_on">Dźwięk włączony</string>
-    <string name="sound_off">Dźwięk wyłączony</string>
-    <string name="brightness">Jasność</string>
     <string name="advanced">opcje zaawansowane</string>
-    <string name="audio_boost_warning">Przesuń ponownie, aby przekroczyć 100%</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 kanał\n</item>
@@ -219,10 +210,7 @@
     <string name="seek">Szukaj</string>
     <string name="subtitles">Napisy</string>
     <string name="lock">Zablokuj</string>
-    <string name="lock_orientation">Orientacja</string>
-    <string name="advanced_options">Opcje zaawansowane</string>
     <string name="tips_playlist">Playlista</string>
-    <string name="seek_tap">+/- 10 sek.</string>
     <string name="close">Zamknij</string>
 
     <string name="playlist_tips">Porady listy odtwarzania</string>
@@ -465,7 +453,6 @@
 
     <!-- Accessibility -->
     <string name="more_actions">Więcej operacji</string>
-    <string name="back_quit_lock">Naciśnij ponownie z powrotem, aby wyjść z wideo</string>
     <string name="stream_deleted">Strumień został usunięty</string>
     <string name="no_subs_found">Brak napisów w tym katalogu</string>
     <string name="music_now_playing">Teraz odtwarzane</string>
@@ -509,7 +496,6 @@
     <string name="download_subtitles">Pobierz napisy</string>
     <string name="browse_folder">Przeglądaj folder</string>
     <string name="listen">Posłuchaj</string>
-    <string name="apply_to_bt">Zastosuj do urządzenia Bluetooth</string>
     <string name="videos_all">Wszystkie filmy</string>
     <string name="clear_playback_history">Wyczyść historię odtwarzania</string>
     <string name="ml_scanning">Wyszukiwanie plików multimedialnych</string>
@@ -596,9 +582,6 @@
     <string name="device_dialog_message">Podłączyłeś/aś nowe urządzenie pamięci masowej do Twojego telewizora. Chcesz je otworzyć za pomocą VLC?</string>
     <string name="videos_folders_title">Filmy grupowane według folderów</string>
     <string name="videos_groups_title">Grupy wideo</string>
-    <string name="video_save_clone_mode">Automatycznie włączyć tryb powielania?</string>
-    <string name="video_remote_enable">Przełącz w tryb zdalnego sterowania</string>
-    <string name="video_remote_disable">Powiel ekran</string>
     <string name="removed_from_playlist_anonymous">Element(y) usunięte z listy odtwarzania</string>
     <string name="welcome_title">Witamy w VLC!</string>
     <string name="welcome_subtitle">Darmowy odtwarzacz multimedialny typu open source</string>
@@ -697,27 +680,8 @@
     <string name="clear">Wyczyść</string>
     <string name="abrepeat_add_first_marker">Ustaw punkt początkowy</string>
     <string name="abrepeat_add_second_marker">Ustaw punkt końcowy</string>
-    <string name="demux_bitrate">Bitrate demultipleksera</string>
-    <string name="input_bitrate">Bitrate wejściowy</string>
-    <string name="video_information">Informacje o filmie</string>
 
-    <string name="channels">Kanały</string>
-    <string name="resolution">Rozdzielczość</string>
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate">Liczba klatek</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">Język</string>
-    <string name="track_samplerate">Częstotliwość próbkowania</string>
-    <string name="track_samplerate_value">%1$d Hz\n</string>
-    <string name="bitrate">Bitrate</string>
-    <string name="codec">Kodek</string>
-    <string name="text">Tekst</string>
     <string name="unknown">Nieznany</string>
-    <string name="audio_delay_start">Dźwięk słyszalny</string>
-    <string name="subtitle_delay_first">Głos słyszalny</string>
-    <string name="audio_delay_end">Dźwięk wykryty</string>
-    <string name="subtitle_delay_end">Tekst widoczny</string>
     <string name="track_index">Utwór: %s</string>
     <string name="audio_queue_progress">Postęp: %s</string>
     <string name="audio_queue_progress_remaining">Pozostało: %s</string>
@@ -777,9 +741,6 @@
     <string name="remove_from_history">Usuń z historii</string>
     <string name="prefersmbv1">Preferuj SMB 1</string>
     <string name="prefersmbv1_summary">Wyłącz to ustawienie, jeśli masz problemy z przeglądaniem serwera SMB</string>
-    <string name="apply_to_all">Zastosuj do wszystkich filmów</string>
-    <string name="audio_delay_global">Opóźnienie dźwięku ustawione na %s ms dla wszystkich filmów</string>
-    <string name="audio_delay_bt">Opóźnienie dźwięku ustawione na %s ms dla urządzenia Bluetooth</string>
     <string name="go_to_folder">Przeglądaj katalog nadrzędny</string>
     <string name="no_sub_renderer">Napisy nie są jeszcze obsługiwane podczas transmisji</string>
     <string name="enqueuing">Ładowanie Twoich multimediów</string>
@@ -859,8 +820,6 @@
     <string name="talkback_video_tracks">Ścieżki wideo</string>
     <string name="talkback_audio_tracks">Ścieżki audio</string>
     <string name="talkback_subtitle_tracks">Ścieżki napisów</string>
-    <string name="talkback_increase_delay">Zwiększ opóźnienie</string>
-    <string name="talkback_decrease_delay">Zmniejsz opóźnienie</string>
     <string name="talkback_increase_speed">Zwiększ prędkość</string>
     <string name="talkback_decrease_speed">Zmniejsz prędkość</string>
     <string name="talkback_subtitle_history">Historia napisów</string>

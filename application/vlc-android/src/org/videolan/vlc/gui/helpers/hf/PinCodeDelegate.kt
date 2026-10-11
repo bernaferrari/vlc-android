@@ -13,7 +13,6 @@ import org.videolan.tools.Settings
 import org.videolan.vlc.gui.DialogActivity
 import org.videolan.vlc.gui.PinCodeActivity
 import org.videolan.vlc.gui.PinCodeReason
-import org.videolan.vlc.gui.video.VideoPlayerActivity
 import kotlin.coroutines.resume
 
 object PinCodeDelegate {
@@ -22,7 +21,6 @@ object PinCodeDelegate {
 }
 
 suspend fun ComponentActivity.checkPIN(unlock:Boolean = false) : Boolean = withContext(Dispatchers.Main.immediate) {
-    if (this@checkPIN is VideoPlayerActivity) this@checkPIN.waitingForPin = true
     if (!Settings.safeMode) return@withContext true
     suspendCancellableCoroutine { continuation ->
         if (this@checkPIN is DialogActivity) this@checkPIN.preventFinish()

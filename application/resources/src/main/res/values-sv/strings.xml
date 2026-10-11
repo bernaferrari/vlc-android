@@ -181,11 +181,6 @@
     <string name="firstsong">Första låten i spellistan</string>
     <string name="lastsong">Sista låten i spellistan</string>
 
-    <string name="surface_best_fit">Bäst passform</string>
-    <string name="surface_fit_screen">Anpassa till skärm</string>
-    <string name="surface_fill">Fyll</string>
-    <string name="surface_original">Centrera</string>
-    <string name="resize_tip">Tryck länge för fler alternativ</string>
     <string name="unseekable_stream">Strömmen kan inte sökas</string>
     <string name="refresh">Uppdatera</string>
     <string name="track_audio">Ljudspår</string>
@@ -195,13 +190,8 @@
     <string name="track_bitrate_info">Bithastighet: %1$s/s\n</string>
     <string name="track_codec_info">Kodek: %1$s\n</string>
     <string name="track_language_info">Språk: %1$s\n</string>
-    <string name="volume">Volym</string>
     <string name="system_volume_disabled">%s\nIngen åtkomst till systemvolymen</string>
-    <string name="sound_on">Ljud på</string>
-    <string name="sound_off">Ljud av</string>
-    <string name="brightness">Ljusstyrka</string>
     <string name="advanced">avancerade alternativ</string>
-    <string name="audio_boost_warning">Svep uppåt igen för att gå över 100 %</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 kanal\n</item>
@@ -273,32 +263,17 @@
     <string name="play_button">Uppspelningsknapp</string>
 
     <!-- Tips -->
-    <string name="tips_title">Tips om videospelaren</string>
     <string name="seek">Sök</string>
     <string name="subtitles">Undertexter</string>
-    <string name="tips_player_controls">Spelarkontroller</string>
-    <string name="tips_player_controls_description">Tryck på spelarkontrollerna nedan för att upptäcka vad de används till</string>
-    <string name="tips_audio_sub">Ljudspår och undertexter</string>
-    <string name="tips_play_description">Tryck för att spela upp video</string>
     <string name="lock">Lås</string>
     <string name="tap">Tryck för att visa</string>
     <string name="tap_to_remove">Tryck för att ta bort</string>
     <string name="tap_to_rearrange">Tryck för att ordna om</string>
     <string name="tap_to_previous_next">Tryck för att gå till föregående/nästa</string>
-    <string name="lock_orientation">Orientering</string>
-    <string name="lock_orientation_description">Tryck för att låsa/låsa upp orienteringen</string>
-    <string name="aspect_ratio">Bildförhållande</string>
-    <string name="aspect_ratio_description">Tryck för att ändra videons bildförhållande</string>
-    <string name="advanced_options">Avancerade alternativ</string>
-    <string name="advanced_options_description">T.ex. uppspelningshastighet, upprepningsläge, …</string>
-    <string name="tips_swipe">Svep uppåt eller nedåt</string>
     <string name="tips_swipe_horizontal">Svep åt vänster eller höger</string>
     <string name="tips_playlist">Spellista</string>
     <string name="tips_hold_seek">Håll ned för att söka</string>
     <string name="tips_long_drop">Tryck länge och släpp</string>
-    <string name="pause_description">Dubbelknacka för att pausa</string>
-    <string name="seek_tap">+/- 10 s</string>
-    <string name="seek_tap_description">Dubbelknacka för att hoppa 10 s framåt eller bakåt</string>
     <string name="close">Stäng</string>
 
     <string name="playlist_tips">Tips för spellista</string>
@@ -351,10 +326,8 @@
     <string name="screen_orientation">Skärmorientering för video</string>
     <string name="screen_orientation_sensor">Automatiskt (sensor)</string>
     <string name="screen_orientation_portrait">Porträtt</string>
-    <string name="screen_orientation_portrait_reverse">Omvänt porträtt</string>
     <string name="screen_orientation_landscape">Landskap</string>
     <string name="screen_orientation_landscape_reverse">Omvänt landskap</string>
-    <string name="screen_orientation_landscape_sensor">Landskap (sensor)</string>
     <string name="screen_orientation_last_locked">Senast låsta orientering</string>
     <string name="dark_theme">Mörkt tema</string>
     <string name="theme_auto">Automatiskt tema</string>
@@ -388,7 +361,6 @@
     <string name="save_brightness_title">Spara ljusstyrkenivån</string>
     <string name="save_audiodelay_summary">Spara individuell ljudfördröjning för varje video</string>
     <string name="save_audiodelay_title">Spara ljudfördröjning</string>
-    <string name="video_show_orientation_button">Visa orienteringsknapp</string>
     <string name="enable_brightness_gesture_title">Ljusstyrkegester</string>
     <string name="enable_brightness_gesture_summary">Kontrollera ljusstyrkan med gester under videouppspelning</string>
     <string name="enable_volume_gesture_title">Volymgester</string>
@@ -420,7 +392,6 @@
     <string name="enable_tap_and_hold_fastplay_title">Aktivera snabbuppspelning</string>
     <string name="enable_tap_and_hold_fastplay_summary">Håll ned för att öka uppspelningshastigheten</string>
     <string name="fastplay_speed_title">Hastighet för snabbuppspelning</string>
-    <string name="fastplay_title">Spelar upp med %sx</string>
     <string name="fastplay_subtitle">Släpp för att stoppa</string>
     <string name="show_bookmark_buttons">Visa bokmärkesknappar</string>
     <string name="show_bookmark_buttons_summary">Visa knappar för att navigera mellan bokmärken</string>
@@ -540,7 +511,6 @@
     <string name="tv_folders_first_summary">Visa mappar och sedan filer i filväljaren</string>
     <string name="tv_show_hidden_files">Visa dolda filer</string>
     <string name="tv_show_hidden_files_summary">Visa dolda filer i filväljaren</string>
-    <string name="ab_repeat_fastseek_warning">Snabbsökning har aktiverats. Detta kan leda till precisionsfel</string>
 
     <string name="extensions_prefs_category">Tillägg</string>
     <string name="extensions_empty">Inga tillägg hittades</string>
@@ -688,7 +658,6 @@
 
     <!-- Accessibility -->
     <string name="more_actions">Fler åtgärder</string>
-    <string name="back_quit_lock">Tryck på tillbaka igen för att avsluta videon</string>
     <string name="stream_deleted">Ström raderades</string>
     <string name="no_subs_found">Inga undertexter i denna katalog</string>
     <string name="music_now_playing">Spelar nu</string>
@@ -767,7 +736,6 @@
     <string name="unknown_error">Oväntat fel</string>
     <string name="browse_folder">Bläddra mapp</string>
     <string name="listen">Lyssna</string>
-    <string name="apply_to_bt">Verställ på Bluetooth-enhet</string>
     <string name="episodes">episoder</string>
     <string name="movies">filmer</string>
     <string name="videos">videor</string>
@@ -869,9 +837,6 @@
     <string name="device_dialog_message">Du anslöt precis en ny lagringsenhet till din TV-box, vill du öppna den med VLC?</string>
     <string name="videos_folders_title">Videor efter mappar</string>
     <string name="videos_groups_title">Videogrupper</string>
-    <string name="video_save_clone_mode">Aktivera kloningsläge automatiskt?</string>
-    <string name="video_remote_enable">Byt till fjärrkontrollsläge</string>
-    <string name="video_remote_disable">Duplicera skärm</string>
     <string name="removed_from_playlist_anonymous">Objekt togs bort från spellistan</string>
     <string name="welcome_title">Välkommen till VLC!</string>
     <string name="welcome_subtitle">Den fria mediaspelaren med öppen källkod</string>
@@ -879,7 +844,6 @@
     <string name="permission_video">VLC behöver din tillåtelse att komma åt videofiler på din enhet</string>
     <string name="permission_audio">VLC behöver din tillåtelse att komma åt ljudfiler på din enhet</string>
     <string name="medialibrary_scan_explanation">VLC kan automatiskt skanna din enhet för att organisera din mediasamling.</string>
-    <string name="player_title_fd_warning">Utan lagringsbehörigheten kan VLC varken hämta mediatitlar eller spara förlopp</string>
     <string name="onboarding_theme_title">Känn dig som hemma</string>
     <string name="done">Färdig</string>
     <string name="onboarding_scan_title">Upptäck din media automatiskt</string>
@@ -984,27 +948,8 @@
     <string name="clear">Rensa</string>
     <string name="abrepeat_add_first_marker">Ange startpunkt</string>
     <string name="abrepeat_add_second_marker">Ange slutpunkt</string>
-    <string name="demux_bitrate">Bitfrekvens för demux</string>
-    <string name="input_bitrate">Bitfrekvens för inmatning</string>
-    <string name="video_information">Videoinformation</string>
 
-    <string name="channels">Kanaler</string>
-    <string name="resolution">Upplösning</string>
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate">Bildfrekvens</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">Språk</string>
-    <string name="track_samplerate">Samplingsfrekvens</string>
-    <string name="track_samplerate_value">%1$d Hz\n</string>
-    <string name="bitrate">Bitfrekvens</string>
-    <string name="codec">Kodek</string>
-    <string name="text">Text</string>
     <string name="unknown">Okänd</string>
-    <string name="audio_delay_start">Ljud hördes</string>
-    <string name="subtitle_delay_first">Röst hördes</string>
-    <string name="audio_delay_end">Ljud upptäcktes</string>
-    <string name="subtitle_delay_end">Text sågs</string>
     <string name="track_index">Spår: %s</string>
     <string name="audio_queue_progress">Förlopp: %s</string>
     <string name="audio_queue_progress_remaining">Återstående: %s</string>
@@ -1067,9 +1012,6 @@
     <string name="remove_from_history">Ta bort från historiken</string>
     <string name="prefersmbv1">Föredra SMB 1</string>
     <string name="prefersmbv1_summary">Avmarkera denna inställning om du har problem med att bläddra i din SMB-server</string>
-    <string name="apply_to_all">Tillämpa på alla videor</string>
-    <string name="audio_delay_global">Ljudfördröjningen ändrades till%s ms för alla videor</string>
-    <string name="audio_delay_bt">Ljudfördröjningen ändrades till %s ms för Bluetooth-enheten</string>
     <string name="go_to_folder">Bläddra i överordnad</string>
     <string name="go_to_album">Gå till albumet</string>
     <string name="go_to_artist">Gå till artisten</string>
@@ -1182,16 +1124,11 @@
     </plurals>
     <string name="official_website">Officiell webbplats</string>
     <string name="view_online">Visa på internet</string>
-    <string name="player_under_notch">Visa video under skärmens sensorfält</string>
-    <string name="notch">Sensorfält</string>
     <string name="always_fast_seek">Använd alltid kvick snabbspolning</string>
     <string name="always_fast_seek_summary">Söker snabbare men kan vara mindre exakt</string>
     <string name="no_web_browser">Ingen webbläsare är installerad</string>
     <string name="no_web_browser_message">Du kan skanna detta med din smartphone.\nWebbaddressen är %s</string>
     <string name="no_video">Ingen video tillgänglig</string>
-    <string name="fold_optimized">Optimerad för din vikbara skärm</string>
-    <string name="fold_optimize">Optimera för vikbara skärmar</string>
-    <string name="foldable">Vikbar skärm</string>
     <string name="undo">Ångra</string>
     <string name="add_server_favorite">Lägg till en favoritserver</string>
     <string name="widget_theme">Widgettema</string>
@@ -1223,7 +1160,6 @@
     <string name="disable_track">Inaktivera spår</string>
     <string name="ascending">Stigande</string>
     <string name="descending">Fallande</string>
-    <string name="screenshot_error">Fel uppstod när skärmdumpen skulle tas</string>
     <string name="disabled">Inaktiverad</string>
     <string name="enable_screenshot_gesture">Tryck med 3 fingrar</string>
     <string name="enable_screenshot_button">Visa skärmdumpsknappen</string>
@@ -1254,14 +1190,11 @@
     <string name="talkback_list_section">Sidhuvud: %s</string>
     <string name="talkback_file_size">Filstorlek: %s</string>
     <string name="talkback_open_in_browser">Öppna i webbläsare</string>
-    <string name="talkback_video_player">Videospelare. Tryck för att visa kontroller. Tryck på tillbakaknappen för att dölja dem</string>
     <string name="talkback_video_tracks">Videospår</string>
     <string name="talkback_audio_tracks">Ljudspår</string>
     <string name="talkback_subtitle_tracks">Undertextspår</string>
     <string name="talkback_subtitle_dowload_item">Språk: %1$s. %2$s. Namn: %3$s</string>
     <string name="selected">Markerade</string>
-    <string name="talkback_increase_delay">Öka fördröjning</string>
-    <string name="talkback_decrease_delay">Minska fördröjning</string>
     <string name="talkback_increase_speed">Öka hastighet</string>
     <string name="talkback_decrease_speed">Minska hastighet</string>
     <string name="talkback_subtitle_history">Undertexthistorik</string>

@@ -153,11 +153,6 @@
     <string name="firstsong">Первая позиция плейлиста</string>
     <string name="lastsong">Последняя позиция плейлиста</string>
 
-    <string name="surface_best_fit">Оптимально</string>
-    <string name="surface_fit_screen">Подогнать под экран</string>
-    <string name="surface_fill">Заполнение</string>
-    <string name="surface_original">По центру</string>
-    <string name="resize_tip">Долгое касание вызывает другие варианты</string>
     <string name="unseekable_stream">Перемотка потока невозможна</string>
     <string name="refresh">Обновить</string>
     <string name="track_audio">Аудиодорожка</string>
@@ -167,12 +162,7 @@
     <string name="track_bitrate_info">Битрейт: %1$s/s\n</string>
     <string name="track_codec_info">Кодек: %1$s\n</string>
     <string name="track_language_info">Язык: %1$s\n</string>
-    <string name="volume">Громкость</string>
-    <string name="sound_on">Звук вкл.</string>
-    <string name="sound_off">Звук выкл.</string>
-    <string name="brightness">Яркость</string>
     <string name="advanced">расширенные параметры</string>
-    <string name="audio_boost_warning">Сдвиньте выше ещё раз для превышения 100%</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">Каналов: 1\n</item>
@@ -221,32 +211,17 @@
     <string name="play_button">Кнопка воспроизведения</string>
 
     <!-- Tips -->
-    <string name="tips_title">Подсказки для видеоплеера</string>
     <string name="seek">Переход</string>
     <string name="subtitles">Субтитры</string>
-    <string name="tips_player_controls">Управление плеером</string>
-    <string name="tips_player_controls_description">Коснитесь элемента управления плеером, чтобы узнать его предназначение</string>
-    <string name="tips_audio_sub">Звуковые дорожки и субтитры</string>
-    <string name="tips_play_description">Коснитесь для воспроизведения видео</string>
     <string name="lock">Блокировка</string>
     <string name="tap">Коснитесь для просмотра</string>
     <string name="tap_to_remove">Коснитесь, чтобы удалить</string>
     <string name="tap_to_rearrange">Коснитесь, чтобы переупорядочить</string>
     <string name="tap_to_previous_next">Коснитесь, чтобы перейти к предыдущему/следующему</string>
-    <string name="lock_orientation">Ориентация</string>
-    <string name="lock_orientation_description">Коснитесь для блокирования/разблокирования ориентации</string>
-    <string name="aspect_ratio">Соотношение сторон</string>
-    <string name="aspect_ratio_description">Коснитесь для изменения соотношения сторон</string>
-    <string name="advanced_options">Расширенные параметры</string>
-    <string name="advanced_options_description">Скорость воспроизведения, режим повторения и т. п.</string>
-    <string name="tips_swipe">Смахивание вверх или вниз</string>
     <string name="tips_swipe_horizontal">Смахивание влево или вправо</string>
     <string name="tips_playlist">Плейлист</string>
     <string name="tips_hold_seek">Удерживайте для перехода</string>
     <string name="tips_long_drop">Долгое нажатие и перетягивание</string>
-    <string name="pause_description">Двойное касание — пауза</string>
-    <string name="seek_tap">+/- 10 сек.</string>
-    <string name="seek_tap_description">Долгое касание — переход на 10 сек. вперёд или назад</string>
     <string name="close">Закрыть</string>
 
     <string name="playlist_tips">Подсказки для плейлиста</string>
@@ -499,7 +474,6 @@
 
     <!-- Accessibility -->
     <string name="more_actions">Другие действия</string>
-    <string name="back_quit_lock">Нажмите Назад ещё раз, чтобы закрыть видео</string>
     <string name="stream_deleted">Поток удалён</string>
     <string name="no_subs_found">В этом каталоге нет субтитров</string>
     <string name="music_now_playing">Сейчас играет</string>
@@ -557,7 +531,6 @@
     <string name="download_subtitles">Загрузить субтитры</string>
     <string name="browse_folder">Просмотр папки</string>
     <string name="listen">Прослушать</string>
-    <string name="apply_to_bt">Применить к Bluetooth-устройству</string>
     <string name="videos_all">Все видео</string>
     <string name="clear_playback_history">Очистить историю воспроизведения</string>
     <string name="ml_scanning">Поиск медиафайлов</string>
@@ -648,9 +621,6 @@
     <string name="device_dialog_message">Вы только что подключили к вашему телевизору внешнее хранилище. Хотите просмотреть его в VLC?</string>
     <string name="videos_folders_title">Видео по папкам</string>
     <string name="videos_groups_title">Группы видео</string>
-    <string name="video_save_clone_mode">Автоматически включать режим клонирования?</string>
-    <string name="video_remote_enable">Переключиться в режим удалённого управления</string>
-    <string name="video_remote_disable">Дублировать экран</string>
     <string name="removed_from_playlist_anonymous">Элементы, удалённые из плейлиста</string>
     <string name="welcome_title">Добро пожаловать в VLC!</string>
     <string name="welcome_subtitle">Бесплатный медиаплеер с открытым исходным кодом</string>
@@ -751,27 +721,8 @@
     <string name="clear">Очистить</string>
     <string name="abrepeat_add_first_marker">Установить начальную точку</string>
     <string name="abrepeat_add_second_marker">Установить конечную точку</string>
-    <string name="demux_bitrate">Битрейт демультиплексора</string>
-    <string name="input_bitrate">Битрейт входного потока</string>
-    <string name="video_information">Информация о видео</string>
 
-    <string name="channels">Каналы</string>
-    <string name="resolution">Разрешение</string>
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate">Частота кадров</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">Язык</string>
-    <string name="track_samplerate">Частота дискретизации</string>
-    <string name="track_samplerate_value">%1$dГц\n</string>
-    <string name="bitrate">Битрейт</string>
-    <string name="codec">Кодек</string>
-    <string name="text">Текст</string>
     <string name="unknown">Неизвестно</string>
-    <string name="audio_delay_start">Звук раздался</string>
-    <string name="subtitle_delay_first">Прозвучал голос</string>
-    <string name="audio_delay_end">Звук ожидается</string>
-    <string name="subtitle_delay_end">Появился текст</string>
     <string name="track_index">Дорожка: %s</string>
     <string name="audio_queue_progress">Прогресс: %s</string>
     <string name="audio_queue_progress_remaining">Осталось: %s</string>
@@ -831,9 +782,6 @@
     <string name="remove_from_history">Удалить из истории</string>
     <string name="prefersmbv1">Предпочитать SMB 1</string>
     <string name="prefersmbv1_summary">Снимите этот флажок, если вы испытываете трудности при обращении к серверу SMB</string>
-    <string name="apply_to_all">Применить ко всем видео</string>
-    <string name="audio_delay_global">Для всех видео установлена задержка звука %s мс</string>
-    <string name="audio_delay_bt">Для Bluetooth-устройства установлена задержка звука %s</string>
     <string name="go_to_folder">Перейти наверх</string>
     <string name="create_shortcut">Создать ярлык запуска</string>
     <string name="no_sub_renderer">Субтитры не поддерживаются во время трансляции</string>
@@ -887,16 +835,11 @@
     <string name="banned_parent">Исключённая папка (находится в исключённой родительской)</string>
     <string name="official_website">Официальный сайт</string>
     <string name="view_online">Посмотреть онлайн</string>
-    <string name="player_under_notch">Проигрывать видео под «чёлкой»</string>
-    <string name="notch">Чёлка</string>
     <string name="always_fast_seek">Всегда использовать быстрое позиционирование</string>
     <string name="always_fast_seek_summary">Переход работает быстрее, но менее точно</string>
     <string name="no_web_browser">Браузер не установлен</string>
     <string name="no_web_browser_message">Открыть ссылку можно на смартфоне, просканировав этот код.\nАдрес: %s</string>
     <string name="no_video">Нет видео</string>
-    <string name="fold_optimized">Подстроено под складной экран</string>
-    <string name="fold_optimize">Подстраиваться под складные экраны</string>
-    <string name="foldable">Складной экран</string>
     <string name="undo">Отменить</string>
     <string name="add_server_favorite">Добавить сервер в Избранное</string>
     <string name="widget_theme">Тема виджета</string>
@@ -941,13 +884,10 @@
     <string name="talkback_list_section">Заголовок: %s</string>
     <string name="talkback_file_size">Размер файла: %s</string>
     <string name="talkback_open_in_browser">Открыть в браузере</string>
-    <string name="talkback_video_player">Видеоплеер. Коснитесь, чтобы появились элементы управления. Нажмите кнопку Назад, чтобы скрыть их.</string>
     <string name="talkback_video_tracks">Видеодорожки</string>
     <string name="talkback_audio_tracks">Аудиодорожки</string>
     <string name="talkback_subtitle_tracks">Дорожки субтитров</string>
     <string name="selected">Выбрано</string>
-    <string name="talkback_increase_delay">Увеличить задержку</string>
-    <string name="talkback_decrease_delay">Уменьшить задержку</string>
     <string name="talkback_increase_speed">Увеличить скорость</string>
     <string name="talkback_decrease_speed">Уменьшить скорость</string>
     <string name="talkback_subtitle_history">История субтитров</string>

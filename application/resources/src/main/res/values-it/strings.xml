@@ -191,11 +191,6 @@
     <string name="firstsong">Primo brano della scaletta</string>
     <string name="lastsong">Ultimo brano della scaletta</string>
 
-    <string name="surface_best_fit">Adatta allo schermo</string>
-    <string name="surface_fit_screen">Adatta allo schermo</string>
-    <string name="surface_fill">Riempi</string>
-    <string name="surface_original">Centra</string>
-    <string name="resize_tip">Tocco lungo per altre opzioni</string>
     <string name="unseekable_stream">Flusso senza posizionamento</string>
     <string name="refresh">Aggiorna</string>
     <string name="track_audio">Traccia audio</string>
@@ -205,13 +200,8 @@
     <string name="track_bitrate_info">Bitrate: %1$s/s\n</string>
     <string name="track_codec_info">Codificatore: %1$s\n</string>
     <string name="track_language_info">Lingua: %1$s\n</string>
-    <string name="volume">Volume</string>
     <string name="system_volume_disabled">%s\nNessun accesso al volume di sistema</string>
-    <string name="sound_on">Suono On</string>
-    <string name="sound_off">Suono Off</string>
-    <string name="brightness">Luminosità</string>
     <string name="advanced">opzioni avanzate</string>
-    <string name="audio_boost_warning">Scorri ancora per andare oltre il 100%</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 canale\n</item>
@@ -284,32 +274,17 @@
     <string name="play_button">Pulsante Riproduci</string>
 
     <!-- Tips -->
-    <string name="tips_title">Suggerimenti del lettore video</string>
     <string name="seek">Posiziona</string>
     <string name="subtitles">Sottotitoli</string>
-    <string name="tips_player_controls">Controlli del lettore</string>
-    <string name="tips_player_controls_description">Tocca i controlli del lettore seguenti per scoprire a cosa servono</string>
-    <string name="tips_audio_sub">Tracce audio e sottotitoli</string>
-    <string name="tips_play_description">Tocca per riprodurre il video</string>
     <string name="lock">Blocca</string>
     <string name="tap">Tocca per visualizzare</string>
     <string name="tap_to_remove">Tocca per rimuovere</string>
     <string name="tap_to_rearrange">Tocca per riorganizzare</string>
     <string name="tap_to_previous_next">Tocca per andare al successivo/precedente</string>
-    <string name="lock_orientation">Orientazione</string>
-    <string name="lock_orientation_description">Tocca per bloccare/sbloccare l\'orientazione</string>
-    <string name="aspect_ratio">Proporzioni</string>
-    <string name="aspect_ratio_description">Tocca per modificare le proporzioni del video</string>
-    <string name="advanced_options">Opzioni avanzate</string>
-    <string name="advanced_options_description">Come la velocità di riproduzione, la modalità di ripetizione, …</string>
-    <string name="tips_swipe">Scorri verso l\'alto o il basso</string>
     <string name="tips_swipe_horizontal">Scorri a sinistra o a destra </string>
     <string name="tips_playlist">Scaletta</string>
     <string name="tips_hold_seek">Trattieni per posizionare</string>
     <string name="tips_long_drop">Pressione lunga e rilascio</string>
-    <string name="pause_description">Doppio tocco per sospendere</string>
-    <string name="seek_tap">+/- 10 sec.</string>
-    <string name="seek_tap_description">Doppio tocco per andare 10 sec. in avanti o indietro</string>
     <string name="close">Chiudi</string>
 
     <string name="playlist_tips">Suggerimenti della scaletta</string>
@@ -362,10 +337,8 @@
     <string name="screen_orientation">Orientamento dello schermo</string>
     <string name="screen_orientation_sensor">Automatico (sensore)</string>
     <string name="screen_orientation_portrait">Verticale</string>
-    <string name="screen_orientation_portrait_reverse">Verticale inverso</string>
     <string name="screen_orientation_landscape">Orizzontale</string>
     <string name="screen_orientation_landscape_reverse">Orizzontale inverso</string>
-    <string name="screen_orientation_landscape_sensor">Orizzontale (sensore)</string>
     <string name="screen_orientation_last_locked">Ultimo orientamento bloccato</string>
     <string name="dark_theme">Tema scuro</string>
     <string name="theme_auto">Tema automatico</string>
@@ -399,7 +372,6 @@
     <string name="save_brightness_title">Salva il livello di luminosità</string>
     <string name="save_audiodelay_summary">Salva ritardo audio individuale per ogni video</string>
     <string name="save_audiodelay_title">Salva ritardo audio</string>
-    <string name="video_show_orientation_button">Mostra il pulsante di orientazione</string>
     <string name="enable_brightness_gesture_title">Gesti della luminosità</string>
     <string name="enable_brightness_gesture_summary">Controlla la luminosità tramite gesti durante la riproduzione video</string>
     <string name="enable_volume_gesture_title">Gesti del volume</string>
@@ -431,7 +403,6 @@
     <string name="enable_tap_and_hold_fastplay_title">Abilita Fastplay</string>
     <string name="enable_tap_and_hold_fastplay_summary">Tocca e trattieni per aumentare la velocità di riproduzione</string>
     <string name="fastplay_speed_title">Velocità Fastplay</string>
-    <string name="fastplay_title">Riproduzione a %sx</string>
     <string name="fastplay_subtitle">Rilascia per fermare</string>
     <string name="show_bookmark_buttons">Mostra i pulsanti dei segnalibri</string>
     <string name="show_bookmark_buttons_summary">Mostra i pulsanti per navigare tra i segnalibri</string>
@@ -551,7 +522,6 @@
     <string name="tv_folders_first_summary">Mostra le cartelle e poi i file nel navigatore dei file</string>
     <string name="tv_show_hidden_files">Mostra file nascosti</string>
     <string name="tv_show_hidden_files_summary">Mostra file nascosti nel navigatore di file</string>
-    <string name="ab_repeat_fastseek_warning">Il posizionamento veloce è abilitato. Può causare problemi di precisione</string>
 
     <string name="extensions_prefs_category">Estensioni</string>
     <string name="extensions_empty">Nessuna estensione rilevata</string>
@@ -699,7 +669,6 @@
 
     <!-- Accessibility -->
     <string name="more_actions">Altre azioni</string>
-    <string name="back_quit_lock">Premi nuovamente Indietro per chiudere il video</string>
     <string name="stream_deleted">Flusso eliminato</string>
     <string name="no_subs_found">Nessun sottotitolo in questa cartella</string>
     <string name="music_now_playing">In riproduzione</string>
@@ -778,7 +747,6 @@
     <string name="unknown_error">Errore inatteso</string>
     <string name="browse_folder">Sfoglia cartella</string>
     <string name="listen">Ascolta</string>
-    <string name="apply_to_bt">Applica al dispositivo Bluetooth</string>
     <string name="episodes">episodi</string>
     <string name="movies">film</string>
     <string name="videos">video</string>
@@ -880,9 +848,6 @@
     <string name="device_dialog_message">Hia appena collegato un nuovo dispositivo di archiviazione al tuo box TV, vuoi aprirlo con VLC?</string>
     <string name="videos_folders_title">Video per cartelle</string>
     <string name="videos_groups_title">Gruppi video</string>
-    <string name="video_save_clone_mode">Vuoi attivare automaticamente la modalità clone?</string>
-    <string name="video_remote_enable">Passa alla modalità telecomando</string>
-    <string name="video_remote_disable">Duplica schermo</string>
     <string name="removed_from_playlist_anonymous">Elementi rimossi dalla scaletta</string>
     <string name="welcome_title">Benvenuti in VLC!</string>
     <string name="welcome_subtitle">Il lettore multimediale libero e con codice sorgente aperto</string>
@@ -890,7 +855,6 @@
     <string name="permission_video">VLC ha bisogno del tuo permesso per accedere ai video sul tuo dispositivo</string>
     <string name="permission_audio">VLC ha bisogno del tuo permesso per accedere ai file audio sul tuo dispositivo</string>
     <string name="medialibrary_scan_explanation">VLC analizzerà automaticamente il dispositivo per organizzare la tua collezione multimediale.</string>
-    <string name="player_title_fd_warning">Senza il permesso di archiviazione, VLC non può recuperare il titolo del media o salvare l\'avanzamento.</string>
     <string name="onboarding_theme_title">Sentiti come a casa</string>
     <string name="done">Completato</string>
     <string name="onboarding_scan_title">Rilevamento automatico dei tuoi supporti</string>
@@ -997,27 +961,8 @@
     <string name="clear">Cancella</string>
     <string name="abrepeat_add_first_marker">Imposta il punto iniziale</string>
     <string name="abrepeat_add_second_marker">Imposta il punto finale</string>
-    <string name="demux_bitrate">Velocità di demultiplazione</string>
-    <string name="input_bitrate">Bitrate ingresso</string>
-    <string name="video_information">Informazioni video</string>
 
-    <string name="channels">Canali</string>
-    <string name="resolution">Risoluzione</string>
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate">Velocità fotogrammi</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">Lingua</string>
-    <string name="track_samplerate">Campionamento</string>
-    <string name="track_samplerate_value">%1$d Hz\n</string>
-    <string name="bitrate">Velocità</string>
-    <string name="codec">Codificatore</string>
-    <string name="text">Testo</string>
     <string name="unknown">Sconosciuto</string>
-    <string name="audio_delay_start">Suono ascoltato</string>
-    <string name="subtitle_delay_first">Voce ascoltata</string>
-    <string name="audio_delay_end">Suono individuato</string>
-    <string name="subtitle_delay_end">Testo visto</string>
     <string name="track_index">Traccia: %s</string>
     <string name="audio_queue_progress">Avanzamento: %s</string>
     <string name="audio_queue_progress_remaining">Rimanente: %s</string>
@@ -1080,9 +1025,6 @@
     <string name="remove_from_history">Rimuovi dalla cronologia</string>
     <string name="prefersmbv1">Preferisci SMB 1</string>
     <string name="prefersmbv1_summary">Deseleziona questa impostazione se hai difficoltà a sfogliare il tuo server SMB</string>
-    <string name="apply_to_all">Applica a tutti i video</string>
-    <string name="audio_delay_global">Ritardo audio impostato a %s ms per tutti i video</string>
-    <string name="audio_delay_bt">Ritardo audio impostato a %s ms per il dispositivo Bluetooth</string>
     <string name="go_to_folder">Sfoglia superiore</string>
     <string name="go_to_album">Vai all\'album</string>
     <string name="go_to_artist">Vai all\'artista</string>
@@ -1197,16 +1139,11 @@
     </plurals>
     <string name="official_website">Sito web ufficiale</string>
     <string name="view_online">Visualizza in linea</string>
-    <string name="player_under_notch">Visualizza video sotto il notch</string>
-    <string name="notch">Notch</string>
     <string name="always_fast_seek">Usa sempre il posizionamento veloce</string>
     <string name="always_fast_seek_summary">Il posizionamento è più veloce, ma potrebbe essere meno preciso</string>
     <string name="no_web_browser">Nessun browser web installato</string>
     <string name="no_web_browser_message">Puoi eseguire una scansione con il tuo smartphone.\nL\'URL è %s</string>
     <string name="no_video">Nessun video disponibile</string>
-    <string name="fold_optimized">Ottimizzato per il tuo schermo pieghevole</string>
-    <string name="fold_optimize">Ottimizza per gli schermi pieghevoli</string>
-    <string name="foldable">Schermo pieghevole</string>
     <string name="undo">Annulla</string>
     <string name="add_server_favorite">Aggiungi un server preferito</string>
     <string name="widget_theme">Tema dei widget</string>
@@ -1238,7 +1175,6 @@
     <string name="disable_track">Disabilita traccia</string>
     <string name="ascending">Crescente</string>
     <string name="descending">Decrescente</string>
-    <string name="screenshot_error">Errore durante l\'acquisizione della schermata</string>
     <string name="disabled">Disabilitato</string>
     <string name="enable_screenshot_gesture">Tocca con 3 dita</string>
     <string name="enable_screenshot_button">Mostra il pulsante della schermata</string>
@@ -1269,14 +1205,11 @@
     <string name="talkback_list_section">Intestazione: %s</string>
     <string name="talkback_file_size">Dimensione file: %s</string>
     <string name="talkback_open_in_browser">Apri nel browser web</string>
-    <string name="talkback_video_player">Lettore video. Tocca per mostrare i controlli. Tocca il pulsante Indietro per nasconderli</string>
     <string name="talkback_video_tracks">Tracce video</string>
     <string name="talkback_audio_tracks">Tracce audio</string>
     <string name="talkback_subtitle_tracks">Traccia dei sottotitoli</string>
     <string name="talkback_subtitle_dowload_item">Lingua: %1$s. %2$s. Nome: %3$s</string>
     <string name="selected">Selezionato</string>
-    <string name="talkback_increase_delay">Aumenta ritardo</string>
-    <string name="talkback_decrease_delay">Riduci ritardo</string>
     <string name="talkback_increase_speed">Aumenta velocità</string>
     <string name="talkback_decrease_speed">Riduci velocità</string>
     <string name="talkback_subtitle_history">Cronologia sottotitoli</string>

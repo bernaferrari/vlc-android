@@ -14,7 +14,6 @@ import org.videolan.resources.AndroidDevices
 import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.gui.dialogs.PlaybackRemoteControl.shouldInterceptRemote
-import org.videolan.vlc.gui.video.VideoPlayerActivity.Companion.videoRemoteFlow
 import org.videolan.vlc.util.EmptyPBSCallback
 
 internal abstract class PlaybackComposeSheetDialog(
@@ -88,7 +87,7 @@ internal abstract class PlaybackComposeSheetDialog(
     private fun startRemoteSupport() {
         shouldInterceptRemote.postValue(true)
         remoteJob = activity.lifecycleScope.launch {
-            videoRemoteFlow.collect { action ->
+            org.videolan.vlc.media.VideoRemoteControl.actions.collect { action ->
                 val keyCode = when (action) {
                     "up" -> KeyEvent.KEYCODE_DPAD_UP
                     "down" -> KeyEvent.KEYCODE_DPAD_DOWN
@@ -100,7 +99,7 @@ internal abstract class PlaybackComposeSheetDialog(
                 }
                 keyCode?.let {
                     rootView?.simulateKeyPress(it)
-                    videoRemoteFlow.emit(null)
+                    org.videolan.vlc.media.VideoRemoteControl.actions.emit(null)
                 }
             }
         }

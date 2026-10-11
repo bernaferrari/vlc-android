@@ -145,11 +145,6 @@
     <string name="firstsong">प्लेलिस्ट का पहला गाना</string>
     <string name="lastsong">प्लेलिस्ट का आखिरी गाना</string>
 
-    <string name="surface_best_fit">बेहतरीन फिट</string>
-    <string name="surface_fit_screen">पटल पर जमाओ </string>
-    <string name="surface_fill">पूर्ण</string>
-    <string name="surface_original">मध्य</string>
-    <string name="resize_tip">ज़्यादा विकल्पों के लिए लंबा टैप करें</string>
     <string name="unseekable_stream">अन्सीकेबल धारा</string>
     <string name="refresh">तरोताजा करें</string>
     <string name="track_audio">ऑडीओ पगडंडी</string>
@@ -159,12 +154,7 @@
     <string name="track_bitrate_info">बिट दर : %1$s/s\n</string>
     <string name="track_codec_info">कोडेक : %1$s\n</string>
     <string name="track_language_info">भाषा : %1$s\n</string>
-    <string name="volume">आवाज़ निर्धारक</string>
-    <string name="sound_on">आवाज़ चालू</string>
-    <string name="sound_off">आवाज़ बंद</string>
-    <string name="brightness">चमक</string>
     <string name="advanced">उन्नत विकल्प</string>
-    <string name="audio_boost_warning">100% से आगे जाने के लिए स्लाइड को और ऊपर करें</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 चैनल\n</item>
@@ -213,21 +203,12 @@
     <string name="play_button">चलाने का बटन</string>
 
     <!-- Tips -->
-    <string name="tips_title">वीडियो प्लेयर टिप्स</string>
     <string name="seek">ढूंढना</string>
     <string name="subtitles">लिखितसंवाद</string>
-    <string name="tips_player_controls">प्लेयर नियंत्रण</string>
-    <string name="tips_player_controls_description">उनका उपयोग किस लिए किया जाता है, यह जानने के लिए नीचे प्लेयर नियंत्रण पर टैप करें</string>
-    <string name="tips_audio_sub">ऑडियो और लिखितसंवाद</string>
-    <string name="tips_play_description">वीडियो चलाने के लिए टैप करें</string>
     <string name="lock">ताला</string>
     <string name="tap">देखने के लिए टैप करें</string>
     <string name="tap_to_remove">हटाने के लिए टीपें</string>
-    <string name="lock_orientation">दिशा</string>
-    <string name="lock_orientation_description">दिशा एकतरफ/दोनोंतरफ करने के लिए टीपें</string>
-    <string name="aspect_ratio">लम्बाई-चौड़ाई का अनुपात</string>
     <string name="tips_playlist">प्लेलिस्ट</string>
-    <string name="pause_description">दो बार टीपने पर रोक देना है</string>
     <string name="close">बन्द करें</string>
 
     <string name="playlist_tips">प्लेलिस्ट सुझाव</string>
@@ -271,7 +252,6 @@
     <string name="screen_orientation">वीडियो स्क्रीन की दिशा</string>
     <string name="screen_orientation_sensor">स्वचालित (संवेदक)</string>
     <string name="screen_orientation_portrait">विस्तृत आलेख्य</string>
-    <string name="screen_orientation_portrait_reverse">उल्टा खड़ा</string>
     <string name="screen_orientation_landscape">भूदृश्य</string>
     <string name="screen_orientation_landscape_reverse">दायीं करवट से लेटा हुआ</string>
     <string name="screen_orientation_last_locked">पिछली बार जैसी दिशा</string>
@@ -512,7 +492,6 @@
     <string name="ctx_player_subs_track">लिखितसंवाद पगडंडी</string>
     <string name="videos_folders_title">फोल्डर के हिसाब से वीडियो</string>
     <string name="videos_groups_title">वीडियो समूह</string>
-    <string name="video_remote_enable">रिमोट कंट्रोल मोड में जायें</string>
     <string name="removed_from_playlist_anonymous">प्लेलिस्ट से हटाए गए आइटम</string>
     <string name="welcome_title">वीएलसी आपका स्वागत करता है!</string>
     <string name="onboarding_all_set">वीएलसी अब तैयार है!</string>
@@ -551,13 +530,7 @@
     <string name="playback_multiple_errors">एक साथ कई सारी कलाकृतियाँ नहीं चलायी जा सकतीं</string>
     <string name="clear_media_db_message">वीएलसी सेटिंगें छोड़कर आपकी सभी गतिविधियाँ, बूक्मार्क और प्लेलिस्टें मिट जायेंगी।</string>
     <string name="clear_app_data_message">आपकी सभी गतिविधियाँ, बूक्मार्क, प्लेलिस्टें और वीएलसी की सेटिंगें मिट जायेंगी।</string>
-    <string name="video_information">वीडियो परिचय</string>
 
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">भाषा</string>
-    <string name="text">वाक्य</string>
     <string name="unknown">अज्ञात</string>
     <string name="track_index">पगडंडी: %s</string>
     <string name="sortby_track">पगडंडी</string>
@@ -593,9 +566,6 @@
     <string name="air_action_volume_up">आवाज तेज करें</string>
     <string name="air_action_volume_down">आवाज हल्की करें</string>
     <string name="timeout_infinite">अनन्त</string>
-    <string name="apply_to_all">सभी वीडियो पर लागू करें</string>
-    <string name="audio_delay_global">सभी वीडियो के लिए \'%s\' ms का ऑडियो विलम्ब सेट किया</string>
-    <string name="audio_delay_bt">ब्लूटूथ डिवाइस के लिए \'%s\' ms का ऑडियो विलम्ब सेट किया</string>
     <string name="go_to_folder">बाहरीफोल्डर पर जायें</string>
     <string name="go_to_album">गीतमाला देखें</string>
     <string name="go_to_album_artist">गीतमाला कलाकार देखें</string>
@@ -665,8 +635,6 @@
     <string name="talkback_audio_tracks">ऑडियो पगडंडीयां</string>
     <string name="talkback_subtitle_tracks">लिखितसंवाद पगडंडीयां</string>
     <string name="selected">चुनें हुए</string>
-    <string name="talkback_increase_delay">देरी बढ़ाएं</string>
-    <string name="talkback_decrease_delay">देरी घटाएं</string>
     <string name="talkback_increase_speed">चाल बढ़ाएं</string>
     <string name="talkback_decrease_speed">चाल घटाएं</string>
     <string name="talkback_language_selection">%s चुनी गयीं भाषाएं</string>

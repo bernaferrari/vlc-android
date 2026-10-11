@@ -175,7 +175,6 @@ import org.videolan.vlc.gui.helpers.UiTools
 import org.videolan.vlc.gui.helpers.UiTools.addToPlaylist
 import org.videolan.vlc.gui.helpers.UiTools.isTablet
 import org.videolan.vlc.gui.helpers.UiTools.showPinIfNeeded
-import org.videolan.vlc.gui.video.VideoPlayerActivity
 import org.videolan.vlc.kmp.SharedPlayerLauncher
 import org.videolan.vlc.gui.view.BookmarkPanelHost
 import org.videolan.vlc.gui.view.BookmarkPanelItem
@@ -2140,11 +2139,8 @@ class AudioPlayer(
 
     fun onResumeToVideoClick() {
         playlistModel.currentMediaWrapper?.let {
-            if (PlaybackService.hasRenderer()) {
-                // Renderer controls live in the shared player on phones; TV keeps the activity.
-                if (SharedPlayerLauncher.usesSharedPlayer()) SharedPlayerLauncher.open(requireActivity())
-                else VideoPlayerActivity.startOpened(requireActivity(), it.uri, playlistModel.currentMediaPosition)
-            }
+            // Renderer controls live in the shared player.
+            if (PlaybackService.hasRenderer()) SharedPlayerLauncher.open(requireActivity())
             else if (hasMedia()) {
                 it.removeFlags(MediaWrapper.MEDIA_FORCE_AUDIO)
                 lifecycleScope.launch(start = CoroutineStart.UNDISPATCHED) { playlistModel.switchToVideo() }

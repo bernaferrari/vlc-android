@@ -145,10 +145,6 @@
     <string name="firstsong">Primeira canción da lista de reprodución</string>
     <string name="lastsong">Última canción da lista de reprodución</string>
 
-    <string name="surface_best_fit">Mellor axuste</string>
-    <string name="surface_fit_screen">Axustar á pantalla</string>
-    <string name="surface_fill">Encher</string>
-    <string name="surface_original">Centrar</string>
     <string name="unseekable_stream">O fluxo non é compatíbel co desprazameto</string>
     <string name="refresh">Actualizar</string>
     <string name="track_audio">Pista de son</string>
@@ -158,12 +154,7 @@
     <string name="track_bitrate_info">Taxa de bits: %1$s/s\n</string>
     <string name="track_codec_info">Códec: %1$s\n</string>
     <string name="track_language_info">Idioma: %1$s\n</string>
-    <string name="volume">Volume</string>
-    <string name="sound_on">Son activado</string>
-    <string name="sound_off">Son desactivado</string>
-    <string name="brightness">Brillo</string>
     <string name="advanced">opcións avanzadas</string>
-    <string name="audio_boost_warning">Arrastra arriba de novo para pasar do 100%</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 canle\n</item>
@@ -209,29 +200,14 @@
     <string name="play_button">Botón de reprodución</string>
 
     <!-- Tips -->
-    <string name="tips_title">Suxestións para o reprodutor de vídeo</string>
     <string name="seek">Desprazamento</string>
     <string name="subtitles">Subtítulos</string>
-    <string name="tips_player_controls">Controis do reprodutor</string>
-    <string name="tips_player_controls_description">Toque nos controis do reprodutor para saber a súa función</string>
-    <string name="tips_audio_sub">Pistas de son e subtítulos</string>
-    <string name="tips_play_description">Toque para reproducir o vídeo</string>
     <string name="lock">Bloquear</string>
     <string name="tap">Toque para ver</string>
-    <string name="lock_orientation">Orientación</string>
-    <string name="lock_orientation_description">Toque para bloquear/desbloquear a orientación</string>
-    <string name="aspect_ratio">Proporción de aspecto</string>
-    <string name="aspect_ratio_description">Toque para cambiar a proporción de aspecto do vídeo</string>
-    <string name="advanced_options">Opcións avanzadas</string>
-    <string name="advanced_options_description">Tales como a velocidade de reprodución,  o modo repetición...</string>
-    <string name="tips_swipe">Arrastre arriba ou abaixo</string>
     <string name="tips_swipe_horizontal">Arrastre á esquerda ou dereita</string>
     <string name="tips_playlist">Lista de reprodución</string>
     <string name="tips_hold_seek">Manter para desprazarse</string>
     <string name="tips_long_drop">Presión longa e soltar</string>
-    <string name="pause_description">Dobre toque para pausar</string>
-    <string name="seek_tap">+/- 10 s.</string>
-    <string name="seek_tap_description">Dobre toque para avanzar ou retroceder 10s.</string>
     <string name="close">Pechar</string>
 
     <string name="playlist_tips">Suxestións para listas de reprodución</string>
@@ -469,7 +445,6 @@
     <string name="install">Instalar</string>
     <!-- Accessibility -->
     <string name="more_actions">Máis accións</string>
-    <string name="back_quit_lock">Prema de novo Atrás para saír do vídeo</string>
     <string name="stream_deleted">Fluxo eliminado</string>
     <string name="no_subs_found">Non hai subtítulos neste cartafol</string>
     <string name="music_now_playing">En reporodución</string>
@@ -518,7 +493,6 @@
     <string name="open_subtitles_password">Contrasinal</string>
     <string name="browse_folder">Explorar cartafol</string>
     <string name="listen">Escoitar</string>
-    <string name="apply_to_bt">Aplicar ao dispositivo bluetooth</string>
     <string name="episodes">episodios</string>
     <string name="videos">vídeos</string>
     <string name="default_action_videos">Vídeos</string>
@@ -613,9 +587,6 @@
     <string name="device_dialog_message">Acaba de conectar un novo dispositivo de almacenamento ao seu TV box, quere abrilo con VLC?</string>
     <string name="videos_folders_title">Vídeos por cartafol</string>
     <string name="videos_groups_title">Grupos de vídeos</string>
-    <string name="video_save_clone_mode">Activar automaticamente o modo clonar?</string>
-    <string name="video_remote_enable">Cambiar a control remoto</string>
-    <string name="video_remote_disable">Duplicar pantalla</string>
     <string name="removed_from_playlist_anonymous">Elemento(s) eliminados da lista de reprodución</string>
     <string name="welcome_title">Benvido ao VLC</string>
     <string name="welcome_subtitle">O reprodutor multimedia de fontes libres e abertas</string>
@@ -713,27 +684,8 @@
     <string name="clear">Limpar</string>
     <string name="abrepeat_add_first_marker">Estabelecer o punto de inicio</string>
     <string name="abrepeat_add_second_marker">Estabelecer o punto de remate</string>
-    <string name="demux_bitrate">Taxa de bits do demultiplexor</string>
-    <string name="input_bitrate">Taxa de bits de entrada</string>
-    <string name="video_information">Información do vídeo</string>
 
-    <string name="channels">Canles</string>
-    <string name="resolution">Resolución</string>
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate">Taxa de fotogramas</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">Idioma</string>
-    <string name="track_samplerate">Taxa de mostras</string>
-    <string name="track_samplerate_value">%1$d Hz\n</string>
-    <string name="bitrate">Taxa de bits</string>
-    <string name="codec">Códec</string>
-    <string name="text">Texto</string>
     <string name="unknown">Descoñecido</string>
-    <string name="audio_delay_start">Son escoitado</string>
-    <string name="subtitle_delay_first">Voz escoitada</string>
-    <string name="audio_delay_end">Son detectado</string>
-    <string name="subtitle_delay_end">Texto visto</string>
     <string name="track_index">Pista: %s</string>
     <string name="audio_queue_progress">Progreso: %s</string>
     <string name="audio_queue_progress_remaining">Restantes: %s</string>
@@ -793,9 +745,6 @@
     <string name="remove_from_history">Retirar do historial</string>
     <string name="prefersmbv1">Preferir SMB 1</string>
     <string name="prefersmbv1_summary">Desmarcar este axuste se ten dificultades para navegar polo servidor SMB</string>
-    <string name="apply_to_all">Aplicar a todos os vídeos</string>
-    <string name="audio_delay_global">Atraso automático de %s ms para todos os vídeos.</string>
-    <string name="audio_delay_bt">O atraso do son dos dispositivo bluetooth estabeleceuse en %s ms.</string>
     <string name="go_to_folder">Explorar pai</string>
     <string name="go_to_album">Ir ao álbum</string>
     <string name="go_to_artist">Ir ao artista</string>

@@ -104,10 +104,6 @@
     <string name="firstsong">பின்னணி இயக்க பட்டியலின் முதல் பாடல்</string>
     <string name="lastsong">பின்னணி இயக்க பட்டியலின் கடைசி பாடல்</string>
 
-    <string name="surface_best_fit">சிறந்தப் பொருத்தம்</string>
-    <string name="surface_fit_screen">திரைக்குப் பொருந்து</string>
-    <string name="surface_fill">நிரப்பு</string>
-    <string name="surface_original">நடுவில்</string>
     <string name="unseekable_stream">நாடவியலா ஓடம்</string>
     <string name="refresh">புதுப்பி</string>
     <string name="track_audio">ஒலி தடம்</string>
@@ -117,12 +113,7 @@
     <string name="track_bitrate_info">Bit வீதம்:%1$s/s\n</string>
     <string name="track_codec_info">கோடக்: %1$s\n</string>
     <string name="track_language_info">மொழி: %1$s\n</string>
-    <string name="volume">ஒலியளவு</string>
-    <string name="sound_on">ஒலியைச் செயல்படுத்து</string>
-    <string name="sound_off">ஒலியை அணை</string>
-    <string name="brightness">வெளிச்சம்</string>
     <string name="advanced">மேம்பட்ட தேர்வுகள்</string>
-    <string name="audio_boost_warning">100%-க்கு அப்பால் செல்ல மீண்டும் மேல் நோக்கி செலுத்து</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 வழித்தடம்\n</item>
@@ -164,17 +155,11 @@
     <string name="playback_history_title">இயக்க வரலாறு</string>
     <string name="playback_speed_title">இயக்க வேகத்தை சேமிக்க</string>
     <!-- Tips -->
-    <string name="tips_title">காணொளியியக்கி துணுக்குதவிகள்</string>
     <string name="seek">நாடுதல்</string>
     <string name="subtitles">துணைத்தலைப்புகள்</string>
-    <string name="tips_player_controls">இயக்கி கட்டுப்பாடுகள்</string>
-    <string name="tips_player_controls_description">கீழுள்ள இயக்கி கட்டுப்பாடுகளைத் தட்டி அவற்றின் பயன்பாட்டைக் கண்டறியவும்</string>
     <string name="lock">பூட்டு</string>
-    <string name="tips_swipe">மேலே அ கீழே தேய்</string>
     <string name="tips_swipe_horizontal">இடது அ வலதில் தேய்</string>
     <string name="tips_hold_seek">நாட அழுத்திப்பிடி</string>
-    <string name="pause_description">இடைநிறுத்த இரட்டைத்தட்டு</string>
-    <string name="seek_tap_description">10நொடி முன்னே அ பின்னே செல்ல இரட்டைத்தட்டு</string>
     <string name="close">மூடு</string>
 
     <string name="playlist_tips">பட்டியல் உதவிக்குறிப்புகள்</string>
@@ -317,7 +302,6 @@
 
     <!-- Accessibility -->
     <string name="more_actions">மேலும் செயல்கள்</string>
-    <string name="back_quit_lock">திரும்ப அழுத்தவும் காணொளி விட்டு வெளியேற</string>
     <string name="no_subs_found">இந்த அடைவில் வசன வரிகள் இல்லை</string>
     <string name="music_now_playing">இப்போ ஒடுவது</string>
 
@@ -333,7 +317,6 @@
     <string name="download_subtitles">வசன வரிகளை தரவிறக்கு</string>
     <string name="browse_folder">கோப்புறையை உலாவ</string>
     <string name="listen">கேளுங்கள்</string>
-    <string name="apply_to_bt">ஊடலை சாதனத்திற்கு உபயோகி</string>
     <string name="ml_scanning">ஊடக கோப்புகளுக்காக வருடுகிறது</string>
     <string name="ml_parse_media">ஊடகத்தை பாகுபடுத்துதல்</string>
     <string name="ml_discovering">கண்டுபிடிக்கிறது</string>
@@ -378,9 +361,7 @@
     <string name="invalid_file">தவறான கோப்பு. பகிர முடியாது.</string>
     <string name="share_file">%s யை பகிர்</string>
     <string name="recently_added">அண்மையில் சேர்ந்தவை</string>
-    <string name="video_information">காணொளி தகவல்</string>
 
-    <string name="text">எழுத்து</string>
     <string name="unknown">தெரியாத</string>
     <string name="sortby_track">தடம்</string>
     <string name="new_title">புதிய தலைப்பு</string>
@@ -394,7 +375,6 @@
     <string name="tip_jar">VLC-ஐ உதவு</string>
     <string name="air_action_forward">10நொடி முன்னே நாடு</string>
     <string name="video_hud_timeout">காணொளியியக்கி கட்டுப்பாடுகள் மறைய தாமதம்</string>
-    <string name="apply_to_all">எல்லா காணொளிகளுக்கும் உபயோகி</string>
     <string name="bookmarks_title">நூற்குறிகள்</string>
     <string name="player_controls">இயக்கி கட்டுப்பாடுகள்</string>
     </resources>

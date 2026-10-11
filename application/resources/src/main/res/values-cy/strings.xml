@@ -137,10 +137,6 @@
     <string name="firstsong">Trac cyntaf y rhestr chwarae</string>
     <string name="lastsong">Trac olaf y rhestr chwarae</string>
 
-    <string name="surface_best_fit">Ffit orau</string>
-    <string name="surface_fit_screen">Ffitio i\'r sgrîn</string>
-    <string name="surface_fill">Llenwi\'r sgrin</string>
-    <string name="surface_original">Canoli</string>
     <string name="unseekable_stream">Ffrwd heb bosib dewis man chwarae</string>
     <string name="refresh">Ail-lwytho</string>
     <string name="track_audio">Trac sain</string>
@@ -150,12 +146,7 @@
     <string name="track_bitrate_info">Didradd: %1$s/s\n</string>
     <string name="track_codec_info">Codec: %1$s\n</string>
     <string name="track_language_info">Iaith: %1$s\n</string>
-    <string name="volume">Sain</string>
-    <string name="sound_on">Sain Ar</string>
-    <string name="sound_off">Sain i Ffwrdd</string>
-    <string name="brightness">Disgleirdeb</string>
     <string name="advanced">dewisiadau uwch</string>
-    <string name="audio_boost_warning">Llusga fyny eto i fynd dros 100%</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 sianel\n</item>
@@ -409,7 +400,6 @@
 
     <!-- Accessibility -->
     <string name="more_actions">Rhagor o Weithredoedd</string>
-    <string name="back_quit_lock">Pwysa Nôl eto i adael y fideo</string>
     <string name="stream_deleted">Dileuwyd y ffrwd</string>
     <string name="no_subs_found">Nid oes isdeitlau yn y cyfeiriadur hwn</string>
     <string name="music_now_playing">Yn Chwarae Nawr</string>
@@ -534,9 +524,6 @@
     <string name="device_dialog_message">Rwyt newydd gysylltu dyfais storfa newydd i dy flwch teledu. Wyt ti am ei agor gyda VLC?</string>
     <string name="videos_folders_title">Fideos fesul ffolder</string>
     <string name="videos_groups_title">Grwpiau fideos</string>
-    <string name="video_save_clone_mode">Actifadu modd clôn yn awtomatig?</string>
-    <string name="video_remote_enable">Newid i fodd rheoli o bell</string>
-    <string name="video_remote_disable">Dyblygu\'r sgrin</string>
     <string name="removed_from_playlist_anonymous">Tynnwyd yr eitem(au) o\'r rhestr chwarae</string>
     <string name="welcome_title">Croeso i VLC!</string>
     <string name="welcome_subtitle">Y chwaraeydd aml-gyfrwng cod agored ac am ddim</string>
@@ -633,27 +620,8 @@
     <string name="playback_multiple_errors">Ni ellir chwarae cyfryngau aml-gyfrwng</string>
     <string name="abrepeat_add_first_marker">Gosod pwynt dechrau</string>
     <string name="abrepeat_add_second_marker">Gosod pwynt gorffen</string>
-    <string name="demux_bitrate">Didradd datblecsu</string>
-    <string name="input_bitrate">Didradd mewnbwn</string>
-    <string name="video_information">Gwybodaeth fideo</string>
 
-    <string name="channels">Sianeli</string>
-    <string name="resolution">Cydraniad</string>
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate">Cyflymdra fframiau</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/e</string>
-    <string name="language">Iaith</string>
-    <string name="track_samplerate">Cyfradd sampl</string>
-    <string name="track_samplerate_value">%1$d Hz\n</string>
-    <string name="bitrate">Didradd</string>
-    <string name="codec">Codec</string>
-    <string name="text">Testun</string>
     <string name="unknown">Anhysbys</string>
-    <string name="audio_delay_start">Sain wedi\'i chlywed</string>
-    <string name="subtitle_delay_first">Llais wedi\'i glywed</string>
-    <string name="audio_delay_end">Sain wedi\'i adnabod</string>
-    <string name="subtitle_delay_end">Testun wedi\'i weld</string>
     <string name="track_index">Trac: %s</string>
     <string name="audio_queue_progress">Cynnydd: %s</string>
     <string name="sortby_track">Trac</string>
@@ -709,8 +677,6 @@
     <string name="remove_from_history">Tynnu o\'r hanes</string>
     <string name="prefersmbv1">Ffafrio SMB 1</string>
     <string name="prefersmbv1_summary">Dad-ddewisa hyn os wyt yn cael anawsterau pori dy weinydd SMB</string>
-    <string name="apply_to_all">Rhoi i bob fideo</string>
-    <string name="audio_delay_global">Oediad sain wedi\'i osod i %s me i bob fideo</string>
     <string name="go_to_folder">Pori\'r rhiant</string>
     <string name="no_sub_renderer">Dyw isdeitlau ddim eto ar gael wrth fwrw</string>
     </resources>

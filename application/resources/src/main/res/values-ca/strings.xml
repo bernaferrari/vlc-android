@@ -181,11 +181,6 @@
     <string name="firstsong">Primera cançó de la llista de reproducció</string>
     <string name="lastsong">Última cançó de la llista de reproducció</string>
 
-    <string name="surface_best_fit">Millor ajust</string>
-    <string name="surface_fit_screen">Ajusta a la pantalla</string>
-    <string name="surface_fill">Emplena</string>
-    <string name="surface_original">Centre</string>
-    <string name="resize_tip">Feu un toc llarg per més opcions</string>
     <string name="unseekable_stream">Flux no trobat</string>
     <string name="refresh">Actualitza</string>
     <string name="track_audio">Pista d\'àudio</string>
@@ -195,13 +190,8 @@
     <string name="track_bitrate_info">Taxa de bits: %1$s/s\n</string>
     <string name="track_codec_info">Còdec: %1$s\n</string>
     <string name="track_language_info">Llengua: %1$s\n</string>
-    <string name="volume">Volum</string>
     <string name="system_volume_disabled">%s\nNo hi ha accés al volum del sistema</string>
-    <string name="sound_on">Engega el so</string>
-    <string name="sound_off">Apaga el so</string>
-    <string name="brightness">Brillantor</string>
     <string name="advanced">opcions avançades</string>
-    <string name="audio_boost_warning">Llisqueu novament cap a dalt per superar el 100%</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 canal\n</item>
@@ -273,32 +263,17 @@
     <string name="play_button">Botó de reproducció</string>
 
     <!-- Tips -->
-    <string name="tips_title">Consells del reproductor de vídeo</string>
     <string name="seek">Cerca</string>
     <string name="subtitles">Subtítols</string>
-    <string name="tips_player_controls">Controls del reproductor</string>
-    <string name="tips_player_controls_description">Feu un toc sobre els controladors del reproductor a baix i veureu-ho per què serveixen</string>
-    <string name="tips_audio_sub">Pistes d\'àudio i subtítols</string>
-    <string name="tips_play_description">Feu un toc per reproduir el vídeo</string>
     <string name="lock">Bloca</string>
     <string name="tap">Feu un toc per visualitzar</string>
     <string name="tap_to_remove">Feu un toc per eliminar</string>
     <string name="tap_to_rearrange">Feu un toc per reordenar</string>
     <string name="tap_to_previous_next">Feu un toc per anar a l\'anterior/següent</string>
-    <string name="lock_orientation">Orientació</string>
-    <string name="lock_orientation_description">Feu un toc per bloquejar/desbloquejar l\'orientació</string>
-    <string name="aspect_ratio">Relació d\'aspecte</string>
-    <string name="aspect_ratio_description">Feu un toc per canviar la relació d\'aspecte del vídeo</string>
-    <string name="advanced_options">Opcions avançades</string>
-    <string name="advanced_options_description">Com ara la velocitat de reproducció, el mode repetició, ...</string>
-    <string name="tips_swipe">Llisca amunt o avall</string>
     <string name="tips_swipe_horizontal">Llisca esquerra o dreta</string>
     <string name="tips_playlist">Llista de reproducció</string>
     <string name="tips_hold_seek">Manté premut per cercar</string>
     <string name="tips_long_drop">Pulsació llarga i deixar anar</string>
-    <string name="pause_description">Feu doble toc per posar en pausa</string>
-    <string name="seek_tap">+/- 10 seg.</string>
-    <string name="seek_tap_description">Feu doble toc per anar 10 seg endavant o enrere</string>
     <string name="close">Tanca</string>
 
     <string name="playlist_tips">Consells de les llistes de reproducció</string>
@@ -351,10 +326,8 @@
     <string name="screen_orientation">Orientació de la pantalla</string>
     <string name="screen_orientation_sensor">Automàtic (sensor)</string>
     <string name="screen_orientation_portrait">Vertical</string>
-    <string name="screen_orientation_portrait_reverse">Retrat invers</string>
     <string name="screen_orientation_landscape">Horitzontal</string>
     <string name="screen_orientation_landscape_reverse">Horitzontal invers</string>
-    <string name="screen_orientation_landscape_sensor">Horitzontal (sensor)</string>
     <string name="screen_orientation_last_locked">Darrera orientació bloquejada</string>
     <string name="dark_theme">Tema fosc</string>
     <string name="theme_auto">Tema automàtic</string>
@@ -388,7 +361,6 @@
     <string name="save_brightness_title">Desa el nivell de brillantor</string>
     <string name="save_audiodelay_summary">Desa el retard d\'àudio individual per a cada vídeo</string>
     <string name="save_audiodelay_title">Desa el retard d\'àudio</string>
-    <string name="video_show_orientation_button">Mostra el botó d\'orientació</string>
     <string name="enable_brightness_gesture_title">Gestos de brillantor</string>
     <string name="enable_brightness_gesture_summary">Controla la brillantor mitjançant gestos durant la reproducicó</string>
     <string name="enable_volume_gesture_title">Gestos de volum</string>
@@ -420,7 +392,6 @@
     <string name="enable_tap_and_hold_fastplay_title">Habilita la reproducció ràpida</string>
     <string name="enable_tap_and_hold_fastplay_summary">Toqueu i manteniu premut per augmentar la velocitat de reproducció</string>
     <string name="fastplay_speed_title">Velocitat de reproducció ràpida</string>
-    <string name="fastplay_title">Reproduïnt a %sx</string>
     <string name="fastplay_subtitle">Allibera per aturar</string>
     <string name="show_bookmark_buttons">Mostra els botons de preferits</string>
     <string name="show_bookmark_buttons_summary">Mostra els botons de navegació entre preferits</string>
@@ -540,7 +511,6 @@
     <string name="tv_folders_first_summary">Mostra les carpetes i després els fitxers en el navegador de fitxers</string>
     <string name="tv_show_hidden_files">Mostra els fitxers ocults</string>
     <string name="tv_show_hidden_files_summary">Mostra els fitxers ocults al navegador de fitxers</string>
-    <string name="ab_repeat_fastseek_warning">La cerca ràpida està activada. Pot comportar problemes de precisió</string>
 
     <string name="extensions_prefs_category">Extensions</string>
     <string name="extensions_empty">No s\'ha detectat cap extensió</string>
@@ -688,7 +658,6 @@
 
     <!-- Accessibility -->
     <string name="more_actions">Més accions</string>
-    <string name="back_quit_lock">Prem enrere una altra vegada per sortir del vídeo</string>
     <string name="stream_deleted">Estríming esborrat</string>
     <string name="no_subs_found">No hi ha subtítol en aquesta carpeta</string>
     <string name="music_now_playing">Reproduint</string>
@@ -767,7 +736,6 @@
     <string name="unknown_error">Error inesperat</string>
     <string name="browse_folder">Explora la carpeta</string>
     <string name="listen">Escolta</string>
-    <string name="apply_to_bt">Aplica al dispositiu bluetooth</string>
     <string name="episodes">episodis</string>
     <string name="movies">pel·lícules</string>
     <string name="videos">vídeos</string>
@@ -869,9 +837,6 @@
     <string name="device_dialog_message">Acabeu de connectar un nou dispositiu d\'emmagatzematge a la vostra capsa de TV; voleu obrir-lo amb VLC?</string>
     <string name="videos_folders_title">Vídeos per carpetes</string>
     <string name="videos_groups_title">Grups de vídeos</string>
-    <string name="video_save_clone_mode">Activar automàticament el mode de duplicar?</string>
-    <string name="video_remote_enable">Commuta a mode de control remot</string>
-    <string name="video_remote_disable">Duplica la pantalla</string>
     <string name="removed_from_playlist_anonymous">Ítem(s) eliminats de la llista de reproducció</string>
     <string name="welcome_title">Us donem la benvinguda al VLC!</string>
     <string name="welcome_subtitle">El reproductor multimèdia gratuït i de codi lliure</string>
@@ -879,7 +844,6 @@
     <string name="permission_video">VLC necessita el vostre permís per accedir als vídeos del vostre dispositiu</string>
     <string name="permission_audio">VLC necessita el vostre permís per accedir als àudios del vostre dispositiu</string>
     <string name="medialibrary_scan_explanation">VLC pot cercar automàticament el vostre dispositiu per organitzar la col·lecció de medis</string>
-    <string name="player_title_fd_warning">Sense el permís d\'emmagatzematge, VLC no pot recuperar el títol del multimèdia ni desar el progrés</string>
     <string name="onboarding_theme_title">Sentiu-vos com a casa</string>
     <string name="done">Fet</string>
     <string name="onboarding_scan_title">Cerca automàtica de fitxers</string>
@@ -984,27 +948,8 @@
     <string name="clear">Neteja</string>
     <string name="abrepeat_add_first_marker">Establir el punt d\'inici</string>
     <string name="abrepeat_add_second_marker">Establir el punt final</string>
-    <string name="demux_bitrate">Taxa de bits de Demux</string>
-    <string name="input_bitrate">Taxa de bits d\'entrada</string>
-    <string name="video_information">Informació del vídeo</string>
 
-    <string name="channels">Canals</string>
-    <string name="resolution">Resolució</string>
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate">Fotogrames per segon</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">Llengua</string>
-    <string name="track_samplerate">Freqüència de mostratge</string>
-    <string name="track_samplerate_value">%1$d Hz\n</string>
-    <string name="bitrate">Taxa de bits</string>
-    <string name="codec">Còdec</string>
-    <string name="text">Text</string>
     <string name="unknown">Desconegut</string>
-    <string name="audio_delay_start">Se sent el so</string>
-    <string name="subtitle_delay_first">Se sent la veu</string>
-    <string name="audio_delay_end">Detectat el so</string>
-    <string name="subtitle_delay_end">Vist el text</string>
     <string name="track_index">Pista: %s</string>
     <string name="audio_queue_progress">Progrés: %s</string>
     <string name="audio_queue_progress_remaining">Restant: %s</string>
@@ -1067,9 +1012,6 @@
     <string name="remove_from_history">Suprimeix de l\'historial</string>
     <string name="prefersmbv1">Preferit SMB 1</string>
     <string name="prefersmbv1_summary">Desmarqueu aquesta opció si teniu problemes en accedir al servidor SMB</string>
-    <string name="apply_to_all">Aplica a tots els vídeos</string>
-    <string name="audio_delay_global">El retard d\'àudio s\'ha definit a %sms per a tots els vídeos</string>
-    <string name="audio_delay_bt">El retard d\'àudio s\'ha definit a %s ms per al dispositiu bluetooth</string>
     <string name="go_to_folder">Carpeta pare</string>
     <string name="go_to_album">Anar a l\'àlbum</string>
     <string name="go_to_artist">Anar a l\'artista</string>
@@ -1182,16 +1124,11 @@
     </plurals>
     <string name="official_website">Lloc web oficial</string>
     <string name="view_online">Veure en línia</string>
-    <string name="player_under_notch">Mostrar el vídeo sota l\'osca</string>
-    <string name="notch">Osca</string>
     <string name="always_fast_seek">Utilitza sempre la cerca ràpida</string>
     <string name="always_fast_seek_summary">La cerca és més ràpida però pot ser menys precisa</string>
     <string name="no_web_browser">No hi ha cap navegador instal·lat</string>
     <string name="no_web_browser_message">Podeu escanejar-ho amb el mòbil.\nL\'URL és %s</string>
     <string name="no_video">No hi ha vídeo disponible</string>
-    <string name="fold_optimized">Optimitzat per a la vostra pantalla plegable</string>
-    <string name="fold_optimize">Optimitza per a pantalles plegables</string>
-    <string name="foldable">Pantalla plegable</string>
     <string name="undo">Desfés</string>
     <string name="add_server_favorite">Afegeix un servidor preferit</string>
     <string name="widget_theme">Tema del giny</string>
@@ -1223,7 +1160,6 @@
     <string name="disable_track">Inhabilita la pista</string>
     <string name="ascending">Ascendent</string>
     <string name="descending">Descendent</string>
-    <string name="screenshot_error">S\'ha produït un error mentre s\'obtenia la captura</string>
     <string name="disabled">Desactivat</string>
     <string name="enable_screenshot_gesture">Feu un toc amb 3 dits</string>
     <string name="enable_screenshot_button">Mostra el botó de captura de pantalla</string>
@@ -1254,14 +1190,11 @@
     <string name="talkback_list_section">Capçalera: %s</string>
     <string name="talkback_file_size">Mida del fitxer: %s</string>
     <string name="talkback_open_in_browser">Obre al navegador web</string>
-    <string name="talkback_video_player">Reproductor de vídeo. Feu un toc per mostrar els controls. Feu un toc al botó enrere per amagar-los.</string>
     <string name="talkback_video_tracks">Pistes de vídeo</string>
     <string name="talkback_audio_tracks">Pistes d\'àudio</string>
     <string name="talkback_subtitle_tracks">Pistes de subtítols</string>
     <string name="talkback_subtitle_dowload_item">Idioma: %1$s. %2$s. Nom: %3$s</string>
     <string name="selected">Seleccionat</string>
-    <string name="talkback_increase_delay">Augmenta el retard</string>
-    <string name="talkback_decrease_delay">Disminueix el retard</string>
     <string name="talkback_increase_speed">Augmenta la velocitat</string>
     <string name="talkback_decrease_speed">Disminueix la velocitat</string>
     <string name="talkback_subtitle_history">Història del subtítol</string>

@@ -137,11 +137,6 @@
     <string name="firstsong">Wimbo wa kwanza wa orodha chezeshi</string>
     <string name="lastsong">Wimbo wa mwisho wa orodha chezeshi</string>
 
-    <string name="surface_best_fit">Upatanifu bora zaidi</string>
-    <string name="surface_fit_screen">Skrini patanifu</string>
-    <string name="surface_fill">Jaza</string>
-    <string name="surface_original">Weka katikati</string>
-    <string name="resize_tip">Gusa kwa muda mrefu ili upate machaguo zaidi</string>
     <string name="unseekable_stream">Mtiririko usiotafutika</string>
     <string name="refresh">Changamsha</string>
     <string name="track_audio">Nakala ya usikiko</string>
@@ -151,12 +146,7 @@
     <string name="track_bitrate_info">Kima cha biti: %1$s/s\n</string>
     <string name="track_codec_info">Kodeki: %1$s\n</string>
     <string name="track_language_info">Lugha: %1$s\n</string>
-    <string name="volume">Sauti</string>
-    <string name="sound_on">Sauti imewashwa</string>
-    <string name="sound_off">Sauti imezimwa</string>
-    <string name="brightness">Uangavu</string>
     <string name="advanced">machaguo mahiri</string>
-    <string name="audio_boost_warning">Telezesha juu tena upitishe 100%</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">Chaneli 1 \n</item>
@@ -210,32 +200,17 @@
     <string name="play_button">Kitufe cha kucheza</string>
 
     <!-- Tips -->
-    <string name="tips_title">Vidokezo vya kichezaji video</string>
     <string name="seek">Tafuta</string>
     <string name="subtitles">Manukuu</string>
-    <string name="tips_player_controls">Vidhibiti vya uchezaji</string>
-    <string name="tips_player_controls_description">Gusa vidhibiti vya uchezaji ugundue jinsi ya kuvitumia</string>
-    <string name="tips_audio_sub">Nakala za sikiko na manukuu</string>
-    <string name="tips_play_description">Gusa ucheze video</string>
     <string name="lock">Funga</string>
     <string name="tap">Gusa ili uone</string>
     <string name="tap_to_remove">Gusa ili uondoe</string>
     <string name="tap_to_rearrange">Gusa ili upange upya</string>
     <string name="tap_to_previous_next">Gusa uli uende iliyotangulia/inayofuata</string>
-    <string name="lock_orientation">Mwelekeo</string>
-    <string name="lock_orientation_description">Gusa ili ufunge/ufungue mwelekeo</string>
-    <string name="aspect_ratio">Uwiano kima-upana</string>
-    <string name="aspect_ratio_description">Gusa ili ubadili uwiano kima-upana wa video</string>
-    <string name="advanced_options">Machaguo mahiri</string>
-    <string name="advanced_options_description">Kama vile kasi ya uchezaji, nui radidi,...</string>
-    <string name="tips_swipe">Telezesha juu au chini</string>
     <string name="tips_swipe_horizontal">Telezesha kushoto au kulia</string>
     <string name="tips_playlist">Orodha chezeshi</string>
     <string name="tips_hold_seek">Shikilia ili utafute</string>
     <string name="tips_long_drop">Gusa kwa muda mrefu na uachilie</string>
-    <string name="pause_description">Gusa mara mbili upumzishe</string>
-    <string name="seek_tap">+/- 10 s</string>
-    <string name="seek_tap_description">Gusa mara mbili uruke sekunde 10 mbele au nyuma</string>
     <string name="close">Funga</string>
 
     <string name="playlist_tips">Vidokezo vya orodha chezeshi</string>
@@ -521,7 +496,6 @@
 
     <!-- Accessibility -->
     <string name="more_actions">Matendo zaidi</string>
-    <string name="back_quit_lock">Bonyeza tena ukatize video</string>
     <string name="stream_deleted">Mtiririko umefutwa</string>
     <string name="no_subs_found">Hakuna manukuu katika mwongolezo huu</string>
     <string name="music_now_playing">Kinachocheza sasa</string>
@@ -586,7 +560,6 @@
     <string name="download_subtitles">Pakua manukuu</string>
     <string name="browse_folder">Vinjari folda</string>
     <string name="listen">Sikiza</string>
-    <string name="apply_to_bt">Tekeleza kwenye kifaa cha bluetooth</string>
     <string name="videos_all">Video zote</string>
     <string name="clear_playback_history">Futa historia ya uchezai</string>
     <string name="ml_scanning">Inatafuta faili za midia</string>
@@ -677,9 +650,6 @@
     <string name="device_dialog_message">Umeingiza kifaa kipya cha hifadhi katika TV box yako, unataka kukifungua kwa VLC?</string>
     <string name="videos_folders_title">Video kwa folda</string>
     <string name="videos_groups_title">Vikundi vya video</string>
-    <string name="video_save_clone_mode">Wezesha kiotomatiki nui lahiki</string>
-    <string name="video_remote_enable">Badilisha iwe nui kitenzambali</string>
-    <string name="video_remote_disable">Nakili skrini</string>
     <string name="removed_from_playlist_anonymous">Vipengee vimetolewa kwenye orodha chezeshi</string>
     <string name="welcome_title">Karibu kwenye VLC</string>
     <string name="welcome_subtitle">Kichezaji cha midia anuwai kisicho na malipo na ni programu huria</string>
@@ -777,27 +747,8 @@
     <string name="clear">Futa</string>
     <string name="abrepeat_add_first_marker">Weka mahali pa kuanzia</string>
     <string name="abrepeat_add_second_marker">Weka mahali pa kusitia</string>
-    <string name="demux_bitrate">Kima cha biti cha plesigawi</string>
-    <string name="input_bitrate">Kima cha biti cha ingizo</string>
-    <string name="video_information">Taarifa kuhusu video</string>
 
-    <string name="channels">Chaneli</string>
-    <string name="resolution">Mpambanuko</string>
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate">Kima cha fremu</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">Lugha</string>
-    <string name="track_samplerate">Kima cha sampuli</string>
-    <string name="track_samplerate_value">%1$d Hz\n</string>
-    <string name="bitrate">Kima cha biti</string>
-    <string name="codec">Kisisimbuzi</string>
-    <string name="text">Maandishi</string>
     <string name="unknown">Haijulikani</string>
-    <string name="audio_delay_start">Mlio umesikika</string>
-    <string name="subtitle_delay_first">Sauti imesikika</string>
-    <string name="audio_delay_end">Mlio umetambulika</string>
-    <string name="subtitle_delay_end">Maandishi yameonekana</string>
     <string name="track_index">Nakala: %s</string>
     <string name="audio_queue_progress">Hatua: %s</string>
     <string name="audio_queue_progress_remaining">Palipobaki: %s</string>
@@ -857,9 +808,6 @@
     <string name="remove_from_history">Ondoa kutoka historia</string>
     <string name="prefersmbv1">Pendelea SMB 1</string>
     <string name="prefersmbv1_summary">Usichague mpangilio huu ikiwa una matatizo unapovinjari seva yako ya SMB</string>
-    <string name="apply_to_all">Tekeleza kwa video zote</string>
-    <string name="audio_delay_global">Kawizo la usikiko limewekwa %sms kwa video zote</string>
-    <string name="audio_delay_bt">Kawizo la usikiko limewekwa %sms kwa kifaa cha bluetooth</string>
     <string name="go_to_folder">Vinjari folda kuu</string>
     <string name="create_shortcut">Unda njia mkato kwenye kizinduzi</string>
     <string name="no_sub_renderer">Manukuu hayamwegwi unapoakisi midia</string>
@@ -918,16 +866,11 @@
     <string name="banned_parent">Imepigwa marufuku na folda kuu</string>
     <string name="official_website">Tovuti rasmi</string>
     <string name="view_online">Tazama mtandaoni</string>
-    <string name="player_under_notch">Onyesha video kwa mkato</string>
-    <string name="notch">Mkato</string>
     <string name="always_fast_seek">Tumia utafutaji haraka daima</string>
     <string name="always_fast_seek_summary">Utafutaji ni haraka lakini sio sahihi</string>
     <string name="no_web_browser">Hakuna kivinjari cha wavuti kimesakinishwa</string>
     <string name="no_web_browser_message">Unaweza kuskani katika simumaizi.\nKIRASA ni %s</string>
     <string name="no_video">Hakuna video iliyopo</string>
-    <string name="fold_optimized">Imesadifishiwa skrini mkunjo</string>
-    <string name="fold_optimize">Sadifishia skrini mkunjo</string>
-    <string name="foldable">Skrini mkunjo</string>
     <string name="undo">Tendua</string>
     <string name="add_server_favorite">Ongeza seva kipendwa</string>
     <string name="widget_theme">Mandhari ya wijeti</string>
@@ -953,7 +896,6 @@
     <string name="disable_track">Lemaza nakala</string>
     <string name="ascending">Kupanda</string>
     <string name="descending">Kushuka</string>
-    <string name="screenshot_error">Kosa wakati wa kuchukua picha ya skrini</string>
     <string name="disabled">Imelemazwa</string>
     <string name="enable_screenshot_gesture">Gusa ukitumia vidole 3</string>
     <string name="enable_screenshot_button">Onyesha kibonye sha picha ya skrini</string>
@@ -982,13 +924,10 @@
     <string name="talkback_list_section">Kichwa: %s</string>
     <string name="talkback_file_size">Ukubwa wa faili: %s</string>
     <string name="talkback_open_in_browser">Fungua katika kivinjari cha wavuti</string>
-    <string name="talkback_video_player">Kichezaji video. Gusa uone vidhibiti. Gusa kibonye cha nyuma ufiche</string>
     <string name="talkback_video_tracks">Nakala za video</string>
     <string name="talkback_audio_tracks">Nakala za usikiko</string>
     <string name="talkback_subtitle_tracks">Nakala za manukuu</string>
     <string name="selected">Kilichochaguliwa</string>
-    <string name="talkback_increase_delay">Ongeza kawizo</string>
-    <string name="talkback_decrease_delay">Punguza kawizo</string>
     <string name="talkback_increase_speed">Ongeza kasi</string>
     <string name="talkback_decrease_speed">Punguza kasi</string>
     <string name="talkback_subtitle_history">Historia ya manukuu</string>

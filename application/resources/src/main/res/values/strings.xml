@@ -182,11 +182,6 @@
     <string name="firstsong">First song of the playlist</string>
     <string name="lastsong">Last song of the playlist</string>
 
-    <string name="surface_best_fit">Best fit</string>
-    <string name="surface_fit_screen">Fit screen</string>
-    <string name="surface_fill">Fill</string>
-    <string name="surface_original">Center</string>
-    <string name="resize_tip">Long tap for more options</string>
     <string name="unseekable_stream">Unseekable stream</string>
     <string name="refresh">Refresh</string>
     <string name="track_audio">Audio track</string>
@@ -196,13 +191,8 @@
     <string name="track_bitrate_info">Bitrate: %1$s/s\n</string>
     <string name="track_codec_info">Codec: %1$s\n</string>
     <string name="track_language_info">Language: %1$s\n</string>
-    <string name="volume">Volume</string>
     <string name="system_volume_disabled">%s\nNo access to system volume</string>
-    <string name="sound_on">Sound On</string>
-    <string name="sound_off">Sound Off</string>
-    <string name="brightness">Brightness</string>
     <string name="advanced">advanced options</string>
-    <string name="audio_boost_warning">Slide up again to go beyond 100%</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 channel\n</item>
@@ -280,32 +270,17 @@
     <string name="play_button">Play Button</string>
 
     <!-- Tips -->
-    <string name="tips_title">Video player tips</string>
     <string name="seek">Seek</string>
     <string name="subtitles">Subtitles</string>
-    <string name="tips_player_controls">Player controls</string>
-    <string name="tips_player_controls_description">Tap on player controls below to discover what they are used for</string>
-    <string name="tips_audio_sub">Audio tracks and subtitles</string>
-    <string name="tips_play_description">Tap to play video</string>
     <string name="lock">Lock</string>
     <string name="tap">Tap to view</string>
     <string name="tap_to_remove">Tap to remove</string>
     <string name="tap_to_rearrange">Tap to rearrange</string>
     <string name="tap_to_previous_next">Tap to go to previous/next</string>
-    <string name="lock_orientation">Orientation</string>
-    <string name="lock_orientation_description">Tap to lock/unlock orientation</string>
-    <string name="aspect_ratio">Aspect ratio</string>
-    <string name="aspect_ratio_description">Tap to change the video aspect ratio</string>
-    <string name="advanced_options">Advanced options</string>
-    <string name="advanced_options_description">Such as the playback speed, repeat mode, …</string>
-    <string name="tips_swipe">Swipe up or down</string>
     <string name="tips_swipe_horizontal">Swipe left or right</string>
     <string name="tips_playlist">Playlist</string>
     <string name="tips_hold_seek">Hold to seek</string>
     <string name="tips_long_drop">Long press and drop</string>
-    <string name="pause_description">Double tap to pause</string>
-    <string name="seek_tap">+/- 10 sec.</string>
-    <string name="seek_tap_description">Double tap to go 10 sec forward or backward</string>
     <string name="close">Close</string>
 
     <string name="playlist_tips">Playlist tips</string>
@@ -365,10 +340,8 @@
     <string name="screen_orientation">Video screen orientation</string>
     <string name="screen_orientation_sensor">Automatic (sensor)</string>
     <string name="screen_orientation_portrait">Portrait</string>
-    <string name="screen_orientation_portrait_reverse">Portrait reverse</string>
     <string name="screen_orientation_landscape">Landscape</string>
     <string name="screen_orientation_landscape_reverse">Landscape reverse</string>
-    <string name="screen_orientation_landscape_sensor">Landscape (sensor)</string>
     <string name="screen_orientation_last_locked">Last locked orientation</string>
     <string name="dark_theme">Dark theme</string>
     <string name="theme_auto">Auto theme</string>
@@ -402,7 +375,6 @@
     <string name="save_brightness_title">Save brightness level</string>
     <string name="save_audiodelay_summary">Save individual audio delay for each video</string>
     <string name="save_audiodelay_title">Save audio delay</string>
-    <string name="video_show_orientation_button">Show orientation button</string>
     <string name="enable_brightness_gesture_title">Brightness gesture</string>
     <string name="enable_brightness_gesture_summary">Control brightness by gesture during video playback</string>
     <string name="enable_volume_gesture_title">Volume gesture</string>
@@ -434,7 +406,6 @@
     <string name="enable_tap_and_hold_fastplay_title">Enable Fastplay</string>
     <string name="enable_tap_and_hold_fastplay_summary">Tap and hold to increase the playback speed</string>
     <string name="fastplay_speed_title">Fastplay speed</string>
-    <string name="fastplay_title">Playing at %sx</string>
     <string name="fastplay_subtitle">Release to stop</string>
     <string name="show_bookmark_buttons">Show bookmark buttons</string>
     <string name="show_bookmark_buttons_summary">Show buttons to navigate between bookmarks</string>
@@ -568,7 +539,6 @@
     <string name="tv_folders_first_summary">Show folders and then files in the file browser</string>
     <string name="tv_show_hidden_files">Show hidden files</string>
     <string name="tv_show_hidden_files_summary">Show hidden files in the file browser</string>
-    <string name="ab_repeat_fastseek_warning">Fast seek is enabled. It can lead to precision issues</string>
 
     <string name="extensions_prefs_category">Extensions</string>
     <string name="extensions_empty">No extension detected</string>
@@ -716,7 +686,6 @@
 
     <!-- Accessibility -->
     <string name="more_actions">More Actions</string>
-    <string name="back_quit_lock">Press Back again to quit video</string>
     <string name="stream_deleted">Stream deleted</string>
     <string name="no_subs_found">No subtitles in this directory</string>
     <string name="music_now_playing">Now Playing</string>
@@ -796,7 +765,6 @@
     <string name="unknown_error">Unexpected error</string>
     <string name="browse_folder">Browse folder</string>
     <string name="listen">Listen</string>
-    <string name="apply_to_bt">Apply to bluetooth device</string>
     <string name="episodes">episodes</string>
     <string name="movies">movies</string>
     <string name="videos">videos</string>
@@ -898,9 +866,6 @@
     <string name="device_dialog_message">You just plugged a new storage device to your TV box, do you want to open it with VLC?</string>
     <string name="videos_folders_title">Videos by folders</string>
     <string name="videos_groups_title">Video groups</string>
-    <string name="video_save_clone_mode">Automatically activate clone mode?</string>
-    <string name="video_remote_enable">Switch to remote control mode</string>
-    <string name="video_remote_disable">Duplicate screen</string>
     <string name="removed_from_playlist_anonymous">Item(s) removed from playlist</string>
     <string name="welcome_title">Welcome to VLC!</string>
     <string name="welcome_subtitle">The free and open source multimedia player</string>
@@ -908,7 +873,6 @@
     <string name="permission_video">VLC needs your permission to access video media on your device</string>
     <string name="permission_audio">VLC needs your permission to access audio media on your device</string>
     <string name="medialibrary_scan_explanation">VLC can automatically scan your device to organize your media collection.</string>
-    <string name="player_title_fd_warning">Without the storage permission, VLC cannot retrieve the media title nor save the progress</string>
     <string name="onboarding_theme_title">Make yourself at home</string>
     <string name="done">Done</string>
     <string name="onboarding_scan_title">Auto-discover your media</string>
@@ -1013,27 +977,8 @@
     <string name="clear">Clear</string>
     <string name="abrepeat_add_first_marker">Set start point</string>
     <string name="abrepeat_add_second_marker">Set end point</string>
-    <string name="demux_bitrate">Demux bitrate</string>
-    <string name="input_bitrate">Input bitrate</string>
-    <string name="video_information">Video information</string>
 
-    <string name="channels">Channels</string>
-    <string name="resolution">Resolution</string>
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate">Framerate</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">Language</string>
-    <string name="track_samplerate">Sample rate</string>
-    <string name="track_samplerate_value">%1$d Hz\n</string>
-    <string name="bitrate">Bitrate</string>
-    <string name="codec">Codec</string>
-    <string name="text">Text</string>
     <string name="unknown">Unknown</string>
-    <string name="audio_delay_start">Sound heard</string>
-    <string name="subtitle_delay_first">Voice heard</string>
-    <string name="audio_delay_end">Sound spotted</string>
-    <string name="subtitle_delay_end">Text seen</string>
     <string name="track_index">Track: %s</string>
     <string name="audio_queue_progress">Progress: %s</string>
     <string name="audio_queue_progress_remaining">Remaining: %s</string>
@@ -1096,9 +1041,6 @@
     <string name="remove_from_history">Remove from history</string>
     <string name="prefersmbv1">Prefer SMB 1</string>
     <string name="prefersmbv1_summary">Uncheck this setting if you have some difficulties browsing your SMB server</string>
-    <string name="apply_to_all">Apply to all videos</string>
-    <string name="audio_delay_global">Audio delay set to %s ms for all videos</string>
-    <string name="audio_delay_bt">Audio delay set to %s ms for the bluetooth device</string>
     <string name="go_to_folder">Browse parent</string>
     <string name="go_to_album">Go to album</string>
     <string name="go_to_artist">Go to artist</string>
@@ -1222,16 +1164,11 @@
     </plurals>
     <string name="official_website">Official website</string>
     <string name="view_online">View online</string>
-    <string name="player_under_notch">Display video under notch</string>
-    <string name="notch">Notch</string>
     <string name="always_fast_seek">Always use fast seek</string>
     <string name="always_fast_seek_summary">Seek is faster but may be less precise</string>
     <string name="no_web_browser">No web browser installed</string>
     <string name="no_web_browser_message">You can scan this on your smartphone.\nThe URL is %s</string>
     <string name="no_video">No video available</string>
-    <string name="fold_optimized">Optimized for your folding screen</string>
-    <string name="fold_optimize">Optimize for folding screens</string>
-    <string name="foldable">Foldable screen</string>
     <string name="audio_hinge_go_left">Move audio controls to the left screen</string>
     <string name="audio_hinge_go_right">Move audio controls to the right screen</string>
     <string name="undo">Undo</string>
@@ -1265,7 +1202,6 @@
     <string name="disable_track">Disable track</string>
     <string name="ascending">Ascending</string>
     <string name="descending">Descending</string>
-    <string name="screenshot_error">Error while taking the screenshot</string>
     <string name="disabled">Disabled</string>
     <string name="enable_screenshot_gesture">Tap with 3 fingers</string>
     <string name="enable_screenshot_button">Show the screenshot button</string>
@@ -1296,15 +1232,12 @@
     <string name="talkback_list_section">Header: %s</string>
     <string name="talkback_file_size">File size: %s</string>
     <string name="talkback_open_in_browser">Open in web browser</string>
-    <string name="talkback_video_player">Video player. Tap to show controls. Tap the back button to hide them</string>
     <string name="talkback_video_tracks">Video tracks</string>
     <string name="talkback_audio_tracks">Audio tracks</string>
     <string name="talkback_subtitle_tracks">Subtitle tracks</string>
     <string name="talkback_track" translatable="false">%s: %s. %s</string>
     <string name="talkback_subtitle_dowload_item">Language: %1$s. %2$s. Name: %3$s</string>
     <string name="selected">Selected</string>
-    <string name="talkback_increase_delay">Increase delay</string>
-    <string name="talkback_decrease_delay">Decrease delay</string>
     <string name="talkback_increase_speed">Increase speed</string>
     <string name="talkback_decrease_speed">Decrease speed</string>
     <string name="talkback_subtitle_history">Subtitle history</string>

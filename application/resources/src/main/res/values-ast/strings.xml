@@ -79,10 +79,7 @@
     <string name="track_video">Pista de videu</string>
     <string name="track_codec_info">Códec: %1$s\n</string>
     <string name="track_language_info">Llingua: %1$s\n</string>
-    <string name="volume">Volume</string>
-    <string name="brightness">Brilléu</string>
     <string name="advanced">opciones avanzaes</string>
-    <string name="audio_boost_warning">Volvi eslizar pa perpasar el 100%</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 canal\n</item>
@@ -274,16 +271,7 @@
     <string name="next_episode">Episodiu siguiente</string>
     <string name="recently_played">Reprodúxose apocayá</string>
     <string name="recently_added">Amestóse apocayá</string>
-    <string name="video_information">Información</string>
 
-    <string name="channels">Canales</string>
-    <string name="resolution">Resolución</string>
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">Llingua</string>
-    <string name="track_samplerate_value">%1$d Hz\n</string>
-    <string name="codec">Códec</string>
     <string name="track_index">Pista: %s</string>
     <string name="audio_queue_progress">Progresu: %s</string>
     <string name="playlist_existing">La llista de reproducción %s yá esiste</string>

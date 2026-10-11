@@ -6,27 +6,44 @@ import org.videolan.libvlc.MediaPlayer
 import org.videolan.resources.AppContextProvider
 import org.videolan.libvlc.util.DisplayManager
 import org.videolan.libvlc.util.VLCVideoLayout
+import org.videolan.tools.KEY_ENABLE_CLONE_MODE
+import org.videolan.tools.Settings
 import org.videolan.vlc.PlaybackService as AndroidPlaybackHost
 import org.videolan.vlc.media.PlaylistManager
 
 /**
- * Coordinates the one native Android video output with the shared Compose
- * PlayerRoute. Playback requests are held until the route-owned [VLCVideoLayout]
- * is ready, so one player and one native output remain authoritative.
+ * Coordinates the one native Android video output with the shared Compose player, hosted by
+ * MainActivity's PlayerRoute on phones and by VideoPlayerActivity on Android TV (and for external
+ * launches). Playback requests are held until the host's [VLCVideoLayout] is ready, so one player
+ * and one native output remain authoritative.
  */
 internal object SharedVideoSurfaceRegistry {
     internal enum class VideoPlaybackRoute {
         DEFERRED,
         INLINE,
-        /** Android TV: VideoPlayerActivity owns the vout and replays the request itself. */
-        LEGACY_ACTIVITY,
     }
+
+    /**
+     * How a host wants its output attached.
+     *
+     * The phone route uses a TextureView: a SurfaceView is positioned by SurfaceFlinger outside the
+     * Compose hierarchy and can be left offset after a Nav3 transition or a window-inset change.
+     * The full-screen TV host never moves, so it keeps the SurfaceView (cheaper, HDR capable, and
+     * required for display frame-rate matching) and follows display route changes.
+     */
+    internal data class SurfaceOptions(
+        val textureView: Boolean = true,
+        val followDisplayRoutes: Boolean = false,
+        /** VLCBenchmark harness: no secondary-display presentation, benchmark display policy. */
+        val benchmark: Boolean = false,
+    )
 
     /** True while the shared PlayerRoute is composed (audio artwork or video). */
     @Volatile
     private var hostActive = false
 
     private var layout: VLCVideoLayout? = null
+    private var options = SurfaceOptions()
     private var displayManager: DisplayManager? = null
     private var attachedPlayer: MediaPlayer? = null
     private var pendingPlayback: (() -> Unit)? = null
@@ -58,7 +75,6 @@ internal object SharedVideoSurfaceRegistry {
      * shared output or held until the route creates it; it never opens a second activity/output.
      */
     fun routeVideoPlayback(manager: PlaylistManager, index: Int): VideoPlaybackRoute {
-        if (!SharedPlayerLauncher.usesSharedPlayer()) return VideoPlaybackRoute.LEGACY_ACTIVITY
         if (hasAttachedSurface()) return VideoPlaybackRoute.INLINE
         pendingPlayback = {
             manager.launch {
@@ -71,11 +87,12 @@ internal object SharedVideoSurfaceRegistry {
         return VideoPlaybackRoute.DEFERRED
     }
 
-    fun attachSurface(surface: VLCVideoLayout) {
+    fun attachSurface(surface: VLCVideoLayout, surfaceOptions: SurfaceOptions = SurfaceOptions()) {
         if (layout !== surface) {
             detachSurface()
             layout = surface
         }
+        options = surfaceOptions
         attachToLivePlayer()
         // The service can start a frame after Compose has created the view. Keep the request
         // queued until the vout is really attached; replaying earlier would immediately queue a
@@ -100,18 +117,20 @@ internal object SharedVideoSurfaceRegistry {
         if (player.isReleased) return
         if (player.vlcVout.areViewsAttached()) player.vlcVout.detachViews()
         displayManager?.release()
-        displayManager = DisplayManager(
+        // Without clone mode, a connected secondary display (HDMI, Miracast) gets the picture as a
+        // Presentation while this window keeps the controls, exactly like the old player.
+        val manager = DisplayManager(
             activity,
             AndroidPlaybackHost.renderer,
-            true,
-            false,
-            false,
+            options.textureView,
+            options.benchmark || Settings.getInstance(activity).getBoolean(KEY_ENABLE_CLONE_MODE, false),
+            options.benchmark,
         )
-        // TextureView is deliberately used for the shared Compose route. A SurfaceView is
-        // positioned by SurfaceFlinger outside the Compose hierarchy and can be left offset
-        // after a Nav3 transition or a window-inset change.
-        player.attachViews(surface, displayManager, true, true)
+        displayManager = manager
+        if (options.followDisplayRoutes) manager.setMediaRouterCallback()
+        player.attachViews(surface, manager, true, options.textureView)
         attachedPlayer = player
+        if (!options.benchmark) AndroidPlaybackHost.instance?.let(VideoTrackPreferences::attach)
     }
 
     private fun detachSurface() {
@@ -121,9 +140,19 @@ internal object SharedVideoSurfaceRegistry {
             }
         }
         attachedPlayer = null
-        displayManager?.release()
+        VideoTrackPreferences.detach()
+        displayManager?.let { manager ->
+            if (options.followDisplayRoutes) manager.removeMediaRouterCallback()
+            manager.release()
+        }
         displayManager = null
         layout = null
+    }
+
+    /** The SurfaceView currently showing video, for display frame-rate matching. */
+    internal fun currentSurfaceView(): android.view.SurfaceView? {
+        val root = currentLayout() ?: return null
+        return root.findViewById(org.videolan.vlc.R.id.surface_video) as? android.view.SurfaceView
     }
 }
 

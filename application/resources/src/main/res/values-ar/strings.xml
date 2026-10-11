@@ -188,11 +188,6 @@
     <string name="firstsong">أول أغنية في قائمة التشغيل</string>
     <string name="lastsong">آخر أغنية في قائمة التشغيل</string>
 
-    <string name="surface_best_fit">أفضل ملاءمة</string>
-    <string name="surface_fit_screen">املأ الشاشة</string>
-    <string name="surface_fill">املأ</string>
-    <string name="surface_original">وسّط</string>
-    <string name="resize_tip">اضغط لفترة طويلة للحصول على المزيد من الخيارات</string>
     <string name="unseekable_stream">لا يدعم الدفق التنقّل فيه</string>
     <string name="refresh">أنعِش</string>
     <string name="track_audio">مسار صوت</string>
@@ -202,12 +197,7 @@
     <string name="track_bitrate_info">معدّل البتّات: %1$s/ثا\n</string>
     <string name="track_codec_info">المرماز : %1$s\n</string>
     <string name="track_language_info">اللغة : %1$s\n</string>
-    <string name="volume">الصّوت</string>
-    <string name="sound_on">الصوت مفعّل</string>
-    <string name="sound_off">الصوت معطّل</string>
-    <string name="brightness">السّطوع</string>
     <string name="advanced">خيارات متقدمة</string>
-    <string name="audio_boost_warning">مرر إلى الأعلى مرة أخرى لتتجاوز 100٪</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="zero">لا قنوات\n</item>
@@ -269,30 +259,16 @@
     <string name="play_button">زر التشغيل</string>
 
     <!-- Tips -->
-    <string name="tips_title">نصائح حول مُشغِّل الفيديو</string>
     <string name="seek">سعي</string>
     <string name="subtitles">التّرجمات</string>
-    <string name="tips_player_controls">تحكمات المُشغِّل</string>
-    <string name="tips_player_controls_description">يُرجى لمس تحكمات المُشغِّل أسفله لاستكشاف دورها في الاستخدام</string>
-    <string name="tips_audio_sub">المسارات الصوتية والترجمات</string>
-    <string name="tips_play_description">يُرجى اللمس لتشغيل الفيديو</string>
     <string name="lock">اقفلْ</string>
     <string name="tap">يُرجى اللمس للعرض</string>
     <string name="tap_to_remove">يُرجى اللمس للإزالة</string>
     <string name="tap_to_rearrange">يٌرجى اللمس لإعادة الترتيب</string>
     <string name="tap_to_previous_next">يُرجى اللمس للذهاب إلى السابق (أو اللاحق)</string>
-    <string name="lock_orientation">الاتجاه</string>
-    <string name="lock_orientation_description">يُرجى اللمس لتعطيل (أو تفعيل) الاتجاه</string>
-    <string name="aspect_ratio">نسبة العرض إلى الارتفاع</string>
-    <string name="aspect_ratio_description">انقر لتغيير نسبة العرض إلى الارتفاع للفيديو</string>
-    <string name="advanced_options">الخيارات المتقدمة</string>
-    <string name="advanced_options_description">مثلا تحديد سرعة التشغيل، وضع التكرار، …</string>
-    <string name="tips_swipe">اسحب للأعلى أو للأسفل</string>
     <string name="tips_swipe_horizontal">اسحب لليسار أو لليمين</string>
     <string name="tips_playlist">قائمة التشغيل</string>
     <string name="tips_hold_seek">اضغط مطولا\" للبحث</string>
-    <string name="pause_description">اللمس مرتين للتوقف المؤقت</string>
-    <string name="seek_tap_description">انقر مرتين للانتقال إلى الأمام أو الخلف لمدة 10 ثوانٍ</string>
     <string name="close">إغلاق</string>
 
     <string name="playlist_tips">نصائح حول قائمة التشغيل</string>
@@ -583,7 +559,6 @@
 
     <!-- Accessibility -->
     <string name="more_actions">المزيد من الإجراءات</string>
-    <string name="back_quit_lock">اضغط على \"رجوع\" مرة أخرى للخروج من الفيديو</string>
     <string name="stream_deleted">تم حذف التدفق</string>
     <string name="no_subs_found">لا يوجد ترجمات في هذا الدليل</string>
     <string name="music_now_playing">جارٍ تشغيل</string>
@@ -637,7 +612,6 @@
     <string name="open_subtitles_password">كلمة المرور</string>
     <string name="browse_folder">تصفح المجلد</string>
     <string name="listen">استمع</string>
-    <string name="apply_to_bt">تنطبق على جهاز بلوتوث</string>
     <string name="episodes">الحلقات</string>
     <string name="movies">أفلام</string>
     <string name="videos">فيديوهات</string>
@@ -732,9 +706,6 @@
     <string name="device_dialog_message">لقد قمت للتو بتوصيل جهاز تخزين جديد بصندوق التلفزيون الخاص بك ، هل تريد فتحه باستخدام VLC؟</string>
     <string name="videos_folders_title">الفيديوهات بحسب المجلدات</string>
     <string name="videos_groups_title">مجموعات الفيديو</string>
-    <string name="video_save_clone_mode">تنشيط وضع الاستنساخ تلقائيًا؟</string>
-    <string name="video_remote_enable">التبديل إلى وضع التحكم عن بعد</string>
-    <string name="video_remote_disable">شاشة مكررة</string>
     <string name="removed_from_playlist_anonymous">تمت إزالة العنصر (العناصر) من قائمة التشغيل</string>
     <string name="welcome_title">مرحبًا بكم على VLC!</string>
     <string name="welcome_subtitle">مُشغّل الوسائط الحُر ومفتوح المصدر</string>
@@ -842,27 +813,8 @@
     <string name="clear">مسح</string>
     <string name="abrepeat_add_first_marker">اختر نقطة البداية</string>
     <string name="abrepeat_add_second_marker">اختر نقطة النهاية</string>
-    <string name="demux_bitrate">معدل البت demux</string>
-    <string name="input_bitrate">إدخال معدل البت</string>
-    <string name="video_information">معلومات الفيديو</string>
 
-    <string name="channels">القنوات</string>
-    <string name="resolution">الدّقة</string>
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate">معدل الإطار</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/ثانية</string>
-    <string name="language">اللغة</string>
-    <string name="track_samplerate">  نسبة نموذجية</string>
-    <string name="track_samplerate_value">%1$d هرتز\n</string>
-    <string name="bitrate">معدل البت</string>
-    <string name="codec">الترميز</string>
-    <string name="text">النص</string>
     <string name="unknown">غير معروف</string>
-    <string name="audio_delay_start">سمع صوت</string>
-    <string name="subtitle_delay_first">سمع صوت</string>
-    <string name="audio_delay_end">تم رصد الصوت</string>
-    <string name="subtitle_delay_end">رؤية النص</string>
     <string name="track_index">مسار: %s</string>
     <string name="audio_queue_progress">التقدم: %s</string>
     <string name="audio_queue_progress_remaining">متبقي: %s</string>
@@ -922,9 +874,6 @@
     <string name="remove_from_history">أزِل من التاريخ</string>
     <string name="prefersmbv1">تفضل SMB 1</string>
     <string name="prefersmbv1_summary">قم بإلغاء تحديد هذا الإعداد إذا واجهت بعض الصعوبات في تصفح خادم SMB الخاص بك</string>
-    <string name="apply_to_all">طبق على كل الفيديوهات</string>
-    <string name="audio_delay_global">تم ضبط تأخير الصوت على %s مللي ثانية لكل الفيديوهات</string>
-    <string name="audio_delay_bt">تم ضبط تأخير الصوت على %s مللي ثانية لجهاز البلوتوث</string>
     <string name="go_to_folder">تصفح الوالدين</string>
     <string name="no_sub_renderer">لم يتم دعم الترجمات أثناء الإرسال</string>
     <string name="soundfont">خط الصوت \"SoundFont\" لـ وصلة بينيه رقمية للآلات الموسيقية \"MIDI\"</string>
@@ -986,7 +935,6 @@
     <string name="view_online">عرض على الانترنت</string>
     <string name="no_web_browser">لا يوجد متصفح ويب مثبت</string>
     <string name="no_video">لا يتوفر أي فيديو</string>
-    <string name="foldable">شاشة قابلة للطي</string>
     <string name="undo">تراجعْ</string>
     <string name="custom">خصّص</string>
     <string name="widget_type_circle">دائرة</string>
@@ -997,7 +945,6 @@
     <string name="playing">جارٍ تشغيل </string>
     <string name="ascending">تصاعديا</string>
     <string name="descending">تنازليا</string>
-    <string name="screenshot_error">حدث خطأ أثناء التقاط لقطة الشاشة</string>
     <string name="disabled">معطل</string>
     <string name="enable_screenshot_gesture">اضغط ب 3 أصابع</string>
     <string name="talkback_genre">النوع : %s</string>

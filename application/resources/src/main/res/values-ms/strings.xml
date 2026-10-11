@@ -150,11 +150,6 @@
     <string name="firstsong">Lagu pertama senarai main</string>
     <string name="lastsong">Lagu terakhir senarai main</string>
 
-    <string name="surface_best_fit">Suai muat terbaik</string>
-    <string name="surface_fit_screen">Suai muat skrin</string>
-    <string name="surface_fill">Penuh skrin</string>
-    <string name="surface_original">Tengah skrin</string>
-    <string name="resize_tip">Tahan untuk dapatkan lebih banyak pilihan</string>
     <string name="unseekable_stream">Strim tidak boleh dijangkau</string>
     <string name="refresh">Segar semula</string>
     <string name="track_audio">Trek audio</string>
@@ -164,13 +159,8 @@
     <string name="track_bitrate_info">Kadar bit: %1$s/s\n</string>
     <string name="track_codec_info">Kodeks: %1$s\n</string>
     <string name="track_language_info">Bahasa: %1$s\n</string>
-    <string name="volume">Volum</string>
     <string name="system_volume_disabled">%s\nTiada capaian ke volum sistem</string>
-    <string name="sound_on">Bunyi Hidup</string>
-    <string name="sound_off">Bunyi Mati</string>
-    <string name="brightness">Kecerahan</string>
     <string name="advanced">pilihan lanjutan</string>
-    <string name="audio_boost_warning">Leret ke atas sekali lagi untuk melangkaui 100%</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="other">%1$d saluran\n</item>
@@ -240,32 +230,17 @@
     <string name="play_button">Butang Main</string>
 
     <!-- Tips -->
-    <string name="tips_title">Petua pemain video</string>
     <string name="seek">Jangkau</string>
     <string name="subtitles">Sari kata</string>
-    <string name="tips_player_controls">Kawalan pemain</string>
-    <string name="tips_player_controls_description">Ketik pada kawalan pemain di bawah untuk mengetahui kegunaannya</string>
-    <string name="tips_audio_sub">Trek dan sari kata audio</string>
-    <string name="tips_play_description">Ketik untuk main video</string>
     <string name="lock">Kunci</string>
     <string name="tap">Ketik untuk lihat</string>
     <string name="tap_to_remove">Ketik untuk buang</string>
     <string name="tap_to_rearrange">Ketika untuk susun semula</string>
     <string name="tap_to_previous_next">Ketik untuk pergi ke terdahulu/berikutnya</string>
-    <string name="lock_orientation">Orientasi</string>
-    <string name="lock_orientation_description">Ketik untuk buka/kunci orientasi</string>
-    <string name="aspect_ratio">Nisbah bidang</string>
-    <string name="aspect_ratio_description">Ketik untuk mengubah nisbah bidang video</string>
-    <string name="advanced_options">Pilhan lanjutan</string>
-    <string name="advanced_options_description">Seperti kelajuan main balik, mod ulang, …</string>
-    <string name="tips_swipe">Seret atas atau bawah</string>
     <string name="tips_swipe_horizontal">Seret kiri atau kanan</string>
     <string name="tips_playlist">Senarai main</string>
     <string name="tips_hold_seek">Tahan untuk jangkau</string>
     <string name="tips_long_drop">Tekan lama untuk lepas</string>
-    <string name="pause_description">Ketik dua kali untuk jeda</string>
-    <string name="seek_tap">+/- 10 saat.</string>
-    <string name="seek_tap_description">Ketik dua kali untuk maju atau undur 10 saat</string>
     <string name="close">Tutup</string>
 
     <string name="playlist_tips">Petua senarai main</string>
@@ -315,10 +290,8 @@
     <string name="screen_orientation">Orientasi skrin video</string>
     <string name="screen_orientation_sensor">Automatik (penderia)</string>
     <string name="screen_orientation_portrait">Potret</string>
-    <string name="screen_orientation_portrait_reverse">Potret Songsang</string>
     <string name="screen_orientation_landscape">Landskap</string>
     <string name="screen_orientation_landscape_reverse">Songsang lanskap</string>
-    <string name="screen_orientation_landscape_sensor">Lanskap (sensor)</string>
     <string name="screen_orientation_last_locked">Orientasi kunci terakhir</string>
     <string name="dark_theme">Tema gelap</string>
     <string name="theme_auto">Auto tema</string>
@@ -378,7 +351,6 @@
     <string name="enable_tap_and_hold_fastplay_title">Dayakan Fastplay</string>
     <string name="enable_tap_and_hold_fastplay_summary">Ketik dan tahan untuk tingkatkan kelajuan main balik</string>
     <string name="fastplay_speed_title">Kelajuan Fastplay</string>
-    <string name="fastplay_title">Dimainkan pada %sx</string>
     <string name="fastplay_subtitle">Lepas untuk henti</string>
     <string name="show_bookmark_buttons">Tunjuk butang tanda buku</string>
     <string name="show_bookmark_buttons_summary">Tunjuk butang tanda buku untuk mengemudi antara tanda buku</string>
@@ -495,7 +467,6 @@
     <string name="tv_folders_first_summary">Tunjuk folder kemudian fail dalam pelayar fail</string>
     <string name="tv_show_hidden_files">Tunjuk fail tersembunyi</string>
     <string name="tv_show_hidden_files_summary">Tunjuk fail tersembunyi dalam pelayar fail</string>
-    <string name="ab_repeat_fastseek_warning">Jangkau pantas didayakan. Ia boleh mengakibatkan masalah ketepatan</string>
 
     <string name="extensions_prefs_category">Sambungan</string>
     <string name="extensions_empty">Tiada sambungan dikesan</string>
@@ -629,7 +600,6 @@
 
     <!-- Accessibility -->
     <string name="more_actions">Lagi Tindakan</string>
-    <string name="back_quit_lock">Tekan Undur sekali lagi untuk tutup video</string>
     <string name="stream_deleted">Strim dipadam</string>
     <string name="no_subs_found">Tiada sari kata dalam direktori ini</string>
     <string name="music_now_playing">Kini Dimainkan</string>
@@ -708,7 +678,6 @@
     <string name="unknown_error">Ralat tidak dijangka</string>
     <string name="browse_folder">Layar folder</string>
     <string name="listen">Dengar</string>
-    <string name="apply_to_bt">Terap ke peranti bluetooth</string>
     <string name="episodes">episod</string>
     <string name="movies">filem</string>
     <string name="videos">video</string>
@@ -809,9 +778,6 @@
     <string name="device_dialog_message">Anda baru sahaja memalam peranti storan baharu ke dalam kotak TV anda, anda mahu membukanya dengan VLC?</string>
     <string name="videos_folders_title">Video mengikut folder</string>
     <string name="videos_groups_title">Kumpulan video</string>
-    <string name="video_save_clone_mode">Aktifkan mod klon secara automatik?</string>
-    <string name="video_remote_enable">Tukar ke mod kawalan jauh</string>
-    <string name="video_remote_disable">Duplikasikan skrin</string>
     <string name="removed_from_playlist_anonymous">Item dibuang daripada senarai main</string>
     <string name="welcome_title">Selamat datang ke VLC</string>
     <string name="welcome_subtitle">Pemain multimedia sumber terbuka dan bebas</string>
@@ -819,7 +785,6 @@
     <string name="permission_video">VLC memerlukan keizinan anda untuk mencapai media video dalam peranti anda</string>
     <string name="permission_audio">VLC memerlukan keizinan anda untuk mencapai media audio dalam peranti anda</string>
     <string name="medialibrary_scan_explanation">VLC boleh mengimbas peranti anda secara automatik untuk mengurus koleksi media anda.</string>
-    <string name="player_title_fd_warning">Tanpa keizinan storan, VLC tidak boleh mencapai tajuk media atau menyimpan perkembangannya</string>
     <string name="onboarding_theme_title">Buat seperti aplikasi sendiri</string>
     <string name="done">Selesai</string>
     <string name="onboarding_scan_title">Temui media anda secara automatik</string>
@@ -917,27 +882,8 @@
     <string name="clear">Kosongkan</string>
     <string name="abrepeat_add_first_marker">Tetapkan titik mula</string>
     <string name="abrepeat_add_second_marker">Tetapkan titik tamat</string>
-    <string name="demux_bitrate">Demux kadar bit</string>
-    <string name="input_bitrate">Kadar bit input</string>
-    <string name="video_information">Maklumat video</string>
 
-    <string name="channels">Saluran</string>
-    <string name="resolution">Resolusi</string>
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate">Kadar bingkai</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">Bahasa</string>
-    <string name="track_samplerate">Kadar sampel</string>
-    <string name="track_samplerate_value">%1$d Hz\n</string>
-    <string name="bitrate">Kadar bit</string>
-    <string name="codec">Kodeks</string>
-    <string name="text">Teks</string>
     <string name="unknown">Tidak diketahui</string>
-    <string name="audio_delay_start">Bunyi didengari</string>
-    <string name="subtitle_delay_first">Suara didengari</string>
-    <string name="audio_delay_end">Bunyi dikesan</string>
-    <string name="subtitle_delay_end">Teks dilihat</string>
     <string name="track_index">Trek: %s</string>
     <string name="audio_queue_progress">Kemajuan: %s</string>
     <string name="audio_queue_progress_remaining">Berbaki: %s</string>
@@ -1000,9 +946,6 @@
     <string name="remove_from_history">Buang daripada sejarah</string>
     <string name="prefersmbv1">Utamakan SMB 1</string>
     <string name="prefersmbv1_summary">Nyahtanda tetapan ini jika anda menghadapi kesukaran ketika melayari pelayan SMB anda</string>
-    <string name="apply_to_all">Terap pada semua video</string>
-    <string name="audio_delay_global">Lengah audio ditetapkan pada %s ms untuk semua video</string>
-    <string name="audio_delay_bt">Lengah audio ditetapkan pada %s ms untuk peranti bluetooth</string>
     <string name="go_to_folder">Layar induk</string>
     <string name="go_to_album">Pergi ke albu</string>
     <string name="go_to_artist">Pergi ke artis</string>
@@ -1107,16 +1050,11 @@
     </plurals>
     <string name="official_website">Tapak sesawang rasmi</string>
     <string name="view_online">Lihat dalam talian</string>
-    <string name="player_under_notch">Papar video di bawah takuk</string>
-    <string name="notch">Takuk</string>
     <string name="always_fast_seek">Sentiasa guna jangkau pantas</string>
     <string name="always_fast_seek_summary">Jangkau lebih pantas tetapi kurang tepat</string>
     <string name="no_web_browser">Tiada pelayar dipasang</string>
     <string name="no_web_browser_message">Anda boleh imbas ini dengan telefon pintar anda/\nURL ialah %s</string>
     <string name="no_video">Tiada video tersedia</string>
-    <string name="fold_optimized">Diptimumkan untuk skrin lipat anda</string>
-    <string name="fold_optimize">Dioptimumkan untuk skrin jenis lipat</string>
-    <string name="foldable">Skrin boleh lipat</string>
     <string name="undo">Buat asal</string>
     <string name="add_server_favorite">Tambah satu pelayan kegemaran</string>
     <string name="widget_theme">Tema widget</string>
@@ -1148,7 +1086,6 @@
     <string name="disable_track">Lumpuhkan trek</string>
     <string name="ascending">Menaik</string>
     <string name="descending">Menurun</string>
-    <string name="screenshot_error">Ralat ketika mengambil tangkap layar</string>
     <string name="disabled">Dilumpuhkan</string>
     <string name="enable_screenshot_gesture">Ketik dengan 3 jari</string>
     <string name="enable_screenshot_button">Tunjuk butang tangkap layar</string>
@@ -1179,14 +1116,11 @@
     <string name="talkback_list_section">Tajuk: %s</string>
     <string name="talkback_file_size">Saiz fail: %s</string>
     <string name="talkback_open_in_browser">Buka dalam pelayar sesawang</string>
-    <string name="talkback_video_player">Pemain video. Ketik untuk tunjuk kawalan. Ketik butang undur untuk menyembunyikannya</string>
     <string name="talkback_video_tracks">Trek video</string>
     <string name="talkback_audio_tracks">Trek audio</string>
     <string name="talkback_subtitle_tracks">Trek sari kata</string>
     <string name="talkback_subtitle_dowload_item">Bahasa: %1$s. %2$s. Nama: %3$s</string>
     <string name="selected">Dipilih</string>
-    <string name="talkback_increase_delay">Tambah lengah</string>
-    <string name="talkback_decrease_delay">Kurang lengah</string>
     <string name="talkback_increase_speed">Tambah kelajuan</string>
     <string name="talkback_decrease_speed">Kurang kelajuan</string>
     <string name="talkback_subtitle_history">Sejarah sarik kata</string>

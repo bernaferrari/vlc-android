@@ -95,10 +95,6 @@
     <string name="firstsong">បទដំបូងនៃបញ្ជីចាក់</string>
     <string name="lastsong">បទចុងក្រោយនៃបញ្ជីចាក់</string>
 
-    <string name="surface_best_fit">សម​បំផុត</string>
-    <string name="surface_fit_screen">សមទៅនឹងអេក្រង់</string>
-    <string name="surface_fill">បំពេញ</string>
-    <string name="surface_original">កណ្ដាល</string>
     <string name="unseekable_stream">ចរន្ត​ដែល​មិន​អាច​រក​បាន</string>
     <string name="refresh">ផ្ទុក​ឡើងវិញ</string>
     <string name="track_audio">បទ​អូឌីយ៉ូ</string>
@@ -108,10 +104,6 @@
     <string name="track_bitrate_info">អត្រាប៊ីត៖ %1$s/s\n</string>
     <string name="track_codec_info">កូដ: %1$s</string>
     <string name="track_language_info">ភាសា៖ %1$s\n</string>
-    <string name="volume">កម្រិត​សំឡេង</string>
-    <string name="sound_on">បើកសម្លេង</string>
-    <string name="sound_off">បិទសម្លេង</string>
-    <string name="brightness">ពន្លឺ</string>
     <string name="advanced">ជម្រើសកម្រិតខ្ពស់</string>
     <string name="playback_speed">ល្បឿន​ចាក់​ឡើងវិញ</string>
     <string name="sleep_title">កម្មវិធី​កំណត់​ម៉ោង​ដេក</string>

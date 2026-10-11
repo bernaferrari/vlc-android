@@ -138,11 +138,6 @@
     <string name="firstsong">പ്ലേലിസ്റ്റിലെ ആദ്യ ഗാനം</string>
     <string name="lastsong">പ്ലേലിസ്റ്റിലെ അവസാന ഗാനം</string>
 
-    <string name="surface_best_fit">ഏറ്റവും അനുയോജ്യമായത്</string>
-    <string name="surface_fit_screen">സ്ക്രീനില്‍ നിറയ്ക്കുക</string>
-    <string name="surface_fill">നിറയ്ക്കുക</string>
-    <string name="surface_original">മധ്യം</string>
-    <string name="resize_tip">കൂടുതൽ ഓപ്ഷനുകൾക്കായി ദീർഘനേരം ടാപ്പ് ചെയ്യുക</string>
     <string name="unseekable_stream">നീക്കാനാകാത്ത സ്ട്രീം</string>
     <string name="refresh">പുതുക്കുക</string>
     <string name="track_audio">ഓഡിയോ ട്രാക്ക്</string>
@@ -152,12 +147,7 @@
     <string name="track_bitrate_info">ബിറ്റ്റേറ്റ്: %1$s/s\n</string>
     <string name="track_codec_info">കോഡെക്ക്: %1$s\n</string>
     <string name="track_language_info">ഭാഷ: %1$s\n</string>
-    <string name="volume">ശബ്ദം</string>
-    <string name="sound_on">ശബ്ദം ഓണ്‍ ആക്കുക</string>
-    <string name="sound_off">ശബ്ദം ഓഫ് ആക്കുക</string>
-    <string name="brightness">തെളിച്ചം</string>
     <string name="advanced">വിപുലീകരിച്ച ഐച്ഛികങ്ങൾ</string>
-    <string name="audio_boost_warning">100% ത്തില്‍ കൂടുതല്‍ പോകാന്‍ മുകളിലേക്ക് ഇനിയും നീക്കുക</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 ചാനല\n</item>
@@ -204,32 +194,17 @@
     <string name="play_button">പ്ളേ ബട്ടൺ </string>
 
     <!-- Tips -->
-    <string name="tips_title">വീഡിയോ പ്ലെയർ എളുപ്പവഴികൾ</string>
     <string name="seek">തേടുക </string>
     <string name="subtitles">ഉപശീര്‍ഷകങ്ങള്‍</string>
-    <string name="tips_player_controls">പ്ലേയർ നിയന്ത്രണങ്ങൾ</string>
-    <string name="tips_player_controls_description">അവ എന്തിനുവേണ്ടിയാണ് ഉപയോഗിക്കുന്നതെന്ന് കണ്ടെത്താൻ ചുവടെയുള്ള പ്ലേയർ നിയന്ത്രണങ്ങളിൽ  തൊടുക</string>
-    <string name="tips_audio_sub">ശബ്ദ ചാലുകളും ഉപശീർഷകങ്ങളും</string>
-    <string name="tips_play_description">വീഡിയോ പ്ലേ ചെയ്യാൻ തൊടുക</string>
     <string name="lock">പൂട്ടുക</string>
     <string name="tap">കാണാൻ തൊടുക</string>
     <string name="tap_to_remove">നീക്കം ചെയ്യാൻ ഇരട്ട തൊടുക </string>
     <string name="tap_to_rearrange">പുനഃക്രമീകരിക്കാൻ ഇരട്ട തൊടുക</string>
     <string name="tap_to_previous_next">മുമ്പത്തേതിലേക്ക്/അടുത്തതിലേക്ക് പോകാൻ ഇരട്ട തൊടുക</string>
-    <string name="lock_orientation">തിരശ്ചീന വിന്യാസം</string>
-    <string name="lock_orientation_description">തിരശ്ചീന വിന്യാസം പൂട്ടാനും/മാറ്റാനും തൊടുക</string>
-    <string name="aspect_ratio">വീക്ഷണ അനുപാതം</string>
-    <string name="aspect_ratio_description">വീഡിയോ വീക്ഷണാനുപാതം മാറ്റാൻ തൊടുക</string>
-    <string name="advanced_options">വർദ്ധിത സൗകര്യങ്ങൾ</string>
-    <string name="advanced_options_description">പ്ലേബാക്ക് വേഗത, ആവർത്തന മോഡ്, ...</string>
-    <string name="tips_swipe">മുകളിലേക്കോ താഴേക്കോ വലിക്കുക</string>
     <string name="tips_swipe_horizontal">ഇടത്തോട്ടോ വലത്തോട്ടോ വലിക്കുക</string>
     <string name="tips_playlist">പ്ലേലിസ്റ്റ്</string>
     <string name="tips_hold_seek">നീക്കാൻ തൊട്ടു പിടിക്കുക</string>
     <string name="tips_long_drop">ദീർഘനേരം അമർത്തി ശേഷം വിടുക</string>
-    <string name="pause_description">താൽക്കാലികമായി നിർത്താൻ രണ്ടുതവണ തൊടുക</string>
-    <string name="seek_tap">+/- 10 സെ.</string>
-    <string name="seek_tap_description">10 സെക്കൻഡ് മുന്നോട്ടോ പിന്നോട്ടോ പോകാൻ രണ്ടുതവണ തട്ടുക</string>
     <string name="close">അടയ്ക്കുക</string>
 
     <string name="playlist_tips">പ്ളേ ലിസ്റ്റ് നുറുങ്ങുകൾ</string>
@@ -496,7 +471,6 @@
 
     <!-- Accessibility -->
     <string name="more_actions">കൂടുതൽ കാര്യങ്ങൾ </string>
-    <string name="back_quit_lock">വീഡിയോ ഉപേക്ഷിക്കുന്നതിന് ബാക്ക് ബട്ടൺ വീണ്ടും അമർത്തുക</string>
     <string name="stream_deleted">സ്ട്രീം ഇല്ലാതാക്കി</string>
     <string name="no_subs_found">ഈ ഡയറക്ടറിയിൽ സബ്ടൈറ്റിലുകൾ ഒന്നുമില്ല </string>
     <string name="music_now_playing">ഇപ്പോള്‍ പ്ലേ ചെയ്യുന്നവ</string>
@@ -552,7 +526,6 @@
     <string name="download_subtitles">ഉപശീര്‍ഷകങ്ങള്‍ ഡൗണ്‍ലോഡ് ചെയ്യുക</string>
     <string name="browse_folder">ഫോൾഡർ നോക്കുക </string>
     <string name="listen">ശ്രവിക്കുക</string>
-    <string name="apply_to_bt">ബ്ലൂടൂത്ത് ഉപകരണത്തിൽ പ്രയോഗിക്കുക</string>
     <string name="episodes">എപ്പിസോഡുകൾ</string>
     <string name="movies">സിനിമകള്‍</string>
     <string name="videos">വീഡിയോകൾ</string>
@@ -646,9 +619,6 @@
     <string name="device_dialog_message">ഇപ്പോൾ നിങ്ങളുടെ ടിവി ബോക്സിലേക്ക് ഒരു പുതിയ സംഭരണ ഉപകരണം ചേർത്തിട്ടുണ്ട് , അത് വിഎൽസി ഉപയോഗിച്ച് തുറക്കാൻ താത്‌പര്യമുണ്ടോ ?</string>
     <string name="videos_folders_title">വീഡിയോകൾ ഫോൾഡർ വഴി </string>
     <string name="videos_groups_title">വീഡിയോ ഗ്രൂപ്പുകൾ</string>
-    <string name="video_save_clone_mode">ക്ളോൺ രീതി തനിയെ ഉപയോഗത്തിൽ കൊണ്ടുവരണമോ ?</string>
-    <string name="video_remote_enable">വിദൂര നിയന്ത്രണ രീതിയിലേക്ക് മാറുക</string>
-    <string name="video_remote_disable">തനിപ്പകർപ്പ് സ്ക്രീൻ</string>
     <string name="removed_from_playlist_anonymous">ഇവ പ്ളേ ലിസ്റ്റിൽ നിന്നും നീക്കം ചെയ്തിരിക്കുന്നു</string>
     <string name="welcome_title">VLC ലേക്ക് സ്വാഗതം!</string>
     <string name="welcome_subtitle">സൗജന്യവും ഓപ്പൺ സോഴ്സുമായ മൾട്ടി മീഡിയ പ്ലെയർ </string>
@@ -746,27 +716,8 @@
     <string name="clear">മായ്ക്കുക</string>
     <string name="abrepeat_add_first_marker">ആരംഭ പോയിന്റ് സ്ഥാപിക്കുക</string>
     <string name="abrepeat_add_second_marker">അവസാന പോയിന്റ് സ്ഥാപിക്കുക</string>
-    <string name="demux_bitrate">ഡെമക്സ് ബിറ്റ്റേറ്റ്</string>
-    <string name="input_bitrate">ഇൻപുട്ട് ബിറ്റ്റേറ്റ്</string>
-    <string name="video_information">വീഡിയോ വിവരങ്ങൾ</string>
 
-    <string name="channels">ചാനലുകൾ</string>
-    <string name="resolution">റെസലൂഷൻ</string>
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate">ഫ്രെയിംറേറ്റ്</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">ഭാഷ</string>
-    <string name="track_samplerate">സാമ്പിൾ റേറ്റ്</string>
-    <string name="track_samplerate_value">%1$d Hz\n</string>
-    <string name="bitrate">ബിറ്റ്റേറ്റ്</string>
-    <string name="codec">കോഡെക്</string>
-    <string name="text">ടെക്‌സ്റ്റ്‌</string>
     <string name="unknown">അജ്ഞാതം</string>
-    <string name="audio_delay_start">ശബ്ദം കേട്ടു</string>
-    <string name="subtitle_delay_first">ശബ്ദം കേട്ടു</string>
-    <string name="audio_delay_end">ശബ്‌ദം കണ്ടെത്തി</string>
-    <string name="subtitle_delay_end">ടെക്‌സ്റ്റ്‌ കണ്ടു</string>
     <string name="track_index">ട്രാക്ക്: %s</string>
     <string name="audio_queue_progress">പുരോഗതി: %s</string>
     <string name="audio_queue_progress_remaining">ബാക്കിയുള്ളത് %s</string>
@@ -826,9 +777,6 @@
     <string name="remove_from_history">ചരിത്രത്തിൽ നിന്ന് നീക്കം ചെയ്യുക</string>
     <string name="prefersmbv1">SMB 1 തിരഞ്ഞെടുക്കുക</string>
     <string name="prefersmbv1_summary">നിങ്ങളുടെ SMB സെർവർ ബ്രൗസുചെയ്യുന്നതിന് എന്തെങ്കിലും ബുദ്ധിമുട്ടുകൾ ഉണ്ടെങ്കിൽ ഈ ക്രമീകരണം നിരാകരിക്കുക ചെയ്യുക</string>
-    <string name="apply_to_all">എല്ലാ വീഡിയോകൾക്കും പ്രയോഗിക്കുക</string>
-    <string name="audio_delay_global">എല്ലാ വീഡിയോകൾക്കും ഓഡിയോ കാലതാമസം %s ms ആയി സജ്ജമാക്കി</string>
-    <string name="audio_delay_bt">ബ്ലൂടൂത്ത് ഉപകരണത്തിനായി ശബ്ദ കാലതാമസം %s എം‌എസായി സജ്ജമാക്കി</string>
     <string name="go_to_folder">വന്ന ഇടത്തു തേടുക</string>
     <string name="create_shortcut">ഒരു ലോഞ്ചർ കുറുക്കുവഴി സൃഷ്ടിക്കുക</string>
     <string name="no_sub_renderer">കാസ്റ്റിങ് സമയത്തു ഉപശീർഷകങ്ങൾ തത്കാലം ലഭ്യമല്ല </string>
@@ -884,16 +832,11 @@
     <string name="banned_parent">പാരന്റ് ഫോൾഡർ മുഖേന നിരോധിച്ചു</string>
     <string name="official_website">ഔദ്യോഗിക വെബ്സൈറ്റ് </string>
     <string name="view_online">ഓൺലൈനിൽ കാണുക</string>
-    <string name="player_under_notch">നോച്ചിന് താഴെ വീഡിയോ പ്രദർശിപ്പിക്കുക</string>
-    <string name="notch">നോച്ച്</string>
     <string name="always_fast_seek">എപ്പോഴും ഫാസ്റ്റ് സീക്ക് ഉപയോഗിക്കുക</string>
     <string name="always_fast_seek_summary">സീക്ക് വേഗതയേറിയതാണ്, പക്ഷേ കൃത്യത കുറവായിരിക്കാം</string>
     <string name="no_web_browser">വെബ് ബ്രൗസർ ഇൻസ്റ്റാൾ ചെയ്തിട്ടില്ല</string>
     <string name="no_web_browser_message">നിങ്ങളുടെ സ്‌മാർട്ട്‌ഫോണിൽ ഇത് സ്‌കാൻ ചെയ്യാം.\in URL %s ആണ്</string>
     <string name="no_video">വീഡിയോ ലഭ്യമല്ല</string>
-    <string name="fold_optimized">നിങ്ങളുടെ ഫോൾഡിംഗ് സ്‌ക്രീനിനായി ഒപ്റ്റിമൈസ് ചെയ്‌തു</string>
-    <string name="fold_optimize">ഫോൾഡിംഗ് സ്ക്രീനുകൾക്കായി ഒപ്റ്റിമൈസ് ചെയ്യുക</string>
-    <string name="foldable">മടക്കാവുന്ന സ്‌ക്രീൻ</string>
     <string name="undo">പഴയപടിയാക്കുക</string>
     <string name="add_server_favorite">സെർവർ പ്രിയങ്കരം ചേർക്കുക</string>
     <string name="widget_theme">വിജറ്റ് തീം</string>
@@ -931,8 +874,6 @@
     <string name="talkback_audio_tracks">ഓഡിയോ ട്രാക്കുകൾ</string>
     <string name="talkback_subtitle_tracks">സബ്‌ടൈറ്റിലെ ട്രാക്കുകൾ</string>
     <string name="selected">തിരഞ്ഞെടുത്തു</string>
-    <string name="talkback_increase_delay">കാലതാമസം കൂട്ടുക</string>
-    <string name="talkback_decrease_delay">കാലതാമസം കുറക്കുക</string>
     <string name="talkback_increase_speed">വേഗത കൂട്ടുക</string>
     <string name="talkback_decrease_speed">വേഗത കുറക്കുക</string>
     <string name="talkback_language_selection">%s തിരഞ്ഞെടുത്ത ഭാഷകൾ</string>

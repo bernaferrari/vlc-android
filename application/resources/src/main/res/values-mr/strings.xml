@@ -73,9 +73,6 @@
     <string name="cover_art">कव्हर आर्ट</string>
     <string name="previous">मागील</string>
     <string name="stop">थांबा</string>
-    <string name="surface_best_fit">योग्य फिट</string>
-    <string name="surface_fill">भरा</string>
-    <string name="surface_original">मध्य</string>
     <string name="unseekable_stream">सीक करता न येणारी स्ट्रीम</string>
     <string name="refresh">ताजे करा</string>
     <string name="track_audio">ध्वनी ट्रॅक</string>
@@ -83,10 +80,6 @@
     <string name="track_unknown">अनामिक ट्रॅक</string>
     <string name="track_codec_info">कोडेक: %1$s\n</string>
     <string name="track_language_info">भाषा: %1$s\n</string>
-    <string name="volume">आवाज तीव्रता</string>
-    <string name="sound_on">आवाज चालू</string>
-    <string name="sound_off">आवाज बंद</string>
-    <string name="brightness">तेजस्वीपणा</string>
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 चॅनेल</item>
         <item quantity="other">%1$d चॅनेल\n</item>

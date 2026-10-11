@@ -18,6 +18,7 @@ import androidx.core.content.getSystemService
 import androidx.core.net.toFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
@@ -56,10 +57,17 @@ import java.util.Locale
 /**
  * Android effects behind the shared video player: window brightness, media volume with VLC's
  * audio boost, orientation lock, TextureView screenshots, gesture preferences and the remote
- * access commands. It also owns the per-session window state the old VideoPlayerActivity got
- * for free from being a separate window (orientation and brightness are restored on leave).
+ * access commands. It also owns the per-session window state a separate player window would get
+ * for free (orientation and brightness are restored on leave).
+ *
+ * [tv] hosts have no touch screen, sensor or brightness to drive: those members are absent, and
+ * remote-access commands are replayed as real key presses by the host instead (see
+ * VideoPlayerActivity), so they follow focus exactly like the physical remote.
  */
-internal class AndroidPlayerHostControls(private val activity: ComponentActivity) : PlayerHostControls {
+internal class AndroidPlayerHostControls(
+    private val activity: ComponentActivity,
+    private val tv: Boolean = false,
+) : PlayerHostControls {
     private val prefs = Settings.getInstance(activity)
     private val audioManager = activity.getSystemService<AudioManager>()
 
@@ -92,7 +100,9 @@ internal class AndroidPlayerHostControls(private val activity: ComponentActivity
             keySeekSeconds = Settings.videoJumpDelay,
         )
 
-    override val brightness: PlayerLevelControl = object : PlayerLevelControl {
+    override val brightness: PlayerLevelControl? get() = brightnessControl.takeUnless { tv }
+
+    private val brightnessControl: PlayerLevelControl = object : PlayerLevelControl {
         override fun read(): Float {
             val current = activity.window.attributes.screenBrightness
             if (current >= 0f) return current
@@ -150,7 +160,9 @@ internal class AndroidPlayerHostControls(private val activity: ComponentActivity
         }
     }
 
-    override val orientation: PlayerOrientationControl = object : PlayerOrientationControl {
+    override val orientation: PlayerOrientationControl? get() = orientationControl.takeUnless { tv }
+
+    private val orientationControl: PlayerOrientationControl = object : PlayerOrientationControl {
         override val isLocked: Boolean get() = locked
 
         override fun setLocked(locked: Boolean) {
@@ -166,7 +178,7 @@ internal class AndroidPlayerHostControls(private val activity: ComponentActivity
     }
 
     override val screenshot: PlayerScreenshotControl?
-        get() = if (prefs.getString(SCREENSHOT_MODE, "0") in arrayOf("1", "3")) screenshotControl else null
+        get() = if (!tv && prefs.getString(SCREENSHOT_MODE, "0") in arrayOf("1", "3")) screenshotControl else null
 
     private val screenshotControl = PlayerScreenshotControl {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !Permissions.canWriteStorage(activity)) {
@@ -185,7 +197,7 @@ internal class AndroidPlayerHostControls(private val activity: ComponentActivity
         }
     }
 
-    override val remoteCommands: Flow<PlayerRemoteCommand> =
+    override val remoteCommands: Flow<PlayerRemoteCommand> = if (tv) emptyFlow() else
         VideoRemoteControl.actions.filterNotNull().mapNotNull { action ->
             VideoRemoteControl.actions.value = null
             when (action) {
@@ -259,13 +271,13 @@ internal class AndroidPlayerHostControls(private val activity: ComponentActivity
         videoSessionActive = active
         if (active) {
             orientationBeforeVideo = activity.requestedOrientation
-            applyOrientationPreference()
+            if (!tv) applyOrientationPreference()
             if (prefs.getBoolean(SAVE_BRIGHTNESS, false)) {
                 prefs.getFloat(BRIGHTNESS_VALUE, -1f).takeIf { it >= 0f }?.let(::setWindowBrightness)
             }
         } else {
             locked = false
-            requestOrientation(orientationBeforeVideo)
+            if (!tv) requestOrientation(orientationBeforeVideo)
             // The library follows the system brightness again.
             setWindowBrightness(WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE)
         }

@@ -123,10 +123,6 @@
     <string name="firstsong">Strana yekem a lîsteya lêdanê</string>
     <string name="lastsong">Strana dawî ya lîsteya lêdanê</string>
 
-    <string name="surface_best_fit">Herî guncav</string>
-    <string name="surface_fit_screen">Li gorî ekranê</string>
-    <string name="surface_fill">Dagire</string>
-    <string name="surface_original">Navend bike</string>
     <string name="unseekable_stream">Herika lê nayê gerîn</string>
     <string name="refresh">Nû bike</string>
     <string name="track_audio">Tomara dengî</string>
@@ -136,12 +132,7 @@
     <string name="track_bitrate_info">Leza bîtê: %1$s/s\n</string>
     <string name="track_codec_info">Kodek: %1$s\n</string>
     <string name="track_language_info">Ziman: %1$s\n</string>
-    <string name="volume">Piledeng</string>
-    <string name="sound_on">Deng Vekirî</string>
-    <string name="sound_off">Deng Girtî</string>
-    <string name="brightness">Ronahî</string>
     <string name="advanced">vebijarkên pêşketî</string>
-    <string name="audio_boost_warning">Dîsa bişemitîne da ku ji 100% derbas bibe</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">kanalek\n</item>
@@ -413,15 +404,7 @@
     <string name="start_over">Ji serî ve dest pê bike</string>
     <string name="next_episode">Beşa din</string>
     <string name="open_network_settings">Sazkariyên torê veke?</string>
-    <string name="video_information">Agahiyên vîdyoyê</string>
 
-    <string name="channels">Kanal</string>
-    <string name="resolution">Averûtî</string>
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">Ziman</string>
-    <string name="text">Nivîs</string>
     <string name="unknown">Nayê zanîn</string>
     <string name="track_index">Tomar: %s</string>
     <string name="audio_queue_progress">Pêşveçûn: %s</string>
@@ -450,5 +433,4 @@
     <string name="video_hud_timeout">Lêdera vîdyo derengmayîna maskekirin kontrol dike</string>
     <string name="remove_from_history">Ji raboriyê rake</string>
     <string name="prefersmbv1_summary">Heke hûn di lêgerîna pêşkêşkera SMB-ya xwe de zehmetiyê dikişînin vê mîhengê vebijêre</string>
-    <string name="apply_to_all">Li hemû vîdyoyan bisepîne</string>
     </resources>

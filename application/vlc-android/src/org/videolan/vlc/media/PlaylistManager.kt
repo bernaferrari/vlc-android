@@ -88,7 +88,6 @@ import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.R
 import org.videolan.vlc.kmp.SharedPlayerLauncher
 import org.videolan.vlc.kmp.SharedVideoSurfaceRegistry
-import org.videolan.vlc.gui.video.VideoPlayerActivity
 import org.videolan.vlc.player.PlaybackResumeOffer
 import org.videolan.resources.PLAY_FROM_SERVICE
 import org.videolan.vlc.util.FileUtils
@@ -562,7 +561,7 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
                     || videoResumeStatus == ResumeStatus.NEVER) 0L else getStartTime(mw)
                 if (!forceResume && videoResumeStatus == ResumeStatus.ASK && start > 0 && isAppStarted()) {
                     if (waitForConfirmation.hasActiveObservers()) {
-                        // VideoPlayerActivity (TV) still asks with its modal dialog.
+                        // A legacy observer (none ship today) can still ask with a modal dialog.
                         waitForConfirmation.postValue(WaitConfirmation(mw.title, index, flags))
                         return
                     }
@@ -615,19 +614,14 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
             determinePrevAndNextIndices()
             service.onNewPlayback()
         } else {
-            // Shared Compose owns the only video route. Keep the request pending until its
-            // VLCVideoLayout is attached; launching VideoPlayerActivity here would create a
-            // second native vout and can leave both surfaces visible during auto-advance.
+            // The shared player owns the only video route (MainActivity on phones,
+            // VideoPlayerActivity on TV). Keep the request pending until its VLCVideoLayout is
+            // attached; the registry opens the host when none is showing.
             when (SharedVideoSurfaceRegistry.routeVideoPlayback(this, index)) {
                 SharedVideoSurfaceRegistry.VideoPlaybackRoute.DEFERRED -> return
                 SharedVideoSurfaceRegistry.VideoPlaybackRoute.INLINE -> {
                     playIndex(index, flags, forceResume, forceRestart, forceInline = true)
                     return
-                }
-                SharedVideoSurfaceRegistry.VideoPlaybackRoute.LEGACY_ACTIVITY -> {
-                    // TV: VideoPlayerActivity attaches its own vout, then replays this index.
-                    if (player.isPlaying()) player.stop()
-                    VideoPlayerActivity.startOpened(ctx, mw.uri, currentIndex)
                 }
             }
         }
@@ -659,22 +653,6 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
         val media = getCurrentMedia()
         if (media === null || media.hasFlag(MediaWrapper.MEDIA_FORCE_AUDIO) || !player.canSwitchToVideo())
             return false
-        if (!SharedPlayerLauncher.usesSharedPlayer()) {
-            // TV keeps VideoPlayerActivity as its video owner.
-            val hasRenderer = player.hasRenderer
-            videoBackground = false
-            showAudioPlayer.postValue(false)
-            if (player.isVideoPlaying() && !hasRenderer) {
-                player.setVideoTrackEnabled(true)
-                InProcessEvents.emit(
-                    VideoPlayerActivity.getIntent(PLAY_FROM_SERVICE, media, false, currentIndex),
-                )
-            } else if (!player.switchToVideo) {
-                VideoPlayerActivity.startOpened(AppContextProvider.appContext, media.uri, currentIndex)
-                if (!hasRenderer) player.switchToVideo = true
-            }
-            return true
-        }
         // The shared Compose player owns the video output. Enabling the track directly keeps
         // audio-to-video handoff in the same native player instead of opening the old activity.
         SharedVideoSurfaceRegistry.requestInlinePlayback()
@@ -682,6 +660,10 @@ class PlaylistManager(val service: PlaybackService) : MediaWrapperList.EventList
         showAudioPlayer.postValue(false)
         player.switchToVideo = false
         player.setVideoTrackEnabled(true)
+        // TV's audio player is a separate activity: bring up the player host to show the picture.
+        if (SharedPlayerLauncher.usesStandaloneHost() && !SharedVideoSurfaceRegistry.ownsVideoOutput()) {
+            SharedPlayerLauncher.open(AppContextProvider.appContext)
+        }
         return true
     }
 

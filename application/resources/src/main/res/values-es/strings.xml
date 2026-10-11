@@ -141,10 +141,6 @@
     <string name="firstsong">Primera canción de la lista de reproducción</string>
     <string name="lastsong">Última canción de la lista de reproducción</string>
 
-    <string name="surface_best_fit">Mejor ajuste</string>
-    <string name="surface_fit_screen">Ajustar a pantalla</string>
-    <string name="surface_fill">Rellenar</string>
-    <string name="surface_original">Centrar</string>
     <string name="unseekable_stream">Emisión no buscable</string>
     <string name="refresh">Actualizar</string>
     <string name="track_audio">Pista de audio</string>
@@ -154,12 +150,7 @@
     <string name="track_bitrate_info">Tasa de bits: %1$s/s\n</string>
     <string name="track_codec_info">Códec: %1$s\n</string>
     <string name="track_language_info">Idioma: %1$s\n</string>
-    <string name="volume">Volumen</string>
-    <string name="sound_on">Sonido activado</string>
-    <string name="sound_off">Sonido desactivado</string>
-    <string name="brightness">Brillo</string>
     <string name="advanced">opciones avanzadas</string>
-    <string name="audio_boost_warning">Arrastre hacia arriba de nuevo para subir más del 100%</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 canal\n</item>
@@ -416,7 +407,6 @@
 
     <!-- Accessibility -->
     <string name="more_actions">Más acciones</string>
-    <string name="back_quit_lock">Pulsar atrás otra vez para salir de vídeo</string>
     <string name="stream_deleted">Emisión eliminada</string>
     <string name="no_subs_found">No hay subtítulos en esta carpeta</string>
     <string name="music_now_playing">Reproduciendo ahora</string>
@@ -458,7 +448,6 @@
     <string name="download_subtitles">Descargar subtítulos</string>
     <string name="browse_folder">Explorar carpeta</string>
     <string name="listen">Escuchar</string>
-    <string name="apply_to_bt">Aplicar en dispositivo Bluetooth</string>
     <string name="videos_all">Todos los vídeos</string>
     <string name="clear_playback_history">Limpiar historial de reproducción</string>
     <string name="ml_scanning">Buscando archivos de medios</string>
@@ -542,9 +531,6 @@
     <string name="device_dialog_message">Acaba de conectar un nuevo dispositvo de almacenamiento a su TV, ¿desea abrirlo con VLC?</string>
     <string name="videos_folders_title">Vídeos por carpetas</string>
     <string name="videos_groups_title">Grupos de vídeo</string>
-    <string name="video_save_clone_mode">¿Activar automáticamente el modo clonar?</string>
-    <string name="video_remote_enable">Cambiar a modo de control remoto</string>
-    <string name="video_remote_disable">Duplicar pantalla</string>
     <string name="removed_from_playlist_anonymous">Elementos eliminados de la lista de reproduccción</string>
     <string name="welcome_title">Bienvenido a VLC!</string>
     <string name="welcome_subtitle">El reproductor multimedia libre y de código abierto.</string>
@@ -641,27 +627,8 @@
     <string name="clear">Borrar</string>
     <string name="abrepeat_add_first_marker">Establecer punto de inicio</string>
     <string name="abrepeat_add_second_marker">Establecer punto de fin</string>
-    <string name="demux_bitrate">Tasa de bits de demux</string>
-    <string name="input_bitrate">Tasa de bits de entrada</string>
-    <string name="video_information">Información de vídeo</string>
 
-    <string name="channels">Canales</string>
-    <string name="resolution">Resolución</string>
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate">Tasa de fotogramas</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">Idioma</string>
-    <string name="track_samplerate">Tasa de muestra</string>
-    <string name="track_samplerate_value">%1$d Hz\n</string>
-    <string name="bitrate">Tasa de bits</string>
-    <string name="codec">Códec</string>
-    <string name="text">Texto</string>
     <string name="unknown">Desconocido</string>
-    <string name="audio_delay_start">Sonido escuchado</string>
-    <string name="subtitle_delay_first">Voz escuchada</string>
-    <string name="audio_delay_end">Sonido detectado</string>
-    <string name="subtitle_delay_end">Texto visto</string>
     <string name="track_index">Pista: %s</string>
     <string name="audio_queue_progress">Progreso: %s</string>
     <string name="audio_queue_progress_remaining">Restante: %s</string>
@@ -720,9 +687,6 @@
     <string name="remove_from_history">Eliminar del historial</string>
     <string name="prefersmbv1">Preferir SMB 1</string>
     <string name="prefersmbv1_summary">Desmarque esta preferencia si tiene dificultades la explorar su servidor SMB</string>
-    <string name="apply_to_all">Aplicar a todos los vídeos</string>
-    <string name="audio_delay_global">Retraso de audio establecido a %s ms para todos los vídeos</string>
-    <string name="audio_delay_bt">Retraso de audio establecido en %s ms para el dispositivo Bluetooth</string>
     <string name="go_to_folder">Explorar padre</string>
     <string name="no_sub_renderer">Los subtítulos no está soportados todavía al emitir</string>
     <string name="soundfont">MIDI SoundFont</string>

@@ -1,6 +1,7 @@
 package org.videolan.vlc.kmp
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
@@ -27,18 +28,25 @@ import org.videolan.vlc.PlaybackService
 import org.videolan.vlc.util.FileUtils
 
 /**
- * Plays a video handed to VLC by another app (ACTION_VIEW) in the shared player.
+ * Plays a video handed to VLC by another app (ACTION_VIEW, or an explicit VideoPlayerActivity
+ * launch) in the shared player.
  *
- * It honours the extras VideoPlayerActivity accepted (title, start time, from-start, external
- * subtitles, hardware decoding opt-out), then opens MainActivity's PlayerRoute. MainActivity is
- * started before the media loads so the app is foreground when PlaylistManager picks the video
- * route; otherwise a backgrounded start would downgrade the video to audio-only playback.
+ * It honours VLC's documented player extras (title, start time, from-start, external subtitles,
+ * hardware decoding opt-out). [play] opens the player host before the media loads so the app is
+ * foreground when PlaylistManager picks the video route; otherwise a backgrounded start would
+ * downgrade the video to audio-only playback.
  */
 internal object ExternalVideoLauncher {
     private const val TAG = "VLC/ExternalVideo"
 
     fun play(activity: Activity, intent: Intent) {
-        val context = activity.applicationContext
+        if (intent.extras?.parcelable<Uri>(PLAY_EXTRA_ITEM_LOCATION) == null && intent.data == null) return
+        activity.startActivity(SharedPlayerLauncher.intent(activity))
+        load(activity.applicationContext, intent)
+    }
+
+    /** Loads the intent's media in PlaybackService; the caller is (or opens) the player host. */
+    fun load(context: Context, intent: Intent) {
         val extras = intent.extras
         val source: Uri = extras?.parcelable<Uri>(PLAY_EXTRA_ITEM_LOCATION) ?: intent.data ?: return
         val fromStart = extras?.getBoolean(PLAY_EXTRA_FROM_START, false) == true
@@ -50,8 +58,6 @@ internal object ExternalVideoLauncher {
         val subtitles = extras?.getString(PLAY_EXTRA_SUBTITLES_LOCATION)?.takeIf(String::isNotBlank)
         val title = extras?.getString(PLAY_EXTRA_ITEM_TITLE)
         val disableHardware = intent.hasExtra(PLAY_DISABLE_HARDWARE)
-
-        activity.startActivity(SharedPlayerLauncher.intent(activity))
 
         AppScope.launch {
             val uri = withContext(Dispatchers.IO) {
@@ -71,6 +77,9 @@ internal object ExternalVideoLauncher {
                 Log.w(TAG, "Playback service unavailable for $uri")
                 return@launch
             }
+            // Asked again for what is already playing (e.g. a launcher re-sending its intent):
+            // keep the session instead of restarting it.
+            if (service.isPlaying && service.currentMediaWrapper?.uri == uri && startTime <= 0L && !fromStart) return@launch
             if (startTime > 0L) service.saveStartTime(startTime)
             service.load(media)
             subtitles?.let { path -> attachSubtitlesWhenPlaying(service, uri, path) }

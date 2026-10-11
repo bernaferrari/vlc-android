@@ -172,10 +172,6 @@
     <string name="firstsong">Першая дарожка плэйліста</string>
     <string name="lastsong">Апошняя дарожка плэйліста</string>
 
-    <string name="surface_best_fit">Па шырыні</string>
-    <string name="surface_fit_screen">Падагнаць пад экран</string>
-    <string name="surface_fill">Запоўніць</string>
-    <string name="surface_original">Па цэнтры</string>
     <string name="unseekable_stream">Паток без падтрымкі перамотвання</string>
     <string name="refresh">Абнавіць</string>
     <string name="track_audio">Аўдыядарожка</string>
@@ -185,11 +181,7 @@
     <string name="track_bitrate_info">Бітрэйт: %1$s/s\n</string>
     <string name="track_codec_info">Кодэк: %1$s\n</string>
     <string name="track_language_info">Мова: %1$s\n</string>
-    <string name="volume">Гучнасць</string>
     <string name="system_volume_disabled">%s\nНяма доступу да сістэмнага тома</string>
-    <string name="sound_on">Гук ёсць</string>
-    <string name="sound_off">Гуку няма</string>
-    <string name="brightness">Яркасць</string>
     <string name="advanced">Дадатковыя параметры</string>
     <plurals name="track_channels_info_quantity">
         <item quantity="one">1 канал\n</item>
@@ -239,31 +231,16 @@
     <string name="play_button">Кнопка прайгравання</string>
 
     <!-- Tips -->
-    <string name="tips_title">Парады для відэаплэера</string>
     <string name="seek">Перамотванне</string>
     <string name="subtitles">Субтытры</string>
-    <string name="tips_player_controls">Элементы кіравання</string>
-    <string name="tips_player_controls_description">Націсніце на элемент кіравання, каб даведацца для чаго ён</string>
-    <string name="tips_audio_sub">Аўдыядарожкі і субтытры</string>
-    <string name="tips_play_description">Націсніце, каб прайграць відэа</string>
     <string name="lock">Заблакаваць</string>
     <string name="tap">Націсніце, каб праглядзець</string>
     <string name="tap_to_remove">Націсніце, каб выдаліць</string>
     <string name="tap_to_previous_next">Націсніце, каб перайсці да папярэдняга/наступнага</string>
-    <string name="lock_orientation">Арыентацыя</string>
-    <string name="lock_orientation_description">Націсніце, каб заблакіраваць/разблакіраваць арыентацыю</string>
-    <string name="aspect_ratio">Суадносіны бакоў</string>
-    <string name="aspect_ratio_description">Націсніце, каб змяніць суадносіны бакоў</string>
-    <string name="advanced_options">Дадатковыя параметры</string>
-    <string name="advanced_options_description">Напрыклад, хуткасць прайгравання, рэжым паўтору</string>
-    <string name="tips_swipe">Правядзіце пальцам ўверх або ўніз</string>
     <string name="tips_swipe_horizontal">Правядзіце пальцам ўлева або ўправа</string>
     <string name="tips_playlist">Плэйліст</string>
     <string name="tips_hold_seek">Утрымлівайце, каб пераматаць</string>
     <string name="tips_long_drop">Працяглае націсканне і перацягванне</string>
-    <string name="pause_description">Прайграванне/паўза падвойным націсканнем</string>
-    <string name="seek_tap">+/- 10 с</string>
-    <string name="seek_tap_description">Падвойнае націсканне, каб пераматаць 10​ с наперад або назад</string>
     <string name="close">Закрыць</string>
 
     <string name="playlist_tips">Парады для плэйліста</string>
@@ -309,10 +286,8 @@
     <string name="screen_orientation">Арыентацыя экрана відэа</string>
     <string name="screen_orientation_sensor">Аўтаматычна (датчык)</string>
     <string name="screen_orientation_portrait">Кніжная</string>
-    <string name="screen_orientation_portrait_reverse">Кніжная (перавернутая)</string>
     <string name="screen_orientation_landscape">Альбомная</string>
     <string name="screen_orientation_landscape_reverse">Альбомная (перавернутая)</string>
-    <string name="screen_orientation_landscape_sensor">Альбомная (датчык)</string>
     <string name="screen_orientation_last_locked">Апошняя заблакіраваная арыентацыя</string>
     <string name="dark_theme">Цёмная тэма</string>
     <string name="theme_auto">Аўтаматычна</string>
@@ -365,7 +340,6 @@
     <string name="enable_tap_and_hold_fastplay_title">Уключыць паскоранае прайграванне</string>
     <string name="enable_tap_and_hold_fastplay_summary">Націсніце і трымайце, каб павялічыць хуткасць прайгравання</string>
     <string name="fastplay_speed_title">Хуткасць паскоранага прайгравання</string>
-    <string name="fastplay_title">Прайграванне на %sx</string>
     <string name="subtitles_prefs_category">Субтытры</string>
     <string name="subtitles_size_title">Памер субтытраў</string>
     <string name="subtitles_presets_title">Наборы налад для субтытраў</string>
@@ -576,7 +550,6 @@
 
     <!-- Accessibility -->
     <string name="more_actions">Іншыя дзеянні</string>
-    <string name="back_quit_lock">Націсніце «Назад» яшчэ раз, каб выйсці з відэа</string>
     <string name="stream_deleted">Паток выдалены</string>
     <string name="no_subs_found">У гэтым каталогу няма субтытраў</string>
     <string name="music_now_playing">Зараз прайграецца</string>
@@ -631,7 +604,6 @@
     <string name="unknown_error">Нявызначаная памылка</string>
     <string name="browse_folder">Агляд папкі</string>
     <string name="listen">Слухаць</string>
-    <string name="apply_to_bt">Ужыць да прылады bluetooth</string>
     <string name="episodes">серыі</string>
     <string name="movies">фільмы</string>
     <string name="videos">відэа</string>
@@ -792,22 +764,7 @@
     <string name="clear">Ачысціць</string>
     <string name="abrepeat_add_first_marker">Задаць пачатковы пункт</string>
     <string name="abrepeat_add_second_marker">Задаць канцавы пункт</string>
-    <string name="demux_bitrate">Бітрэйт дэмультыплексара</string>
-    <string name="input_bitrate">Бітрэйт уваходнага патоку</string>
-    <string name="video_information">Звесткі пра відэа</string>
 
-    <string name="channels">Каналы</string>
-    <string name="resolution">Раздзяляльнасць</string>
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate">Частата кадраў</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/с</string>
-    <string name="language">Мова</string>
-    <string name="track_samplerate">Частата дыскрэдытацыі</string>
-    <string name="track_samplerate_value">%1$dГц\n</string>
-    <string name="bitrate">Бітрэйт</string>
-    <string name="codec">Кодэк</string>
-    <string name="text">Тэкст</string>
     <string name="unknown">Невядома</string>
     <string name="track_index">Дарожка: %s</string>
     <string name="audio_queue_progress">Прайграецца: %s</string>
@@ -859,9 +816,6 @@
     <string name="video_hud_timeout_summary">%s с</string>
     <string name="remove_from_history">Выдаліць з гісторыі</string>
     <string name="prefersmbv1">Пажадана SMB 1</string>
-    <string name="apply_to_all">Ужыць да ўсіх відэа</string>
-    <string name="audio_delay_global">Затрымка гуку для ўсіх відэа зададзена на %s мс</string>
-    <string name="audio_delay_bt">Затрымка гуку для прылад bluetooth зададзена на %s мс</string>
     <string name="go_to_folder">Перайсці ў папку</string>
     <string name="go_to_album">Перайсці да альбома</string>
     <string name="go_to_artist">Перайсці да выканаўцы</string>
@@ -943,13 +897,10 @@
     <string name="banned_parent">Выключана з-за бацькоўскай папкі</string>
     <string name="official_website">Афіцыйны сайт</string>
     <string name="view_online">Паглядзець у інтэрнэце</string>
-    <string name="player_under_notch">Выводзіць відэа пад выразам</string>
-    <string name="notch">Выраз</string>
     <string name="always_fast_seek">Заўсёды выкарыстоўваць хуткае перамотванне</string>
     <string name="always_fast_seek_summary">Перамотванне працуе хутчэй, але можа быць менш дакладным</string>
     <string name="no_web_browser">Вэб-браўзер не ўсталяваны</string>
     <string name="no_video">Няма відэа</string>
-    <string name="foldable">Складны экран</string>
     <string name="undo">Адрабіць</string>
     <string name="add_server_favorite">Дадаць у Абраныя сервер</string>
     <string name="widget_theme">Тэма віджэта</string>
@@ -979,7 +930,6 @@
     <string name="disable_track">Адключыць дарожку</string>
     <string name="ascending">Па ўзрастанні</string>
     <string name="descending">Па ўбыванні</string>
-    <string name="screenshot_error">Памылка падчас атрымання здымка экрана</string>
     <string name="disabled">Адключана</string>
     <string name="enable_screenshot_gesture">Націсканне трыма пальцамі</string>
     <string name="enable_screenshot_button">Паказваць кнопку для здымкі</string>
@@ -1008,13 +958,10 @@
     <string name="talkback_list_section">Загаловак: %s</string>
     <string name="talkback_file_size">Памер файла: %s</string>
     <string name="talkback_open_in_browser">Адкрыць у браўзеры</string>
-    <string name="talkback_video_player">Видэапрайгравальнік. Націсніце на экран, каб паказаць элементы кіравання, кнопку Назад – каб схаваць</string>
     <string name="talkback_video_tracks">Відэадарожкі</string>
     <string name="talkback_audio_tracks">Аўдыядарожкі</string>
     <string name="talkback_subtitle_tracks">Дарожкі субтытраў</string>
     <string name="talkback_subtitle_dowload_item">Мова: %1$s. %2$s. Назва: %3$s</string>
-    <string name="talkback_increase_delay">Павялічыць затрымку</string>
-    <string name="talkback_decrease_delay">Паменшыць затрымку</string>
     <string name="talkback_increase_speed">Павялічыць хуткасць</string>
     <string name="talkback_decrease_speed">Паменшыць хуткасць</string>
     <string name="talkback_subtitle_history">Гісторыя субтытраў</string>

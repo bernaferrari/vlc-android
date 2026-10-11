@@ -137,11 +137,6 @@
     <string name="firstsong">Lagu pertama dalam daftar putar</string>
     <string name="lastsong">Lagu terakhir dalam daftar putar</string>
 
-    <string name="surface_best_fit">Paling sesuai</string>
-    <string name="surface_fit_screen">Paskan layar</string>
-    <string name="surface_fill">Isi</string>
-    <string name="surface_original">Tengah</string>
-    <string name="resize_tip">Ketuk lama untuk opsi selengkapnya</string>
     <string name="unseekable_stream">Stream yang tidak dapat dicari antarstempel waktu</string>
     <string name="refresh">Segarkan</string>
     <string name="track_audio">Trek audio</string>
@@ -151,12 +146,7 @@
     <string name="track_bitrate_info">Laju bit: %1$s/s\n</string>
     <string name="track_codec_info">Kodek: %1$s\n</string>
     <string name="track_language_info">Bahasa: %1$s\n</string>
-    <string name="volume">Volume</string>
-    <string name="sound_on">Bunyikan</string>
-    <string name="sound_off">Matikan</string>
-    <string name="brightness">Kecerahan</string>
     <string name="advanced">opsi tingkat lanjut</string>
-    <string name="audio_boost_warning">Geser ke atas lagi untuk melampaui 100%</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="other">%1$d saluran\n</item>
@@ -209,32 +199,17 @@
     <string name="play_button">Tombol Putar</string>
 
     <!-- Tips -->
-    <string name="tips_title">Tips pemutar video</string>
     <string name="seek">Cari</string>
     <string name="subtitles">Terjemahan</string>
-    <string name="tips_player_controls">Kontrol pemutar</string>
-    <string name="tips_player_controls_description">Ketuk kontrol pemutar di bawah ini untuk mencari tau kontrol akan digunakan untuk apa</string>
-    <string name="tips_audio_sub">trek audio dan subtitle</string>
-    <string name="tips_play_description">Ketuk untuk memutar video</string>
     <string name="lock">Kunci</string>
     <string name="tap">Ketuk untuk melihat</string>
     <string name="tap_to_remove">Ketuk untuk menghapus</string>
     <string name="tap_to_rearrange">Ketuk untuk mengatur ulang</string>
     <string name="tap_to_previous_next">Ketuk untuk pindah ke sebelumnya/selanjutnya</string>
-    <string name="lock_orientation">Orientasi</string>
-    <string name="lock_orientation_description">Ketuk untuk mengunci/membuka orientasi</string>
-    <string name="aspect_ratio">Rasio aspek</string>
-    <string name="aspect_ratio_description">Ketuk untuk mengganti rasio aspek video</string>
-    <string name="advanced_options">Pengaturan lanjutan</string>
-    <string name="advanced_options_description">Seperti kecepatan playback, mode repeat, ...</string>
-    <string name="tips_swipe">Geser ke atas dan ke bawah</string>
     <string name="tips_swipe_horizontal">Geser ke kiri dan ke kanan</string>
     <string name="tips_playlist">Daftar putar</string>
     <string name="tips_hold_seek">Tahan untuk mencari</string>
     <string name="tips_long_drop">Tekan lama dan jatuhkan</string>
-    <string name="pause_description">Ketuk dua kali untuk jeda</string>
-    <string name="seek_tap">+/- 10 detik.</string>
-    <string name="seek_tap_description">Ketuk dua kali untuk maju 10 detik ke depan atau ke belakang</string>
     <string name="close">Tutup</string>
 
     <string name="playlist_tips">Tips daftar putar</string>
@@ -280,10 +255,8 @@
     <string name="screen_orientation">Orientasi layar video</string>
     <string name="screen_orientation_sensor">Otomatis (sensor)</string>
     <string name="screen_orientation_portrait">Potret</string>
-    <string name="screen_orientation_portrait_reverse">Potret terbalik</string>
     <string name="screen_orientation_landscape">Lanskap</string>
     <string name="screen_orientation_landscape_reverse">Lanskap terbalik</string>
-    <string name="screen_orientation_landscape_sensor">Lanskap (sensor)</string>
     <string name="screen_orientation_last_locked">Orientasi terkunci terakhir</string>
     <string name="theme_auto">Tema otomatis</string>
     <string name="subtitle_text_encoding">Pengkodean teks terjemahan</string>
@@ -544,7 +517,6 @@
     <string name="whats_new_title">Apa hal yang baru di VLC untuk Android %s</string>
     <!-- Accessibility -->
     <string name="more_actions">Tindakan Selengkapnya</string>
-    <string name="back_quit_lock">Tekan Kembali lagi untuk menutup video</string>
     <string name="stream_deleted">Stream dihapus</string>
     <string name="no_subs_found">Tidak ada terjemahan dalam direktori ini</string>
     <string name="music_now_playing">Sekarang Diputar</string>
@@ -609,7 +581,6 @@
     <string name="download_subtitles">Unduh terjemahan</string>
     <string name="browse_folder">Telusuri berkas</string>
     <string name="listen">Dengar</string>
-    <string name="apply_to_bt">Aplikasikan untuk perangkat bluetooth</string>
     <string name="episodes">episode</string>
     <string name="movies">film</string>
     <string name="videos">video</string>
@@ -704,9 +675,6 @@
     <string name="device_dialog_message">Anda baru saja memasang perangkat penyimpanan baru ke TV anda, apakah anda ingin membukanya dengan VLC?</string>
     <string name="videos_folders_title">Video berdasarkan folder </string>
     <string name="videos_groups_title">Grup video</string>
-    <string name="video_save_clone_mode">Mau mengaktifkan mode klon secara otomatis?</string>
-    <string name="video_remote_enable">Beralih ke mode kendali jarak jauh</string>
-    <string name="video_remote_disable">Layar duplikat</string>
     <string name="removed_from_playlist_anonymous">Item dihapuskan dari daftar putar</string>
     <string name="welcome_title">Selamat datang di VLC!</string>
     <string name="welcome_subtitle">Pemutar multimedia gratis dan sumber terbuka</string>
@@ -802,27 +770,8 @@
     <string name="clear">Bersihkan</string>
     <string name="abrepeat_add_first_marker">Set titik mulai</string>
     <string name="abrepeat_add_second_marker">Set titik akhir</string>
-    <string name="demux_bitrate">Bitrate demux</string>
-    <string name="input_bitrate">Bitrate masukan</string>
-    <string name="video_information">Informasi video</string>
 
-    <string name="channels">Kanal</string>
-    <string name="resolution">Resolusi</string>
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate">Framerate</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/dtk</string>
-    <string name="language">Bahasa</string>
-    <string name="track_samplerate">Laju sampel</string>
-    <string name="track_samplerate_value">%1$d Hz\n</string>
-    <string name="bitrate">Laju bit</string>
-    <string name="codec">Kodek</string>
-    <string name="text">Teks</string>
     <string name="unknown">Tidak Diketahui</string>
-    <string name="audio_delay_start">Suara terdengar</string>
-    <string name="subtitle_delay_first">Suara terdengar</string>
-    <string name="audio_delay_end">Suara terlihat</string>
-    <string name="subtitle_delay_end">Teks terlihat</string>
     <string name="track_index">Trek: %s</string>
     <string name="audio_queue_progress">Kemajuan: %s</string>
     <string name="audio_queue_progress_remaining">Tersisa: %s</string>
@@ -882,9 +831,6 @@
     <string name="remove_from_history">Hapus dari riwayat</string>
     <string name="prefersmbv1">Pilih SMB 1</string>
     <string name="prefersmbv1_summary">Hapus cek pengaturan ini jika anda telah memiliki kesulitan telusuri server SMB anda</string>
-    <string name="apply_to_all">Terapkan ke semua video</string>
-    <string name="audio_delay_global">Penundaan audio diset ke %s ms untuk semua video</string>
-    <string name="audio_delay_bt">Penundaan audio dipasang ke %s ms untuk perangkat bluetooth</string>
     <string name="go_to_folder">Telusuri induk</string>
     <string name="create_shortcut">Buat pintasan launcher</string>
     <string name="no_sub_renderer">Terjemahan tidak dapat mendukung ketika panggilan peran</string>
@@ -946,16 +892,11 @@
     <string name="banned_parent">Dilarang oleh folder induk</string>
     <string name="official_website">Situs resmi</string>
     <string name="view_online">Lihat online</string>
-    <string name="player_under_notch">Tampilkan video di bawah notch</string>
-    <string name="notch">Notch</string>
     <string name="always_fast_seek">Selalu gunakan cari cepat</string>
     <string name="always_fast_seek_summary">Cari lebih cepat tapi mungkin kurang tepat</string>
     <string name="no_web_browser">Tidak ada peramban web terpasang</string>
     <string name="no_web_browser_message">Anda bisa pindai ini pada ponsel pintar Anda.\n URL-nya adalah %s</string>
     <string name="no_video">Tidak ada video tersedia</string>
-    <string name="fold_optimized">Dioptimalkan untuk layar lipat Anda</string>
-    <string name="fold_optimize">Dioptimalkan untuk layar lipat</string>
-    <string name="foldable">Layar lipat</string>
     <string name="undo">Ulang</string>
     <string name="add_server_favorite">Tambahkan server favorit</string>
     <string name="widget_theme">Tema widget</string>
@@ -981,7 +922,6 @@
     <string name="disable_track">Non aktifkan trek</string>
     <string name="ascending">Naik</string>
     <string name="descending">Menurun</string>
-    <string name="screenshot_error">Terjadi kesalahan saat mengambil tangkapan layar</string>
     <string name="disabled">Nonaktif</string>
     <string name="enable_screenshot_gesture">Ketuk dengan 3 jari</string>
     <string name="enable_screenshot_button">Tampilkan tombol tangkapan layar</string>
@@ -1010,13 +950,10 @@
     <string name="talkback_list_section">Tajuk: %s </string>
     <string name="talkback_file_size">Ukuran berkas: %s</string>
     <string name="talkback_open_in_browser">Buka di peramban web</string>
-    <string name="talkback_video_player">Pemutar video. ketuk untuk menampilkan kontrol. Ketuk tombol kembali untuk menyembunyikannya</string>
     <string name="talkback_video_tracks">Trek video</string>
     <string name="talkback_audio_tracks">Trek audio</string>
     <string name="talkback_subtitle_tracks">Trek takarir</string>
     <string name="selected">Dipilih</string>
-    <string name="talkback_increase_delay">Tambahkan delay</string>
-    <string name="talkback_decrease_delay">Kurangi delay</string>
     <string name="talkback_increase_speed">Tambahkan kecepatan</string>
     <string name="talkback_decrease_speed">Kurangi kecepatan</string>
     <string name="talkback_subtitle_history">Riwayat takarir</string>

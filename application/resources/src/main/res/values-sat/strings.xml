@@ -142,10 +142,6 @@
     <string name="firstsong">ᱯᱞᱮᱞᱤᱥᱴ ᱨᱮᱭᱟᱜ ᱢᱟᱲᱟᱝ ᱥᱮᱨᱮᱧ</string>
     <string name="lastsong">ᱯᱞᱮᱞᱤᱥᱴ ᱨᱮᱭᱟᱜ ᱢᱩᱪᱟᱹᱫ ᱥᱮᱨᱮᱧ</string>
 
-    <string name="surface_best_fit">ᱵᱮᱥ ᱛᱮ ᱯᱷᱤᱴ</string>
-    <string name="surface_fit_screen">ᱯᱷᱤᱴ ᱥᱠᱨᱤᱻᱱ</string>
-    <string name="surface_fill">ᱯᱩᱨᱟᱹᱣ</string>
-    <string name="surface_original">ᱛᱟᱞᱟ ᱨᱮ</string>
     <string name="unseekable_stream">ᱟᱹᱱᱥᱤᱠᱮᱵᱟᱹᱞ ᱥᱴᱨᱤᱢ</string>
     <string name="refresh">ᱱᱟᱶᱟ ᱟᱹᱨᱩ</string>
     <string name="track_audio">ᱚᱰᱤᱭᱚ ᱴᱨᱮᱠ</string>
@@ -155,12 +151,7 @@
     <string name="track_bitrate_info">ᱵᱤᱴᱨᱮᱴ: %1$s/s\n</string>
     <string name="track_codec_info">ᱠᱳᱰᱮᱠᱺ %1$s\n</string>
     <string name="track_language_info">ᱯᱟᱹᱨᱥᱤ: %1$s\n</string>
-    <string name="volume">ᱣᱚᱞᱭᱩᱢ</string>
-    <string name="sound_on">ᱥᱟᱲᱮ ᱮᱢ ᱪᱷᱚ</string>
-    <string name="sound_off">ᱥᱟᱲᱮ ᱵᱚᱸᱫ</string>
-    <string name="brightness">ᱪᱚᱠᱢᱚᱠ</string>
     <string name="advanced">ᱮᱰᱵᱷᱟᱱᱥ ᱚᱯᱥᱚᱱᱠᱚ</string>
-    <string name="audio_boost_warning">᱑᱐᱐% ᱠᱷᱟᱱ ᱦᱟᱱᱛᱮ ᱪᱟᱞᱟᱣ ᱞᱟᱹᱜᱤᱫ ᱪᱮᱛᱟᱱ ᱥᱮᱱ ᱫᱩᱦᱲᱟᱹ ᱨᱟᱠᱟᱵᱽ ᱢᱮ</string>
 
     <plurals name="track_channels_info_quantity">
         <item quantity="one">᱑ ᱪᱟᱱᱱᱮᱞ\n</item>
@@ -210,23 +201,13 @@
     <string name="play_button">ᱯᱞᱮ ᱵᱩᱛᱟᱹᱢ</string>
 
     <!-- Tips -->
-    <string name="tips_title">ᱣᱤᱰᱤᱭᱚ ᱯᱞᱮᱭᱟᱹᱨ ᱴᱤᱯᱥ</string>
     <string name="seek">ᱥᱤᱻᱠ</string>
     <string name="subtitles">ᱪᱟᱸᱜᱟ ᱧᱩᱛᱩᱢ</string>
-    <string name="tips_player_controls">ᱯᱞᱮᱭᱟᱹᱨ ᱠᱚᱵᱡᱟ ᱠᱚ</string>
-    <string name="tips_player_controls_description">ᱪᱮᱫ ᱞᱟᱹᱜᱤᱫ ᱵᱮᱵᱷᱟᱨ ᱠᱚ ᱵᱟᱲᱟᱭ ᱪᱷᱚ ᱞᱟᱹᱜᱤᱫ ᱞᱟᱛᱟᱨ ᱨᱮ ᱯᱞᱮᱭᱚᱨ ᱠᱚᱵᱡᱟ ᱨᱮ ᱚᱛᱟᱭ ᱢᱮ</string>
-    <string name="tips_audio_sub">ᱥᱟᱰᱮ ᱴᱨᱟᱠ ᱠᱚ ᱟᱨ ᱥᱟᱹᱵᱴᱟᱭᱴᱚᱞ ᱠᱚ</string>
-    <string name="tips_play_description">ᱣᱤᱰᱤᱭᱚ ᱯᱞᱮ ᱞᱟᱹᱜᱤᱫ ᱚᱛᱟᱭ ᱢᱮ</string>
     <string name="lock">ᱠᱩᱞᱩᱯ ᱢᱮ</string>
     <string name="tap">ᱧᱮᱞ ᱞᱟᱹᱜᱤᱫ ᱴᱤᱯᱟᱹᱣ ᱢᱮ</string>
     <string name="tap_to_remove">ᱚᱪᱚᱜᱽ ᱞᱟᱹᱜᱤᱫ ᱴᱤᱯᱟᱹᱣ ᱢᱮ</string>
     <string name="tap_to_rearrange">ᱫᱩᱦᱲᱟᱹ ᱥᱮᱴ ᱞᱟᱹᱜᱤᱫ ᱴᱤᱯᱟᱹᱣ ᱢᱮ</string>
     <string name="tap_to_previous_next">ᱢᱟᱲᱟᱝ/ᱞᱟᱦᱟ ᱥᱮᱫ ᱪᱟᱞᱟᱜ ᱞᱟᱹᱜᱤᱫ ᱴᱤᱯᱟᱹᱣ ᱢᱮ</string>
-    <string name="lock_orientation">ᱡᱷᱟᱞᱠᱟᱣᱟᱜ ᱡᱤᱱᱤᱥ</string>
-    <string name="lock_orientation_description">ᱠᱩᱞᱩᱯ/ᱠᱷᱩᱞᱟᱹ ᱡᱷᱟᱞᱠᱟᱣᱟᱜ ᱡᱤᱱᱤᱥ ᱞᱟᱹᱜᱤᱫ ᱚᱛᱟᱭ ᱢᱮ</string>
-    <string name="aspect_ratio">ᱵᱟᱵᱚᱛ ᱩᱱᱩᱯᱟᱛ</string>
-    <string name="aspect_ratio_description">ᱣᱤᱰᱤᱰᱤᱭᱚ ᱵᱟᱵᱚᱛ ᱩᱱᱩᱯᱟᱛ ᱵᱚᱫᱚᱞ ᱞᱟᱹᱜᱤᱫ ᱚᱛᱟᱭ ᱢᱮ</string>
-    <string name="advanced_options">ᱞᱟᱦᱟᱣᱟᱜ ᱟᱯᱱᱟᱨ ᱢᱚᱱᱮ ᱛᱮᱭᱟᱜ ᱠᱚ</string>
     <string name="close">ᱵᱚᱸᱫ</string>
 
     <string name="playlist_tips">ᱯᱞᱮᱞᱤᱥᱴ ᱴᱤᱯᱠᱚ</string>
@@ -437,7 +418,6 @@
 
     <!-- Accessibility -->
     <string name="more_actions">ᱟᱨᱦᱚᱸ ᱠᱟᱹᱢᱤ ᱠᱚ</string>
-    <string name="back_quit_lock">ᱵᱷᱤᱰᱤᱭᱳ ᱛᱷᱤᱨ ᱞᱟᱹᱜᱤᱫ ᱫᱚᱦᱲᱟ ᱫᱟᱵᱟᱣ ᱢᱮ</string>
     <string name="stream_deleted">ᱥᱴᱨᱤᱢ ᱚᱪᱚᱫ ᱦᱩᱭ ᱮᱱᱟ</string>
     <string name="no_subs_found">ᱱᱚᱶᱟ ᱰᱟᱭᱨᱮᱠᱴᱚᱨᱤ ᱨᱮ ᱥᱟᱵᱽᱴᱟᱭᱴᱚᱞ ᱵᱟᱹᱱᱩᱜ-ᱟ</string>
     <string name="music_now_playing">ᱱᱤᱛᱚᱜ ᱯᱞᱮᱜ ᱠᱟᱱᱟ</string>
@@ -550,7 +530,6 @@
     <string name="device_dialog_title">ᱵᱟᱦᱨᱮᱭᱟᱜ ᱰᱤᱵᱷᱟᱭᱤᱥ ᱟᱫᱮᱨ ᱦᱩᱭ ᱮᱱᱟ</string>
     <string name="videos_folders_title">ᱣᱤᱰᱤᱭᱚ ᱠᱚ ᱯᱚᱴᱚᱢ ᱫᱟᱨᱟᱭ ᱛᱮ</string>
     <string name="videos_groups_title">ᱣᱤᱰᱤᱭᱚ ᱜᱟᱫᱮᱞ ᱠᱚ</string>
-    <string name="video_remote_disable">ᱰᱟᱯᱞᱤᱠᱮᱴ ᱥᱠᱨᱤᱱ</string>
     <string name="welcome_title">VLC ᱨᱮ ᱥᱟᱹᱜᱩᱱ ᱫᱟᱨᱟᱢ!</string>
     <string name="onboarding_theme_title">ᱟᱢ ᱞᱟᱹᱜᱤᱫ ᱚᱲᱟᱜ ᱵᱮᱱᱟᱣ ᱢᱮ</string>
     <string name="done">ᱦᱩᱭᱮᱱᱟ</string>
@@ -611,27 +590,8 @@
     <string name="clear">ᱯᱷᱟᱨᱪᱟ</string>
     <string name="abrepeat_add_first_marker">ᱮᱦᱚᱵ ᱴᱩᱲᱟᱹᱜᱽ ᱥᱮᱴ ᱢᱮ</string>
     <string name="abrepeat_add_second_marker">ᱢᱩᱪᱟᱹᱫ ᱴᱩᱲᱟᱹᱜᱽ ᱥᱮᱴ ᱢᱮ</string>
-    <string name="demux_bitrate">ᱰᱮᱢᱟᱹᱠᱥ ᱵᱤᱴᱨᱮᱴ</string>
-    <string name="input_bitrate">ᱤᱱᱯᱩᱴ ᱵᱤᱴᱨᱮᱴ</string>
-    <string name="video_information">ᱣᱤᱰᱤᱭᱚ ᱵᱤᱵᱨᱚᱬ</string>
 
-    <string name="channels">ᱪᱟᱱᱮᱞᱠᱚ</string>
-    <string name="resolution">ᱱᱤᱥᱴᱟᱹ</string>
-    <string name="resolution_value">%1$dx%2$d</string>
-    <string name="framerate">ᱯᱷᱨᱮᱢᱫᱚᱨ</string>
-    <string name="framerate_value">%1$.3f</string>
-    <string name="bitrate_value">%1$s/s</string>
-    <string name="language">ᱯᱟᱹᱨᱥᱤ</string>
-    <string name="track_samplerate">ᱥᱮᱢᱯᱟᱹᱞ ᱫᱚᱨ</string>
-    <string name="track_samplerate_value">%1$d Hz\n</string>
-    <string name="bitrate">ᱵᱽᱤᱴᱫᱚᱨ</string>
-    <string name="codec">ᱠᱳᱰᱮᱠ</string>
-    <string name="text">ᱚᱱᱚᱞ</string>
     <string name="unknown">ᱵᱟᱝ ᱵᱟᱲᱟᱭ</string>
-    <string name="audio_delay_start">ᱥᱟᱲᱮ ᱟᱸᱡᱚᱢ ᱮᱱᱟ</string>
-    <string name="subtitle_delay_first">ᱥᱟᱲᱮ ᱟᱸᱡᱚᱢ ᱮᱱᱟ</string>
-    <string name="audio_delay_end">ᱥᱟᱲᱮ ᱪᱤᱱᱦᱟᱹᱯ ᱮᱱᱟ</string>
-    <string name="subtitle_delay_end">ᱚᱞ ᱧᱮᱞ ᱮᱱᱟ</string>
     <string name="track_index">ᱯᱟᱸᱡᱟ: %s</string>
     <string name="audio_queue_progress">ᱞᱟᱦᱟ: %s</string>
     <string name="audio_queue_progress_finished">ᱪᱟᱵᱟᱜ ᱚᱠᱛᱚ:%s</string>
@@ -670,8 +630,6 @@
     <string name="remove_from_history">ᱦᱤᱛᱟᱹᱞ ᱠᱷᱚᱱ ᱚᱪᱚᱜ ᱢᱮ</string>
     <string name="prefersmbv1">SMB ᱑ ᱠᱩᱥᱤᱭᱟᱜ ᱢᱮ</string>
     <string name="prefersmbv1_summary">SMB ᱥᱟᱹᱨᱣᱟᱹᱨ ᱵᱨᱟᱩᱡᱽ ᱡᱷᱚᱜ ᱮᱴᱠᱮᱴᱚᱬᱮ ᱦᱩᱭᱩᱜ ᱠᱷᱟᱱ ᱱᱚᱶᱟ ᱥᱟᱡᱟᱣ ᱠᱚ ᱟᱹᱱᱪᱮᱠ ᱢᱮ</string>
-    <string name="apply_to_all">ᱡᱷᱚᱛᱚ ᱣᱤᱰᱤᱭᱚ ᱨᱮ ᱮᱢ ᱪᱷᱚ</string>
-    <string name="audio_delay_global">ᱡᱷᱚᱛᱚ ᱣᱤᱰᱤᱭᱚᱠᱚ ᱞᱟᱹᱫᱜᱤᱹᱫ %s ms ᱜᱷᱟᱹᱲᱤᱡ ᱥᱟᱰᱮ ᱮᱱᱟ </string>
     <string name="go_to_folder">ᱯᱮᱨᱮᱸᱴ ᱵᱨᱟᱩᱡᱽ </string>
     <string name="no_sub_renderer">ᱠᱟᱥᱴᱤᱝ ᱡᱷᱚᱜ ᱥᱟᱹᱵᱴᱟᱭᱴᱟᱹᱞ ᱠᱚ ᱵᱟᱭ ᱥᱟᱹᱯᱚᱴᱟᱭ</string>
     <string name="soundfont">MIDI ᱥᱟᱲᱮᱯᱷᱚᱸᱴ</string>
