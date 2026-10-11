@@ -135,6 +135,8 @@ private val PlaybackRatePresets = listOf(0.5f, 0.75f, 1f, 1.25f, 1.5f, 2f, 4f, 8
 @OptIn(ExperimentalMaterial3Api::class)
 internal fun PlaybackOptionsSheet(
     initialDestination: PlaybackSheetDestination,
+    /** Opens the tools page with audio and subtitle tracks expanded (the TV subtitles button). */
+    expandTracks: Boolean = false,
     rate: Float,
     queue: List<MediaItem>,
     currentQueueIndex: Int,
@@ -193,7 +195,7 @@ internal fun PlaybackOptionsSheet(
     var previewRate by remember(rate) { mutableFloatStateOf(PlaybackRate.normalize(rate)) }
     var expandedTool by remember {
         mutableStateOf<PlaybackToolSection?>(
-            PlaybackToolSection.EQUALIZER.takeIf { equalizer.enabled }
+            if (expandTracks) PlaybackToolSection.TRACKS else PlaybackToolSection.EQUALIZER.takeIf { equalizer.enabled }
         )
     }
     var jumpToTimeVisible by remember { mutableStateOf(false) }

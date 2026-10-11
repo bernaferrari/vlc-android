@@ -256,5 +256,64 @@ internal fun tvShots(media: List<MediaItem>): List<Triple<String, Pair<Int, Int>
             }
         }
     }
+    shots += tvPlayerShots(media)
     return shots
+}
+
+/** Ten-foot video player chrome, one shot per focus state (`-Pfilter=tv-player`). */
+private fun tvPlayerShots(media: List<MediaItem>): List<Triple<String, Pair<Int, Int>, @Composable () -> Unit>> {
+    val videos = media.filter { !it.isAudio }
+    val tracks = media.filter { it.isAudio }
+    val keys = org.videolan.vlc.compose.player.TvPlayerFocusKeys
+    val shots = mutableListOf<Triple<String, Pair<Int, Int>, @Composable () -> Unit>>()
+    fun player(name: String, focus: Any?, dark: Boolean = true, size: Pair<Int, Int> = TvCanvas, queue: List<MediaItem> = videos, video: Boolean = true, rate: Float = 1f, live: Boolean = false, feedback: org.videolan.vlc.compose.player.PlayerGestureFeedback? = null) {
+        shots += Triple(name, size) {
+            TvFrame(dark, focus) { TvPlayerFixture(queue, video, rate, live, feedback) }
+        }
+    }
+    player("tv-player-play-dark", keys.PLAY)
+    player("tv-player-play-light", keys.PLAY, dark = false)
+    player("tv-player-timeline-dark", keys.TIMELINE)
+    player("tv-player-tracks-dark", keys.TRACKS)
+    player("tv-player-speed-dark", keys.SPEED, rate = 1.5f)
+    player("tv-player-next-dark", keys.NEXT)
+    player("tv-player-live-dark", keys.PLAY, live = true)
+    player("tv-player-seek-dark", null, feedback = org.videolan.vlc.compose.player.PlayerGestureFeedback.TapSeek(org.videolan.vlc.compose.player.SeekBurst(true, 72_000L, 30_000L, 3, 0L), androidx.compose.ui.geometry.Offset.Unspecified))
+    player("tv-player-audio-dark", keys.PLAY, queue = tracks, video = false)
+    player("tv-player-720p-dark", keys.PLAY, size = 853 to 480)
+    return shots
+}
+
+@Composable
+private fun TvPlayerFixture(
+    queue: List<MediaItem>,
+    video: Boolean,
+    rate: Float,
+    live: Boolean,
+    feedback: org.videolan.vlc.compose.player.PlayerGestureFeedback?,
+) {
+    val item = queue.first()
+    val length = if (live) 0L else item.duration.takeIf { it > 0 } ?: 5_412_000L
+    org.videolan.vlc.compose.player.VideoSurfaceWithHud(
+        title = item.title,
+        subtitle = if (video) "Season 1 · Episode 3" else item.artist.orEmpty(),
+        playing = true,
+        progress = org.videolan.vlc.model.Progress(time = if (live) 0L else length / 3, length = length),
+        rate = rate,
+        queue = queue,
+        currentQueueIndex = 0,
+        hasVideoOutput = video,
+        onTogglePlay = {}, onSeek = {}, onNext = {}, onPrevious = {}, onClose = {},
+        previewFeedback = feedback,
+        tvMode = true,
+        tvAutoFocus = false,
+    ) { _ ->
+        if (video) {
+            org.videolan.vlc.compose.artwork.MediaArtwork(item = item, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop, fillMaxSizeArtwork = true)
+        } else {
+            org.videolan.vlc.compose.player.TvPlayerArtworkStage(
+                org.videolan.vlc.viewmodel.PlayerUiState(title = item.title, subtitle = item.artist.orEmpty(), queue = queue),
+            )
+        }
+    }
 }

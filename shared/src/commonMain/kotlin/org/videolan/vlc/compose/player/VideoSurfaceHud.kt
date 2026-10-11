@@ -77,7 +77,13 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.input.pointer.pointerInput
 import org.videolan.vlc.player.PlaybackResumeOffer
 import org.jetbrains.compose.resources.stringResource
@@ -204,10 +210,18 @@ fun VideoSurfaceWithHud(
     initialSheet: PlaybackSheetDestination? = null,
     /** Design review only: pins one gesture overlay in its visible state. */
     previewFeedback: PlayerGestureFeedback? = null,
+    /**
+     * Ten-foot mode for Android TV: remote-first chrome ([TvVideoHudOverlay]), no touch gestures,
+     * Back hides the chrome before leaving and Menu opens the tools.
+     */
+    tvMode: Boolean = false,
+    /** TV only: move focus to the play button whenever the chrome appears. Off for snapshots. */
+    tvAutoFocus: Boolean = true,
     surface: @Composable BoxScope.(chromeVisible: Boolean) -> Unit,
 ) {
     var hudVisible by remember { mutableStateOf(previewFeedback == null) }
     var activeSheet by remember { mutableStateOf(initialSheet) }
+    var sheetOpensTracks by remember { mutableStateOf(false) }
     var rendererPickerVisible by remember { mutableStateOf(false) }
     var interfaceLocked by remember { mutableStateOf(false) }
     var interactionActive by remember { mutableStateOf(false) }
@@ -257,8 +271,21 @@ fun VideoSurfaceWithHud(
     val toggleControlsLabel = stringResource(Res.string.player_controls)
     val focusRequester = remember { FocusRequester() }
     var rootFocused by remember { mutableStateOf(false) }
+    val playFocusRequester = remember { FocusRequester() }
     LaunchedEffect(hasVideoOutput) {
-        if (hasVideoOutput) runCatching { focusRequester.requestFocus() }
+        if (hasVideoOutput && !tvMode) runCatching { focusRequester.requestFocus() }
+    }
+    val tvChromeShown = !hasVideoOutput || hudVisible
+    if (tvMode && tvAutoFocus) {
+        // One focused element at a time: the play button while the chrome is up, the picture
+        // itself (which then owns the D-pad) once it hides. Re-run when a sheet closes.
+        LaunchedEffect(tvChromeShown, activeSheet, rendererPickerVisible) {
+            if (activeSheet != null || rendererPickerVisible) return@LaunchedEffect
+            withFrameNanos { }
+            runCatching {
+                if (tvChromeShown) playFocusRequester.requestFocus() else focusRequester.requestFocus()
+            }
+        }
     }
     val keyActions = PlayerKeyActions(
         hasVideoOutput = hasVideoOutput,
@@ -283,6 +310,38 @@ fun VideoSurfaceWithHud(
     val remoteCommands = hostControls?.remoteCommands
     LaunchedEffect(remoteCommands) {
         remoteCommands?.collect { command -> latestKeyActions.onRemote(command) }
+    }
+    val performTvAction: (TvPlayerKeyAction) -> Unit = { action ->
+        when (action) {
+            TvPlayerKeyAction.TOGGLE_PLAY -> {
+                gestureController.togglePlayWithFeedback()
+            }
+            TvPlayerKeyAction.TOGGLE_PLAY_AND_SHOW -> {
+                onTogglePlay()
+                hudVisible = true
+                interactionEpoch++
+            }
+            TvPlayerKeyAction.PLAY -> if (!playing) gestureController.togglePlayWithFeedback()
+            TvPlayerKeyAction.PAUSE -> if (playing) gestureController.togglePlayWithFeedback()
+            TvPlayerKeyAction.SEEK_BACK -> gestureController.seekBy(-keySeekStepMs(gestureSettings))
+            TvPlayerKeyAction.SEEK_FORWARD -> gestureController.seekBy(keySeekStepMs(gestureSettings))
+            TvPlayerKeyAction.SHOW_HUD -> {
+                hudVisible = true
+                interactionEpoch++
+            }
+            TvPlayerKeyAction.HIDE_HUD -> hudVisible = false
+            TvPlayerKeyAction.CLOSE -> onClose?.invoke()
+            TvPlayerKeyAction.OPEN_TOOLS -> {
+                sheetOpensTracks = false
+                activeSheet = PlaybackSheetDestination.TOOLS
+            }
+            TvPlayerKeyAction.OPEN_TRACKS -> {
+                sheetOpensTracks = true
+                activeSheet = PlaybackSheetDestination.TOOLS
+            }
+            TvPlayerKeyAction.NEXT -> onNext()
+            TvPlayerKeyAction.PREVIOUS -> onPrevious()
+        }
     }
     LaunchedEffect(
         hudVisible,
@@ -323,7 +382,7 @@ fun VideoSurfaceWithHud(
             .draggable(
                 state = audioDismissDragState,
                 orientation = Orientation.Vertical,
-                enabled = !hasVideoOutput && onClose != null && activeSheet == null,
+                enabled = !tvMode && !hasVideoOutput && onClose != null && activeSheet == null,
                 onDragStopped = { velocity ->
                     if (audioDismissOffsetPx >= audioDismissThresholdPx || velocity > 1_200f) {
                         audioDismissOffsetPx = 0f
@@ -343,10 +402,26 @@ fun VideoSurfaceWithHud(
             .background(if (hasVideoOutput) Color.Black else MaterialTheme.colorScheme.background)
             .focusRequester(focusRequester)
             .onFocusChanged { rootFocused = it.isFocused }
+            .onPreviewKeyEvent { event ->
+                if (!tvMode) return@onPreviewKeyEvent false
+                val action = tvPlayerKeyAction(event.key, chromeVisible = tvChromeShown, chromeHideable = hasVideoOutput)
+                if (action == null) {
+                    if (event.type == KeyEventType.KeyDown && tvChromeShown) interactionEpoch++
+                    // Chrome is up but nothing inside it holds focus: land on play first.
+                    if (tvChromeShown && rootFocused && event.key in TvDirectionalKeys) {
+                        if (event.type == KeyEventType.KeyDown) runCatching { playFocusRequester.requestFocus() }
+                        return@onPreviewKeyEvent true
+                    }
+                    return@onPreviewKeyEvent false
+                }
+                // Consume the matching key-up too, so the window never acts on half of the press.
+                if (event.type == KeyEventType.KeyDown) performTvAction(action)
+                true
+            }
             .onKeyEvent { event ->
                 // Only act while the player itself has focus: a focused HUD control keeps the
                 // arrows for focus navigation and Enter for its own click.
-                rootFocused && !interfaceLocked && keyActions.onKey(event)
+                !tvMode && rootFocused && !interfaceLocked && keyActions.onKey(event)
             }
             .focusable()
     ) {
@@ -376,7 +451,7 @@ fun VideoSurfaceWithHud(
         // parent also observes taps consumed by child buttons on some Compose targets, which can
         // hide the chrome at the exact moment a speed or overflow action opens.
         Box(
-            modifier = if (hasVideoOutput && !interfaceLocked) {
+            modifier = if (hasVideoOutput && !interfaceLocked && !tvMode) {
                 Modifier
                     .fillMaxSize()
                     .pointerInput(gestureController) { detectPlayerGestures { gestureController } }
@@ -409,7 +484,36 @@ fun VideoSurfaceWithHud(
             }
         }
 
-        VideoHudOverlay(
+        if (tvMode) TvVideoHudOverlay(
+            visible = tvChromeShown,
+            title = title,
+            subtitle = subtitle,
+            playing = playing,
+            progress = progress,
+            rate = rate,
+            queueSize = queue.size,
+            hasVideoOutput = hasVideoOutput,
+            isLiveStream = queue.getOrNull(currentQueueIndex)?.isStream == true,
+            bookmarks = bookmarks,
+            seekStepMs = keySeekStepMs(gestureSettings),
+            playFocusRequester = playFocusRequester,
+            onTogglePlay = onTogglePlay,
+            onSeek = onSeek,
+            onNext = onNext,
+            onPrevious = onPrevious,
+            onOpenSheet = { sheet ->
+                sheetOpensTracks = sheet == TvPlayerSheet.TRACKS
+                activeSheet = sheet.destination
+            },
+            onUserInteraction = {
+                hudVisible = true
+                interactionEpoch++
+            },
+            onInteractionActiveChanged = { active ->
+                interactionActive = active
+                if (!active) interactionEpoch++
+            },
+        ) else VideoHudOverlay(
             visible = (!hasVideoOutput || hudVisible) && !interfaceLocked,
             title = title,
             subtitle = subtitle,
@@ -520,6 +624,7 @@ fun VideoSurfaceWithHud(
     activeSheet?.let { initialDestination ->
         PlaybackOptionsSheet(
             initialDestination = initialDestination,
+            expandTracks = sheetOpensTracks,
             rate = rate,
             queue = queue,
             currentQueueIndex = currentQueueIndex,
@@ -574,6 +679,7 @@ fun VideoSurfaceWithHud(
             onImportSubtitle = onImportSubtitle,
             onDismiss = {
                 activeSheet = null
+                sheetOpensTracks = false
                 interactionEpoch++
             },
         )
@@ -1244,6 +1350,18 @@ private fun ExpressivePlayerButton(
         }
     }
 }
+
+private val TvDirectionalKeys = setOf(
+    Key.DirectionUp,
+    Key.DirectionDown,
+    Key.DirectionLeft,
+    Key.DirectionRight,
+    Key.DirectionCenter,
+    Key.Enter,
+    Key.NumPadEnter,
+)
+
+private fun keySeekStepMs(settings: PlayerGestureSettings): Long = settings.keySeekSeconds.coerceAtLeast(1) * 1_000L
 
 internal fun formatPlaybackTime(ms: Long): String {
     if (ms <= 0L) return "0:00"
