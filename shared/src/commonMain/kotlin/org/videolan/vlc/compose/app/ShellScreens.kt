@@ -319,7 +319,6 @@ fun ShellPlayerScreen(
     } else {
         PlayerDestination(
             modifier = modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
-            state = playerState,
             viewModel = player,
             onClose = onClose,
             playerSurface = playerSurface,
