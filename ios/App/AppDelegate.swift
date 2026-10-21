@@ -46,6 +46,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
             _ = IosPlaybackService.companion.shared.restoreSession()
         }
         IosMediaImportController.shared.setHandler(handler: IosMediaImportBridge.shared)
+        IosTabAccessoryBridge.shared.setHandler(handler: TabAccessoryInstaller.shared)
         IosRemoteAccessServer.shared.setHandler(handler: IosWifiSharingBridge.shared)
         MediaImporter.shared.rescanLocalFolders()
         IosKoinBootstrap.shared.whenPreferencesReady {
@@ -108,6 +109,17 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
             return configuration
         }
         return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
+    }
+}
+
+/// iOS 26's Liquid Glass tab accessory, weak-linked by Swift so older iOS versions still launch.
+final class TabAccessoryInstaller: NSObject, IosTabAccessoryHandler {
+    static let shared = TabAccessoryInstaller()
+
+    func setAccessory(tabs: UITabBarController, content: UIView?, animated: Bool) -> Bool {
+        guard #available(iOS 26.0, *) else { return false }
+        tabs.setBottomAccessory(content.map { UITabAccessory(contentView: $0) }, animated: animated)
+        return true
     }
 }
 

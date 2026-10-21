@@ -15,3 +15,10 @@ val LocalUseNativeNavigation = staticCompositionLocalOf { false }
  * instead of stopping short of it.
  */
 val LocalShellBottomInset = staticCompositionLocalOf { 0.dp }
+
+/**
+ * Height of the native navigation bar a page is drawn beneath (0 when the platform shows none).
+ * Under native navigation a detail page draws edge-to-edge and its own actions share this band
+ * with the platform's back button, instead of adding a second toolbar row.
+ */
+val LocalNativeBarHeight = staticCompositionLocalOf { 0.dp }

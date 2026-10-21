@@ -2,10 +2,31 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
 	<string>VLC</string>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Audiovisual content</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>public.movie</string>
+				<string>public.audio</string>
+				<string>public.mpeg-4</string>
+				<string>public.mp3</string>
+				<string>com.apple.m4a-audio</string>
+				<string>public.avi</string>
+				<string>org.matroska.mkv</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -22,20 +43,14 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>UIFileSharingEnabled</key>
-	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
-	<key>UISupportsDocumentBrowser</key>
-	<true/>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>VLC imports videos and audio from your photo library for playback.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>VLC can save media you export back to Photos.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>VLC uses your local network only when you enable local transfer to receive media from your own devices.</string>
-	<key>UILaunchScreen</key>
-	<dict/>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>VLC can save media you export back to Photos.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>VLC imports videos and audio from your photo library for playback.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -77,6 +92,14 @@
 			</array>
 		</dict>
 	</dict>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<key>UILaunchScreen</key>
+	<dict/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
@@ -90,30 +113,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>UISupportsDocumentBrowser</key>
+	<true/>
 	<key>UTImportedTypeDeclarations</key>
 	<array/>
-	<key>CFBundleDocumentTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeName</key>
-			<string>Audiovisual content</string>
-			<key>LSItemContentTypes</key>
-			<array>
-				<string>public.movie</string>
-				<string>public.audio</string>
-				<string>public.mpeg-4</string>
-				<string>public.mp3</string>
-				<string>com.apple.m4a-audio</string>
-				<string>public.avi</string>
-				<string>org.matroska.mkv</string>
-			</array>
-			<key>LSHandlerRank</key>
-			<string>Owner</string>
-		</dict>
-	</array>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>audio</string>
-	</array>
 </dict>
 </plist>

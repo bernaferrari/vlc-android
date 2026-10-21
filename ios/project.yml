@@ -84,8 +84,8 @@ targets:
           ROOT="${SRCROOT}/.."
           cd "$ROOT"
           case "${PLATFORM_NAME:-}" in
-            iphonesimulator) kotlin_target="iosSimulatorArm64" ;;
-            iphoneos) kotlin_target="iosArm64" ;;
+            iphonesimulator) kotlin_target="iosSimulatorArm64"; resources_task="IosSimulatorArm64" ;;
+            iphoneos) kotlin_target="iosArm64"; resources_task="IosArm64" ;;
             *) echo "Unsupported iOS platform: ${PLATFORM_NAME:-unset}" >&2; exit 1 ;;
           esac
           case "${CONFIGURATION:-}" in
@@ -100,4 +100,11 @@ targets:
             echo "Gradle is required to build VLCShared. Install Gradle or add the wrapper." >&2
             exit 1
           fi
-          "$gradle_command" ":shared:link${CONFIGURATION}Framework${kotlin_target}" --no-daemon --no-configuration-cache -q
+          "$gradle_command" ":shared:link${CONFIGURATION}Framework${kotlin_target}" \
+            ":shared:assemble${resources_task}MainResources" --no-daemon --no-configuration-cache -q
+          # Compose Multiplatform reads strings, fonts and files from compose-resources/ inside the
+          # app bundle; without this copy the first stringResource() call aborts the app.
+          resources="$ROOT/shared/build/generated/compose/resourceGenerator/assembledResources/${kotlin_target}Main/composeResources"
+          destination="${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/compose-resources/composeResources"
+          mkdir -p "$destination"
+          rsync -a --delete "$resources/" "$destination/"

@@ -40,3 +40,14 @@ Wasm deliberately keeps its decoder boundary small: imported media is copied int
 origin-private file system when available and reopened as a fresh object URL. Browser codec and
 container support, autoplay policy, and storage availability still apply; a rejected format is
 reported in the shared player instead of being presented as playable.
+
+## Navigation chrome
+
+Every target renders the same screens through `ShellScreenContent`; only the chrome around them
+differs. Android, desktop and web use the Compose `VlcMainShell` (Navigation 3 back stack, M3
+Expressive short navigation bar on phones and wide navigation rail on large windows, predictive
+back). iOS uses `IosNativeShell`: a `UITabBarController` with one `UINavigationController` per tab,
+each screen hosted in its own `ComposeUIViewController`, the player presented modally and the
+now-playing row in the iOS 26+ tab bar bottom accessory. UIKit therefore owns the tab bar,
+navigation bars and swipe-back gesture, so iOS 26+ renders them in Liquid Glass; earlier iOS
+versions get the same structure with the standard bars and an inline mini player.

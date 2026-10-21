@@ -1,6 +1,10 @@
 package org.videolan.vlc.compose.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material3.Surface
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -41,14 +45,16 @@ fun VLCPageHeader(
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     if (LocalUseNativeNavigation.current && navigationIcon != null) {
-        // The platform navigation bar already shows the back button and title; keep only the
-        // page's own actions, and collapse entirely when there are none.
-        Row(
-            modifier = modifier.fillMaxWidth().padding(horizontal = horizontalPadding),
-            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-            verticalAlignment = Alignment.CenterVertically,
-            content = actions,
-        )
+        // The platform bar shows back and title; this page's actions join it as one pill on the
+        // trailing edge of the same band, so there is never a second toolbar row.
+        Box(
+            modifier = modifier.fillMaxWidth().height(LocalNativeBarHeight.current).padding(horizontal = 12.dp),
+            contentAlignment = Alignment.CenterEnd,
+        ) {
+            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.92f)) {
+                Row(verticalAlignment = Alignment.CenterVertically, content = actions)
+            }
+        }
         return
     }
     Row(
