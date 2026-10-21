@@ -25,6 +25,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -181,7 +182,13 @@ internal class IosNativeShell(private val playerSurface: PlayerSurface) {
             LocalNativeBarHeight provides navigationBar,
             LocalShellBottomInset provides safeBottom + miniPlayerHeight,
         ) {
-            Box(Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault)) {
+            // A Surface (not a bare background) so untinted text gets the theme's content colour,
+            // exactly as the Android shell's Scaffold provides it.
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = VLCThemeDefaults.colors.backgroundDefault,
+                contentColor = MaterialTheme.colorScheme.onBackground,
+            ) { Box(Modifier.fillMaxSize()) {
                 Box(
                     Modifier
                         .fillMaxSize()
@@ -201,7 +208,7 @@ internal class IosNativeShell(private val playerSurface: PlayerSurface) {
                         MiniBar(state = playerState, onExpand = { presentPlayer(null) }, onToggle = models.player::togglePlayPause)
                     }
                 }
-            }
+            } }
         }
     }
 
