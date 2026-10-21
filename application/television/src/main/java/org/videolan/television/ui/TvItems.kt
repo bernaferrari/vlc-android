@@ -30,7 +30,7 @@ import org.videolan.vlc.compose.tv.VLCTvArtwork
 import org.videolan.vlc.compose.tv.VLCTvCardShape
 import org.videolan.vlc.compose.tv.VLCTvItem
 import org.videolan.vlc.compose.tv.VLCTvSymbolArtwork
-import org.videolan.vlc.compose.tv.VLCTvSymbols
+import org.videolan.vlc.compose.icons.ExtraSymbols
 import org.videolan.vlc.util.generateResolutionClass
 
 /**
@@ -50,11 +50,11 @@ internal fun BoxScope.TvSourceArtwork(source: Any?, item: VLCTvItem) {
     when (source) {
         is MediaMetadataWithImages -> TvRemoteArtworkImage(
             imageUrl = source.metadata.currentPoster,
-            fallback = if (source.metadata.type == MediaMetadataType.TV_SHOW) VLCTvSymbols.Tv else VLCTvSymbols.Movie,
+            fallback = if (source.metadata.type == MediaMetadataType.TV_SHOW) ExtraSymbols.Tv else ExtraSymbols.Movie,
             contentDescription = item.title,
         )
-        is Person -> TvRemoteArtworkImage(source.image, VLCTvSymbols.Person, contentDescription = item.title)
-        is MediaImage -> TvRemoteArtworkImage(source.url, VLCTvSymbols.Image)
+        is Person -> TvRemoteArtworkImage(source.image, ExtraSymbols.Person, contentDescription = item.title)
+        is MediaImage -> TvRemoteArtworkImage(source.url, ExtraSymbols.Image)
         is MediaLibraryItem -> TvMediaArtworkImage(source, contentDescription = item.title)
         else -> VLCTvSymbolArtwork(item.symbol)
     }
@@ -93,7 +93,7 @@ internal fun MediaLibraryItem.toTvItem(shape: VLCTvCardShape = tvShape()): VLCTv
         progress = progress,
         symbol = tvSymbol(),
         statusIcon = when ((this as? DummyItem)?.id) {
-            CATEGORY_NOW_PLAYING, CATEGORY_NOW_PLAYING_PIP -> VLCTvSymbols.Equalizer
+            CATEGORY_NOW_PLAYING, CATEGORY_NOW_PLAYING_PIP -> ExtraSymbols.Equalizer
             CATEGORY_NOW_PLAYING_PAUSED, CATEGORY_NOW_PLAYING_PIP_PAUSED -> MaterialSymbols.Filled.Pause
             else -> null
         },
@@ -110,7 +110,7 @@ internal fun MediaMetadataWithImages.toTvItem(subtitle: String? = tvEpisodeSubti
         subtitle = subtitle,
         badge = media?.let { generateResolutionClass(it.width, it.height) },
         progress = progress,
-        symbol = if (metadata.type == MediaMetadataType.TV_SHOW) VLCTvSymbols.Tv else VLCTvSymbols.Movie,
+        symbol = if (metadata.type == MediaMetadataType.TV_SHOW) ExtraSymbols.Tv else ExtraSymbols.Movie,
         statusIcon = if ((media?.seen ?: 0L) > 0L) MaterialSymbols.Filled.CheckCircle else null,
         shape = VLCTvCardShape.Poster,
     )
@@ -119,13 +119,13 @@ internal fun MediaMetadataWithImages.toTvItem(subtitle: String? = tvEpisodeSubti
 internal fun Person.toTvItem() = VLCTvItem(
     key = "person-$moviepediaId",
     title = name,
-    symbol = VLCTvSymbols.Person,
+    symbol = ExtraSymbols.Person,
     shape = VLCTvCardShape.Poster,
 )
 
 internal fun MediaImage.toTvItem() = VLCTvItem(
     key = "image-$mediaId-$url",
     title = "",
-    symbol = VLCTvSymbols.Image,
+    symbol = ExtraSymbols.Image,
     shape = if (imageType == MediaImageType.POSTER) VLCTvCardShape.Poster else VLCTvCardShape.Landscape,
 )

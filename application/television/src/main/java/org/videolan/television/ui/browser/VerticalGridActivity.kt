@@ -87,7 +87,7 @@ import org.videolan.vlc.compose.tv.VLCTvBrowserLabels
 import org.videolan.vlc.compose.tv.VLCTvBrowserScreen
 import org.videolan.vlc.compose.tv.VLCTvCardShape
 import org.videolan.vlc.compose.tv.VLCTvSortOption
-import org.videolan.vlc.compose.tv.VLCTvSymbols
+import org.videolan.vlc.compose.icons.ExtraSymbols
 import org.videolan.vlc.compose.tv.VLCTvTheme
 import org.videolan.vlc.compose.tv.gridColumns
 import org.videolan.vlc.providers.medialibrary.MedialibraryProvider
@@ -281,7 +281,7 @@ class VerticalGridActivity : BaseTvActivity() {
                             shape = VLCTvCardShape.Poster,
                             labels = browserLabels(),
                             emptyTitle = getString(VlcR.string.nomedia),
-                            emptySymbol = if (category == HEADER_TV_SHOW) VLCTvSymbols.Tv else VLCTvSymbols.Movie,
+                            emptySymbol = if (category == HEADER_TV_SHOW) ExtraSymbols.Tv else ExtraSymbols.Movie,
                             sortOptions = mediaSortActions(model),
                             onBack = ::finish,
                             onToggleDisplay = {
@@ -326,7 +326,7 @@ class VerticalGridActivity : BaseTvActivity() {
                             shape = VLCTvCardShape.Landscape,
                             labels = browserLabels(),
                             emptyTitle = fileEmptyText(),
-                            emptySymbol = if (fileEntry?.category == TYPE_NETWORK) VLCTvSymbols.Cloud else MaterialSymbols.Filled.Folder,
+                            emptySymbol = if (fileEntry?.category == TYPE_NETWORK) ExtraSymbols.Cloud else MaterialSymbols.Filled.Folder,
                             sortOptions = fileModel?.let { mediaSortActions(it) }.orEmpty(),
                             favorite = fileFavorite.takeIf { fileFavoriteVisible },
                             onBack = ::goBackFromFileBrowser,

@@ -48,7 +48,7 @@ import org.videolan.vlc.compose.icons.MaterialIcon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.LocalVLCMotion
 import org.videolan.vlc.compose.tv.VLCTvSymbolArtwork
-import org.videolan.vlc.compose.tv.VLCTvSymbols
+import org.videolan.vlc.compose.icons.ExtraSymbols
 import org.videolan.vlc.util.ThumbnailsProvider
 import org.videolan.vlc.util.isSchemeHttpOrHttps
 import org.videolan.vlc.R as VlcR
@@ -128,31 +128,31 @@ private fun MediaLibraryItem.shouldUseTvFallbackArtworkOnly(): Boolean {
 internal fun MediaLibraryItem.tvSymbol(): MaterialIcon = when (this) {
     is DummyItem -> when (id) {
         HEADER_VIDEO -> MaterialSymbols.Filled.VideoLibrary
-        HEADER_MOVIES, CATEGORY_NOW_PLAYING_PIP -> VLCTvSymbols.Movie
-        HEADER_TV_SHOW -> VLCTvSymbols.Tv
+        HEADER_MOVIES, CATEGORY_NOW_PLAYING_PIP -> ExtraSymbols.Movie
+        HEADER_TV_SHOW -> ExtraSymbols.Tv
         HEADER_PERMISSION -> MaterialSymbols.Filled.Lock
         HEADER_DIRECTORIES -> MaterialSymbols.Filled.Folder
-        HEADER_NETWORK -> VLCTvSymbols.Cloud
+        HEADER_NETWORK -> ExtraSymbols.Cloud
         HEADER_SERVER -> MaterialSymbols.Filled.Add
         HEADER_STREAM -> MaterialSymbols.Filled.Language
         HEADER_PLAYLISTS -> MaterialSymbols.Filled.QueueMusic
         CATEGORY_ARTISTS -> MaterialSymbols.Filled.Groups
-        CATEGORY_ALBUMS -> VLCTvSymbols.Album
+        CATEGORY_ALBUMS -> ExtraSymbols.Album
         CATEGORY_GENRES -> MaterialSymbols.Filled.Tune
         CATEGORY_SONGS -> MaterialSymbols.Filled.MusicNote
-        CATEGORY_NOW_PLAYING -> VLCTvSymbols.Equalizer
+        CATEGORY_NOW_PLAYING -> ExtraSymbols.Equalizer
         CATEGORY_NOW_PLAYING_PAUSED, CATEGORY_NOW_PLAYING_PIP_PAUSED -> MaterialSymbols.Filled.Pause
         else -> MaterialSymbols.Filled.PlayArrow
     }
     is MediaWrapper -> when (type) {
-        MediaWrapper.TYPE_VIDEO -> VLCTvSymbols.Movie
+        MediaWrapper.TYPE_VIDEO -> ExtraSymbols.Movie
         MediaWrapper.TYPE_AUDIO -> MaterialSymbols.Filled.MusicNote
-        MediaWrapper.TYPE_DIR -> if (uri?.scheme == "file") MaterialSymbols.Filled.Folder else VLCTvSymbols.Cloud
+        MediaWrapper.TYPE_DIR -> if (uri?.scheme == "file") MaterialSymbols.Filled.Folder else ExtraSymbols.Cloud
         MediaWrapper.TYPE_STREAM -> MaterialSymbols.Filled.Language
         else -> MaterialSymbols.Filled.PlayArrow
     }
-    is Album -> VLCTvSymbols.Album
-    is Artist -> VLCTvSymbols.Person
+    is Album -> ExtraSymbols.Album
+    is Artist -> ExtraSymbols.Person
     is Genre -> MaterialSymbols.Filled.Tune
     is Playlist -> MaterialSymbols.Filled.QueueMusic
     is VideoGroup -> MaterialSymbols.Filled.VideoLibrary

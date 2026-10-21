@@ -128,14 +128,12 @@ internal fun AudioEntityKind.uriScheme(): String = when (this) {
 
 internal fun AudioEntity.toSyntheticItem(): MediaItem {
     val scheme = kind.uriScheme()
-    val desc = subtitle?.takeIf { it.isNotBlank() }
-        ?: buildString {
-            if (trackCount > 0) append("$trackCount tracks")
-            if (albumCount > 0) {
-                if (isNotEmpty()) append(" · ")
-                append("$albumCount albums")
-            }
-        }.ifBlank { null }
+    // The row's title is the entity itself; its secondary line describes what it contains.
+    val desc = listOfNotNull(
+        subtitle?.takeIf { it.isNotBlank() && it != title },
+        trackCount.takeIf { it > 0 }?.let { if (it == 1) "1 track" else "$it tracks" },
+        albumCount.takeIf { it > 1 && kind != AudioEntityKind.ALBUM }?.let { "$it albums" },
+    ).joinToString(" · ").ifBlank { null }
     return MediaItem(
         id = id,
         title = title,
@@ -144,9 +142,6 @@ internal fun AudioEntity.toSyntheticItem(): MediaItem {
         artworkUri = artworkUri,
         isFavorite = isFavorite,
         description = desc,
-        artist = if (kind == AudioEntityKind.ARTIST) title else subtitle,
-        album = if (kind == AudioEntityKind.ALBUM) title else null,
-        genre = if (kind == AudioEntityKind.GENRE) title else null,
     )
 }
 

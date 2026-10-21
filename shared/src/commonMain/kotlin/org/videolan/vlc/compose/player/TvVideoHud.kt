@@ -79,7 +79,7 @@ import org.videolan.vlc.compose.theme.VLCTheme
 import org.videolan.vlc.compose.tv.LocalVLCTvPreviewFocus
 import org.videolan.vlc.compose.tv.VLCTvLayout
 import org.videolan.vlc.compose.tv.VLCTvSurface
-import org.videolan.vlc.compose.tv.VLCTvSymbols
+import org.videolan.vlc.compose.icons.ExtraSymbols
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.MediaType
 import org.videolan.vlc.model.Progress
@@ -277,7 +277,7 @@ private fun TvTransportRow(
         ) {
             if (hasVideoOutput) {
                 TvChromeIconButton(
-                    icon = VLCTvSymbols.Subtitles,
+                    icon = ExtraSymbols.Subtitles,
                     contentDescription = stringResource(Res.string.tracks),
                     previewKey = TvPlayerFocusKeys.TRACKS,
                     onClick = { onUserInteraction(); onOpenSheet(TvPlayerSheet.TRACKS) },

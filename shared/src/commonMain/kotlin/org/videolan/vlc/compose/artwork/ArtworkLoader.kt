@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
 import org.videolan.vlc.compose.icons.Icon
+import org.videolan.vlc.compose.icons.ExtraSymbols
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCThemeDefaults
 import org.videolan.vlc.compose.theme.LocalVLCMotion
@@ -164,6 +165,9 @@ fun DefaultArtworkFallback(item: MediaItem) {
     // a missing thumbnail look like debug content in an otherwise polished grid.
     Icon(
         icon = when {
+            item.uri.startsWith("album://") -> ExtraSymbols.Album
+            item.uri.startsWith("artist://") -> ExtraSymbols.Person
+            item.uri.startsWith("genre://") -> MaterialSymbols.Filled.MusicNote
             item.isVideo -> MaterialSymbols.Filled.VideoLibrary
             item.isAudio -> MaterialSymbols.Filled.MusicNote
             item.isStream -> MaterialSymbols.Filled.Devices

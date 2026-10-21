@@ -15,6 +15,7 @@ import org.videolan.vlc.player.PlaybackRate
 import platform.Foundation.NSApplicationSupportDirectory
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
+import platform.Foundation.NSHomeDirectory
 import platform.Foundation.NSURL
 import platform.Foundation.NSUserDomainMask
 
@@ -108,7 +109,8 @@ internal class FileIosCatalogStore(
         // JVM-oriented use {} extension is unavailable on this target.
         val source = fileSystem.source(sourcePath).buffer()
         val snapshot = try {
-            catalogJson.decodeFromString<IosCatalogSnapshot>(source.readUtf8())
+            val stored = rebaseContainerPaths(source.readUtf8(), NSHomeDirectory())
+            catalogJson.decodeFromString<IosCatalogSnapshot>(stored).withoutDuplicateMedia()
         } finally {
             source.close()
         }
@@ -340,3 +342,19 @@ private val catalogJson = Json {
     encodeDefaults = true
     ignoreUnknownKeys = true
 }
+
+private val containerPath = Regex("(/Containers/Data/Application/)[0-9A-Fa-f-]{36}(?=/|$)")
+
+/**
+ * iOS moves the app's data container to a new UUID path on reinstall, restore and some updates.
+ * Stored media, artwork and history URIs are rebased onto the current container so a library
+ * survives those moves instead of turning into missing "ghost" rows plus fresh duplicates.
+ */
+internal fun rebaseContainerPaths(json: String, homeDirectory: String): String {
+    val current = containerPath.find(homeDirectory)?.value ?: return json
+    return containerPath.replace(json, current)
+}
+
+/** After a rebase, two rows can describe one file; keep the first (it owns history and ids). */
+internal fun IosCatalogSnapshot.withoutDuplicateMedia(): IosCatalogSnapshot =
+    if (media.distinctBy { it.uri }.size == media.size) this else copy(media = media.distinctBy { it.uri })

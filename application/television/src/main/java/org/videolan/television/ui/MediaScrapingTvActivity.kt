@@ -61,7 +61,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import org.videolan.vlc.compose.tv.VLCTvSymbols
+import org.videolan.vlc.compose.icons.ExtraSymbols
 import org.videolan.vlc.compose.tv.VLCTvTheme
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
@@ -279,5 +279,5 @@ private fun MediaScrapingResultThumbnail(item: ResolverMedia?) {
     val context = LocalContext.current
     val languages = remember(context) { context.getLocaleLanguages() }
     val imageUrl = remember(item, languages) { item?.imageUri(languages)?.asString() }
-    TvRemoteArtworkImage(imageUrl, VLCTvSymbols.Movie)
+    TvRemoteArtworkImage(imageUrl, ExtraSymbols.Movie)
 }

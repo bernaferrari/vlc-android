@@ -1,17 +1,16 @@
-package org.videolan.vlc.compose.tv
+package org.videolan.vlc.compose.icons
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.unit.dp
-import org.videolan.vlc.compose.icons.MaterialIcon
 
 /**
- * A handful of extra glyphs the TV library needs to tell its entry points apart (movies vs. shows,
- * albums, network shares, now playing). Paths are the 24dp Material Icons (Apache 2.0).
+ * Extra glyphs for media kinds the core set lacks (movies vs. shows, albums, artists, network
+ * shares, now playing), shared by phone, tablet and TV. Paths are the 24dp Material Icons (Apache 2.0).
  */
-object VLCTvSymbols {
+object ExtraSymbols {
     val Movie: MaterialIcon by lazy { symbol("movie", "M18,4l2,4h-3l-2,-4h-2l2,4h-3l-2,-4H8l2,4H7L5,4H4c-1.1,0 -1.99,0.9 -1.99,2L2,18c0,1.1 0.9,2 2,2h16c1.1,0 2,-0.9 2,-2V4h-4z") }
     val Tv: MaterialIcon by lazy { symbol("tv", "M21,3H3c-1.1,0 -2,0.9 -2,2v12c0,1.1 0.9,2 2,2h5v2h8v-2h5c1.1,0 1.99,-0.9 1.99,-2L23,5c0,-1.1 -0.9,-2 -2,-2zM21,17H3V5h18v12z") }
     val Album: MaterialIcon by lazy { symbol("album", "M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2zM12,16.5c-2.49,0 -4.5,-2.01 -4.5,-4.5S9.51,7.5 12,7.5s4.5,2.01 4.5,4.5 -2.01,4.5 -4.5,4.5zM12,11c-0.55,0 -1,0.45 -1,1s0.45,1 1,1 1,-0.45 1,-1 -0.45,-1 -1,-1z") }

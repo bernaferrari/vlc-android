@@ -158,6 +158,9 @@ final class MediaImporter: NSObject {
         duration: Int64 = 0,
         artist: String? = nil,
         album: String? = nil,
+        artworkUri: String? = nil,
+        width: Int32 = 0,
+        height: Int32 = 0,
     ) -> MediaItem {
         let values = try? url.resourceValues(forKeys: [.fileSizeKey, .contentModificationDateKey])
         let id = nextId
@@ -175,9 +178,9 @@ final class MediaImporter: NSObject {
             year: 0,
             trackNumber: 0,
             discNumber: 0,
-            artworkUri: nil,
-            width: 0,
-            height: 0,
+            artworkUri: artworkUri,
+            width: width,
+            height: height,
             mime: UTType(filenameExtension: url.pathExtension)?.preferredMIMEType,
             lastModified: Int64((values?.contentModificationDate?.timeIntervalSince1970 ?? 0) * 1000),
             size: Int64(values?.fileSize ?? 0),
@@ -226,6 +229,13 @@ final class MediaImporter: NSObject {
         let metadata = await loadedMetadata ?? []
         let seconds = duration?.seconds ?? 0
         let durationMs = seconds.isFinite && seconds > 0 ? Int64(seconds * 1_000) : 0
+        var size = CGSize.zero
+        if type == .video, let track = try? await asset.loadTracks(withMediaType: .video).first,
+           let (natural, transform) = try? await track.load(.naturalSize, .preferredTransform) {
+            let oriented = natural.applying(transform)
+            size = CGSize(width: abs(oriented.width), height: abs(oriented.height))
+        }
+        let artwork = await artworkFile(for: url, asset: asset, isVideo: type == .video, seconds: seconds, metadata: metadata)
         return makeMediaItem(
             url: url,
             type: type,
@@ -233,7 +243,47 @@ final class MediaImporter: NSObject {
             duration: durationMs,
             artist: commonText(metadata, key: .commonKeyArtist),
             album: commonText(metadata, key: .commonKeyAlbumName),
+            artworkUri: artwork?.absoluteString,
+            width: Int32(size.width),
+            height: Int32(size.height),
         )
+    }
+
+    /// A poster frame for video, or the embedded cover for audio, cached as a JPEG so every
+    /// shared list, hero and player shows real artwork through the common image pipeline.
+    private func artworkFile(
+        for url: URL,
+        asset: AVURLAsset,
+        isVideo: Bool,
+        seconds: Double,
+        metadata: [AVMetadataItem],
+    ) async -> URL? {
+        let fm = FileManager.default
+        guard let caches = fm.urls(for: .cachesDirectory, in: .userDomainMask).first else { return nil }
+        let directory = caches.appendingPathComponent("artwork", isDirectory: true)
+        try? fm.createDirectory(at: directory, withIntermediateDirectories: true)
+        let modified = (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate?.timeIntervalSince1970 ?? 0
+        let key = "\(url.path)|\(Int(modified))".utf8.reduce(UInt64(14_695_981_039_346_656_037)) { ($0 ^ UInt64($1)) &* 1_099_511_628_211 }
+        let destination = directory.appendingPathComponent(String(key, radix: 16) + ".jpg")
+        if fm.fileExists(atPath: destination.path) { return destination }
+
+        var data: Data?
+        if isVideo {
+            let generator = AVAssetImageGenerator(asset: asset)
+            generator.appliesPreferredTrackTransform = true
+            generator.maximumSize = CGSize(width: 720, height: 720)
+            // A frame a little way in avoids black fade-ins and title cards.
+            let time = CMTime(seconds: seconds > 0 ? min(max(seconds * 0.1, 1), 20) : 1, preferredTimescale: 600)
+            if let (image, _) = try? await generator.image(at: time) {
+                data = UIImage(cgImage: image).jpegData(compressionQuality: 0.82)
+            }
+        } else if let item = metadata.first(where: { $0.commonKey == .commonKeyArtwork }),
+                  let raw = try? await item.load(.dataValue),
+                  let image = UIImage(data: raw) {
+            data = image.jpegData(compressionQuality: 0.9)
+        }
+        guard let data, (try? data.write(to: destination, options: .atomic)) != nil else { return nil }
+        return destination
     }
 
     private func commonText(_ metadata: [AVMetadataItem], key: AVMetadataKey) -> String? {

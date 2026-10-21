@@ -52,7 +52,7 @@ import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.tv.VLCTvAction
 import org.videolan.vlc.compose.tv.VLCTvDetailsScreen
 import org.videolan.vlc.compose.tv.VLCTvShelfModel
-import org.videolan.vlc.compose.tv.VLCTvSymbols
+import org.videolan.vlc.compose.icons.ExtraSymbols
 import org.videolan.vlc.compose.tv.VLCTvTheme
 import org.videolan.vlc.media.MediaUtils
 
@@ -161,9 +161,9 @@ private fun TvShowDetailsScreen(
             }
         },
         backdrop = metadata?.currentBackdrop?.takeIf { it.isNotBlank() }?.let { url ->
-            { TvRemoteArtworkImage(url, VLCTvSymbols.Tv, Modifier.fillMaxSize()) }
+            { TvRemoteArtworkImage(url, ExtraSymbols.Tv, Modifier.fillMaxSize()) }
         },
-        heroArtwork = { TvRemoteArtworkImage(metadata?.currentPoster, VLCTvSymbols.Tv) },
+        heroArtwork = { TvRemoteArtworkImage(metadata?.currentPoster, ExtraSymbols.Tv) },
         artwork = { item -> TvSourceArtwork(shelves.firstNotNullOfOrNull { it.second.sourcesByKey[item.key] }, item) },
     )
 }

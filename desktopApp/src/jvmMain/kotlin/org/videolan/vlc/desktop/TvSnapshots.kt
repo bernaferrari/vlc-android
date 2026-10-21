@@ -193,7 +193,7 @@ internal fun tvShots(media: List<MediaItem>): List<Triple<String, Pair<Int, Int>
                     onAction = {}, requestInitialFocus = false,
                     shelves = listOf(
                         VLCTvShelfModel("s1", "Season 1", episodes),
-                        VLCTvShelfModel("cast", "Cast", listOf("Ada North", "Jonas Vik", "Mia Holm", "Per Lund").map { VLCTvItem("p-$it", it, symbol = org.videolan.vlc.compose.tv.VLCTvSymbols.Person, shape = VLCTvCardShape.Poster) }),
+                        VLCTvShelfModel("cast", "Cast", listOf("Ada North", "Jonas Vik", "Mia Holm", "Per Lund").map { VLCTvItem("p-$it", it, symbol = org.videolan.vlc.compose.tv.ExtraSymbols.Person, shape = VLCTvCardShape.Poster) }),
                     ),
                     heroArtwork = { MediaArtworkUri(uri = fx.firstVideoArtwork(), modifier = Modifier.fillMaxSize(), fillMaxSizeArtwork = true, showFallbackContainer = false, fallback = {}) },
                     artwork = fx.artwork,

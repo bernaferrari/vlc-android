@@ -3,6 +3,7 @@ package org.videolan.vlc.repository
 import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import org.videolan.vlc.model.HistoryEntry
 import org.videolan.vlc.model.MediaFolder
 import org.videolan.vlc.model.MediaItem
@@ -139,23 +140,64 @@ interface MediaRepository {
         onlyFavorites: Boolean = false,
     ): Flow<List<MediaFolder>> = flowOf(emptyList())
 
-    /** Typed artists / albums / genres for audio browser tabs. */
+    /**
+     * Typed artists / albums / genres for audio browser tabs. The default derives them from the
+     * audio catalogue's tags, so every platform gets real album and artist pages; a media-library
+     * backed platform (Android) overrides it with its indexed entities.
+     */
     fun observeAudioEntities(
         kind: AudioEntityKind,
         sort: MediaSort = MediaSort.TITLE,
         desc: Boolean = false,
         onlyFavorites: Boolean = false,
         query: String = "",
-    ): Flow<List<AudioEntity>> = flowOf(emptyList())
+    ): Flow<List<AudioEntity>> = observeMedia(MediaType.AUDIO).map { tracks ->
+        tracks.groupBy { it.audioEntityTitle(kind) }
+            .filterKeys { it != null }
+            .map { (title, members) ->
+                AudioEntity(
+                    id = audioEntityId(kind, title!!),
+                    title = title,
+                    kind = kind,
+                    trackCount = members.size,
+                    albumCount = members.mapNotNull { it.album?.takeIf(String::isNotBlank) }.distinct().size,
+                    artworkUri = members.firstNotNullOfOrNull { it.artworkUri?.takeIf(String::isNotBlank) },
+                    subtitle = if (kind == AudioEntityKind.ALBUM) members.firstNotNullOfOrNull { it.artist?.takeIf(String::isNotBlank) } else null,
+                    isFavorite = members.all { it.isFavorite },
+                )
+            }
+            .filter { !onlyFavorites || it.isFavorite }
+            .filter { query.isBlank() || it.title.contains(query, ignoreCase = true) }
+            .sortedBy { it.title.lowercase() }
+            .let { if (desc) it.reversed() else it }
+    }
 
-    /** Tracks belonging to a typed audio entity. */
+    /** Tracks belonging to a typed audio entity; see [observeAudioEntities] for the default. */
     fun observeAudioEntityTracks(
         kind: AudioEntityKind,
         entityId: Long,
         sort: MediaSort = MediaSort.TITLE,
         desc: Boolean = false,
         onlyFavorites: Boolean = false,
-    ): Flow<List<MediaItem>> = flowOf(emptyList())
+    ): Flow<List<MediaItem>> = observeMedia(MediaType.AUDIO).map { tracks ->
+        tracks.filter { track ->
+            track.audioEntityTitle(kind)?.let { audioEntityId(kind, it) } == entityId &&
+                (!onlyFavorites || track.isFavorite)
+        }
+    }
+}
+
+private fun MediaItem.audioEntityTitle(kind: AudioEntityKind): String? = when (kind) {
+    AudioEntityKind.ALBUM -> album
+    AudioEntityKind.ARTIST -> artist
+    AudioEntityKind.GENRE -> genre
+}?.trim()?.takeIf(String::isNotEmpty)
+
+/** Stable, positive id for a tag-derived entity, identical across launches and devices. */
+internal fun audioEntityId(kind: AudioEntityKind, title: String): Long {
+    var hash = 1125899906842597L
+    for (char in "${kind.name}:${title.lowercase()}") hash = 31 * hash + char.code
+    return hash and Long.MAX_VALUE
 }
 
 /** One level of browser results (network or filesystem). */

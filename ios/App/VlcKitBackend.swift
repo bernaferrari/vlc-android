@@ -34,6 +34,8 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
     private var videoOutputScale: Float = 0
     private var externalSubtitleURL: URL?
     private var selectedRendererId: String?
+    /// Mirrors VLCKit's state callbacks so event handlers never have to query a locked player.
+    private var lastKnownPlaying = false
     private var stopRequested = false
     private var lastPlaybackTimeMs: Int64 = 0
     private var lastPlaybackLengthMs: Int64 = 0
@@ -842,6 +844,19 @@ final class VlcKitBackend: NSObject, VlcKitPlayerBackend, VlcKitRendererBackend 
 #if canImport(VLCKit)
 extension VlcKitBackend: VLCMediaPlayerDelegate {
     func mediaPlayerStateChanged(_ newState: VLCMediaPlayerState) {
+        if Thread.isMainThread {
+            handleStateChange(newState)
+        } else {
+            // Same re-entrancy hazard as time changes: never touch the player on VLCKit's thread.
+            DispatchQueue.main.async { [weak self] in self?.handleStateChange(newState) }
+        }
+    }
+
+    private func handleStateChange(_ newState: VLCMediaPlayerState) {
+        switch newState {
+        case .playing, .paused, .stopped, .error: lastKnownPlaying = newState == .playing
+        default: break
+        }
         switch newState {
         case .playing:
             publishNowPlayingInfo(isPlaying: true)
@@ -866,14 +881,19 @@ extension VlcKitBackend: VLCMediaPlayerDelegate {
     }
 
     func mediaPlayerTimeChanged(_ aNotification: Notification) {
-        guard let player else { return }
-        let time = Int64(player.time.intValue)
-        let length = Int64(player.media?.length.intValue ?? 0)
-        lastPlaybackTimeMs = time
-        lastPlaybackLengthMs = length
-        listener?.onTimeChanged(timeMs: time, lengthMs: length)
-        publishNowPlayingInfo()
-        VlcKitPipDrawable.shared.invalidatePlaybackState()
+        // VLCKit can deliver this on its input thread while it still holds the player lock (for
+        // example when a track pauses at its end). Querying the player there re-enters that lock
+        // and aborts, so all work happens on the main queue with the last known play state.
+        DispatchQueue.main.async { [weak self] in
+            guard let self, let player = self.player else { return }
+            let time = Int64(player.time.intValue)
+            let length = Int64(player.media?.length.intValue ?? 0)
+            self.lastPlaybackTimeMs = time
+            self.lastPlaybackLengthMs = length
+            self.listener?.onTimeChanged(timeMs: time, lengthMs: length)
+            self.publishNowPlayingInfo(isPlaying: self.lastKnownPlaying)
+            VlcKitPipDrawable.shared.invalidatePlaybackState()
+        }
     }
 }
 

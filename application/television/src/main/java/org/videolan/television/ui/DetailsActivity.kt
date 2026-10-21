@@ -84,7 +84,7 @@ import org.videolan.vlc.compose.tv.VLCTvAction
 import org.videolan.vlc.compose.tv.VLCTvCardShape
 import org.videolan.vlc.compose.tv.VLCTvDetailsScreen
 import org.videolan.vlc.compose.tv.VLCTvShelfModel
-import org.videolan.vlc.compose.tv.VLCTvSymbols
+import org.videolan.vlc.compose.icons.ExtraSymbols
 import org.videolan.vlc.compose.tv.VLCTvTheme
 import org.videolan.vlc.util.generateResolutionClass
 import org.videolan.medialibrary.Tools
@@ -395,7 +395,7 @@ private fun DetailAction.symbol(): MaterialIcon = when (id) {
     ID_FAVORITE_DELETE -> MaterialSymbols.Filled.Star
     ID_FAVORITE_EDIT -> MaterialSymbols.Filled.Edit
     ID_BROWSE -> MaterialSymbols.Filled.Folder
-    ID_DL_SUBS -> VLCTvSymbols.Subtitles
+    ID_DL_SUBS -> ExtraSymbols.Subtitles
     ID_PLAYLIST -> MaterialSymbols.Filled.QueueMusic
     ID_GET_INFO -> MaterialSymbols.Filled.Search
     ID_REMOVE_FROM_HISTORY -> MaterialSymbols.Filled.History

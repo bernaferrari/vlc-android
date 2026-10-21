@@ -7,25 +7,19 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.MediaType
 import org.videolan.vlc.model.PlaylistInfo
 
-internal fun MediaRepository.defaultPagedMedia(query: MediaQuery): Flow<PagingData<MediaItem>> {
-    return Pager(
-        config = PagingConfig(
-            pageSize = MEDIA_PAGE_SIZE,
-            enablePlaceholders = false,
-            initialLoadSize = MEDIA_PAGE_SIZE,
-        ),
-        pagingSourceFactory = {
-            ListPagingSource {
-                loadMediaSnapshot(query)
-            }
-        },
-    ).flow
-}
+/**
+ * Live paging for repositories without a native paged source (iOS, Web, desktop). Each catalog
+ * emission republishes the list, so metadata enrichment (artwork, durations, tags) and imports
+ * appear immediately instead of after the next launch.
+ */
+internal fun MediaRepository.defaultPagedMedia(query: MediaQuery): Flow<PagingData<MediaItem>> =
+    mediaSource(query).map { PagingData.from(it) }
 
 internal fun PlaylistRepository.defaultPagedPlaylists(
     sort: MediaSort,
@@ -58,21 +52,22 @@ internal fun PlaylistRepository.defaultPagedPlaylists(
     ).flow
 }
 
-private suspend fun MediaRepository.loadMediaSnapshot(query: MediaQuery): List<MediaItem> {
+private fun MediaRepository.mediaSource(query: MediaQuery): Flow<List<MediaItem>> {
     val q = query.query.trim()
-    var list = if (q.isEmpty()) {
+    val source = if (q.isEmpty()) {
         when (query.containerKind) {
-            ContainerKind.FOLDER -> query.containerId?.let { observeFolderMedia(it).first() }.orEmpty()
-            ContainerKind.VIDEO_GROUP -> query.containerId?.let { observeVideoGroupMedia(it).first() }.orEmpty()
-            ContainerKind.NONE -> observeMedia(query.type).first()
+            ContainerKind.FOLDER -> query.containerId?.let { observeFolderMedia(it) } ?: flowOf(emptyList())
+            ContainerKind.VIDEO_GROUP -> query.containerId?.let { observeVideoGroupMedia(it) } ?: flowOf(emptyList())
+            ContainerKind.NONE -> observeMedia(query.type)
         }
     } else {
-        search(q, query.type).first()
+        search(q, query.type)
     }
-    if (query.onlyFavorites) list = list.filter { it.isFavorite }
-    list = sortMedia(list, query.sort)
-    if (query.desc) list = list.reversed()
-    return list
+    return source.map { items ->
+        var list = if (query.onlyFavorites) items.filter { it.isFavorite } else items
+        list = sortMedia(list, query.sort)
+        if (query.desc) list.reversed() else list
+    }
 }
 
 internal fun sortMedia(items: List<MediaItem>, sort: MediaSort): List<MediaItem> = when (sort) {
