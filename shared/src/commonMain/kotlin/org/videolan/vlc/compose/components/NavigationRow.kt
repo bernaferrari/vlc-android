@@ -49,14 +49,11 @@ fun VLCNavigationRow(
             .heightIn(min = VLCLayout.MediaRowHeight),
     ) {
         Row(
-            modifier = Modifier.padding(
-                start = VLCLayout.ScreenGutter,
-                top = 12.dp,
-                end = 8.dp,
-                bottom = 12.dp,
-            ),
+            // Even 16dp on every side; the end is 12dp because the chevron glyph carries ~4dp of
+            // its own whitespace, so it optically lands on the same 16dp line.
+            modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 12.dp, bottom = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(VLCLayout.RowGap),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             VLCIconChip(
                 size = VLCLayout.DestinationIconChip,

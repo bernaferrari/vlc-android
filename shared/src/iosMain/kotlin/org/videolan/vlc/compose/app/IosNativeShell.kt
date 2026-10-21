@@ -74,6 +74,8 @@ import org.videolan.vlc.viewmodel.SettingsViewModel
 import org.videolan.vlc.viewmodel.VideoListViewModel
 import platform.Foundation.NSProcessInfo
 import platform.UIKit.UIColor
+import platform.Foundation.valueForKey
+import platform.UIKit.UIGestureRecognizer
 import platform.UIKit.UIImage
 import platform.UIKit.UIModalPresentationFullScreen
 import platform.UIKit.UINavigationController
@@ -138,6 +140,12 @@ internal class IosNativeShell(private val playerSurface: PlayerSurface) {
         navigationPolicies += policy
         stack.delegate = policy
         stack.setNavigationBarHidden(true, animated = false)
+        // iOS 26 also pops on a horizontal drag anywhere in the content. UIKit cannot see that a
+        // Compose slider, seek bar or carousel owns that drag, so keep only the edge swipe-back.
+        // Read through KVC: the property is newer than the Kotlin/Native UIKit bindings.
+        if (isAtLeastIOS(26)) {
+            (stack.valueForKey("interactiveContentPopGestureRecognizer") as? UIGestureRecognizer)?.enabled = false
+        }
         stack.tabBarItem = UITabBarItem(
             title = tab.fallbackTitle,
             image = UIImage.systemImageNamed(tab.symbol),
