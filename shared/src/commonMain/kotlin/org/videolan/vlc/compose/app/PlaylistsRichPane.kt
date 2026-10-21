@@ -5,6 +5,7 @@
 
 package org.videolan.vlc.compose.app
 
+import org.videolan.vlc.compose.components.LocalShellBottomInset
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.FlowRow
@@ -196,7 +197,7 @@ fun PlaylistsRichPane(
                     contentPadding = PaddingValues(
                         start = VLCLayout.ScreenGutter,
                         end = VLCLayout.ScreenGutter,
-                        bottom = 24.dp,
+                        bottom = 24.dp + LocalShellBottomInset.current,
                     ),
                     verticalArrangement = Arrangement.spacedBy(2.dp),
                     modifier = Modifier
@@ -313,7 +314,7 @@ fun PlaylistsRichPane(
                     start = VLCLayout.ScreenGutter,
                     end = VLCLayout.ScreenGutter,
                     top = 8.dp,
-                    bottom = 24.dp,
+                    bottom = 24.dp + LocalShellBottomInset.current,
                 ),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(20.dp),
@@ -342,7 +343,7 @@ fun PlaylistsRichPane(
                     start = VLCLayout.ScreenGutter,
                     end = VLCLayout.ScreenGutter,
                     top = 8.dp,
-                    bottom = 24.dp,
+                    bottom = 24.dp + LocalShellBottomInset.current,
                 ),
                 verticalArrangement = Arrangement.spacedBy(2.dp),
                 modifier = Modifier

@@ -591,6 +591,29 @@ fun VlcMainShell(
             popRoute()
         }
 
+        // Rebuilt every composition: its intents read the current route and layout.
+        val navigator = run {
+            object : ShellNavigator {
+                override fun openVideoContainer(folder: MediaFolder) = openVideoContainer(folder)
+                override fun openAudioEntity(item: MediaItem) = openAudioEntity(item)
+                override fun openBrowserFolder(folder: MediaFolder) = openBrowserFolder(folder)
+                override fun openPlaylist(info: PlaylistInfo) = openPlaylist(info)
+                override fun openSettings() = openSettings()
+                override fun openSettingsSection(id: String) = openSettingsSection(id)
+                override fun open(route: VlcShellRoute) { pushNav3Route(backStack, route) }
+                override fun openPlayer() = openPlayer()
+                override fun openMediaPlayer(item: MediaItem) = openMediaPlayer(item)
+                override fun back() = navigateBack()
+            }
+        }
+        // Compact hosts use one model per feature; wide list-detail hosts give the detail pane its own.
+        val rootModels = remember(videoVm, audioVm, browserVm, playlistsVm, moreVm, playerVm, settingsVm) {
+            ShellScreenModels({ videoVm }, { audioVm }, { browserVm }, { playlistsVm }, { moreVm }, { playerVm }, { settingsVm })
+        }
+        val detailModels = remember(rootModels, detailVideoVm, detailAudioVm, detailBrowserVm, detailPlaylistsVm) {
+            ShellScreenModels({ detailVideoVm }, { detailAudioVm }, { detailBrowserVm }, { detailPlaylistsVm }, { moreVm }, { playerVm }, { settingsVm })
+        }
+
         if (appLocked) {
             AppLockGate(onUnlock = settingsVm::unlockAppLock)
         } else {
@@ -689,192 +712,25 @@ fun VlcMainShell(
                         rememberViewModelStoreNavEntryDecorator(),
                     ),
                     entryProvider = entryProvider {
-                    entry<VideoRoute>(metadata = videoListMetadata) {
-                        VideoDestination(
-                            modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
-                            state = videoState,
-                            onOpenVideo = ::openMediaPlayer,
-                            playerState = playerState,
-                            onResumeVideo = {
-                                if (!playerState.playing) playerVm.togglePlayPause()
-                                openPlayer()
-                            },
-                            viewModel = videoVm,
-                            hostCallbacks = hostCallbacks,
-                            onOpenPlayer = ::openPlayer,
-                            onOpenContainer = ::openVideoContainer,
-                            showPlayAllInMenu = videoState.count <= 0 && videoState.items.isEmpty(),
-                        )
-                    }
-                    entry<VideoContainerRoute>(metadata = libraryDetailMetadata) { route ->
-                        LaunchedEffect(route) {
-                            if (detailVideoVm.state.value.containerId != route.id) {
-                                detailVideoVm.openContainer(route.toMediaFolder())
-                            }
-                        }
-                        VideoDestination(
-                            modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
-                            state = detailVideoState,
-                            onOpenVideo = ::openMediaPlayer,
-                            viewModel = detailVideoVm,
-                            hostCallbacks = hostCallbacks,
-                            onOpenPlayer = ::openPlayer,
-                            onOpenContainer = ::openVideoContainer,
-                            onNavigateBack = ::navigateBack,
-                        )
-                    }
-                    entry<AudioRoute>(metadata = audioListMetadata) {
-                        AudioDestination(
-                            modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
-                            state = audioState,
-                            onOpenMedia = ::openMediaPlayer,
-                            section = audioSection,
-                            viewModel = audioVm,
-                            hostCallbacks = hostCallbacks,
-                            onOpenPlayer = ::openPlayer,
-                            onOpenEntity = ::openAudioEntity,
-                            showPlayAllInMenu = audioSection != AudioSection.TRACKS || audioState.count <= 1,
-                        )
-                    }
-                    entry<AudioEntityRoute>(metadata = libraryDetailMetadata) { route ->
-                        LaunchedEffect(route) {
-                            if (detailAudioVm.state.value.containerId != route.id) {
-                                detailAudioVm.openAudioEntity(route.toAudioEntity())
-                            }
-                        }
-                        AudioDestination(
-                            modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
-                            state = detailAudioState,
-                            onOpenMedia = ::openMediaPlayer,
-                            section = detailAudioSection,
-                            viewModel = detailAudioVm,
-                            hostCallbacks = hostCallbacks,
-                            onOpenPlayer = ::openPlayer,
-                            onOpenEntity = ::openAudioEntity,
-                            onNavigateBack = ::navigateBack,
-                        )
-                    }
-                    entry<BrowserRoute>(metadata = browserListMetadata) {
-                        BrowserDestination(
-                            modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
-                            state = browserState,
-                            viewModel = browserVm,
-                            onOpenPlayer = ::openPlayer,
-                            onOpenFolder = ::openBrowserFolder,
-                        )
-                    }
-                    entry<BrowserFolderRoute>(metadata = libraryDetailMetadata) { route ->
-                        LaunchedEffect(route) {
-                            detailBrowserVm.restoreFolderStack(route.toMediaFolders())
-                        }
-                        BrowserDestination(
-                            modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
-                            state = detailBrowserState,
-                            viewModel = detailBrowserVm,
-                            onOpenPlayer = ::openPlayer,
-                            onOpenFolder = ::openBrowserFolder,
-                            onNavigateUp = ::navigateBack,
-                        )
-                    }
-                    entry<PlaylistsRoute>(metadata = playlistsListMetadata) {
-                        PlaylistsDestination(
-                            modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
-                            state = playlistsState,
-                            viewModel = playlistsVm,
-                            onOpenPlayer = ::openPlayer,
-                            onOpenPlaylist = ::openPlaylist,
-                        )
-                    }
-                    entry<PlaylistDetailRoute>(metadata = libraryDetailMetadata) { route ->
-                        LaunchedEffect(route) {
-                            if (detailPlaylistsVm.state.value.openPlaylistId != route.id) {
-                                detailPlaylistsVm.openPlaylist(route.toPlaylistInfo())
-                            }
-                        }
-                        PlaylistsDestination(
-                            modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
-                            state = detailPlaylistsState,
-                            viewModel = detailPlaylistsVm,
-                            onOpenPlayer = ::openPlayer,
-                            onOpenPlaylist = ::openPlaylist,
-                            onNavigateBack = ::navigateBack,
-                        )
-                    }
-                    entry<MoreRoute>(metadata = rootTransitionMetadata) {
-                        MoreDestination(
-                            modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
-                            viewModel = moreVm,
-                            onOpenSettings = ::openSettings,
-                            onOpenAbout = { pushNav3Route(backStack, AboutRoute) },
-                            onOpenRemote = null,
-                            hostCallbacks = hostCallbacks,
-                            onOpenPlayer = ::openPlayer,
-                        )
-                    }
+                    entry<VideoRoute>(metadata = videoListMetadata) { ShellScreenContent(it, rootModels, navigator, hostCallbacks) }
+                    entry<VideoContainerRoute>(metadata = libraryDetailMetadata) { ShellScreenContent(it, detailModels, navigator, hostCallbacks) }
+                    entry<AudioRoute>(metadata = audioListMetadata) { ShellScreenContent(it, rootModels, navigator, hostCallbacks) }
+                    entry<AudioEntityRoute>(metadata = libraryDetailMetadata) { ShellScreenContent(it, detailModels, navigator, hostCallbacks) }
+                    entry<BrowserRoute>(metadata = browserListMetadata) { ShellScreenContent(it, rootModels, navigator, hostCallbacks) }
+                    entry<BrowserFolderRoute>(metadata = libraryDetailMetadata) { ShellScreenContent(it, detailModels, navigator, hostCallbacks) }
+                    entry<PlaylistsRoute>(metadata = playlistsListMetadata) { ShellScreenContent(it, rootModels, navigator, hostCallbacks) }
+                    entry<PlaylistDetailRoute>(metadata = libraryDetailMetadata) { ShellScreenContent(it, detailModels, navigator, hostCallbacks) }
+                    entry<MoreRoute>(metadata = rootTransitionMetadata) { ShellScreenContent(it, rootModels, navigator, hostCallbacks) }
                     entry<SettingsRoute>(metadata = settingsListMetadata) {
-                        SecondaryNav3Destination(
-                            title = ShellStrings.settings(),
-                            onBack = ::navigateBack,
-                        ) {
-                            SettingsDestination(
-                                modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
-                                viewModel = settingsVm,
-                                onOpenSection = ::openSettingsSection,
-                                selectedSectionId = if (singlePaneLayout) null else (currentRoute as? SettingsSectionRoute)?.id,
-                            )
-                        }
+                        ShellScreenContent(
+                            it, rootModels, navigator, hostCallbacks,
+                            selectedSettingsSectionId = if (singlePaneLayout) null else (currentRoute as? SettingsSectionRoute)?.id,
+                        )
                     }
-                    entry<SettingsSectionRoute>(metadata = libraryDetailMetadata) { route ->
-                        val contributedSettings by settingsVm.contributed.collectAsState()
-                        SecondaryNav3Destination(
-                            title = contributedSettings.section(route.id)?.title ?: ShellStrings.settings(),
-                            onBack = ::navigateBack,
-                            actions = { SettingsSectionInfoAction(settingsVm, route.id) },
-                        ) {
-                            SettingsSectionDestination(
-                                modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
-                                viewModel = settingsVm,
-                                sectionId = route.id,
-                                onOpenSection = ::openSettingsSection,
-                            )
-                        }
-                    }
-                    entry<AboutRoute>(metadata = detailTransitionMetadata) {
-                        SecondaryNav3Destination(
-                            title = ShellStrings.about(),
-                            onBack = ::navigateBack,
-                        ) {
-                            AboutDestination(
-                                hostCallbacks = hostCallbacks,
-                                onBack = ::navigateBack,
-                                onOpenLibraries = { pushNav3Route(backStack, AboutLibrariesRoute) },
-                                onOpenAuthors = { pushNav3Route(backStack, AboutAuthorsRoute) },
-                                modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
-                            )
-                        }
-                    }
-                    entry<AboutLibrariesRoute>(metadata = detailTransitionMetadata) {
-                        SecondaryNav3Destination(
-                            title = ShellStrings.libraries(),
-                            onBack = ::navigateBack,
-                        ) {
-                            AboutLibrariesDestination(
-                                hostCallbacks = hostCallbacks,
-                                modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
-                            )
-                        }
-                    }
-                    entry<AboutAuthorsRoute>(metadata = detailTransitionMetadata) {
-                        SecondaryNav3Destination(
-                            title = ShellStrings.authors(),
-                            onBack = ::navigateBack,
-                        ) {
-                            AboutAuthorsDestination(
-                                hostCallbacks = hostCallbacks,
-                                modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
-                            )
-                        }
-                    }
+                    entry<SettingsSectionRoute>(metadata = libraryDetailMetadata) { ShellScreenContent(it, rootModels, navigator, hostCallbacks) }
+                    entry<AboutRoute>(metadata = detailTransitionMetadata) { ShellScreenContent(it, rootModels, navigator, hostCallbacks) }
+                    entry<AboutLibrariesRoute>(metadata = detailTransitionMetadata) { ShellScreenContent(it, rootModels, navigator, hostCallbacks) }
+                    entry<AboutAuthorsRoute>(metadata = detailTransitionMetadata) { ShellScreenContent(it, rootModels, navigator, hostCallbacks) }
                 },
                 )
             }
@@ -911,23 +767,9 @@ fun VlcMainShell(
                         .focusable()
                         .semantics { dialog() },
                 ) {
-                        if (awaitingMedia) {
-                            // The requested item has not reached the UI collector yet. Never flash
-                            // the previous media title/artwork while starting a different track or video.
-                            val pendingBackground = if (requestedMedia?.isVideo == true) Color.Black else MaterialTheme.colorScheme.background
-                            val pendingForeground = if (requestedMedia?.isVideo == true) Color.White else MaterialTheme.colorScheme.onBackground
-                            Box(Modifier.fillMaxSize().background(pendingBackground)) {
-                                playerState.error?.let { message ->
-                                    Text(message, color = pendingForeground, modifier = Modifier.align(Alignment.Center).padding(32.dp))
-                                }
-                                IconButton(onClick = ::closePlayer, modifier = Modifier.align(Alignment.TopStart).statusBarsPadding()) {
-                                    Icon(MaterialSymbols.AutoMirrored.Filled.ArrowBack, ShellStrings.back(), tint = pendingForeground)
-                                }
-                            }
-                        } else PlayerDestination(
-                            modifier = Modifier.fillMaxSize().background(VLCThemeDefaults.colors.backgroundDefault),
-                            state = playerState,
-                            viewModel = playerVm,
+                        ShellPlayerScreen(
+                            player = playerVm,
+                            requestedMedia = requestedMedia,
                             onClose = ::closePlayer,
                             playerSurface = playerSurface,
                             hostCallbacks = hostCallbacks,
@@ -937,46 +779,6 @@ fun VlcMainShell(
             }
     }
 }
-}
-
-/**
- * One Nav3-owned header for every non-library detail route. Keeping it inside the destination
- * means the header moves with its page during push/pop instead of living outside Nav3 and briefly
- * stacking with the destination below it.
- */
-@Composable
-private fun SecondaryNav3Destination(
-    title: String,
-    onBack: () -> Unit,
-    actions: @Composable RowScope.() -> Unit = {},
-    content: @Composable () -> Unit,
-) {
-    // The destination owns an opaque surface so slide transitions never reveal the route below
-    // through an empty/loading state. This is especially important for Settings and About
-    // details, which otherwise appeared transparent until the animation completed.
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = VLCThemeDefaults.colors.backgroundDefault,
-    ) {
-        VLCUtilityPane {
-            Column(modifier = Modifier.fillMaxSize()) {
-                VLCPageHeader(
-                    title = title,
-                    navigationIcon = MaterialSymbols.AutoMirrored.Filled.ArrowBack,
-                    navigationContentDescription = ShellStrings.back(),
-                    onNavigate = onBack,
-                    actions = actions,
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                ) {
-                    content()
-                }
-            }
-        }
-    }
 }
 
 @Composable
@@ -990,7 +792,7 @@ private fun LibraryDetailPlaceholder(icon: MaterialIcon) {
 }
 
 @Composable
-private fun AppLockGate(onUnlock: () -> Unit) {
+internal fun AppLockGate(onUnlock: () -> Unit) {
     Surface(
         modifier = Modifier
             .fillMaxSize()

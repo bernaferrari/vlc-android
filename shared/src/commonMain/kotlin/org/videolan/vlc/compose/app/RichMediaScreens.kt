@@ -5,6 +5,7 @@
 
 package org.videolan.vlc.compose.app
 
+import org.videolan.vlc.compose.components.LocalShellBottomInset
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -610,7 +611,7 @@ private fun ColumnScope.MediaBody(
         state.groupingMode != VideoGroupingMode.NONE && groups.isNotEmpty() -> {
             Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
                 LazyColumn(
-                    contentPadding = PaddingValues(bottom = 24.dp),
+                    contentPadding = PaddingValues(bottom = 24.dp + LocalShellBottomInset.current),
                     verticalArrangement = Arrangement.spacedBy(VLCLayout.GroupGap),
                     modifier = Modifier
                         .widthIn(max = VLCLayout.ListMaxWidth)
@@ -741,7 +742,7 @@ private fun PagedMediaBody(
             contentPadding = PaddingValues(
                 start = MediaScreenGutter,
                 end = MediaScreenGutter,
-                bottom = 80.dp,
+                bottom = 24.dp + LocalShellBottomInset.current,
             ),
             horizontalArrangement = Arrangement.spacedBy(MediaGridGap),
             verticalArrangement = Arrangement.spacedBy(20.dp),
@@ -793,7 +794,7 @@ private fun PagedMediaBody(
                     } else {
                         MediaScreenGutter
                     },
-                    bottom = 80.dp,
+                    bottom = 24.dp + LocalShellBottomInset.current,
                 ),
                 verticalArrangement = Arrangement.spacedBy(VLCLayout.GroupGap),
                 modifier = Modifier
@@ -944,7 +945,7 @@ private fun SnapshotMediaBody(
             contentPadding = PaddingValues(
                 start = MediaScreenGutter,
                 end = MediaScreenGutter,
-                bottom = 80.dp,
+                bottom = 24.dp + LocalShellBottomInset.current,
             ),
             horizontalArrangement = Arrangement.spacedBy(MediaGridGap),
             verticalArrangement = Arrangement.spacedBy(20.dp),
@@ -997,7 +998,7 @@ private fun SnapshotMediaBody(
                     } else {
                         MediaScreenGutter
                     },
-                    bottom = 80.dp,
+                    bottom = 24.dp + LocalShellBottomInset.current,
                 ),
                 verticalArrangement = Arrangement.spacedBy(VLCLayout.GroupGap),
                 modifier = Modifier

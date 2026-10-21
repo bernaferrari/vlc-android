@@ -40,6 +40,17 @@ fun VLCPageHeader(
     subtitle: String? = null,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
+    if (LocalUseNativeNavigation.current && navigationIcon != null) {
+        // The platform navigation bar already shows the back button and title; keep only the
+        // page's own actions, and collapse entirely when there are none.
+        Row(
+            modifier = modifier.fillMaxWidth().padding(horizontal = horizontalPadding),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+            verticalAlignment = Alignment.CenterVertically,
+            content = actions,
+        )
+        return
+    }
     Row(
         modifier = modifier
             .fillMaxWidth()

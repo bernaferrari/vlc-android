@@ -690,4 +690,5 @@ internal fun SettingsSearchField(query: String, onQueryChange: (String) -> Unit,
     }
 }
 
-internal val SettingsListPadding = PaddingValues(top = 8.dp, bottom = VLCLayout.ScreenGutter + 16.dp)
+internal val SettingsListPadding: PaddingValues
+    @androidx.compose.runtime.Composable get() = PaddingValues(top = 8.dp, bottom = VLCLayout.ScreenGutter + 16.dp + org.videolan.vlc.compose.components.LocalShellBottomInset.current)

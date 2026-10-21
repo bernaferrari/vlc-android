@@ -1,5 +1,6 @@
 package org.videolan.vlc.compose.app
 
+import org.videolan.vlc.compose.components.LocalShellBottomInset
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.FlowRow
@@ -168,7 +169,7 @@ internal fun MorePane(
                 // navigation surface on every host. The outer Scaffold owns system insets;
                 // this small gutter is the shared visual breathing room between sections.
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                    bottom = VLCLayout.ScreenGutter,
+                    bottom = VLCLayout.ScreenGutter + LocalShellBottomInset.current,
                 ),
                 // A group is joined by 2dp; section headers own the breathable gaps between groups.
                 // Connected rows keep the navigation group visually distinct from media history.

@@ -5,6 +5,7 @@
 
 package org.videolan.vlc.compose.app
 
+import org.videolan.vlc.compose.components.LocalShellBottomInset
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -155,7 +156,7 @@ fun BrowserRichPane(
             contentPadding = PaddingValues(
                 start = VLCLayout.ScreenGutter,
                 end = VLCLayout.ScreenGutter,
-                bottom = 24.dp,
+                bottom = 24.dp + LocalShellBottomInset.current,
             ),
             // Section headings and quiet rows keep locations easy to scan.
             verticalArrangement = Arrangement.spacedBy(2.dp),
