@@ -102,7 +102,7 @@ import org.videolan.vlc.viewmodel.ViewMode
 private val MediaScreenGutter = VLCLayout.ScreenGutter
 private val MediaGridGap = 12.dp
 /** Landscape thumbnails need more width than square covers to stay legible. */
-private fun mediaGridMinSize(artworkAspectRatio: Float) = if (artworkAspectRatio > 1.2f) 200.dp else 156.dp
+private fun mediaGridMinSize(artworkAspectRatio: Float) = if (artworkAspectRatio > 1.2f) 168.dp else 156.dp
 private val FastScrollerContentClearance = VLCLayout.FastScrollerClearance
 
 /**
@@ -725,7 +725,9 @@ private fun PagedMediaBody(
     onClearSearch: () -> Unit,
     listHeader: (@Composable () -> Unit)?,
 ) {
-    if (lazyPagingItems.itemCount == 0 && !state.loading) {
+    // Paging emits its first page a moment after the count arrives; only an actually empty
+    // library (or search) may show the empty state, never that brief gap.
+    if (lazyPagingItems.itemCount == 0 && !state.loading && (state.count == 0 || state.query.isNotBlank())) {
         VLCEmptyState(
             loading = false,
             text = if (searchQuery.isNotBlank()) ShellStrings.searchNoResult() else emptyLabel,

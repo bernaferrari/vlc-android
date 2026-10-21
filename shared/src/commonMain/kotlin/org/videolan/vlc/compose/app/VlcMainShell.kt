@@ -32,6 +32,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationRailItemDefaults
+import androidx.compose.material3.WideNavigationRailDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -845,9 +846,15 @@ private fun VlcAdaptiveNavigationSuite(
                 constraints.maxHeight > 0
         ) {
             NavigationSuiteScaffold(
-                layoutType = if (enabled) NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(currentWindowAdaptiveInfoV2()) else NavigationSuiteType.None,
+                // M3 Expressive: a short bar on phones (horizontal items on medium widths) and a wide
+                // rail on tablets and desktops, instead of the older fixed bar and narrow rail.
+                layoutType = if (enabled) NavigationSuiteScaffoldDefaults.navigationSuiteType(currentWindowAdaptiveInfoV2()) else NavigationSuiteType.None,
                 navigationSuiteItems = navigationSuiteItems,
                 navigationSuiteColors = NavigationSuiteDefaults.colors(
+                    shortNavigationBarContainerColor = MaterialTheme.colorScheme.background,
+                    wideNavigationRailColors = WideNavigationRailDefaults.colors(
+                        containerColor = MaterialTheme.colorScheme.background,
+                    ),
                     navigationBarContainerColor = MaterialTheme.colorScheme.background,
                     navigationRailContainerColor = MaterialTheme.colorScheme.background,
                 ),
