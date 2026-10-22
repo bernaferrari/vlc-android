@@ -31,7 +31,9 @@ val webCopy = tasks.register<Copy>("webCopy") {
 }
 
 android {
-    namespace = "org.videolan.vlc.remoteaccessclient"
+    // Distinct from the Kotlin package: release also bundles the published
+    // org.videolan.android:remote-access web UI AAR, which owns "org.videolan.vlc.remoteaccessclient".
+    namespace = "org.videolan.vlc.remoteaccess.client"
     defaultConfig {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")

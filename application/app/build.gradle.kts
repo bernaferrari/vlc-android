@@ -207,15 +207,10 @@ dependencies {
 }
 
 tasks.configureEach {
-    if (name in setOf(
-            "mergeDebugAssets",
-            "mergeDevAssets",
-            "mergeReleaseAssets",
-            "mergeSignedReleaseAssets",
-            "mergeVlcBundleAssets",
-            "mergeVlcBundleAmazonAssets",
-        )
-    ) {
+    // Every task that reads variant assets: packaging merges them, and release lint
+    // (lintVital, run by assembleRelease) models them as inputs.
+    val readsAssets = (name.startsWith("merge") && name.endsWith("Assets")) || name.contains("lint", ignoreCase = true)
+    if (readsAssets) {
         dependsOn(":shared:copyAndroidMainComposeResourcesToAndroidAssets")
     }
 }
