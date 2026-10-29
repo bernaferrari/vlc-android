@@ -562,14 +562,14 @@ class RemoteAccessServer(private val context: Context) : PlaybackService.Callbac
                     val signkey = RemoteAccessSecureStore.getOrCreateCookieSignKey(context, settings)
 
                     cookie<UserSession>("user_session", directorySessionStorage(File("${context.filesDir.path}/server/cache"), true)) {
-                        cookie.maxAgeInSeconds = RemoteAccessSession.maxAge
+                        cookie.maxAgeInSeconds = RemoteAccessSession.maxAgeInSeconds
                         transform(SessionTransportTransformerEncrypt(encryptKey.hexToByteArray(), signkey.hexToByteArray()))
                     }
                 }
                 install(Authentication) {
                     session<UserSession>("user_session") {
                         validate { session ->
-                            session
+                            RemoteAccessSession.validateSession(context, settings, session)
                         }
                         challenge {
                             call.respond(HttpStatusCode.Unauthorized)

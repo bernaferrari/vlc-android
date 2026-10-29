@@ -56,7 +56,7 @@ class PlaylistEngineTest {
 
     @Test
     fun indexHelperMove() {
-        assertEquals(2, PlaylistIndexHelper.adjustCurrentOnMove(1, 1, 3))
+        assertEquals(3, PlaylistIndexHelper.adjustCurrentOnMove(1, 1, 3))
         assertEquals(1, PlaylistIndexHelper.adjustCurrentOnAdd(0, 0, false))
     }
 
@@ -267,7 +267,82 @@ class PlaylistEngineTest {
         assertTrue(engine.state.value is PlaybackState.Paused)
     }
 
+    @Test
+    fun nextAtQueueEndStopsDecoderAndPublishedPlayback() {
+        val backend = RecordingBackend()
+        val engine = PlaylistEngine(backend)
+        engine.playFromIndex(listOf(item(1)), 0)
+        engine.next()
+        assertTrue(backend.stopped)
+        assertTrue(engine.state.value is PlaybackState.Stopped)
+    }
+
+    @Test
+    fun shuffleVisitsEveryEntryOnceThenStopsWithoutRepeat() {
+        val engine = PlaylistEngine()
+        val items = (1L..8L).map(::item)
+        engine.playFromIndex(items, 0)
+        engine.setShuffle(true)
+        val visited = mutableSetOf(engine.snapshot().currentIndex)
+        repeat(items.size - 1) {
+            engine.next()
+            assertTrue(visited.add(engine.snapshot().currentIndex))
+        }
+        assertEquals(items.size, visited.size)
+        engine.next()
+        assertTrue(engine.state.value is PlaybackState.Stopped)
+    }
+
+    @Test
+    fun shuffleRepeatAllStartsAnotherPass() {
+        val engine = PlaylistEngine()
+        engine.playFromIndex(listOf(item(1), item(2)), 0)
+        engine.setShuffle(true)
+        engine.setRepeatMode(RepeatMode.ALL)
+        repeat(5) {
+            engine.next()
+            assertEquals((it + 1) % 2, engine.snapshot().currentIndex)
+            assertTrue(engine.state.value is PlaybackState.Playing)
+        }
+    }
+
+    @Test
+    fun previousTracksQueueEntryAcrossReorderIncludingDuplicateMedia() {
+        val engine = PlaylistEngine()
+        val duplicate = item(1)
+        engine.playFromIndex(listOf(duplicate, item(2), duplicate), 0)
+        engine.next()
+        engine.moveItem(0, 2)
+        assertEquals(0, engine.snapshot().currentIndex)
+        engine.previous()
+        assertEquals(2, engine.snapshot().currentIndex)
+        assertEquals(duplicate, engine.currentItem())
+    }
+
+    @Test
+    fun previousTracksQueueEntryAcrossInsertAndRemoval() {
+        val engine = PlaylistEngine()
+        engine.playFromIndex(listOf(item(1), item(2), item(3)), 0)
+        engine.next()
+        engine.next()
+        engine.insertAt(0, item(4))
+        engine.removeAt(1)
+        engine.previous()
+        assertEquals(item(2), engine.currentItem())
+    }
+
+    @Test
+    fun movingCurrentForwardKeepsDecoderAndQueueOnSameItem() {
+        val engine = PlaylistEngine()
+        engine.playFromIndex(listOf(item(1), item(2), item(3)), 0)
+        engine.moveItem(0, 2)
+        assertEquals(2, engine.snapshot().currentIndex)
+        assertEquals(item(1), engine.currentItem())
+        assertEquals(item(1), (engine.state.value as PlaybackState.Playing).item)
+    }
+
     private class RecordingBackend : PlayerBackend {
+        var stopped = false
         var reportedVolume = -1
         var reportedRate = -1f
         var preparedUri: String? = null
@@ -303,7 +378,7 @@ class PlaylistEngineTest {
         }
         override fun pause() = Unit
         override fun resume() = Unit
-        override fun stop() = Unit
+        override fun stop() { stopped = true }
         override fun seekTo(positionMs: Long) = Unit
         override fun setVolume(volume: Int) { reportedVolume = volume }
         override fun getVolume(): Int = reportedVolume

@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import org.videolan.medialibrary.interfaces.Medialibrary
 import org.videolan.medialibrary.interfaces.media.Playlist as MlPlaylist
-import org.videolan.medialibrary.media.MediaLibraryItem
 import org.videolan.tools.Settings
 import org.videolan.vlc.model.HistoryEntry
 import org.videolan.vlc.model.MediaItem
@@ -155,9 +154,8 @@ class AndroidPlaylistRepository(
     }
 
     override suspend fun renamePlaylist(id: Long, name: String) = withContext(Dispatchers.IO) {
-        val pl = medialibrary.getPlaylist(id, false, false) ?: return@withContext
-        runCatching { (pl as MediaLibraryItem).setTitle(name) }
-        Unit
+        val pl = checkNotNull(medialibrary.getPlaylist(id, false, false)) { "Playlist no longer exists" }
+        check(pl.setName(name)) { "Unable to rename playlist" }
     }
 
     override suspend fun setFavorite(id: Long, favorite: Boolean) = withContext(Dispatchers.IO) {

@@ -22,6 +22,9 @@ done
 
 cd "$ROOT"
 
+echo "==> Running shared JVM regression tests"
+./gradlew :shared:jvmTest --no-daemon --console=plain
+
 echo "==> Compiling VLC Web/Wasm tests"
 ./gradlew :shared:compileTestDevelopmentExecutableKotlinWasmJs \
   --no-daemon \

@@ -28,8 +28,6 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
 import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.Types
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.response.respond
@@ -42,13 +40,9 @@ import org.videolan.vlc.remoteaccessserver.ssl.SecretGenerator
 private const val TAG = "VLC/RemoteAccessSession"
 
 object RemoteAccessSession {
-    val maxAge = if (BuildConfig.DEBUG) 4 * 3600L else 3600L * 24L * 365L
+    val maxAgeInSeconds = if (BuildConfig.DEBUG) 4 * 3600L else 3600L * 24L * 365L
 
-    private val moshi: Moshi by lazy { Moshi.Builder().build() }
-    private val sessionListType by lazy {
-        Types.newParameterizedType(MutableList::class.java, UserSession::class.java)
-    }
-    private val adapter: JsonAdapter<List<UserSession>> by lazy { moshi.adapter(sessionListType) }
+    private val adapter: JsonAdapter<List<UserSession>> by lazy { userSessionListAdapter() }
 
     /**
      * Verify if the user is logged in
@@ -57,20 +51,23 @@ object RemoteAccessSession {
      */
     suspend fun RoutingContext.verifyLogin(settings: SharedPreferences) {
         if (RemoteAccessServer.byPassAuth) return
-        val context = appContext()
-        val sessions: List<UserSession> = getSessions(context, settings)
-        val userSession: UserSession? = call.sessions.get("user_session") as? UserSession
-        val loggedIn = userSession != null && sessions.firstOrNull { it.id == userSession.id } != null
-        if (userSession != null) sessions.firstOrNull { it.id == userSession.id }?.let {
-            it.maxAge = System.currentTimeMillis() + maxAge
-            saveSessions(context, settings, sessions)
-        }
-        if (!loggedIn) {
+        val userSession = call.sessions.get("user_session") as? UserSession
+        val validated = userSession?.let { validateSession(appContext(), settings, it) }
+        if (validated == null) {
             call.respond(HttpStatusCode.Unauthorized)
             throw IllegalStateException("Not logged in")
-        } else {
-            call.sessions.set("user_session", UserSession(id = userSession.id, userSession.maxAge))
         }
+        call.sessions.set("user_session", validated)
+    }
+
+    /** The sealed allowlist is authoritative for every authenticated route. */
+    @Synchronized
+    fun validateSession(context: Context, settings: SharedPreferences, session: UserSession): UserSession? {
+        val sessions = getSessions(context, settings)
+        val refreshed = refreshValidSession(session, sessions, System.currentTimeMillis(), maxAgeInSeconds)
+            ?: return null
+        val updated = sessions.map { if (it.id == refreshed.id) refreshed else it }
+        return if (saveSessions(context, settings, updated)) refreshed else null
     }
 
     /**
@@ -102,11 +99,13 @@ object RemoteAccessSession {
         }
     }
 
-    private fun saveSessions(context: Context, settings: SharedPreferences, newList: List<UserSession>) {
-        try {
+    private fun saveSessions(context: Context, settings: SharedPreferences, newList: List<UserSession>): Boolean {
+        return try {
             RemoteAccessSecureStore.saveValidSessionsPayload(context, settings, adapter.toJson(newList))
+            true
         } catch (e: Exception) {
             Log.e(TAG, "Failed to seal sessions payload", e)
+            false
         }
     }
 
@@ -120,19 +119,15 @@ object RemoteAccessSession {
         injectCookie(call, settings, appContext())
     }
 
+    @Synchronized
     fun injectCookie(call: ApplicationCall, settings: SharedPreferences, context: Context) {
         val id = SecretGenerator.generateRandomString()
-        val value = UserSession(id = id, System.currentTimeMillis() + maxAge)
+        val value = UserSession(id = id, sessionExpiresAt(System.currentTimeMillis(), maxAgeInSeconds))
         val newList = getSessions(context, settings).toMutableList()
         newList.add(value)
-        saveSessions(context, settings, newList.toList())
+        check(saveSessions(context, settings, newList.toList())) { "Unable to persist session" }
         call.sessions.set("user_session", value)
     }
 
     private fun appContext(): Context = AppContextProvider.appContext
 }
-
-data class UserSession(
-        val id: String,
-        var maxAge: Long
-)

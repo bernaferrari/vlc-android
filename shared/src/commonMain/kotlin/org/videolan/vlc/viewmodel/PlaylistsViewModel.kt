@@ -222,8 +222,17 @@ class PlaylistsViewModel(
     fun rename(id: Long, name: String) = launchIo {
         if (name.isBlank()) return@launchIo
         runCatching { repo.renamePlaylist(id, name.trim()) }
-        val openId = _state.value.openPlaylistId
-        if (openId == id) _state.update { it.copy(openPlaylistName = name.trim()) }
+            .onSuccess {
+                _state.update {
+                    it.copy(
+                        openPlaylistName = if (it.openPlaylistId == id) name.trim() else it.openPlaylistName,
+                        actionError = null,
+                    )
+                }
+            }
+            .onFailure { error ->
+                _state.update { it.copy(actionError = error.playlistActionMessage("rename playlist")) }
+            }
     }
 
     fun setFavorite(id: Long, favorite: Boolean) = launchIo {

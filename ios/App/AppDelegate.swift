@@ -14,6 +14,7 @@ import VLCShared
 @main
 struct VLCiOSApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
         WindowGroup {
@@ -22,6 +23,14 @@ struct VLCiOSApp: App {
                 // SwiftUI scene delivery is the reliable path for document hand-off on modern
                 // iPadOS multi-window apps; UIKit delegate delivery remains as a fallback.
                 .onOpenURL { _ = importAndPlayIncomingMedia($0) }
+                .onChange(of: scenePhase) { _, phase in
+                    // SwiftUI scene apps do not consistently deliver UIApplicationDelegate's
+                    // background callbacks. Drain the catalog before the scene is suspended.
+                    if phase == .background {
+                        IosPlaybackService.companion.shared.saveSession()
+                        IosMediaLibrary.companion.shared.flushPendingWrites()
+                    }
+                }
         }
     }
 }
@@ -68,6 +77,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         // merely re-arms its Keychain-backed credential when VLC leaves view.
         IosAppLockController.shared.lock()
         IosPlaybackService.companion.shared.saveSession()
+        IosMediaLibrary.companion.shared.flushPendingWrites()
         // iOS does not grant a background-server mode for arbitrary local HTTP.
         // Stop explicitly so shared settings never claim a suspended listener is live.
         IosRemoteAccessServer.shared.setEnabled(enabled: false)
@@ -75,6 +85,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
 
     func applicationDidEnterBackground(_ application: UIApplication) {
         IosPlaybackService.companion.shared.saveSession()
+        IosMediaLibrary.companion.shared.flushPendingWrites()
     }
 
     func applicationDidBecomeActive(_ application: UIApplication) {
@@ -85,6 +96,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
 
     func applicationWillTerminate(_ application: UIApplication) {
         IosPlaybackService.companion.shared.saveSession()
+        IosMediaLibrary.companion.shared.flushPendingWrites()
     }
 
     func application(

@@ -9,7 +9,6 @@ import org.videolan.vlc.model.MediaItem
 import org.videolan.vlc.model.Playlist
 import org.videolan.vlc.model.Progress
 import org.videolan.vlc.model.RepeatMode
-import kotlin.random.Random
 
 /**
  * Decode-only backend. Platforms implement with libVLC / VLCKit.
@@ -124,12 +123,11 @@ class PlaylistEngine(
     override val sleepTimer: StateFlow<SleepTimerState> = sleepTimerController.state
 
     private val observers = mutableListOf<PlaybackObserver>()
-    private val previousStack = ArrayDeque<Int>()
+    private val traversal = QueueTraversal()
     private var expanding = false
     private var stopAfterIndex: Int = -1
     private var volume: Int = 100
     private var rate: Float = 1f
-    private val random = Random.Default
 
     fun setBackend(backend: PlayerBackend?) {
         this.backend?.release()
@@ -177,7 +175,6 @@ class PlaylistEngine(
      */
     fun restorePaused(playlist: Playlist, positionMs: Long): Boolean {
         if (playlist.items.isEmpty()) return false
-        previousStack.clear()
         clearStopAfter()
         clearABRepeat()
         val safeIndex = playlist.currentIndex.coerceIn(0, playlist.items.lastIndex)
@@ -190,6 +187,7 @@ class PlaylistEngine(
         if (backend != null && backend?.preparePaused(item.uri, item.title, position) == false) {
             return false
         }
+        traversal.reset(restored.size, safeIndex)
         _playlist.value = restored
         notifyPlaylist()
         updateProgress(position, length)
@@ -210,9 +208,9 @@ class PlaylistEngine(
             updateState(PlaybackState.Error("Empty playlist"))
             return
         }
-        previousStack.clear()
         clearStopAfter()
         val safe = index.coerceIn(0, playlist.lastIndex)
+        traversal.reset(playlist.size, safe)
         _playlist.value = _playlist.value.copy(items = playlist.toList(), currentIndex = safe)
         notifyPlaylist()
         startCurrent()
@@ -248,10 +246,10 @@ class PlaylistEngine(
         val pl = _playlist.value
         if (pl.items.isEmpty()) return
         val nextIdx = nextIndex(pl) ?: run {
-            updateState(PlaybackState.Ended(currentItem() ?: return))
+            stop()
             return
         }
-        if (pl.currentIndex >= 0) previousStack.addLast(pl.currentIndex)
+        traversal.recordTransition(pl.currentIndex, nextIdx)
         setCurrentIndex(nextIdx)
         startCurrent()
     }
@@ -264,8 +262,7 @@ class PlaylistEngine(
             seekTo(0)
             return
         }
-        val prev = if (previousStack.isNotEmpty()) previousStack.removeLast()
-        else PlaylistIndexHelper.determineSequentialPrevNext(
+        val prev = traversal.previous() ?: PlaylistIndexHelper.determineSequentialPrevNext(
             pl.currentIndex, pl.size, pl.repeatMode == RepeatMode.ALL
         ).first.takeIf { it >= 0 }
         if (prev == null || prev < 0) {
@@ -278,7 +275,7 @@ class PlaylistEngine(
 
     override fun setShuffle(enabled: Boolean) {
         _playlist.update { it.copy(shuffle = enabled) }
-        if (!enabled) previousStack.clear()
+        traversal.resetTraversal(_playlist.value.currentIndex)
         notifyPlaylist()
     }
 
@@ -449,6 +446,7 @@ class PlaylistEngine(
             playFromIndex(items, 0)
             return
         }
+        traversal.insert(pl.size, items.size)
         _playlist.update { it.copy(items = it.items + items) }
         notifyPlaylist()
     }
@@ -463,6 +461,8 @@ class PlaylistEngine(
         val insertAt = (pl.currentIndex + 1).coerceAtMost(pl.items.size)
         val mutable = pl.items.toMutableList()
         mutable.addAll(insertAt, items)
+        traversal.insert(insertAt, items.size)
+        if (stopAfterIndex >= insertAt) stopAfterIndex += items.size
         _playlist.update { it.copy(items = mutable) }
         notifyPlaylist()
     }
@@ -472,7 +472,9 @@ class PlaylistEngine(
         val mutable = pl.items.toMutableList()
         val at = index.coerceIn(0, mutable.size)
         mutable.add(at, item)
-        val newCurrent = PlaylistIndexHelper.adjustCurrentOnAdd(pl.currentIndex, at, expanding)
+        traversal.insert(at, 1)
+        val newCurrent = if (pl.isEmpty) 0 else
+            PlaylistIndexHelper.adjustCurrentOnAdd(pl.currentIndex, at, expanding)
         if (stopAfterIndex >= 0) {
             stopAfterIndex = PlaylistIndexHelper.adjustCurrentOnAdd(stopAfterIndex, at, expanding)
         }
@@ -487,6 +489,7 @@ class PlaylistEngine(
         val item = mutable.removeAt(from)
         val dest = to.coerceIn(0, mutable.size)
         mutable.add(dest, item)
+        traversal.move(from, dest)
         val newCurrent = PlaylistIndexHelper.adjustCurrentOnMove(pl.currentIndex, from, dest)
         if (stopAfterIndex >= 0) {
             stopAfterIndex = PlaylistIndexHelper.adjustCurrentOnMove(stopAfterIndex, from, dest)
@@ -511,6 +514,7 @@ class PlaylistEngine(
         }
         val mutable = pl.items.toMutableList()
         mutable.removeAt(index)
+        traversal.remove(index)
         if (mutable.isEmpty()) {
             stop()
             _playlist.update { it.copy(items = emptyList(), currentIndex = 0) }
@@ -534,7 +538,7 @@ class PlaylistEngine(
 
     override fun clearQueue() {
         stop()
-        previousStack.clear()
+        traversal.reset(0, 0)
         _playlist.value = Playlist(0, "Current")
         notifyPlaylist()
     }
@@ -586,7 +590,9 @@ class PlaylistEngine(
             updateState(PlaybackState.Idle)
             return
         }
+        traversal.visit(_playlist.value.currentIndex)
         updateState(PlaybackState.Loading)
+        updateProgress(0L, item.duration.coerceAtLeast(0L))
         clearABRepeat()
         _videoOutput.value = when {
             item.isVideo -> true
@@ -597,7 +603,6 @@ class PlaylistEngine(
         _chapters.value = PlaybackChapters()
         val b = backend
         if (b == null) {
-            updateProgress(0L, item.duration.coerceAtLeast(0L))
             updateState(PlaybackState.Playing(item, _progress.value))
             return
         }
@@ -630,7 +635,7 @@ class PlaylistEngine(
                 if (next == null) {
                     stop()
                 } else {
-                    if (_playlist.value.currentIndex >= 0) previousStack.addLast(_playlist.value.currentIndex)
+                    traversal.recordTransition(_playlist.value.currentIndex, next)
                     setCurrentIndex(next)
                     startCurrent()
                 }
@@ -638,28 +643,8 @@ class PlaylistEngine(
         }
     }
 
-    private fun nextIndex(pl: Playlist): Int? {
-        if (pl.items.isEmpty()) return null
-        return when {
-            pl.repeatMode == RepeatMode.ONE -> pl.currentIndex
-            pl.shuffle -> {
-                if (pl.size == 1) if (pl.repeatMode == RepeatMode.ALL) 0 else null
-                else {
-                    var idx: Int
-                    do {
-                        idx = random.nextInt(pl.size)
-                    } while (idx == pl.currentIndex && pl.size > 1)
-                    idx
-                }
-            }
-            else -> {
-                val (prev, next) = PlaylistIndexHelper.determineSequentialPrevNext(
-                    pl.currentIndex, pl.size, pl.repeatMode == RepeatMode.ALL
-                )
-                next.takeIf { it >= 0 }
-            }
-        }
-    }
+    private fun nextIndex(pl: Playlist): Int? =
+        traversal.next(pl.currentIndex, pl.shuffle, pl.repeatMode)
 
     private fun setCurrentIndex(index: Int) {
         _playlist.update { it.copy(currentIndex = index.coerceIn(0, (it.items.size - 1).coerceAtLeast(0))) }

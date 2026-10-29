@@ -162,27 +162,43 @@ class IosMediaLibrary private constructor(
      * VLC owns (favorites, history, rating, artwork, and descriptions). Swift uses this when
      * AVFoundation finishes inspecting a local file after it is already visible in the catalog.
      */
-    fun mergeScannedMetadata(media: MediaItem) {
-        val existing = items.value.firstOrNull { it.uri == media.uri }
-        if (existing == null) {
-            upsert(media)
-            return
+    fun mergeScannedMetadata(media: MediaItem) = mergeScannedMetadataBatch(listOf(media))
+
+    /** One index rebuild and durable snapshot per batch, preserving identity and user metadata. */
+    fun mergeScannedMetadataBatch(media: List<MediaItem>) {
+        if (media.isEmpty()) return
+        val byUri = items.value.associateByTo(linkedMapOf(), MediaItem::uri)
+        val occupiedIds = items.value.mapTo(mutableSetOf(), MediaItem::id)
+        for (fresh in media) {
+            val existing = byUri[fresh.uri]
+            val id = existing?.id ?: if (fresh.id in occupiedIds) {
+                while (nextId in occupiedIds) nextId++
+                reserveMediaId()
+            } else fresh.id
+            occupiedIds += id
+            nextId = maxOf(nextId, id + 1L)
+            byUri[fresh.uri] = fresh.copy(
+                id = id,
+                artworkUri = existing?.artworkUri ?: fresh.artworkUri,
+                description = existing?.description ?: fresh.description,
+                rating = existing?.rating ?: fresh.rating,
+                playedCount = existing?.playedCount ?: fresh.playedCount,
+                lastPlayed = existing?.lastPlayed ?: fresh.lastPlayed,
+                isFavorite = existing?.isFavorite ?: fresh.isFavorite,
+                seen = existing?.seen ?: fresh.seen,
+            )
         }
-        val merged = media.copy(
-            id = existing.id,
-            artworkUri = existing.artworkUri ?: media.artworkUri,
-            description = existing.description ?: media.description,
-            rating = existing.rating,
-            playedCount = existing.playedCount,
-            lastPlayed = existing.lastPlayed,
-            isFavorite = existing.isFavorite,
-            seen = existing.seen,
-        )
-        items.value = items.value.map { if (it.uri == merged.uri) merged else it }
+        items.value = byUri.values.toList()
         refreshPlaylistMetadata()
         rebuildFolderIndex()
         persist()
     }
+
+    /** Reuse catalog identity when native browsing returns the same file through another route. */
+    fun resolveBrowsedMedia(media: MediaItem): MediaItem =
+        items.value.firstOrNull { it.uri == media.uri } ?: media
+
+    fun flushPendingWrites() = catalogStore.flush()
 
     fun removeByUri(uri: String) {
         if (items.value.none { it.uri == uri }) return
@@ -420,7 +436,20 @@ class IosMediaLibrary private constructor(
         history.map { it.take(limit.coerceAtLeast(0)) }
 
     override suspend fun addToHistory(item: MediaItem) {
-        markAsPlayed(item.id)
+        val canonical = items.value.firstOrNull { it.uri == item.uri }
+        if (canonical != null) {
+            markAsPlayed(canonical.id)
+            return
+        }
+        val previous = history.value.firstOrNull { it.item.uri == item.uri }?.item
+        val updated = item.copy(
+            id = previous?.id ?: reserveMediaId(),
+            lastPlayed = currentTimeMs(),
+            playedCount = (previous?.playedCount ?: 0) + 1,
+        )
+        history.value = listOf(HistoryEntry(updated, updated.lastPlayed)) +
+            history.value.filterNot { it.item.uri == item.uri }
+        persist()
     }
 
     override suspend fun clearHistory() {
@@ -522,15 +551,15 @@ class IosMediaLibrary private constructor(
         )
     }
 
-    private fun scanDocumentsFolder() {
-        val documents = documentsPath() ?: return
+    internal fun scanDocumentsFolder(documents: String? = documentsPath()) {
+        if (documents == null) return
         // Match the Swift rescan: a Documents catalog can contain user-created
         // subfolders, so a top-level-only scan must not treat nested files as
         // deleted during cold-start reconciliation.
         val names = NSFileManager.defaultManager.subpathsOfDirectoryAtPath(documents, error = null) ?: return
         val found = names.mapNotNull { name ->
             val fileName = name as? String ?: return@mapNotNull null
-            val type = fileName.mediaTypeOrNull() ?: return@mapNotNull null
+            val type = IosMediaFormats.typeForFileName(fileName) ?: return@mapNotNull null
             // Match Swift URL.absoluteString from the document picker. Constructing file:// URLs
             // manually leaves spaces and non-ASCII characters unescaped, which would make a cold
             // scan look like a different file and discard its saved favorite/history metadata.
@@ -624,16 +653,19 @@ class IosMediaLibrary private constructor(
     companion object {
         private const val FIRST_MEDIA_ID = 10_000L
 
-        val shared: IosMediaLibrary by lazy { IosMediaLibrary(FileIosCatalogStore()) }
+        val shared: IosMediaLibrary by lazy { IosMediaLibrary(QueuedIosCatalogStore(FileIosCatalogStore())) }
 
         internal fun forTesting(store: IosCatalogStore): IosMediaLibrary = IosMediaLibrary(store)
     }
 }
 
-private fun String.mediaTypeOrNull(): MediaType? = when (substringAfterLast('.', "").lowercase()) {
-    "mp4", "mkv", "mov", "avi", "m4v", "webm" -> MediaType.VIDEO
-    "mp3", "flac", "m4a", "aac", "wav", "ogg" -> MediaType.AUDIO
-    else -> null
+/** One intake policy shared by the Swift importer and Kotlin cold-start/rescan reconciliation. */
+object IosMediaFormats {
+    fun typeForFileName(fileName: String): MediaType? = when (fileName.substringAfterLast('.', "").lowercase()) {
+        "mp4", "mkv", "mov", "avi", "m4v", "webm", "ts", "m2ts", "mpg", "mpeg", "3gp" -> MediaType.VIDEO
+        "mp3", "flac", "m4a", "aac", "wav", "ogg", "opus", "wma", "aiff" -> MediaType.AUDIO
+        else -> null
+    }
 }
 
 /** Shared identity form for both UIKit's picker and the Kotlin Documents rescan. */

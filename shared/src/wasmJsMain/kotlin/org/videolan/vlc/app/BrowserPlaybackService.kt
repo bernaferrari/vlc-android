@@ -10,6 +10,8 @@ import org.videolan.vlc.model.ABRepeat
 import org.videolan.vlc.model.Playlist
 import org.videolan.vlc.model.Progress
 import org.videolan.vlc.model.RepeatMode
+import org.videolan.vlc.player.QueueTraversal
+import org.videolan.vlc.player.PlaylistIndexHelper
 import org.videolan.vlc.player.PlaybackObserver
 import org.videolan.vlc.player.PlaybackService
 import org.videolan.vlc.player.PlaybackState
@@ -41,6 +43,7 @@ internal class BrowserPlaybackService : PlaybackService {
         stopPlayback = ::stop,
     )
     private val observers = mutableSetOf<PlaybackObserver>()
+    private val traversal = QueueTraversal()
     private var volume = 100
     private var rate = 1f
     private var mediaElement: HTMLElement? = null
@@ -71,16 +74,24 @@ internal class BrowserPlaybackService : PlaybackService {
         if (playlist.isEmpty()) return
         clearStopAfter()
         val safeIndex = index.coerceIn(0, playlist.lastIndex)
-        val item = playlist[safeIndex]
+        traversal.reset(playlist.size, safeIndex)
         _playlist.value = Playlist(
             id = 0,
             name = "Current",
-            items = playlist,
+            items = playlist.toList(),
             currentIndex = safeIndex,
             shuffle = _playlist.value.shuffle,
             repeatMode = _playlist.value.repeatMode,
         )
         notifyPlaylist()
+        startCurrent()
+    }
+
+    private fun startCurrent() {
+        val item = currentItem() ?: return
+        traversal.visit(_playlist.value.currentIndex)
+        clearABRepeat()
+        clearStopAfter()
         _progress.value = Progress(length = item.duration)
         _tracks.value = PlaybackTracks()
         notifyProgress()
@@ -110,6 +121,7 @@ internal class BrowserPlaybackService : PlaybackService {
     override fun stop() {
         mediaElement?.let(::pauseHtmlMedia)
         clearStopAfter()
+        clearABRepeat()
         emitState(PlaybackState.Stopped(currentItem()))
     }
 
@@ -146,30 +158,40 @@ internal class BrowserPlaybackService : PlaybackService {
 
     override fun next() {
         val playlist = _playlist.value
-        val next = when {
-            playlist.items.isEmpty() -> null
-            playlist.repeatMode == RepeatMode.ONE -> playlist.currentIndex
-            playlist.shuffle -> (playlist.currentIndex + 1) % playlist.items.size
-            playlist.currentIndex < playlist.items.lastIndex -> playlist.currentIndex + 1
-            playlist.repeatMode == RepeatMode.ALL -> 0
-            else -> null
+        val next = traversal.next(playlist.currentIndex, playlist.shuffle, playlist.repeatMode)
+        if (next == null) {
+            stop()
+            return
         }
-        if (next == null) currentItem()?.let { emitState(PlaybackState.Ended(it)) }
-        else playFromIndex(playlist.items, next)
+        traversal.recordTransition(playlist.currentIndex, next)
+        _playlist.value = playlist.copy(currentIndex = next)
+        notifyPlaylist()
+        startCurrent()
     }
 
     override fun previous() {
         val playlist = _playlist.value
-        val previous = when {
-            playlist.items.isEmpty() -> null
+        if (playlist.items.isEmpty()) return
+        if (_progress.value.time > 3_000L) {
+            seekTo(0)
+            return
+        }
+        val previous = traversal.previous() ?: when {
             playlist.currentIndex > 0 -> playlist.currentIndex - 1
             playlist.repeatMode == RepeatMode.ALL -> playlist.items.lastIndex
             else -> null
         }
-        if (previous != null) playFromIndex(playlist.items, previous)
+        if (previous == null) {
+            seekTo(0)
+            return
+        }
+        _playlist.value = playlist.copy(currentIndex = previous)
+        notifyPlaylist()
+        startCurrent()
     }
 
     override fun setShuffle(enabled: Boolean) {
+        traversal.resetTraversal(_playlist.value.currentIndex)
         _playlist.value = _playlist.value.copy(shuffle = enabled)
         notifyPlaylist()
     }
@@ -206,12 +228,64 @@ internal class BrowserPlaybackService : PlaybackService {
         observers -= observer
     }
 
+    override fun append(items: List<MediaItem>) {
+        if (items.isEmpty()) return
+        val playlist = _playlist.value
+        if (playlist.isEmpty) {
+            playFromIndex(items, 0)
+            return
+        }
+        traversal.insert(playlist.size, items.size)
+        _playlist.value = playlist.copy(items = playlist.items + items)
+        notifyPlaylist()
+    }
+
+    override fun insertNext(items: List<MediaItem>) {
+        if (items.isEmpty()) return
+        val playlist = _playlist.value
+        if (playlist.isEmpty) {
+            playFromIndex(items, 0)
+            return
+        }
+        val index = playlist.currentIndex + 1
+        val queue = playlist.items.toMutableList().apply { addAll(index, items) }
+        traversal.insert(index, items.size)
+        _playlist.value = playlist.copy(items = queue)
+        notifyPlaylist()
+    }
+
+    override fun insertAt(index: Int, item: MediaItem) {
+        val playlist = _playlist.value
+        val at = index.coerceIn(0, playlist.size)
+        val queue = playlist.items.toMutableList().apply { add(at, item) }
+        traversal.insert(at, 1)
+        _playlist.value = playlist.copy(
+            items = queue,
+            currentIndex = if (playlist.isEmpty) 0 else
+                PlaylistIndexHelper.adjustCurrentOnAdd(playlist.currentIndex, at, false),
+        )
+        notifyPlaylist()
+    }
+
+    override fun removeByUri(uri: String) {
+        val index = _playlist.value.items.indexOfFirst { it.uri == uri }
+        if (index >= 0) removeAt(index)
+    }
+
+    override fun clearQueue() {
+        stop()
+        traversal.reset(0, 0)
+        _playlist.value = Playlist(0, "Current")
+        notifyPlaylist()
+    }
+
     override fun moveItem(from: Int, to: Int) {
         val playlist = _playlist.value
         if (from !in playlist.items.indices || to !in playlist.items.indices || from == to) return
         val items = playlist.items.toMutableList()
         val moved = items.removeAt(from)
         items.add(to, moved)
+        traversal.move(from, to)
         val currentIndex = when {
             playlist.currentIndex == from -> to
             from < playlist.currentIndex && to >= playlist.currentIndex -> playlist.currentIndex - 1
@@ -226,6 +300,7 @@ internal class BrowserPlaybackService : PlaybackService {
         val playlist = _playlist.value
         if (index !in playlist.items.indices) return
         val wasCurrent = index == playlist.currentIndex
+        traversal.remove(index)
         val items = playlist.items.toMutableList().also { it.removeAt(index) }
         if (items.isEmpty()) {
             stop()
@@ -240,7 +315,7 @@ internal class BrowserPlaybackService : PlaybackService {
         }
         _playlist.value = playlist.copy(items = items, currentIndex = currentIndex)
         notifyPlaylist()
-        if (wasCurrent) playFromIndex(items, currentIndex)
+        if (wasCurrent) startCurrent()
     }
 
     override fun toggleABRepeat() {

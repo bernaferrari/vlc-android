@@ -119,16 +119,18 @@ class IosNetworkMediaRepository(
                     .filterNot { it.isDirectory }
                     .filter { it.uri.isNotBlank() }
                     .map { entry ->
-                        MediaItem(
+                        local.resolveBrowsedMedia(MediaItem(
                             id = entry.uri.hashCode().toLong(),
                             title = entry.title.ifBlank { entry.uri.substringAfterLast('/') },
                             uri = entry.uri,
-                            type = MediaType.STREAM,
+                            type = if (entry.uri.startsWith("file:")) {
+                                IosMediaFormats.typeForFileName(entry.uri) ?: MediaType.STREAM
+                            } else MediaType.STREAM,
                             duration = entry.durationMs.coerceAtLeast(0L),
                             size = entry.size.coerceAtLeast(0L),
                             artworkUri = entry.artworkUri,
                             fileName = entry.uri.substringAfterLast('/').ifBlank { null },
-                        )
+                        ))
                     }
                     .distinctBy { it.uri }
                     .sortedBy { it.displayTitle.lowercase() }

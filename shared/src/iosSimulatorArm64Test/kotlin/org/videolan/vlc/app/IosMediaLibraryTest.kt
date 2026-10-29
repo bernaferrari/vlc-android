@@ -69,6 +69,84 @@ class IosMediaLibraryTest {
         assertEquals(media.uri, restored.observeHistory(1).firstValue().single().item.uri)
     }
 
+    @Test
+    fun allImportedFormatsKeepIdentityAndFavoritesAcrossDiskRescan() {
+        withTemporaryCatalog { path, fileSystem ->
+            val directory = assertNotNull(path.parent) / "Documents"
+            fileSystem.createDirectories(directory)
+            val store = InMemoryIosCatalogStore()
+            val library = IosMediaLibrary.forTesting(store)
+            val extensions = listOf("mp4", "mkv", "mov", "avi", "m4v", "webm", "ts", "m2ts", "mpg", "mpeg", "3gp",
+                "mp3", "flac", "m4a", "aac", "wav", "ogg", "opus", "wma", "aiff")
+            extensions.forEachIndexed { index, extension ->
+                val file = directory / "clip.$extension"
+                fileSystem.writeUtf8(file, "media")
+                library.upsert(video(80_000L + index, assertNotNull(canonicalIosFileUri(file.toString())),
+                    type = assertNotNull(IosMediaFormats.typeForFileName(file.name))).copy(
+                    isFavorite = true, rating = 4f, playedCount = 3,
+                ))
+            }
+            library.scanDocumentsFolder(directory.toString())
+            val restored = IosMediaLibrary.forTesting(store)
+            restored.scanDocumentsFolder(directory.toString())
+            assertEquals(extensions.size, restored.snapshot().size)
+            assertEquals(extensions.indices.map { 80_000L + it }.toSet(), restored.snapshot().map { it.id }.toSet())
+            assertTrue(restored.snapshot().all { it.isFavorite && it.rating == 4f && it.playedCount == 3 })
+        }
+    }
+
+    @Test
+    fun browsedLocalMediaUsesCanonicalIdentityAndRemoteHistorySurvivesRestart() = runTest {
+        val store = InMemoryIosCatalogStore()
+        val library = IosMediaLibrary.forTesting(store)
+        val local = video(80_001, "file:///Documents/local.mp4")
+        library.upsert(local)
+        val browsed = local.copy(id = 42, type = MediaType.STREAM)
+        assertEquals(local, library.resolveBrowsedMedia(browsed))
+        library.addToHistory(browsed)
+        assertEquals(local.id, library.observeHistory(10).first().single().item.id)
+        val remote = video(local.id, "https://example.com/stream", type = MediaType.STREAM)
+        library.addToHistory(remote)
+        library.addToHistory(remote)
+        val history = IosMediaLibrary.forTesting(store).observeHistory(10).first()
+        assertEquals(listOf(remote.uri, local.uri), history.map { it.item.uri })
+        assertEquals(2, history.first().item.playedCount)
+        assertTrue(history.first().item.id != local.id)
+    }
+
+    @Test
+    fun enrichmentBatchWritesOnceAndKeepsUserMetadata() {
+        val store = InMemoryIosCatalogStore()
+        val library = IosMediaLibrary.forTesting(store)
+        val media = (0 until 100).map { index ->
+            video(90_000L + index, "file:///Documents/$index.mp4").copy(isFavorite = true, artworkUri = "custom.jpg")
+        }
+        library.mergeScannedMetadataBatch(media)
+        val before = store.writes
+        library.mergeScannedMetadataBatch(media.map {
+            it.copy(id = 0, isFavorite = false, duration = 1000, artworkUri = "scanned.jpg")
+        })
+        assertEquals(before + 1, store.writes)
+        assertTrue(library.snapshot().all { it.isFavorite && it.duration == 1000L && it.id >= 90_000 })
+        assertTrue(library.snapshot().all { it.artworkUri == "custom.jpg" })
+    }
+
+    @Test
+    fun queuedWritesFlushInSubmissionOrderAndExposeFailures() {
+        val memory = InMemoryIosCatalogStore()
+        val queued = QueuedIosCatalogStore(memory)
+        repeat(100) { queued.write(IosCatalogSnapshot(nextId = it.toLong())) }
+        queued.flush()
+        assertEquals(100, memory.writes)
+        assertEquals(99L, assertNotNull(memory.read()).nextId)
+        val broken = QueuedIosCatalogStore(object : IosCatalogStore {
+            override fun read(): IosCatalogSnapshot? = null
+            override fun write(snapshot: IosCatalogSnapshot) { error("Full disk") }
+        })
+        broken.write(IosCatalogSnapshot())
+        assertFailsWith<IosCatalogStorageException> { broken.flush() }
+    }
+
     private class RecordingPipHandler : IosPipHandler {
         var entered = false
         var exited = false
@@ -285,11 +363,14 @@ class IosMediaLibraryTest {
 
 private class InMemoryIosCatalogStore : IosCatalogStore {
     private var snapshot: IosCatalogSnapshot? = null
+    var writes = 0
+        private set
 
     override fun read(): IosCatalogSnapshot? = snapshot
 
     override fun write(snapshot: IosCatalogSnapshot) {
         this.snapshot = snapshot
+        writes++
     }
 }
 

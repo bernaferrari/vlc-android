@@ -23,6 +23,7 @@ final class MediaImporter: NSObject {
     private let repo = IosMediaLibrary.companion.shared
     private var nextId: Int64 = 50_000
     private var subtitlePickHandler: ((String) -> Void)?
+    private weak var subtitlePicker: UIDocumentPickerViewController?
 
     // MARK: - Public API
 
@@ -82,6 +83,8 @@ final class MediaImporter: NSObject {
 
     /// Present document picker for multi-select of audiovisual files.
     func presentDocumentPicker(from presenter: UIViewController) {
+        subtitlePickHandler = nil
+        subtitlePicker = nil
         var types: [UTType] = [.movie, .video, .audio, .folder, .mpeg4Movie, .mp3, .mpeg4Audio, .avi, .wav]
         if let mkv = UTType(filenameExtension: "mkv") { types.append(mkv) }
         if let flac = UTType(filenameExtension: "flac") { types.append(flac) }
@@ -102,6 +105,7 @@ final class MediaImporter: NSObject {
         subtitlePickHandler = onPicked
         let picker = UIDocumentPickerViewController(forOpeningContentTypes: types, asCopy: true)
         picker.allowsMultipleSelection = false
+        subtitlePicker = picker
         picker.delegate = self
         picker.overrideUserInterfaceStyle = presenter.overrideUserInterfaceStyle
         picker.view.tintColor = presenter.view.tintColor
@@ -134,15 +138,7 @@ final class MediaImporter: NSObject {
     // MARK: - Internals
 
     private func mediaType(for url: URL) -> MediaType? {
-        let ext = url.pathExtension.lowercased()
-        switch ext {
-        case "mp4", "m4v", "mov", "mkv", "avi", "webm", "ts", "m2ts", "mpg", "mpeg", "3gp":
-            return .video
-        case "mp3", "m4a", "aac", "flac", "wav", "ogg", "opus", "wma", "aiff":
-            return .audio
-        default:
-            return nil
-        }
+        IosMediaFormats.shared.typeForFileName(fileName: url.lastPathComponent)
     }
 
     private func mediaItem(fromFileURL url: URL) -> MediaItem? {
@@ -197,10 +193,7 @@ final class MediaImporter: NSObject {
 
     private func merge(_ items: [MediaItem]) {
         guard !items.isEmpty else { return }
-        // Prefer upsert to keep existing entries
-        for item in items {
-            repo.upsert(media: item)
-        }
+        repo.mergeScannedMetadataBatch(media: items)
         enrichLocalMedia(items)
     }
 
@@ -209,13 +202,15 @@ final class MediaImporter: NSObject {
         guard !items.isEmpty else { return }
         Task { [weak self] in
             guard let self else { return }
+            var enrichedItems: [MediaItem] = []
             for item in items {
                 guard let url = URL(string: item.uri), let enriched = await self.enrichedMediaItem(from: url) else {
                     continue
                 }
                 // This preserves favorite/history/play-count fields owned by commonMain.
-                self.repo.mergeScannedMetadata(media: enriched)
+                enrichedItems.append(enriched)
             }
+            self.repo.mergeScannedMetadataBatch(media: enrichedItems)
         }
     }
 
@@ -396,10 +391,20 @@ final class MediaImporter: NSObject {
 }
 
 extension MediaImporter: UIDocumentPickerDelegate {
+    nonisolated func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
+        Task { @MainActor in
+            if controller === self.subtitlePicker {
+                self.subtitlePickHandler = nil
+                self.subtitlePicker = nil
+            }
+        }
+    }
+
     nonisolated func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         Task { @MainActor in
-            if let handler = self.subtitlePickHandler {
+            if controller === self.subtitlePicker, let handler = self.subtitlePickHandler {
                 self.subtitlePickHandler = nil
+                self.subtitlePicker = nil
                 if let url = urls.first {
                     handler(url.absoluteString)
                 }

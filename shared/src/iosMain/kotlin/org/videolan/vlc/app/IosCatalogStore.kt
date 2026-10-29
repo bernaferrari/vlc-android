@@ -1,5 +1,6 @@
 package org.videolan.vlc.app
 
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import okio.FileSystem
@@ -15,14 +16,56 @@ import org.videolan.vlc.player.PlaybackRate
 import platform.Foundation.NSApplicationSupportDirectory
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
+import platform.Foundation.NSLock
 import platform.Foundation.NSHomeDirectory
 import platform.Foundation.NSURL
 import platform.Foundation.NSUserDomainMask
+import platform.darwin.dispatch_async
+import platform.darwin.dispatch_queue_create
+import platform.darwin.dispatch_sync
 
 /** Durable, repository-owned storage for the iOS media catalog. */
 internal interface IosCatalogStore {
     fun read(): IosCatalogSnapshot?
     fun write(snapshot: IosCatalogSnapshot)
+    fun flush() = Unit
+}
+
+/** Serial background disk I/O; lifecycle flushes wait for every submitted snapshot. */
+@OptIn(ExperimentalForeignApi::class)
+internal class QueuedIosCatalogStore(private val delegate: IosCatalogStore) : IosCatalogStore {
+    private val queue = dispatch_queue_create("org.videolan.vlc.catalog", null)
+    private val failureLock = NSLock()
+    private var failure: Throwable? = null
+
+    override fun read(): IosCatalogSnapshot? {
+        flush()
+        return delegate.read()
+    }
+
+    override fun write(snapshot: IosCatalogSnapshot) {
+        throwIfFailed()
+        dispatch_async(queue) {
+            try {
+                delegate.write(snapshot)
+            } catch (error: Throwable) {
+                failureLock.lock()
+                try { failure = error } finally { failureLock.unlock() }
+            }
+        }
+    }
+
+    override fun flush() {
+        dispatch_sync(queue) {}
+        throwIfFailed()
+        delegate.flush()
+    }
+
+    private fun throwIfFailed() {
+        failureLock.lock()
+        val error = try { failure } finally { failureLock.unlock() }
+        if (error != null) throw IosCatalogStorageException("The VLC iOS catalog could not be saved", error)
+    }
 }
 
 internal class IosCatalogStorageException(

@@ -19,13 +19,9 @@ object PlaylistIndexHelper {
 
     fun adjustCurrentOnMove(currentIndex: Int, indexBefore: Int, indexAfter: Int): Int {
         return when (currentIndex) {
-            indexBefore -> {
-                var newIndex = indexAfter
-                if (indexAfter > indexBefore) --newIndex
-                newIndex
-            }
+            indexBefore -> indexAfter
             in indexAfter until indexBefore -> currentIndex + 1
-            in (indexBefore + 1) until indexAfter -> currentIndex - 1
+            in (indexBefore + 1)..indexAfter -> currentIndex - 1
             else -> currentIndex
         }
     }
