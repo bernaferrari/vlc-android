@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		04D62390FB3F076A51C9B942 /* VLCKit in Frameworks */ = {isa = PBXBuildFile; productRef = 335187A134082E869E357489 /* VLCKit */; };
+		0E02ED6E66962DCFD714EF26 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 056B529004D315332ADD06D3 /* Assets.xcassets */; };
 		3D520F3C55284134956991B7 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E48BF24C81066D3E9B9920D5 /* AppDelegate.swift */; };
 		42556EC0547AA003AEB1BA22 /* CarPlay.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 52EAA4B4703AC5A1E3678DE3 /* CarPlay.framework */; };
 		82389E7E85899602B1EE3A09 /* $(VLC_SHARED_FRAMEWORK_PATH) in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0EF723608B7873844B8658BC /* $(VLC_SHARED_FRAMEWORK_PATH) */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -38,6 +39,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		056B529004D315332ADD06D3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		0EF723608B7873844B8658BC /* $(VLC_SHARED_FRAMEWORK_PATH) */ = {isa = PBXFileReference; path = "$(VLC_SHARED_FRAMEWORK_PATH)"; sourceTree = "<group>"; };
 		22A11BAFEB8D4945A280B6B0 /* VlcKitCropBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VlcKitCropBridge.h; sourceTree = "<group>"; };
 		399847AE7520F5D9D0EC7CD7 /* VlcKitPipBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VlcKitPipBridge.swift; sourceTree = "<group>"; };
@@ -74,6 +76,7 @@
 			isa = PBXGroup;
 			children = (
 				E48BF24C81066D3E9B9920D5 /* AppDelegate.swift */,
+				056B529004D315332ADD06D3 /* Assets.xcassets */,
 				3F15D2B0CA4AC7F6830CBF4A /* Info.plist */,
 				9801AC43732CBD1D7D08019C /* IosMediaImportBridge.swift */,
 				6C8D2FCB5515A848D092E90D /* IosWifiSharingBridge.swift */,
@@ -125,6 +128,7 @@
 			buildPhases = (
 				34AAE39EA98009920A7DC869 /* Build VLCShared framework */,
 				CC7852A554FD9FCF7D2FD2B5 /* Sources */,
+				7EAE2B11832C44BBC608E7D6 /* Resources */,
 				096590C94E06A9124C47F5F9 /* Frameworks */,
 				27A1AA1C2FCC0F34C45CE0C9 /* Embed Frameworks */,
 			);
@@ -176,6 +180,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		7EAE2B11832C44BBC608E7D6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0E02ED6E66962DCFD714EF26 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
 		34AAE39EA98009920A7DC869 /* Build VLCShared framework */ = {
@@ -243,7 +258,7 @@
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "VLC imports videos and audio from your photo library for playback.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
 				INFOPLIST_KEY_UIFileSharingEnabled = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = NO;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -349,7 +364,7 @@
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "VLC imports videos and audio from your photo library for playback.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = NO;
 				INFOPLIST_KEY_UIFileSharingEnabled = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = NO;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

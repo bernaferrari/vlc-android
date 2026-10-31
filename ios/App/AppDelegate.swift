@@ -14,7 +14,6 @@ import VLCShared
 @main
 struct VLCiOSApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-    @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
         WindowGroup {
@@ -23,13 +22,12 @@ struct VLCiOSApp: App {
                 // SwiftUI scene delivery is the reliable path for document hand-off on modern
                 // iPadOS multi-window apps; UIKit delegate delivery remains as a fallback.
                 .onOpenURL { _ = importAndPlayIncomingMedia($0) }
-                .onChange(of: scenePhase) { _, phase in
-                    // SwiftUI scene apps do not consistently deliver UIApplicationDelegate's
-                    // background callbacks. Drain the catalog before the scene is suspended.
-                    if phase == .background {
-                        IosPlaybackService.companion.shared.saveSession()
-                        IosMediaLibrary.companion.shared.flushPendingWrites()
-                    }
+                // SwiftUI scene apps do not consistently deliver UIApplicationDelegate's
+                // background callbacks. Drain the catalog before the scene is suspended.
+                // (A notification, not onChange(of:), which needs iOS 17 for this signature.)
+                .onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)) { _ in
+                    IosPlaybackService.companion.shared.saveSession()
+                    IosMediaLibrary.companion.shared.flushPendingWrites()
                 }
         }
     }
@@ -40,10 +38,11 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
+        // Before Koin: the playback controller reads PiP support once, when it is created.
+        IosPipController.shared.setHandler(handler: VlcKitPipDrawable.shared)
         IosKoinBootstrap.shared.start()
         // Real decode and PiP when the pinned upstream VLCKit package is linked.
         IosPlaybackService.companion.shared.setBackend(backend: VlcKitBackend.shared)
-        IosPipController.shared.setHandler(handler: VlcKitPipDrawable.shared)
         IosRendererController.shared.setBackend(backend: VlcKitBackend.shared)
         // The same native package owns LAN discovery and folder parsing; the
         // Compose browser receives only portable entries through its repository.
@@ -157,8 +156,8 @@ struct RootContainer: View {
 /// UIKit bridge to Kotlin `MainViewController()` — full CMP library/player/settings.
 struct ComposeSharedRoot: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIViewController {
-        // The shared player route supplies the exact Compose-owned drawable.
-        IosPlaybackService.companion.shared.setBackend(backend: VlcKitBackend.shared)
+        // The backend is installed once in didFinishLaunching; the shared player route
+        // supplies the Compose-owned drawable when a video is shown.
         return MainViewControllerKt.MainViewController()
     }
 

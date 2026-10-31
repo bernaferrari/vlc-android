@@ -31,7 +31,9 @@ targets:
         MARKETING_VERSION: "4.0.0"
         CURRENT_PROJECT_VERSION: "3070100"
         INFOPLIST_FILE: App/Info.plist
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        # Launch screen and icon live in App/Assets.xcassets; Info.plist owns UILaunchScreen.
+        INFOPLIST_KEY_UILaunchScreen_Generation: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: NO
         INFOPLIST_KEY_CFBundleDisplayName: VLC
         INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"

@@ -75,6 +75,9 @@ class IosPlaybackService : PlaybackService {
      * Accepts the legacy VlcKitPlayerBackend and adapts it to [PlayerBackend].
      */
     fun setBackend(backend: VlcKitPlayerBackend?) {
+        // Re-registering the live backend must not release it: that would dispose the native
+        // player (and its audio session) the engine is about to keep using.
+        if (backend != null && backend === kitBackend) return
         kitBackend = backend
         if (backend == null) {
             engine.setBackend(null)

@@ -6,6 +6,7 @@
 //  used by upstream VLC iOS, not an AVPlayer or private-API workaround.
 //
 
+import AVKit
 import UIKit
 import VLCShared
 
@@ -80,7 +81,9 @@ final class VlcKitPipDrawable: NSObject,
 
     // MARK: shared Kotlin PipController adapter
 
-    var isSupported: Bool { true }
+    // Only offer PiP where iOS allows it (some devices, and the Simulator, do not); otherwise the
+    // player's menu would show an action that silently does nothing.
+    var isSupported: Bool { AVPictureInPictureController.isPictureInPictureSupported() }
     func enter() -> Bool {
         guard let pipController else { return false }
         pipController.startPictureInPicture()

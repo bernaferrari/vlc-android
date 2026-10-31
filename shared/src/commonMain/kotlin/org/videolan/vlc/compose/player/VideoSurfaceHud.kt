@@ -939,7 +939,7 @@ fun VideoHudOverlay(
                         )
                         if (showPictureInPicture) {
                             DropdownMenuItem(
-                                text = { Text(stringResource(Res.string.play_pip_title)) },
+                                text = { Text(stringResource(Res.string.picture_in_picture)) },
                                 leadingIcon = {
                                     Icon(MaterialSymbols.Filled.PictureInPictureAlt, contentDescription = null)
                                 },
