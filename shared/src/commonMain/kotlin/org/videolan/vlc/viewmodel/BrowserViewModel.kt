@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import org.videolan.vlc.model.FolderKind
 import org.videolan.vlc.model.MediaFolder
@@ -259,7 +260,8 @@ class BrowserViewModel(
                 repo.observeBrowserFavorites(),
                 repo.observeFolders(null),
                 if (capabilities.networkBrowsing && VlcSettings.browseNetwork.value) {
-                    repo.observeNetworkRoots()
+                    // LAN discovery takes seconds; never hold local storage back waiting for it.
+                    repo.observeNetworkRoots().onStart { emit(emptyList()) }
                 } else {
                     flowOf(emptyList())
                 },

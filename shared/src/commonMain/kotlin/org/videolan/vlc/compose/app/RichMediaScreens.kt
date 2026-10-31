@@ -196,6 +196,8 @@ fun RichMediaListPane(
     collectionHero: (@Composable () -> Unit)? = null,
     /** The one primary action of a root library, shown first in its chip row. */
     primaryAction: LibraryPrimaryAction? = null,
+    /** Names what the root count counts ("12 albums"); generic "items" otherwise. */
+    countLabel: (@Composable (Int) -> String)? = null,
     modifier: Modifier = Modifier,
     onRetry: () -> Unit = {},
 ) {
@@ -255,7 +257,7 @@ fun RichMediaListPane(
             val showCount = !useEmptyPresentation && !isDetail && state.query.isBlank() && !state.loading
             VLCPageHeader(
                 title = if (collectionHero != null && isDetail) "" else state.openedEntityTitle ?: state.containerTitle ?: title,
-                subtitle = ShellStrings.itemsCount(state.count).takeIf { showCount },
+                subtitle = if (showCount) countLabel?.invoke(state.count) ?: ShellStrings.itemsCount(state.count) else null,
                 navigationIcon = MaterialSymbols.AutoMirrored.Filled.ArrowBack.takeIf { isDetail },
                 navigationContentDescription = ShellStrings.back().takeIf { isDetail },
                 onNavigate = onCloseContainer.takeIf { isDetail },
@@ -304,7 +306,9 @@ fun RichMediaListPane(
                             expanded = showLibraryMenu,
                             onDismissRequest = { showLibraryMenu = false },
                         ) {
-                            if (emptyActionText != null) {
+                            // Library-wide actions (import, rescan) belong to the root, and Play all
+                            // only when no Play button or chip is already on screen.
+                            if (emptyActionText != null && !isDetail) {
                                 DropdownMenuItem(
                                     text = { Text(emptyActionText) },
                                     leadingIcon = {
@@ -316,7 +320,7 @@ fun RichMediaListPane(
                                     },
                                 )
                             }
-                            if (showPlayAllInMenu) {
+                            if (showPlayAllInMenu && collectionHero == null && primaryAction?.icon != MaterialSymbols.Filled.PlayArrow) {
                                 DropdownMenuItem(
                                     text = { Text(ShellStrings.playAll()) },
                                     leadingIcon = {
@@ -338,7 +342,7 @@ fun RichMediaListPane(
                                     onSelectAll()
                                 },
                             )
-                            if (state.supportsRescan) {
+                            if (state.supportsRescan && !isDetail) {
                                 DropdownMenuItem(
                                     text = { Text(ShellStrings.refresh()) },
                                     leadingIcon = {

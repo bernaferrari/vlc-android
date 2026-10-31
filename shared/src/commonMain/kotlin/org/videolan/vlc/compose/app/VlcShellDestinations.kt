@@ -49,6 +49,7 @@ internal fun VideoDestination(
     RichMediaListPane(
         state = state,
         title = ShellStrings.videosTitle(),
+        countLabel = { ShellStrings.videosCount(it) },
         emptyLabel = ShellStrings.noVideos(),
         emptyMessage = ShellStrings.noVideosMessage(),
         pagingFlow = viewModel.pagingFlow,
@@ -144,6 +145,7 @@ internal fun AudioDestination(
     RichMediaListPane(
         state = state,
         title = ShellStrings.audio(),
+        countLabel = { ShellStrings.audioCount(section, it) },
         emptyLabel = ShellStrings.noAudio(),
         emptyMessage = ShellStrings.noAudioMessage(),
         gridArtworkAspectRatio = 1f,

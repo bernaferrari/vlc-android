@@ -154,6 +154,7 @@ final class MediaImporter: NSObject {
         duration: Int64 = 0,
         artist: String? = nil,
         album: String? = nil,
+        tags: AudioTags = AudioTags(),
         artworkUri: String? = nil,
         width: Int32 = 0,
         height: Int32 = 0,
@@ -169,11 +170,11 @@ final class MediaImporter: NSObject {
             duration: max(0, duration),
             artist: artist?.nonBlank,
             album: album?.nonBlank,
-            albumArtist: nil,
-            genre: nil,
-            year: 0,
-            trackNumber: 0,
-            discNumber: 0,
+            albumArtist: tags.albumArtist?.nonBlank,
+            genre: tags.genre?.nonBlank,
+            year: Int32(tags.year),
+            trackNumber: Int32(tags.trackNumber),
+            discNumber: Int32(tags.discNumber),
             artworkUri: artworkUri,
             width: width,
             height: height,
@@ -220,8 +221,10 @@ final class MediaImporter: NSObject {
         let asset = AVURLAsset(url: url)
         async let loadedDuration = try? asset.load(.duration)
         async let loadedMetadata = try? asset.load(.commonMetadata)
+        async let loadedFormatMetadata = try? asset.load(.metadata)
         let duration = await loadedDuration
         let metadata = await loadedMetadata ?? []
+        let tags = type == .audio ? AudioTags(await loadedFormatMetadata ?? [], fileName: url.lastPathComponent) : AudioTags()
         let seconds = duration?.seconds ?? 0
         let durationMs = seconds.isFinite && seconds > 0 ? Int64(seconds * 1_000) : 0
         var size = CGSize.zero
@@ -238,6 +241,7 @@ final class MediaImporter: NSObject {
             duration: durationMs,
             artist: commonText(metadata, key: .commonKeyArtist),
             album: commonText(metadata, key: .commonKeyAlbumName),
+            tags: tags,
             artworkUri: artwork?.absoluteString,
             width: Int32(size.width),
             height: Int32(size.height),
@@ -430,5 +434,52 @@ extension MediaImporter: PHPickerViewControllerDelegate {
             picker.dismiss(animated: true)
             self.importPhotoResults(results)
         }
+    }
+}
+
+/// Album-ordering tags AVFoundation leaves out of `commonMetadata`: read from the format's own
+/// atoms (iTunes for MP4/M4A, ID3 for MP3), so albums play in order and genres/years group.
+struct AudioTags {
+    var trackNumber = 0
+    var discNumber = 0
+    var albumArtist: String?
+    var genre: String?
+    var year = 0
+
+    init() {}
+
+    init(_ items: [AVMetadataItem], fileName: String) {
+        func first(_ ids: [AVMetadataIdentifier]) -> AVMetadataItem? {
+            ids.lazy.compactMap { id in items.first { $0.identifier == id } }.first
+        }
+        func text(_ ids: [AVMetadataIdentifier]) -> String? {
+            first(ids)?.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        trackNumber = Self.ordinal(first([.iTunesMetadataTrackNumber, .id3MetadataTrackNumber]))
+        discNumber = Self.ordinal(first([.iTunesMetadataDiscNumber, .id3MetadataPartOfASet]))
+        albumArtist = text([.iTunesMetadataAlbumArtist, .id3MetadataBand])
+        genre = text([.iTunesMetadataUserGenre, .quickTimeMetadataGenre, .id3MetadataContentType])
+        let date = text([.iTunesMetadataReleaseDate, .id3MetadataYear, .id3MetadataRecordingTime,
+                         .quickTimeMetadataYear, .commonIdentifierCreationDate])
+        year = date.flatMap { Int($0.prefix(4)) } ?? 0
+        if trackNumber == 0 {
+            // "07 Song.m4a" / "07 - Song.mp3": the common convention for untagged album rips.
+            let digits = fileName.prefix { $0.isNumber }
+            if (1...3).contains(digits.count), fileName.dropFirst(digits.count).first.map({ " ._-".contains($0) }) == true {
+                trackNumber = Int(digits) ?? 0
+            }
+        }
+    }
+
+    /// "3/12" (ID3), a number, or iTunes' packed big-endian (0, 0, track, track, total, total…).
+    private static func ordinal(_ item: AVMetadataItem?) -> Int {
+        guard let item else { return 0 }
+        if let string = item.stringValue, let n = Int(string.split(separator: "/").first ?? "") { return n }
+        if let number = item.numberValue { return number.intValue }
+        if let data = item.dataValue, data.count >= 4 {
+            let bytes = [UInt8](data)
+            return Int(bytes[2]) << 8 | Int(bytes[3])
+        }
+        return 0
     }
 }

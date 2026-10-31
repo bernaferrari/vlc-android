@@ -57,6 +57,7 @@
     <string name="video_app_switch_title">Background/PiP mode</string>
     <string name="video_app_switch_summary">Select VLC behavior when you switch to other application from video playback</string>
     <string name="play_pip_title">Play videos in Picture-in-picture mode</string>
+    <string name="picture_in_picture">Picture-in-picture</string>
     <string name="play_as_audio_background">Play videos in background</string>
     <string name="append">Add to play queue</string>
     <string name="insert_next">Insert next</string>
@@ -1555,6 +1556,18 @@
     <string name="items_plus_count">%1$d+ items</string>
     <string name="default_sort">Default</string>
     <string name="file_size">File size</string>
+    <plurals name="tracks_count">
+        <item quantity="one">%1$d track</item>
+        <item quantity="other">%1$d tracks</item>
+    </plurals>
+    <plurals name="artists_count">
+        <item quantity="one">%1$d artist</item>
+        <item quantity="other">%1$d artists</item>
+    </plurals>
+    <plurals name="genres_count">
+        <item quantity="one">%1$d genre</item>
+        <item quantity="other">%1$d genres</item>
+    </plurals>
     <plurals name="items_count">
         <item quantity="one">%1$d item</item>
         <item quantity="other">%1$d items</item>

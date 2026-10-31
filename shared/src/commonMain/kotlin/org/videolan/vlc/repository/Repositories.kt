@@ -162,7 +162,7 @@ interface MediaRepository {
                     trackCount = members.size,
                     albumCount = members.mapNotNull { it.album?.takeIf(String::isNotBlank) }.distinct().size,
                     artworkUri = members.firstNotNullOfOrNull { it.artworkUri?.takeIf(String::isNotBlank) },
-                    subtitle = if (kind == AudioEntityKind.ALBUM) members.firstNotNullOfOrNull { it.artist?.takeIf(String::isNotBlank) } else null,
+                    subtitle = if (kind == AudioEntityKind.ALBUM) members.albumByline() else null,
                     isFavorite = members.all { it.isFavorite },
                 )
             }
@@ -183,9 +183,21 @@ interface MediaRepository {
         tracks.filter { track ->
             track.audioEntityTitle(kind)?.let { audioEntityId(kind, it) } == entityId &&
                 (!onlyFavorites || track.isFavorite)
+        }.let { members ->
+            // An album plays in its own order; other groupings keep the caller's ordering.
+            if (kind == AudioEntityKind.ALBUM) {
+                members.sortedWith(compareBy({ it.discNumber }, { it.trackNumber }, { it.displayTitle.lowercase() }))
+            } else {
+                members
+            }
         }
     }
 }
+
+/** The tagged album artist, else the one artist every track shares (none for a mixed album). */
+private fun List<MediaItem>.albumByline(): String? =
+    firstNotNullOfOrNull { it.albumArtist?.takeIf(String::isNotBlank) }
+        ?: mapNotNull { it.artist?.takeIf(String::isNotBlank) }.distinct().singleOrNull()
 
 private fun MediaItem.audioEntityTitle(kind: AudioEntityKind): String? = when (kind) {
     AudioEntityKind.ALBUM -> album

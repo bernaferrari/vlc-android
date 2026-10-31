@@ -95,7 +95,7 @@ fun BrowserRichPane(
                 }
             }
         } else VLCPageHeader(
-            title = state.currentFolder?.title ?: ShellStrings.browser(),
+            title = state.currentFolder?.title ?: ShellStrings.browse(),
             navigationIcon = MaterialSymbols.AutoMirrored.Filled.ArrowBack.takeIf { state.stack.isNotEmpty() },
             navigationContentDescription = ShellStrings.up(),
             onNavigate = onUp.takeIf { state.stack.isNotEmpty() },

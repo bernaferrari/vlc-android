@@ -6,6 +6,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.videolan.vlc.compose.theme.VLCThemeAccent
 import vlc_android.shared.generated.resources.Res
 import vlc_android.shared.generated.resources.*
+import org.videolan.vlc.viewmodel.AudioSection
 
 /**
  * Shared chrome labels backed by composeResources.
@@ -216,6 +217,15 @@ object ShellStrings {
     @Composable fun byFolder(): String = stringResource(Res.string.by_folder)
     @Composable fun browser(): String = stringResource(Res.string.browser)
     @Composable fun itemsCount(count: Int): String = pluralStringResource(Res.plurals.items_count, count, count)
+    @Composable fun videosCount(count: Int): String = pluralStringResource(Res.plurals.videos_quantity, count, count)
+    /** What a root audio tab counts: tracks, artists, albums or genres. */
+    @Composable fun audioCount(section: AudioSection, count: Int): String = when (section) {
+        AudioSection.ARTISTS -> pluralStringResource(Res.plurals.artists_count, count, count)
+        AudioSection.ALBUMS -> pluralStringResource(Res.plurals.albums_quantity, count, count)
+        AudioSection.GENRES -> pluralStringResource(Res.plurals.genres_count, count, count)
+        AudioSection.TRACKS -> pluralStringResource(Res.plurals.tracks_count, count, count)
+        AudioSection.PLAYLISTS -> itemsCount(count)
+    }
     @Composable fun groupsCount(count: Int): String = pluralStringResource(Res.plurals.groups_count, count, count)
     @Composable fun itemsPlusCount(count: Int): String = stringResource(Res.string.items_plus_count, count)
     @Composable fun selectionCount(action: String, count: Int): String =
