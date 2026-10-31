@@ -173,6 +173,13 @@ class FakePlaybackService : PlaybackService {
         observers.forEach { it.onStateChanged(_state.value) }
     }
 
+    /** Simulates the native player reaching the end of the current item. */
+    fun finishCurrent() {
+        val item = _playlist.value.current ?: return
+        _state.value = PlaybackState.Ended(item)
+        observers.forEach { it.onStateChanged(_state.value) }
+    }
+
     override fun stop() {
         _state.value = PlaybackState.Stopped(_playlist.value.current)
         observers.forEach { it.onStateChanged(_state.value) }

@@ -1,8 +1,13 @@
 package org.videolan.vlc.compose.player
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import org.videolan.vlc.viewmodel.PlayerViewModel
 
@@ -25,6 +30,13 @@ fun VlcPlayerScreen(
     surface: PlayerSurface = FallbackPlayerSurface,
 ) {
     val state by viewModel.state.collectAsState()
+    val close by rememberUpdatedState(onClose)
+    // Nothing left to play: leave the player rather than idle on an empty black surface. Only a
+    // finish this screen saw happen counts, so a stale flag never closes a player just opened.
+    var sawUnfinished by remember { mutableStateOf(false) }
+    LaunchedEffect(state.playbackFinished) {
+        if (!state.playbackFinished) sawUnfinished = true else if (sawUnfinished) close()
+    }
     VideoSurfaceWithHud(
         title = state.title,
         subtitle = state.subtitle,

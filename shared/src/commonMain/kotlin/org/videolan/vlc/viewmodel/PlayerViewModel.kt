@@ -55,6 +55,11 @@ data class PlayerUiState(
     val chapters: PlaybackChapters = PlaybackChapters(),
     /** The native host can transition the active video to system Picture-in-Picture. */
     val pictureInPictureAvailable: Boolean = false,
+    /**
+     * A session that was playing has finished with nothing left to show: a video reached its end,
+     * or the queue emptied. The full-screen player closes instead of idling on a black surface.
+     */
+    val playbackFinished: Boolean = false,
     val rendererSelectionAvailable: Boolean = false,
     val renderers: List<RendererInfo> = emptyList(),
     val selectedRendererId: String? = null,
@@ -86,6 +91,7 @@ class PlayerViewModel(
 ) : VlcViewModel() {
 
     private var observedVideoOutput: Boolean? = null
+    private var sawPlayback = false
 
     private val _state = MutableStateFlow(
         PlayerUiState(
@@ -171,8 +177,18 @@ class PlayerViewModel(
                     is PlaybackState.Ended -> st.item
                     else -> pl.current
                 }
+                if (st is PlaybackState.Playing) sawPlayback = true
+                // The engine ends a queue as Ended→Stopped back to back, so the flow may only
+                // deliver Stopped: a stopped video has nothing left to show either.
+                val finished = sawPlayback && when (st) {
+                    is PlaybackState.Ended -> !st.item.isAudio
+                    is PlaybackState.Stopped -> st.item?.isAudio != true
+                    is PlaybackState.Idle -> true
+                    else -> false
+                }
                 _state.update {
                     it.copy(
+                        playbackFinished = finished,
                         title = item?.displayTitle.orEmpty(),
                         subtitle = VlcTextUtils.separatedString(
                             arrayOf(item?.artist, item?.album),

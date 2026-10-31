@@ -266,6 +266,40 @@ class PlayerViewModelTest {
     }
 
     @Test
+    fun finishedVideoAsksThePlayerToClose() = runTest {
+        val playback = FakePlaybackService()
+        val vm = PlayerViewModel(playback)
+        vm.play(FakeCatalog.items.first { !it.isAudio })
+        vm.state.first { it.playing }
+        assertFalse(vm.state.value.playbackFinished)
+        playback.finishCurrent()
+        assertTrue(vm.state.first { !it.playing }.playbackFinished)
+        vm.onCleared()
+    }
+
+    @Test
+    fun videoQueueStoppingAtItsEndClosesThePlayer() = runTest {
+        val playback = FakePlaybackService()
+        val vm = PlayerViewModel(playback)
+        vm.play(FakeCatalog.items.first { !it.isAudio })
+        vm.state.first { it.playing }
+        playback.stop()
+        assertTrue(vm.state.first { !it.playing }.playbackFinished)
+        vm.onCleared()
+    }
+
+    @Test
+    fun finishedAudioTrackKeepsThePlayerForReplay() = runTest {
+        val playback = FakePlaybackService()
+        val vm = PlayerViewModel(playback)
+        vm.play(FakeCatalog.items.first { it.isAudio })
+        vm.state.first { it.playing }
+        playback.finishCurrent()
+        assertFalse(vm.state.first { !it.playing }.playbackFinished)
+        vm.onCleared()
+    }
+
+    @Test
     fun pictureInPictureIsCapabilityGatedInSharedPlayerState() = runTest {
         val playback = FakePlaybackService()
         val pip = RecordingPipController()
