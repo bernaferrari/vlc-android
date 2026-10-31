@@ -22,3 +22,19 @@ val LocalShellBottomInset = staticCompositionLocalOf { 0.dp }
  * with the platform's back button, instead of adding a second toolbar row.
  */
 val LocalNativeBarHeight = staticCompositionLocalOf { 0.dp }
+
+/**
+ * A native host that draws a pushed screen's toolbar actions itself (iOS: bar button items in the
+ * Liquid Glass navigation bar). [supports] must be pure: an action set the host cannot render
+ * natively (an icon without a platform symbol) falls back to the Compose action bar.
+ */
+interface NativeBarActions {
+    fun supports(actions: List<VLCConnectedIconAction>): Boolean
+    fun publish(actions: List<VLCConnectedIconAction>)
+}
+
+/** Set by the native host on each screen; [VLCPageHeader] scopes it to its own actions. */
+val LocalNativeBarActionsHost = staticCompositionLocalOf<NativeBarActions?> { null }
+
+/** Non-null only inside a native-bar page header's action slot. */
+internal val LocalNativeBarActions = staticCompositionLocalOf<NativeBarActions?> { null }

@@ -1,8 +1,6 @@
 package org.videolan.vlc.compose.components
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.material3.Surface
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +13,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -45,13 +44,14 @@ fun VLCPageHeader(
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     if (LocalUseNativeNavigation.current && navigationIcon != null) {
-        // The platform bar shows back and title; this page's actions join it as one pill on the
-        // trailing edge of the same band, so there is never a second toolbar row.
+        // The platform bar shows back and title. Actions go to the native bar when the host can
+        // draw them; otherwise they stay on the trailing edge of the same band, never a second row.
+        // Menus the actions open anchor here, just under the native buttons.
         Box(
             modifier = modifier.fillMaxWidth().height(LocalNativeBarHeight.current).padding(horizontal = 12.dp),
             contentAlignment = Alignment.CenterEnd,
         ) {
-            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.92f)) {
+            CompositionLocalProvider(LocalNativeBarActions provides LocalNativeBarActionsHost.current) {
                 Row(verticalAlignment = Alignment.CenterVertically, content = actions)
             }
         }

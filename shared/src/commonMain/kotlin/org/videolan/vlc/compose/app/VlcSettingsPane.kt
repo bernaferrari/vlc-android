@@ -60,6 +60,8 @@ import org.videolan.tools.VIDEO_RESUME_PLAYBACK
 import org.videolan.vlc.compose.components.VLCIconChip
 import org.videolan.vlc.compose.components.VLCPageHeader
 import org.videolan.vlc.compose.components.vlcSelectionWash
+import org.videolan.vlc.compose.components.VLCConnectedIconAction
+import org.videolan.vlc.compose.components.VLCConnectedIconActionBar
 import org.videolan.vlc.compose.icons.Icon
 import org.videolan.vlc.compose.icons.MaterialSymbols
 import org.videolan.vlc.compose.theme.VLCAppTheme
@@ -199,9 +201,15 @@ internal fun SettingsSectionInfoAction(vm: SettingsViewModel, sectionId: String)
     val contributed by vm.contributed.collectAsStateWithLifecycle()
     val section = contributed.section(sectionId) ?: return
     if (section.infoActionKey == null) return
-    IconButton(onClick = { vm.infoAction(section) }) {
-        Icon(MaterialSymbols.Filled.Info, contentDescription = section.infoActionLabel ?: ShellStrings.info())
-    }
+    VLCConnectedIconActionBar(
+        listOf(
+            VLCConnectedIconAction(
+                icon = MaterialSymbols.Filled.Info,
+                contentDescription = section.infoActionLabel ?: ShellStrings.info(),
+                onClick = { vm.infoAction(section) },
+            ),
+        ),
+    )
 }
 
 /** Shown in the detail pane of a wide layout before a section is chosen. */

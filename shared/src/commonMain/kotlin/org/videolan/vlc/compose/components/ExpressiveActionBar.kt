@@ -13,6 +13,9 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -53,8 +56,28 @@ fun VLCConnectedIconActionBar(
     actions: List<VLCConnectedIconAction>,
     modifier: Modifier = Modifier,
 ) {
+    val nativeBar = LocalNativeBarActions.current
+    if (nativeBar != null && nativeBar.supports(actions)) {
+        // Drawn by the platform bar; clicks always reach the latest lambdas.
+        SideEffect { nativeBar.publish(actions) }
+        DisposableEffect(nativeBar) { onDispose { nativeBar.publish(emptyList()) } }
+        return
+    }
     if (actions.isEmpty()) return
 
+    val row = @Composable {
+        IconActionRow(actions, modifier)
+    }
+    if (nativeBar != null) {
+        // Fallback beside a native bar: one floating pill, matching the platform's glass group.
+        Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.92f)) { row() }
+    } else {
+        row()
+    }
+}
+
+@Composable
+private fun IconActionRow(actions: List<VLCConnectedIconAction>, modifier: Modifier) {
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(2.dp),

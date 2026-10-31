@@ -51,6 +51,7 @@ import org.jetbrains.compose.resources.getString
 import org.videolan.tools.VlcSettings
 import org.videolan.vlc.app.VlcKoin
 import org.videolan.vlc.compose.components.LocalShellBottomInset
+import org.videolan.vlc.compose.components.LocalNativeBarActionsHost
 import org.videolan.vlc.compose.components.LocalNativeBarHeight
 import org.videolan.vlc.compose.components.LocalUseNativeNavigation
 import org.videolan.vlc.compose.icons.Icon
@@ -160,7 +161,8 @@ internal class IosNativeShell(private val playerSurface: PlayerSurface) {
         lateinit var controller: UIViewController
         val navigator = StackNavigator(route, holder)
         controller = ComposeUIViewController {
-            VLCAppTheme {
+            val barButtons = remember { NativeBarButtons(controller) }
+            CompositionLocalProvider(LocalNativeBarActionsHost provides barButtons) { VLCAppTheme {
                 val models = remember { newScreenModels() }
                 DisposableEffect(models) { onDispose { models.clear() } }
                 val title = shellRouteTitle(route, models)
@@ -170,7 +172,7 @@ internal class IosNativeShell(private val playerSurface: PlayerSurface) {
                     if (route.hasCollectionHero()) controller.navigationItem.titleView = UIView()
                 }
                 NativeScreenFrame(route, models, navigator)
-            }
+            } }
         }
         return controller
     }
