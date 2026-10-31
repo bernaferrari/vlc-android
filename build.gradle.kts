@@ -89,8 +89,8 @@ extra.apply {
     set("appId", "org.videolan.vlc")
     set("versionCode", versionCode)
     set("versionName", versionName)
-    set("libvlcVersion", "4.0.0-eap25")
-    set("medialibraryVersion", "0.13.18-vlc4")
+    set("libvlcVersion", "4.0.0-eap29")
+    set("medialibraryVersion", "0.13.22-vlc4")
     set("toolchainNdkVersion", localProperties.getProperty("android.ndkFullVersion") ?: "28.2.13676358")
     set("toolchainNdkPath", localProperties.getProperty("android.ndkPath"))
 }
